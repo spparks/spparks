@@ -1,0 +1,19 @@
+# SPPARKS App "grain"
+
+# app_style	grain Nx Ny Ns 12345 = lattice of size Nx by Ny, Ns = spins, RN
+# temperature	300.0 = temp (degrees K)
+# stats		N = print stats every N sweeps
+# dump		N file = print snapshot to file every N steps
+# run		N = run N sweeps
+
+# 2d vanilla grain growth
+
+app_style	grain 100 100 100 12345
+
+temperature	0.0
+
+stats           100
+dump		100 tmp.grain
+
+run		10000
+

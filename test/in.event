@@ -1,0 +1,11 @@
+# Simple A + B <-> C reaction via Gillepsie SSA
+
+app_style	test
+solve_style	next_event_linear_search  12345
+#solve_style	next_event_tree_search  12345
+
+event           1000
+
+stats           100.0
+
+run		1000.0
