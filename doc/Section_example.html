@@ -1,0 +1,63 @@
+<HTML>
+<CENTER><A HREF = "Section_howto.html">Previous Section</A> - <A HREF = "http://KMC.sandia.gov">KMC WWW Site</A> - <A HREF = "Manual.html">KMC
+Documentation</A> - <A HREF = "Section_commands.html#comm">KMC Commands</A> - <A HREF = "Section_perf.html">Next
+Section</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>5. Example problems 
+</H3>
+<P>The KMC distribution includes an examples sub-directory with
+several sample problems.  Each problem is in a sub-directory of its
+own.  Most are 2d models so that they run quickly, requiring at most a
+couple of minutes to run on a desktop machine.  Each problem has an
+input script (in.*) and produces a log file (log.*) and dump file
+(dump.*) when it runs.  Some use a data file (data.*) of initial
+coordinates as additional input.  A few sample log file outputs on
+different machines and different numbers of processors are included in
+the directories to compare your answers to.  E.g. a log file like
+log.crack.foo.P means it ran on P processors of machine "foo".
+</P>
+<P>The dump files produced by the example runs can be animated using the
+xmovie tool described in the <A HREF = "Section_tools.html">Tools section</A>.  MPEG
+versions of most of the xmovie animations are also viewable from the
+Examples page of the <A HREF = "lws">KMC WWW Site</A>.
+</P>
+<P>These are the sample problems in the examples sub-directories:
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR><TD >crack</TD><TD >    crack propagation in a 2d solid</TD></TR>
+<TR><TD >shear</TD><TD >    sideways shear applied to 2d solid, with and without a void 
+</TD></TR></TABLE></DIV>
+
+<P>Here is how you might run and visualize one of the sample problems:
+</P>
+<PRE>cd indent
+cp ../../src/lmp_linux .           # copy KMC executable to this dir
+lmp_linux < in.indent              # run the problem 
+</PRE>
+<P>Running the simulation produces the files <I>dump.indent</I> and
+<I>log.kmc</I>.  You can visualize the dump file as follows:
+</P>
+<PRE>../../tools/xmovie/xmovie -scale dump.indent 
+</PRE>
+<P>There is also a directory "couple" in the examples sub-directory,
+which contains a stand-alone code umbrella.cpp that links KMC as a
+library.  The README describes how to build the code.  The code itself
+runs KMC on a subset of processors, sets up a KMC problem
+by invoking KMC input script commands one at a time, does
+a run, grabs atom coordinates, changes one atom position, puts
+them back into KMC, and does another run.
+</P>
+<P>This illustrates how an umbrella code could include new models and
+physics while using KMC to perform MD, or how the umbrella code
+could call both KMC and some other code to perform a coupled
+calculation.
+</P>
+</HTML>

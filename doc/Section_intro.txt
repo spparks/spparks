@@ -1,0 +1,301 @@
+"Previous Section"_Manual.html - "KMC WWW Site"_kws - "KMC
+Documentation"_kd - "KMC Commands"_kc - "Next
+Section"_Section_start.html :c
+
+:link(kws,http://KMC.sandia.gov)
+:link(kd,Manual.html)
+:link(kc,Section_commands.html#comm)
+
+:line
+
+1. Introduction :h3
+
+These sections provide an overview of what KMC can and can't do,
+describe what it means for KMC to be an open-source code, and
+acknowledge the funding and people who have contributed to KMC over
+the years.
+
+1.1 "What is KMC"_#1_1
+1.2 "KMC features"_#1_2
+1.3 "KMC non-features"_#1_3
+1.4 "Open source distribution"_#1_4
+1.5 "Acknowledgments and citations"_#1_5 :all(b)
+
+:line
+
+1.1 What is KMC :link(1_1),h4
+
+KMC is a kinetic Monte Carlo code.
+
+KMC runs efficiently on single-processor desktop or laptop
+machines, but is designed for parallel computers.  It will run on any
+parallel machine that compiles C++ and supports the "MPI"_mpi
+message-passing library.  This includes distributed- or shared-memory
+parallel machines and Beowulf-style clusters.
+
+:link(mpi,http://www-unix.mcs.anl.gov/mpi)
+
+KMC is a freely-available open-source code, distributed under the
+terms of the "GNU Public License"_gnu, which means you can use or
+modify the code however you wish.  See "this section"_#1_4 for a brief
+discussion of the open-source philosophy.
+
+:link(gnu,http://www.gnu.org/copyleft/gpl.html)
+
+KMC is designed to be easy to modify or extend with new
+capabilities, such as new force fields, atom types, boundary
+conditions, or diagnostics.  See "this section"_Section_modify.html for
+more details.
+
+KMC is written in C++.
+
+:link(snl,http://www.sandia.gov)
+
+In the most general sense, KMC integrates Newton's equations of motion
+for collections of atoms, molecules, or macroscopic particles that
+interact via short- or long-range forces with a variety of initial
+and/or boundary conditions.  For computational efficiency KMC uses
+neighbor lists to keep track of nearby particles.  The lists are
+optimized for systems with particles that are repulsive at short
+distances, so that the local density of particles never becomes too
+large.  On parallel machines, KMC uses spatial-decomposition
+techniques to partition the simulation domain into small 3d
+sub-domains, one of which is assigned to each processor.  Processors
+communicate and store "ghost" atom information for atoms that border
+their sub-domain.  KMC is most efficient (in a parallel sense) for
+systems whose particles fill a 3d rectangular box with roughly uniform
+density.  Papers with technical details of the algorithms used in KMC
+are listed in "this section"_#1_5.
+
+:line
+
+1.2 KMC features :link(1_2),h4
+
+This section highlights KMC features, with pointers to specific
+commands which give more details.  If KMC doesn't have your
+favorite interatomic potential, boundary condition, or atom type, see
+"this section"_Section_modify.html, which describes how you can add it to
+KMC.
+
+Kinds of systems KMC can simulate: :h4
+("atom style"_atom_style.html command)
+
+
+Force fields: :h4
+("pair style"_pair_style.html, "bond style"_bond_style.html,
+"angle style"_angle_style.html, "dihedral style"_dihedral_style.html,
+"improper style"_improper_style.html, "kspace style"_kspace_style.html
+commands)
+
+Creation of atoms: :h4
+("read_data"_read_data.html, "lattice"_lattice.html,
+"create_atoms"_create_atoms.html, "delete_atoms"_delete_atoms.html,
+"displace_atoms"_displace_atoms.html commands)
+
+Output: :h4
+("dump"_dump.html, "restart"_restart.html commands) 
+
+  binary restart files
+  text dump files of atom coords, velocities, other per-atom attributes
+  atom snapshots in native, XYZ, XTC, DCD formats
+  per-atom energy, stress, centro-symmetry parameter :ul
+
+Pre- and post-processing: :h4
+
+Our group has also written and released a separate toolkit called
+"Pizza.py"_pizza which provides tools for doing setup, analysis,
+plotting, and visualization for KMC simulations.  Pizza.py is
+written in "Python"_python and is available for download from "the
+Pizza.py WWW site"_pizza.
+
+:link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
+:link(python,http://www.python.org)
+
+:line
+
+1.3 KMC non-features :link(1_3),h4
+
+KMC is designed to efficiently compute Newton's equations of motion
+for a system of interacting particles.  Many of the tools needed to
+pre- and post-process the data for such simulations are not included
+in the KMC kernel for several reasons:
+
+the desire to keep KMC simple
+they are not parallel operations
+other codes already do them
+limited development resources :ul
+
+Specifically, KMC itself does not:
+
+run thru a GUI
+build molecular systems
+assign force-field coefficients automagically
+perform sophisticated analyses of your MD simulation
+visualize your MD simulation
+plot your output data :ul
+
+A few tools for pre- and post-processing tasks are provided as part of
+the KMC package; they are described in "this
+section"_Section_tools.html.  However, many people use other codes or
+write their own tools for these tasks.
+
+As noted above, our group has also written and released a separate
+toolkit called "Pizza.py"_pizza which addresses some of the listed
+bullets.  It provides tools for doing setup, analysis, plotting, and
+visualization for KMC simulations.  Pizza.py is written in
+"Python"_python and is available for download from "the Pizza.py WWW
+site"_pizza.
+
+KMC requires as input a list of initial atom coordinates and types,
+molecular topology information, and force-field coefficients assigned
+to all atoms and bonds.  KMC will not build molecular systems and
+assign force-field parameters for you.
+
+Similarly, KMC creates output files in a simple format.  Most users
+post-process these files with their own analysis tools or re-format
+them for input into other programs, including visualization packages.
+If you are convinced you need to compute something on-the-fly as
+KMC runs, see "this section"_Section_modify.html for a discussion of how you
+can use the "dump"_dump.html and "fix"_fix.html commands to print out
+data of your choosing.  Keep in mind that complicated computations can
+slow down the molecular dynamics timestepping, particularly if the
+computations are not parallel, so it is often better to leave such
+analysis to post-processing codes.
+
+A very simple (yet fast) visualizer is provided with the KMC
+package - see the "xmovie"_Section_tools.html#xmovie tool in "this
+section"_Section_tools.html.  It creates xyz projection views of
+atomic coordinates and animates them.  We find it very useful for
+debugging purposes.  For high-quality visualization we recommend the
+following packages:
+
+"Raster3d"_http://www.bmsc.washington.edu/raster3d/raster3d.html
+"RasMol"_http://www.openrasmol.org
+"VMD"_http://www.ks.uiuc.edu/Research/vmd
+"AtomEye"_http://164.107.79.177/Archive/Graphics/A :ul
+
+Other features that KMC does not yet (and may never) support are
+discussed in "this section"_Section_history.html.
+
+:line
+
+1.4 Open source distribution :link(1_4),h4
+
+KMC comes with no warranty of any kind.  As each source file states
+in its header, it is a copyrighted code that is distributed free-of-
+charge, under the terms of the "GNU Public License"_gnu (GPL).  This
+is often referred to as open-source distribution - see
+"www.gnu.org"_gnuorg or "www.opensource.org"_opensource for more
+details.  The legal text of the GPL is in the LICENSE file that is
+included in the KMC distribution.
+
+:link(gnuorg,http://www.gnu.org)
+:link(opensource,http://www.opensource.org)
+
+Here is a summary of what the GPL means for KMC users:
+
+(1) Anyone is free to use, modify, or extend KMC in any way they
+choose, including for commercial purposes.
+
+(2) If you distribute a modified version of KMC, it must remain
+open-source, meaning you distribute it under the terms of the GPL.
+You should clearly annotate such a code as a derivative version of
+KMC.
+
+(3) If you release any code that includes KMC source code, then it
+must also be open-sourced, meaning you distribute it under the terms
+of the GPL.
+
+(4) If you give KMC files to someone else, the GPL LICENSE file and
+source file headers (including the copyright and GPL notices) should
+remain part of the code.
+
+In the spirit of an open-source code, these are various ways you can
+contribute to making KMC better.  You can send email to the
+"developers"_http://KMC.sandia.gov/authors.html on any of these
+items.
+
+Point prospective users to the "KMC WWW Site"_lws.  Mention it in
+talks or link to it from your WWW site. :ulb,l
+
+If you find an error or omission in this manual or on the "KMC WWW
+Site"_lws, or have a suggestion for something to clarify or include,
+send an email to the
+"developers"_http://KMC.sandia.gov/authors.html. :l
+
+If you find a bug, "this section"_Section_errors.html#9_2 describes
+how to report it. :l
+
+If you publish a paper using KMC results, send the citation (and
+any cool pictures or movies if you like) to add to the Publications,
+Pictures, and Movies pages of the "KMC WWW Site"_lws, with links
+and attributions back to you. :l
+
+Create a new Makefile.machine that can be added to the src/MAKE
+directory. :l
+
+The tools sub-directory of the KMC distribution has various
+stand-alone codes for pre- and post-processing of KMC data.  More
+details are given in "this section"_Section_tools.html.  If you write
+a new tool that users will find useful, it can be added to the KMC
+distribution. :l
+
+KMC is designed to be easy to extend with new code for features
+like potentials, boundary conditions, diagnostic computations, etc.
+"This section"_Section_modify.html gives details.  If you add a
+feature of general interest, it can be added to the KMC
+distribution. :l
+
+The Benchmark page of the "KMC WWW Site"_lws lists KMC
+performance on various platforms.  The files needed to run the
+benchmarks are part of the KMC distribution.  If your machine is
+sufficiently different from those listed, your timing data can be
+added to the page. :l
+
+You can send feedback for the User Comments page of the "KMC WWW
+Site"_lws.  It might be added to the page.  No promises. :l
+
+Cash.  Small denominations, unmarked bills preferred.  Paper sack OK.
+Leave on desk.  VISA also accepted.  Chocolate chip cookies
+encouraged. :ule,l
+
+:line
+
+1.5 Acknowledgments and citations :h4,link(1_5)
+
+KMC development has been funded by the "US Department of
+Energy"_doe (DOE), through its LDRD program.
+
+:link(doe,http://www.doe.gov)
+
+The following papers describe the parallel algorithms used in KMC.
+
+S. J. Plimpton, [Fast Parallel Algorithms for Short-Range Molecular
+Dynamics], J Comp Phys, 117, 1-19 (1995).
+
+S. J. Plimpton, R. Pollock, M. Stevens, [Particle-Mesh Ewald and
+rRESPA for Parallel Molecular Dynamics Simulations], in Proc of the
+Eighth SIAM Conference on Parallel Processing for Scientific
+Computing, Minneapolis, MN (March 1997).
+
+If you use KMC results in your published work, please cite the J
+Comp Phys reference and include a pointer to the "KMC WWW Site"_lws
+(http://KMC.sandia.gov).  A paper describing the latest version of
+KMC is in the works; when it appears in print, you can check the
+"KMC WWW Site"_lws for a more current citation.
+
+If you send us information about your publication, we'll be pleased to
+add it to the Publications page of the "KMC WWW Site"_lws.  Ditto for
+a picture or movie for the Pictures or Movies pages.
+
+The core group of KMC developers is at Sandia National Labs.  They
+include "Steve Plimpton"_sjp, Aidan Thompson, and Alex slepoy and can
+be contacted via email: sjplimp, athomps, and aslepoy at sandia.gov.
+
+Here are various folks who have made significant contributions to
+features in KMC:
+
+:link(sjp,http://www.cs.sandia.gov/~sjplimp)
+
+Ewald and PPPM solvers: Roy Pollock (LLNL)
+POEMS coupled rigid body integrator: Rudranarayan Mukherjee (RPI) :tb(s=:)

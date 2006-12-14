@@ -1,0 +1,34 @@
+"Previous Section"_Section_errors.html - "KMC WWW Site"_kws -
+"KMC Documentation"_kd - "KMC Commands"_kc - "Next
+Section"_Manual.html :c
+
+:link(lws,http://KMC.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+10. Future and history :h3
+
+This section lists features we are planning to add to KMC, features
+of previous versions of KMC, and features of other parallel
+molecular dynamics codes I've distributed.
+
+10.1 "Coming attractions"_#10_1
+
+:line
+
+10.1 Coming attractions :h4,link(10_1)
+
+These are new features we'd like to eventually add to KMC.  Some
+are being worked on; some haven't been implemented because of lack of
+time or interest; others are just a lot of work!
+
+Monte Carlo bond-swapping for polymers (was in Fortran KMC)
+torsional shear boundary conditions and temperature calculation
+bond creation potentials
+point dipole force fields
+many-body and bond-order potentials for materials like C, Si, or silica
+modified EAM (MEAM) potentials for metals
+REAXX force field from Bill Goddard's group
+Parinello-Rahman non-rectilinear simulation box :ul
