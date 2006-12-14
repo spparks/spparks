@@ -1,0 +1,30 @@
+# mac_mpi = Apple PowerBook G4 laptop, Finked LAM/MPI
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+CC =		mpic++
+CCFLAGS =	-O -MMD -DTMEMORY
+LINK =		mpic++
+LINKFLAGS =	-O
+USRLIB =
+SYSLIB = 
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+-include $(DEPENDS)

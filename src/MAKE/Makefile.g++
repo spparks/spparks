@@ -1,0 +1,41 @@
+# g++ = RedHat Linux box, g++, MPICH
+
+SHELL = /bin/sh
+#.IGNORE:
+
+# System-specific settings
+
+CC =		g++
+CCFLAGS =	-g -O -I/home/sjplimp/tools/mpich/include
+DEPFLAGS =	-M
+LINK =		g++
+LINKFLAGS =	-g -O -L/home/sjplimp/tools/mpich/lib
+USRLIB =	-lmpich
+SYSLIB =
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

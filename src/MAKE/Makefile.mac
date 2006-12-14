@@ -1,0 +1,30 @@
+# mac = Apple PowerBook G4 laptop, c++, no MPI
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+CC =		c++
+CCFLAGS =	-O -MMD -I../STUBS -DTMEMORY
+LINK =		c++
+LINKFLAGS =	-O -L../STUBS
+USRLIB =	-lmpi
+SYSLIB = 
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+-include $(DEPENDS)
