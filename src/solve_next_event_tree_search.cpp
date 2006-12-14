@@ -8,6 +8,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "solve_next_event_tree_search.h"
+#include "spk.h"
 #include "random_park.h"
 #include "error.h"
 
@@ -16,7 +17,7 @@ using namespace SPPARKS;
 /* ---------------------------------------------------------------------- */
 
 SolveNextEventTreeSearch::SolveNextEventTreeSearch
-(SPK *spk, int narg, char **arg) : Solve(spk,narg,arg)
+(SPK *spk, int narg, char **arg) : Solve(spk, narg, arg)
 {
   if (narg != 2) error->all("Illegal solve command");
 
@@ -29,7 +30,8 @@ SolveNextEventTreeSearch::SolveNextEventTreeSearch
 
 SolveNextEventTreeSearch::~SolveNextEventTreeSearch()
 {
-  delete [] tree;
+  //  delete [] tree;
+  free_arrays();
   delete random;
 }
 
@@ -39,7 +41,7 @@ void SolveNextEventTreeSearch::init(int n, double *propensity)
 {
   // memory allocation
 
-  delete [] tree;
+  if(allocated) free_arrays();
   allocated = 1;
 
   nevents = n;
@@ -64,7 +66,7 @@ void SolveNextEventTreeSearch::init(int n, double *propensity)
 
 void SolveNextEventTreeSearch::update(int n, int *indices, double *propensity)
 {
-  for (int i = 0; i < n; i++) set(indices[i],propensity[i]);
+  for (int i = 0; i < n; i++) set(indices[i],propensity[indices[i]]);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -32,12 +32,14 @@ CommandStyle(shell,Shell)
 
 #ifdef SolveInclude
 #include "solve_gillespie.h"
+#include "solve_next_event_alias_search.h"
 #include "solve_next_event_linear_search.h"
 #include "solve_next_event_tree_search.h"
 #endif
 
 #ifdef SolveClass
 SolveStyle(gillespie,SolveGillespie)
+SolveStyle(next_event_alias_search,SolveNextEventAliasSearch)
 SolveStyle(next_event_linear_search,SolveNextEventLinearSearch)
 SolveStyle(next_event_tree_search,SolveNextEventTreeSearch)
 #endif
