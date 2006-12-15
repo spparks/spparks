@@ -7,20 +7,23 @@
 #include "stdlib.h"
 #include "string.h"
 #include "app_test.h"
+#include "spk.h"
 #include "solve.h"
 #include "finish.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "random_park.h"
 
 using namespace SPPARKS;
+
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-AppTest::AppTest(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
+AppTest::AppTest(SPK *spk, int narg, char **arg) : App(spk, narg, arg)
 {
   if (narg != 1) error->all("Invalid app_style test command");
 
@@ -29,15 +32,23 @@ AppTest::AppTest(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   propensity = NULL;
 
   nevents = 0;
+  n_event_types = 0;
   ntimestep = 0;
   time = 0.0;
   stoptime = 0.0;
+  // classes needed by this app
+  int seed = 1234567;
+  random = new RandomPark(seed);
+
+  delete timer;
+  timer = new Timer(spk);
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppTest::~AppTest()
 {
+  delete random;
   delete [] propensity;
   delete [] ndepends;
   memory->destroy_2d_int_array(depends);
@@ -67,19 +78,19 @@ void AppTest::init()
   for (int m = 0; m < nevents; m++) propensity[m] = compute_propensity(m);
   solve->init(nevents,propensity);
 
-  // zero event stats
-
-  count = 0;
+  // allocate and zero event stats
+  count = new int[nevents];
+  for (int t = 0; t< nevents; t++)count[t] = 0;
 
 
   // print stats header
 
   if (screen) {
-    fprintf(screen,"Step Time Count");
+    fprintf(screen,"Step Time Counts");
     fprintf(screen,"\n");
   }
   if (logfile) {
-    fprintf(logfile,"Step Time Count");
+    fprintf(logfile,"Step Time Counts");
     fprintf(logfile,"\n");
   }
   stats();
@@ -135,7 +146,7 @@ void AppTest::run(int narg, char **arg)
 
 void AppTest::iterate()
 {
-  int m,ievent;
+  int d,ievent;
   double dt;
 
   int done = 0;
@@ -147,6 +158,7 @@ void AppTest::iterate()
 
     timer->stamp();
     ievent = solve->event(&dt);
+    count[ievent] ++;
     timer->stamp(TIME_SOLVE);
 
     
@@ -157,10 +169,9 @@ void AppTest::iterate()
     // this is equivalent to removing one event and adding another
     // so far the dependency is only self
 
-    count++;
+    for (d = 0; d < ndepends[ievent]; d++)
+      propensity[depends[ievent][d]] = compute_propensity(depends[ievent][d]);
 
-    for (m = 0; m < ndepends[ievent]; m++)
-      propensity[m] = compute_propensity(depends[ievent][m]);
     solve->update(ndepends[ievent],depends[ievent],propensity);
 
     // update time by dt
@@ -185,15 +196,27 @@ void AppTest::iterate()
 
 void AppTest::stats()
 {
+  int ssum = 0;
+  int i;
+
+  for (i = 0; i< nevents; i++) ssum += count[i];
+
   if (screen) {
-    fprintf(screen,"%d\n",ntimestep);
+    fprintf(screen,"%d %g ",ntimestep,time);
+    for (i = 0; i < nevents; i++)
+      fprintf(screen,"%g ", 
+	      (double)count[i]/(double)ssum);
+    fprintf(screen,"\n");
   }
   if (logfile) {
-    fprintf(logfile,"%d\n",ntimestep);
+    fprintf(logfile,"%d %g ",ntimestep,time);
+    for (i = 0; i < nevents; i++)
+      fprintf(logfile,"%g ", 
+	      (double)count[i]/(double)ssum);
+    fprintf(logfile,"\n");
+    
   }
 }
-
-
 /* ---------------------------------------------------------------------- */
 
 void AppTest::set_event(int narg, char **arg)
@@ -225,16 +248,14 @@ void AppTest::build_dependency_graph()
 {
   int m;
 
-
    int nmax = 1;
    for (m = 0; m < nevents; m++)
      nmax = MAX(nmax,ndepends[m]);
 
-   depends = memory->create_2d_int_array(nevents,nmax,"test:depends");
-
+   depends = memory->create_2d_int_array(nevents,nmax,
+					      "test:depends");
    // zero the dependencies
    // include self
-
    for (m = 0; m < nevents; m++) {
      ndepends[m] = 1;
      depends[m][0]= m;
@@ -248,9 +269,12 @@ void AppTest::build_dependency_graph()
 
 double AppTest::compute_propensity(int m)
 {
-
-  //first pass uniform
-  double p=0.5;
+  //uniform
+  //  double p=.1;
+  //random uniform
+  //double p=random->uniform();
+  //linear
+  double p = (double)(m+1);
 
   return p;
 }
