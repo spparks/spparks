@@ -181,6 +181,7 @@ void AppTest::iterate()
     else if (ievent < 0) done = 1;
 
     if (time > stats_time || done) {
+      timer->stamp();
       stats();
       stats_time += stats_delta;
       timer->stamp(TIME_OUTPUT);
