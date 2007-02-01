@@ -378,14 +378,16 @@ int Input::execute_command()
   else if (!strcmp(command,"app_style")) app_style();
   else if (!strcmp(command,"count")) count();
   else if (!strcmp(command,"dump")) dump();
+  else if (!strcmp(command,"event")) event();
+  else if (!strcmp(command,"potential")) potential();
+  else if (!strcmp(command,"rates")) rates();
   else if (!strcmp(command,"reaction")) reaction();
   else if (!strcmp(command,"run")) run();
   else if (!strcmp(command,"species")) species();
   else if (!strcmp(command,"solve_style")) solve_style();
   else if (!strcmp(command,"stats")) stats();
-  else if (!strcmp(command,"volume")) volume();
   else if (!strcmp(command,"temperature")) temperature();
-  else if (!strcmp(command,"event")) event();
+  else if (!strcmp(command,"volume")) volume();
 
   else flag = 0;
 
@@ -606,6 +608,36 @@ void Input::dump()
 
 /* ---------------------------------------------------------------------- */
 
+void Input::event()
+{
+  if (app == NULL) error->all("Command used before app_style set");
+  if (strcmp(app->style,"test") != 0)
+    error->all("Command used with mismatched application");
+  app->input(command,narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::potential()
+{
+  if (app == NULL) error->all("Command used before app_style set");
+  if (strcmp(app->style,"surf") != 0)
+    error->all("Command used with mismatched application");
+  app->input(command,narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::rates()
+{
+  if (app == NULL) error->all("Command used before app_style set");
+  if (strcmp(app->style,"surf") != 0)
+    error->all("Command used with mismatched application");
+  app->input(command,narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Input::reaction()
 {
   if (app == NULL) error->all("Command used before app_style set");
@@ -660,33 +692,24 @@ void Input::stats()
 
 /* ---------------------------------------------------------------------- */
 
-void Input::volume()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"chemistry") != 0)
-    error->all("Command used with mismatched application");
-  app->input(command,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void Input::temperature()
 {
   if (app == NULL) error->all("Command used before app_style set");
   if (strcmp(app->style,"grain") != 0    && 
       strcmp(app->style,"grain_strict") != 0 && 
       strcmp(app->style,"grain_3d") != 0 && 
-      strcmp(app->style,"grain_3d_strict") != 0)
+      strcmp(app->style,"grain_3d_strict") != 0 &&
+      strcmp(app->style,"surf") != 0)
     error->all("Command used with mismatched application");
   app->input(command,narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Input::event()
+void Input::volume()
 {
   if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"test") != 0)
+  if (strcmp(app->style,"chemistry") != 0)
     error->all("Command used with mismatched application");
   app->input(command,narg,arg);
 }

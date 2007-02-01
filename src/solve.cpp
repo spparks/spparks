@@ -16,3 +16,10 @@ Solve::Solve(SPK *spk, int narg, char **arg) : SysPtr(spk)
   style = new char[n];
   strcpy(style,arg[0]);
 }
+
+/* ---------------------------------------------------------------------- */
+
+Solve::~Solve()
+{
+  delete [] style;
+}

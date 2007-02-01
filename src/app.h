@@ -15,7 +15,7 @@ class App : protected SysPtr {
   char *style;
   
   App(class SPK *, int, char **);
-  virtual ~App() {}
+  virtual ~App();
   
   // pure virtual functions, must be defined in child class
   

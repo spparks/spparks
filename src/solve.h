@@ -15,7 +15,7 @@ class Solve : protected SysPtr {
   char *style;
 
   Solve(class SPK *, int, char **);
-  virtual ~Solve() {}
+  virtual ~Solve();
 
   // pure virtual functions, must be defined in child class
 

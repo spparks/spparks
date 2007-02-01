@@ -54,14 +54,16 @@ class Input : protected SysPtr {
   void app_style();
   void count();
   void dump();
+  void event();
+  void potential();
+  void rates();
   void reaction();
   void run();
   void solve_style();
   void species();
   void stats();
-  void volume();
   void temperature();
-  void event();
+  void volume();
 
  private:
   Input(); // Not a sane operation.

@@ -132,8 +132,7 @@ void SolveNextEventAliasSearch::check_table_consistency()
 void SolveNextEventAliasSearch::table_dump(int n)
 {
   int i;
-  fprintf(screen,
-	  "%%%%%%%%%%%%%%%%%%%%%%%%%%%% table dump: %%%%%%%%%%%%%%%%%%%\n");
+  fprintf(screen,"----- table dump: -----\n");
   
   fprintf(screen,"i: ");
   for (i = 0; i < nevents; i++)fprintf(screen," %d ",i);
@@ -147,8 +146,7 @@ void SolveNextEventAliasSearch::table_dump(int n)
   fprintf(screen,"q: ");
   for (i = 0; i < nevents; i++)fprintf(screen," %f ",q[i]);
   fprintf(screen,"\n");
-  fprintf(screen,
-	  "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+  fprintf(screen,"-----------------------\n");
 }
 
 /* ---------------------------------------------------------------------- */

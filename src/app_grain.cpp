@@ -86,7 +86,7 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   comm = new CommGrain(spk);
   comm->setup(nx_local,ny_local,nx_half,ny_half,
 	      procwest,proceast,procsouth,procnorth);
-  
+
   // default settings
 
   ntimestep = 0;
@@ -94,6 +94,7 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   temperature = 0.0;
   maxbuf = 0;
   buf = NULL;
+  fp = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -103,6 +104,8 @@ AppGrain::~AppGrain()
   memory->destroy_2d_int_array(lattice);
   delete random;
   delete comm;
+
+  if (fp) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,9 +200,6 @@ void AppGrain::run(int narg, char **arg)
   //if (solve == NULL) error->all("No solver class defined");
   
   // init classes used by this app
-  
-  int i;
-  double *tmp;
   
   init();
   timer->init();
