@@ -22,12 +22,9 @@ class Solve : protected SysPtr {
   virtual void input(int, char **) = 0;
   virtual void init(int, double *) = 0;
   virtual void update(int, int *, double *) = 0;
+  virtual void update(int, double *) = 0;
+  virtual void resize(int, double *) = 0;
   virtual int event(double *) = 0;
-
- private:
-  Solve(); // Not a sane operation.
-  Solve(const Solve&); // Not a sane operation.
-  Solve& operator=(const Solve&); // Not a sane operation.
 };
 
 }

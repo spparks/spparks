@@ -30,6 +30,7 @@ AppTest::AppTest(SPK *spk, int narg, char **arg) : App(spk, narg, arg)
   ndepends = NULL;
   depends = NULL;
   propensity = NULL;
+  count = NULL;
 
   nevents = 0;
   n_event_types = 0;
@@ -37,7 +38,7 @@ AppTest::AppTest(SPK *spk, int narg, char **arg) : App(spk, narg, arg)
   time = 0.0;
   stoptime = 0.0;
   // classes needed by this app
-  int seed = 1234567;
+  int seed = 123124;
   random = new RandomPark(seed);
 
   delete timer;
@@ -51,6 +52,7 @@ AppTest::~AppTest()
   delete random;
   delete [] propensity;
   delete [] ndepends;
+  delete [] count;
   memory->destroy_2d_int_array(depends);
 }
 
@@ -72,16 +74,19 @@ void AppTest::init()
 
   // compute initial propensity for each event
   // inform Nfold solver
-
+  psum = 0;
   delete [] propensity;
   propensity = new double[nevents];
-  for (int m = 0; m < nevents; m++) propensity[m] = compute_propensity(m);
-  solve->init(nevents,propensity);
-
+  for (int m = 0; m < nevents; m++) {
+    propensity[m] = compute_propensity(m);
+    psum += propensity[m];
+  }
+  //  solve->init(nevents,propensity);
+  
   // allocate and zero event stats
-  count = new int[nevents];
-  for (int t = 0; t< nevents; t++)count[t] = 0;
-
+  if(count != NULL) delete [] count;
+  count = new int[2*nevents];
+  for (int t = 0; t< 2*nevents; t++) count[t] = 0;
 
   // print stats header
 
@@ -147,6 +152,8 @@ void AppTest::run(int narg, char **arg)
 void AppTest::iterate()
 {
   int d,ievent;
+  // uncomment to control number of total events
+  int nev = 0;
   double dt;
 
   int done = 0;
@@ -154,31 +161,36 @@ void AppTest::iterate()
   timer->barrier_start(TIME_LOOP);
 
   while (!done) {
-    ntimestep++;
+    //uncomment to control total number of events
+    nev ++;
 
+    ntimestep++;
     timer->stamp();
     ievent = solve->event(&dt);
     count[ievent] ++;
     timer->stamp(TIME_SOLVE);
 
-    
     // update propensity table
     // inform solver of changes
 
-    // first test simply replacing an old propensity of an event by a new
-    // this is equivalent to removing one event and adding another
-    // so far the dependency is only self
-
+    //update event propensity
+    propensity[ievent] = compute_propensity(ievent);
+    solve->update(ievent, propensity);
+    
+    //update dependencies
     for (d = 0; d < ndepends[ievent]; d++)
       propensity[depends[ievent][d]] = compute_propensity(depends[ievent][d]);
-
+    
     solve->update(ndepends[ievent],depends[ievent],propensity);
-
+    
+    timer->stamp(TIME_UPDATE);
     // update time by dt
 
     time += dt;
     if (time >= stoptime) done = 1;
     else if (ievent < 0) done = 1;
+    // uncomment to control total number of events
+    else if(nev > 100000) done = 1;
 
     if (time > stats_time || done) {
       timer->stamp();
@@ -197,39 +209,56 @@ void AppTest::iterate()
 
 void AppTest::stats()
 {
-  int ssum = 0;
   int i;
+  ssum = 0;
+  double deviation;
+  double max_deviation = 0.0;
+  int max_i;
 
   for (i = 0; i< nevents; i++) ssum += count[i];
 
+  if (screen)
+    //    fprintf(screen,"Deviations: \n");
   if (screen) {
-    fprintf(screen,"%d %g ",ntimestep,time);
-    for (i = 0; i < nevents; i++)
-      fprintf(screen,"%g ", 
-	      (double)count[i]/(double)ssum);
-    fprintf(screen,"\n");
+    //    fprintf(screen,"%d %g ",ntimestep,time);
+    for (i = 0; i < nevents; i++){
+      deviation = ((double)count[i]/(double)ssum-propensity[i]/psum)/
+	((double)count[i]/(double)ssum+propensity[i]/psum);
+
+      if(deviation > max_deviation){
+	max_deviation = deviation;
+	max_i = i;
+      }
+      //      fprintf(screen,"%g ", deviation);
+    }
+    //    fprintf(screen,"\n");
   }
   if (logfile) {
     fprintf(logfile,"%d %g ",ntimestep,time);
     for (i = 0; i < nevents; i++)
       fprintf(logfile,"%g ", 
-	      (double)count[i]/(double)ssum);
+	      (double)count[i]/(double)ssum-propensity[i]/psum);
     fprintf(logfile,"\n");
     
   }
+  if(max_i>nevents-1) max_i = nevents - 1;
+  if (screen)
+    fprintf(screen,"Maximum deviation = %g at %d propensity %g \n",
+   	    max_deviation,max_i,propensity[max_i]);
 }
 /* ---------------------------------------------------------------------- */
 
 void AppTest::set_event(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal event command");
+  if (narg < 2) error->all("Illegal event command");
 
-  for(int iarg = 0; iarg < narg; iarg++)
-    fprintf(screen,"number of events: %s  ",arg[iarg]);
-    fprintf(screen,"\n");
-
-    n_event_types ++;
-    nevents = atoi(arg[0]);
+  fprintf(screen,
+	  "Number of events: %s. Number of dependencies: %s. \n",
+	  arg[0], arg[1]);
+  
+  n_event_types ++;
+  nevents = atoi(arg[0]);
+  ndep = atoi(arg[1]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -249,21 +278,46 @@ void AppTest::build_dependency_graph()
 {
   int m;
 
-   int nmax = 1;
+   int nmax = ndep;
+
+   for (m = 0; m < nevents; m++) 
+     ndepends[m] = static_cast<int>((ndep+1)*random->uniform());
+
    for (m = 0; m < nevents; m++)
      nmax = MAX(nmax,ndepends[m]);
 
+   nmax = MAX(nmax,1);
+
    depends = memory->create_2d_int_array(nevents,nmax,
 					      "test:depends");
-   // zero the dependencies
-   // include self
-   for (m = 0; m < nevents; m++) {
-     ndepends[m] = 1;
-     depends[m][0]= m;
-   }
+   // select the dependencies
 
+   for (m = 0; m < nevents; m++)
+     for(int e = 0; e < ndepends[m]; e++) 
+       depends[m][e] = static_cast<int>(nevents*random->uniform());
+
+   // uncomment to print dependency graph
+   //print_depend_graph();
 }
+/* ----------------------------------------------------------------------
+   print dependency network
+------------------------------------------------------------------------- */
+void AppTest::print_depend_graph()
+{
 
+  int m;
+
+  fprintf(screen, "Dependency graph: \n");
+  for (m = 0; m < nevents; m++){
+    fprintf(screen, "event %d  ",m);
+    fprintf(screen, "ndepends %d: ",ndepends[m]);
+    for(int e = 0; e < ndepends[m]; e++) {
+      depends[m][e] = static_cast<int>(nevents*random->uniform());
+      fprintf(screen, "%d  ", depends[m][e]);
+    }
+    fprintf(screen, "\n");
+  }
+}
 /* ----------------------------------------------------------------------
    compute propensity of a single event
 ------------------------------------------------------------------------- */
@@ -271,11 +325,13 @@ void AppTest::build_dependency_graph()
 double AppTest::compute_propensity(int m)
 {
   //uniform
-  //  double p=.1;
+  //double p=.1;
   //random uniform
   //double p=random->uniform();
+  //even/odd
+    double p = .5 - .1 * static_cast<double>(m % 3);
   //linear
-  double p = (double)(m+1);
+  //double p = 21.0-(double)(m+1);
 
   return p;
 }

@@ -39,13 +39,11 @@ void SolveNextEventLinearSearch::init(int n, double *propensity)
   nevents = n;
   prob = new double[n];
   sum = 0;
-  fprintf(screen,"propensity:   ");
+  fprintf(screen,"Using linear search algorithm to generate events.\n");
   for (int i = 0; i < n; i++) {
-    fprintf(screen,"%f ",propensity[i]);
     prob[i] = propensity[i];
     sum += propensity[i];
   }
-  fprintf(screen,"\n");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,12 +51,27 @@ void SolveNextEventLinearSearch::init(int n, double *propensity)
 void SolveNextEventLinearSearch::update(int n, int *indices, double *propensity)
 {
   for (int i = 0; i < n; i++) {
-    sum -= prob[indices[i]];
-    prob[indices[i]] = propensity[indices[i]];
-    sum +=  propensity[indices[i]];
+    int current_index = indices[i];
+    sum -= prob[current_index];
+    prob[current_index] = propensity[current_index];
+    sum +=  propensity[current_index];
   }
 }
+/* ---------------------------------------------------------------------- */
 
+void SolveNextEventLinearSearch::update(int n, double *propensity)
+{
+  sum -= prob[n];
+  prob[n] = propensity[n];
+  sum +=  propensity[n];
+}
+/* ---------------------------------------------------------------------- */
+
+
+void SolveNextEventLinearSearch::resize(int new_size, double *propensity)
+{
+  init(new_size, propensity);
+}
 /* ---------------------------------------------------------------------- */
 
 int SolveNextEventLinearSearch::event(double *pdt)

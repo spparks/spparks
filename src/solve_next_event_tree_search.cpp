@@ -20,7 +20,8 @@ SolveNextEventTreeSearch::SolveNextEventTreeSearch
 (SPK *spk, int narg, char **arg) : Solve(spk, narg, arg)
 {
   if (narg != 2) error->all("Illegal solve command");
-
+  if(screen)
+    fprintf(screen,"Using binary tree search algorithm to generate events.\n");
   allocated = 0;
   int seed = atoi(arg[1]);
   random = new RandomPark(seed);
@@ -39,6 +40,9 @@ SolveNextEventTreeSearch::~SolveNextEventTreeSearch()
 
 void SolveNextEventTreeSearch::init(int n, double *propensity)
 {
+  int ntotal = 0;
+  offset = 0;
+
   // memory allocation
 
   if(allocated) free_arrays();
@@ -47,19 +51,42 @@ void SolveNextEventTreeSearch::init(int n, double *propensity)
   nevents = n;
   sum = 0;
 
+  // m = value such that 2^m >= nevents
+  int m = 0;
+  int neat = 1;
+
+  while (neat < nevents) {neat *=2; m++;}
+
   // create tree of length ntotal
   // init all leaves to 0.0
 
-  int ntotal = 2*(1 << nevents) - 1;
+  ntotal = 2*neat - 1;
   tree = new double[ntotal];
+  offset = neat - 1;
 
   for (int i = 0; i < ntotal; i++) tree[i] = 0.0;
 
-  offset = (1 << nevents) - 1;
-  for (int i = offset; i < ntotal; i++) tree[i] = propensity[i-offset];
+  for (int i = offset; i < offset + n; i++) tree[i] = propensity[i-offset];
 
-  //  fprintf(screen,"ntotal = %d  offset = %d \n", ntotal, offset);
+  //  tree_to_screen(neat);
   sum_tree();
+}
+/* ---------------------------------------------------------------------- */
+
+void SolveNextEventTreeSearch::tree_to_screen(int size)
+{
+  int level_size = 1;
+  int index = 0;
+  bool done = false;
+
+  fprintf(screen,"Tree base size = %d : \n",size);
+
+  while (level_size < 2*size){
+    for (int i = 0; i < level_size; i++) fprintf(screen,"%g ",tree[index+i]);
+    fprintf(screen,"\n");
+    index += level_size;
+    level_size *= 2;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -69,6 +96,19 @@ void SolveNextEventTreeSearch::update(int n, int *indices, double *propensity)
   for (int i = 0; i < n; i++) set(indices[i],propensity[indices[i]]);
 }
 
+/* ---------------------------------------------------------------------- */
+
+void SolveNextEventTreeSearch::update(int n, double *propensity)
+{
+  set(n,propensity[n]);
+}
+/* ---------------------------------------------------------------------- */
+
+
+void SolveNextEventTreeSearch::resize(int new_size, double *propensity)
+{
+  init(new_size, propensity);
+}
 /* ---------------------------------------------------------------------- */
 
 int SolveNextEventTreeSearch::event(double *pdt)
@@ -92,14 +132,12 @@ int SolveNextEventTreeSearch::event(double *pdt)
 void SolveNextEventTreeSearch::sum_tree()
 {
   int child1,child2;
-
   for (int parent = offset-1; parent >= 0; parent--) {
     child1 = 2*parent + 1;
     child2 = 2*parent + 2;
     tree[parent] = tree[child1] + tree[child2];
   }
 }
-
 
 /* ----------------------------------------------------------------------
    set propensity[i] to value

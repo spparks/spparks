@@ -27,7 +27,7 @@ Finish::Finish (SPK *spk) : SysPtr(spk)
   // deduce time_other
 
   double time_other = timer->array[TIME_LOOP] -
-    (timer->array[TIME_SOLVE] + timer->array[TIME_COMM] + 
+    (timer->array[TIME_SOLVE] + timer->array[TIME_COMM] + timer->array[TIME_UPDATE] + 
      timer->array[TIME_OUTPUT]);
 
   double time_loop = timer->array[TIME_LOOP];
@@ -62,6 +62,16 @@ Finish::Finish (SPK *spk) : SysPtr(spk)
       fprintf(screen,"Solve time (%%) = %g (%g)\n",time,time/time_loop*100.0);
     if (logfile) 
       fprintf(logfile,"Solve time (%%) = %g (%g)\n",time,time/time_loop*100.0);
+  }
+
+  time = timer->array[TIME_UPDATE];
+  MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  time = tmp/nprocs;
+  if (me == 0) {
+    if (screen) 
+      fprintf(screen,"Update time (%%) = %g (%g)\n",time,time/time_loop*100.0);
+    if (logfile) 
+      fprintf(logfile,"Update time (%%) = %g (%g)\n",time,time/time_loop*100.0);
   }
 
   time = timer->array[TIME_COMM];

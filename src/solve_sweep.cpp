@@ -22,20 +22,25 @@ SolveSweep::SolveSweep(SPK *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-SolveSweep::~SolveSweep()
-{
-}
+SolveSweep::~SolveSweep() {}
 
 /* ---------------------------------------------------------------------- */
 
-void SolveSweep::init(int n, double *propensity)
-{
-}
+void SolveSweep::init(int n, double *propensity) {}
 
 /* ---------------------------------------------------------------------- */
 
-void SolveSweep::update(int n, int *indices, double *propensity)
+void SolveSweep::update(int n, int *indices, double *propensity) {}
+
+/* ---------------------------------------------------------------------- */
+
+void SolveSweep::update(int n, double *propensity) {}
+
+/* ---------------------------------------------------------------------- */
+
+void SolveSweep::resize(int new_size, double *propensity)
 {
+  init(new_size,propensity);
 }
 
 /* ---------------------------------------------------------------------- */

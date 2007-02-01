@@ -17,6 +17,8 @@ class SolveGillespie : public Solve {
   void input(int, char **) {}
   void init(int, double *);
   void update(int, int *, double *);
+  void update(int, double *);
+  void resize(int, double *);
   int event(double *);
 
  private:

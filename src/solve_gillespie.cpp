@@ -61,6 +61,20 @@ void SolveGillespie::update(int n, int *indices, double *propensity)
 
 /* ---------------------------------------------------------------------- */
 
+void SolveGillespie::update(int n, double *propensity)
+{
+  prob[n] = propensity[n];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void SolveGillespie::resize(int new_size, double *propensity)
+{
+  init(new_size,propensity);
+}
+
+/* ---------------------------------------------------------------------- */
+
 int SolveGillespie::event(double *pdt)
 {
   int m;

@@ -12,6 +12,9 @@
 #include "random_park.h"
 #include "error.h"
 
+#include <iostream>
+
+using namespace std;
 using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
@@ -39,16 +42,23 @@ void SolveNextEventAliasSearch::init(int n, double *propensity)
 {
   int i;
 
+  fprintf(screen,"Using alias search algorithm to generate events.\n");
+
   if(allocated) free_arrays();
   allocated = 1;
   nevents = n;
 
+  prob = new double[n];
   j = new int[n];
   p = new double[n];
   q = new double[n];
   hilo = new int[n];
 
+  sum = 0.0;
+  for (i = 0; i < n; i++) {sum += propensity[i]; prob[i] = propensity[i];}
+
   build_alias_table(nevents, propensity);
+  //  table_dump(nevents);
 }
 /* ----------------------------------------------------------------------
    build table
@@ -58,9 +68,6 @@ void SolveNextEventAliasSearch::build_alias_table(int n, double *propensity)
 {
   int i, m, k;
 
-  sum = 0.0;
-
-  for (i = 0; i < n; i++) sum += propensity[i];
 
   for (i = 0; i < n; i++){
     p[i] = propensity[i]/sum;
@@ -132,7 +139,8 @@ void SolveNextEventAliasSearch::check_table_consistency()
 void SolveNextEventAliasSearch::table_dump(int n)
 {
   int i;
-  fprintf(screen,"----- table dump: -----\n");
+  fprintf(screen,
+	  "%%%%%%%%%%%%%%%%%%%%%%%%%%%% table dump: %%%%%%%%%%%%%%%%%%%\n");
   
   fprintf(screen,"i: ");
   for (i = 0; i < nevents; i++)fprintf(screen," %d ",i);
@@ -146,19 +154,39 @@ void SolveNextEventAliasSearch::table_dump(int n)
   fprintf(screen,"q: ");
   for (i = 0; i < nevents; i++)fprintf(screen," %f ",q[i]);
   fprintf(screen,"\n");
-  fprintf(screen,"-----------------------\n");
+  fprintf(screen,
+	  "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void SolveNextEventAliasSearch::update(int n, int *indices, double *propensity)
 {
+  for (int i = 0; i < n; i++) {
+    int current_index = indices[i];
+    sum -= prob[current_index];
+    prob[current_index] = propensity[current_index];
+    sum +=  propensity[current_index];
+  }
 
-  //remember to update sum
+  if (n > 0) {build_alias_table(nevents, propensity);}
+}
+/* ---------------------------------------------------------------------- */
 
+void SolveNextEventAliasSearch::update(int n, double *propensity)
+{
+  sum -= prob[n];
+  prob[n] = propensity[n];
+  sum +=  propensity[n];
+  
   build_alias_table(nevents, propensity);
 }
+/* ---------------------------------------------------------------------- */
 
+void SolveNextEventAliasSearch::resize(int new_size, double *propensity)
+{
+  init(new_size, propensity);
+}
 /* ---------------------------------------------------------------------- */
 
 int SolveNextEventAliasSearch::event(double *pdt)

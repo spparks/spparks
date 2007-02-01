@@ -69,6 +69,7 @@ class AppTest : public App {
   int **depends;             // i,j = jth event that depends on ith event
   double *propensity;        // propensity of each event
   int nevents;
+  int ndep;                  // max number of dependencies from user
   int n_event_types;
 
   //event properties
@@ -78,6 +79,8 @@ class AppTest : public App {
 
   //stats
   int *count;
+  int ssum;
+  double psum;
 
   //methods
   void iterate();
@@ -86,6 +89,7 @@ class AppTest : public App {
   void set_stats(int, char **);
 
   void build_dependency_graph();
+  void print_depend_graph();
   double compute_propensity(int);
 
   void set_event(int, char **);
