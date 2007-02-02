@@ -52,10 +52,12 @@ void SolveGillespie::init(int n, double *propensity)
 
 void SolveGillespie::update(int n, int *indices, double *propensity)
 {
+  int m;
   for (int i = 0; i < n; i++) {
-    sum -= prob[indices[i]];
-    prob[indices[i]] = propensity[i];
-    sum += propensity[i];
+    m = indices[i];
+    sum -= prob[m];
+    prob[m] = propensity[m];
+    sum += propensity[m];
   }
 }
 

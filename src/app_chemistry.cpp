@@ -99,7 +99,6 @@ void AppChemistry::init()
   delete [] propensity;
   propensity = new double[nreactions];
   for (int m = 0; m < nreactions; m++) propensity[m] = compute_propensity(m);
-  solve->init(nreactions,propensity);
 
   // zero reaction counts
 
