@@ -6,7 +6,6 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "app_grain_3d.h"
 #include "comm_grain_3d.h"
 #include "solve.h"
 #include "finish.h"
@@ -23,7 +22,7 @@ using namespace SPPARKS;
 /* ---------------------------------------------------------------------- */
 
 CommGrain3D::CommGrain3D(class SPK *spk) : 
-  SysPtr(spk),
+  CommGrain(spk),
   sendbuf(NULL),
   recvbuf(NULL),
   swapinfo(NULL)
@@ -206,6 +205,8 @@ void CommGrain3D::setup(const int nx, const int ny, const int nz,
 
   recvbuf = (int*) memory->smalloc(maxrecv*sizeof(int),"commgrain:recvbuf");
   sendbuf = (int*) memory->smalloc(maxsend*sizeof(int),"commgrain:sendbuf");
+
+
 }
 
 /* ----------------------------------------------------------------------

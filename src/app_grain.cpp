@@ -7,7 +7,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "app_grain.h"
-#include "comm_grain.h"
+#include "sweep_grain.h"
 #include "random_park.h"
 #include "finish.h"
 #include "timer.h"
@@ -21,89 +21,68 @@ using namespace std;
 
 AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 {
-  int i,j,ii,jj;
-  
-  if (narg != 5) error->all("Invalid app_style grain command");
-  
-  dimension = 2;
-  nx_global = atoi(arg[1]);
-  ny_global = atoi(arg[2]);
-  nspins = atoi(arg[3]);
-  seed = atoi(arg[4]);
-  
-  // define proc layout on lattice with 4 periodic neighbors
-  
+
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
-  
-  procs2lattice();
-  
-  if (me % ny_procs == 0) procsouth = me + ny_procs - 1;
-  else procsouth = me - 1;
-  if (me % ny_procs == ny_procs-1) procnorth = me - ny_procs + 1;
-  else procnorth = me + 1;
-  if (me/ny_procs == 0) procwest = me + nprocs - ny_procs;
-  else procwest = me - ny_procs;
-  if (me/ny_procs == nx_procs-1) proceast = me - nprocs + ny_procs;
-  else proceast = me + ny_procs;
-  
-  // partition lattice across procs
-  // allocate my sub-section
-  
-  int iprocx = me/ny_procs;
-  nx_offset = iprocx*nx_global/nx_procs;
-  nx_local = (iprocx+1)*nx_global/nx_procs - nx_offset;
-  int iprocy = me % ny_procs;
-  ny_offset = iprocy*ny_global/ny_procs;
-  ny_local = (iprocy+1)*ny_global/ny_procs - ny_offset;
-  
-  if (nx_local < 2 || ny_local < 2)
-    error->one("Lattice per proc is too small");
-  
-  nx_half = nx_local/2 + 1;
-  ny_half = ny_local/2 + 1;
-  
-  lattice = memory->create_2d_int_array(nx_local+2,ny_local+2,
-					"grain:lattice");
 
-  // init ghost spins (take this out later)
-
-  for (i = 0; i <= nx_local+1; i++) 
-    for (j = 0; j <= ny_local+1; j++) 
-      lattice[i][j] = 0;
+  if (narg < 6) error->all("Invalid app_style grain command");
   
-  // initialize spins
-  
-  random = new RandomPark(seed);
-  for (i = 0; i < 100; i++) random->uniform();
-  
-  for (i = 1; i <= nx_local; i++) 
-    for (j = 1; j <= ny_local; j++) 
-      lattice[i][j] = random->irandom(nspins);
-
-  // setup other classes
-  
-  comm = new CommGrain(spk);
-  comm->setup(nx_local,ny_local,nx_half,ny_half,
-	      procwest,proceast,procsouth,procnorth);
-
-  // default settings
-
+  // default/dummy settings
   ntimestep = 0;
   nstats = ndump = 0;
   temperature = 0.0;
-  maxbuf = 0;
-  buf = NULL;
+  maxdumpbuf = 0;
+  dumpbuf = NULL;
   fp = NULL;
+
+  dimension = 0;
+  nx_global = 0;
+  ny_global = 0;
+  nz_global = 0;
+  nx_local = 0;
+  ny_local = 0;
+  nz_local = 0;
+  nx_offset = -1;
+  ny_offset = -1;
+  nz_offset = -1;
+  lattice = NULL;
+  lat_2d = NULL;
+  lat_3d = NULL;
+  procwest = -1;
+  proceast = -1;
+  procsouth = -1;
+  procnorth = -1;
+  procup = -1;
+  procdown = -1;
+  nspins = 0;
+  temperature = 0.0;
+
+  int iarg=1;
+  if (strcmp(arg[iarg],"2d") == 0) {
+    iarg++;
+    dimension = 2;
+    if (narg != 6) error->all("Invalid app_style grain 2d command");
+    nx_global = atoi(arg[iarg++]);
+    ny_global = atoi(arg[iarg++]);
+  } else if (strcmp(arg[iarg],"3d") == 0) {
+    iarg++;
+    dimension = 3;
+    if (narg != 7) error->all("Invalid app_style grain 3d command");
+    nx_global = atoi(arg[iarg++]);
+    ny_global = atoi(arg[iarg++]);
+    nz_global = atoi(arg[iarg++]);
+  } else error->all("Illegal dimension specifier in app_style grain command");
+  nspins = atoi(arg[iarg++]);
+  seed = atoi(arg[iarg++]);
+
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppGrain::~AppGrain()
 {
-  memory->destroy_2d_int_array(lattice);
+  memory->destroy_3d_T_array(lattice);
   delete random;
-  delete comm;
 
   if (fp) fclose(fp);
 }
@@ -112,37 +91,182 @@ AppGrain::~AppGrain()
 
 void AppGrain::init()
 {
-  // sweeping extents for each quadrant
+  int i,j,k,ii,jj,kk;
   
-  quad[0].xlo = 1;
-  quad[0].xhi = nx_half-1;
-  quad[0].ylo = 1;
-  quad[0].yhi = ny_half-1;
+  // define proc layout on lattice with 4 periodic neighbors
 
-  quad[1].xlo = 1;
-  quad[1].xhi = nx_half-1;
-  quad[1].ylo = ny_half;
-  quad[1].yhi = ny_local;
-
-  quad[2].xlo = nx_half;
-  quad[2].xhi = nx_local;
-  quad[2].ylo = 1;
-  quad[2].yhi = ny_half-1;
+  if (dimension == 2) {
   
-  quad[3].xlo = nx_half;
-  quad[3].xhi = nx_local;
-  quad[3].ylo = ny_half;
-  quad[3].yhi = ny_local;
- 
+    // partition lattice across procs
+    // allocate my sub-section
+  
+    procs2lattice_2d();
+    int iprocx = me/ny_procs;
+    nx_offset = iprocx*nx_global/nx_procs;
+    nx_local = (iprocx+1)*nx_global/nx_procs - nx_offset;
+    int iprocy = me % ny_procs;
+    ny_offset = iprocy*ny_global/ny_procs;
+    ny_local = (iprocy+1)*ny_global/ny_procs - ny_offset;
+    
+    if (nx_local < 2 || ny_local < 2)
+      error->one("Lattice per proc is too small");
+    
+    // Figure out who neighbor processors are    
+
+    if (me % ny_procs == 0) procsouth = me + ny_procs - 1;
+    else procsouth = me - 1;
+    if (me % ny_procs == ny_procs-1) procnorth = me - ny_procs + 1;
+    else procnorth = me + 1;
+    if (me/ny_procs == 0) procwest = me + nprocs - ny_procs;
+    else procwest = me - ny_procs;
+    if (me/ny_procs == nx_procs-1) proceast = me - nprocs + ny_procs;
+    else proceast = me + ny_procs;
+
+    memory->create_3d_T_array(lattice,1,nx_local+2,ny_local+2,
+					"app_grain:lattice");
+    lat_2d = lattice[0];
+
+    // init local and ghost spins to zero
+
+    for (i = 0; i <= nx_local+1; i++) 
+      for (j = 0; j <= ny_local+1; j++) 
+	lat_2d[i][j] = 0;
+  
+    // initialize local spins
+  
+    random = new RandomPark(seed);
+    for (i = 0; i < 100; i++) random->uniform();
+  
+    // loop over global list
+    // so that assigment is independent of parallel decomposition
+    // and also so that each local domain is initialized with
+    // different spins.
+    for (i = 1; i <= nx_global; i++) {
+      ii = i - nx_offset;
+      if (ii >= 1 && ii <= nx_local) { 
+	for (j = 1; j <= ny_global; j++) {
+	  jj = j - ny_offset;
+	  if (jj >= 1 && jj <= ny_local) { 
+	    lat_2d[ii][jj] = random->irandom(nspins);
+	  } else {
+	    random->irandom(nspins);
+	  }
+	}
+      } else {
+	for (j = 1; j <= ny_global; j++) {
+	  random->irandom(nspins);
+	}
+      }
+    }
+
+  } else if (dimension == 3) {
+
+    // partition lattice across procs
+    // allocate my sub-section
+  
+    procs2lattice_3d();
+    int nyz_procs = ny_procs*nz_procs;
+    int iprocx = (me/nyz_procs) % nx_procs;
+    nx_offset = iprocx*nx_global/nx_procs;
+    nx_local = (iprocx+1)*nx_global/nx_procs - nx_offset;
+    int iprocy = (me/nz_procs) % ny_procs;
+    ny_offset = iprocy*ny_global/ny_procs;
+    ny_local = (iprocy+1)*ny_global/ny_procs - ny_offset;
+    int iprocz = (me/1) % nz_procs;
+    nz_offset = iprocz*nz_global/nz_procs;
+    nz_local = (iprocz+1)*nz_global/nz_procs - nz_offset;
+
+    if (nx_local < 2 || ny_local < 2 || nz_local < 2)
+      error->one("Lattice per proc is too small");
+
+    // Figure out who neighbor processors are    
+
+    if (iprocz == 0) procdown = me + nz_procs - 1;
+    else procdown = me - 1;
+    if (iprocz == nz_procs-1) procup = me - nz_procs + 1;
+    else procup = me + 1;
+    
+    if (iprocy == 0) procsouth = me + nyz_procs - nz_procs;
+    else procsouth = me - nz_procs;
+    if (iprocy == ny_procs-1) procnorth = me - nyz_procs + nz_procs;
+    else procnorth = me + nz_procs;
+    
+    if (iprocx == 0) procwest = me + nprocs - nyz_procs;
+    else procwest = me - nyz_procs;
+    if (iprocx == nx_procs-1) proceast = me - nprocs + nyz_procs;
+    else proceast = me + nyz_procs;
+
+    memory->create_3d_T_array(lattice,nx_local+2,ny_local+2,nz_local+2,
+					"app_grain:lattice");
+
+    lat_3d = lattice;
+
+    // init local and ghost spins to zero
+
+    for (i = 0; i <= nx_local+1; i++) 
+      for (j = 0; j <= ny_local+1; j++) 
+	for (k = 0; k <= nz_local+1; k++) 
+	  lat_3d[i][j][k] = 0;
+  
+    // initialize local spins
+  
+    random = new RandomPark(seed);
+    for (i = 0; i < 100; i++) random->uniform();
+  
+    // loop over global list
+    // so that assigment is independent of parallel decomposition
+    // and also so that each local domain is initialized with
+    // different spins.
+    for (i = 1; i <= nx_global; i++) {
+      ii = i - nx_offset;
+      if (ii >= 1 && ii <= nx_local) { 
+	for (j = 1; j <= ny_global; j++) {
+	  jj = j - ny_offset;
+	  if (jj >= 1 && jj <= ny_local) { 
+	    for (k = 1; k <= nz_global; k++) {
+	      kk = k - nz_offset;
+	      if (kk >= 1 && kk <= nz_local) { 
+		lat_3d[ii][jj][kk] = random->irandom(nspins);
+	      } else {
+		random->irandom(nspins);
+	      }
+	    }
+	  } else {
+	    for (k = 1; k <= nz_global; k++) {
+	      random->irandom(nspins);
+	    }
+	  }
+	}
+      } else {
+	for (j = 1; j <= ny_global; j++) {
+	  for (k = 1; k <= nz_global; k++) {
+	    random->irandom(nspins);
+	  }
+	}
+      }
+    }
+  }
+  
+  // setup other classes
+  
+  ((SweepGrain*)sweep)->init(this, me, nprocs, dimension, 
+	      nx_local, ny_local, nz_local, 
+	      nx_global, ny_global, nz_global,  
+	      nx_offset, ny_offset, nz_offset, 
+	      lattice,
+	      procwest, proceast, 
+	      procsouth, procnorth, 
+	      procdown, procup, 
+	      nspins, temperature);
 
   // Print layout info
   
   if (me == 0) {
     if (screen) {
-      fprintf(screen," nx_global = %d \n ny_global = %d \n",
-            nx_global,ny_global);
-      fprintf(screen," nx_procs = %d \n ny_procs = %d \n",
-            nx_procs,ny_procs);
+      fprintf(screen," nx_global = %d \n ny_global = %d \n nz_global = %d \n",
+            nx_global,ny_global,nz_global);
+      fprintf(screen," nx_procs = %d \n ny_procs = %d \n nz_procs = %d \n",
+            nx_procs,ny_procs,nz_procs);
     }
   }
  
@@ -173,6 +297,14 @@ void AppGrain::init()
   if (nstats) {
     stats();
   }
+
+//   char *fstring = "Iteration %6d, in dump()";
+//   int len = strlen(fstring)+32;
+//   char *title = new char[len];
+//   sprintf(title,fstring,0);
+//   dump_detailed(title);
+//   delete [] title;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -198,6 +330,7 @@ void AppGrain::run(int narg, char **arg)
   // error check
   
   //if (solve == NULL) error->all("No solver class defined");
+  if (sweep == NULL) error->all("No sweep class defined");
   
   // init classes used by this app
   
@@ -205,8 +338,8 @@ void AppGrain::run(int narg, char **arg)
   timer->init();
   
   // perform the run
-  
   iterate();
+    
   
   // final statistics
   
@@ -214,7 +347,7 @@ void AppGrain::run(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   iterate on sweep solver
+   iterate on solver
  ------------------------------------------------------------------------- */
 
 void AppGrain::iterate()
@@ -224,56 +357,8 @@ void AppGrain::iterate()
   for (int i = 0; i < nsweep; i++) {
     ntimestep++;
 
-    /*
-    printf("AAA %d %d\n",nx_global,ny_global);
-    for (int m = 0; m < nx_global+2; m++)
-      printf("BBB %d %d %d %d %d %d %d %d %d %d %d %d\n",
-	     lattice[m][0],lattice[m][1],lattice[m][2],lattice[m][3],
-	     lattice[m][4],lattice[m][5],lattice[m][6],lattice[m][7],
-	     lattice[m][8],lattice[m][9],lattice[m][10],lattice[m][11]);
-    */
+    sweep->do_sweep();
 
-    timer->stamp();
-    comm->communicate(lattice,0);
-    timer->stamp(TIME_COMM);
-
-    /*
-    printf("AAA %d %d\n",nx_global,ny_global);
-    for (int m = 0; m < nx_global+2; m++)
-      printf("BBB %d %d %d %d %d %d %d %d %d %d %d %d\n",
-	     lattice[m][0],lattice[m][1],lattice[m][2],lattice[m][3],
-	     lattice[m][4],lattice[m][5],lattice[m][6],lattice[m][7],
-	     lattice[m][8],lattice[m][9],lattice[m][10],lattice[m][11]);
-    */
-
-    timer->stamp();
-    sweep(0);
-    timer->stamp(TIME_SOLVE);
-    
-    timer->stamp();
-       comm->communicate(lattice,1);
-    timer->stamp(TIME_COMM);
-    
-    timer->stamp();
-    sweep(1);
-    timer->stamp(TIME_SOLVE);
-    
-    timer->stamp();
-       comm->communicate(lattice,2);
-    timer->stamp(TIME_COMM);
-    
-    timer->stamp();
-    sweep(2);
-    timer->stamp(TIME_SOLVE);
-    
-    timer->stamp();
-    comm->communicate(lattice,3);
-    timer->stamp(TIME_COMM);
-    
-    timer->stamp();
-    sweep(3);
-    timer->stamp(TIME_SOLVE);
-    
     if (ntimestep == stats_next) {
       timer->stamp();
       stats();
@@ -291,114 +376,6 @@ void AppGrain::iterate()
   timer->barrier_stop(TIME_LOOP);
 }
 
-/* ---------------------------------------------------------------------- */
-   
-void AppGrain::sweep(int index)
-{
-  int i,j,iold,inew,nold,nnew;
-
-  int xlo = quad[index].xlo;
-  int xhi = quad[index].xhi;
-  int ylo = quad[index].ylo;
-  int yhi = quad[index].yhi;
-
-  for (i = xlo; i <= xhi; i++) {
-    for (j = ylo; j <= yhi; j++) {
-      iold = lattice[i][j];
-      nold = 0;
-      if (iold == lattice[i-1][j-1]) nold++;
-      if (iold == lattice[i-1][j]) nold++;
-      if (iold == lattice[i-1][j+1]) nold++;
-      if (iold == lattice[i][j-1]) nold++;
-      if (iold == lattice[i][j+1]) nold++;
-      if (iold == lattice[i+1][j-1]) nold++;
-      if (iold == lattice[i+1][j]) nold++;
-      if (iold == lattice[i+1][j+1]) nold++;
-
-      inew = random->irandom(nspins);
-      nnew = 0;
-      if (inew == lattice[i-1][j-1]) nnew++;
-      if (inew == lattice[i-1][j]) nnew++;
-      if (inew == lattice[i-1][j+1]) nnew++;
-      if (inew == lattice[i][j-1]) nnew++;
-      if (inew == lattice[i][j+1]) nnew++;
-      if (inew == lattice[i+1][j-1]) nnew++;
-      if (inew == lattice[i+1][j]) nnew++;
-      if (inew == lattice[i+1][j+1]) nnew++;
-
-      if (nold <= nnew) lattice[i][j] = inew;
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   Compute total energy of system, quadrant by quandrant
-------------------------------------------------------------------------- */
-
-double AppGrain::compute_energy()
-{
-  double energy_local,energy_global;
-  energy_local = 0.0;
-
-  for (int index = 0; index < 4; index++) {
-
-//     // Dump spins before communicate
-//     char *fstring = "Quadrant %4d, before communicate, in compute_energy()";
-//     int len = strlen(fstring)+32;
-//     char *title = new char[len];
-//     sprintf(title,fstring,index);
-//     dump_detailed(title);
-//     delete [] title;
-
-    comm->communicate(lattice,index);
-
-//     // Dump spins after communicate
-//     fstring = "Quadrant %4d, after communicate, in compute_energy()";
-//     len = strlen(fstring)+32;
-//     title = new char[len];
-//     sprintf(title,fstring,index);
-//     dump_detailed(title);
-//     delete [] title;
-
-    energy_local += energy_quadrant(index);
-  }
-
-  MPI_Allreduce(&energy_local,&energy_global,1,MPI_DOUBLE,MPI_SUM,world);
-    
-  return energy_global;
-}
-
-/* ----------------------------------------------------------------------
-   Update all site in one quadrant
-------------------------------------------------------------------------- */
-
-double AppGrain::energy_quadrant(int index)
-{
-  int i,j,ik,nk;
-  double energy;
-
-  energy = 0.0;
-
-  for (i = quad[index].xlo; i <= quad[index].xhi; i++) {
-    for (j = quad[index].ylo; j <= quad[index].yhi; j++) {
-      ik = lattice[i][j];
-      nk = 0;
-      if (ik != lattice[i-1][j-1]) nk++;
-      if (ik != lattice[i-1][j]) nk++;
-      if (ik != lattice[i-1][j+1]) nk++;
-      if (ik != lattice[i][j-1]) nk++;
-      if (ik != lattice[i][j+1]) nk++;
-      if (ik != lattice[i+1][j-1]) nk++;
-      if (ik != lattice[i+1][j]) nk++;
-      if (ik != lattice[i+1][j+1]) nk++;
-      energy+=nk;
-    }
-  }
-
-  return energy;
-
-}
-
 /* ----------------------------------------------------------------------
    print stats
 ------------------------------------------------------------------------- */
@@ -406,8 +383,8 @@ double AppGrain::energy_quadrant(int index)
 void AppGrain::stats()
 {
   double energy;
-
-  energy = compute_energy();
+  
+  energy = sweep->compute_energy();
   if (me == 0) {
     if (screen) {
       fprintf(screen,"%d %f \n",ntimestep,energy);
@@ -416,6 +393,7 @@ void AppGrain::stats()
       fprintf(logfile,"%d %f \n",ntimestep,energy);
     }
   }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -427,11 +405,11 @@ void AppGrain::dump_header()
 {
   // setup comm buf for dumping snapshots
 
-  delete [] buf;
-  maxbuf = 0;
+  delete [] dumpbuf;
+  maxdumpbuf = 0;
   int mybuf = 4*nx_local*ny_local;
-  MPI_Allreduce(&mybuf,&maxbuf,1,MPI_INT,MPI_MAX,world);
-  buf = new int[maxbuf];
+  MPI_Allreduce(&mybuf,&maxdumpbuf,1,MPI_INT,MPI_MAX,world);
+  dumpbuf = new int[maxdumpbuf];
   
   // proc 0 does one-time write of nodes and element connectivity
 
@@ -505,10 +483,10 @@ void AppGrain::dump()
   for (int i = 1; i <= nx_local; i++)
     for (int j = 1; j <= ny_local; j++) {
       n = (nx_offset+i-1)*ny_global + (ny_offset+j-1);
-      buf[m++] = 2*n + 1;
-      buf[m++] = lattice[i][j];
-      buf[m++] = 2*n + 2;
-      buf[m++] = lattice[i][j];
+      dumpbuf[m++] = 2*n + 1;
+      dumpbuf[m++] = lat_2d[i][j];
+      dumpbuf[m++] = 2*n + 2;
+      dumpbuf[m++] = lat_2d[i][j];
     }
   int me_size = m;
 
@@ -522,7 +500,7 @@ void AppGrain::dump()
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(buf,maxbuf,MPI_INT,iproc,0,world,&request);
+	MPI_Irecv(dumpbuf,maxdumpbuf,MPI_INT,iproc,0,world,&request);
 	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	MPI_Wait(&request,&status);
 	MPI_Get_count(&status,MPI_INT,&nlines);
@@ -531,14 +509,23 @@ void AppGrain::dump()
       
       m = 0;
       for (int i = 0; i < nlines; i++) {
-	fprintf(fp,"%d %d\n",buf[m],buf[m+1]);
+	fprintf(fp,"%d %d\n",dumpbuf[m],dumpbuf[m+1]);
 	m += size_one;
       }
     }
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(buf,me_size,MPI_INT,0,0,world);
+    MPI_Rsend(dumpbuf,me_size,MPI_INT,0,0,world);
   }
+
+//   // Dump spins in dump
+//   char *fstring = "Iteration %6d, in dump()";
+//   int len = strlen(fstring)+32;
+//   char *title = new char[len];
+//   sprintf(title,fstring,ntimestep);
+//   dump_detailed(title);
+//   delete [] title;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -548,44 +535,69 @@ void AppGrain::dump()
 
 void AppGrain::dump_detailed(char* title)
 {
-  int nsend,nrecv,nxtmp,nytmp,nxhtmp,nyhtmp,nxotmp,nyotmp;
+  int nsend,nrecv,nxtmp,nytmp,nztmp,nxhtmp,nyhtmp,nzhtmp,nxotmp,nyotmp,nzotmp;
   int size_one = 1;
+  int* buftmp;
+  int maxbuftmp;
 
   // set up communication buffer
-  // maxbuf must equal the maximum number of spins on one domain 
+  // maxbuftmp must equal the maximum number of spins on one domain 
   // plus some extra stuff
-  maxbuf = ((nx_global-1)/nx_procs+3)*((ny_global-1)/ny_procs+3)+6;
-  buf = (int*) memory->smalloc(maxbuf*sizeof(int),"appgrain:dump_detailed:buf");
-
-  nsend = (nx_local+2)*(ny_local+2)+6;
-  if (maxbuf < nsend) {
-    error->one("maxbuf size too small in AppGrain::dump_detailed()");
+  if (dimension == 2) {
+    maxbuftmp = ((nx_global-1)/nx_procs+3)*((ny_global-1)/ny_procs+3)+9;
+    nsend = (nx_local+2)*(ny_local+2)+9;
+    if (maxbuftmp < nsend) 
+      error->one("maxbuftmp size too small in AppGrain::dump_detailed()");
+  } else { 
+    maxbuftmp = ((nx_global-1)/nx_procs+3)*((ny_global-1)/ny_procs+3)*((nz_global-1)/nz_procs+3)+9;
+    nsend = (nx_local+2)*(ny_local+2)*(nz_local+2)+9;
+    if (maxbuftmp < nsend)
+      error->one("maxbuftmp size too small in AppGrain::dump_detailed()");
   }
+
+  buftmp = (int*) memory->smalloc(maxbuftmp*sizeof(int),"appgrain:dump_detailed:buftmp");
 
   // proc 0 writes interactive dump header
 
   if (me == 0) {
-    fprintf(screen,"*** Interactive Dump ***\n");
-    fprintf(screen,"Title = %s\n",title);
-    fprintf(screen,"nx_global = %d ny_global = %d \n",nx_global,ny_global);
+    if (screen) {
+      fprintf(screen,"*** Interactive Dump ***\n");
+      fprintf(screen,"Title = %s\n",title);
+      fprintf(screen,"nx_global = %d ny_global = %d nz_global = %d \n",nx_global,ny_global,nz_global);
+    }
   }
 
   int m = 0;
 
   // pack local layout info into buffer
 
-  buf[m++] = nx_local;
-  buf[m++] = ny_local;
-  buf[m++] = nx_half;
-  buf[m++] = ny_half;
-  buf[m++] = nx_offset;
-  buf[m++] = ny_offset;
+  buftmp[m++] = nx_local;
+  buftmp[m++] = ny_local;
+  buftmp[m++] = nz_local;
+  // Need to delete these two
+  buftmp[m++] = 0;
+  buftmp[m++] = 0;
+  buftmp[m++] = 0;
+  buftmp[m++] = nx_offset;
+  buftmp[m++] = ny_offset;
+  buftmp[m++] = nz_offset;
 
   // pack my lattice values into buffer
   // Need to violate normal ordering in order to simplify output
-  for (int j = 0; j <= ny_local+1; j++) {
-    for (int i = 0; i <= nx_local+1; i++) {
-      buf[m++] = lattice[i][j];
+
+  if (dimension == 2) {
+    for (int j = 0; j <= ny_local+1; j++) {
+      for (int i = 0; i <= nx_local+1; i++) {
+	buftmp[m++] = lat_2d[i][j];
+      }
+    }
+  } else {
+    for (int k = 0; k <= nz_local+1; k++) {
+      for (int j = 0; j <= ny_local+1; j++) {
+	for (int i = 0; i <= nx_local+1; i++) {
+	  buftmp[m++] = lat_3d[i][j][k];
+	}
+      }
     }
   }
 
@@ -599,39 +611,61 @@ void AppGrain::dump_detailed(char* title)
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(buf,maxbuf,MPI_INT,iproc,0,world,&request);
+	MPI_Irecv(buftmp,maxbuftmp,MPI_INT,iproc,0,world,&request);
 	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	MPI_Wait(&request,&status);
 	MPI_Get_count(&status,MPI_INT,&nrecv);
       } else nrecv = nsend;
 
-      m = 0;
-      nxtmp = buf[m++];
-      nytmp = buf[m++];
-      nxhtmp = buf[m++];
-      nyhtmp = buf[m++];
-      nxotmp = buf[m++];
-      nyotmp = buf[m++];
-      fprintf(screen,"iproc = %d \n",iproc);
-      fprintf(screen,"nxlocal = %d \nnylocal = %d \n",nxtmp,nytmp);
-      fprintf(screen,"nx_half = %d \nny_half = %d \n",nxhtmp,nyhtmp);
-      fprintf(screen,"nx_offset = %d \nny_offset = %d \n",nxotmp,nyotmp);
-      m = nrecv;
-      for (int j = nytmp+1; j >= 0; j--) {
-	m-=nxtmp+2;
-	for (int i = 0; i <= nxtmp+1; i++) {
-	  fprintf(screen,"%3d",buf[m++]);
+      if (screen) {
+	m = 0;
+	nxtmp = buftmp[m++];
+	nytmp = buftmp[m++];
+	nztmp = buftmp[m++];
+	nxhtmp = buftmp[m++];
+	nyhtmp = buftmp[m++];
+	nzhtmp = buftmp[m++];
+	nxotmp = buftmp[m++];
+	nyotmp = buftmp[m++];
+	nzotmp = buftmp[m++];
+	fprintf(screen,"iproc = %d \n",iproc);
+	fprintf(screen,"nxlocal = %d \nnylocal = %d \nnzlocal = %d \n",nxtmp,nytmp,nztmp);
+	// Need to delete this one
+	fprintf(screen,"0 = %d \n0 = %d \n0 = %d \n",nxhtmp,nyhtmp,nzhtmp);
+	fprintf(screen,"nx_offset = %d \nny_offset = %d \nnz_offset = %d \n",nxotmp,nyotmp,nzotmp);
+	if (dimension == 2) {
+	  m = nrecv;
+	  for (int j = nytmp+1; j >= 0; j--) {
+	    m-=nxtmp+2;
+	    for (int i = 0; i <= nxtmp+1; i++) {
+	      fprintf(screen,"%3d",buftmp[m++]);
+	    }
+	    fprintf(screen,"\n");
+	    m-=nxtmp+2;
+	  }
+
+	} else {
+	  m = nrecv;
+	  for (int k = nztmp+1; k >= 0; k--) {
+	    fprintf(screen,"\n*** k = %d *** \n",k);
+	    for (int j = nytmp+1; j >= 0; j--) {
+	      m-=nxtmp+2;
+	      for (int i = 0; i <= nxtmp+1; i++) {
+		fprintf(screen,"%3d",buftmp[m++]);
+	      }
+	      fprintf(screen,"\n");
+	      m-=nxtmp+2;
+	    }
+	  }
 	}
-	fprintf(screen,"\n");
-	m-=nxtmp+2;
       }
     }
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(buf,nsend,MPI_INT,0,0,world);
+    MPI_Rsend(buftmp,nsend,MPI_INT,0,0,world);
   }
 
-  memory->sfree(buf);
+  memory->sfree(buftmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -666,7 +700,7 @@ void AppGrain::set_dump(int narg, char **arg)
    assign nprocs to 2d nx/nyglobal lattice so as to minimize perimeter 
 ------------------------------------------------------------------------- */
 
-void AppGrain::procs2lattice()
+void AppGrain::procs2lattice_2d()
 {
   int ipx,ipy,nremain;
   // Need float arithmetic to handle uneven ratios
@@ -692,4 +726,158 @@ void AppGrain::procs2lattice()
     ipx++;
   }
   
+}
+
+/* ----------------------------------------------------------------------
+   assign nprocs to 3d nx/ny/nzglobal lattice so as to minimize surface 
+------------------------------------------------------------------------- */
+
+void AppGrain::procs2lattice_3d()
+{
+  int ipx,ipy,ipz,nremain;
+  // Need float arithmetic to handle uneven ratios
+  double boxx,boxy,boxz,surf;
+  double bestsurf = 2 * (nx_global*ny_global + ny_global*nz_global + 
+                      nz_global*nx_global);
+  
+  // loop thru all possible factorizations of nprocs
+  // surf = surface area of a proc sub-domain
+  // for 2d, insure ipz = 1
+
+  ipx = 1;
+  while (ipx <= nprocs) {
+    if (nprocs % ipx == 0) {
+      nremain = nprocs/ipx;
+      ipy = 1;
+      while (ipy <= nremain) {
+        if (nremain % ipy == 0) {
+          ipz = nremain/ipy;
+	  boxx = float(nx_global)/ipx;
+	  boxy = float(ny_global)/ipy;
+	  boxz = float(nz_global)/ipz;
+	  surf = boxx*boxy + boxy*boxz + boxz*boxx;
+	  if (surf < bestsurf) {
+	    bestsurf = surf;
+	    nx_procs = ipx;
+	    ny_procs = ipy;
+	    nz_procs = ipz;
+	  }
+	}
+	ipy++;
+      }
+    }
+    ipx++;
+  }
+}
+
+int AppGrain::energy_site(int ik, int i, int j) {
+  int nk;
+
+  nk = 0;
+  if (ik != lat_2d[i-1][j-1]) nk++;
+  if (ik != lat_2d[i-1][j]) nk++;
+  if (ik != lat_2d[i-1][j+1]) nk++;
+  if (ik != lat_2d[i][j-1]) nk++;
+  if (ik != lat_2d[i][j+1]) nk++;
+  if (ik != lat_2d[i+1][j-1]) nk++;
+  if (ik != lat_2d[i+1][j]) nk++;
+  if (ik != lat_2d[i+1][j+1]) nk++;
+
+  return nk;
+}
+
+void AppGrain::update_mask(char** mask, int i, int j) {
+
+  // Unset masks for self and neighbors
+  mask[i-1][j-1] = 0;
+  mask[i-1][j] = 0;
+  mask[i-1][j+1] = 0;
+  mask[i][j-1] = 0;
+  mask[i][j] = 0;
+  mask[i][j+1] = 0;
+  mask[i+1][j-1] = 0;
+  mask[i+1][j] = 0;
+  mask[i+1][j+1] = 0;
+}
+
+int AppGrain::energy_site(int ik, int i, int j, int k) {
+  int nk;
+
+  nk = 0;
+  if (ik != lat_3d[i-1][j-1][k-1]) nk++;
+  if (ik != lat_3d[i-1][j-1][k]) nk++;
+  if (ik != lat_3d[i-1][j-1][k+1]) nk++;
+
+  if (ik != lat_3d[i-1][j][k-1]) nk++;
+  if (ik != lat_3d[i-1][j][k]) nk++;
+  if (ik != lat_3d[i-1][j][k+1]) nk++;
+
+  if (ik != lat_3d[i-1][j+1][k-1]) nk++;
+  if (ik != lat_3d[i-1][j+1][k]) nk++;
+  if (ik != lat_3d[i-1][j+1][k+1]) nk++;
+
+  if (ik != lat_3d[i][j-1][k-1]) nk++;
+  if (ik != lat_3d[i][j-1][k]) nk++;
+  if (ik != lat_3d[i][j-1][k+1]) nk++;
+
+  if (ik != lat_3d[i][j][k-1]) nk++;
+  if (ik != lat_3d[i][j][k+1]) nk++;
+
+  if (ik != lat_3d[i][j+1][k-1]) nk++;
+  if (ik != lat_3d[i][j+1][k]) nk++;
+  if (ik != lat_3d[i][j+1][k+1]) nk++;
+
+  if (ik != lat_3d[i+1][j-1][k-1]) nk++;
+  if (ik != lat_3d[i+1][j-1][k]) nk++;
+  if (ik != lat_3d[i+1][j-1][k+1]) nk++;
+
+  if (ik != lat_3d[i+1][j][k-1]) nk++;
+  if (ik != lat_3d[i+1][j][k]) nk++;
+  if (ik != lat_3d[i+1][j][k+1]) nk++;
+
+  if (ik != lat_3d[i+1][j+1][k-1]) nk++;
+  if (ik != lat_3d[i+1][j+1][k]) nk++;
+  if (ik != lat_3d[i+1][j+1][k+1]) nk++;
+
+  return nk;
+}
+
+void AppGrain::update_mask(char*** mask, int i, int j, int k) {
+
+  // Unset masks for self and neighbors
+  mask[i-1][j-1][k-1] = 0;
+  mask[i-1][j-1][k] = 0;
+  mask[i-1][j-1][k+1] = 0;
+
+  mask[i-1][j][k-1] = 0;
+  mask[i-1][j][k] = 0;
+  mask[i-1][j][k+1] = 0;
+
+  mask[i-1][j+1][k-1] = 0;
+  mask[i-1][j+1][k] = 0;
+  mask[i-1][j+1][k+1] = 0;
+
+  mask[i][j-1][k-1] = 0;
+  mask[i][j-1][k] = 0;
+  mask[i][j-1][k+1] = 0;
+
+  mask[i][j][k-1] = 0;
+  mask[i][j][k] = 0;
+  mask[i][j][k+1] = 0;
+
+  mask[i][j+1][k-1] = 0;
+  mask[i][j+1][k] = 0;
+  mask[i][j+1][k+1] = 0;
+
+  mask[i+1][j-1][k-1] = 0;
+  mask[i+1][j-1][k] = 0;
+  mask[i+1][j-1][k+1] = 0;
+
+  mask[i+1][j][k-1] = 0;
+  mask[i+1][j][k] = 0;
+  mask[i+1][j][k+1] = 0;
+
+  mask[i+1][j+1][k-1] = 0;
+  mask[i+1][j+1][k] = 0;
+  mask[i+1][j+1][k+1] = 0;
 }

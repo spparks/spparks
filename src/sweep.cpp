@@ -3,32 +3,23 @@
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
-#include "stdio.h"
-#include "stdlib.h"
 #include "string.h"
-#include "app_grain.h"
-#include "comm_grain.h"
-#include "solve.h"
-#include "finish.h"
-#include "timer.h"
-#include "memory.h"
-#include "error.h"
-#include "universe.h"
+#include "sweep.h"
 
 using namespace SPPARKS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
-CommGrain::CommGrain(class SPK *spk) : SysPtr(spk)
+Sweep::Sweep(SPK *spk, int narg, char **arg) : SysPtr(spk)
 {
+  int n = strlen(arg[0]) + 1;
+  style = new char[n];
+  strcpy(style,arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */
 
-CommGrain::~CommGrain()
+Sweep::~Sweep()
 {
+  delete [] style;
 }
-

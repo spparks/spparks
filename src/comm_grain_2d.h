@@ -3,22 +3,21 @@
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
-#ifndef COMM_GRAIN_3D_H
-#define COMM_GRAIN_3D_H
+#ifndef COMM_GRAIN_2D_H
+#define COMM_GRAIN_2D_H
 
 #include "sysptr.h"
 #include "comm_grain.h"
 
 namespace SPPARKS {
 
-class CommGrain3D : public CommGrain  {
+class CommGrain2D : public CommGrain  {
  public:
-  explicit CommGrain3D(class SPK *);
-  ~CommGrain3D();
+  explicit CommGrain2D(class SPK *);
+  ~CommGrain2D();
   void setup(const int, const int, const int, const int, 
-             const int, const int, const int, const int, 
 	     const int, const int, const int, const int);
-  void communicate(int ***, const int);
+  void communicate(int **, const int);
 
  private:
   int *sendbuf;          // send buffer for all comm
@@ -32,17 +31,14 @@ class CommGrain3D : public CommGrain  {
   int maxsector;         // max # of sectors memory is allocated for
 
   struct SwapInfo {
-    int numx, numy, numz;    // # of data to send/recv in each swap
+    int stride;              // spacing of data values in memory for this swap
+    int sendnum, recvnum;    // # of data to send/recv in each swap
     int sendproc, recvproc;  // proc to send/recv to/from at each swap
-    int sendix, recvix;      // Location of first data value for each send/re cv
-    int sendiy, recviy;      // ix, iy and iz indexes for 3D data array
-    int sendiz, recviz;      // 
-
-    int copyixa, copyixb;    // Copy from/to locations for fragments
-    int copyiya, copyiyb;    // a,b refer to locations of original, copy
-                             // swap 0: iz comes from recviz/sendiz
-                             // swap 1: only ix needed
-
+    int sendix, recvix;      // Location of first data value for each send/recv
+    int sendiy, recviy;      // ix and iy indexes for 2D data array
+    int copy0ixa, copy0ixb;  // From/To Locations for corner copy operation
+                             // a,b refer to locations of original, copy
+                             // ix indices; iy comes from recviy/sendiy)
   };
 
   SwapInfo** swapinfo;       // nsector x nswap 2D array of SwapInfo objects

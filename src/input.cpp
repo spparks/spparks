@@ -12,16 +12,19 @@
 #include "variable.h"
 #include "app.h"
 #include "solve.h"
+#include "sweep.h"
 #include "error.h"
 #include "memory.h"
 
 #define AppInclude
 #define CommandInclude
 #define SolveInclude
+#define SweepInclude
 #include "style.h"
 #undef AppInclude
 #undef CommandInclude
 #undef SolveInclude
+#undef SweepInclude
 
 using namespace SPPARKS;
 
@@ -385,6 +388,7 @@ int Input::execute_command()
   else if (!strcmp(command,"run")) run();
   else if (!strcmp(command,"species")) species();
   else if (!strcmp(command,"solve_style")) solve_style();
+  else if (!strcmp(command,"sweep_style")) sweep_style();
   else if (!strcmp(command,"stats")) stats();
   else if (!strcmp(command,"temperature")) temperature();
   else if (!strcmp(command,"volume")) volume();
@@ -674,6 +678,24 @@ void Input::solve_style()
 
 /* ---------------------------------------------------------------------- */
 
+void Input::sweep_style()
+{
+  if (narg < 1) error->all("Illegal sweep command");
+  delete sweep;
+
+  if (strcmp(arg[0],"none") == 0) error->all("Invalid sweep style");
+
+#define SweepClass
+#define SweepStyle(key,Class) \
+  else if (strcmp(arg[0],#key) == 0) sweep = new Class(spk,narg,arg);
+#include "style.h"
+#undef SweepClass
+
+  else error->all("Invalid sweep style");
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Input::species()
 {
   if (app == NULL) error->all("Command used before app_style set");
@@ -697,6 +719,7 @@ void Input::temperature()
   if (app == NULL) error->all("Command used before app_style set");
   if (strcmp(app->style,"grain") != 0    && 
       strcmp(app->style,"grain_strict") != 0 && 
+      strcmp(app->style,"grain_nfw") != 0 && 
       strcmp(app->style,"grain_3d") != 0 && 
       strcmp(app->style,"grain_3d_strict") != 0 &&
       strcmp(app->style,"surf") != 0)

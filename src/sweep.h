@@ -3,17 +3,25 @@
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
-#ifndef COMM_GRAIN_H
-#define COMM_GRAIN_H
+#ifndef SWEEP_H
+#define SWEEP_H
 
 #include "sysptr.h"
 
 namespace SPPARKS {
 
-class CommGrain : protected SysPtr  {
+class Sweep : protected SysPtr {
  public:
-  explicit CommGrain(class SPK *);
-  ~CommGrain();
+  char *style;
+
+  Sweep(class SPK *, int, char **);
+  virtual ~Sweep();
+
+  // pure virtual functions, must be defined in child class
+
+  virtual void input(int, char **) = 0; 
+  virtual void do_sweep() = 0;
+  virtual double compute_energy() = 0;
 };
 
 }

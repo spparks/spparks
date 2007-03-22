@@ -20,6 +20,7 @@ class SPK {
 
   class App *app;                // application
   class Solve *solve;            // solver
+  class Sweep *sweep;            // sweep
   class Timer *timer;            // timer
 
   MPI_Comm world;          // communicator for my world of procs

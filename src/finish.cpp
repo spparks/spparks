@@ -28,7 +28,7 @@ Finish::Finish (SPK *spk) : SysPtr(spk)
 
   double time_other = timer->array[TIME_LOOP] -
     (timer->array[TIME_SOLVE] + timer->array[TIME_COMM] + timer->array[TIME_UPDATE] + 
-     timer->array[TIME_OUTPUT]);
+     timer->array[TIME_OUTPUT] + timer->array[TIME_APP]);
 
   double time_loop = timer->array[TIME_LOOP];
   MPI_Allreduce(&time_loop,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
@@ -92,6 +92,16 @@ Finish::Finish (SPK *spk) : SysPtr(spk)
       fprintf(screen,"Outpt time (%%) = %g (%g)\n",time,time/time_loop*100.0);
     if (logfile) 
       fprintf(logfile,"Outpt time (%%) = %g (%g)\n",time,time/time_loop*100.0);
+  }
+
+  time = timer->array[TIME_APP];
+  MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  time = tmp/nprocs;
+  if (me == 0) {
+    if (screen) 
+      fprintf(screen,"App   time (%%) = %g (%g)\n",time,time/time_loop*100.0);
+    if (logfile) 
+      fprintf(logfile,"App   time (%%) = %g (%g)\n",time,time/time_loop*100.0);
   }
 
   time = time_other;

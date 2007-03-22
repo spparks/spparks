@@ -64,6 +64,7 @@ class Input : protected SysPtr {
   void stats();
   void temperature();
   void volume();
+  void sweep_style();
 
  private:
   Input(); // Not a sane operation.

@@ -12,6 +12,7 @@
 #include "input.h"
 #include "app.h"
 #include "solve.h"
+#include "sweep.h"
 #include "timer.h"
 
 using namespace SPPARKS;
@@ -265,6 +266,7 @@ void SPK::create()
 {
   app = NULL;
   solve = NULL;
+  sweep = NULL;
   timer = new Timer(this);
 }
 
@@ -286,6 +288,7 @@ void SPK::init()
 void SPK::destroy()
 {
   delete app;
-  delete solve;
+  if (solve != NULL) delete solve;
+  if (sweep != NULL) delete sweep;
   delete timer;
 }

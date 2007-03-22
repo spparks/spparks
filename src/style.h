@@ -6,9 +6,7 @@
 #ifdef AppInclude
 #include "app_chemistry.h"
 #include "app_grain.h"
-#include "app_grain_strict.h"
-#include "app_grain_3d.h"
-#include "app_grain_3d_strict.h"
+#include "app_grain_nfw.h"
 #include "app_surf.h"
 #include "app_test.h"
 #endif
@@ -16,9 +14,7 @@
 #ifdef AppClass
 AppStyle(chemistry,AppChemistry)
 AppStyle(grain,AppGrain)
-AppStyle(grain_strict,AppGrainStrict)
-AppStyle(grain_3d,AppGrain3D)
-AppStyle(grain_3d_strict,AppGrain3DStrict)
+AppStyle(grain_nfw,AppGrainNfw)
 AppStyle(surf,AppSurf)
 AppStyle(test,AppTest)
 #endif
@@ -47,6 +43,14 @@ SolveStyle(next_event_group_search,SolveNextEventGroupSearch)
 SolveStyle(next_event_linear_search,SolveNextEventLinearSearch)
 SolveStyle(next_event_tree_search,SolveNextEventTreeSearch)
 SolveStyle(sweep,SolveSweep)
+#endif
+
+#ifdef SweepInclude
+#include "sweep_grain.h"
+#endif
+
+#ifdef SweepClass
+SweepStyle(grain,SweepGrain)
 #endif
 
 // user add-ons

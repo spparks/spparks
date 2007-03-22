@@ -33,6 +33,7 @@ public:
     error(sys->error),
     app(sys->app),
     solve(sys->solve),
+    sweep(sys->sweep),
     timer(sys->timer),
     world(sys->world),
     infile(sys->infile),
@@ -50,6 +51,7 @@ protected:
 
   class App *&app;                // application
   class Solve *&solve;            // solver
+  class Sweep *&sweep;            // sweep
   class Timer *&timer;            // timer
 
   MPI_Comm &world;          // communicator for my world of procs

@@ -188,27 +188,36 @@ void AppChemistry::iterate()
     ireaction = solve->event(&dt);
     timer->stamp(TIME_SOLVE);
 
+    // Check if solver failed to pick an event
+
+    if (ireaction < 0) {
+
+      done = 1;
+
+    } else {
+
     // update particle counts due to reaction
 
-    rcount[ireaction]++;
-    for (m = 0; m < nreactant[ireaction]; m++)
-      pcount[reactants[ireaction][m]]--;
-    for (m = 0; m < nproduct[ireaction]; m++)
-      pcount[products[ireaction][m]]++;
+      rcount[ireaction]++;
+      for (m = 0; m < nreactant[ireaction]; m++)
+	pcount[reactants[ireaction][m]]--;
+      for (m = 0; m < nproduct[ireaction]; m++)
+	pcount[products[ireaction][m]]++;
 
-    // update propensities of dependent reactions
-    // inform Gillespie solver of changes
+      // update propensities of dependent reactions
+      // inform Gillespie solver of changes
 
-    for (m = 0; m < ndepends[ireaction]; m++)
-      propensity[depends[ireaction][m]] = 
-	compute_propensity(depends[ireaction][m]);
-    solve->update(ndepends[ireaction],depends[ireaction],propensity);
+      for (m = 0; m < ndepends[ireaction]; m++)
+	propensity[depends[ireaction][m]] = 
+	  compute_propensity(depends[ireaction][m]);
+      solve->update(ndepends[ireaction],depends[ireaction],propensity);
 
-    // update time by Gillepsie dt
+      // update time by Gillepsie dt
 
-    time += dt;
-    if (time >= stoptime) done = 1;
-    else if (ireaction < 0) done = 1;
+      time += dt;
+      if (time >= stoptime) done = 1;
+
+    }
 
     if (time > stats_time || done) {
       stats();

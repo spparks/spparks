@@ -197,7 +197,7 @@ template<typename T>
  void Memory::create_2d_T_array(T **&array, int n1, int n2lo, int n2hi, char *name)
 {
   int n2 = n2hi - n2lo + 1;
-  array = create_2d_T_array(array,n1,n2,name);
+  create_2d_T_array(array,n1,n2,name);
 
   for (int i = 0; i < n1; i++) array[i] -= n2lo;
 }
@@ -298,7 +298,7 @@ void Memory::create_3d_T_array(T ***&array, int n1lo, int n1hi,
 					 int n2, int n3, char *name)
 {
   int n1 = n1hi - n1lo + 1;
-  array = create_3d_T_array(array,n1,n2,n3,name);
+  create_3d_T_array(array,n1,n2,n3,name);
   array = array-n1lo;
 }
 
@@ -327,7 +327,7 @@ void Memory::create_3d_T_array(T ***&array, int n1lo, int n1hi,
   int n1 = n1hi - n1lo + 1;
   int n2 = n2hi - n2lo + 1;
   int n3 = n3hi - n3lo + 1;
-  array = create_3d_T_array(array,n1,n2,n3,name);
+  create_3d_T_array(array,n1,n2,n3,name);
 
   for (int i = 0; i < n1*n2; i++) array[0][i] -= n3lo;
   for (int i = 0; i < n1; i++) array[i] -= n2lo;
