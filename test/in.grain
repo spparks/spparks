@@ -1,19 +1,22 @@
 # SPPARKS App "grain"
 
-# app_style	grain Nx Ny Ns 12345 = lattice of size Nx by Ny, Ns = spins, RN
+# app_style	grain lat Nx Ny (Nz) Ns 12345 = lattice of type lat and size Nx by Ny (by Nz), Ns = spins, RN
+#		lat = square_8nn, square_4nn, cubic_26nn, cubic_6nn
+# sweep_style   grain 12345 (mask yes/no) (strict yes/no) 
 # temperature	300.0 = temp (degrees K)
 # stats		N = print stats every N sweeps
 # dump		N file = print snapshot to file every N steps
 # run		N = run N sweeps
 
-# 2d vanilla grain growth
+# Grain growth on a 2D Square Lattice using masking, and not strict
 
-app_style	grain 100 100 100 12345
+app_style	grain square_8nn 100 100 100 12345
+sweep_style     grain 12345 mask yes strict no
 
 temperature	0.0
 
-stats           100
-dump		100 tmp.grain
+stats           1000
+dump		1000 tmp.grain
 
 run		10000
 
