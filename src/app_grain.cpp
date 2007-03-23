@@ -56,25 +56,48 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   procdown = -1;
   nspins = 0;
   temperature = 0.0;
+  es_fp = NULL;
+  um_fp = NULL;
 
   int iarg=1;
-  if (strcmp(arg[iarg],"2d") == 0) {
+  if (strcmp(arg[iarg],"square_8nn") == 0) {
     iarg++;
     dimension = 2;
-    if (narg != 6) error->all("Invalid app_style grain 2d command");
+    if (narg != 6) error->all("Invalid app_style grain square_8nn command");
     nx_global = atoi(arg[iarg++]);
     ny_global = atoi(arg[iarg++]);
-  } else if (strcmp(arg[iarg],"3d") == 0) {
+    es_fp = &AppGrain::energy_site_square_8nn;
+    um_fp = &AppGrain::update_mask_square_8nn;
+  } else if (strcmp(arg[iarg],"square_4nn") == 0) {
+    iarg++;
+    dimension = 2;
+    if (narg != 6) error->all("Invalid app_style grain square_4nn command");
+    nx_global = atoi(arg[iarg++]);
+    ny_global = atoi(arg[iarg++]);
+    es_fp = &AppGrain::energy_site_square_4nn;
+    um_fp = &AppGrain::update_mask_square_4nn;
+  } else if (strcmp(arg[iarg],"cubic_26nn") == 0) {
     iarg++;
     dimension = 3;
-    if (narg != 7) error->all("Invalid app_style grain 3d command");
+    if (narg != 7) error->all("Invalid app_style grain cubic_26nn command");
     nx_global = atoi(arg[iarg++]);
     ny_global = atoi(arg[iarg++]);
     nz_global = atoi(arg[iarg++]);
-  } else error->all("Illegal dimension specifier in app_style grain command");
+    es_fp = &AppGrain::energy_site_cubic_26nn;
+    um_fp = &AppGrain::update_mask_cubic_26nn;
+  } else if (strcmp(arg[iarg],"cubic_6nn") == 0) {
+    iarg++;
+    dimension = 3;
+    if (narg != 7) error->all("Invalid app_style grain cubic_6nn command");
+    nx_global = atoi(arg[iarg++]);
+    ny_global = atoi(arg[iarg++]);
+    nz_global = atoi(arg[iarg++]);
+    es_fp = &AppGrain::energy_site_cubic_6nn;
+    um_fp = &AppGrain::update_mask_cubic_6nn;
+  } else error->all("Illegal lattice specifier in app_style grain command");
+
   nspins = atoi(arg[iarg++]);
   seed = atoi(arg[iarg++]);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -257,7 +280,7 @@ void AppGrain::init()
 	      procwest, proceast, 
 	      procsouth, procnorth, 
 	      procdown, procup, 
-	      nspins, temperature);
+	      nspins, temperature,es_fp,um_fp);
 
   // Print layout info
   
@@ -405,6 +428,8 @@ void AppGrain::dump_header()
 {
   // setup comm buf for dumping snapshots
 
+  if (dimension != 2)  return;
+
   delete [] dumpbuf;
   maxdumpbuf = 0;
   int mybuf = 4*nx_local*ny_local;
@@ -463,6 +488,8 @@ void AppGrain::dump_header()
 void AppGrain::dump()
 {
   int size_one = 2;
+
+  if (dimension != 2)  return;
 
   // proc 0 writes timestep header
 
@@ -770,7 +797,8 @@ void AppGrain::procs2lattice_3d()
   }
 }
 
-int AppGrain::energy_site(int ik, int i, int j) {
+int AppGrain::energy_site_square_8nn(int ik, int i, int j, int kdummy,
+				     int ibdummy) {
   int nk;
 
   nk = 0;
@@ -786,21 +814,49 @@ int AppGrain::energy_site(int ik, int i, int j) {
   return nk;
 }
 
-void AppGrain::update_mask(char** mask, int i, int j) {
+void AppGrain::update_mask_square_8nn(char*** mask, int i, int j, int kdummy,
+				     int ibdummy) {
+  char** mask_2d = mask[0];
 
   // Unset masks for self and neighbors
-  mask[i-1][j-1] = 0;
-  mask[i-1][j] = 0;
-  mask[i-1][j+1] = 0;
-  mask[i][j-1] = 0;
-  mask[i][j] = 0;
-  mask[i][j+1] = 0;
-  mask[i+1][j-1] = 0;
-  mask[i+1][j] = 0;
-  mask[i+1][j+1] = 0;
+  mask_2d[i-1][j-1] = 0;
+  mask_2d[i-1][j] = 0;
+  mask_2d[i-1][j+1] = 0;
+  mask_2d[i][j-1] = 0;
+  mask_2d[i][j] = 0;
+  mask_2d[i][j+1] = 0;
+  mask_2d[i+1][j-1] = 0;
+  mask_2d[i+1][j] = 0;
+  mask_2d[i+1][j+1] = 0;
 }
 
-int AppGrain::energy_site(int ik, int i, int j, int k) {
+int AppGrain::energy_site_square_4nn(int ik, int i, int j, int kdummy,
+				     int ibdummy) {
+  int nk;
+
+  nk = 0;
+  if (ik != lat_2d[i-1][j]) nk++;
+  if (ik != lat_2d[i][j-1]) nk++;
+  if (ik != lat_2d[i][j+1]) nk++;
+  if (ik != lat_2d[i+1][j]) nk++;
+
+  return nk;
+}
+
+void AppGrain::update_mask_square_4nn(char*** mask, int i, int j, int kdummy,
+				     int ibdummy) {
+  char** mask_2d = mask[0];
+
+  // Unset masks for self and neighbors
+  mask_2d[i-1][j] = 0;
+  mask_2d[i][j-1] = 0;
+  mask_2d[i][j] = 0;
+  mask_2d[i][j+1] = 0;
+  mask_2d[i+1][j] = 0;
+}
+
+int AppGrain::energy_site_cubic_26nn(int ik, int i, int j, int k,
+				     int ibdummy) {
   int nk;
 
   nk = 0;
@@ -842,7 +898,8 @@ int AppGrain::energy_site(int ik, int i, int j, int k) {
   return nk;
 }
 
-void AppGrain::update_mask(char*** mask, int i, int j, int k) {
+void AppGrain::update_mask_cubic_26nn(char*** mask, int i, int j, int k,
+				     int ibdummy) {
 
   // Unset masks for self and neighbors
   mask[i-1][j-1][k-1] = 0;
@@ -880,4 +937,33 @@ void AppGrain::update_mask(char*** mask, int i, int j, int k) {
   mask[i+1][j+1][k-1] = 0;
   mask[i+1][j+1][k] = 0;
   mask[i+1][j+1][k+1] = 0;
+}
+
+int AppGrain::energy_site_cubic_6nn(int ik, int i, int j, int k,
+				     int ibdummy) {
+  int nk;
+
+  nk = 0;
+
+  if (ik != lat_3d[i-1][j][k]) nk++;
+  if (ik != lat_3d[i][j-1][k]) nk++;
+  if (ik != lat_3d[i][j][k-1]) nk++;
+  if (ik != lat_3d[i][j][k+1]) nk++;
+  if (ik != lat_3d[i][j+1][k]) nk++;
+  if (ik != lat_3d[i+1][j][k]) nk++;
+
+  return nk;
+}
+
+void AppGrain::update_mask_cubic_6nn(char*** mask, int i, int j, int k,
+				     int ibdummy) {
+
+  // Unset masks for self and neighbors
+  mask[i-1][j][k] = 0;
+  mask[i][j-1][k] = 0;
+  mask[i][j][k-1] = 0;
+  mask[i][j][k] = 0;
+  mask[i][j][k+1] = 0;
+  mask[i][j+1][k] = 0;
+  mask[i+1][j][k] = 0;
 }

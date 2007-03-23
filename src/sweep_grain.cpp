@@ -123,7 +123,9 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
 		      const int procwest_in, const int proceast_in, 
 		      const int procsouth_in, const int procnorth_in, 
 		      const int procdown_in, const int procup_in, 
-		      const int nspins_in, const double temperature_in)
+		      const int nspins_in, const double temperature_in,
+		      int (AppGrain::*es_fp_in)(int,int,int,int,int),
+		      void (AppGrain::*um_fp_in)(char***,int,int,int,int))
 {
   appgrain = appgrain_in;
   me = me_in;
@@ -140,6 +142,8 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
   proceast = proceast_in;
   procsouth = procsouth_in;
   procnorth = procnorth_in;
+  es_fp = es_fp_in;
+  um_fp = um_fp_in;
 
   nx_half = nx_local/2 + 1;
   ny_half = ny_local/2 + 1;
@@ -377,10 +381,10 @@ void SweepGrain::sweep_quadrant_2d(int iquad)
 
   for (i = xlo; i <= xhi; i++) {
     for (j = ylo; j <= yhi; j++) {
-      nold = appgrain->energy_site(lat_2d[i][j],i,j);
+      nold = (appgrain->*es_fp)(lat_2d[i][j],i,j,0,0);
 
       inew = random->irandom(nspins);
-      nnew = appgrain->energy_site(inew,i,j);
+      nnew = (appgrain->*es_fp)(inew,i,j,0,0);
 
       if (nold >= nnew) {
 	lat_2d[i][j] = inew;
@@ -404,36 +408,38 @@ void SweepGrain::sweep_quadrant_mask_2d(int iquad)
   // Alternatively, we could reverse communicate the masks, but that
   // might work out to be even slower....
 
-  char** mask_2d = mask[0];
+  char** mask_2d_tmp = mask[0];
+  char*** mask_3d_tmp = mask;
+
   if (ylo == 1) j = ylo;
   else if (yhi == ny_local) j = yhi;
   for (i = xlo; i <= xhi; i++)
-    mask_2d[i][j] = 0;
+    mask_2d_tmp[i][j] = 0;
   if (xlo == 1) i = xlo;
   else if (xhi == nx_local) i = xhi;
   for (j = ylo; j <= yhi; j++)
-    mask_2d[i][j] = 0;
+    mask_2d_tmp[i][j] = 0;
 
   for (i = xlo; i <= xhi; i++) {
     for (j = ylo; j <= yhi; j++) {
       // Check if mask is set 
-      if (mask_2d[i][j]) {
+      if (mask_2d_tmp[i][j]) {
 	continue;
       }
 
-      nold = appgrain->energy_site(lat_2d[i][j],i,j);
+      nold = (appgrain->*es_fp)(lat_2d[i][j],i,j,0,0);
       // Check if mask can be set
       if (nold < masklimit) {
-	mask_2d[i][j] = 1;
+	mask_2d_tmp[i][j] = 1;
 	continue;
       }
 
       inew = random->irandom(nspins);
-      nnew = appgrain->energy_site(inew,i,j);
+      nnew = (appgrain->*es_fp)(inew,i,j,0,0);
 
       if (nold >= nnew) {
 	lat_2d[i][j] = inew;
-	appgrain->update_mask(mask_2d,i,j);
+	(appgrain->*um_fp)(mask_3d_tmp,i,j,0,0);
       }
     }
   }
@@ -450,7 +456,7 @@ void SweepGrain::sweep_quadrant_strict_2d(int icolor, int iquad)
   int ylo = quad[iquad].ylo;
   int yhi = quad[iquad].yhi;
 
-  RandomPark** ranlat_2d = ranlat[0];
+  RandomPark** ranlat_2d_tmp = ranlat[0];
   i0 = (icolor/2 + nx_offset + xlo) % 2;
   j0 = (icolor   + ny_offset + ylo) % 2;
 
@@ -461,10 +467,10 @@ void SweepGrain::sweep_quadrant_strict_2d(int icolor, int iquad)
   for (i = xlo+i0; i <= xhi; i+=2) {
     for (j = ylo+j0; j <= yhi; j+=2) {
       
-      nold = appgrain->energy_site(lat_2d[i][j],i,j);
+      nold = (appgrain->*es_fp)(lat_2d[i][j],i,j,0,0);
       
-      inew = ranlat_2d[i][j].irandom(nspins);
-      nnew = appgrain->energy_site(inew,i,j);
+      inew = ranlat_2d_tmp[i][j].irandom(nspins);
+      nnew = (appgrain->*es_fp)(inew,i,j,0,0);
       
       if (nold >= nnew) {
 	lat_2d[i][j] = inew;
@@ -489,42 +495,44 @@ void SweepGrain::sweep_quadrant_mask_strict_2d(int icolor, int iquad)
   // Alternatively, we could reverse communicate the masks, but that
   // might work out to be even slower....
 
-  char** mask_2d = mask[0];
+  char** mask_2d_tmp = mask[0];
+  char*** mask_3d_tmp = mask;
+
   if (ylo == 1) j = ylo;
   else if (yhi == ny_local) j = yhi;
   for (i = xlo; i <= xhi; i++)
-    mask_2d[i][j] = 0;
+    mask_2d_tmp[i][j] = 0;
   if (xlo == 1) i = xlo;
   else if (xhi == nx_local) i = xhi;
   for (j = ylo; j <= yhi; j++)
-    mask_2d[i][j] = 0;
+    mask_2d_tmp[i][j] = 0;
 
-  RandomPark** ranlat_2d = ranlat[0];
+  RandomPark** ranlat_2d_tmp = ranlat[0];
   i0 = (icolor/2 + nx_offset + xlo) % 2;
   j0 = (icolor   + ny_offset + ylo) % 2;
 
   for (i = xlo+i0; i <= xhi; i+=2) {
     for (j = ylo+j0; j <= yhi; j+=2) {
       // Check if mask is set 
-      if (mask_2d[i][j]) {
-	ranlat_2d[i][j].irandom(nspins);
+      if (mask_2d_tmp[i][j]) {
+	ranlat_2d_tmp[i][j].irandom(nspins);
 	continue;
       }
       
-      nold = appgrain->energy_site(lat_2d[i][j],i,j);
+      nold = (appgrain->*es_fp)(lat_2d[i][j],i,j,0,0);
       // Check if mask can be set
       if (nold < masklimit) {
-	mask_2d[i][j] = 1;
-	ranlat_2d[i][j].irandom(nspins);
+	mask_2d_tmp[i][j] = 1;
+	ranlat_2d_tmp[i][j].irandom(nspins);
 	continue;
       }
       
-      inew = ranlat_2d[i][j].irandom(nspins);
-      nnew = appgrain->energy_site(inew,i,j);
+      inew = ranlat_2d_tmp[i][j].irandom(nspins);
+      nnew = (appgrain->*es_fp)(inew,i,j,0,0);
       
       if (nold >= nnew) {
 	lat_2d[i][j] = inew;
-	appgrain->update_mask(mask_2d,i,j);
+	(appgrain->*um_fp)(mask_3d_tmp,i,j,0,0);
       }
     }
   }
@@ -546,10 +554,10 @@ void SweepGrain::sweep_quadrant_3d(int iquad)
   for (i = xlo; i <= xhi; i++) {
     for (j = ylo; j <= yhi; j++) {
       for (k = zlo;  k <= zhi; k++) {
-	nold = appgrain->energy_site(lat_3d[i][j][k],i,j,k);
+	nold = (appgrain->*es_fp)(lat_3d[i][j][k],i,j,k,0);
 
 	inew = random->irandom(nspins);
-	nnew = appgrain->energy_site(inew,i,j,k);
+	nnew = (appgrain->*es_fp)(inew,i,j,k,0);
 
 	if (nold >= nnew) {
 	  lat_3d[i][j][k] = inew;
@@ -577,47 +585,47 @@ void SweepGrain::sweep_quadrant_mask_3d(int iquad)
   // Alternatively, we could reverse communicate the masks, but that
   // might work out to be even slower....
 
-  char*** mask_3d = mask;
+  char*** mask_3d_tmp = mask;
   if (zlo == 1) k = zlo;
   else if (zhi == nz_local) k = zhi;
   else error->one("Failed to find z-boundary in sweep_quadrant_maks_3d()");
   for (i = xlo; i <= xhi; i++)
   for (j = ylo; j <= yhi; j++)
-    mask_3d[i][j][k] = 0;
+    mask_3d_tmp[i][j][k] = 0;
 
   if (ylo == 1) j = ylo;
   else if (yhi == ny_local) j = yhi;
   for (i = xlo; i <= xhi; i++)
   for (k = zlo; k <= zhi; k++)
-    mask_3d[i][j][k] = 0;
+    mask_3d_tmp[i][j][k] = 0;
 
   if (xlo == 1) i = xlo;
   else if (xhi == nx_local) i = xhi;
   for (j = ylo; j <= yhi; j++)
   for (k = zlo; k <= zhi; k++)
-    mask_3d[i][j][k] = 0;
+    mask_3d_tmp[i][j][k] = 0;
 
   for (i = xlo; i <= xhi; i++) {
     for (j = ylo; j <= yhi; j++) {
       for (k = zlo;  k <= zhi; k++) {
 	// Check if mask is set 
-	if (mask_3d[i][j][k]) {
+	if (mask_3d_tmp[i][j][k]) {
 	  continue;
 	}
 
-	nold = appgrain->energy_site(lat_3d[i][j][k],i,j,k);
+	nold = (appgrain->*es_fp)(lat_3d[i][j][k],i,j,k,0);
 	// Check if mask can be set
 	if (nold < masklimit) {
-	  mask_3d[i][j][k] = 1;
+	  mask_3d_tmp[i][j][k] = 1;
 	  continue;
 	}
 
 	inew = random->irandom(nspins);
-	nnew = appgrain->energy_site(inew,i,j,k);
+	nnew = (appgrain->*es_fp)(inew,i,j,k,0);
 
 	if (nold >= nnew) {
 	  lat_3d[i][j][k] = inew;
-	  appgrain->update_mask(mask_3d,i,j,k);
+	  (appgrain->*um_fp)(mask_3d_tmp,i,j,k,0);
 	}
       }
     }
@@ -648,10 +656,10 @@ void SweepGrain::sweep_quadrant_strict_3d(int icolor, int iquad)
   for (i = xlo+i0; i <= xhi; i+=2) {
     for (j = ylo+j0; j <= yhi; j+=2) {
       for (k = zlo+k0;  k <= zhi; k+=2) {
-	nold = appgrain->energy_site(lat_3d[i][j][k],i,j,k);
+	nold = (appgrain->*es_fp)(lat_3d[i][j][k],i,j,k,0);
       
 	inew = ranlat[i][j][k].irandom(nspins);
-	nnew = appgrain->energy_site(inew,i,j,k);
+	nnew = (appgrain->*es_fp)(inew,i,j,k,0);
 	
 	if (nold >= nnew) {
 	  lat_3d[i][j][k] = inew;
@@ -679,25 +687,25 @@ void SweepGrain::sweep_quadrant_mask_strict_3d(int icolor, int iquad)
   // Alternatively, we could reverse communicate the masks, but that
   // might work out to be even slower....
 
-  char*** mask_3d = mask;
+  char*** mask_3d_tmp = mask;
   if (zlo == 1) k = zlo;
   else if (zhi == nz_local) k = zhi;
   else error->one("Failed to find z-boundary in sweep_quadrant_maks_3d()");
   for (i = xlo; i <= xhi; i++)
   for (j = ylo; j <= yhi; j++)
-    mask_3d[i][j][k] = 0;
+    mask_3d_tmp[i][j][k] = 0;
 
   if (ylo == 1) j = ylo;
   else if (yhi == ny_local) j = yhi;
   for (i = xlo; i <= xhi; i++)
   for (k = zlo; k <= zhi; k++)
-    mask_3d[i][j][k] = 0;
+    mask_3d_tmp[i][j][k] = 0;
 
   if (xlo == 1) i = xlo;
   else if (xhi == nx_local) i = xhi;
   for (j = ylo; j <= yhi; j++)
   for (k = zlo; k <= zhi; k++)
-    mask_3d[i][j][k] = 0;
+    mask_3d_tmp[i][j][k] = 0;
 
   i0 = (icolor/4 + nx_offset + xlo) % 2;
   j0 = (icolor/2 + ny_offset + ylo) % 2;
@@ -707,25 +715,25 @@ void SweepGrain::sweep_quadrant_mask_strict_3d(int icolor, int iquad)
     for (j = ylo+j0; j <= yhi; j+=2) {
       for (k = zlo+k0;  k <= zhi; k+=2) {
 	// Check if mask is set 
-	if (mask_3d[i][j][k]) {
+	if (mask_3d_tmp[i][j][k]) {
 	  ranlat[i][j][k].irandom(nspins);
 	  continue;
 	}
       
-	nold = appgrain->energy_site(lat_3d[i][j][k],i,j,k);
+	nold = (appgrain->*es_fp)(lat_3d[i][j][k],i,j,k,0);
 	// Check if mask can be set
 	if (nold < masklimit) {
-	  mask_3d[i][j][k] = 1;
+	  mask_3d_tmp[i][j][k] = 1;
 	  ranlat[i][j][k].irandom(nspins);
 	  continue;
 	}
       
 	inew = ranlat[i][j][k].irandom(nspins);
-	nnew = appgrain->energy_site(inew,i,j,k);
+	nnew = (appgrain->*es_fp)(inew,i,j,k,0);
 	
 	if (nold >= nnew) {
 	  lat_3d[i][j][k] = inew;
-	  appgrain->update_mask(mask_3d,i,j,k);
+	  (appgrain->*um_fp)(mask_3d_tmp,i,j,k,0);
 	}
       }
     }
@@ -766,17 +774,18 @@ double SweepGrain::energy_quadrant(const int iquad)
 
   energy = 0.0;
 
+
   if (dimension == 2) {
     for (i = quad[iquad].xlo; i <= quad[iquad].xhi; i++) {
       for (j = quad[iquad].ylo; j <= quad[iquad].yhi; j++) {
-	energy+=appgrain->energy_site(lat_2d[i][j],i,j);
+	energy+=(appgrain->*es_fp)(lat_2d[i][j],i,j,0,0);
       }
     }
   } else {
     for (i = quad[iquad].xlo; i <= quad[iquad].xhi; i++) {
       for (j = quad[iquad].ylo; j <= quad[iquad].yhi; j++) {
 	for (k = quad[iquad].zlo; k <= quad[iquad].zhi; k++) {
-	  energy+=appgrain->energy_site(lat_3d[i][j][k],i,j,k);;
+	  energy+=(appgrain->*es_fp)(lat_3d[i][j][k],i,j,k,0);
 	}
       }
     }

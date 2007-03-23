@@ -18,12 +18,21 @@ class AppGrain : public App {
   virtual void init();
   virtual void input(char *, int, char **);
   virtual void run(int, char **);
-  // 2D Hamiltonian functions
-  int energy_site(const int, const int, const int);
-  void update_mask(char**, const int, const int);
-  // 3D Hamiltonian functions
-  int energy_site(const int, const int, const int, const int);
-  void update_mask(char***, const int, const int, const int);
+  // Energy functions for different lattice stencils
+  // These must all look the same:
+  // int energy energy_site_square_8nn(const int ik, const int i, const int j, const int k, const int ib);
+  // energy = site energy
+  // i,j,k are the site indexes
+  // ib is a basis index (could be used for things like triangular lattice) 
+  int energy_site_square_8nn(const int, const int, const int, const int, const int);
+  int energy_site_square_4nn(const int, const int, const int, const int, const int);
+  int energy_site_cubic_26nn(const int, const int, const int, const int, const int);
+  int energy_site_cubic_6nn(const int, const int, const int, const int, const int);
+  // Mask functions for different lattice stencils
+  void update_mask_square_8nn(char***, const int, const int, const int, const int);
+  void update_mask_square_4nn(char***, const int, const int, const int, const int);
+  void update_mask_cubic_26nn(char***, const int, const int, const int, const int);
+  void update_mask_cubic_6nn(char***, const int, const int, const int, const int);
 
  protected:
   int me,nprocs;
@@ -55,6 +64,9 @@ class AppGrain : public App {
   double temperature;
   int *dumpbuf;
   int maxdumpbuf;
+  // Pointer-to-member functions for different lattice stencils
+  int (AppGrain::*es_fp)(int,int,int,int,int);
+  void (AppGrain::*um_fp)(char***,int,int,int,int);
 
   class RandomPark *random;
 

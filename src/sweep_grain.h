@@ -23,7 +23,9 @@ class SweepGrain : public Sweep {
 		      const int, const int, 
 	              const int, const int, 
 	              const int, const int, 
-	    const int, const double);
+	    const int, const double, 
+	    int (AppGrain::*)(int,int,int,int,int),
+	    void (AppGrain::*)(char***,int,int,int,int) );
   void do_sweep();
   double compute_energy();
   double energy_quadrant(const int);
@@ -87,6 +89,10 @@ class SweepGrain : public Sweep {
                                       // independent of number of processors.
   class RandomPark ***ranlat;          // array of random number generator pointers
   int ncolor;                         // Number of colors to use
+
+  // Pointer-to-member functions for different lattice stencils
+  int (AppGrain::*es_fp)(int,int,int,int,int);
+  void (AppGrain::*um_fp)(char***,int,int,int,int);
 
 };
 
