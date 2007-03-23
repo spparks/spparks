@@ -33,11 +33,21 @@ class AppGrain : public App {
   void update_mask_square_4nn(char***, const int, const int, const int, const int);
   void update_mask_cubic_26nn(char***, const int, const int, const int, const int);
   void update_mask_cubic_6nn(char***, const int, const int, const int, const int);
-
+  // N-Fold Way functions for different lattice stencils
+  void flip_spin_square_8nn(const int&, const int&, const int&, const int&);
+  void update_propensity_square_8nn(const int&, const int&, const int&, const int&) const;
+  double compute_propensity_square_8nn(const int&, const int&, const int&, const int&) const;
+  
  protected:
   int me,nprocs;
   int ntimestep;
   int dimension;
+  double time,stoptime;
+  double stats_time,stats_delta;       // statistics
+  double dump_time,dump_delta;         // dump
+
+  double* propensity;
+
   int nx_global,ny_global,nz_global;  // size of global lattice [0,Nglobal-1]
                                       // global lattice has no ghosts
   int nx_local,ny_local,nz_local;     // size of local lattice [0,Nlocal+1]
@@ -58,8 +68,6 @@ class AppGrain : public App {
   int nspins;                          // # of possible spins
   int nsweep;                          // # of sweeps to perform
   int seed;                            // random number generator seed
-  int nstats,stats_next;
-  int ndump,dump_next;
   FILE *fp;
   double temperature;
   int *dumpbuf;
@@ -67,6 +75,9 @@ class AppGrain : public App {
   // Pointer-to-member functions for different lattice stencils
   int (AppGrain::*es_fp)(int,int,int,int,int);
   void (AppGrain::*um_fp)(char***,int,int,int,int);
+  void (AppGrain::*fs_fp)(const int&, const int&, const int&, const int&);
+  double (AppGrain::*cp_fp)(const int&, const int&, const int&, const int&) const;
+  void (AppGrain::*up_fp)(const int&, const int&, const int&, const int&) const;
 
   class RandomPark *random;
 
@@ -81,6 +92,9 @@ class AppGrain : public App {
   void set_stats(int, char **);
   void set_dump(int, char **);
   void set_temperature(int, char **);
+
+  void init_propensity();
+  void survey_neighbor(const int&, const int&, int&, int[], int[]) const;
 };
 
 }

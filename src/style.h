@@ -6,7 +6,6 @@
 #ifdef AppInclude
 #include "app_chemistry.h"
 #include "app_grain.h"
-#include "app_grain_nfw.h"
 #include "app_surf.h"
 #include "app_test.h"
 #endif
@@ -14,7 +13,6 @@
 #ifdef AppClass
 AppStyle(chemistry,AppChemistry)
 AppStyle(grain,AppGrain)
-AppStyle(grain_nfw,AppGrainNfw)
 AppStyle(surf,AppSurf)
 AppStyle(test,AppTest)
 #endif

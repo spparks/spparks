@@ -8,6 +8,7 @@
 #include "stdlib.h"
 #include "app_grain.h"
 #include "sweep_grain.h"
+#include "solve.h"
 #include "random_park.h"
 #include "finish.h"
 #include "timer.h"
@@ -29,11 +30,14 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   
   // default/dummy settings
   ntimestep = 0;
-  nstats = ndump = 0;
+  time = 0.0;
+  stats_delta = 0.0;
+  dump_delta = 0.0;
   temperature = 0.0;
   maxdumpbuf = 0;
   dumpbuf = NULL;
   fp = NULL;
+  propensity = NULL;
 
   dimension = 0;
   nx_global = 0;
@@ -58,6 +62,9 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   temperature = 0.0;
   es_fp = NULL;
   um_fp = NULL;
+  cp_fp = NULL;
+  up_fp = NULL;
+  fs_fp = NULL;
 
   int iarg=1;
   if (strcmp(arg[iarg],"square_8nn") == 0) {
@@ -68,6 +75,9 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
     ny_global = atoi(arg[iarg++]);
     es_fp = &AppGrain::energy_site_square_8nn;
     um_fp = &AppGrain::update_mask_square_8nn;
+    fs_fp = &AppGrain::flip_spin_square_8nn;
+    cp_fp = &AppGrain::compute_propensity_square_8nn;
+    up_fp = &AppGrain::update_propensity_square_8nn;
   } else if (strcmp(arg[iarg],"square_4nn") == 0) {
     iarg++;
     dimension = 2;
@@ -98,6 +108,12 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 
   nspins = atoi(arg[iarg++]);
   seed = atoi(arg[iarg++]);
+
+  char* argtmp[2];
+  argtmp[0] = "grain";
+  argtmp[1] = "12345";
+  sweep = new SweepGrain(spk,2,argtmp);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -106,6 +122,7 @@ AppGrain::~AppGrain()
 {
   memory->destroy_3d_T_array(lattice);
   delete random;
+  if (propensity != NULL) delete [] propensity;
 
   if (fp) fclose(fp);
 }
@@ -271,16 +288,22 @@ void AppGrain::init()
   }
   
   // setup other classes
-  
-  ((SweepGrain*)sweep)->init(this, me, nprocs, dimension, 
-	      nx_local, ny_local, nz_local, 
-	      nx_global, ny_global, nz_global,  
-	      nx_offset, ny_offset, nz_offset, 
-	      lattice,
-	      procwest, proceast, 
-	      procsouth, procnorth, 
-	      procdown, procup, 
-	      nspins, temperature,es_fp,um_fp);
+
+  if (sweep != NULL) {
+    ((SweepGrain*)sweep)->init(this, me, nprocs, dimension, 
+			       nx_local, ny_local, nz_local, 
+			       nx_global, ny_global, nz_global,  
+			       nx_offset, ny_offset, nz_offset, 
+			       lattice,
+			       procwest, proceast, 
+			       procsouth, procnorth, 
+			       procdown, procup, 
+			       nspins, temperature,es_fp,um_fp);
+  }
+
+  if (solve != NULL) {
+    init_propensity();
+  }
 
   // Print layout info
   
@@ -295,13 +318,18 @@ void AppGrain::init()
  
   // setup future stat and dump calls
 
-  stats_next = nstats;
-  dump_next = ndump;
+  stats_time = time + stats_delta;
+  if (stats_delta == 0.0) stats_time = stoptime;
+  dump_time = time + dump_delta - 1.0e-7;
+  if (dump_delta == 0.0) dump_time = stoptime;
+  double teps = 1.0e-7;
+  stats_time-=teps;
+  dump_time-=teps;
 
   // print dump file header and 1st snapshot
 
-  if (ndump) dump_header();
-  if (ndump) dump();
+  dump_header();
+  dump();
 
   // print stats header
   
@@ -317,9 +345,7 @@ void AppGrain::init()
   }
 
   // Print initial stats and dump
-  if (nstats) {
-    stats();
-  }
+  stats();
 
 //   char *fstring = "Iteration %6d, in dump()";
 //   int len = strlen(fstring)+32;
@@ -348,13 +374,19 @@ void AppGrain::input(char *command, int narg, char **arg)
 void AppGrain::run(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal run command");
-  nsweep = atoi(arg[0]);
-  
+  stoptime = time + atof(arg[0]);
+
   // error check
   
-  //if (solve == NULL) error->all("No solver class defined");
-  if (sweep == NULL) error->all("No sweep class defined");
+  if (sweep == NULL) error->all("Sweep class must be defined, even if using solve.");
+  if (sweep == NULL && solve == NULL) error->all("No sweep or solve class defined");
   
+  if (solve != NULL) {
+    if (fs_fp == NULL) error->all("flip_spin() function is undefined.");
+    if (cp_fp == NULL) error->all("compute_propensity() function is undefined.");
+    if (up_fp == NULL) error->all("update_propensity() function is undefined.");
+  }
+
   // init classes used by this app
   
   init();
@@ -375,25 +407,66 @@ void AppGrain::run(int narg, char **arg)
 
 void AppGrain::iterate()
 {
+  double dt;
+  int done = 0;
+  int isite;
+  int i,j;
+
   timer->barrier_start(TIME_LOOP);
   
-  for (int i = 0; i < nsweep; i++) {
+  while (!done) {
     ntimestep++;
 
-    sweep->do_sweep();
+    if (solve != NULL) {
+      timer->stamp();
+      isite = solve->event(&dt);
+      timer->stamp(TIME_SOLVE);
+      // Check if solver failed to pick an event
+      if (isite < 0) done = 1;
+      else {
+	// Get index for this site
+	if (dimension == 2) {
+	  i = (isite / ny_local) + 1;
+	  j = isite - (i-1)*ny_local + 1;
+	  // Pick new spin from neighbor spins
+	  (this->*fs_fp)(i,j,0,0);
+	  timer->stamp(TIME_APP);
+	  // Update propensity for this site and neighbors
+	  (this->*up_fp)(i,j,0,0);
+	} else {
+// 	  int nyz_local = ny_local*nz_local;
+// 	  i = isite/nyz_local + 1
+// 	  j = isite/nz_local % ny_local + 1;
+// 	  k = isite % nz_local + 1;
+// 	  // Pick new spin from neighbor spins
+// 	  flip_spin(i,j,k);
+// 	  timer->stamp(TIME_APP);
+// 	  // Update propensity for this site and neighbors
+// 	  update_propensity(i,j,k);
+	}
+	// update time by Gillepsie dt
+	time += dt;
+      }
 
-    if (ntimestep == stats_next) {
-      timer->stamp();
+    } else if (sweep != NULL) {
+      sweep->do_sweep();
+      time += 1.0;
+    }
+
+    if (time >= stoptime) done = 1;
+
+    if (time > stats_time || done) {
       stats();
-      stats_next += nstats;
+      stats_time += stats_delta;
       timer->stamp(TIME_OUTPUT);
     }
-    if (ntimestep == dump_next) {
-      timer->stamp();
+
+    if (time > dump_time || done) {
       dump();
-      dump_next += ndump;
+      dump_time += dump_delta;
       timer->stamp(TIME_OUTPUT);
     }
+
   }
   
   timer->barrier_stop(TIME_LOOP);
@@ -410,10 +483,11 @@ void AppGrain::stats()
   energy = sweep->compute_energy();
   if (me == 0) {
     if (screen) {
-      fprintf(screen,"%d %f \n",ntimestep,energy);
+      fprintf(screen,"%d %f %f\n",ntimestep,time,energy);
+      fflush(screen);
     }
     if (logfile) {
-      fprintf(logfile,"%d %f \n",ntimestep,energy);
+      fprintf(logfile,"%d %f %f\n",ntimestep,time,energy);
     }
   }
 
@@ -708,7 +782,7 @@ void AppGrain::set_temperature(int narg, char **arg)
 void AppGrain::set_stats(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal stats command");
-  nstats = atoi(arg[0]);
+  stats_delta = atof(arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -716,10 +790,10 @@ void AppGrain::set_stats(int narg, char **arg)
 void AppGrain::set_dump(int narg, char **arg)
 {
   if (narg != 2) error->all("Illegal dump command");
-  ndump = atoi(arg[0]);
+  dump_delta = atof(arg[0]);
   if (me == 0) {
     fp = fopen(arg[1],"w");
-    if (fp == NULL) error->one("Cannot open dump file");
+    if (!fp) error->one("Cannot open dump file");
   }
 }
 
@@ -967,3 +1041,275 @@ void AppGrain::update_mask_cubic_6nn(char*** mask, int i, int j, int k,
   mask[i][j+1][k] = 0;
   mask[i+1][j][k] = 0;
 }
+
+void AppGrain::flip_spin_square_8nn(const int& i, const int& j, const int& kdummy,
+				    const int& ibdummy) {
+  int ns,spins[9],nspins[9],ik,jk;
+  int icand,ncand,candlist[9];
+
+  // Initialize neighbor spin list
+  ik = lat_2d[i][j];
+  spins[0] = ik;
+  nspins[0] = 0;
+  ns = 1;
+
+  // Survey each neighbor
+
+  jk = lat_2d[i-1][j-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i-1][j];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i-1][j+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i][j-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i][j+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i+1][j-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i+1][j];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i+1][j+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+
+  // Use survey to identify candidates
+  ncand = 0;
+  for (int is=1;is<ns;is++) {
+    if (nspins[is] >= nspins[0]) {
+      candlist[ncand] = spins[is];
+      ncand++;
+    }
+  }
+
+  if (ncand <= 0) error->one("Failed to find candidate spin");
+  icand = random->irandom(ncand)-1;
+
+  // Update lat_2d sites and periodic images
+  lat_2d[i][j] = candlist[icand];
+
+  if (i==1) {
+    lat_2d[nx_local+1][j] = lat_2d[i][j];
+    if (j==1)
+      lat_2d[nx_local+1][ny_local+1] = lat_2d[i][j];
+    if (j==ny_local)
+      lat_2d[nx_local+1][0] = lat_2d[i][j];
+  }
+
+  if (i==nx_local) {
+    lat_2d[0][j] = lat_2d[i][j];
+    if (j==1)
+      lat_2d[0][ny_local+1] = lat_2d[i][j];
+    if (j==ny_local)
+      lat_2d[0][0] = lat_2d[i][j];
+  }
+
+  if (j==1)
+    lat_2d[i][ny_local+1] = lat_2d[i][j];
+  if (j==ny_local)
+    lat_2d[i][0] = lat_2d[i][j];
+}
+    
+// Update propensity for this site and neighbors
+
+void AppGrain::update_propensity_square_8nn(const int& i, const int& j, const int& kdummy,
+				    const int& ibdummy) const {
+
+  int ndepends = 9;
+  int depends[9];
+  int k,ii,jj,isite;
+
+  timer->stamp();
+
+  k = 0;
+
+  // For now, we will explitly enforce PBCs.
+
+  ii = i > 1 ? i-1 : nx_local;  
+  jj = j > 1 ? j-1 : ny_local;  
+  isite = (ii-1)*ny_local+jj-1;
+  depends[k] = isite;
+  propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
+  k++;
+
+  ii = i > 1 ? i-1 : nx_local;  
+  jj = j;
+  isite = (ii-1)*ny_local+jj-1;
+  depends[k] = isite;
+  propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
+  k++;
+
+  ii = i > 1 ? i-1 : nx_local;  
+  jj = j < ny_local ? j+1 : 1;  
+  isite = (ii-1)*ny_local+jj-1;
+  depends[k] = isite;
+  propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
+  k++;
+
+  ii = i;
+  jj = j > 1 ? j-1 : ny_local;  
+  isite = (ii-1)*ny_local+jj-1;
+  depends[k] = isite;
+  propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
+  k++;
+
+  ii = i;
+  jj = j;
+  isite = (ii-1)*ny_local+jj-1;
+  depends[k] = isite;
+  propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
+  k++;
+
+  ii = i;
+  jj = j < ny_local ? j+1 : 1;  
+  isite = (ii-1)*ny_local+jj-1;
+  depends[k] = isite;
+  propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
+  k++;
+
+  ii = i < nx_local ? i+1 : 1;  
+  jj = j > 1 ? j-1 : ny_local;  
+  isite = (ii-1)*ny_local+jj-1;
+  depends[k] = isite;
+  propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
+  k++;
+
+  ii = i < nx_local ? i+1 : 1;  
+  jj = j;
+  isite = (ii-1)*ny_local+jj-1;
+  depends[k] = isite;
+  propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
+  k++;
+
+  ii = i < nx_local ? i+1 : 1;  
+  jj = j < ny_local ? j+1 : 1;  
+  isite = (ii-1)*ny_local+jj-1;
+  depends[k] = isite;
+  propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
+  k++;
+
+  timer->stamp(TIME_APP);
+
+  // update propensities of events
+
+//   fprintf(screen,"i = %d j = %d \n",i,j);
+//   fprintf(screen,"ii = %d jj = %d \n",ii,jj);
+//   fprintf(screen,"ndepends %d \n",ndepends);
+//   for (int idepend = 0; idepend<ndepends; idepend++) 
+//     fprintf(screen,"depends[i] %d propensity[i] %g \n",depends[idepend],propensity[idepend]);
+  
+
+  solve->update(ndepends,depends,propensity);
+  timer->stamp(TIME_UPDATE);
+
+}
+
+// Initialize propensities for all sites
+
+void AppGrain::init_propensity() {
+  int n,isite;
+
+//   fprintf(screen,"*** Propensity Dump ***\n");
+//   fprintf(screen,"Title = %s\n","No title yet");
+//   fprintf(screen,"nx_local = %d ny_local = %d \n",nx_local,ny_local);
+
+  // Compute propensities in temporary array and pass to solve
+  n = nx_local*ny_local;
+  propensity = (double*) memory->smalloc(n*sizeof(double),"appgrain:init_propensity:propensity");
+
+  for (int i = 1 ; i <= nx_local; i++) { 
+    for (int j = 1 ; j <= ny_local; j++) {
+
+      isite = (i-1)*ny_local+j-1;
+      propensity[isite] = (this->*cp_fp)(i,j,0,0);
+
+    }
+  }
+    
+  // error check
+  
+  if (solve == NULL) error->all("No solver class defined");
+  
+  solve->init(n,propensity);
+
+}
+
+// Compute propensities for site (i,j)
+
+double AppGrain::compute_propensity_square_8nn(const int& i, const int& j, const int& kdummy,
+				    const int& ibdummy) const {
+  int ns,spins[9],nspins[9],ik,jk;
+  int ncand;
+  double prop;
+
+  // Initialize neighbor spin list
+  ik = lat_2d[i][j];
+  spins[0] = ik;
+  nspins[0] = 0;
+  ns = 1;
+
+  // Survey each neighbor
+
+  jk = lat_2d[i-1][j-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i-1][j];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i-1][j+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i][j-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i][j+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i+1][j-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i+1][j];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_2d[i+1][j+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  
+  // Use survey to identify candidates
+  
+  ncand = 0;
+  for (int is=1;is<ns;is++) {
+    if (nspins[is] >= nspins[0]) {
+      ncand++;
+    }
+  }
+
+  prop = ncand;
+
+//   fprintf(screen,"ncand %d \n",ncand);
+//   fprintf(screen,"prop %g \n",prop);
+
+  return prop;
+}
+
+void AppGrain::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
+  bool Lfound;
+  int is;
+
+  // First check if matches current spin
+  if (jk == ik) {
+    nspins[0]++;
+  // Otherwise compare with other existing spins in list
+  } else {
+    Lfound = false;
+    for (is=1;is<ns;is++) {
+      if (jk == spins[is]) {
+	Lfound = true;
+	break;
+      }
+    }
+    // If found, increment counter 
+    if (Lfound) {
+      nspins[is]++;
+    // If not, create new survey entry
+    } else {
+      spins[ns] = jk;
+      nspins[ns] = 1;
+      ns++;
+    }
+  }
+
+}
+    
+
