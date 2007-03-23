@@ -3,20 +3,30 @@
 # app_style	grain lat Nx Ny (Nz) Ns 12345 = lattice of type lat and size Nx by Ny (by Nz), Ns = spins, RN
 #		lat = square_8nn, square_4nn, cubic_26nn, cubic_6nn
 # sweep_style   grain 12345 (mask yes/no) (strict yes/no) 
-# temperature	300.0 = temp (degrees K)
-# stats		N = print stats every N sweeps
-# dump		N file = print snapshot to file every N steps
-# run		N = run N sweeps
+# solve_style   see documentation for solve styles.
+# temperature	300.0 = temp (degrees K), currently only T=0 algorithms implemented
+# stats		dt = print stats every dt time units (1 sweep = 1 time unit)
+# dump		dt file = print snapshot to file every dt time units (1 sweep = 1 time unit)
+# run	 	time = time to run for (1 sweep = 1 time unit)
 
-# Grain growth on a 2D Square Lattice using masking, and not strict
+# Grain growth on a 2D Lattice using masking, and not strict
 
-app_style	grain square_8nn 100 100 100 12345
+app_style       grain square_8nn 100 100 100 12345
 sweep_style     grain 12345 mask yes strict no
 
-temperature	0.0
-
 stats           1000
-dump		1000 tmp.grain
+dump            1000 tmp.grain
 
-run		10000
+run             10000
+
+# Grain growth on same lattice using Gillespie solver
+# Note that time has been rescaled by npsins
+
+app_style	grain square_8nn 100 100 100 12345
+solve_style     gillespie 12346
+
+stats           10
+dump		10 tmp.grain
+
+run		100
 
