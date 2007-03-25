@@ -100,15 +100,15 @@ SweepGrain::SweepGrain(SPK *spk, int narg, char **arg) :
 SweepGrain::~SweepGrain()
 {
   delete random;
-  if (dimension == 2) delete comm_2d;
-  else delete comm_3d;
+  if (comm_2d != NULL) comm_2d;
+  if (comm_3d != NULL) comm_3d;
 
   if (Lmask) {
-    memory->destroy_2d_T_array(mask);
+    memory->destroy_3d_T_array(mask);
   }
 
   if (Lstrict) {
-    memory->destroy_2d_T_array(ranlat);
+    memory->destroy_3d_T_array(ranlat);
   }
 
 }
@@ -588,7 +588,7 @@ void SweepGrain::sweep_quadrant_mask_3d(int iquad)
   char*** mask_3d_tmp = mask;
   if (zlo == 1) k = zlo;
   else if (zhi == nz_local) k = zhi;
-  else error->one("Failed to find z-boundary in sweep_quadrant_maks_3d()");
+  else error->one("Failed to find z-boundary in sweep_quadrant_mask_3d()");
   for (i = xlo; i <= xhi; i++)
   for (j = ylo; j <= yhi; j++)
     mask_3d_tmp[i][j][k] = 0;
@@ -690,7 +690,7 @@ void SweepGrain::sweep_quadrant_mask_strict_3d(int icolor, int iquad)
   char*** mask_3d_tmp = mask;
   if (zlo == 1) k = zlo;
   else if (zhi == nz_local) k = zhi;
-  else error->one("Failed to find z-boundary in sweep_quadrant_maks_3d()");
+  else error->one("Failed to find z-boundary in sweep_quadrant_mask_3d()");
   for (i = xlo; i <= xhi; i++)
   for (j = ylo; j <= yhi; j++)
     mask_3d_tmp[i][j][k] = 0;
