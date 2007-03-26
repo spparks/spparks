@@ -51,6 +51,8 @@ SweepGrain::SweepGrain(SPK *spk, int narg, char **arg) :
   lat_2d = NULL;
   lat_3d = NULL;
   mask = NULL;
+  comm_2d = NULL;
+  comm_3d = NULL;
   procwest = -1;
   proceast = -1;
   procsouth = -1;
@@ -100,8 +102,8 @@ SweepGrain::SweepGrain(SPK *spk, int narg, char **arg) :
 SweepGrain::~SweepGrain()
 {
   delete random;
-  if (comm_2d != NULL) comm_2d;
-  if (comm_3d != NULL) comm_3d;
+  if (comm_2d != NULL) delete comm_2d;
+  if (comm_3d != NULL) delete comm_3d;
 
   if (Lmask) {
     memory->destroy_3d_T_array(mask);
@@ -172,6 +174,7 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
   if (dimension == 2) {
     lat_2d = lattice[0];
 
+    if (comm_2d != NULL) delete comm_2d;
     comm_2d = new CommGrain2D(spk);
     comm_2d->setup(nx_local,ny_local,nx_half,ny_half,
 	      procwest,proceast,procsouth,procnorth);
@@ -198,20 +201,24 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
  
     // Initialize mask
     if (Lmask) {
-      memory->create_3d_T_array(mask,1,nx_local+2,ny_local+2,
-				"sweep_grain:mask");
+      // Only create mask array if it does not exist
+      if (mask == NULL) 
+	memory->create_3d_T_array(mask,1,nx_local+2,ny_local+2,
+				  "sweep_grain:mask");
 
       for (int i = 0; i <= nx_local+1; i++) 
 	for (int j = 0; j <= ny_local+1; j++) 
 	  mask[0][i][j] = 0;
     }
 
+      // Set up array of random number generators
     if (Lstrict) {
       int isite;
-      // Set up array of random number generators
-      memory->create_3d_T_array(ranlat,1,nx_local+2,ny_local+2,
-				"sweep_grain:ranlat");
-    // construct random number generators
+      // Only create ranlat array if it does not exist
+      if (ranlat == NULL) 
+	memory->create_3d_T_array(ranlat,1,nx_local+2,ny_local+2,
+				  "sweep_grain:ranlat");
+      // construct random number generators
       
       for (int i = 1; i <= nx_local; i++) {
 	for (int j = 1; j <= ny_local; j++) {
@@ -286,8 +293,10 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
  
     // Initialize mask
     if (Lmask) {
-      memory->create_3d_T_array(mask,nx_local+2,ny_local+2,nz_local+2,
-				"sweep_grain:mask");
+      // Only create mask array if it does not exist
+      if (mask == NULL) 
+	memory->create_3d_T_array(mask,nx_local+2,ny_local+2,nz_local+2,
+				  "sweep_grain:mask");
 
       for (int i = 0; i <= nx_local+1; i++) 
 	for (int j = 0; j <= ny_local+1; j++) 
@@ -295,11 +304,13 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
 	  mask[i][j][k] = 0;
     }
 
+    // Set up array of random number generators
     if (Lstrict) {
       int isite;
-      // Set up array of random number generators
-      memory->create_3d_T_array(ranlat,nx_local+2,ny_local+2,nz_local+2,
-				"sweep_grain:ranlat");
+      // Only create ranlat array if it does not exist
+      if (ranlat == NULL) 
+	memory->create_3d_T_array(ranlat,nx_local+2,ny_local+2,nz_local+2,
+				  "sweep_grain:ranlat");
     // construct random number generators
       
       for (int i = 1; i <= nx_local; i++) {

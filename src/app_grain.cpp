@@ -46,6 +46,9 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   nx_local = 0;
   ny_local = 0;
   nz_local = 0;
+  nx_procs = 0;
+  ny_procs = 0;
+  nz_procs = 0;
   nx_offset = -1;
   ny_offset = -1;
   nz_offset = -1;
@@ -112,7 +115,10 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   char* argtmp[2];
   argtmp[0] = "grain";
   argtmp[1] = "12345";
-  sweep = new SweepGrain(spk,2,argtmp);
+    // Only create sweep object if it does not exist
+  if (sweep == NULL) sweep = new SweepGrain(spk,2,argtmp);
+
+  random = new RandomPark(seed);
 
 }
 
@@ -120,9 +126,10 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 
 AppGrain::~AppGrain()
 {
+  delete [] dumpbuf;
   memory->destroy_3d_T_array(lattice);
   delete random;
-  if (propensity != NULL) delete [] propensity;
+  if (propensity != NULL) memory->sfree(propensity);
 
   if (fp) fclose(fp);
 }
@@ -162,11 +169,13 @@ void AppGrain::init()
     if (me/ny_procs == nx_procs-1) proceast = me - nprocs + ny_procs;
     else proceast = me + ny_procs;
 
-    memory->create_3d_T_array(lattice,1,nx_local+2,ny_local+2,
-					"app_grain:lattice");
-    lat_2d = lattice[0];
+    // Only create lattice if it does not exist
+    if (lattice == NULL)
+      memory->create_3d_T_array(lattice,1,nx_local+2,ny_local+2,
+				"app_grain:lattice");
 
     // init local and ghost spins to zero
+    lat_2d = lattice[0];
 
     for (i = 0; i <= nx_local+1; i++) 
       for (j = 0; j <= ny_local+1; j++) 
@@ -174,9 +183,8 @@ void AppGrain::init()
   
     // initialize local spins
   
-    random = new RandomPark(seed);
     for (i = 0; i < 100; i++) random->uniform();
-  
+    
     // loop over global list
     // so that assigment is independent of parallel decomposition
     // and also so that each local domain is initialized with
@@ -236,8 +244,10 @@ void AppGrain::init()
     if (iprocx == nx_procs-1) proceast = me - nprocs + nyz_procs;
     else proceast = me + nyz_procs;
 
-    memory->create_3d_T_array(lattice,nx_local+2,ny_local+2,nz_local+2,
-					"app_grain:lattice");
+    // Only create lattice if it does not exist
+    if (lattice == NULL)
+      memory->create_3d_T_array(lattice,nx_local+2,ny_local+2,nz_local+2,
+				"app_grain:lattice");
 
     lat_3d = lattice;
 
@@ -792,6 +802,7 @@ void AppGrain::set_dump(int narg, char **arg)
   if (narg != 2) error->all("Illegal dump command");
   dump_delta = atof(arg[0]);
   if (me == 0) {
+    if (fp) fclose(fp);
     fp = fopen(arg[1],"w");
     if (!fp) error->one("Cannot open dump file");
   }
@@ -1214,7 +1225,9 @@ void AppGrain::init_propensity() {
 
   // Compute propensities in temporary array and pass to solve
   n = nx_local*ny_local;
-  propensity = (double*) memory->smalloc(n*sizeof(double),"appgrain:init_propensity:propensity");
+      // Only create propensity array if it does not exist
+  if (propensity == NULL) 
+    propensity = (double*) memory->smalloc(n*sizeof(double),"appgrain:init_propensity:propensity");
 
   for (int i = 1 ; i <= nx_local; i++) { 
     for (int j = 1 ; j <= ny_local; j++) {
