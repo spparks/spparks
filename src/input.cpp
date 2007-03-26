@@ -580,6 +580,10 @@ void Input::app_style()
 {
   if (narg < 1) error->all("Illegal app command");
    delete app;
+   delete solve;
+   delete sweep;
+   solve = NULL;
+   sweep = NULL;
 
   if (strcmp(arg[0],"none") == 0) error->all("Invalid app style");
 
@@ -663,9 +667,9 @@ void Input::run()
 void Input::solve_style()
 {
   if (narg < 1) error->all("Illegal solve command");
-  if (solve != NULL) delete solve;
+  delete solve;
 
-  if (strcmp(arg[0],"none") == 0) error->all("Invalid solve style");
+  if (strcmp(arg[0],"none") == 0) solve = NULL;
 
 #define SolveClass
 #define SolveStyle(key,Class) \
@@ -681,15 +685,13 @@ void Input::solve_style()
 void Input::sweep_style()
 {
   if (narg < 1) error->all("Illegal sweep command");
-  // This crashes for some reason.
-  if (sweep != NULL) delete sweep;
+  delete sweep;
 
-  if (strcmp(arg[0],"none") == 0) error->all("Invalid sweep style");
+  if (strcmp(arg[0],"none") == 0) sweep = NULL;
 
 #define SweepClass
 #define SweepStyle(key,Class) \
   else if (strcmp(arg[0],#key) == 0) { \
-    if (solve != NULL) delete solve; \
     sweep = new Class(spk,narg,arg); \
   }
 #include "style.h"

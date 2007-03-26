@@ -111,15 +111,7 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 
   nspins = atoi(arg[iarg++]);
   seed = atoi(arg[iarg++]);
-
-  char* argtmp[2];
-  argtmp[0] = "grain";
-  argtmp[1] = "12345";
-    // Only create sweep object if it does not exist
-  if (sweep == NULL) sweep = new SweepGrain(spk,2,argtmp);
-
   random = new RandomPark(seed);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -170,39 +162,36 @@ void AppGrain::init()
     else proceast = me + ny_procs;
 
     // Only create lattice if it does not exist
-    if (lattice == NULL)
+
+    if (lattice == NULL) {
       memory->create_3d_T_array(lattice,1,nx_local+2,ny_local+2,
 				"app_grain:lattice");
+      lat_2d = lattice[0];
+      for (i = 0; i <= nx_local+1; i++) 
+	for (j = 0; j <= ny_local+1; j++) 
+	  lat_2d[i][j] = 0;
+      for (i = 0; i < 100; i++) random->uniform();
 
-    // init local and ghost spins to zero
-    lat_2d = lattice[0];
-
-    for (i = 0; i <= nx_local+1; i++) 
-      for (j = 0; j <= ny_local+1; j++) 
-	lat_2d[i][j] = 0;
-  
-    // initialize local spins
-  
-    for (i = 0; i < 100; i++) random->uniform();
-    
-    // loop over global list
-    // so that assigment is independent of parallel decomposition
-    // and also so that each local domain is initialized with
-    // different spins.
-    for (i = 1; i <= nx_global; i++) {
-      ii = i - nx_offset;
-      if (ii >= 1 && ii <= nx_local) { 
-	for (j = 1; j <= ny_global; j++) {
-	  jj = j - ny_offset;
-	  if (jj >= 1 && jj <= ny_local) { 
-	    lat_2d[ii][jj] = random->irandom(nspins);
-	  } else {
+      // loop over global list
+      // so that assigment is independent of parallel decomposition
+      // and also so that each local domain is initialized with
+      // different spins.
+      
+      for (i = 1; i <= nx_global; i++) {
+	ii = i - nx_offset;
+	if (ii >= 1 && ii <= nx_local) { 
+	  for (j = 1; j <= ny_global; j++) {
+	    jj = j - ny_offset;
+	    if (jj >= 1 && jj <= ny_local) { 
+	      lat_2d[ii][jj] = random->irandom(nspins);
+	    } else {
+	      random->irandom(nspins);
+	    }
+	  }
+	} else {
+	  for (j = 1; j <= ny_global; j++) {
 	    random->irandom(nspins);
 	  }
-	}
-      } else {
-	for (j = 1; j <= ny_global; j++) {
-	  random->irandom(nspins);
 	}
       }
     }
@@ -299,21 +288,30 @@ void AppGrain::init()
   
   // setup other classes
 
-  if (sweep != NULL) {
-    ((SweepGrain*)sweep)->init(this, me, nprocs, dimension, 
-			       nx_local, ny_local, nz_local, 
-			       nx_global, ny_global, nz_global,  
-			       nx_offset, ny_offset, nz_offset, 
-			       lattice,
-			       procwest, proceast, 
-			       procsouth, procnorth, 
-			       procdown, procup, 
-			       nspins, temperature,es_fp,um_fp);
-  }
+  if (sweep && solve)
+    error->all("Grain app cannot use both a solver and sweeper");
+  if (sweep == NULL && solve == NULL)
+    error->all("Grain app needs a solver or sweeper");
 
-  if (solve != NULL) {
-    init_propensity();
-  }
+  if (sweep == NULL) {
+    char* argtmp[2];
+    argtmp[0] = "grain";
+    argtmp[1] = "12345";
+    sweep = new SweepGrain(spk,2,argtmp);
+    sweep_create = 1;
+  } else sweep_create = 0;
+
+  ((SweepGrain*)sweep)->init(this, me, nprocs, dimension, 
+			     nx_local, ny_local, nz_local, 
+			     nx_global, ny_global, nz_global,  
+			     nx_offset, ny_offset, nz_offset, 
+			     lattice,
+			     procwest, proceast, 
+			     procsouth, procnorth, 
+			     procdown, procup, 
+			     nspins, temperature,es_fp,um_fp);
+
+  if (solve) init_propensity();
 
   // Print layout info
   
@@ -355,6 +353,7 @@ void AppGrain::init()
   }
 
   // Print initial stats and dump
+
   stats();
 
 //   char *fstring = "Iteration %6d, in dump()";
@@ -388,10 +387,7 @@ void AppGrain::run(int narg, char **arg)
 
   // error check
   
-  if (sweep == NULL) error->all("Sweep class must be defined, even if using solve.");
-  if (sweep == NULL && solve == NULL) error->all("No sweep or solve class defined");
-  
-  if (solve != NULL) {
+  if (solve) {
     if (fs_fp == NULL) error->all("flip_spin() function is undefined.");
     if (cp_fp == NULL) error->all("compute_propensity() function is undefined.");
     if (up_fp == NULL) error->all("update_propensity() function is undefined.");
@@ -404,8 +400,14 @@ void AppGrain::run(int narg, char **arg)
   
   // perform the run
   iterate();
-    
-  
+
+  // whack sweep if app create it
+
+  if (sweep_create) {
+    delete sweep;
+    sweep = NULL;
+  }
+
   // final statistics
   
   Finish finish(spk);

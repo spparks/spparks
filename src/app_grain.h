@@ -45,6 +45,7 @@ class AppGrain : public App {
   double time,stoptime;
   double stats_time,stats_delta;       // statistics
   double dump_time,dump_delta;         // dump
+  int sweep_create;                    // set if App creates its own Sweeper
 
   double* propensity;
 

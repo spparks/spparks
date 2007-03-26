@@ -288,7 +288,7 @@ void SPK::init()
 void SPK::destroy()
 {
   delete app;
-  if (solve != NULL) delete solve;
-  if (sweep != NULL) delete sweep;
+  delete solve;
+  delete sweep;
   delete timer;
 }

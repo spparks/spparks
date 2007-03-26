@@ -31,20 +31,29 @@ class AppSurf : public App {
 
   int ntimestep;
   FILE *fp;
-  double dist_hop;
+  double hop_distance;
   double attempt_frequency;
   int stats_next,dump_next;
   double xlo,xhi,xprd;
   double zlo,zhi;
   double time;
   double energy;
-  double cutsq,cutneighsq;
-  double epsilon,sigma,sigma6,sigma12;
+  double cutsq;
+  double skin,cutneigh,cutneighsq;
+  double cutcount,cutcountsq;
+  double epsilon,sigma;
+  double lj1,lj2,lj3,lj4,offset;
 
   class RandomPark *random;
 
+  int maxatomneigh,maxneigh;
+  int **firstneigh;
+  int *numneigh;
+  int *neigh;
+
   struct OneAtom {
     double x,z;
+    double fx,fz;
     int id,type;
   };
 
@@ -53,6 +62,7 @@ class AppSurf : public App {
 
   struct OneEvent {
     int iatom,style;
+    double x,z;
   };
 
   int nevents,maxevent;
@@ -62,15 +72,25 @@ class AppSurf : public App {
   void iterate();
   int count_neigh(int);
   double zmax();
-  double zrelax(int, double &, double &, double &);
+  double zrelax(int, double *, double *, double *);
   void add_atom(int, int, int, double, double);
-  void add_event(int, int, double);
-  double find_barrier(int, double);
-  double relax();
-  double engforce(int, double &, double &);
+  void add_event(int, int, double, double, double);
+  double find_barrier(int, double, double *, double *);
+  void relax(int);
+  double etotal();
+  double eng_force(int, int *);
   void ghost_comm();
   void pbc();
+  void neighbor(int, int *);
+  void neighbor_z(int, double);
   double dbrent(int, double, double, double, double, double *);
+
+  void sd(int, int *);
+  void cg(int, int *);
+  int linemin_scan(int, int *, double *, double &, double, double,
+		   double &, int &);
+  int linemin_secant(int, int *, double *, double &, double, double,
+		     double &, int &);
 
   void stats();
   void dump();
