@@ -28,7 +28,8 @@ SolveNextEventGroupSearch::SolveNextEventGroupSearch(SPK *spk, int narg, char **
   random = new RandomPark(seed);
   groups = new Groups(lo, hi, seed);
 
-  fprintf(screen,"Using groups search algorithm to generate events.\n");
+  if (screen)
+    fprintf(screen,"Using groups search algorithm to generate events.\n");
 }
 
 /* ---------------------------------------------------------------------- */

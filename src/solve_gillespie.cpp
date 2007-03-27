@@ -37,6 +37,8 @@ SolveGillespie::~SolveGillespie()
 
 void SolveGillespie::init(int n, double *propensity)
 {
+  if (screen)
+    fprintf(screen,"Using Gillespie search algorithm to generate events.\n");
   delete [] prob;
   nreactions = n;
   prob = new double[n];

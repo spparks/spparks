@@ -123,7 +123,10 @@ AppGrain::~AppGrain()
   delete random;
   if (propensity != NULL) memory->sfree(propensity);
 
-  if (fp) fclose(fp);
+  if (fp) {
+    fclose(fp);
+    fp = NULL;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -461,8 +464,8 @@ void AppGrain::iterate()
       }
 
     } else if (sweep != NULL) {
-      sweep->do_sweep();
-      time += 1.0;
+      sweep->do_sweep(dt);
+      time += dt;
     }
 
     if (time >= stoptime) done = 1;
@@ -514,6 +517,7 @@ void AppGrain::dump_header()
 {
   // setup comm buf for dumping snapshots
 
+  if (fp == NULL)  return;
   if (dimension != 2)  return;
 
   delete [] dumpbuf;
@@ -575,6 +579,7 @@ void AppGrain::dump()
 {
   int size_one = 2;
 
+  if (fp == NULL)  return;
   if (dimension != 2)  return;
 
   // proc 0 writes timestep header

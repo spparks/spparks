@@ -22,6 +22,7 @@ SolveNextEventLinearSearch::SolveNextEventLinearSearch(SPK *spk, int narg, char 
 
   int seed = atoi(arg[1]);
   random = new RandomPark(seed);
+  prob = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -39,7 +40,8 @@ void SolveNextEventLinearSearch::init(int n, double *propensity)
   nevents = n;
   prob = new double[n];
   sum = 0;
-  fprintf(screen,"Using linear search algorithm to generate events.\n");
+  if (screen)
+    fprintf(screen,"Using linear search algorithm to generate events.\n");
   for (int i = 0; i < n; i++) {
     prob[i] = propensity[i];
     sum += propensity[i];

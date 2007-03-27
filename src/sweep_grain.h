@@ -26,7 +26,7 @@ class SweepGrain : public Sweep {
 	    const int, const double, 
 	    int (AppGrain::*)(int,int,int,int,int),
 	    void (AppGrain::*)(char***,int,int,int,int) );
-  void do_sweep();
+  void do_sweep(double&);
   double compute_energy();
   double energy_quadrant(const int);
 
@@ -71,6 +71,8 @@ class SweepGrain : public Sweep {
   class RandomPark *random;
   class CommGrain2D *comm_2d;         // Pointer to 2D comm object
   class CommGrain3D *comm_3d;         // Pointer to 3D comm object
+
+  double delt;                        // Time per sweep
 
   // Data for quadrants
   int nquad;

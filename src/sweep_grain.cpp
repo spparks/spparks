@@ -66,6 +66,7 @@ SweepGrain::SweepGrain(SPK *spk, int narg, char **arg) :
   nquad = 0;
   masklimit = 0;
   ncolor = 0;
+  delt = 1.0;
 
   int seed = atoi(arg[1]);
   random = new RandomPark(seed);
@@ -93,6 +94,11 @@ SweepGrain::SweepGrain(SPK *spk, int narg, char **arg) :
 	Lmask = false;
 	iarg++;
       } else error->all("Illegal sweep_style command");
+    } else if (strcmp(arg[iarg],"delt") == 0) {
+      iarg++;
+      if (iarg == narg) error->all("Illegal sweep_style command");
+      delt = atof(arg[iarg]);
+	iarg++;
     } else error->all("Illegal sweep_style command");
   }
 }
@@ -332,7 +338,7 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
    perform one sweep over domain
  ------------------------------------------------------------------------- */
 
-void SweepGrain::do_sweep()
+void SweepGrain::do_sweep(double& dt)
 {
   if (Lstrict) {
     // Loop over the lattice colors a la checkerboarding for 2D Ising model
@@ -375,6 +381,8 @@ void SweepGrain::do_sweep()
       timer->stamp(TIME_SOLVE);
     }
   }
+
+  dt = delt;
     
 }
     
