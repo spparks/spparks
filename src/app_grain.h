@@ -35,8 +35,11 @@ class AppGrain : public App {
   void update_mask_cubic_6nn(char***, const int, const int, const int, const int);
   // N-Fold Way functions for different lattice stencils
   void flip_spin_square_8nn(const int&, const int&, const int&, const int&);
+  void flip_spin_cubic_26nn(const int&, const int&, const int&, const int&);
   void update_propensity_square_8nn(const int&, const int&, const int&, const int&) const;
+  void update_propensity_cubic_26nn(const int&, const int&, const int&, const int&) const;
   double compute_propensity_square_8nn(const int&, const int&, const int&, const int&) const;
+  double compute_propensity_cubic_26nn(const int&, const int&, const int&, const int&) const;
   
  protected:
   int me,nprocs;
@@ -53,6 +56,7 @@ class AppGrain : public App {
                                       // global lattice has no ghosts
   int nx_local,ny_local,nz_local;     // size of local lattice [0,Nlocal+1]
                                       // local lattice includes ghosts
+  int nyz_local;                      // Frequently used product
   int nx_offset,ny_offset,nz_offset;  // global indices (0:Nglobal-1) of
                                       //   my lower-left owned cell (1,1)
                                       // So, for single proc, offsets are zero

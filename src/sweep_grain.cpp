@@ -108,8 +108,8 @@ SweepGrain::SweepGrain(SPK *spk, int narg, char **arg) :
 SweepGrain::~SweepGrain()
 {
   delete random;
-  if (comm_2d != NULL) delete comm_2d;
-  if (comm_3d != NULL) delete comm_3d;
+  delete comm_2d;
+  delete comm_3d;
 
   if (Lmask) {
     memory->destroy_3d_T_array(mask);
@@ -179,8 +179,7 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
 
   if (dimension == 2) {
     lat_2d = lattice[0];
-
-    if (comm_2d != NULL) delete comm_2d;
+    delete comm_2d;
     comm_2d = new CommGrain2D(spk);
     comm_2d->setup(nx_local,ny_local,nx_half,ny_half,
 	      procwest,proceast,procsouth,procnorth);
@@ -236,7 +235,7 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
 
   } else {
     lat_3d = lattice;
-
+    delete comm_3d;
     comm_3d = new CommGrain3D(spk);
     comm_3d->setup(nx_local,ny_local,nz_local,nx_half,ny_half,nz_half,
 	      procwest,proceast,procsouth,procnorth,procdown,procup);

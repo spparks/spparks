@@ -98,6 +98,9 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
     nz_global = atoi(arg[iarg++]);
     es_fp = &AppGrain::energy_site_cubic_26nn;
     um_fp = &AppGrain::update_mask_cubic_26nn;
+    fs_fp = &AppGrain::flip_spin_cubic_26nn;
+    cp_fp = &AppGrain::compute_propensity_cubic_26nn;
+    up_fp = &AppGrain::update_propensity_cubic_26nn;
   } else if (strcmp(arg[iarg],"cubic_6nn") == 0) {
     iarg++;
     dimension = 3;
@@ -121,7 +124,7 @@ AppGrain::~AppGrain()
   delete [] dumpbuf;
   memory->destroy_3d_T_array(lattice);
   delete random;
-  if (propensity != NULL) memory->sfree(propensity);
+  memory->sfree(propensity);
 
   if (fp) {
     fclose(fp);
@@ -216,6 +219,8 @@ void AppGrain::init()
     nz_offset = iprocz*nz_global/nz_procs;
     nz_local = (iprocz+1)*nz_global/nz_procs - nz_offset;
 
+    nyz_local = ny_local*nz_local;
+
     if (nx_local < 2 || ny_local < 2 || nz_local < 2)
       error->one("Lattice per proc is too small");
 
@@ -237,58 +242,59 @@ void AppGrain::init()
     else proceast = me + nyz_procs;
 
     // Only create lattice if it does not exist
-    if (lattice == NULL)
+    if (lattice == NULL) {
       memory->create_3d_T_array(lattice,nx_local+2,ny_local+2,nz_local+2,
 				"app_grain:lattice");
 
-    lat_3d = lattice;
+      lat_3d = lattice;
 
-    // init local and ghost spins to zero
+      // init local and ghost spins to zero
 
-    for (i = 0; i <= nx_local+1; i++) 
-      for (j = 0; j <= ny_local+1; j++) 
-	for (k = 0; k <= nz_local+1; k++) 
-	  lat_3d[i][j][k] = 0;
+      for (i = 0; i <= nx_local+1; i++) 
+	for (j = 0; j <= ny_local+1; j++) 
+	  for (k = 0; k <= nz_local+1; k++) 
+	    lat_3d[i][j][k] = 0;
   
-    // initialize local spins
+      // initialize local spins
   
-    random = new RandomPark(seed);
-    for (i = 0; i < 100; i++) random->uniform();
+      random = new RandomPark(seed);
+      for (i = 0; i < 100; i++) random->uniform();
   
     // loop over global list
     // so that assigment is independent of parallel decomposition
     // and also so that each local domain is initialized with
     // different spins.
-    for (i = 1; i <= nx_global; i++) {
-      ii = i - nx_offset;
-      if (ii >= 1 && ii <= nx_local) { 
-	for (j = 1; j <= ny_global; j++) {
-	  jj = j - ny_offset;
-	  if (jj >= 1 && jj <= ny_local) { 
-	    for (k = 1; k <= nz_global; k++) {
-	      kk = k - nz_offset;
-	      if (kk >= 1 && kk <= nz_local) { 
-		lat_3d[ii][jj][kk] = random->irandom(nspins);
-	      } else {
+      for (i = 1; i <= nx_global; i++) {
+	ii = i - nx_offset;
+	if (ii >= 1 && ii <= nx_local) { 
+	  for (j = 1; j <= ny_global; j++) {
+	    jj = j - ny_offset;
+	    if (jj >= 1 && jj <= ny_local) { 
+	      for (k = 1; k <= nz_global; k++) {
+		kk = k - nz_offset;
+		if (kk >= 1 && kk <= nz_local) { 
+		  lat_3d[ii][jj][kk] = random->irandom(nspins);
+		} else {
+		  random->irandom(nspins);
+		}
+	      }
+	    } else {
+	      for (k = 1; k <= nz_global; k++) {
 		random->irandom(nspins);
 	      }
 	    }
-	  } else {
+	  }
+	} else {
+	  for (j = 1; j <= ny_global; j++) {
 	    for (k = 1; k <= nz_global; k++) {
 	      random->irandom(nspins);
 	    }
 	  }
 	}
-      } else {
-	for (j = 1; j <= ny_global; j++) {
-	  for (k = 1; k <= nz_global; k++) {
-	    random->irandom(nspins);
-	  }
-	}
       }
     }
   }
-  
+
   // setup other classes
 
   if (sweep && solve)
@@ -314,7 +320,11 @@ void AppGrain::init()
 			     procdown, procup, 
 			     nspins, temperature,es_fp,um_fp);
 
-  if (solve) init_propensity();
+  if (solve) {
+    // Compute energy to force communication of ghost sites
+    sweep->compute_energy();
+    init_propensity();
+  }
 
   // Print layout info
   
@@ -425,7 +435,7 @@ void AppGrain::iterate()
   double dt;
   int done = 0;
   int isite;
-  int i,j;
+  int i,j,k;
 
   timer->barrier_start(TIME_LOOP);
   
@@ -449,15 +459,14 @@ void AppGrain::iterate()
 	  // Update propensity for this site and neighbors
 	  (this->*up_fp)(i,j,0,0);
 	} else {
-// 	  int nyz_local = ny_local*nz_local;
-// 	  i = isite/nyz_local + 1
-// 	  j = isite/nz_local % ny_local + 1;
-// 	  k = isite % nz_local + 1;
-// 	  // Pick new spin from neighbor spins
-// 	  flip_spin(i,j,k);
-// 	  timer->stamp(TIME_APP);
-// 	  // Update propensity for this site and neighbors
-// 	  update_propensity(i,j,k);
+	  i = isite/nyz_local + 1;
+	  j = isite/nz_local % ny_local + 1;
+	  k = isite % nz_local + 1;
+	  // Pick new spin from neighbor spins
+	  (this->*fs_fp)(i,j,k,0);
+	  timer->stamp(TIME_APP);
+	  // Update propensity for this site and neighbors
+	  (this->*up_fp)(i,j,k,0);
 	}
 	// update time by Gillepsie dt
 	time += dt;
@@ -889,6 +898,76 @@ void AppGrain::procs2lattice_3d()
   }
 }
 
+void AppGrain::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
+  bool Lfound;
+  int is;
+
+  // First check if matches current spin
+  if (jk == ik) {
+    nspins[0]++;
+  // Otherwise compare with other existing spins in list
+  } else {
+    Lfound = false;
+    for (is=1;is<ns;is++) {
+      if (jk == spins[is]) {
+	Lfound = true;
+	break;
+      }
+    }
+    // If found, increment counter 
+    if (Lfound) {
+      nspins[is]++;
+    // If not, create new survey entry
+    } else {
+      spins[ns] = jk;
+      nspins[ns] = 1;
+      ns++;
+    }
+  }
+
+}
+    
+// Initialize propensities for all sites
+
+void AppGrain::init_propensity() {
+  int n,isite;
+
+  if (dimension == 2) {
+    n = nx_local*ny_local;
+    // Only create propensity array if it does not exist
+    if (propensity == NULL) 
+      propensity = (double*) memory->smalloc(n*sizeof(double),"appgrain:init_propensity:propensity");
+    
+    for (int i = 1 ; i <= nx_local; i++) { 
+      for (int j = 1 ; j <= ny_local; j++) {
+	
+	isite = (i-1)*ny_local+j-1;
+	propensity[isite] = (this->*cp_fp)(i,j,0,0);
+	
+      }
+    }
+    
+  } else {
+    n = nx_local*ny_local*nz_local;
+    // Only create propensity array if it does not exist
+    if (propensity == NULL) 
+      propensity = (double*) memory->smalloc(n*sizeof(double),"appgrain:init_propensity:propensity");
+    
+    for (int i = 1 ; i <= nx_local; i++) { 
+      for (int j = 1 ; j <= ny_local; j++) {
+	for (int k = 1 ; k <= nz_local; k++) {
+	
+	  isite = (i-1)*nyz_local+(j-1)*nz_local+k-1;
+	  propensity[isite] = (this->*cp_fp)(i,j,k,0);
+	}
+      }
+    }
+  }
+
+  solve->init(n,propensity);
+
+}
+
 int AppGrain::energy_site_square_8nn(int ik, int i, int j, int kdummy,
 				     int ibdummy) {
   int nk;
@@ -920,144 +999,6 @@ void AppGrain::update_mask_square_8nn(char*** mask, int i, int j, int kdummy,
   mask_2d[i+1][j-1] = 0;
   mask_2d[i+1][j] = 0;
   mask_2d[i+1][j+1] = 0;
-}
-
-int AppGrain::energy_site_square_4nn(int ik, int i, int j, int kdummy,
-				     int ibdummy) {
-  int nk;
-
-  nk = 0;
-  if (ik != lat_2d[i-1][j]) nk++;
-  if (ik != lat_2d[i][j-1]) nk++;
-  if (ik != lat_2d[i][j+1]) nk++;
-  if (ik != lat_2d[i+1][j]) nk++;
-
-  return nk;
-}
-
-void AppGrain::update_mask_square_4nn(char*** mask, int i, int j, int kdummy,
-				     int ibdummy) {
-  char** mask_2d = mask[0];
-
-  // Unset masks for self and neighbors
-  mask_2d[i-1][j] = 0;
-  mask_2d[i][j-1] = 0;
-  mask_2d[i][j] = 0;
-  mask_2d[i][j+1] = 0;
-  mask_2d[i+1][j] = 0;
-}
-
-int AppGrain::energy_site_cubic_26nn(int ik, int i, int j, int k,
-				     int ibdummy) {
-  int nk;
-
-  nk = 0;
-  if (ik != lat_3d[i-1][j-1][k-1]) nk++;
-  if (ik != lat_3d[i-1][j-1][k]) nk++;
-  if (ik != lat_3d[i-1][j-1][k+1]) nk++;
-
-  if (ik != lat_3d[i-1][j][k-1]) nk++;
-  if (ik != lat_3d[i-1][j][k]) nk++;
-  if (ik != lat_3d[i-1][j][k+1]) nk++;
-
-  if (ik != lat_3d[i-1][j+1][k-1]) nk++;
-  if (ik != lat_3d[i-1][j+1][k]) nk++;
-  if (ik != lat_3d[i-1][j+1][k+1]) nk++;
-
-  if (ik != lat_3d[i][j-1][k-1]) nk++;
-  if (ik != lat_3d[i][j-1][k]) nk++;
-  if (ik != lat_3d[i][j-1][k+1]) nk++;
-
-  if (ik != lat_3d[i][j][k-1]) nk++;
-  if (ik != lat_3d[i][j][k+1]) nk++;
-
-  if (ik != lat_3d[i][j+1][k-1]) nk++;
-  if (ik != lat_3d[i][j+1][k]) nk++;
-  if (ik != lat_3d[i][j+1][k+1]) nk++;
-
-  if (ik != lat_3d[i+1][j-1][k-1]) nk++;
-  if (ik != lat_3d[i+1][j-1][k]) nk++;
-  if (ik != lat_3d[i+1][j-1][k+1]) nk++;
-
-  if (ik != lat_3d[i+1][j][k-1]) nk++;
-  if (ik != lat_3d[i+1][j][k]) nk++;
-  if (ik != lat_3d[i+1][j][k+1]) nk++;
-
-  if (ik != lat_3d[i+1][j+1][k-1]) nk++;
-  if (ik != lat_3d[i+1][j+1][k]) nk++;
-  if (ik != lat_3d[i+1][j+1][k+1]) nk++;
-
-  return nk;
-}
-
-void AppGrain::update_mask_cubic_26nn(char*** mask, int i, int j, int k,
-				     int ibdummy) {
-
-  // Unset masks for self and neighbors
-  mask[i-1][j-1][k-1] = 0;
-  mask[i-1][j-1][k] = 0;
-  mask[i-1][j-1][k+1] = 0;
-
-  mask[i-1][j][k-1] = 0;
-  mask[i-1][j][k] = 0;
-  mask[i-1][j][k+1] = 0;
-
-  mask[i-1][j+1][k-1] = 0;
-  mask[i-1][j+1][k] = 0;
-  mask[i-1][j+1][k+1] = 0;
-
-  mask[i][j-1][k-1] = 0;
-  mask[i][j-1][k] = 0;
-  mask[i][j-1][k+1] = 0;
-
-  mask[i][j][k-1] = 0;
-  mask[i][j][k] = 0;
-  mask[i][j][k+1] = 0;
-
-  mask[i][j+1][k-1] = 0;
-  mask[i][j+1][k] = 0;
-  mask[i][j+1][k+1] = 0;
-
-  mask[i+1][j-1][k-1] = 0;
-  mask[i+1][j-1][k] = 0;
-  mask[i+1][j-1][k+1] = 0;
-
-  mask[i+1][j][k-1] = 0;
-  mask[i+1][j][k] = 0;
-  mask[i+1][j][k+1] = 0;
-
-  mask[i+1][j+1][k-1] = 0;
-  mask[i+1][j+1][k] = 0;
-  mask[i+1][j+1][k+1] = 0;
-}
-
-int AppGrain::energy_site_cubic_6nn(int ik, int i, int j, int k,
-				     int ibdummy) {
-  int nk;
-
-  nk = 0;
-
-  if (ik != lat_3d[i-1][j][k]) nk++;
-  if (ik != lat_3d[i][j-1][k]) nk++;
-  if (ik != lat_3d[i][j][k-1]) nk++;
-  if (ik != lat_3d[i][j][k+1]) nk++;
-  if (ik != lat_3d[i][j+1][k]) nk++;
-  if (ik != lat_3d[i+1][j][k]) nk++;
-
-  return nk;
-}
-
-void AppGrain::update_mask_cubic_6nn(char*** mask, int i, int j, int k,
-				     int ibdummy) {
-
-  // Unset masks for self and neighbors
-  mask[i-1][j][k] = 0;
-  mask[i][j-1][k] = 0;
-  mask[i][j][k-1] = 0;
-  mask[i][j][k] = 0;
-  mask[i][j][k+1] = 0;
-  mask[i][j+1][k] = 0;
-  mask[i+1][j][k] = 0;
 }
 
 void AppGrain::flip_spin_square_8nn(const int& i, const int& j, const int& kdummy,
@@ -1221,38 +1162,6 @@ void AppGrain::update_propensity_square_8nn(const int& i, const int& j, const in
 
 }
 
-// Initialize propensities for all sites
-
-void AppGrain::init_propensity() {
-  int n,isite;
-
-//   fprintf(screen,"*** Propensity Dump ***\n");
-//   fprintf(screen,"Title = %s\n","No title yet");
-//   fprintf(screen,"nx_local = %d ny_local = %d \n",nx_local,ny_local);
-
-  // Compute propensities in temporary array and pass to solve
-  n = nx_local*ny_local;
-      // Only create propensity array if it does not exist
-  if (propensity == NULL) 
-    propensity = (double*) memory->smalloc(n*sizeof(double),"appgrain:init_propensity:propensity");
-
-  for (int i = 1 ; i <= nx_local; i++) { 
-    for (int j = 1 ; j <= ny_local; j++) {
-
-      isite = (i-1)*ny_local+j-1;
-      propensity[isite] = (this->*cp_fp)(i,j,0,0);
-
-    }
-  }
-    
-  // error check
-  
-  if (solve == NULL) error->all("No solver class defined");
-  
-  solve->init(n,propensity);
-
-}
-
 // Compute propensities for site (i,j)
 
 double AppGrain::compute_propensity_square_8nn(const int& i, const int& j, const int& kdummy,
@@ -1297,39 +1206,635 @@ double AppGrain::compute_propensity_square_8nn(const int& i, const int& j, const
 
   prop = ncand;
 
-//   fprintf(screen,"ncand %d \n",ncand);
-//   fprintf(screen,"prop %g \n",prop);
+  return prop;
+}
+
+int AppGrain::energy_site_square_4nn(int ik, int i, int j, int kdummy,
+				     int ibdummy) {
+  int nk;
+
+  nk = 0;
+  if (ik != lat_2d[i-1][j]) nk++;
+  if (ik != lat_2d[i][j-1]) nk++;
+  if (ik != lat_2d[i][j+1]) nk++;
+  if (ik != lat_2d[i+1][j]) nk++;
+
+  return nk;
+}
+
+void AppGrain::update_mask_square_4nn(char*** mask, int i, int j, int kdummy,
+				     int ibdummy) {
+  char** mask_2d = mask[0];
+
+  // Unset masks for self and neighbors
+  mask_2d[i-1][j] = 0;
+  mask_2d[i][j-1] = 0;
+  mask_2d[i][j] = 0;
+  mask_2d[i][j+1] = 0;
+  mask_2d[i+1][j] = 0;
+}
+
+int AppGrain::energy_site_cubic_26nn(int ik, int i, int j, int k,
+				     int ibdummy) {
+  int nk;
+
+  nk = 0;
+  if (ik != lat_3d[i-1][j-1][k-1]) nk++;
+  if (ik != lat_3d[i-1][j-1][k]) nk++;
+  if (ik != lat_3d[i-1][j-1][k+1]) nk++;
+
+  if (ik != lat_3d[i-1][j][k-1]) nk++;
+  if (ik != lat_3d[i-1][j][k]) nk++;
+  if (ik != lat_3d[i-1][j][k+1]) nk++;
+
+  if (ik != lat_3d[i-1][j+1][k-1]) nk++;
+  if (ik != lat_3d[i-1][j+1][k]) nk++;
+  if (ik != lat_3d[i-1][j+1][k+1]) nk++;
+
+  if (ik != lat_3d[i][j-1][k-1]) nk++;
+  if (ik != lat_3d[i][j-1][k]) nk++;
+  if (ik != lat_3d[i][j-1][k+1]) nk++;
+
+  if (ik != lat_3d[i][j][k-1]) nk++;
+  if (ik != lat_3d[i][j][k+1]) nk++;
+
+  if (ik != lat_3d[i][j+1][k-1]) nk++;
+  if (ik != lat_3d[i][j+1][k]) nk++;
+  if (ik != lat_3d[i][j+1][k+1]) nk++;
+
+  if (ik != lat_3d[i+1][j-1][k-1]) nk++;
+  if (ik != lat_3d[i+1][j-1][k]) nk++;
+  if (ik != lat_3d[i+1][j-1][k+1]) nk++;
+
+  if (ik != lat_3d[i+1][j][k-1]) nk++;
+  if (ik != lat_3d[i+1][j][k]) nk++;
+  if (ik != lat_3d[i+1][j][k+1]) nk++;
+
+  if (ik != lat_3d[i+1][j+1][k-1]) nk++;
+  if (ik != lat_3d[i+1][j+1][k]) nk++;
+  if (ik != lat_3d[i+1][j+1][k+1]) nk++;
+
+  return nk;
+}
+
+void AppGrain::update_mask_cubic_26nn(char*** mask, int i, int j, int k,
+				     int ibdummy) {
+
+  // Unset masks for self and neighbors
+  mask[i-1][j-1][k-1] = 0;
+  mask[i-1][j-1][k] = 0;
+  mask[i-1][j-1][k+1] = 0;
+
+  mask[i-1][j][k-1] = 0;
+  mask[i-1][j][k] = 0;
+  mask[i-1][j][k+1] = 0;
+
+  mask[i-1][j+1][k-1] = 0;
+  mask[i-1][j+1][k] = 0;
+  mask[i-1][j+1][k+1] = 0;
+
+  mask[i][j-1][k-1] = 0;
+  mask[i][j-1][k] = 0;
+  mask[i][j-1][k+1] = 0;
+
+  mask[i][j][k-1] = 0;
+  mask[i][j][k] = 0;
+  mask[i][j][k+1] = 0;
+
+  mask[i][j+1][k-1] = 0;
+  mask[i][j+1][k] = 0;
+  mask[i][j+1][k+1] = 0;
+
+  mask[i+1][j-1][k-1] = 0;
+  mask[i+1][j-1][k] = 0;
+  mask[i+1][j-1][k+1] = 0;
+
+  mask[i+1][j][k-1] = 0;
+  mask[i+1][j][k] = 0;
+  mask[i+1][j][k+1] = 0;
+
+  mask[i+1][j+1][k-1] = 0;
+  mask[i+1][j+1][k] = 0;
+  mask[i+1][j+1][k+1] = 0;
+}
+
+void AppGrain::flip_spin_cubic_26nn(const int& i, const int& j, const int& k,
+				    const int& ibdummy) {
+  int ns,spins[27],nspins[27],ik,jk;
+  int icand,ncand,candlist[27];
+  int ii,jj,kk;
+
+  // Initialize neighbor spin list
+  ik = lat_3d[i][j][k];
+  spins[0] = ik;
+  nspins[0] = 0;
+  ns = 1;
+
+  // Survey each neighbor
+
+  jk = lat_3d[i-1][j-1][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i-1][j][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i-1][j+1][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j-1][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j+1][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j-1][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j+1][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  
+  jk = lat_3d[i-1][j-1][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i-1][j][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i-1][j+1][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j-1][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j+1][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j-1][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j+1][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  
+  jk = lat_3d[i-1][j-1][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i-1][j][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i-1][j+1][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j-1][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j+1][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j-1][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j+1][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  
+  // Use survey to identify candidates
+  ncand = 0;
+  for (int is=1;is<ns;is++) {
+    if (nspins[is] >= nspins[0]) {
+      candlist[ncand] = spins[is];
+      ncand++;
+    }
+  }
+
+  if (ncand <= 0) error->one("Failed to find candidate spin");
+  icand = random->irandom(ncand)-1;
+
+  // Update lat_3d sites and periodic images
+  lat_3d[i][j][k] = candlist[icand];
+
+  if (k==1) {
+    kk = nz_local+1;
+    lat_3d[i][j][kk] = lat_3d[i][j][k];
+    if (i==1) {
+      ii = nx_local+1;
+      lat_3d[ii][j][kk] = lat_3d[i][j][k];
+      if (j==1) {
+	jj = ny_local+1;
+	lat_3d[ii][jj][kk] = lat_3d[i][j][k];
+      }
+      if (j==ny_local) {
+	jj = 0;
+	lat_3d[ii][jj][kk] = lat_3d[i][j][k];
+      }
+    }
+
+    if (i==nx_local) {
+      ii = 0;
+      lat_3d[ii][j][kk] = lat_3d[i][j][k];
+      if (j==1) {
+	jj = ny_local+1;
+	lat_3d[ii][jj][kk] = lat_3d[i][j][k];
+      }
+      if (j==ny_local) {
+	jj = 0;
+	lat_3d[ii][jj][kk] = lat_3d[i][j][k];
+      }
+    }
+    
+    if (j==1) {
+      jj = ny_local+1;
+      lat_3d[i][jj][kk] = lat_3d[i][j][k];
+    }
+    if (j==ny_local) {
+      jj = 0;
+      lat_3d[i][jj][kk] = lat_3d[i][j][k];
+    }
+  }
+
+  if (k==nz_local) {
+    kk = 0;
+    lat_3d[i][j][kk] = lat_3d[i][j][k];
+    if (i==1) {
+      ii = nx_local+1;
+      lat_3d[ii][j][kk] = lat_3d[i][j][k];
+      if (j==1) {
+	jj = ny_local+1;
+	lat_3d[ii][jj][kk] = lat_3d[i][j][k];
+      }
+      if (j==ny_local) {
+	jj = 0;
+	lat_3d[ii][jj][kk] = lat_3d[i][j][k];
+      }
+    }
+
+    if (i==nx_local) {
+      ii = 0;
+      lat_3d[ii][j][kk] = lat_3d[i][j][k];
+      if (j==1) {
+	jj = ny_local+1;
+	lat_3d[ii][jj][kk] = lat_3d[i][j][k];
+      }
+      if (j==ny_local) {
+	jj = 0;
+	lat_3d[ii][jj][kk] = lat_3d[i][j][k];
+      }
+    }
+
+    if (j==1) {
+      jj = ny_local+1;
+      lat_3d[i][jj][kk] = lat_3d[i][j][k];
+    }
+    if (j==ny_local) {
+      jj = 0;
+      lat_3d[i][jj][kk] = lat_3d[i][j][k];
+    }
+  }
+
+  if (i==1) {
+    ii = nx_local+1;
+    lat_3d[ii][j][k] = lat_3d[i][j][k];
+    if (j==1) {
+      jj = ny_local+1;
+      lat_3d[ii][jj][k] = lat_3d[i][j][k];
+    }
+    if (j==ny_local) {
+      jj = 0;
+      lat_3d[ii][jj][k] = lat_3d[i][j][k];
+    }
+  }
+
+  if (i==nx_local) {
+    ii = 0;
+    lat_3d[ii][j][k] = lat_3d[i][j][k];
+    if (j==1) {
+      jj = ny_local+1;
+      lat_3d[ii][jj][k] = lat_3d[i][j][k];
+    }
+    if (j==ny_local) {
+      jj = 0;
+      lat_3d[ii][jj][k] = lat_3d[i][j][k];
+    }
+  }
+  
+  if (j==1) {
+    jj = ny_local+1;
+    lat_3d[i][jj][k] = lat_3d[i][j][k];
+  }
+  if (j==ny_local) {
+      jj = 0;
+      lat_3d[i][jj][k] = lat_3d[i][j][k];
+  }
+  
+}
+
+    
+// Update propensity for this site and neighbors
+
+void AppGrain::update_propensity_cubic_26nn(const int& i, const int& j, const int& k,
+				    const int& ibdummy) const {
+
+  int ndepends = 27;
+  int depends[27];
+  int ksite,ii,jj,kk,isite;
+
+  timer->stamp();
+
+  ksite = 0;
+
+  // For now, we will explitly enforce PBCs.
+
+  kk = k > 1 ? k-1 : nz_local;  
+  ii = i > 1 ? i-1 : nx_local;  
+  jj = j > 1 ? j-1 : ny_local;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j;
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j < ny_local ? j+1 : 1;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  ii = i;
+  jj = j > 1 ? j-1 : ny_local;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j;
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j < ny_local ? j+1 : 1;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  ii = i < nx_local ? i+1 : 1;  
+  jj = j > 1 ? j-1 : ny_local;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j;
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j < ny_local ? j+1 : 1;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  kk = k;
+  ii = i > 1 ? i-1 : nx_local;  
+  jj = j > 1 ? j-1 : ny_local;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j;
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j < ny_local ? j+1 : 1;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  ii = i;
+  jj = j > 1 ? j-1 : ny_local;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j;
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  ii = i;
+  jj = j < ny_local ? j+1 : 1;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  ii = i < nx_local ? i+1 : 1;  
+  jj = j > 1 ? j-1 : ny_local;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j;
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j < ny_local ? j+1 : 1;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  kk = k < nz_local ? k+1 : 1;  
+  ii = i > 1 ? i-1 : nx_local;  
+  jj = j > 1 ? j-1 : ny_local;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j;
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j < ny_local ? j+1 : 1;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  ii = i;
+  jj = j > 1 ? j-1 : ny_local;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j;
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j < ny_local ? j+1 : 1;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  ii = i < nx_local ? i+1 : 1;  
+  jj = j > 1 ? j-1 : ny_local;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j;
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  jj = j < ny_local ? j+1 : 1;  
+  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  depends[ksite] = isite;
+  propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
+  ksite++;
+
+  timer->stamp(TIME_APP);
+
+  // update propensities of events
+
+//   fprintf(screen,"i = %d j = %d \n",i,j);
+//   fprintf(screen,"ii = %d jj = %d \n",ii,jj);
+//   fprintf(screen,"ndepends %d \n",ndepends);
+//   for (int idepend = 0; idepend<ndepends; idepend++) 
+//     fprintf(screen,"depends[i] %d propensity[i] %g \n",depends[idepend],propensity[idepend]);
+  
+
+  solve->update(ndepends,depends,propensity);
+  timer->stamp(TIME_UPDATE);
+
+}
+
+// Compute propensities for site (i,j,k)
+
+double AppGrain::compute_propensity_cubic_26nn(const int& i, const int& j, const int& k,
+				    const int& ibdummy) const {
+  int ns,spins[27],nspins[27],ik,jk;
+  int ncand;
+  double prop;
+
+  // Initialize neighbor spin list
+  ik = lat_3d[i][j][k];
+  spins[0] = ik;
+  nspins[0] = 0;
+  ns = 1;
+
+  // Survey each neighbor
+
+  jk = lat_3d[i-1][j-1][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i-1][j][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i-1][j+1][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j-1][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j+1][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j-1][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j+1][k-1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  
+  jk = lat_3d[i-1][j-1][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i-1][j][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i-1][j+1][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j-1][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j+1][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j-1][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j+1][k];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  
+  jk = lat_3d[i-1][j-1][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i-1][j][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i-1][j+1][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j-1][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i][j+1][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j-1][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  jk = lat_3d[i+1][j+1][k+1];
+  survey_neighbor(ik,jk,ns,spins,nspins);
+  
+  // Use survey to identify candidates
+  
+  ncand = 0;
+  for (int is=1;is<ns;is++) {
+    if (nspins[is] >= nspins[0]) {
+      ncand++;
+    }
+  }
+
+  prop = ncand;
 
   return prop;
 }
 
-void AppGrain::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
-  bool Lfound;
-  int is;
+int AppGrain::energy_site_cubic_6nn(int ik, int i, int j, int k,
+				     int ibdummy) {
+  int nk;
 
-  // First check if matches current spin
-  if (jk == ik) {
-    nspins[0]++;
-  // Otherwise compare with other existing spins in list
-  } else {
-    Lfound = false;
-    for (is=1;is<ns;is++) {
-      if (jk == spins[is]) {
-	Lfound = true;
-	break;
-      }
-    }
-    // If found, increment counter 
-    if (Lfound) {
-      nspins[is]++;
-    // If not, create new survey entry
-    } else {
-      spins[ns] = jk;
-      nspins[ns] = 1;
-      ns++;
-    }
-  }
+  nk = 0;
 
+  if (ik != lat_3d[i-1][j][k]) nk++;
+  if (ik != lat_3d[i][j-1][k]) nk++;
+  if (ik != lat_3d[i][j][k-1]) nk++;
+  if (ik != lat_3d[i][j][k+1]) nk++;
+  if (ik != lat_3d[i][j+1][k]) nk++;
+  if (ik != lat_3d[i+1][j][k]) nk++;
+
+  return nk;
 }
-    
+
+void AppGrain::update_mask_cubic_6nn(char*** mask, int i, int j, int k,
+				     int ibdummy) {
+
+  // Unset masks for self and neighbors
+  mask[i-1][j][k] = 0;
+  mask[i][j-1][k] = 0;
+  mask[i][j][k-1] = 0;
+  mask[i][j][k] = 0;
+  mask[i][j][k+1] = 0;
+  mask[i][j+1][k] = 0;
+  mask[i+1][j][k] = 0;
+}
 
