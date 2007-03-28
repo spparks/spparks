@@ -318,6 +318,9 @@ void AppGrain::init()
 			     nspins, temperature,es_fp,um_fp);
 
   if (solve) {
+
+    if (nprocs > 1) error->all("Solvers can not be run in parallel");
+ 
     // Compute energy to force communication of ghost sites
     sweep->compute_energy();
     init_propensity();
@@ -520,7 +523,7 @@ void AppGrain::dump_header()
 {
   // setup comm buf for dumping snapshots
 
-  if (fp == NULL)  return;
+  if (dump_delta <= 0.0)  return;
   if (dimension != 2)  return;
 
   delete [] dumpbuf;
@@ -582,7 +585,7 @@ void AppGrain::dump()
 {
   int size_one = 2;
 
-  if (fp == NULL)  return;
+  if (dump_delta <= 0.0)  return;
   if (dimension != 2)  return;
 
   // proc 0 writes timestep header
@@ -811,6 +814,8 @@ void AppGrain::set_dump(int narg, char **arg)
 {
   if (narg != 2) error->all("Illegal dump command");
   dump_delta = atof(arg[0]);
+  if (dump_delta <= 0.0) error->all("Illegal dump command");
+
   if (me == 0) {
     if (fp) fclose(fp);
     fp = fopen(arg[1],"w");

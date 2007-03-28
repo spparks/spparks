@@ -51,6 +51,7 @@ SweepGrain::SweepGrain(SPK *spk, int narg, char **arg) :
   lat_2d = NULL;
   lat_3d = NULL;
   mask = NULL;
+  ranlat = NULL;
   comm_2d = NULL;
   comm_3d = NULL;
   procwest = -1;
