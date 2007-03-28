@@ -11,7 +11,7 @@
 
 # Grain growth on a 2D Lattice using masking, and strict
 # This is slower than non-strict, but will give the same
-# answer on any number of processors
+# answer on any number of processors, with or without mask.
 
 app_style       grain square_8nn 100 100 100 12345
 sweep_style     grain 12345 mask yes strict yes delt 0.01
