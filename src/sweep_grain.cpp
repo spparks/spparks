@@ -207,29 +207,31 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
  
     // Initialize mask
     if (Lmask) {
-      // Only create mask array if it does not exist
-      if (mask == NULL) 
+    // Only create mask if it does not exist
+      if (mask == NULL) {
 	memory->create_3d_T_array(mask,1,nx_local+2,ny_local+2,
 				  "sweep_grain:mask");
-
-      for (int i = 0; i <= nx_local+1; i++) 
-	for (int j = 0; j <= ny_local+1; j++) 
-	  mask[0][i][j] = 0;
+	
+	for (int i = 0; i <= nx_local+1; i++) 
+	  for (int j = 0; j <= ny_local+1; j++) 
+	    mask[0][i][j] = 0;
+      }
     }
 
       // Set up array of random number generators
     if (Lstrict) {
       int isite;
-      // Only create ranlat array if it does not exist
-      if (ranlat == NULL) 
+    // Only create ranlat if it does not exist
+      if (ranlat == NULL) {
 	memory->create_3d_T_array(ranlat,1,nx_local+2,ny_local+2,
 				  "sweep_grain:ranlat");
-      // construct random number generators
+	// construct random number generators
       
-      for (int i = 1; i <= nx_local; i++) {
-	for (int j = 1; j <= ny_local; j++) {
-	  isite = (i+nx_offset)*ny_global + j + ny_offset;
-	  ranlat[0][i][j].init(seed+isite);
+	for (int i = 1; i <= nx_local; i++) {
+	  for (int j = 1; j <= ny_local; j++) {
+	    isite = (i+nx_offset)*ny_global + j + ny_offset;
+	    ranlat[0][i][j].init(seed+isite);
+	  }
 	}
       }
     }
@@ -299,32 +301,34 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
  
     // Initialize mask
     if (Lmask) {
-      // Only create mask array if it does not exist
-      if (mask == NULL) 
+      // Only create mask if it does not exist
+      if (mask == NULL) {
 	memory->create_3d_T_array(mask,nx_local+2,ny_local+2,nz_local+2,
 				  "sweep_grain:mask");
 
-      for (int i = 0; i <= nx_local+1; i++) 
-	for (int j = 0; j <= ny_local+1; j++) 
-	  for (int k = 0; k <= nz_local+1; k++) 
-	  mask[i][j][k] = 0;
+	for (int i = 0; i <= nx_local+1; i++) 
+	  for (int j = 0; j <= ny_local+1; j++) 
+	    for (int k = 0; k <= nz_local+1; k++) 
+	      mask[i][j][k] = 0;
+      }
     }
 
     // Set up array of random number generators
     if (Lstrict) {
       int isite;
-      // Only create ranlat array if it does not exist
-      if (ranlat == NULL) 
+      // Only create ranlat if it does not exist
+      if (ranlat == NULL) {
 	memory->create_3d_T_array(ranlat,nx_local+2,ny_local+2,nz_local+2,
 				  "sweep_grain:ranlat");
-    // construct random number generators
-      
-      for (int i = 1; i <= nx_local; i++) {
-	for (int j = 1; j <= ny_local; j++) {
-	  for (int k = 1; k <= nz_local; k++) {
-	    isite = (i+nx_offset)*ny_global*nz_global + 
-	      (j+ny_offset)*nz_global + k + nz_offset;
-	    ranlat[i][j][k].init(seed+isite);
+	// construct random number generators
+	
+	for (int i = 1; i <= nx_local; i++) {
+	  for (int j = 1; j <= ny_local; j++) {
+	    for (int k = 1; k <= nz_local; k++) {
+	      isite = (i+nx_offset)*ny_global*nz_global + 
+		(j+ny_offset)*nz_global + k + nz_offset;
+	      ranlat[i][j][k].init(seed+isite);
+	    }
 	  }
 	}
       }
