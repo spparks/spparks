@@ -153,9 +153,6 @@ void AppGrain::init()
     ny_offset = iprocy*ny_global/ny_procs;
     ny_local = (iprocy+1)*ny_global/ny_procs - ny_offset;
     
-    if (nx_local < 2 || ny_local < 2)
-      error->one("Lattice per proc is too small");
-    
     // Figure out who neighbor processors are    
 
     if (me % ny_procs == 0) procsouth = me + ny_procs - 1;
@@ -341,11 +338,8 @@ void AppGrain::init()
 
   stats_time = time + stats_delta;
   if (stats_delta == 0.0) stats_time = stoptime;
-  dump_time = time + dump_delta - 1.0e-7;
+  dump_time = time + dump_delta;
   if (dump_delta == 0.0) dump_time = stoptime;
-  double teps = 1.0e-7;
-  stats_time-=teps;
-  dump_time-=teps;
 
   // print dump file header and 1st snapshot
 
@@ -376,6 +370,9 @@ void AppGrain::init()
 //   dump_detailed(title);
 //   delete [] title;
 
+// Add epsilon to time for sweeping runs, to take care of round-off
+  double teps = 1.0e-7;
+  if (solve == NULL) time+=teps;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -451,17 +448,14 @@ void AppGrain::iterate()
       else {
 	// Get index for this site
 	if (dimension == 2) {
-	  i = (isite / ny_local) + 1;
-	  j = isite - (i-1)*ny_local + 1;
+	  isite2ij(isite,i,j);
 	  // Pick new spin from neighbor spins
 	  (this->*fs_fp)(i,j,0,0);
 	  timer->stamp(TIME_APP);
 	  // Update propensity for this site and neighbors
 	  (this->*up_fp)(i,j,0,0);
 	} else {
-	  i = isite/nyz_local + 1;
-	  j = isite/nz_local % ny_local + 1;
-	  k = isite % nz_local + 1;
+	  isite2ijk(isite,i,j,k);
 	  // Pick new spin from neighbor spins
 	  (this->*fs_fp)(i,j,k,0);
 	  timer->stamp(TIME_APP);
@@ -898,35 +892,6 @@ void AppGrain::procs2lattice_3d()
   }
 }
 
-void AppGrain::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
-  bool Lfound;
-  int is;
-
-  // First check if matches current spin
-  if (jk == ik) {
-    nspins[0]++;
-  // Otherwise compare with other existing spins in list
-  } else {
-    Lfound = false;
-    for (is=1;is<ns;is++) {
-      if (jk == spins[is]) {
-	Lfound = true;
-	break;
-      }
-    }
-    // If found, increment counter 
-    if (Lfound) {
-      nspins[is]++;
-    // If not, create new survey entry
-    } else {
-      spins[ns] = jk;
-      nspins[ns] = 1;
-      ns++;
-    }
-  }
-
-}
-    
 // Initialize propensities for all sites
 
 void AppGrain::init_propensity() {
@@ -940,10 +905,8 @@ void AppGrain::init_propensity() {
     
     for (int i = 1 ; i <= nx_local; i++) { 
       for (int j = 1 ; j <= ny_local; j++) {
-	
-	isite = (i-1)*ny_local+j-1;
+	isite = ij2isite(i,j);
 	propensity[isite] = (this->*cp_fp)(i,j,0,0);
-	
       }
     }
     
@@ -956,8 +919,7 @@ void AppGrain::init_propensity() {
     for (int i = 1 ; i <= nx_local; i++) { 
       for (int j = 1 ; j <= ny_local; j++) {
 	for (int k = 1 ; k <= nz_local; k++) {
-	
-	  isite = (i-1)*nyz_local+(j-1)*nz_local+k-1;
+	  isite = ijk2isite(i,j,k);
 	  propensity[isite] = (this->*cp_fp)(i,j,k,0);
 	}
       }
@@ -1085,63 +1047,63 @@ void AppGrain::update_propensity_square_8nn(const int& i, const int& j, const in
 
   ii = i > 1 ? i-1 : nx_local;  
   jj = j > 1 ? j-1 : ny_local;  
-  isite = (ii-1)*ny_local+jj-1;
+  isite = ij2isite(ii,jj);
   depends[k] = isite;
   propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
   k++;
 
   ii = i > 1 ? i-1 : nx_local;  
   jj = j;
-  isite = (ii-1)*ny_local+jj-1;
+  isite = ij2isite(ii,jj);
   depends[k] = isite;
   propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
   k++;
 
   ii = i > 1 ? i-1 : nx_local;  
   jj = j < ny_local ? j+1 : 1;  
-  isite = (ii-1)*ny_local+jj-1;
+  isite = ij2isite(ii,jj);
   depends[k] = isite;
   propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
   k++;
 
   ii = i;
   jj = j > 1 ? j-1 : ny_local;  
-  isite = (ii-1)*ny_local+jj-1;
+  isite = ij2isite(ii,jj);
   depends[k] = isite;
   propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
   k++;
 
   ii = i;
   jj = j;
-  isite = (ii-1)*ny_local+jj-1;
+  isite = ij2isite(ii,jj);
   depends[k] = isite;
   propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
   k++;
 
   ii = i;
   jj = j < ny_local ? j+1 : 1;  
-  isite = (ii-1)*ny_local+jj-1;
+  isite = ij2isite(ii,jj);
   depends[k] = isite;
   propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
   k++;
 
   ii = i < nx_local ? i+1 : 1;  
   jj = j > 1 ? j-1 : ny_local;  
-  isite = (ii-1)*ny_local+jj-1;
+  isite = ij2isite(ii,jj);
   depends[k] = isite;
   propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
   k++;
 
   ii = i < nx_local ? i+1 : 1;  
   jj = j;
-  isite = (ii-1)*ny_local+jj-1;
+  isite = ij2isite(ii,jj);
   depends[k] = isite;
   propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
   k++;
 
   ii = i < nx_local ? i+1 : 1;  
   jj = j < ny_local ? j+1 : 1;  
-  isite = (ii-1)*ny_local+jj-1;
+  isite = ij2isite(ii,jj);
   depends[k] = isite;
   propensity[isite] = compute_propensity_square_8nn(ii,jj,0,0);
   k++;
@@ -1169,31 +1131,30 @@ double AppGrain::compute_propensity_square_8nn(const int& i, const int& j, const
   int ns,spins[9],nspins[9],ik,jk;
   int ncand;
   double prop;
+  int *lat_pnt = &lat_2d[i][j], *lat_tmp;
 
   // Initialize neighbor spin list
-  ik = lat_2d[i][j];
+  ik = *lat_pnt;
   spins[0] = ik;
   nspins[0] = 0;
   ns = 1;
 
   // Survey each neighbor
 
-  jk = lat_2d[i-1][j-1];
-  survey_neighbor(ik,jk,ns,spins,nspins);
-  jk = lat_2d[i-1][j];
-  survey_neighbor(ik,jk,ns,spins,nspins);
-  jk = lat_2d[i-1][j+1];
-  survey_neighbor(ik,jk,ns,spins,nspins);
-  jk = lat_2d[i][j-1];
-  survey_neighbor(ik,jk,ns,spins,nspins);
-  jk = lat_2d[i][j+1];
-  survey_neighbor(ik,jk,ns,spins,nspins);
-  jk = lat_2d[i+1][j-1];
-  survey_neighbor(ik,jk,ns,spins,nspins);
-  jk = lat_2d[i+1][j];
-  survey_neighbor(ik,jk,ns,spins,nspins);
-  jk = lat_2d[i+1][j+1];
-  survey_neighbor(ik,jk,ns,spins,nspins);
+  lat_tmp = lat_pnt - (ny_local+3);
+  survey_neighbor(ik,*lat_tmp++,ns,spins,nspins);
+  survey_neighbor(ik,*lat_tmp++,ns,spins,nspins);
+  survey_neighbor(ik,*lat_tmp,ns,spins,nspins);
+
+  lat_tmp = lat_pnt - 1;
+  survey_neighbor(ik,*lat_tmp++,ns,spins,nspins);
+  lat_tmp++;
+  survey_neighbor(ik,*lat_tmp,ns,spins,nspins);
+
+  lat_tmp = lat_pnt + (ny_local+1);
+  survey_neighbor(ik,*lat_tmp++,ns,spins,nspins);
+  survey_neighbor(ik,*lat_tmp++,ns,spins,nspins);
+  survey_neighbor(ik,*lat_tmp,ns,spins,nspins);
   
   // Use survey to identify candidates
   
@@ -1536,57 +1497,57 @@ void AppGrain::update_propensity_cubic_26nn(const int& i, const int& j, const in
   kk = k > 1 ? k-1 : nz_local;  
   ii = i > 1 ? i-1 : nx_local;  
   jj = j > 1 ? j-1 : ny_local;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j;
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j < ny_local ? j+1 : 1;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   ii = i;
   jj = j > 1 ? j-1 : ny_local;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j;
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j < ny_local ? j+1 : 1;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   ii = i < nx_local ? i+1 : 1;  
   jj = j > 1 ? j-1 : ny_local;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j;
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j < ny_local ? j+1 : 1;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
@@ -1594,58 +1555,58 @@ void AppGrain::update_propensity_cubic_26nn(const int& i, const int& j, const in
   kk = k;
   ii = i > 1 ? i-1 : nx_local;  
   jj = j > 1 ? j-1 : ny_local;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j;
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j < ny_local ? j+1 : 1;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   ii = i;
   jj = j > 1 ? j-1 : ny_local;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j;
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   ii = i;
   jj = j < ny_local ? j+1 : 1;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   ii = i < nx_local ? i+1 : 1;  
   jj = j > 1 ? j-1 : ny_local;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j;
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j < ny_local ? j+1 : 1;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
@@ -1653,57 +1614,57 @@ void AppGrain::update_propensity_cubic_26nn(const int& i, const int& j, const in
   kk = k < nz_local ? k+1 : 1;  
   ii = i > 1 ? i-1 : nx_local;  
   jj = j > 1 ? j-1 : ny_local;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j;
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j < ny_local ? j+1 : 1;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   ii = i;
   jj = j > 1 ? j-1 : ny_local;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j;
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j < ny_local ? j+1 : 1;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   ii = i < nx_local ? i+1 : 1;  
   jj = j > 1 ? j-1 : ny_local;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j;
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
 
   jj = j < ny_local ? j+1 : 1;  
-  isite = (ii-1)*nyz_local+(jj-1)*nz_local+kk-1;
+  isite = ijk2isite(ii,jj,kk);
   depends[ksite] = isite;
   propensity[isite] = compute_propensity_cubic_26nn(ii,jj,kk,0);
   ksite++;
@@ -1838,3 +1799,52 @@ void AppGrain::update_mask_cubic_6nn(char*** mask, int i, int j, int k,
   mask[i+1][j][k] = 0;
 }
 
+inline void AppGrain::isite2ij(const int& isite, int& i, int& j) const {
+  i = (isite / ny_local) + 1;
+  j = isite - (i-1)*ny_local + 1;
+}
+
+inline int AppGrain::ij2isite(const int& i, const int& j) const {
+  return (i-1)*ny_local+j-1;
+}
+
+inline void AppGrain::isite2ijk(const int& isite, int& i, int& j, int& k) const {
+  i = isite/nyz_local + 1;
+  j = isite/nz_local % ny_local + 1;
+  k = isite % nz_local + 1;
+}
+
+inline int AppGrain::ijk2isite(const int& i, const int& j, const int& k) const {
+  return (i-1)*nyz_local+(j-1)*nz_local+k-1;
+}
+
+inline void AppGrain::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
+  int *spnt = spins, *npnt = nspins;
+  bool Lfound;
+
+  // First check if matches current spin
+  if (jk == ik) {
+    (*npnt)++;
+  // Otherwise compare with other existing spins in list
+  } else {
+    spnt++;
+    Lfound = false;
+    while (spnt < spins+ns) {
+      if (jk == *spnt++) {
+	Lfound = true;
+	break;
+      }
+    }
+    if (Lfound) {
+    // If found, increment counter 
+      nspins[spnt-spins-1]++;
+    } else {
+    // If not found, create new survey entry
+      spins[ns] = jk;
+      nspins[ns] = 1;
+      ns++;
+    }
+  }
+
+}
+    

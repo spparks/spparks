@@ -100,6 +100,12 @@ class AppGrain : public App {
 
   void init_propensity();
   void survey_neighbor(const int&, const int&, int&, int[], int[]) const;
+
+  void isite2ij(const int&, int&, int&) const;
+  int ij2isite(const int&, const int&) const;
+  void isite2ijk(const int&, int&, int&, int&) const;
+  int ijk2isite(const int&, const int&, const int&) const;
+
 };
 
 }
