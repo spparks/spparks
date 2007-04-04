@@ -25,7 +25,8 @@ class SweepGrain : public Sweep {
 	              const int, const int, 
 	    const int, const double, 
 	    int (AppGrain::*)(int,int,int,int,int),
-	    void (AppGrain::*)(char***,int,int,int,int) );
+	    void (AppGrain::*)(char***,int,int,int,int),
+	    int (AppGrain::*)(int,int,int,int,double) );
   void do_sweep(double&);
   double compute_energy();
   double energy_quadrant(const int);
@@ -33,11 +34,13 @@ class SweepGrain : public Sweep {
  private:
   void sweep_quadrant_2d(int);
   void sweep_quadrant_mask_2d(int);
+  void sweep_quadrant_picklocal_2d(int);
   void sweep_quadrant_strict_2d(int, int);
   void sweep_quadrant_mask_strict_2d(int, int);
 
   void sweep_quadrant_3d(int);
   void sweep_quadrant_mask_3d(int);
+  void sweep_quadrant_picklocal_3d(int);
   void sweep_quadrant_strict_3d(int, int);
   void sweep_quadrant_mask_strict_3d(int, int);
 
@@ -84,10 +87,13 @@ class SweepGrain : public Sweep {
   // Data for masking methods
   bool Lmask;                         // Flag indicating whether masking used
   int masklimit;                      // Limit value for for not masking
-  char*** mask;                        // Local lattice of mask flags
+  char*** mask;                       // Local lattice of mask flags
+  bool Lpicklocal;                    // Flag indicating whether to pick 
+                                      // new spin from local neighbors
 
   // Data for strict methods
   bool Lstrict;                       // Flag indicating whether sweeping is strictly
+
                                       // independent of number of processors.
   class RandomPark ***ranlat;          // array of random number generator pointers
   int ncolor;                         // Number of colors to use
@@ -95,7 +101,7 @@ class SweepGrain : public Sweep {
   // Pointer-to-member functions for different lattice stencils
   int (AppGrain::*es_fp)(int,int,int,int,int);
   void (AppGrain::*um_fp)(char***,int,int,int,int);
-
+  int (AppGrain::*pl_fp)(int,int,int,int,double);
 };
 
 }

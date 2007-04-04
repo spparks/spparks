@@ -33,6 +33,8 @@ class AppGrain : public App {
   void update_mask_square_4nn(char***, const int, const int, const int, const int);
   void update_mask_cubic_26nn(char***, const int, const int, const int, const int);
   void update_mask_cubic_6nn(char***, const int, const int, const int, const int);
+  int pick_local_square_8nn(const int, const int, const int, const int, const double);
+
   // N-Fold Way functions for different lattice stencils
   void flip_spin_square_8nn(const int&, const int&, const int&, const int&);
   void flip_spin_cubic_26nn(const int&, const int&, const int&, const int&);
@@ -80,6 +82,7 @@ class AppGrain : public App {
   // Pointer-to-member functions for different lattice stencils
   int (AppGrain::*es_fp)(int,int,int,int,int);
   void (AppGrain::*um_fp)(char***,int,int,int,int);
+  int (AppGrain::*pl_fp)(int,int,int,int,double);
   void (AppGrain::*fs_fp)(const int&, const int&, const int&, const int&);
   double (AppGrain::*cp_fp)(const int&, const int&, const int&, const int&) const;
   void (AppGrain::*up_fp)(const int&, const int&, const int&, const int&) const;
@@ -107,6 +110,26 @@ class AppGrain : public App {
   int ijk2isite(const int&, const int&, const int&) const;
 
 };
+
+inline void AppGrain::isite2ij(const int& isite, int& i, int& j) const {
+  i = (isite / ny_local) + 1;
+  j = isite - (i-1)*ny_local + 1;
+}
+
+inline int AppGrain::ij2isite(const int& i, const int& j) const {
+  return (i-1)*ny_local+j-1;
+}
+
+inline void AppGrain::isite2ijk(const int& isite, int& i, int& j, int& k) const {
+  i = isite/nyz_local + 1;
+  j = isite/nz_local % ny_local + 1;
+  k = isite % nz_local + 1;
+}
+
+inline int AppGrain::ijk2isite(const int& i, const int& j, const int& k) const {
+  return (i-1)*nyz_local+(j-1)*nz_local+k-1;
+}
+
 
 }
 

@@ -65,6 +65,7 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   temperature = 0.0;
   es_fp = NULL;
   um_fp = NULL;
+  pl_fp = NULL;
   cp_fp = NULL;
   up_fp = NULL;
   fs_fp = NULL;
@@ -78,6 +79,7 @@ AppGrain::AppGrain(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
     ny_global = atoi(arg[iarg++]);
     es_fp = &AppGrain::energy_site_square_8nn;
     um_fp = &AppGrain::update_mask_square_8nn;
+    pl_fp = &AppGrain::pick_local_square_8nn;
     fs_fp = &AppGrain::flip_spin_square_8nn;
     cp_fp = &AppGrain::compute_propensity_square_8nn;
     up_fp = &AppGrain::update_propensity_square_8nn;
@@ -315,7 +317,7 @@ void AppGrain::init()
 			     procwest, proceast, 
 			     procsouth, procnorth, 
 			     procdown, procup, 
-			     nspins, temperature,es_fp,um_fp);
+			     nspins, temperature,es_fp,um_fp,pl_fp);
 
   if (solve) {
 
@@ -935,6 +937,36 @@ void AppGrain::init_propensity() {
 
 }
 
+void AppGrain::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
+  int *spnt = spins, *npnt = nspins;
+  bool Lfound;
+
+  // First check if matches current spin
+  if (jk == ik) {
+    (*npnt)++;
+  // Otherwise compare with other existing spins in list
+  } else {
+    spnt++;
+    Lfound = false;
+    while (spnt < spins+ns) {
+      if (jk == *spnt++) {
+	Lfound = true;
+	break;
+      }
+    }
+    if (Lfound) {
+    // If found, increment counter 
+      nspins[spnt-spins-1]++;
+    } else {
+    // If not found, create new survey entry
+      spins[ns] = jk;
+      nspins[ns] = 1;
+      ns++;
+    }
+  }
+
+}
+
 int AppGrain::energy_site_square_8nn(int ik, int i, int j, int kdummy,
 				     int ibdummy) {
   int nk;
@@ -1033,6 +1065,42 @@ void AppGrain::flip_spin_square_8nn(const int& i, const int& j, const int& kdumm
     lat_2d[i][ny_local+1] = lat_2d[i][j];
   if (j==ny_local)
     lat_2d[i][0] = lat_2d[i][j];
+}
+    
+/* Return the spin of a randomly chosen neighbor */
+
+int AppGrain::pick_local_square_8nn(const int i, const int j, const int kdummy,
+				    const int ibdummy, const double rantmp) {
+
+  switch (int(8*rantmp)) {
+  case 1:
+    return lat_2d[i-1][j-1];
+    break;
+  case 2:
+    return lat_2d[i-1][j];
+    break;
+  case 3:
+    return lat_2d[i-1][j+1];
+    break;
+  case 4:
+    return lat_2d[i][j-1];
+    break;
+  case 5:
+    return lat_2d[i][j+1];
+    break;
+  case 6:
+    return lat_2d[i+1][j-1];
+    break;
+  case 7:
+    return lat_2d[i+1][j];
+    break;
+  case 8:
+    return lat_2d[i+1][j+1];
+    break;
+  default:
+    return lat_2d[i+1][j+1];
+  }
+
 }
     
 // Update propensity for this site and neighbors
@@ -1804,52 +1872,4 @@ void AppGrain::update_mask_cubic_6nn(char*** mask, int i, int j, int k,
   mask[i+1][j][k] = 0;
 }
 
-inline void AppGrain::isite2ij(const int& isite, int& i, int& j) const {
-  i = (isite / ny_local) + 1;
-  j = isite - (i-1)*ny_local + 1;
-}
-
-inline int AppGrain::ij2isite(const int& i, const int& j) const {
-  return (i-1)*ny_local+j-1;
-}
-
-inline void AppGrain::isite2ijk(const int& isite, int& i, int& j, int& k) const {
-  i = isite/nyz_local + 1;
-  j = isite/nz_local % ny_local + 1;
-  k = isite % nz_local + 1;
-}
-
-inline int AppGrain::ijk2isite(const int& i, const int& j, const int& k) const {
-  return (i-1)*nyz_local+(j-1)*nz_local+k-1;
-}
-
-inline void AppGrain::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
-  int *spnt = spins, *npnt = nspins;
-  bool Lfound;
-
-  // First check if matches current spin
-  if (jk == ik) {
-    (*npnt)++;
-  // Otherwise compare with other existing spins in list
-  } else {
-    spnt++;
-    Lfound = false;
-    while (spnt < spins+ns) {
-      if (jk == *spnt++) {
-	Lfound = true;
-	break;
-      }
-    }
-    if (Lfound) {
-    // If found, increment counter 
-      nspins[spnt-spins-1]++;
-    } else {
-    // If not found, create new survey entry
-      spins[ns] = jk;
-      nspins[ns] = 1;
-      ns++;
-    }
-  }
-
-}
     

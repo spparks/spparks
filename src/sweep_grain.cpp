@@ -64,6 +64,7 @@ SweepGrain::SweepGrain(SPK *spk, int narg, char **arg) :
   temperature = 0.0;
   Lmask = true;
   Lstrict = false;
+  Lpicklocal = false;
   nquad = 0;
   masklimit = 0;
   ncolor = 0;
@@ -93,6 +94,16 @@ SweepGrain::SweepGrain(SPK *spk, int narg, char **arg) :
 	iarg++;
       } else if (strcmp(arg[iarg],"no") == 0) {
 	Lmask = false;
+	iarg++;
+      } else error->all("Illegal sweep_style command");
+    } else if (strcmp(arg[iarg],"picklocal") == 0) {
+      iarg++;
+      if (iarg == narg) error->all("Illegal sweep_style command");
+      if (strcmp(arg[iarg],"yes") == 0) {
+	Lpicklocal = true;
+	iarg++;
+      } else if (strcmp(arg[iarg],"no") == 0) {
+	Lpicklocal = false;
 	iarg++;
       } else error->all("Illegal sweep_style command");
     } else if (strcmp(arg[iarg],"delt") == 0) {
@@ -134,7 +145,8 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
 		      const int procdown_in, const int procup_in, 
 		      const int nspins_in, const double temperature_in,
 		      int (AppGrain::*es_fp_in)(int,int,int,int,int),
-		      void (AppGrain::*um_fp_in)(char***,int,int,int,int))
+		      void (AppGrain::*um_fp_in)(char***,int,int,int,int),
+		      int (AppGrain::*pl_fp_in)(int,int,int,int,double))
 {
   appgrain = appgrain_in;
   me = me_in;
@@ -153,6 +165,7 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
   procnorth = procnorth_in;
   es_fp = es_fp_in;
   um_fp = um_fp_in;
+  pl_fp = pl_fp_in;
 
   nx_half = nx_local/2 + 1;
   ny_half = ny_local/2 + 1;
@@ -344,6 +357,13 @@ void SweepGrain::init(AppGrain* appgrain_in, const int me_in, const int nprocs_i
 
 void SweepGrain::do_sweep(double& dt)
 {
+
+  // Error check
+
+  if (es_fp == NULL) error->all("energy_site() function is undefined.");
+  if (Lmask && um_fp == NULL) error->all("update_mask() function is undefined.");
+  if (Lpicklocal && pl_fp == NULL) error->all("pick_local() function is undefined.");
+
   if (Lstrict) {
     // Loop over the lattice colors a la checkerboarding for 2D Ising model
     for (int icolor = 0; icolor < ncolor; icolor++) {
@@ -376,8 +396,13 @@ void SweepGrain::do_sweep(double& dt)
 	
       timer->stamp();
       if (Lmask) {
-	if (dimension == 2) sweep_quadrant_mask_2d(iquad);
-	else sweep_quadrant_mask_3d(iquad);
+	if (Lpicklocal) {
+	  if (dimension == 2) sweep_quadrant_picklocal_2d(iquad);
+	  else sweep_quadrant_picklocal_3d(iquad);
+	} else {
+	  if (dimension == 2) sweep_quadrant_mask_2d(iquad);
+	  else sweep_quadrant_mask_3d(iquad);
+	}
       } else {
 	if (dimension == 2) sweep_quadrant_2d(iquad);
 	else sweep_quadrant_3d(iquad);
@@ -463,6 +488,61 @@ void SweepGrain::sweep_quadrant_mask_2d(int iquad)
       if (nold >= nnew) {
 	lat_2d[i][j] = inew;
 	(appgrain->*um_fp)(mask_3d_tmp,i,j,0,0);
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void SweepGrain::sweep_quadrant_picklocal_2d(int iquad)
+{
+  int i,j,iold,inew,nold,nnew;
+  int xlo = quad[iquad].xlo;
+  int xhi = quad[iquad].xhi;
+  int ylo = quad[iquad].ylo;
+  int yhi = quad[iquad].yhi;
+
+  // Unset all masks at boundary, as they may be out of date,
+  // due to spin change on neighboring processor.
+  // Alternatively, we could reverse communicate the masks, but that
+  // might work out to be even slower....
+
+  char** mask_2d_tmp = mask[0];
+  char*** mask_3d_tmp = mask;
+
+  if (ylo == 1) j = ylo;
+  else if (yhi == ny_local) j = yhi;
+  for (i = xlo; i <= xhi; i++)
+    mask_2d_tmp[i][j] = 0;
+  if (xlo == 1) i = xlo;
+  else if (xhi == nx_local) i = xhi;
+  for (j = ylo; j <= yhi; j++)
+    mask_2d_tmp[i][j] = 0;
+
+  for (i = xlo; i <= xhi; i++) {
+    for (j = ylo; j <= yhi; j++) {
+      // Check if mask is set 
+      if (mask_2d_tmp[i][j]) {
+	continue;
+      }
+
+      iold = lat_2d[i][j];
+      nold = (appgrain->*es_fp)(iold,i,j,0,0);
+      // Check if mask can be set
+      if (nold < masklimit) {
+	mask_2d_tmp[i][j] = 1;
+	continue;
+      }
+
+      inew = (appgrain->*pl_fp)(i,j,0,0,random->uniform());
+      nnew = (appgrain->*es_fp)(inew,i,j,0,0);
+
+      if (inew != iold) {
+	if (nold >= nnew) {
+	  lat_2d[i][j] = inew;
+	  (appgrain->*um_fp)(mask_3d_tmp,i,j,0,0);
+	}
       }
     }
   }
@@ -593,6 +673,71 @@ void SweepGrain::sweep_quadrant_3d(int iquad)
 /* ---------------------------------------------------------------------- */
    
 void SweepGrain::sweep_quadrant_mask_3d(int iquad)
+{
+  int i,j,k,iold,inew,nold,nnew;
+
+  int xlo = quad[iquad].xlo;
+  int xhi = quad[iquad].xhi;
+  int ylo = quad[iquad].ylo;
+  int yhi = quad[iquad].yhi;
+  int zlo = quad[iquad].zlo;
+  int zhi = quad[iquad].zhi;
+
+  // Unset all masks at boundary, as they may be out of date,
+  // due to spin change on neighboring processor.
+  // Alternatively, we could reverse communicate the masks, but that
+  // might work out to be even slower....
+
+  char*** mask_3d_tmp = mask;
+  if (zlo == 1) k = zlo;
+  else if (zhi == nz_local) k = zhi;
+  else error->one("Failed to find z-boundary in sweep_quadrant_mask_3d()");
+  for (i = xlo; i <= xhi; i++)
+  for (j = ylo; j <= yhi; j++)
+    mask_3d_tmp[i][j][k] = 0;
+
+  if (ylo == 1) j = ylo;
+  else if (yhi == ny_local) j = yhi;
+  for (i = xlo; i <= xhi; i++)
+  for (k = zlo; k <= zhi; k++)
+    mask_3d_tmp[i][j][k] = 0;
+
+  if (xlo == 1) i = xlo;
+  else if (xhi == nx_local) i = xhi;
+  for (j = ylo; j <= yhi; j++)
+  for (k = zlo; k <= zhi; k++)
+    mask_3d_tmp[i][j][k] = 0;
+
+  for (i = xlo; i <= xhi; i++) {
+    for (j = ylo; j <= yhi; j++) {
+      for (k = zlo;  k <= zhi; k++) {
+	// Check if mask is set 
+	if (mask_3d_tmp[i][j][k]) {
+	  continue;
+	}
+
+	nold = (appgrain->*es_fp)(lat_3d[i][j][k],i,j,k,0);
+	// Check if mask can be set
+	if (nold < masklimit) {
+	  mask_3d_tmp[i][j][k] = 1;
+	  continue;
+	}
+
+	inew = random->irandom(nspins);
+	nnew = (appgrain->*es_fp)(inew,i,j,k,0);
+
+	if (nold >= nnew) {
+	  lat_3d[i][j][k] = inew;
+	  (appgrain->*um_fp)(mask_3d_tmp,i,j,k,0);
+	}
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+   
+void SweepGrain::sweep_quadrant_picklocal_3d(int iquad)
 {
   int i,j,k,iold,inew,nold,nnew;
 
