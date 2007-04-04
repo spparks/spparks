@@ -1,0 +1,19 @@
+# Simple gppt script
+
+app_style	gppt 3017202
+
+solve_style	gppt 12345
+
+tree_type       4 0.1 15 1
+
+population      10 10
+
+tempering       log 1.0e-3 1000.0 5
+
+fitness         1 fit.file
+
+stats           10
+
+dump            10 dump.spk 2 9
+
+run		100
