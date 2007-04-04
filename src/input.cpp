@@ -392,6 +392,10 @@ int Input::execute_command()
   else if (!strcmp(command,"stats")) stats();
   else if (!strcmp(command,"temperature")) temperature();
   else if (!strcmp(command,"volume")) volume();
+  else if (!strcmp(command,"tree_type")) tree_type();
+  else if (!strcmp(command,"population")) population();
+  else if (!strcmp(command,"tempering")) tempering();
+  else if (!strcmp(command,"fitness")) fitness();
 
   else flag = 0;
 
@@ -620,7 +624,7 @@ void Input::event()
 {
   if (app == NULL) error->all("Command used before app_style set");
   if (strcmp(app->style,"test") != 0)
-    error->all("Command used with mismatched application");
+    error->all("Coommand used with mismatched application");
   app->input(command,narg,arg);
 }
 
@@ -738,3 +742,42 @@ void Input::volume()
     error->all("Command used with mismatched application");
   app->input(command,narg,arg);
 }
+
+/* ---------------------------------------------------------------------- */
+
+void Input::tree_type()
+{
+  if (app == NULL) error->all("Command used before app_style set");
+  if (strcmp(app->style,"gppt") != 0)
+    error->all("Command used with mismatched application");
+  app->input(command,narg,arg);
+}
+/* ---------------------------------------------------------------------- */
+
+void Input::population()
+{
+  if (app == NULL) error->all("Command used before app_style set");
+  if (strcmp(app->style,"gppt") != 0)
+    error->all("Command used with mismatched application");
+  app->input(command,narg,arg);
+}
+/* ---------------------------------------------------------------------- */
+
+void Input::tempering()
+{
+  if (app == NULL) error->all("Command used before app_style set");
+  if (strcmp(app->style,"gppt") != 0)
+    error->all("Command used with mismatched application");
+  app->input(command,narg,arg);
+}
+/* ---------------------------------------------------------------------- */
+
+void Input::fitness()
+{
+  if (app == NULL) error->all("Command used before app_style set");
+  if (strcmp(app->style,"gppt") != 0)
+    error->all("Command used with mismatched application");
+  app->input(command,narg,arg);
+}
+/* ---------------------------------------------------------------------- */
+

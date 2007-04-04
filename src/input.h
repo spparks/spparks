@@ -66,6 +66,11 @@ class Input : protected SysPtr {
   void volume();
   void sweep_style();
 
+  void tree_type();
+  void population();
+  void tempering();
+  void fitness();
+
  private:
   Input(); // Not a sane operation.
   Input(const Input&); // Not a sane operation.

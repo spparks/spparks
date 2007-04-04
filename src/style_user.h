@@ -7,8 +7,20 @@
 // add new style keywords and class names in appropriate Class ifdef
 // see style.h for examples
 
-#ifdef CommandInclude
+
+#ifdef SolveInclude
+#include "solve_gppt.h"
 #endif
 
-#ifdef CommandClass
+#ifdef SolveClass
+SolveStyle(gppt,SolveGPPT)
+#endif
+
+
+#ifdef AppInclude
+#include "app_gppt.h"
+#endif
+
+#ifdef AppClass
+AppStyle(gppt,AppGppt)
 #endif
