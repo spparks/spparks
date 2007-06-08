@@ -6,6 +6,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
+#include <iostream>
 #include "app_grain.h"
 #include "sweep_grain.h"
 #include "solve.h"
@@ -154,8 +155,11 @@ void AppGrain::init()
     int iprocy = me % ny_procs;
     ny_offset = iprocy*ny_global/ny_procs;
     ny_local = (iprocy+1)*ny_global/ny_procs - ny_offset;
-    
+
     // Figure out who neighbor processors are    
+
+    if (nx_local < 2 || ny_local < 2)
+      error->one("Lattice per proc is too small");
 
     if (me % ny_procs == 0) procsouth = me + ny_procs - 1;
     else procsouth = me - 1;
