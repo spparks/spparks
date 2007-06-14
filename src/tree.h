@@ -5,7 +5,6 @@
 #ifndef TREE_H
 #define TREE_H
 
-#include "random_park.h"
 #include "node.h"
 #include <cmath>
 #include "sysptr.h"
@@ -27,23 +26,23 @@ class Tree : protected SysPtr {
     
     Node *root;
     
-    Node *build_tree(int);
+    Node *build_tree(RandomPark*, int);
     
-    Node *random_node(int);
+    Node *random_node(RandomPark*, int);
 
-    void mutate_branch(Node *&);
+    void mutate_branch(RandomPark*, Node *&);
 
-    void mutate_constant(Node *&, double);
+    void mutate_constant(RandomPark*, Node *&, double);
 
-    void mutate_variable(Node *&);
+    void mutate_variable(RandomPark*, Node *&);
 
-    void mutate_operator(Node *&);
+    void mutate_operator(RandomPark*, Node *&);
 
-    void crossover(Node *&, Node *&, int);
+    void crossover(RandomPark*, Node *&, Node *&, int);
 
     void swap(Node *&, Node *&);
 
-    void init(int, double, double, int, int);
+    void init(double, double, int, int);
 
     Node *copy(Node *);
 
@@ -52,8 +51,6 @@ class Tree : protected SysPtr {
     int max_depth;
 
   private:
-    class RandomPark *random;
-    
     double const_lo;
     
     double const_hi;

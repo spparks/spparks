@@ -30,9 +30,6 @@ Population::~Population()
   for(int t=0;t<ntrees;t++) roots[t]->clear();
   delete [] roots;
   delete [] fitness;
-  for (int b = 0; b < buf_size; b++) delete [] buffer[b];
-  delete [] buffer;
-  delete [] tight_buf;
 }
 /* ---------------------------------------------------------------------- */
 void Population::init(int seed, int num_in, Tree * tree_in,
@@ -53,26 +50,26 @@ void Population::init(int seed, int num_in, Tree * tree_in,
   best_index = 0;
 
   for(int t=0;t<ntrees;t++){
-    roots[t] = tree->build_tree(max_depth);
+    roots[t] = tree->build_tree(random,max_depth);
     fitness[t] = fit->compute(roots[t]);
-    if (fitness[t] < best_fit) {
-      best_fit = fitness[t];
-      best_index = t;
-    }
   }
 
-  //allocate buffers
-  buf_size = 2;
-  word_size = 16;
-  for (int i = 0; i < max_depth; i++) buf_size *= 2;
-  buffer = new char*[buf_size];
-  for (int b = 0; b < buf_size; b++) buffer[b] = new char[word_size];
-  tight_buf = new char[buf_size*word_size];
-
+  calc_best_fit();
   set_weights();
 
   swap_up = 0;
   swap_down = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+void Population::calc_best_fit(){
+  best_fit = 1e12;
+  best_index = 0;
+  for(int t=0;t<ntrees;t++)
+    if (fitness[t] < best_fit) {
+      best_fit = fitness[t];
+      best_index = t;
+    }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,24 +91,19 @@ void Population::build_new_population()
     tree1 = tree->copy(roots[t]); t++;
     //build new tree(s)
     if      (mut_oper == MUT_CONST)
-      {tree->mutate_constant(tree1, temperature);}
-    else if (mut_oper == MUT_VAR){tree->mutate_variable(tree1);}
-    else if (mut_oper == MUT_OPER){tree->mutate_operator(tree1);}
-    else if (mut_oper == MUT_BRANCH){tree->mutate_branch(tree1);}
+      {tree->mutate_constant(random,tree1, temperature);}
+    else if (mut_oper == MUT_VAR){tree->mutate_variable(random,tree1);}
+    else if (mut_oper == MUT_OPER){tree->mutate_operator(random,tree1);}
+    else if (mut_oper == MUT_BRANCH){tree->mutate_branch(random,tree1);}
     else if ((mut_oper == MUT_CROSS ||mut_oper == MUT_SWAP) & t < ntrees - 1){
       tree2 = tree->copy(roots[t]); 
       t++;
       if(mut_oper == MUT_CROSS) 
-	tree->crossover(tree1, tree2, tree->max_depth);
+	tree->crossover(random,tree1, tree2, tree->max_depth);
       if (accept(roots[t-2],tree2, current_fit)){
 	accepted[mut_oper]++;
 	roots[t-2]->clear();
 	roots[t-2] = tree2;
-	//update best fit
-	if (current_fit < best_fit) {
-	  best_fit = current_fit;
-	  best_index = t-2;
-	}
 	//update fitness
 	fitness[t-2] = current_fit;
       }
@@ -124,13 +116,11 @@ void Population::build_new_population()
       roots[t-1]->clear();
       roots[t-1] = tree1;
       fitness[t-1] = current_fit;
-      if (current_fit < best_fit){
-	best_fit = current_fit;
-	best_index = t-1;
-      }
     }
     else tree1->clear();
   }
+  //update best fit
+  calc_best_fit();
 }
 /* ---------------------------------------------------------------------- */
 double Population::get_stats(double &sigma)
@@ -205,21 +195,23 @@ Node *Population::get_tree(int t)
 {
   return roots[t]; 
 }
+
 /* ---------------------------------------------------------------------- */
-bool Population::accept(Node *tree1, Node *tree2, double &best_fit)
+bool Population::accept(Node *tree1, Node *tree2, double &fit_in)
 {
   double fit1, fit2;
 
   fit1 = fit->compute(tree1);
   fit2 = fit->compute(tree2);
 
-  if(beta*(fit2-fit1) < log(random->uniform())) {
-    best_fit = fit2;
+  if(beta*(fit1-fit2) > log(random->uniform())) {
+    fit_in = fit2;
     return true;
   }
-  best_fit = fit1;
+  fit_in = fit1;
   return false;
 }
+
 /* ----------------------------------------------------------------------
    Sample mutation distribution with partial sums
    ------------------------------------------------------------------------- */
@@ -238,59 +230,21 @@ int Population::linear_select_mutation()
 
 }
 /* ---------------------------------------------------------------------- */
-void Population::pack_buffer(Node *root)
-{
-  int n = 0;
-  char endc = '#';
-
-  buf_cnt = 0;
-  root->buffer(buffer, n);
-
-  for(int w = 0; w < n; w++)
-    for (int i = 0; i < word_size; i++){
-      tight_buf[buf_cnt] = buffer[w][i];
-      buf_cnt ++;
-    }
-  tight_buf[buf_cnt] = endc;
-}
-/* ---------------------------------------------------------------------- */
-void Population::unpack_buffer(char *buf)
-{
-  char endc = '#';
-  char current_ch;
-  buf_cnt = 0;
-  int w = 0;
-
-  while(1==1){
-    for (int i = 0; i < word_size; i++){
-      current_ch = buf[buf_cnt];
-      buffer[w][i] = current_ch;
-      buf_cnt ++;
-      if(current_ch == endc){
-	return;
-      }
-    }
-    w++;
-  }
-}
-/* ---------------------------------------------------------------------- */
-void Population::swap_nbr(int par, double t_in)
+void Population::swap_nbr(int par, double t_in, Node *test_tree)
 {
   int n = 0;
   double beta_in = 1.0/t_in;
 
-  Node *test_tree = tree->from_buffer(buffer, n);
+//   calc_best_fit();
 
   double fit1 = 0.0;
 
   fit1 = fit->compute(test_tree);
 
-  if( (fit1-best_fit) * (beta_in-beta) < log(random->uniform())) {
-    //    cout <<"best_fit = "<<best_fit;
+  if( (fit1-best_fit) * (beta_in-beta) > log(random->uniform())) {
     best_fit = fit1;
-    //    cout << " new fit = "<<best_fit<<" par "<<par<<endl;
     roots[best_index]->clear();
-    roots[best_index] =  test_tree;
+    roots[best_index] = test_tree;
     if (par == 0) swap_up++;
     else if(par == 1) swap_down ++;
   }

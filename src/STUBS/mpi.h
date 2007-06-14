@@ -25,6 +25,8 @@
 #define MPI_MAX 2
 #define MPI_MIN 3
 
+#define MPI_PROC_NULL           -2              /* rank of null process */
+
 #define MPI_Comm int
 #define MPI_Request int
 #define MPI_Status int

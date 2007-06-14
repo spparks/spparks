@@ -27,15 +27,11 @@ Tree::~Tree()
 {
   delete [] parents;
   delete [] children;
-  delete random;
 }
 /* ---------------------------------------------------------------------- */
-void Tree::init(int seed, double const_lo_in, double const_hi_in, 
+void Tree::init(double const_lo_in, double const_hi_in, 
  int num_var, int max_depth_in)
 {
-
-  if (random != NULL)delete random;
-  random = new RandomPark(seed);
 
   const_hi = const_hi_in;
   const_lo = const_lo_in;
@@ -53,7 +49,7 @@ void Tree::init(int seed, double const_lo_in, double const_hi_in,
 
 }
 /* ---------------------------------------------------------------------- */
-Node *Tree::random_node(int ran_type)
+Node *Tree::random_node(RandomPark* random, int ran_type)
 {
   Node *rn;
   int op;
@@ -83,7 +79,7 @@ Node *Tree::random_node(int ran_type)
   return rn;
 }
 /* ---------------------------------------------------------------------- */
-Node *Tree::build_tree(int max_depth)
+Node *Tree::build_tree(RandomPark* random, int max_depth)
 {
   int depth = 0;
   bool terminated = false;
@@ -94,7 +90,7 @@ Node *Tree::build_tree(int max_depth)
   for(t=0;t<npr;t++) parents[t] = NULL;
   for(t=0;t<nch;t++) children[t] = NULL;
 
-  root = random_node(0);
+  root = random_node(random,0);
   parents[0] = root;
   pcnt = 1;
 
@@ -106,8 +102,8 @@ Node *Tree::build_tree(int max_depth)
     for(t=0;t<pcnt;t++)
       if(parents[t]->type < CONSTANT){
 	terminated = false;
-	children[ccnt] = random_node(finish);
-	children[ccnt+1] = random_node(finish);
+	children[ccnt] = random_node(random,finish);
+	children[ccnt+1] = random_node(random,finish);
 	parents[t]->set_left_child(children[ccnt]);
 	parents[t]->set_right_child(children[ccnt+1]);
 	ccnt += 2;
@@ -129,7 +125,7 @@ Node *Tree::build_tree(int max_depth)
   return root;
 }
 /* ---------------------------------------------------------------------- */
-void Tree::mutate_branch(Node *&root)
+void Tree::mutate_branch(RandomPark* random, Node *&root)
 {
   int dir;
   int depth;
@@ -162,7 +158,7 @@ void Tree::mutate_branch(Node *&root)
 
   depth = max_depth - depth;
   current_node->clear();
-  current_node = build_tree(depth);
+  current_node = build_tree(random,depth);
   //  current_node->write();
 
   if(current_parent){
@@ -173,7 +169,7 @@ void Tree::mutate_branch(Node *&root)
 }
 /* ---------------------------------------------------------------------- */
 
-void Tree::mutate_constant(Node *&root, double temperature)
+void Tree::mutate_constant(RandomPark* random, Node *&root, double temperature)
 {
   Node *leaves[nch];
   bool done = false;
@@ -238,7 +234,7 @@ void Tree::mutate_constant(Node *&root, double temperature)
   }
 }
 /* ---------------------------------------------------------------------- */
-void Tree::mutate_variable(Node *&root)
+void Tree::mutate_variable(RandomPark* random, Node *&root)
 {
   Node *leaves[nch];
   bool done = false;
@@ -298,7 +294,7 @@ void Tree::mutate_variable(Node *&root)
   }
 }
 /* ---------------------------------------------------------------------- */
-void Tree::mutate_operator(Node *&root)
+void Tree::mutate_operator(RandomPark* random, Node *&root)
 {
   Node *leaves[nch];
   Node *daddy[nch];
@@ -388,7 +384,7 @@ void Tree::mutate_operator(Node *&root)
   }
 }
 /* ---------------------------------------------------------------------- */
-void Tree::crossover(Node *&root1, Node *&root2, int ran_depth)
+void Tree::crossover(RandomPark* random, Node *&root1, Node *&root2, int ran_depth)
 {
   int dir1, dir2;
   int depth;
@@ -516,7 +512,7 @@ Node *Tree::from_buffer(char **buf, int &n)
                            sscanf(buf[n],"%d %d ",&op, &index);
   }
 
-  if (op < POW+1) {
+ if (op < POW+1) {
     n++; nt = from_buffer(buf, n);
     rn->set_left_child(nt);
     n++; nt = from_buffer(buf, n);
@@ -528,3 +524,4 @@ Node *Tree::from_buffer(char **buf, int &n)
   return rn;
 }
 /* ---------------------------------------------------------------------- */
+

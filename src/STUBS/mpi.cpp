@@ -60,6 +60,7 @@ double MPI_Wtime()
 void MPI_Send(void *buf, int count, MPI_Datatype datatype,
 	      int dest, int tag, MPI_Comm comm)
 {
+  if (dest != MPI_PROC_NULL)
   printf("MPI Stub WARNING: Should not send message to self\n");
 }
 
@@ -72,6 +73,7 @@ void MPI_Rsend(void *buf, int count, MPI_Datatype datatype,
 void MPI_Recv(void *buf, int count, MPI_Datatype datatype,
 	      int source, int tag, MPI_Comm comm, MPI_Status *status)
 {
+  if (source != MPI_PROC_NULL)
   printf("MPI Stub WARNING: Should not recv message from self\n");
 }
 

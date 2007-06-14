@@ -33,16 +33,14 @@ class Population : protected SysPtr {
     Node*get_tree(int);
     Node*get_best_tree();
     void write_best_tree(FILE *);
+    void calc_best_fit();
     inline double get_best_fitness(){return best_fit;}
     double get_stats(double &); //returns mean (stdv as argument)
 
     void update_weights();
     inline double *get_weights(int &n){n=MUT_SWAP+1;return weight;}
 
-    void pack_buffer(Node *);
-    void unpack_buffer(char *);
-    inline char* get_buffer(int &n){n = buf_cnt; return tight_buf;}
-    void swap_nbr(int, double);
+    void swap_nbr(int, double, Node*);
   private:
 
     void set_weights();
@@ -62,13 +60,6 @@ class Population : protected SysPtr {
     int accepted[MUT_SWAP+2];
 
     double temperature, beta;
-
-    //tree buffering
-    char** buffer;
-    int buf_size;
-    int word_size;
-    char *tight_buf;
-    int buf_cnt;
 
     int swap_up;
     int swap_down;

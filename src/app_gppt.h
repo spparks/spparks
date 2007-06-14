@@ -34,6 +34,8 @@ class AppGppt : public App {
 
  private:
 
+  static const char endbufchar = '#';
+
   class RandomPark *random;
 
   Tree *tree;
@@ -70,6 +72,10 @@ class AppGppt : public App {
   void dump_header();
   void dump();
 
+  void pack_buffer(Node *);
+  Node* unpack_buffer();
+  void write_tight_buf();
+  
   FILE *fp;
   int ndump;
   int dpop1, dpop2;
@@ -85,6 +91,8 @@ class AppGppt : public App {
   //population parameters
   int pop_size;
   int pop_num;
+  int pop_num_global;
+  int pop_offset;
 
   //tempering parameters
   double temperature;
@@ -93,24 +101,24 @@ class AppGppt : public App {
   int swap_freq;
   void swap_trees(int);
 
+  //fitness variables
+  double *fitness;
+  double *var;
+
+  double best_fitness_global;
+  Node *best_tree_global;
+  int best_pop_global;
+  void get_best_fitness();
+
+  //random seed
+  int seed;
+
   //tree buffering
   char** buffer;
   int buf_size;
   int word_size;
   char *tight_buf;
-
-  //fitness variables
-  double *fitness;
-  double *var;
-
-  double best_fitness;
-  Node *best_tree;
-  int best_pop;
-  double get_best_fitness();
-
-  //random seed
-  int seed;
-
+  char** tight_buf_pop;
 };
 
 }
