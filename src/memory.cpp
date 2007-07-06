@@ -19,7 +19,7 @@ Memory::Memory(SPK *spk) : SysPtr(spk) {}
    safe malloc 
 ------------------------------------------------------------------------- */
 
-void *Memory::smalloc(int n, char *name)
+void *Memory::smalloc(int n, const char *name)
 {
   if (n == 0) return NULL;
   void *ptr = malloc(n);
@@ -46,7 +46,7 @@ void Memory::sfree(void *ptr)
    safe realloc 
 ------------------------------------------------------------------------- */
 
-void *Memory::srealloc(void *ptr, int n, char *name)
+void *Memory::srealloc(void *ptr, int n, const char *name)
 {
   if (n == 0) return NULL;
   ptr = realloc(ptr,n);
@@ -62,7 +62,7 @@ void *Memory::srealloc(void *ptr, int n, char *name)
    create a 1d double array with index from nlo to nhi inclusive 
 ------------------------------------------------------------------------- */
 
-double *Memory::create_1d_double_array(int nlo, int nhi, char *name)
+double *Memory::create_1d_double_array(int nlo, int nhi, const char *name)
 {
   int n = nhi - nlo + 1;
   double *array = (double *) smalloc(n*sizeof(double),name);
@@ -83,7 +83,7 @@ void Memory::destroy_1d_double_array(double *array, int offset)
    create a 2d double array 
 ------------------------------------------------------------------------- */
 
-double **Memory::create_2d_double_array(int n1, int n2, char *name)
+double **Memory::create_2d_double_array(int n1, int n2, const char *name)
 
 {
   double *data = (double *) smalloc(n1*n2*sizeof(double),name);
@@ -117,7 +117,7 @@ void Memory::destroy_2d_double_array(double **array)
 ------------------------------------------------------------------------- */
 
 double **Memory::grow_2d_double_array(double **array,
-				      int n1, int n2, char *name)
+				      int n1, int n2, const char *name)
 
 {
   if (array == NULL) return create_2d_double_array(n1,n2,name);
@@ -140,7 +140,7 @@ double **Memory::grow_2d_double_array(double **array,
    if either dim is 0, return NULL 
 ------------------------------------------------------------------------- */
 
-int **Memory::create_2d_int_array(int n1, int n2, char *name)
+int **Memory::create_2d_int_array(int n1, int n2, const char *name)
 
 {
   if (n1 == 0 || n2 == 0) return NULL;
@@ -175,7 +175,7 @@ void Memory::destroy_2d_int_array(int **array)
    if either dim is 0, return NULL 
 ------------------------------------------------------------------------- */
 
-int **Memory::grow_2d_int_array(int **array, int n1, int n2, char *name)
+int **Memory::grow_2d_int_array(int **array, int n1, int n2, const char *name)
 
 {
   if (n1 == 0 || n2 == 0) {
@@ -202,7 +202,7 @@ int **Memory::grow_2d_int_array(int **array, int n1, int n2, char *name)
    create a 2d double array with 2nd index from n2lo to n2hi inclusive 
 ------------------------------------------------------------------------- */
 
-double **Memory::create_2d_double_array(int n1, int n2lo, int n2hi, char *name)
+double **Memory::create_2d_double_array(int n1, int n2lo, int n2hi, const char *name)
 {
   int n2 = n2hi - n2lo + 1;
   double **array = create_2d_double_array(n1,n2,name);
@@ -226,7 +226,7 @@ void Memory::destroy_2d_double_array(double **array, int offset)
    create a 3d double array 
 ------------------------------------------------------------------------- */
 
-double ***Memory::create_3d_double_array(int n1, int n2, int n3, char *name)
+double ***Memory::create_3d_double_array(int n1, int n2, int n3, const char *name)
 {
   int i,j;
 
@@ -265,7 +265,7 @@ void Memory::destroy_3d_double_array(double ***array)
 ------------------------------------------------------------------------- */
 
 double ***Memory::grow_3d_double_array(double ***array,
-				       int n1, int n2, int n3, char *name)
+				       int n1, int n2, int n3, const char *name)
 {
   int i,j;
 
@@ -299,7 +299,7 @@ double ***Memory::grow_3d_double_array(double ***array,
 ------------------------------------------------------------------------- */
 
 double ***Memory::create_3d_double_array(int n1lo, int n1hi, 
-					 int n2, int n3, char *name)
+					 int n2, int n3, const char *name)
 {
   int n1 = n1hi - n1lo + 1;
   double ***array = create_3d_double_array(n1,n2,n3,name);
@@ -324,7 +324,7 @@ void Memory::destroy_3d_double_array(double ***array, int offset)
 
 double ***Memory::create_3d_double_array(int n1lo, int n1hi,
 					 int n2lo, int n2hi,
-					 int n3lo, int n3hi, char *name)
+					 int n3lo, int n3hi, const char *name)
 {
   int n1 = n1hi - n1lo + 1;
   int n2 = n2hi - n2lo + 1;
@@ -354,7 +354,7 @@ void Memory::destroy_3d_double_array(double ***array, int n1_offset,
    create a 3d int array 
 ------------------------------------------------------------------------- */
 
-int ***Memory::create_3d_int_array(int n1, int n2, int n3, char *name)
+int ***Memory::create_3d_int_array(int n1, int n2, int n3, const char *name)
 {
   int i,j;
 
@@ -390,7 +390,7 @@ void Memory::destroy_3d_int_array(int ***array)
    create a 4d double array 
 ------------------------------------------------------------------------- */
 
-double ****Memory::create_4d_double_array(int n1, int n2, int n3, int n4, char *name)
+double ****Memory::create_4d_double_array(int n1, int n2, int n3, int n4, const char *name)
 {
   int i,j,k;
 

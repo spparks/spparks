@@ -307,8 +307,8 @@ void AppGrain::init()
 
   if (sweep == NULL) {
     char* argtmp[2];
-    argtmp[0] = "grain";
-    argtmp[1] = "12345";
+    argtmp[0] = (char*)"grain";
+    argtmp[1] = (char*)"12345";
     sweep = new SweepGrain(spk,2,argtmp);
     sweep_create = 1;
   } else sweep_create = 0;

@@ -17,7 +17,7 @@ using namespace SPPARKS;
 
 Universe::Universe(SPK *spk, MPI_Comm communicator) : SysPtr(spk)
 {
-  version = "1 Oct 2006";
+  version = (char *)"1 Oct 2006";
 
   uworld = communicator;
   MPI_Comm_rank(uworld,&me);

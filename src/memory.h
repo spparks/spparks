@@ -14,85 +14,85 @@ class Memory : protected SysPtr {
  public:
   explicit Memory(class SPK *);
 
-  void *smalloc(int n, char *);
+  void *smalloc(int n, const char *);
   void sfree(void *);
-  void *srealloc(void *, int n, char *name);
+  void *srealloc(void *, int n, const char *name);
 
-  double *create_1d_double_array(int, int, char *);
+  double *create_1d_double_array(int, int, const char *);
   void destroy_1d_double_array(double *, int);
   
-  double **create_2d_double_array(int, int, char *);
+  double **create_2d_double_array(int, int, const char *);
   void destroy_2d_double_array(double **);
-  double **grow_2d_double_array(double **, int, int, char *);
+  double **grow_2d_double_array(double **, int, int, const char *);
 
-  int **create_2d_int_array(int, int, char *);
+  int **create_2d_int_array(int, int, const char *);
   void destroy_2d_int_array(int **);
-  int **grow_2d_int_array(int **, int, int, char *);
+  int **grow_2d_int_array(int **, int, int, const char *);
 
-  double **create_2d_double_array(int, int, int, char *);
+  double **create_2d_double_array(int, int, int, const char *);
   void destroy_2d_double_array(double **, int);
 
-  double ***create_3d_double_array(int, int, int, char *);
+  double ***create_3d_double_array(int, int, int, const char *);
   void destroy_3d_double_array(double ***);
-  double ***grow_3d_double_array(double ***, int, int, int, char *);
+  double ***grow_3d_double_array(double ***, int, int, int, const char *);
 
-  double ***create_3d_double_array(int, int, int, int, char *);
+  double ***create_3d_double_array(int, int, int, int, const char *);
   void destroy_3d_double_array(double ***, int);
 
-  double ***create_3d_double_array(int, int, int, int, int, int, char *);
+  double ***create_3d_double_array(int, int, int, int, int, int, const char *);
   void destroy_3d_double_array(double ***, int, int, int);
 
-  int ***create_3d_int_array(int, int, int, char *);
+  int ***create_3d_int_array(int, int, int, const char *);
   void destroy_3d_int_array(int ***);
 
-  double ****create_4d_double_array(int, int, int, int, char *);
+  double ****create_4d_double_array(int, int, int, int, const char *);
   void destroy_4d_double_array(double ****);
 
   // Templated versions
   template<typename T>
-    void create_1d_T_array(T *&, int, int, char *);
+    void create_1d_T_array(T *&, int, int, const char *);
 
   template<typename T>
     void destroy_1d_T_array(T *, int);
   
   template<typename T>
-    void create_2d_T_array(T **&, int, int, char *);
+    void create_2d_T_array(T **&, int, int, const char *);
 
   template<typename T>
     void destroy_2d_T_array(T **);
 
   template<typename T>
-    T **grow_2d_T_array(T **, int, int, char *);
+    T **grow_2d_T_array(T **, int, int, const char *);
 
   template<typename T>
-    void create_2d_T_array(T **&, int, int, int, char *);
+    void create_2d_T_array(T **&, int, int, int, const char *);
 
   template<typename T>
     void destroy_2d_T_array(T **, int);
     
   template<typename T>
-    void create_3d_T_array(T ***&, int, int, int, char *);
+    void create_3d_T_array(T ***&, int, int, int, const char *);
 
   template<typename T>
     void destroy_3d_T_array(T ***);
 
   template<typename T>
-    T ***grow_3d_T_array(T ***, int, int, int, char *);
+    T ***grow_3d_T_array(T ***, int, int, int, const char *);
     
   template<typename T>
-    void create_3d_T_array(T ***&, int, int, int, int, char *);
+    void create_3d_T_array(T ***&, int, int, int, int, const char *);
 
   template<typename T>
     void destroy_3d_T_array(T ***, int);
     
   template<typename T>
-    void create_3d_T_array(T ***&, int, int, int, int, int, int, char *);
+    void create_3d_T_array(T ***&, int, int, int, int, int, int, const char *);
 
   template<typename T>
     void destroy_3d_T_array(T ***, int, int, int);
     
   template<typename T>
-    void create_4d_T_array(T ****&, int, int, int, int, char *);
+    void create_4d_T_array(T ****&, int, int, int, int, const char *);
 
   template<typename T>
     void destroy_4d_T_array(T ****);
@@ -110,7 +110,7 @@ class Memory : protected SysPtr {
 ------------------------------------------------------------------------- */
 
 template<typename T>
-void Memory::create_1d_T_array(T *&array, int nlo, int nhi, char *name)
+void Memory::create_1d_T_array(T *&array, int nlo, int nhi, const char *name)
 {
   int n = nhi - nlo + 1;
   array = (T *) smalloc(n*sizeof(T),name);
@@ -136,7 +136,7 @@ void Memory::destroy_1d_T_array(T *array, int offset)
 // We achieve the desired result by moving the return value 
 // into the argument list as a reference.
 template<typename T>
-void Memory::create_2d_T_array(T **&array, int n1, int n2, char *name)
+void Memory::create_2d_T_array(T **&array, int n1, int n2, const char *name)
 {
   T *data = (T *) smalloc(n1*n2*sizeof(T),name);
   array = (T **) smalloc(n1*sizeof(T *),name);
@@ -168,7 +168,7 @@ void Memory::destroy_2d_T_array(T **array)
 
 template<typename T>
 T **Memory::grow_2d_T_array(T **array,
-			    int n1, int n2, char *name)
+			    int n1, int n2, const char *name)
 
 {
   if (array == NULL) {
@@ -194,7 +194,7 @@ T **Memory::grow_2d_T_array(T **array,
 ------------------------------------------------------------------------- */
 
 template<typename T>
- void Memory::create_2d_T_array(T **&array, int n1, int n2lo, int n2hi, char *name)
+ void Memory::create_2d_T_array(T **&array, int n1, int n2lo, int n2hi, const char *name)
 {
   int n2 = n2hi - n2lo + 1;
   create_2d_T_array(array,n1,n2,name);
@@ -219,7 +219,7 @@ void Memory::destroy_2d_T_array(T **array, int offset)
 ------------------------------------------------------------------------- */
 
 template<typename T>
-void Memory::create_3d_T_array(T ***&array, int n1, int n2, int n3, char *name)
+void Memory::create_3d_T_array(T ***&array, int n1, int n2, int n3, const char *name)
 {
   int i,j;
 
@@ -259,7 +259,7 @@ void Memory::destroy_3d_T_array(T ***array)
 
 template<typename T>
 T ***Memory::grow_3d_T_array(T ***array,
-				       int n1, int n2, int n3, char *name)
+				       int n1, int n2, int n3, const char *name)
 {
   int i,j;
 
@@ -295,7 +295,7 @@ T ***Memory::grow_3d_T_array(T ***array,
 
 template<typename T>
 void Memory::create_3d_T_array(T ***&array, int n1lo, int n1hi, 
-					 int n2, int n3, char *name)
+					 int n2, int n3, const char *name)
 {
   int n1 = n1hi - n1lo + 1;
   create_3d_T_array(array,n1,n2,n3,name);
@@ -322,7 +322,7 @@ void Memory::destroy_3d_T_array(T ***array, int offset)
 template<typename T>
 void Memory::create_3d_T_array(T ***&array, int n1lo, int n1hi,
 					 int n2lo, int n2hi,
-					 int n3lo, int n3hi, char *name)
+					 int n3lo, int n3hi, const char *name)
 {
   int n1 = n1hi - n1lo + 1;
   int n2 = n2hi - n2lo + 1;
@@ -353,7 +353,7 @@ void Memory::destroy_3d_T_array(T ***array, int n1_offset,
 ------------------------------------------------------------------------- */
 
 template<typename T>
-void Memory::create_4d_T_array(T ****&array, int n1, int n2, int n3, int n4, char *name)
+void Memory::create_4d_T_array(T ****&array, int n1, int n2, int n3, int n4, const char *name)
 {
   int i,j,k;
 
