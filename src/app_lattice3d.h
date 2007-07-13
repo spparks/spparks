@@ -12,6 +12,8 @@
 namespace SPPARKS {
 
 class AppLattice3d : public App {
+  friend class SweepLattice3d;
+
  public:
   AppLattice3d(class SPK *, int, char **);
   virtual ~AppLattice3d();
@@ -50,6 +52,8 @@ class AppLattice3d : public App {
   int procsouth,procnorth;
   int procdown,procup;
 
+  double masklimit;                 // app-specific, used by sweeper
+
   FILE *fp;
   int *dumpbuf;
   int maxdumpbuf;
@@ -58,6 +62,8 @@ class AppLattice3d : public App {
   class CommLattice3d *comm;
 
   void virtual input_app(char *, int, char **);
+  void virtual init_app() {}
+
   void iterate();
   void stats();
   void dump_header();

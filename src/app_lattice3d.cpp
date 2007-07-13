@@ -56,6 +56,10 @@ AppLattice3d::~AppLattice3d()
 
 void AppLattice3d::init()
 {
+  // app-specific initialization
+
+  init_app();
+
   // error check on other classes
 
   if (sweep && solve)
@@ -88,13 +92,7 @@ void AppLattice3d::init()
 
   // initialize sweeper
 
-  if (sweep) 
-    ((SweepLattice3d *) sweep)->init(nx_global,ny_global,nz_global,
-				     nx_local,ny_local,nz_local,
-				     nx_offset,ny_offset,nz_offset,
-				     procwest,proceast,procsouth,procnorth,
-				     procdown,procup,
-				     lattice,temperature);
+  if (sweep) sweep->init();
 
   // setup future stat and dump calls
 

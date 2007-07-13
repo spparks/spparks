@@ -8,9 +8,11 @@
 // see style.h for examples
 
 #ifdef AppInclude
+#include "app_migration.h"
 #endif
 
 #ifdef AppClass
+AppStyle(migration,AppMigration)
 #endif
 
 #ifdef CommandInclude

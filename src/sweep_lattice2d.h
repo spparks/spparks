@@ -14,9 +14,7 @@ class SweepLattice2d : public Sweep {
  public:
   SweepLattice2d(class SPK *, int, char **);
   ~SweepLattice2d();
-  void init(const int, const int, const int, const int, const int, const int,
-	    const int, const int, const int, const int,
-	    int **, const double);
+  void init();
   void do_sweep(double &);
   double compute_energy() {return 0.0;};
 

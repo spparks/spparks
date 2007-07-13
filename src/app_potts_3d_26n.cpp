@@ -33,6 +33,8 @@ AppPotts3d26n::AppPotts3d26n(SPK *spk, int narg, char **arg) :
   seed = atoi(arg[5]);
   random = new RandomPark(seed);
 
+  masklimit = 13.0;
+
   // define lattice and partition it across processors
   
   procs2lattice();

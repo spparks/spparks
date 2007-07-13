@@ -105,27 +105,31 @@ SweepLattice2d::~SweepLattice2d()
 
 /* ---------------------------------------------------------------------- */
 
-void SweepLattice2d::init(const int nx_global, const int ny_global,
-			  const int nx_local_in, const int ny_local_in,
-			  const int nx_offset_in, const int ny_offset_in,
-			  const int procwest, const int proceast,
-			  const int procsouth, const int procnorth, 
-			  int **lattice_in, const double t_in)
+void SweepLattice2d::init()
 {
-  nx_local = nx_local_in;
-  ny_local = ny_local_in;
-  nx_offset = nx_offset_in;
-  ny_offset = ny_offset_in;
-
   applattice = (AppLattice2d *) app;
-  lattice = lattice_in;
-  temperature = t_in;
+
+  lattice = applattice->lattice;
+
+  nx_local = applattice->nx_local;
+  ny_local = applattice->ny_local;
+  nx_offset = applattice->nx_offset;
+  ny_offset = applattice->ny_offset;
+  int nx_global = applattice->nx_global;
+  int ny_global = applattice->ny_global;
+
+  int procwest = applattice->procwest;
+  int proceast = applattice->proceast;
+  int procsouth = applattice->procsouth;
+  int procnorth = applattice->procnorth;
+
+  temperature = applattice->temperature;
   if (temperature != 0.0) t_inverse = 1.0/temperature;
+  masklimit = applattice->masklimit;
   
   int nx_half = nx_local/2 + 1;
   int ny_half = ny_local/2 + 1;
 
-  masklimit = 4.0;
   nquad = 4;
     
   quad[0].xlo = 1;

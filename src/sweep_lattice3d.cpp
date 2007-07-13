@@ -105,34 +105,37 @@ SweepLattice3d::~SweepLattice3d()
 
 /* ---------------------------------------------------------------------- */
 
-void SweepLattice3d::init(const int nx_global, const int ny_global, 
-			  const int nz_global,
-			  const int nx_local_in, const int ny_local_in, 
-			  const int nz_local_in,
-			  const int nx_offset_in, const int ny_offset_in, 
-			  const int nz_offset_in,
-			  const int procwest, const int proceast,
-			  const int procsouth, const int procnorth,
-			  const int procdown, const int procup,
-			  int ***lattice_in, const double t_in)
+void SweepLattice3d::init()
 {
-  nx_local = nx_local_in;
-  ny_local = ny_local_in;
-  nz_local = nz_local_in;
-  nx_offset = nx_offset_in;
-  ny_offset = ny_offset_in;
-  nz_offset = nz_offset_in;
-
   applattice = (AppLattice3d *) app;
-  lattice = lattice_in;
-  temperature = t_in;
+
+  lattice = applattice->lattice;
+
+  nx_local = applattice->nx_local;
+  ny_local = applattice->ny_local;
+  nz_local = applattice->nz_local;
+  nx_offset = applattice->nx_offset;
+  ny_offset = applattice->ny_offset;
+  nz_offset = applattice->nz_offset;
+  int nx_global = applattice->nx_global;
+  int ny_global = applattice->ny_global;
+  int nz_global = applattice->nz_global;
+
+  int procwest = applattice->procwest;
+  int proceast = applattice->proceast;
+  int procsouth = applattice->procsouth;
+  int procnorth = applattice->procnorth;
+  int procdown = applattice->procdown;
+  int procup = applattice->procup;
+
+  temperature = applattice->temperature;
   if (temperature != 0.0) t_inverse = 1.0/temperature;
+  masklimit = applattice->masklimit;
   
   int nx_half = nx_local/2 + 1;
   int ny_half = ny_local/2 + 1;
   int nz_half = nz_local/2 + 1;
 
-  masklimit = 3.0;
   nquad = 8;
 
   quad[0].xlo = 1;

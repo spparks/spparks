@@ -12,6 +12,8 @@
 namespace SPPARKS {
 
 class AppLattice2d : public App {
+  friend class SweepLattice2d;
+
  public:
   AppLattice2d(class SPK *, int, char **);
   virtual ~AppLattice2d();
@@ -48,6 +50,8 @@ class AppLattice2d : public App {
   int procwest,proceast;       // my neighbor procs
   int procsouth,procnorth;
 
+  double masklimit;            // app-specific, used by sweeper
+
   FILE *fp;
   int *dumpbuf;
   int maxdumpbuf;
@@ -56,6 +60,8 @@ class AppLattice2d : public App {
   class CommLattice2d *comm;
 
   void virtual input_app(char *, int, char **);
+  void virtual init_app() {}
+
   void iterate();
   void stats();
   void dump_header();

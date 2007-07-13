@@ -56,6 +56,10 @@ AppLattice2d::~AppLattice2d()
 
 void AppLattice2d::init()
 {
+  // app-specific initialization
+
+  init_app();
+
   // error check on other classes
 
   if (sweep && solve)
@@ -86,11 +90,7 @@ void AppLattice2d::init()
 
   // initialize sweeper
 
-  if (sweep) 
-    ((SweepLattice2d *) sweep)->init(nx_global,ny_global,
-				     nx_local,ny_local,nx_offset,ny_offset,
-				     procwest,proceast,procsouth,procnorth,
-				     lattice,temperature);
+  if (sweep) sweep->init();
 
   // setup future stat and dump calls
 
