@@ -24,7 +24,8 @@ help:
 	@echo 'make help = usage information'
 	@echo 'make clean = remove all Obj directories and *.o files'
 	@echo 'make makelist = create Makefile.list with explicit file list'
-	@echo 'make makelib = create Makefile.lib to build library'
+	@echo 'make tar = make tarball of src dir'
+	@echo 'make package = see what packages are available'
 
 clean:
 	rm -r Obj_*
@@ -32,7 +33,7 @@ clean:
 tar:
 	mkdir spk_src
 	rm -f *~ MAKE/*~ STUBS/*~ STUBS/*.o STUBS/libmpi.a
-	cp -r *.cpp *.h Makefile* MAKE STUBS in.test in.abc log_abc.spk spk_src
+	cp -r *.cpp *.h Makefile* MAKE STUBS in.* spk_src
 	tar -zcvf spk_src.tgz spk_src
 	rm -rf spk_src	
 
