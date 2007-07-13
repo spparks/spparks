@@ -52,3 +52,43 @@ makelib:
 
 makelist:
 	@csh Make.csh Makefile.list
+
+# Packages
+
+package:
+	@echo 'Available packages:'
+	@echo '  gppt'
+	@echo 'make yes-name     to include a package'
+	@echo 'make no-name      to exclude a package'
+	@echo 'make yes-all      to include all packages'
+	@echo 'make no-all       to exclude all packages'
+
+yes-all:
+	make yes-gppt
+
+no-all:
+	@echo 'Removing files, ignore any rm errors ...'
+	@cd GPPT; csh -f Install.csh 0
+	@make clean
+
+yes-gppt:
+	@cd GPPT; csh -f Install.csh 1
+no-gppt:
+	@echo 'Removing files, ignore any rm errors ...'
+	@cd GPPT; csh -f Install.csh 0
+	@make clean
+
+# update src files with package files
+
+package-update:
+	@csh -f Package.csh GPPT update
+
+# overwrite package files with src files
+
+package-overwrite:
+	@csh -f Package.csh GPPT overwrite
+
+# check differences between src and pacakge files
+
+package-check:
+	@csh -f Package.csh GPPT check

@@ -14,21 +14,21 @@ class SweepGrain : public Sweep {
  public:
   SweepGrain(class SPK *, int, char **);
   ~SweepGrain();
-  void input(int, char **){};
-  void init(AppGrain*, const int, const int, const int, 
-		      const int, const int, const int, 
-		      const int, const int, const int, 
-		      const int, const int, const int, 
-		      int***, 
-		      const int, const int, 
-	              const int, const int, 
-	              const int, const int, 
+  void do_sweep(double&);
+  double compute_energy();
+
+  void init(AppGrain *, const int, const int, const int, 
+	    const int, const int, const int, 
+	    const int, const int, const int, 
+	    const int, const int, const int, 
+	    int***, 
+	    const int, const int, 
+	    const int, const int, 
+	    const int, const int, 
 	    const int, const double, 
 	    int (AppGrain::*)(int,int,int,int,int),
 	    void (AppGrain::*)(char***,int,int,int,int),
 	    int (AppGrain::*)(int,int,int,int,double) );
-  void do_sweep(double&);
-  double compute_energy();
   double energy_quadrant(const int);
 
  private:
@@ -45,7 +45,7 @@ class SweepGrain : public Sweep {
   void sweep_quadrant_mask_strict_3d(int, int);
 
  private:
-  AppGrain* appgrain;
+  AppGrain *appgrain;
   int me,nprocs;
   int dimension;
   int nx_global,ny_global,nz_global;  // size of global lattice [0,Nglobal-1]

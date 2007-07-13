@@ -14,9 +14,9 @@ class AppChemistry : public App {
  public:
   AppChemistry(class SPK *, int, char **);
   virtual ~AppChemistry();
-  virtual void init();
-  virtual void input(char *, int, char **);
-  virtual void run(int, char **);
+  void init();
+  void input(char *, int, char **);
+  void run(int, char **);
 
  private:
   int ntimestep;

@@ -28,12 +28,12 @@ enum{DEPOSITION,HOPLEFT,HOPRIGHT};
 #define MOV3(a,b,c, d,e,f) (a)=(d);(b)=(e);(c)=(f);
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 
-#define MAX_ITER 1000
+#define MAX_ITER 10000
 #define MAX_EVAL 10000
 #define MAX_LINE 10
 #define DMIN 0.001
 #define DMAX 0.1
-#define TOLERANCE 1.0e-6
+#define TOLERANCE 1.0e-5
 
 #define EPS         1.0e-10
 #define SCAN_FACTOR 2.0
@@ -113,7 +113,7 @@ void AppSurf::init()
   // cutoffs
 
   cutsq = cutoff * cutoff;
-  skin = sigma;
+  skin = 2.0*sigma;
   cutneigh = cutoff + skin;
   cutneighsq = cutneigh * cutneigh;
 
@@ -219,7 +219,6 @@ void AppSurf::iterate()
   int i,iatom,which;
   double delta,rate,dt,xnew,znew;
   double eng,fx,fz;
-  double eps = sigma/100.0;
 
   timer->barrier_start(TIME_LOOP);
 
@@ -241,11 +240,11 @@ void AppSurf::iterate()
 
       delta = find_barrier(i,atoms[i].x - hop_distance,&xnew,&znew);
       rate = attempt_frequency * exp(-delta / temperature);
-      add_event(i,HOPLEFT,rate,xnew-eps,znew);
+      add_event(i,HOPLEFT,rate,xnew-hop_distance/2.0,znew);
 
       delta = find_barrier(i,atoms[i].x + hop_distance,&xnew,&znew);
       rate = attempt_frequency * exp(-delta / temperature);
-      add_event(i,HOPRIGHT,rate,xnew+eps,znew);
+      add_event(i,HOPRIGHT,rate,xnew+hop_distance/2.0,znew);
     }
 
     solve->init(nevents,rates);
@@ -289,9 +288,9 @@ void AppSurf::iterate()
       double ztmp = atoms[iatom].z;
       double xmid = xtmp;
       double zmid = ztmp;
-      if (events[which].style == HOPLEFT) xmid += eps;
-      if (events[which].style == HOPRIGHT) xmid -= eps;
-      neighbor_z(iatom,eps);
+      if (events[which].style == HOPLEFT) xmid += sigma/100.0;
+      if (events[which].style == HOPRIGHT) xmid -= sigma/100.0;
+      neighbor_z(iatom,sigma/100.0);
 
       atoms[iatom].x = xmid;
       atoms[iatom].z = zmid;
@@ -327,13 +326,19 @@ void AppSurf::iterate()
 #endif
     }
 
+    if (events[which].style != DEPOSITION) atoms[iatom].type = 6;
     dump();
     ntimestep++;
+    if (events[which].style != DEPOSITION) atoms[iatom].type = 2;
 
+    neighbor(1,&iatom);
     double foo = eng_force(1,&iatom);
-    printf("PRE-RELAX %d %g %g\n",ntimestep,atoms[iatom].fx,atoms[iatom].fz);
+    printf("PRE-RELAX %d, f= %g %g, eng= %g\n",
+	   ntimestep,atoms[iatom].fx,atoms[iatom].fz,foo);
     relax(iatom);
-    printf("POST-RELAX %d %g %g\n",ntimestep,atoms[iatom].fx,atoms[iatom].fz);
+    foo = eng_force(1,&iatom);
+    printf("POST-RELAX %d, f= %g %g, eng= %g\n",
+	   ntimestep,atoms[iatom].fx,atoms[iatom].fz,foo);
     dump();
 
     energy = etotal();
@@ -574,7 +579,6 @@ double AppSurf::find_barrier(int iatom, double xhop,
 
 void AppSurf::relax(int iatom)
 {
-  neighbor(1,&iatom);
   //sd(1,&iatom);
   cg(1,&iatom);
 
@@ -831,7 +835,7 @@ void AppSurf::dump()
   // write atoms
 
   for (int i = 0; i < nlocal; i++)
-    fprintf(fp,"%d %d %g %g %g\n",
+    fprintf(fp,"%d %d %20.16g %20.16g %20.16g\n",
 	    atoms[i].id,atoms[i].type,atoms[i].x,atoms[i].z,0.0);
 }
 
@@ -961,17 +965,17 @@ double AppSurf::dbrent(int iatom, double ax, double bx, double cx,
     if (fu <= fx) {
       if (u >= x) a = x;
       else b = x;
-      MOV3(v,fv,dv, w,fw,dw)
-      MOV3(w,fw,dw, x,fx,dx)
-      MOV3(x,fx,dx, u,fu,du)
+      MOV3(v,fv,dv,w,fw,dw)
+      MOV3(w,fw,dw,x,fx,dx)
+      MOV3(x,fx,dx,u,fu,du)
     } else {
       if (u < x) a = u;
       else b = u;
       if (fu <= fw || w == x) {
-	MOV3(v,fv,dv, w,fw,dw)
-	MOV3(w,fw,dw, u,fu,du)
+	MOV3(v,fv,dv,w,fw,dw)
+	MOV3(w,fw,dw,u,fu,du)
       } else if (fu < fv || v == x || v == w) {
-	MOV3(v,fv,dv, u,fu,du)
+	MOV3(v,fv,dv,u,fu,du)
       }
     }
   }
@@ -1012,7 +1016,7 @@ void AppSurf::sd(int n, int *list)
     //printf("DIR: %g %g\n",h[0],h[1]);
     //printf("XINIT: eng = %g; %g %g\n",ecurrent,
     //         atoms[list[0]].x,atoms[list[0]].z);
-    fail = linemin_scan(n,list,h,ecurrent,DMIN,DMAX,alpha,neval);
+    fail = linemin_secant(n,list,h,ecurrent,DMIN,DMAX,alpha,neval);
     //printf("XFINAL: eng = %g; %g %g\n",ecurrent,
     //	   atoms[list[0]].x,atoms[list[0]].z);
 
@@ -1088,7 +1092,12 @@ void AppSurf::cg(int n, int *list)
     // line minimization along direction h from current atom->x
 
     eprevious = ecurrent;
-    fail = linemin_scan(n,list,h,ecurrent,DMIN,DMAX,alpha,neval);
+    //printf("DIR: %g %g\n",h[0],h[1]);
+    //printf("XINIT: eng = %g; %g %g\n",ecurrent,
+    //	   atoms[list[0]].x,atoms[list[0]].z);
+    fail = linemin_secant(n,list,h,ecurrent,DMIN,DMAX,alpha,neval);
+    //printf("XFINAL: eng = %g; %g %g\n",ecurrent,
+    //   atoms[list[0]].x,atoms[list[0]].z);
 
     // if max_eval exceeded, all done
     // if linemin failed or energy did not decrease sufficiently:
@@ -1097,9 +1106,9 @@ void AppSurf::cg(int n, int *list)
 
     if (neval >= MAX_EVAL) break;
 
-    printf("BREAK: %d %g %g %g %g\n",
-	   fail,ecurrent,eprevious,ecurrent-eprevious,
-	   TOLERANCE * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS));
+    //    printf("BREAK: %d %g %g %g %g\n",
+    //   fail,ecurrent,eprevious,ecurrent-eprevious,
+    //   TOLERANCE * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS));
     if (fail || fabs(ecurrent-eprevious) <= 
     	TOLERANCE * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS)) {
       if (gradsearch == 1) break;
@@ -1144,7 +1153,8 @@ void AppSurf::cg(int n, int *list)
   delete [] g;
   delete [] h;
 
-  printf("CG: %d %d; %g %g\n",niter,neval,einitial,ecurrent);
+  printf("CG: %d %d; engs= %g %g, f= %g %g\n",niter,neval,einitial,ecurrent,
+	 atoms[list[0]].fx,atoms[list[0]].fz);
 }
 
 /* ----------------------------------------------------------------------
@@ -1189,7 +1199,7 @@ int AppSurf::linemin_scan(int n, int *list, double *dir, double &eng,
   // alphamax = step that moves some atom coord by maxdist
 
   fme = 0.0;
-  for (i = 0; i < n; i++) fme = MAX(fme,fabs(dir[i]));
+  for (i = 0; i < ndof; i++) fme = MAX(fme,fabs(dir[i]));
   //MPI_Allreduce(&fme,&fmax,1,MPI_DOUBLE,MPI_MAX,world);
   fmax = fme;
   if (fmax == 0.0) return 1;
@@ -1252,9 +1262,7 @@ int AppSurf::linemin_scan(int n, int *list, double *dir, double &eng,
 
 /* ----------------------------------------------------------------------
    linemin: use secant approximation to estimate parabola minimum at each step
-   should converge more quickly/accurately than "scan", but may be less robust
-   how to prevent func evals at new x bigger than maxdist?
-   initial secant from two points: 0 and sigma0 = mindist
+   should converge more quickly/accurately than "scan", but can be less robust
 ------------------------------------------------------------------------- */
 
 int AppSurf::linemin_secant(int n, int *list, double *dir, double &eng,
@@ -1262,21 +1270,18 @@ int AppSurf::linemin_secant(int n, int *list, double *dir, double &eng,
 			    double &alpha, int &nfunc)
 {
   int i,m,ilist,iter;
-  double eta,eta_prev,sigma0,alphadelta,fme,fmax,dsq,e0,tmp;
+  double eta,eta_prev,alphamin,alphamax,alphadelta,fme,fmax,dsq,e0,tmp;
   double epssq = SECANT_EPS * SECANT_EPS;
   int ndof = 2*n;
 
   // stopping criterion for secant iterations
-  // change this
 
   fme = 0.0;
   for (i = 0; i < ndof; i++) fme += dir[i]*dir[i];
   //MPI_Allreduce(&fme,&dsq,1,MPI_DOUBLE,MPI_SUM,world);
   dsq = fme;
 
-  // sigma0 = smallest allowed step of mindist
-  // eval func at sigma0
-  // test if minstep is already uphill
+  // alphamin = smallest allowed step of mindist
 
   fme = 0.0;
   for (i = 0; i < ndof; i++) fme = MAX(fme,fabs(dir[i]));
@@ -1284,30 +1289,41 @@ int AppSurf::linemin_secant(int n, int *list, double *dir, double &eng,
   fmax = fme;
   if (fmax == 0.0) return 1;
 
-  sigma0 = mindist/fmax;
+  alphamin = mindist/fmax;
+  alphamax = maxdist/fmax;
+
+  // eval func at alphamin
+  // test if minstep is already uphill
 
   e0 = eng;
   m = 0;
   for (ilist = 0; ilist < n; ilist++) {
     i = list[ilist];
-    atoms[i].x += sigma0*dir[m++];
-    atoms[i].z += sigma0*dir[m++];
+    atoms[i].x += alphamin*dir[m++];
+    atoms[i].z += alphamin*dir[m++];
   }
   eng = eng_force(n,list);
-  printf("  First eng: %g %g\n",sigma0,eng);
+  //printf("  First eng: %g %g\n",alphamin,eng);
   nfunc++;
 
   if (eng >= e0) {
     m = 0;
     for (ilist = 0; ilist < n; ilist++) {
       i = list[ilist];
-      atoms[i].x -= sigma0*dir[m++];
-      atoms[i].z -= sigma0*dir[m++];
+      atoms[i].x -= alphamin*dir[m++];
+      atoms[i].z -= alphamin*dir[m++];
     }
     eng = eng_force(n,list);
     nfunc++;
     return 1;
   }
+
+  // secant iterations
+  // alphadelta = new increment to move, alpha = accumulated move
+  // first step is alpha = 0, first previous step is at mindist
+  // prevent func evals for alpha outside mindist to maxdist
+  // if happens on 1st iteration, secant approx is likely searching
+  //   for a maximum (negative alpha), so reevaluate at alphamin
 
   tmp = 0.0;
   m = 0;
@@ -1319,45 +1335,52 @@ int AppSurf::linemin_secant(int n, int *list, double *dir, double &eng,
   //MPI_Allreduce(&tmp,&eta_prev,1,MPI_DOUBLE,MPI_SUM,world);
   eta_prev = tmp;
 
-  // secant iterations
-  // alphadelta = new increment to move, alpha = accumulated move
-
-  alpha = sigma0;
-  alphadelta = -sigma0;
+  alpha = alphamin;
+  alphadelta = -alphamin;
 
   for (iter = 0; iter < MAX_LINE; iter++) {
     alpha += alphadelta;
     m = 0;
     for (ilist = 0; ilist < n; ilist++) {
       i = list[ilist];
-      atoms[i].x += alphadelta * dir[m++];
-      atoms[i].z += alphadelta * dir[m++];
+      atoms[i].x += alphadelta*dir[m++];
+      atoms[i].z += alphadelta*dir[m++];
     }
 
     eng = eng_force(n,list);
-    printf("  Iter: %g %g\n",alpha,eng);
     nfunc++;
+    //printf(" AAA %d %g %g\n",nfunc,eng,alpha);
 
     tmp = 0.0;
     m = 0;
     for (ilist = 0; ilist < n; ilist++) {
       i = list[ilist];
-      tmp -= atoms[i].fx * dir[m++];
-      tmp -= atoms[i].fz * dir[m++];
+      tmp -= atoms[i].fx*dir[m++];
+      tmp -= atoms[i].fz*dir[m++];
     }
     //MPI_Allreduce(&tmp,&eta,1,MPI_DOUBLE,MPI_SUM,world);
     eta = tmp;
+    //printf(" BBB %d %g, f= %g %g\n",
+    //   nfunc,eta,atoms[list[0]].fx,atoms[list[0]].fz);
 
-    printf("  Alpha adjust: %g %g %g %g\n",
-	   alphadelta,eta,eta_prev,eta/(eta_prev-eta));
     alphadelta *= eta / (eta_prev - eta);
     eta_prev = eta;
     if (alphadelta*alphadelta*dsq <= epssq) break;
+    if (alpha+alphadelta < alphamin || alpha+alphadelta > alphamax) {
+      if (iter == 0) {
+	if (alpha+alphadelta < alphamin) alpha = alphamin;
+	else alpha = alphamax;
+	m = 0;
+	for (ilist = 0; ilist < n; ilist++) {
+	  i = list[ilist];
+	  atoms[i].x += alpha*dir[m++];
+	  atoms[i].z += alpha*dir[m++];
+	}
+	eng = eng_force(n,list);
+	nfunc++;
+      }
+      break;
+    }
   }
-
-  // if exited loop on first iteration, func eval was at alpha = 0.0
-  // else successful line search
-
-  if (iter == 0) return 1;
   return 0;
 }

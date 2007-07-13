@@ -23,6 +23,9 @@ using namespace SPPARKS;
 
 CommGrain2D::CommGrain2D(class SPK *spk) : CommGrain(spk)
 {
+  MPI_Comm_rank(world,&me);
+  MPI_Comm_size(world,&nprocs);
+
   swapinfo = NULL;
 }
 
@@ -37,11 +40,18 @@ CommGrain2D::~CommGrain2D()
 
 /* ---------------------------------------------------------------------- */
 
-void CommGrain2D::setup(const int nx, const int ny, 
-		       const int nxh, const int nyh, 
-		       const int procwest, const int proceast, 
-		       const int procsouth, const int procnorth)
+void CommGrain2D::setup(const int nx_in, const int ny_in, 
+			const int nxh, const int nyh, 
+			const int procwest_in, const int proceast_in, 
+			const int procsouth_in, const int procnorth_in)
 {
+  nx = nx_in;
+  ny = ny_in;
+  procwest = procwest_in;
+  proceast = proceast_in;
+  procsouth = procsouth_in;
+  procnorth = procnorth_in;
+
   // initialize swap parameters and allocate memory
 
   SwapInfo* swap;
@@ -191,16 +201,7 @@ void CommGrain2D::setup(const int nx, const int ny,
   swap->copy0ixa = -1;
   swap->copy0ixb = -1;
 
-  maxrecv = 0;
-  maxsend = 0;
-  for (isector=0;isector<nsector;isector++) {
-    for (iswap=0;iswap<nswap;iswap++) {
-      swap = &swapinfo[isector][iswap];
-      maxrecv=MAX(maxrecv,swap->recvnum);
-      maxsend=MAX(maxsend,swap->sendnum);
-    }
-  }
-
+  maxsend = maxrecv = MAX(nx+2,ny+2);
   recvbuf = (int*) memory->smalloc(maxrecv*sizeof(int),"commgrain:recvbuf");
   sendbuf = (int*) memory->smalloc(maxsend*sizeof(int),"commgrain:sendbuf");
 }
@@ -318,7 +319,57 @@ void CommGrain2D::communicate(int** lattice, const int isector) {
       recvpnt[i] = sendpnt[i];
     }
   }
+}
 
+/* ----------------------------------------------------------------------
+   update ghost values for entire sub-domain owned by this proc
+------------------------------------------------------------------------- */
+
+void CommGrain2D::all_ghosts(int **lattice)
+{
+  int i;
+  int *recvpnt, *sendpnt, *recvbufpnt, *sendbufpnt;
+  MPI_Request request;
+  MPI_Status status;
+
+  // send west, then east
+  // if only 1 proc in x, copy data
+
+  if (procwest != me) {
+    MPI_Irecv(&lattice[nx+1][1],ny,MPI_INT,proceast,0,world,&request);
+    MPI_Send(&lattice[1][1],ny,MPI_INT,procwest,0,world);
+    MPI_Wait(&request,&status);
+
+    MPI_Irecv(&lattice[0][1],ny,MPI_INT,procwest,0,world,&request);
+    MPI_Send(&lattice[nx][1],ny,MPI_INT,proceast,0,world);
+    MPI_Wait(&request,&status);
+
+  } else {
+    for (i = 1; i <= ny; i++) lattice[nx+1][i] = lattice[1][i];
+    for (i = 1; i <= ny; i++) lattice[0][i] = lattice[nx][i];
+  }
+
+  // send south, then north
+  // must pack/unpack data
+  // if only 1 proc in x, copy data
+
+  if (procsouth != me) {
+    for (i = 0; i < nx+2; i++) sendbuf[i] = lattice[i][1];
+    MPI_Irecv(recvbuf,nx+2,MPI_INT,procnorth,0,world,&request);
+    MPI_Send(sendbuf,nx+2,MPI_INT,procsouth,0,world);
+    MPI_Wait(&request,&status);
+    for (i = 0; i < nx+2; i++) lattice[i][ny+1] = recvbuf[i];
+
+    for (i = 0; i < nx+2; i++) sendbuf[i] = lattice[i][ny];
+    MPI_Irecv(recvbuf,nx+2,MPI_INT,procsouth,0,world,&request);
+    MPI_Send(sendbuf,nx+2,MPI_INT,procnorth,0,world);
+    MPI_Wait(&request,&status);
+    for (i = 0; i < nx+2; i++) lattice[i][0] = recvbuf[i];
+
+  } else {
+    for (i = 0; i < nx+2; i++) lattice[i][ny+1] = lattice[i][1];
+    for (i = 0; i < nx+2; i++) lattice[i][0] = lattice[i][ny];
+  }
 }
 
 /* ----------------------------------------------------------------------

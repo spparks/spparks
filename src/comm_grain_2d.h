@@ -18,8 +18,13 @@ class CommGrain2D : public CommGrain  {
   void setup(const int, const int, const int, const int, 
 	     const int, const int, const int, const int);
   void communicate(int **, const int);
+  void all_ghosts(int **);
 
  private:
+  int me,nprocs;
+  int nx,ny;
+  int procwest,proceast,procsouth,procnorth;
+
   int *sendbuf;          // send buffer for all comm
   int *recvbuf;          // recv buffer for all comm
   int maxsend;           // current size of send buffer

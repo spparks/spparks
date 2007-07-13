@@ -19,7 +19,6 @@ class Sweep : protected SysPtr {
 
   // pure virtual functions, must be defined in child class
 
-  virtual void input(int, char **) = 0; 
   virtual void do_sweep(double&) = 0;
   virtual double compute_energy() = 0;
 };

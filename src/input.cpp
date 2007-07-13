@@ -375,31 +375,22 @@ int Input::execute_command()
   else if (!strcmp(command,"jump")) jump();
   else if (!strcmp(command,"label")) label();
   else if (!strcmp(command,"log")) log();
-  else if (!strcmp(command,"print")) print();
   else if (!strcmp(command,"next")) next_command();
+  else if (!strcmp(command,"print")) print();
+  else if (!strcmp(command,"variable")) variable_command();
 
   else if (!strcmp(command,"app_style")) app_style();
-  else if (!strcmp(command,"count")) count();
-  else if (!strcmp(command,"dump")) dump();
-  else if (!strcmp(command,"event")) event();
-  else if (!strcmp(command,"potential")) potential();
-  else if (!strcmp(command,"rates")) rates();
-  else if (!strcmp(command,"reaction")) reaction();
   else if (!strcmp(command,"run")) run();
-  else if (!strcmp(command,"species")) species();
   else if (!strcmp(command,"solve_style")) solve_style();
   else if (!strcmp(command,"sweep_style")) sweep_style();
-  else if (!strcmp(command,"stats")) stats();
-  else if (!strcmp(command,"temperature")) temperature();
-  else if (!strcmp(command,"volume")) volume();
-  else if (!strcmp(command,"tree_type")) tree_type();
-  else if (!strcmp(command,"population")) population();
-  else if (!strcmp(command,"tempering")) tempering();
-  else if (!strcmp(command,"fitness")) fitness();
 
   else flag = 0;
 
+  // return if command was listed above
+
   if (flag) return 0;
+
+  // check if command is added via style.h
 
   if (0) return 0;      // dummy line to enable else-if macro expansion
 
@@ -413,7 +404,11 @@ int Input::execute_command()
 #include "style.h"
 #undef CommandClass
 
-  return -1;
+  // assume command is application-specific
+
+  if (app == NULL) error->all("Command used before app_style set");
+  app->input(command,narg,arg);
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -602,64 +597,6 @@ void Input::app_style()
 
 /* ---------------------------------------------------------------------- */
 
-void Input::count()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"chemistry") != 0)
-    error->all("Command used with mismatched application");
-  app->input(command,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::dump()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  app->input(command,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::event()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"test") != 0)
-    error->all("Coommand used with mismatched application");
-  app->input(command,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::potential()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"surf") != 0)
-    error->all("Command used with mismatched application");
-  app->input(command,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::rates()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"surf") != 0)
-    error->all("Command used with mismatched application");
-  app->input(command,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::reaction()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"chemistry") != 0)
-    error->all("Command used with mismatched application");
-  app->input(command,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void Input::run()
 {
   if (app == NULL) error->all("Command used before app_style set");
@@ -703,81 +640,4 @@ void Input::sweep_style()
 
   else error->all("Invalid sweep style");
 }
-
-/* ---------------------------------------------------------------------- */
-
-void Input::species()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"chemistry") != 0)
-    error->all("Command used with mismatched application");
-  app->input(command,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::stats()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  app->input(command,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::temperature()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"grain") != 0    && 
-      strcmp(app->style,"surf") != 0)
-    error->all("Command used with mismatched application");
-  app->input(command,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::volume()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"chemistry") != 0)
-    error->all("Command used with mismatched application");
-  app->input(command,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::tree_type()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"gppt") != 0)
-    error->all("Command used with mismatched application");
-  app->input(command,narg,arg);
-}
-/* ---------------------------------------------------------------------- */
-
-void Input::population()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"gppt") != 0)
-    error->all("Command used with mismatched application");
-  app->input(command,narg,arg);
-}
-/* ---------------------------------------------------------------------- */
-
-void Input::tempering()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"gppt") != 0)
-    error->all("Command used with mismatched application");
-  app->input(command,narg,arg);
-}
-/* ---------------------------------------------------------------------- */
-
-void Input::fitness()
-{
-  if (app == NULL) error->all("Command used before app_style set");
-  if (strcmp(app->style,"gppt") != 0)
-    error->all("Command used with mismatched application");
-  app->input(command,narg,arg);
-}
-/* ---------------------------------------------------------------------- */
 
