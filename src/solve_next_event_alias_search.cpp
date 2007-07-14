@@ -17,6 +17,8 @@
 using namespace std;
 using namespace SPPARKS;
 
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 /* ---------------------------------------------------------------------- */
 
 SolveNextEventAliasSearch::SolveNextEventAliasSearch
@@ -56,9 +58,13 @@ void SolveNextEventAliasSearch::init(int n, double *propensity)
   hilo = new int[n];
 
   sum = 0.0;
-  for (i = 0; i < n; i++) {sum += propensity[i]; prob[i] = propensity[i];}
+  for (i = 0; i < n; i++) {
+    // Negative propensities are treated as zeroes
+    prob[i] = MAX(propensity[i],0.0);
+    sum += prob[i];
+  }
 
-  build_alias_table(nevents, propensity);
+  build_alias_table(nevents, prob);
   //  table_dump(nevents);
 }
 /* ----------------------------------------------------------------------

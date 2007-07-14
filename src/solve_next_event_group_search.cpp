@@ -15,6 +15,8 @@
 
 using namespace SPPARKS;
 
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 /* ---------------------------------------------------------------------- */
 
 SolveNextEventGroupSearch::SolveNextEventGroupSearch(SPK *spk, int narg, char **arg) : Solve(spk, narg, arg)
@@ -61,11 +63,12 @@ void SolveNextEventGroupSearch::init(int n, double *propensity)
       hi = pt; 
       fprintf(screen, "Upper bound violated. Reset to %g \n", hi);
     }
-    p[i] = pt;
-    sum += pt;
+    // Negative propensities are treated as zeroes
+    p[i] = MAX(pt,0.0);
+    sum += p[i];
   }
 
-  groups->partition_init(propensity, n, 2*n);
+  groups->partition_init(p, n, 2*n);
 }
 
 /* ---------------------------------------------------------------------- */
