@@ -16,9 +16,8 @@ class Sweep : protected SysPtr {
 
   Sweep(class SPK *, int, char **);
   virtual ~Sweep();
-  void init() {}
+  virtual void init() = 0;
   virtual void do_sweep(double&) = 0;
-  virtual double compute_energy() = 0;
 };
 
 }

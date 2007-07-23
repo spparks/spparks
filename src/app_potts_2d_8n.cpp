@@ -17,6 +17,9 @@
 
 using namespace SPPARKS;
 
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 /* ---------------------------------------------------------------------- */
 
 AppPotts2d8n::AppPotts2d8n(SPK *spk, int narg, char **arg) : 
@@ -198,6 +201,56 @@ void AppPotts2d8n::site_event(int i, int j)
     }
 
   solve->update(9,sites,propensity);
+}
+
+/* ----------------------------------------------------------------------
+   choose and perform an event for site
+   update propensities of all affected sites
+------------------------------------------------------------------------- */
+
+void AppPotts2d8n::site_event_sector(int i, int j)
+{
+  // pick one event from total propensity and set spin to that value
+  // only update local sites; ghosts and pbcs are ignored
+
+  double threshhold = random->uniform() * propensity[ij2site(i,j)];
+
+  int oldstate = lattice[i][j];
+  int ii,jj,newstate;
+  double einitial = site_energy(i,j);
+  double efinal;
+  double prob = 0.0;
+
+  for (ii = i-1; ii <= i+1; ii++)
+    for (jj = j-1; jj <= j+1; jj++) {
+      newstate = lattice[ii][jj];
+      if (newstate == oldstate) continue;
+      lattice[i][j] = newstate;
+      efinal = site_energy(i,j);
+      if (efinal <= einitial) prob += 1.0;
+      else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
+      if (prob >= threshhold) goto done;
+    }
+
+ done:
+
+  // reset propensity for self and neighbor sites
+
+  int sites[9];
+  int m = 0;
+  int isite;
+
+  for (ii = MAX(1,i-1); ii <= MIN(i+1,nx_local); ii++)
+    for (jj = MAX(1,j-1); jj <= MIN(j+1,ny_local); jj++) {
+      isite = ij2site(ii,jj);
+      sites[m] = isite;
+      if (propensity[isite] >= 0.0) {
+	propensity[isite] = site_propensity(ii,jj);
+	m++;
+      }
+    }
+
+  solve->update(m,sites,propensity);
 }
 
 /* ----------------------------------------------------------------------

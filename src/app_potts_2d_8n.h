@@ -20,6 +20,7 @@ class AppPotts2d8n : public AppLattice2d {
   int site_pick_local(int, int, double);
   double site_propensity(int, int);
   void site_event(int, int);
+  void site_event_sector(int, int);
   void site_update_ghost(int, int);
   void site_clear_mask(char **, int, int);
 

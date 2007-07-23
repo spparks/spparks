@@ -11,10 +11,15 @@
 #include "sweep_lattice2d.h"
 #include "app_lattice2d.h"
 #include "comm_lattice2d.h"
+#include "solve_next_event_tree_search.h"
 #include "random_park.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+
+#define SolveInclude
+#include "style.h"
+#undef SolveInclude
 
 using namespace SPPARKS;
 
@@ -34,6 +39,7 @@ SweepLattice2d::SweepLattice2d(SPK *spk, int narg, char **arg) :
   mask = NULL;
   Lstrict = false;
   Lpicklocal = false;
+  Lkmc = false;
   ranlat = NULL;
   delt = 1.0;
 
@@ -57,6 +63,12 @@ SweepLattice2d::SweepLattice2d(SPK *spk, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"no") == 0) Lpicklocal = false;
       else error->all("Illegal sweep_style command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"kmc") == 0) {
+      if (iarg+2 > narg) error->all("Illegal sweep_style command");
+      if (strcmp(arg[iarg+1],"yes") == 0) Lkmc = true;
+      else if (strcmp(arg[iarg+1],"no") == 0) Lkmc = false;
+      else error->all("Illegal sweep_style command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"delt") == 0) {
       if (iarg+2 > narg) error->all("Illegal sweep_style command");
       delt = atof(arg[iarg+1]);
@@ -66,7 +78,9 @@ SweepLattice2d::SweepLattice2d(SPK *spk, int narg, char **arg) :
 
   // set sweep method function ptr
 
-  if (Lstrict) {
+  if (Lkmc) {
+    sector = &SweepLattice2d::sweep_quadrant_kmc;
+  } else if (Lstrict) {
     if (Lmask) {
       if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
       else sector = &SweepLattice2d::sweep_quadrant_mask_strict;
@@ -84,8 +98,13 @@ SweepLattice2d::SweepLattice2d(SPK *spk, int narg, char **arg) :
     }
   }
 
+  // initializations
+
   if (Lstrict) ncolor = 4;
   else ncolor = 1;
+
+  quad[0].propensity = quad[1].propensity = 
+    quad[2].propensity = quad[3].propensity = NULL;
 
   // communicator needed between sweep sectors
 
@@ -101,6 +120,14 @@ SweepLattice2d::~SweepLattice2d()
 
   memory->destroy_2d_T_array(mask);
   memory->destroy_2d_T_array(ranlat);
+
+  if (Lkmc) {
+    for (int iquad = 0; iquad < nquad; iquad++) {
+      delete quad[iquad].solve;
+      memory->sfree(quad[iquad].propensity);
+      memory->sfree(quad[iquad].depends);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,21 +163,33 @@ void SweepLattice2d::init()
   quad[0].xhi = nx_half-1;
   quad[0].ylo = 1;
   quad[0].yhi = ny_half-1;
+  quad[0].nx = quad[0].xhi - quad[0].xlo + 1;
+  quad[0].ny = quad[0].yhi - quad[0].ylo + 1;
   
   quad[1].xlo = 1;
   quad[1].xhi = nx_half-1;
   quad[1].ylo = ny_half;
   quad[1].yhi = ny_local;
+  quad[1].nx = quad[1].xhi - quad[1].xlo + 1;
+  quad[1].ny = quad[1].yhi - quad[1].ylo + 1;
   
   quad[2].xlo = nx_half;
   quad[2].xhi = nx_local;
   quad[2].ylo = 1;
   quad[2].yhi = ny_half-1;
+  quad[2].nx = quad[2].xhi - quad[2].xlo + 1;
+  quad[2].ny = quad[2].yhi - quad[2].ylo + 1;
   
   quad[3].xlo = nx_half;
   quad[3].xhi = nx_local;
   quad[3].ylo = ny_half;
   quad[3].yhi = ny_local;
+  quad[3].nx = quad[3].xhi - quad[3].xlo + 1;
+  quad[3].ny = quad[3].yhi - quad[3].ylo + 1;
+
+  // init communication for ghost sites
+
+  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth);
 
   // setup mask array
   // owned and ghost values referenced in app::site_clear_mask()
@@ -178,9 +217,48 @@ void SweepLattice2d::init()
       }
   }
 
-  // init communication for ghost sites
+  // setup KMC solver for each quadrant
+  // allocate/init propensity & depends vectors
+  // only needed if not done on previous run
+  // propensity init requires ghost cell info for entire sub-domain
 
-  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth);
+  if (Lkmc && quad[0].propensity == NULL) {
+    comm->all(lattice);
+
+    if (solve == NULL) error->all("Must define solver to use sweep kmc yes");
+    char *arg[2];
+    arg[0] = solve->style;
+    arg[1] = "12345";           // this line is a kludge
+
+    for (int iquad = 0; iquad < nquad; iquad++) {
+      if (strcmp(arg[0],"none") == 0) solve = NULL;
+
+#define SolveClass
+#define SolveStyle(key,Class) \
+      else if (strcmp(arg[0],#key) == 0) quad[iquad].solve = new Class(spk,2,arg);
+#include "style.h"
+#undef SolveClass
+
+      int n = quad[iquad].nx * quad[iquad].ny;
+      quad[iquad].propensity = 
+	(double*) memory->smalloc(n*sizeof(double),"sweep:propensity");
+      n = 2*quad[iquad].nx + 2*quad[iquad].ny;
+      quad[iquad].depends =
+	(int*) memory->smalloc(n*sizeof(int),"sweep:depends");
+
+      int i,j,ilocal,jlocal,isite;
+      for (i = 1; i <= quad[iquad].nx; i++)
+	for (j = 1; j <= quad[iquad].ny; i++) {
+	  ilocal = quad[iquad].xlo + i-1;
+	  jlocal = quad[iquad].ylo + j-1;
+	  isite = (i-1)*quad[iquad].ny + j-1;
+	  quad[iquad].propensity[isite] = 
+	    applattice->site_propensity(ilocal,jlocal);
+	}
+
+      quad[iquad].solve->init(n,quad[iquad].propensity);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -421,4 +499,77 @@ void SweepLattice2d::sweep_quadrant_mask_strict(int icolor, int iquad)
 	lattice[i][j] = oldstate;
       else applattice->site_clear_mask(mask,i,j);
     }
+}
+
+/* ----------------------------------------------------------------------
+   generate events in each quadrant using KMC solver
+   sweep over one sector of sites
+   skip sites that can't change via mask
+ ------------------------------------------------------------------------- */
+
+void SweepLattice2d::sweep_quadrant_kmc(int icolor, int iquad)
+{
+  double dt_event;
+  int done;
+  double time;
+  int isite,i,j;
+  int ndepends;
+
+  int xlo = quad[iquad].xlo;
+  int xhi = quad[iquad].xhi;
+  int ylo = quad[iquad].ylo;
+  int yhi = quad[iquad].yhi;
+
+  Solve *solve = quad[iquad].solve;
+  double *propensity = quad[iquad].propensity;
+  int *depends = quad[iquad].depends;
+
+  // update propensities along all boundaries of sector
+  // necessary since ghosts of sector have changed
+
+  ndepends = 0;
+  j = ylo;
+  for (i = xlo; i <= xhi; i++) {
+    isite = applattice->ij2site(i,j);
+    depends[ndepends++] = isite;
+    propensity[isite] = applattice->site_propensity(i,j);
+  }
+  j = yhi;
+  for (i = xlo; i <= xhi; i++) {
+    isite = applattice->ij2site(i,j);
+    depends[ndepends++] = isite;
+    propensity[isite] = applattice->site_propensity(i,j);
+  }
+  i = xlo;
+  for (j = ylo+1; j <= yhi-1; j++) {
+    isite = applattice->ij2site(i,j);
+    depends[ndepends++] = isite;
+    propensity[isite] = applattice->site_propensity(i,j);
+  }
+  i = xhi;
+  for (j = ylo+1; j <= yhi-1; j++) {
+    isite = applattice->ij2site(i,j);
+    depends[ndepends++] = isite;
+    propensity[isite] = applattice->site_propensity(i,j);
+  }
+
+  solve->update(ndepends,depends,propensity);
+
+  // execute events until time threshhold reached
+
+  done = 0;
+  time = 0.0;
+  while (!done) {
+    timer->stamp();
+    isite = solve->event(&dt_event);
+    timer->stamp(TIME_SOLVE);
+    
+    time += dt_event;
+    if (time >= delt || isite < 0) done = 1;
+    
+    if (!done) {
+      applattice->site2ij(isite,i,j);
+      applattice->site_event_sector(i,j);
+    }
+  }
 }

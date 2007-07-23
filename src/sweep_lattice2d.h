@@ -16,11 +16,10 @@ class SweepLattice2d : public Sweep {
   ~SweepLattice2d();
   void init();
   void do_sweep(double &);
-  double compute_energy() {return 0.0;};
 
  private:
   int seed;
-  bool Lmask,Lpicklocal,Lstrict;
+  bool Lmask,Lpicklocal,Lstrict,Lkmc;
   double delt;
 
   int nx_local,ny_local;
@@ -40,6 +39,10 @@ class SweepLattice2d : public Sweep {
   int nquad;
   struct {
     int xlo,xhi,ylo,yhi;     // inclusive start/stop indices in each quadrant
+    int nx,ny;               // size of quadrant
+    class Solve *solve;      // KMC solver
+    double *propensity;      // propensities for quadrant sites
+    int *depends;            // update list to pass to solver
   } quad[4];
 
   typedef void (SweepLattice2d::*FnPtr)(int, int);  // pointer to sweep method
@@ -52,6 +55,7 @@ class SweepLattice2d : public Sweep {
   void sweep_quadrant_mask_picklocal(int, int);
   void sweep_quadrant_strict(int, int);
   void sweep_quadrant_mask_strict(int, int);
+  void sweep_quadrant_kmc(int, int);
 };
 
 }

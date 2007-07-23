@@ -16,7 +16,6 @@ class SweepLattice3d : public Sweep {
   ~SweepLattice3d();
   void init();
   void do_sweep(double &);
-  double compute_energy() {return 0.0;};
 
  private:
   int seed;

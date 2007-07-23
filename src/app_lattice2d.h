@@ -26,6 +26,8 @@ class AppLattice2d : public App {
   int virtual site_pick_local(int, int, double) = 0;
   double virtual site_propensity(int, int) = 0;
   void virtual site_event(int, int) = 0;
+  // This is a short-cut; need to make this pure virtual
+  void virtual site_event_sector(int, int) {};
   void virtual site_update_ghost(int, int) = 0;
   void virtual site_clear_mask(char **, int, int) = 0;
 

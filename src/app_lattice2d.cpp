@@ -60,18 +60,19 @@ void AppLattice2d::init()
 
   init_app();
 
-  // error check on other classes
+  // error checks
 
-  if (sweep && solve)
-    error->all("Lattice app cannot use solver and sweeper");
   if (sweep == NULL && solve == NULL)
     error->all("Lattice app needs a solver or sweeper");
 
-  if (solve && nprocs > 1) error->all("Solvers cannot yet run in parallel");
+  // initialize sweeper
+  // if sweeper is KMC, solver is destroyed, since sweeper creates its own
+
+  if (sweep) sweep->init();
 
   // initialize solver:
-  //   set propensity of each local site
-  //   pass propensity array to solver
+  //   compute propensity of each local site
+  //   pass propensity list to solver
 
   if (solve) {
     if (propensity == NULL) 
@@ -87,10 +88,6 @@ void AppLattice2d::init()
       }
     solve->init(nx_local*ny_local,propensity);
   }
-
-  // initialize sweeper
-
-  if (sweep) sweep->init();
 
   // setup future stat and dump calls
 

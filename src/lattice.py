@@ -1,6 +1,6 @@
 # Script:  lattice.py
 # Purpose: view screen dump of a SPPARKS lattice snapshot
-# Syntax:  lattice.py dumpfile N ny ny (nz)
+# Syntax:  lattice.py dumpfile N nx ny (nz)
 #          N = timestamp on snapshot
 #          nx,ny,nz = lattice size (nz not used for 2d problem)
 

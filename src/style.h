@@ -5,7 +5,6 @@
 
 #ifdef AppInclude
 #include "app_chemistry.h"
-#include "app_grain.h"
 #include "app_ising_2d_4n.h"
 #include "app_ising_2d_8n.h"
 #include "app_membrane.h"
@@ -21,7 +20,6 @@
 
 #ifdef AppClass
 AppStyle(chemistry,AppChemistry)
-AppStyle(grain,AppGrain)
 AppStyle(ising/2d/4n,AppIsing2d4n)
 AppStyle(ising/2d/8n,AppIsing2d8n)
 AppStyle(membrane,AppMembrane)
@@ -60,13 +58,11 @@ SolveStyle(next_event_tree_search,SolveNextEventTreeSearch)
 #endif
 
 #ifdef SweepInclude
-#include "sweep_grain.h"
 #include "sweep_lattice2d.h"
 #include "sweep_lattice3d.h"
 #endif
 
 #ifdef SweepClass
-SweepStyle(grain,SweepGrain)
 SweepStyle(lattice2d,SweepLattice2d)
 SweepStyle(lattice3d,SweepLattice3d)
 #endif

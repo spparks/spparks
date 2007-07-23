@@ -13,8 +13,6 @@
 
 using namespace SPPARKS;
 
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 SolveGillespie::SolveGillespie(SPK *spk, int narg, char **arg) : 
@@ -45,9 +43,8 @@ void SolveGillespie::init(int n, double *propensity)
 
   sum = 0.0;
   for (int i = 0; i < n; i++) {
-    // Negative propensities are treated as zeroes
-    prob[i] = MAX(propensity[i],0.0);
-    sum += prob[i];
+    prob[i] = propensity[i];
+    sum += propensity[i];
   }
 }
 
