@@ -6,12 +6,12 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		icc
-CCFLAGS =	-O -I/home/sjplimp/tools/mpich/include
+CCFLAGS =	-O -I/usr/local/lib -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		icc
-LINKFLAGS =	-O -L/home/sjplimp/tools/mpich/lib
+LINKFLAGS =	-O -L/usr/local/lib
 USRLIB =	-lmpich
-SYSLIB =	-lcxa -lunwind -lstdc++
+SYSLIB =	-lpthread -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

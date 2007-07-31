@@ -25,6 +25,7 @@ class SweepLattice2d : public Sweep {
   int nx_local,ny_local;
   int nx_offset,ny_offset;
   int **lattice;
+  int **ij2site,**site2ij;
   double temperature,t_inverse;
 
   class AppLattice2d *applattice;       
@@ -42,7 +43,7 @@ class SweepLattice2d : public Sweep {
     int nx,ny;               // size of quadrant
     class Solve *solve;      // KMC solver
     double *propensity;      // propensities for quadrant sites
-    int *depends;            // update list to pass to solver
+    int *sites;              // list of sites to pass to solver
   } quad[4];
 
   typedef void (SweepLattice2d::*FnPtr)(int, int);  // pointer to sweep method

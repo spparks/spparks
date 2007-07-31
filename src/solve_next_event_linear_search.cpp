@@ -14,8 +14,6 @@
 
 using namespace SPPARKS;
 
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 SolveNextEventLinearSearch::SolveNextEventLinearSearch(SPK *spk, int narg, char **arg) : Solve(spk, narg, arg)
@@ -45,9 +43,8 @@ void SolveNextEventLinearSearch::init(int n, double *propensity)
   if (screen)
     fprintf(screen,"Using linear search algorithm to generate events.\n");
   for (int i = 0; i < n; i++) {
-    // Negative propensities are treated as zeroes
-    prob[i] = MAX(propensity[i],0.0);
-    sum += prob[i];
+    prob[i] = propensity[i];
+    sum += propensity[i];
   }
 }
 

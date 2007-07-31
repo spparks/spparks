@@ -14,8 +14,6 @@
 
 using namespace SPPARKS;
 
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 SolveNextEventTreeSearch::SolveNextEventTreeSearch
@@ -68,10 +66,8 @@ void SolveNextEventTreeSearch::init(int n, double *propensity)
 
   for (int i = 0; i < ntotal; i++) tree[i] = 0.0;
 
-  for (int i = offset; i < offset + n; i++) {
-    // Negative propensities are treated as zeroes
-    tree[i] = MAX(propensity[i-offset],0.0);
-  }
+  for (int i = offset; i < offset + n; i++) tree[i] = propensity[i-offset];
+
   //  tree_to_screen(neat);
   sum_tree();
 }
