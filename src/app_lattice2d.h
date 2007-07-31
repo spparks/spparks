@@ -38,12 +38,12 @@ class AppLattice2d : public App {
   double temperature,t_inverse;
   int nsweep;
 
-  int nx_global,ny_global;     // global lattice (0 to nglobal-1)
-  int nx_local,ny_local;       // local lattice (1 to nlocal)
-                               // 0 and nlocal+1 are ghosts
-  int nx_offset,ny_offset;     // global indices of my (1,1) site
-  int nx_sector_lo,nx_sector_hi;  // bounds of current sector
-  int ny_sector_lo,ny_sector_hi;  // as set by sweeper
+  int nx_global,ny_global;           // global lattice (0 to nglobal-1)
+  int nx_local,ny_local;             // local lattice (1 to nlocal)
+                                     // 0 and nlocal+1 are ghosts
+  int nx_offset,ny_offset;           // global indices of my (1,1) site
+  int nx_sector_lo,nx_sector_hi;     // bounds of current sector
+  int ny_sector_lo,ny_sector_hi;     // as set by sweeper
 
   int **lattice;               // owned lattice + ghost lattice
   double *propensity;          // probability for each owned site

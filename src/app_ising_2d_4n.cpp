@@ -37,7 +37,7 @@ AppIsing2d4n::AppIsing2d4n(SPK *spk, int narg, char **arg) :
   
   procs2lattice();
   memory->create_2d_T_array(lattice,nx_local+2,ny_local+2,
-			    "applattice2d:lattice");
+			    "app:lattice");
 
   // initialize my portion of lattice
   // each site = one of 2 spins
@@ -161,34 +161,12 @@ void AppIsing2d4n::site_event(int i, int j, int full)
 
   int nsites = 0;
 
-  ii = i+1; jj = j;
-  flag = 1;
-  if (full) ijpbc(ii,jj);
-  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
-  if (flag) {
-    isite = ij2site[ii][jj];
-    sites[nsites++] = isite;
-    propensity[isite] = site_propensity(ii,jj,full);
-  }
-
-  ii = i+1; jj = j;
-  flag = 1;
-  if (full) ijpbc(ii,jj);
-  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
-  if (flag) {
-    isite = ij2site[ii][jj];
-    sites[nsites++] = isite;
-    propensity[isite] = site_propensity(ii,jj,full);
-  }
-
   ii = i; jj = j;
   isite = ij2site[ii][jj];
   sites[nsites++] = isite;
   propensity[isite] = site_propensity(ii,jj,full);
 
-  ii = 1; jj = j-1;
+  ii = i-1; jj = j;
   flag = 1;
   if (full) ijpbc(ii,jj);
   else if (ii < nx_sector_lo || ii > nx_sector_hi || 
@@ -199,7 +177,29 @@ void AppIsing2d4n::site_event(int i, int j, int full)
     propensity[isite] = site_propensity(ii,jj,full);
   }
 
-  ii = 1; jj = j+1;
+  ii = i+1; jj = j;
+  flag = 1;
+  if (full) ijpbc(ii,jj);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
+  if (flag) {
+    isite = ij2site[ii][jj];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,full);
+  }
+
+  ii = i; jj = j-1;
+  flag = 1;
+  if (full) ijpbc(ii,jj);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
+  if (flag) {
+    isite = ij2site[ii][jj];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,full);
+  }
+
+  ii = i; jj = j+1;
   flag = 1;
   if (full) ijpbc(ii,jj);
   else if (ii < nx_sector_lo || ii > nx_sector_hi || 

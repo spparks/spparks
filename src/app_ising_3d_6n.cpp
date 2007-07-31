@@ -38,7 +38,7 @@ AppIsing3d6n::AppIsing3d6n(SPK *spk, int narg, char **arg) :
   
   procs2lattice();
   memory->create_3d_T_array(lattice,nx_local+2,ny_local+2,nz_local+2,
-			    "applattice3d:lattice");
+			    "app:lattice");
 
   // initialize my portion of lattice
   // each site = one of 2 spins
@@ -93,7 +93,7 @@ double AppIsing3d6n::site_energy(int i, int j, int k)
 }
 
 /* ----------------------------------------------------------------------
-   pick new state for site randomly
+   randomly pick new state for site
 ------------------------------------------------------------------------- */
 
 int AppIsing3d6n::site_pick_random(int i, int j, int k, double ran)
@@ -104,7 +104,7 @@ int AppIsing3d6n::site_pick_random(int i, int j, int k, double ran)
 }
 
 /* ----------------------------------------------------------------------
-   pick new state for site randomly from neighbor values
+   randomly pick new state for site from neighbor values
 ------------------------------------------------------------------------- */
 
 int AppIsing3d6n::site_pick_local(int i, int j, int k, double ran)
@@ -121,22 +121,25 @@ int AppIsing3d6n::site_pick_local(int i, int j, int k, double ran)
 }
 
 /* ----------------------------------------------------------------------
-   compute total propensity of site
-   propensity based on einitial,efinal for each possible event
-   no energy change = propensity of 1
-   downhill energy change = propensity of 1
-   uphill energy change = propensity via Boltzmann factor
+   compute total propensity of owned site
+   based on einitial,efinal for each possible event
+   if no energy change, propensity = 1
+   if downhill energy change, propensity = 1
+   if uphill energy change, propensity set via Boltzmann factor
+   if proc owns full domain, update ghost values before computing propensity
 ------------------------------------------------------------------------- */
 
-double AppIsing3d6n::site_propensity(int i, int j, int k)
+double AppIsing3d6n::site_propensity(int i, int j, int k, int full)
 {
-  site_update_ghost(i,j,k);
+  if (full) site_update_ghosts(i,j,k);
 
-  // only event is to flip the spin
+  // only event is a spin flip
 
   int oldstate = lattice[i][j][k];
   int newstate = 1;
   if (oldstate == 1) newstate = 2;
+
+  // compute energy difference between initial and final state
 
   double einitial = site_energy(i,j,k);
   lattice[i][j][k] = newstate;
@@ -151,55 +154,109 @@ double AppIsing3d6n::site_propensity(int i, int j, int k)
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
+   if proc owns full domain, neighbor sites may be across PBC
+   if only working on sector, ignore neighbor sites outside sector
 ------------------------------------------------------------------------- */
 
-void AppIsing3d6n::site_event(int i, int j, int k)
+void AppIsing3d6n::site_event(int i, int j, int k, int full)
 {
-  // only event is to flip the spin
+  int ii,jj,kk,isite,flag,sites[7];
+
+  // only event is a spin flip
 
   if (lattice[i][j][k] == 1) lattice[i][j][k] = 2;
   else lattice[i][j][k] = 1;
 
-  // reset propensity for self and neighbor sites
+  // compute propensity changes for self and neighbor sites
 
-  int sites[7];
-  int ii,jj,kk;
+  int nsites = 0;
 
-  ijkpbc(i-1,j,k,ii,jj,kk);
-  sites[0] = ijk2site(ii,jj,kk);
-  propensity[sites[0]] = site_propensity(ii,jj,kk);
+  ii = i; jj = j; kk = k;
+  isite = ijk2site[ii][jj][kk];
+  sites[nsites++] = isite;
+  propensity[isite] = site_propensity(ii,jj,kk,full);
 
-  ijkpbc(i+1,j,k,ii,jj,kk);
-  sites[1] = ijk2site(ii,jj,kk);
-  propensity[sites[1]] = site_propensity(ii,jj,kk);
+  ii = i-1; jj = j; kk = k;
+  flag = 1;
+  if (full) ijkpbc(ii,jj,kk);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi ||
+	   kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
+  if (flag) {
+    isite = ijk2site[ii][jj][kk];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,kk,full);
+  }
 
-  ijkpbc(i,j-1,k,ii,jj,kk);
-  sites[2] = ijk2site(ii,jj,kk);
-  propensity[sites[2]] = site_propensity(ii,jj,kk);
+  ii = i+1; jj = j; kk = k;
+  flag = 1;
+  if (full) ijkpbc(ii,jj,kk);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi ||
+	   kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
+  if (flag) {
+    isite = ijk2site[ii][jj][kk];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,kk,full);
+  }
 
-  ijkpbc(i,j+1,k,ii,jj,kk);
-  sites[3] = ijk2site(ii,jj,kk);
-  propensity[sites[3]] = site_propensity(ii,jj,kk);
+  ii = i; jj = j-1; kk = k;
+  flag = 1;
+  if (full) ijkpbc(ii,jj,kk);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi ||
+	   kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
+  if (flag) {
+    isite = ijk2site[ii][jj][kk];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,kk,full);
+  }
 
-  ijkpbc(i,j,k-1,ii,jj,kk);
-  sites[4] = ijk2site(ii,jj,kk);
-  propensity[sites[4]] = site_propensity(ii,jj,kk);
+  ii = i; jj = j+1; kk = k;
+  flag = 1;
+  if (full) ijkpbc(ii,jj,kk);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi ||
+	   kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
+  if (flag) {
+    isite = ijk2site[ii][jj][kk];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,kk,full);
+  }
 
-  ijkpbc(i,j,k+1,ii,jj,kk);
-  sites[5] = ijk2site(ii,jj,kk);
-  propensity[sites[5]] = site_propensity(ii,jj,kk);
+  ii = i; jj = j; kk = k-1;
+  flag = 1;
+  if (full) ijkpbc(ii,jj,kk);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi ||
+	   kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
+  if (flag) {
+    isite = ijk2site[ii][jj][kk];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,kk,full);
+  }
 
-  sites[6] = ijk2site(i,j,k);
-  propensity[sites[6]] = site_propensity(i,j,k);
+  ii = i; jj = j; kk = k+1;
+  flag = 1;
+  if (full) ijkpbc(ii,jj,kk);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi ||
+	   kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
+  if (flag) {
+    isite = ijk2site[ii][jj][kk];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,kk,full);
+  }
 
-  solve->update(7,sites,propensity);
+  solve->update(nsites,sites,propensity);
 }
 
 /* ----------------------------------------------------------------------
-  update neighbor cells of site that are global ghost cells
+  update neighbors of site which has ghost cells for neighbors
+  called bt site_propensity() when single proc owns entire domain
 ------------------------------------------------------------------------- */
 
-void AppIsing3d6n::site_update_ghost(int i, int j, int k)
+void AppIsing3d6n::site_update_ghosts(int i, int j, int k)
 {
   if (i == 1) lattice[i-1][j][k] = lattice[nx_local][j][k];
   if (i == nx_local) lattice[i+1][j][k] = lattice[1][j][k];

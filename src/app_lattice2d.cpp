@@ -37,6 +37,7 @@ AppLattice2d::AppLattice2d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   dumpbuf = NULL;
   fp = NULL;
   propensity = NULL;
+  site2ij = NULL;
   ij2site = NULL;
 }
 
@@ -46,6 +47,7 @@ AppLattice2d::~AppLattice2d()
 {
   delete [] dumpbuf;
   memory->sfree(propensity);
+  memory->destroy_2d_T_array(site2ij);
   memory->destroy_2d_T_array(ij2site);
 
   if (fp) {
@@ -69,10 +71,10 @@ void AppLattice2d::init()
   if (sweep == NULL && solve == NULL)
     error->all("Lattice app needs a solver or sweeper");
 
-  if (sweep && strcmp(sweep->style,"kmc") == 0 && solve == NULL)
+  if (sweep && ((SweepLattice2d *) sweep)->Lkmc && solve == NULL)
     error->all("Must define solver with KMC sweeper");
 
-  if (solve && sweep && strcmp(sweep->style,"kmc") != 0)
+  if (solve && sweep && ((SweepLattice2d *) sweep)->Lkmc == false)
     error->all("Cannot use solver with non-KMC sweeper");
 
   if (solve && sweep == NULL && nprocs > 1)
@@ -80,36 +82,41 @@ void AppLattice2d::init()
 
   // initialize arrays
   // propensity only needed if no sweeper
-  // if KMC sweep, sweeper will allocate own propensity
+  // if KMC sweep, sweeper will allocate own propensity and site2ij
 
   memory->sfree(propensity);
-  memory->destroy_2d_T_array(ij2site);
   memory->destroy_2d_T_array(site2ij);
+  memory->destroy_2d_T_array(ij2site);
 
   int nsites = nx_local*ny_local;
 
-  if (sweep == NULL)
+  if (sweep == NULL) {
     propensity = (double*) memory->smalloc(nsites*sizeof(double),
 					   "applattice:propensity");
-  else propensity = NULL;
+    memory->create_2d_T_array(site2ij,nsites,2,
+			      "applattice2d:site2ij");
+  } else {
+    propensity = NULL;
+    site2ij = NULL;
+  }
 
-  memory->create_2d_T_array(ij2site,nx_local,ny_local,
-			    "applattice2d:ij2site");
-  memory->create_2d_T_array(site2ij,nsites,2,
+  memory->create_2d_T_array(ij2site,nx_local+1,ny_local+1,
 			    "applattice2d:ij2site");
 
   // initialize lattice <-> site mapping arrays
-  // KMC sweeper will overwrite these values
+  // KMC sweeper will overwrite ij2site values
 
   for (i = 1 ; i <= nx_local; i++)
     for (j = 1 ; j <= ny_local; j++)
       ij2site[i][j] = (i-1)*ny_local + j-1;
 
-  for (m = 0; m < nsites; m++) {
-    i = (m / ny_local) + 1;
-    j = m - (i-1)*ny_local + 1;
-    site2ij[m][0] = i;
-    site2ij[m][1] = j;
+  if (site2ij) {
+    for (m = 0; m < nsites; m++) {
+      i = m / ny_local + 1;
+      j = m % ny_local + 1;
+      site2ij[m][0] = i;
+      site2ij[m][1] = j;
+    }
   }
 	 
   // initialize sweeper
@@ -208,8 +215,6 @@ void AppLattice2d::iterate()
 {
   int i,j,isite;
   double dt;
-  int *sites;
-  double *probs;
 
   timer->barrier_start(TIME_LOOP);
   
@@ -217,7 +222,7 @@ void AppLattice2d::iterate()
   while (!done) {
     ntimestep++;
 
-    if (solve) {
+    if (propensity) {
       timer->stamp();
       isite = solve->event(&dt);
       timer->stamp(TIME_SOLVE);

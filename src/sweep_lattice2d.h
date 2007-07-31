@@ -11,6 +11,8 @@
 namespace SPPARKS {
 
 class SweepLattice2d : public Sweep {
+  friend class AppLattice2d;
+
  public:
   SweepLattice2d(class SPK *, int, char **);
   ~SweepLattice2d();
@@ -24,8 +26,7 @@ class SweepLattice2d : public Sweep {
 
   int nx_local,ny_local;
   int nx_offset,ny_offset;
-  int **lattice;
-  int **ij2site,**site2ij;
+  int **lattice,**ij2site;
   double temperature,t_inverse;
 
   class AppLattice2d *applattice;       
@@ -39,10 +40,11 @@ class SweepLattice2d : public Sweep {
 
   int nquad;
   struct {
-    int xlo,xhi,ylo,yhi;     // inclusive start/stop indices in each quadrant
+    int xlo,xhi,ylo,yhi;     // inclusive start/stop indices in this quadrant
     int nx,ny;               // size of quadrant
     class Solve *solve;      // KMC solver
     double *propensity;      // propensities for quadrant sites
+    int **site2ij;           // map from quadrant sites to local lattice
     int *sites;              // list of sites to pass to solver
   } quad[4];
 

@@ -37,6 +37,8 @@ AppLattice3d::AppLattice3d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   dumpbuf = NULL;
   fp = NULL;
   propensity = NULL;
+  site2ijk = NULL;
+  ijk2site = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -45,6 +47,8 @@ AppLattice3d::~AppLattice3d()
 {
   delete [] dumpbuf;
   memory->sfree(propensity);
+  memory->destroy_2d_T_array(site2ijk);
+  memory->destroy_3d_T_array(ijk2site);
 
   if (fp) {
     fclose(fp);
@@ -56,43 +60,85 @@ AppLattice3d::~AppLattice3d()
 
 void AppLattice3d::init()
 {
+  int i,j,k,m;
+
   // app-specific initialization
 
   init_app();
 
-  // error check on other classes
+  // error checks
 
-  if (sweep && solve)
-    error->all("Lattice app cannot use solver and sweeper");
   if (sweep == NULL && solve == NULL)
     error->all("Lattice app needs a solver or sweeper");
 
-  if (solve && nprocs > 1) error->all("Solvers cannot yet run in parallel");
+  if (sweep && ((SweepLattice3d *) sweep)->Lkmc && solve == NULL)
+    error->all("Must define solver with KMC sweeper");
 
-  // initialize solver:
-  //   set propensity of each local site
-  //   pass propensity array to solver
+  if (solve && sweep && ((SweepLattice3d *) sweep)->Lkmc == false)
+    error->all("Cannot use solver with non-KMC sweeper");
 
-  if (solve) {
-    if (propensity == NULL) 
-      propensity = 
-	(double*) memory->smalloc(nx_local*ny_local*nz_local*sizeof(double),
-				  "applattice:propensity");
-    comm->all(lattice);
+  if (solve && sweep == NULL && nprocs > 1)
+    error->all("Cannot use solver in parallel");
 
-    int i,j,k,isite;
-    for (i = 1 ; i <= nx_local; i++)
-      for (j = 1 ; j <= ny_local; j++)
-	for (k = 1 ; k <= nz_local; k++) {
-	  isite = ijk2site(i,j,k);
-	  propensity[isite] = site_propensity(i,j,k);
-	}
-    solve->init(nx_local*ny_local*nz_local,propensity);
+  // initialize arrays
+  // propensity only needed if no sweeper
+  // if KMC sweep, sweeper will allocate own propensity and site2ijk
+
+  memory->sfree(propensity);
+  memory->destroy_2d_T_array(site2ijk);
+  memory->destroy_3d_T_array(ijk2site);
+
+  int nsites = nx_local*ny_local*nz_local;
+
+  if (sweep == NULL) {
+    propensity = (double*) memory->smalloc(nsites*sizeof(double),
+					   "applattice:propensity");
+    memory->create_2d_T_array(site2ijk,nsites,3,
+			      "applattice2d:site2ijk");
+  } else {
+    propensity = NULL;
+    site2ijk = NULL;
   }
 
-  // initialize sweeper
+  memory->create_3d_T_array(ijk2site,nx_local+1,ny_local+1,nz_local+1,
+			    "applattice3d:ijk2site");
 
+  // initialize lattice <-> site mapping arrays
+  // KMC sweeper will overwrite ij2site values
+
+  for (i = 1 ; i <= nx_local; i++)
+    for (j = 1 ; j <= ny_local; j++)
+      for (k = 1 ; k <= nz_local; k++)
+	ijk2site[i][j][k] = (i-1)*ny_local*nz_local + (j-1)*nz_local + k-1;
+
+  if (site2ijk) {
+    for (m = 0; m < nsites; m++) {
+      i = m / ny_local/nz_local + 1;
+      j = (m / nz_local) % ny_local + 1;
+      k = m % nz_local + 1;
+      site2ijk[m][0] = i;
+      site2ijk[m][1] = j;
+      site2ijk[m][2] = k;
+    }
+  }
+	 
+  // initialize sweeper
+  
   if (sweep) sweep->init();
+
+  // initialize propensities for solver
+  // if KMC sweep, sweeper does its own init of its propensity arrays
+
+  if (propensity) {
+    comm->all(lattice);
+
+    for (i = 1 ; i <= nx_local; i++)
+      for (j = 1 ; j <= ny_local; j++)
+	for (k = 1 ; k <= nz_local; k++)
+	  propensity[ijk2site[i][j][k]] = site_propensity(i,j,k,0);
+
+    solve->init(nsites,propensity);
+  }
 
   // setup future stat and dump calls
 
@@ -180,15 +226,17 @@ void AppLattice3d::iterate()
   while (!done) {
     ntimestep++;
 
-    if (solve) {
+    if (propensity) {
       timer->stamp();
       isite = solve->event(&dt);
       timer->stamp(TIME_SOLVE);
       
       if (isite < 0) done = 1;
       else {
-	site2ijk(isite,i,j,k);
-	site_event(i,j,k);
+	i = site2ijk[isite][0];
+	j = site2ijk[isite][1];
+	k = site2ijk[isite][2];
+	site_event(i,j,k,1);
 	time += dt;
 	timer->stamp(TIME_APP);
       }

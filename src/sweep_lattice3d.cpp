@@ -16,6 +16,10 @@
 #include "memory.h"
 #include "error.h"
 
+#define SolveInclude
+#include "style.h"
+#undef SolveInclude
+
 using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
@@ -30,10 +34,11 @@ SweepLattice3d::SweepLattice3d(SPK *spk, int narg, char **arg) :
   
   // parse optional args
 
-  Lmask = true;
+  Lmask = false;
   mask = NULL;
   Lstrict = false;
   Lpicklocal = false;
+  Lkmc = false;
   ranlat = NULL;
   delt = 1.0;
 
@@ -57,6 +62,12 @@ SweepLattice3d::SweepLattice3d(SPK *spk, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"no") == 0) Lpicklocal = false;
       else error->all("Illegal sweep_style command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"kmc") == 0) {
+      if (iarg+2 > narg) error->all("Illegal sweep_style command");
+      if (strcmp(arg[iarg+1],"yes") == 0) Lkmc = true;
+      else if (strcmp(arg[iarg+1],"no") == 0) Lkmc = false;
+      else error->all("Illegal sweep_style command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"delt") == 0) {
       if (iarg+2 > narg) error->all("Illegal sweep_style command");
       delt = atof(arg[iarg+1]);
@@ -66,7 +77,11 @@ SweepLattice3d::SweepLattice3d(SPK *spk, int narg, char **arg) :
 
   // set sweep method function ptr
 
-  if (Lstrict) {
+  if (Lkmc) {
+    if (Lmask || Lpicklocal)
+      error->all("Combination of sweep flags is unsupported");
+    sector = &SweepLattice3d::sweep_quadrant_kmc;
+  } else if (Lstrict) {
     if (Lmask) {
       if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
       else sector = &SweepLattice3d::sweep_quadrant_mask_strict;
@@ -87,6 +102,13 @@ SweepLattice3d::SweepLattice3d(SPK *spk, int narg, char **arg) :
   if (Lstrict) ncolor = 8;
   else ncolor = 1;
 
+  nquad = 8;
+  for (int i = 0; i < nquad; i++) {
+    quad[i].propensity = NULL;
+    quad[i].site2ijk = NULL;
+    quad[i].sites = NULL;
+  }
+
   // communicator needed between sweep sectors
 
   comm = new CommLattice3d(spk);
@@ -101,6 +123,15 @@ SweepLattice3d::~SweepLattice3d()
 
   memory->destroy_3d_T_array(mask);
   memory->destroy_3d_T_array(ranlat);
+
+  if (Lkmc) {
+    for (int iquad = 0; iquad < nquad; iquad++) {
+      delete quad[iquad].solve;
+      memory->sfree(quad[iquad].propensity);
+      memory->destroy_2d_T_array(quad[iquad].site2ijk);
+      memory->sfree(quad[iquad].sites);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -110,6 +141,7 @@ void SweepLattice3d::init()
   applattice = (AppLattice3d *) app;
 
   lattice = applattice->lattice;
+  ijk2site = applattice->ijk2site;
 
   nx_local = applattice->nx_local;
   ny_local = applattice->ny_local;
@@ -136,14 +168,18 @@ void SweepLattice3d::init()
   int ny_half = ny_local/2 + 1;
   int nz_half = nz_local/2 + 1;
 
-  nquad = 8;
-
   quad[0].xlo = 1;
   quad[0].xhi = nx_half-1;
   quad[0].ylo = 1;
   quad[0].yhi = ny_half-1;
   quad[0].zlo = 1;
   quad[0].zhi = nz_half-1;
+  quad[0].nx = quad[0].xhi - quad[0].xlo + 1;
+  quad[0].ny = quad[0].yhi - quad[0].ylo + 1;
+  quad[0].nz = quad[0].zhi - quad[0].zlo + 1;
+  memory->sfree(quad[0].propensity);
+  memory->destroy_2d_T_array(quad[0].site2ijk);
+  memory->sfree(quad[0].sites);
   
   quad[1].xlo = 1;
   quad[1].xhi = nx_half-1;
@@ -151,6 +187,12 @@ void SweepLattice3d::init()
   quad[1].yhi = ny_half-1;
   quad[1].zlo = nz_half;
   quad[1].zhi = nz_local;
+  quad[1].nx = quad[1].xhi - quad[1].xlo + 1;
+  quad[1].ny = quad[1].yhi - quad[1].ylo + 1;
+  quad[1].nz = quad[1].zhi - quad[1].zlo + 1;
+  memory->sfree(quad[1].propensity);
+  memory->destroy_2d_T_array(quad[1].site2ijk);
+  memory->sfree(quad[1].sites);
 
   quad[2].xlo = 1;
   quad[2].xhi = nx_half-1;
@@ -158,6 +200,12 @@ void SweepLattice3d::init()
   quad[2].yhi = ny_local;
   quad[2].zlo = 1;
   quad[2].zhi = nz_half-1;
+  quad[2].nx = quad[2].xhi - quad[2].xlo + 1;
+  quad[2].ny = quad[2].yhi - quad[2].ylo + 1;
+  quad[2].nz = quad[2].zhi - quad[2].zlo + 1;
+  memory->sfree(quad[2].propensity);
+  memory->destroy_2d_T_array(quad[2].site2ijk);
+  memory->sfree(quad[2].sites);
 
   quad[3].xlo = 1;
   quad[3].xhi = nx_half-1;
@@ -165,6 +213,12 @@ void SweepLattice3d::init()
   quad[3].yhi = ny_local;
   quad[3].zlo = nz_half;
   quad[3].zhi = nz_local;
+  quad[3].nx = quad[3].xhi - quad[3].xlo + 1;
+  quad[3].ny = quad[3].yhi - quad[3].ylo + 1;
+  quad[3].nz = quad[3].zhi - quad[3].zlo + 1;
+  memory->sfree(quad[3].propensity);
+  memory->destroy_2d_T_array(quad[3].site2ijk);
+  memory->sfree(quad[3].sites);
 
   quad[4].xlo = nx_half;
   quad[4].xhi = nx_local;
@@ -172,6 +226,12 @@ void SweepLattice3d::init()
   quad[4].yhi = ny_half-1;
   quad[4].zlo = 1;
   quad[4].zhi = nz_half-1;
+  quad[4].nx = quad[4].xhi - quad[4].xlo + 1;
+  quad[4].ny = quad[4].yhi - quad[4].ylo + 1;
+  quad[4].nz = quad[4].zhi - quad[4].zlo + 1;
+  memory->sfree(quad[4].propensity);
+  memory->destroy_2d_T_array(quad[4].site2ijk);
+  memory->sfree(quad[4].sites);
 
   quad[5].xlo = nx_half;
   quad[5].xhi = nx_local;
@@ -179,6 +239,12 @@ void SweepLattice3d::init()
   quad[5].yhi = ny_half-1;
   quad[5].zlo = nz_half;
   quad[5].zhi = nz_local;
+  quad[5].nx = quad[5].xhi - quad[5].xlo + 1;
+  quad[5].ny = quad[5].yhi - quad[5].ylo + 1;
+  quad[5].nz = quad[5].zhi - quad[5].zlo + 1;
+  memory->sfree(quad[5].propensity);
+  memory->destroy_2d_T_array(quad[5].site2ijk);
+  memory->sfree(quad[5].sites);
 
   quad[6].xlo = nx_half;
   quad[6].xhi = nx_local;
@@ -186,6 +252,12 @@ void SweepLattice3d::init()
   quad[6].yhi = ny_local;
   quad[6].zlo = 1;
   quad[6].zhi = nz_half-1;
+  quad[6].nx = quad[6].xhi - quad[6].xlo + 1;
+  quad[6].ny = quad[6].yhi - quad[6].ylo + 1;
+  quad[6].nz = quad[6].zhi - quad[6].zlo + 1;
+  memory->sfree(quad[6].propensity);
+  memory->destroy_2d_T_array(quad[6].site2ijk);
+  memory->sfree(quad[6].sites);
 
   quad[7].xlo = nx_half;
   quad[7].xhi = nx_local;
@@ -193,6 +265,17 @@ void SweepLattice3d::init()
   quad[7].yhi = ny_local;
   quad[7].zlo = nz_half;
   quad[7].zhi = nz_local;
+  quad[7].nx = quad[7].xhi - quad[7].xlo + 1;
+  quad[7].ny = quad[7].yhi - quad[7].ylo + 1;
+  quad[7].nz = quad[7].zhi - quad[7].zlo + 1;
+  memory->sfree(quad[7].propensity);
+  memory->destroy_2d_T_array(quad[7].site2ijk);
+  memory->sfree(quad[7].sites);
+
+  // init communication for ghost sites
+
+  comm->init(nx_local,ny_local,nz_local,
+	     procwest,proceast,procsouth,procnorth,procdown,procup);
 
   // setup mask array
   // owned and ghost values referenced in app::site_clear_mask()
@@ -223,10 +306,64 @@ void SweepLattice3d::init()
 	}
   }
 
-  // init communication for ghost sites
-  
-  comm->init(nx_local,ny_local,nz_local,
-	     procwest,proceast,procsouth,procnorth,procdown,procup);
+  // setup KMC solver and propensity arrays for each quadrant
+  // set ijk2site and site2ijk values in app to reflect quadrant mapping
+  // propensity init requires ghost cell info for entire sub-domain
+
+  if (Lkmc) {
+    int i,j,k,m;
+
+    comm->all(lattice);
+
+    char *arg[2];
+    arg[0] = solve->style;
+    arg[1] = "12345";           // this line is a kludge
+
+    for (int iquad = 0; iquad < nquad; iquad++) {
+      if (strcmp(arg[0],"none") == 0) solve = NULL;
+
+#define SolveClass
+#define SolveStyle(key,Class) \
+      else if (strcmp(arg[0],#key) == 0) quad[iquad].solve = new Class(spk,2,arg);
+#include "style.h"
+#undef SolveClass
+
+      int nsites = quad[iquad].nx * quad[iquad].ny * quad[iquad].nz;
+      int nborder = 2 * (quad[iquad].nx*quad[iquad].ny + 
+			 quad[iquad].ny*quad[iquad].nz + 
+			 quad[iquad].nx*quad[iquad].nz );
+      quad[iquad].propensity = 
+	(double*) memory->smalloc(nsites*sizeof(double),"sweep:propensity");
+      memory->create_2d_T_array(quad[iquad].site2ijk,nsites,3,
+				"sweep:ijk2site");
+      quad[iquad].sites =
+	(int*) memory->smalloc(nborder*sizeof(int),"sweep:sites");
+
+      for (i = quad[iquad].xlo; i <= quad[iquad].xhi; i++)
+	for (j = quad[iquad].ylo; j <= quad[iquad].yhi; j++)
+	  for (k = quad[iquad].zlo; k <= quad[iquad].zhi; k++)
+	    ijk2site[i][j][k] = 
+	      (i-quad[iquad].xlo)*quad[iquad].ny*quad[iquad].nz + 
+	      (j-quad[iquad].ylo)*quad[iquad].nz + k-quad[iquad].zlo;
+
+      for (m = 0; m < nsites; m++) {
+	i = m / quad[iquad].ny/quad[iquad].nz + 1;
+	j = (m / quad[iquad].nz) % quad[iquad].ny + 1;
+	k = m % quad[iquad].nz + 1;
+	quad[iquad].site2ijk[m][0] = i + quad[iquad].xlo - 1;
+	quad[iquad].site2ijk[m][1] = j + quad[iquad].ylo - 1;
+	quad[iquad].site2ijk[m][2] = k + quad[iquad].zlo - 1;
+      }
+
+      for (i = quad[iquad].xlo; i <= quad[iquad].xhi; i++)
+	for (j = quad[iquad].ylo; j <= quad[iquad].yhi; j++)
+	  for (k = quad[iquad].zlo; k <= quad[iquad].zhi; k++)
+	    quad[iquad].propensity[ijk2site[i][j][k]] = 
+	      applattice->site_propensity(i,j,k,0);
+
+      quad[iquad].solve->init(nsites,quad[iquad].propensity);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -520,4 +657,102 @@ void SweepLattice3d::sweep_quadrant_mask_strict(int icolor, int iquad)
 	  lattice[i][j][k] = oldstate;
 	else applattice->site_clear_mask(mask,i,j,k);
       }
+}
+
+/* ----------------------------------------------------------------------
+   generate events in each quadrant using KMC solver
+   sweep over one sector of sites
+   skip sites that can't change via mask
+ ------------------------------------------------------------------------- */
+
+void SweepLattice3d::sweep_quadrant_kmc(int icolor, int iquad)
+{
+  double dt,time;
+  int done,isite,i,j,k;
+
+  // extract sector specific info from quad struct
+
+  int xlo = quad[iquad].xlo;
+  int xhi = quad[iquad].xhi;
+  int ylo = quad[iquad].ylo;
+  int yhi = quad[iquad].yhi;
+  int zlo = quad[iquad].zlo;
+  int zhi = quad[iquad].zhi;
+
+  Solve *solve = quad[iquad].solve;
+  double *propensity = quad[iquad].propensity;
+  int **site2ijk = quad[iquad].site2ijk;
+  int *sites = quad[iquad].sites;
+
+  // temporarily reset values in applattice
+  // sector bounds, propensity array, solver
+
+  applattice->nx_sector_lo = xlo;
+  applattice->nx_sector_hi = xhi;
+  applattice->ny_sector_lo = ylo;
+  applattice->ny_sector_hi = yhi;
+  applattice->nz_sector_lo = zlo;
+  applattice->nz_sector_hi = zhi;
+
+  Solve *hold_solve = applattice->solve;
+  applattice->solve = solve;
+  double *hold_propensity = applattice->propensity;
+  applattice->propensity = propensity;
+
+  // update propensities along all sector boundaries
+  // necessary since ghosts of sector may have changed
+
+  int nsites = 0;
+  j = ylo;
+  for (i = xlo; i <= xhi; i++) {
+    isite = ijk2site[i][j][k];
+    sites[nsites++] = isite;
+    propensity[isite] = applattice->site_propensity(i,j,k,0);
+  }
+  j = yhi;
+  for (i = xlo; i <= xhi; i++) {
+    isite = ijk2site[i][j][k];
+    sites[nsites++] = isite;
+    propensity[isite] = applattice->site_propensity(i,j,k,0);
+  }
+  i = xlo;
+  for (j = ylo+1; j <= yhi-1; j++) {
+    isite = ijk2site[i][j][k];
+    sites[nsites++] = isite;
+    propensity[isite] = applattice->site_propensity(i,j,k,0);
+  }
+  i = xhi;
+  for (j = ylo+1; j <= yhi-1; j++) {
+    isite = ijk2site[i][j][k];
+    sites[nsites++] = isite;
+    propensity[isite] = applattice->site_propensity(i,j,k,0);
+  }
+
+  solve->update(nsites,sites,propensity);
+
+  // execute events until time threshhold reached
+
+  done = 0;
+  time = 0.0;
+  while (!done) {
+    timer->stamp();
+    isite = solve->event(&dt);
+    timer->stamp(TIME_SOLVE);
+
+    if (isite < 0) done = 1;
+    else {
+      i = site2ijk[isite][0];
+      j = site2ijk[isite][1];
+      k = site2ijk[isite][2];
+      applattice->site_event(i,j,k,0);
+      time += dt;	
+      if (time >= delt) done = 1;
+      timer->stamp(TIME_APP);
+    }
+  }
+ 
+  // restore applattice values
+
+  applattice->solve = hold_solve;
+  applattice->propensity = hold_propensity;
 }

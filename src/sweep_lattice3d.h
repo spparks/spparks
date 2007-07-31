@@ -11,6 +11,8 @@
 namespace SPPARKS {
 
 class SweepLattice3d : public Sweep {
+  friend class AppLattice3d;
+
  public:
   SweepLattice3d(class SPK *, int, char **);
   ~SweepLattice3d();
@@ -19,12 +21,12 @@ class SweepLattice3d : public Sweep {
 
  private:
   int seed;
-  bool Lmask,Lpicklocal,Lstrict;
+  bool Lmask,Lpicklocal,Lstrict,Lkmc;
   double delt;
 
   int nx_local,ny_local,nz_local;
   int nx_offset,ny_offset,nz_offset;
-  int ***lattice;
+  int ***lattice,***ijk2site;
   double temperature,t_inverse;
 
   class AppLattice3d *applattice;       
@@ -38,7 +40,12 @@ class SweepLattice3d : public Sweep {
 
   int nquad;
   struct {
-    int xlo,xhi,ylo,yhi,zlo,zhi; // inclusive start/stop indices in each octant
+    int xlo,xhi,ylo,yhi,zlo,zhi; // inclusive start/stop indices in this octant
+    int nx,ny,nz;                // size of quadrant
+    class Solve *solve;          // KMC solver
+    double *propensity;          // propensities for quadrant sites
+    int **site2ijk;              // map from quadrant sites to local lattice
+    int *sites;                  // list of sites to pass to solver
   } quad[8];
 
   typedef void (SweepLattice3d::*FnPtr)(int, int);  // pointer to sweep method
@@ -51,6 +58,7 @@ class SweepLattice3d : public Sweep {
   void sweep_quadrant_mask_picklocal(int, int);
   void sweep_quadrant_strict(int, int);
   void sweep_quadrant_mask_strict(int, int);
+  void sweep_quadrant_kmc(int, int);
 };
 
 }

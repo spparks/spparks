@@ -24,9 +24,9 @@ class AppLattice3d : public App {
   double virtual site_energy(int, int, int) = 0;
   int virtual site_pick_random(int, int, int, double) = 0;
   int virtual site_pick_local(int, int, int, double) = 0;
-  double virtual site_propensity(int, int, int) = 0;
-  void virtual site_event(int, int, int) = 0;
-  void virtual site_update_ghost(int, int, int) = 0;
+  double virtual site_propensity(int, int, int, int) = 0;
+  void virtual site_event(int, int, int, int) = 0;
+  void virtual site_update_ghosts(int, int, int) = 0;
   void virtual site_clear_mask(char ***, int, int, int) = 0;
 
  protected:
@@ -42,10 +42,15 @@ class AppLattice3d : public App {
   int nx_local,ny_local,nz_local ;       // local lattice (1 to nlocal)
                                          // 0 and nlocal+1 are ghosts
   int nx_offset,ny_offset,nz_offset;     // global indices of my (1,1) site
+  int nx_sector_lo,nx_sector_hi;         // bounds of current sector
+  int ny_sector_lo,ny_sector_hi;         // as set by sweeper
+  int nz_sector_lo,nz_sector_hi;
   int nyz_local;
 
-  int ***lattice;                   // owned sites + ghost sites
-  double *propensity;               // probability for each owned site
+  int ***lattice;                 // owned sites + ghost sites
+  double *propensity;             // probability for each owned site
+  int ***ijk2site;                // mapping of owned lattice to sites
+  int **site2ijk;                 // mapping of owned sites to lattice indices
 
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
   int procwest,proceast;            // my neighbor procs
@@ -75,42 +80,19 @@ class AppLattice3d : public App {
 
   void procs2lattice();
 
-  void site2ijk(const int, int &, int &, int &) const;
-  int ijk2site(const int, const int, const int) const;
-  void ijkpbc(const int, const int, const int, int &, int &, int &);
+  void ijkpbc(int &, int &, int &);
 };
 
-// convert site (0 to N-1) to i,j,k indices (1 to N)
+// remap i,j,k indices via PBC if needed
 
-inline void AppLattice3d::site2ijk(const int isite,
-				   int &i, int &j, int &k) const
+inline void AppLattice3d::ijkpbc(int &i, int &j, int &k)
 {
-  i = isite/nyz_local + 1;
-  j = isite/nz_local % ny_local + 1;
-  k = isite % nz_local + 1;
-}
-
-// convert i,j,k indices (1 to N) to site (0 to N-1)
-
-inline int AppLattice3d::ijk2site(const int i, const int j, const int k) const
-{
-  return (i-1)*nyz_local+(j-1)*nz_local+k-1;
-}
-
-// remap i,j,k indices (0 to N+1) to ii,jj,kk indices (1 to N) via PBC
-
-inline void AppLattice3d::ijkpbc(const int i, const int j, const int k,
-				 int &ii, int &jj, int &kk)
-{
-  if (i < 1) ii = i + nx_local;
-  else if (i > nx_local) ii = i - nx_local;
-  else ii = i;
-  if (j < 1) jj = j + ny_local;
-  else if (j > ny_local) jj = j - ny_local;
-  else jj = j;
-  if (k < 1) kk = k + nz_local;
-  else if (k > nz_local) kk = k - nz_local;
-  else kk = k;
+  if (i < 1) i += nx_local;
+  else if (i > nx_local) i -= nx_local;
+  if (j < 1) j += ny_local;
+  else if (j > ny_local) j -= ny_local;
+  if (k < 1) k += nz_local;
+  else if (k > nz_local) k -= nz_local;
 }
 
 }
