@@ -167,7 +167,7 @@ double AppPotts3d26n::site_propensity(int i, int j, int k, int full)
 
 void AppPotts3d26n::site_event(int i, int j, int k, int full)
 {
-  int ii,jj,kk,isite,flag,sites[27];
+  int ii,jj,kk,iloop,jloop,kloop,isite,flag,sites[27];
 
   // pick one event from total propensity and set spin to that value
 
@@ -197,9 +197,10 @@ void AppPotts3d26n::site_event(int i, int j, int k, int full)
 
   int nsites = 0;
 
-  for (ii = i-1; ii <= i+1; ii++)
-    for (jj = j-1; jj <= j+1; jj++)
-      for (kk = k-1; kk <= k+1; kk++) {
+  for (iloop = i-1; iloop <= i+1; iloop++)
+    for (jloop = j-1; jloop <= j+1; jloop++)
+      for (kloop = k-1; kloop <= k+1; kloop++) {
+	ii = iloop; jj = jloop; kk = kloop;
 	flag = 1;
 	if (full) ijkpbc(ii,jj,kk);
 	else if (ii < nx_sector_lo || ii > nx_sector_hi || 
