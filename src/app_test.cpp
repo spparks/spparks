@@ -27,10 +27,11 @@ AppTest::AppTest(SPK *spk, int narg, char **arg) : App(spk, narg, arg)
 {
   if (narg != 1) error->all("Invalid app_style test command");
 
-  ndepends = NULL;
-  depends = NULL;
   propensity = NULL;
+  ndepends = NULL;
+  old_p = NULL;
   count = NULL;
+  depends = NULL;
 
   nevents = 0;
   n_event_types = 0;
@@ -49,11 +50,13 @@ AppTest::AppTest(SPK *spk, int narg, char **arg) : App(spk, narg, arg)
 
 AppTest::~AppTest()
 {
-  delete random;
   delete [] propensity;
   delete [] ndepends;
+  delete [] old_p;
   delete [] count;
   memory->destroy_2d_int_array(depends);
+
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,6 +75,8 @@ void AppTest::init()
   ndepends = new int[nevents];
   build_dependency_graph();
 
+  delete [] old_p;
+  old_p = new double[ndep];
   // compute initial propensity for each event
   // inform Nfold solver
   psum = 0;
@@ -81,6 +86,7 @@ void AppTest::init()
     propensity[m] = compute_propensity(m);
     psum += propensity[m];
   }
+
   //  solve->init(nevents,propensity);
   
   // allocate and zero event stats
@@ -174,15 +180,20 @@ void AppTest::iterate()
     // inform solver of changes
 
     //update event propensity
+    //old_p[0] =  propensity[ievent];
     propensity[ievent] = compute_propensity(ievent);
+    //solve->update(ievent, old_p);
     solve->update(ievent, propensity);
-    
+
     //update dependencies
-    for (d = 0; d < ndepends[ievent]; d++)
+    for (d = 0; d < ndepends[ievent]; d++){
+      //old_p[d] = propensity[depends[ievent][d]];
       propensity[depends[ievent][d]] = compute_propensity(depends[ievent][d]);
+    }
     
+    //solve->update(ndepends[ievent],depends[ievent],old_p);
     solve->update(ndepends[ievent],depends[ievent],propensity);
-    
+
     timer->stamp(TIME_UPDATE);
     // update time by dt
 
@@ -277,27 +288,29 @@ void AppTest::set_stats(int narg, char **arg)
 void AppTest::build_dependency_graph()
 {
   int m;
-
-   int nmax = ndep;
-
-   for (m = 0; m < nevents; m++) 
-     ndepends[m] = static_cast<int>((ndep+1)*random->uniform());
-
-   for (m = 0; m < nevents; m++)
-     nmax = MAX(nmax,ndepends[m]);
-
-   nmax = MAX(nmax,1);
-
-   depends = memory->create_2d_int_array(nevents,nmax,
-					      "test:depends");
-   // select the dependencies
-
-   for (m = 0; m < nevents; m++)
-     for(int e = 0; e < ndepends[m]; e++) 
-       depends[m][e] = static_cast<int>(nevents*random->uniform());
-
-   // uncomment to print dependency graph
-   //print_depend_graph();
+  
+  int nmax = ndep;
+  
+  for (m = 0; m < nevents; m++) 
+    ndepends[m] = static_cast<int>((ndep+1)*random->uniform());
+  
+  for (m = 0; m < nevents; m++)
+    nmax = MAX(nmax,ndepends[m]);
+  
+  nmax = MAX(nmax,1);
+  
+  depends = memory->create_2d_int_array(nevents,nmax,
+					"test:depends");
+  // select the dependencies
+  
+  for (m = 0; m < nevents; m++)
+    for(int e = 0; e < ndepends[m]; e++){
+      depends[m][e] = m;
+      while (depends[m][e] == m)
+	depends[m][e] = static_cast<int>(nevents*random->uniform());
+    }
+  // uncomment to print dependency graph
+  //print_depend_graph();
 }
 /* ----------------------------------------------------------------------
    print dependency network
@@ -327,11 +340,12 @@ double AppTest::compute_propensity(int m)
   //uniform
   //double p=.1;
   //random uniform
-  //double p=random->uniform();
+  double p = random->uniform();
   //even/odd
-    double p = .5 - .1 * static_cast<double>(m % 3);
+  //double p = .5 - .1 * static_cast<double>(m % 2);
   //linear
-  //double p = 21.0-(double)(m+1);
+  //double p = (double)(m+1)/10.0;
 
   return p;
 }
+

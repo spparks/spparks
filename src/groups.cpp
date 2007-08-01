@@ -16,7 +16,8 @@ The distribution has to be bounded.
 using namespace std;
 using namespace SPPARKS;
 
-Groups::Groups(double lo_in, double hi_in, int seed_in)
+Groups::Groups(double lo_in, double hi_in, int seed_in, 
+	       bool ng_flag, int ngr_in)
 {
   my_group = NULL;
   my_group_i = NULL;
@@ -30,10 +31,13 @@ Groups::Groups(double lo_in, double hi_in, int seed_in)
   random = new RandomPark(seed_in);
   hi = hi_in;
   lo = lo_in;
+  ngroups_flag = ng_flag;
+  ngroups = ngr_in;
 }
 /* ---------------------------------------------------------------------- */
 Groups::~Groups()
 {
+  delete random;
   release_group_space();
 }
 /* ----------------------------------------------------------------------
@@ -42,19 +46,21 @@ Groups::~Groups()
 void Groups::partition_init(double *p, int size_in, int max_size_in)
 {
   int i;
-  range = hi - lo;
+  range = hi/lo;
 
   size = size_in;
   max_size = max_size_in;
 
   overlg2 = 1.0/log(2.0); // set the value of the constant
-  ngroups = 0;
+  if(!ngroups_flag) ngroups = 0;
   psum = 0.0;
 
   release_group_space();
   //set number of groups
+  if(!ngroups_flag) 
+    //    ngroups = static_cast<int> (log((double)max_size)*overlg2) + 1;
+    ngroups = static_cast<int> (log(range)*overlg2) + 1;
 
-  ngroups = static_cast<int> (log((double)max_size)*overlg2) + 1;
   allocate_group_space(ngroups);
 
   //init update data structures to produce error if not set
@@ -62,22 +68,35 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
     my_group[i] = -1;
     my_group_i[i] = -1;
   }
-  //  cout << "Created "<< ngroups << " groups."<<endl;
+  //cout << "Created "<< ngroups << " groups."<<endl;
 
   int m, g;
   //calculate and allocate initial group storage
 
   //set group upper bounds and initialize empty/full vector
-  double frac = range;
+  double frac;
+  if (ngroups_flag)
+    frac = hi/static_cast<double>(ngroups);
+  else
+    frac = hi;
+
   for (g = 0; g < ngroups; g++){
     group_size[g] = 0;
-    group_hi[g] = lo + frac;
-    frac /= 2.0;
     empty_groups[g]=0;
+    if (ngroups_flag)
+      group_hi[g] = (g+1)*frac;
+    else{
+      group_hi[g] = frac;
+      frac /= 2.0;
+    }
   }
   //calculate initial group membership and initial sum
+  int gr;
+
   for(i=0;i<size;i++){
-    int gr = -static_cast<int>(log((p[i]-lo)/range)*overlg2);
+    if (ngroups_flag) gr = static_cast<int>(p[i]/frac);
+    else gr = -static_cast<int>(log(p[i]/hi)*overlg2);
+
     if (gr > ngroups-1) {
       gr = ngroups - 1;
       //      cout << "Distribution not flat in group "<<gr<<"."<<endl;
@@ -86,10 +105,12 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
     empty_groups[gr]=1;
     psum += p[i];
   }
-
+  
   //set initial group size and allocate group storage
   for (g = 0; g < ngroups; g++){
-    m = static_cast<int>(static_cast<double>(size)/pow(2.0,g));
+    if (ngroups_flag)  m = static_cast<int>
+      (2.0*static_cast<double>(size)/static_cast<double>(ngroups));
+    else m = static_cast<int>(static_cast<double>(size)/pow(2.0,g));
     if(group_size[g]*2>m) m = group_size[g]*2;
     group[g] = new int[m];  
     group_size[g] = m;
@@ -103,22 +124,43 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
   }
   //partition the initial distribution
   partition(p, lo, hi);
+  
+  // group_diagnostic(p);
+
+  // test_sampling(p,1e8);
+
 }
 /* ----------------------------------------------------------------------
-   Split distribution into a logarithmic number of groups by size
+   Split distribution into a number of groups by size
    ------------------------------------------------------------------------- */
 void Groups::partition(double *p, double lo, double hi)
 {
   double range = hi - lo;
 
-  for(int j=0;j<size;j++){
-    int g = -static_cast<int>(log((p[j]-lo)/range)*overlg2);
-    if (g > ngroups-1) g = ngroups - 1; 
-    group[g][i_group[g]] = j;
-    my_group[j] = g;
-    my_group_i[j] = i_group[g];
-    i_group[g]++;
-    group_sum[g] += p[j];
+  if(ngroups_flag){
+    //equal fragments
+    double frac = hi/static_cast<double>(ngroups);
+    for(int j=0;j<size;j++){
+      int g = static_cast<int>(p[j]/frac);
+      //if (g > ngroups-1) g = ngroups - 1; 
+      group[g][i_group[g]] = j;
+      my_group[j] = g;
+      my_group_i[j] = i_group[g];
+      i_group[g]++;
+      group_sum[g] += p[j];
+    }
+  }
+  else{
+    //logarithmic fragments
+    for(int j=0;j<size;j++){
+      int g = -static_cast<int>(log(p[j]/hi)*overlg2);
+      if (g > ngroups-1) g = ngroups - 1; 
+      group[g][i_group[g]] = j;
+      my_group[j] = g;
+      my_group_i[j] = i_group[g];
+      i_group[g]++;
+      group_sum[g] += p[j];
+    }
   }
 }
 /* ----------------------------------------------------------------------
@@ -128,11 +170,19 @@ void Groups::alter_element(int j, double *p, double p_new)
 {
   double p_old = p[j];
   double diff = p_new - p_old;
+  double frac = hi/static_cast<double>(ngroups);
 
   //find new group membership
-  int new_group = -static_cast<int>(log((p_new-lo)/range)*overlg2);
-  if (new_group > ngroups-1) new_group = ngroups - 1; 
-
+  int new_group;
+  if(ngroups_flag){
+    //equal fragments
+    new_group = static_cast<int>(p_new/frac);
+  }
+  else{
+    //logarithmic fragments
+    new_group = -static_cast<int>(log(p_new/hi)*overlg2);
+    if (new_group > ngroups-1) new_group = ngroups - 1; 
+  }
   //check if changed
   if(my_group[j] == new_group){
     //update group sum
@@ -158,6 +208,7 @@ void Groups::alter_element(int j, double *p, double p_new)
     i_group[new_group]++;
     group_sum[new_group] += p_new;
   }
+
   //update total sum
   psum += diff;
 }
@@ -167,9 +218,17 @@ void Groups::alter_element(int j, double *p, double p_new)
 void Groups::add_element(int j, double *p)
 {
   double p_in = p[j];
+  double frac = hi/static_cast<double>(ngroups);
+
   //find group membership
-  int g = -static_cast<int>(log((p_in-lo)/range)*overlg2);
-  if (g > ngroups-1) g = ngroups - 1; 
+  int g;
+  if(ngroups_flag){
+    g = static_cast<int>(p[j]/frac);
+  }
+  else{
+    g = -static_cast<int>(log(p_in/hi)*overlg2);
+    if (g > ngroups-1) g = ngroups - 1;
+  } 
   //  cout << "Adding propensity "<<p_in <<" to group "<<g<<endl;
   //check capacity and allocate space if needed
   if(i_group[g] >= group_size[g]-1) resize_group(g);
@@ -202,8 +261,8 @@ void Groups::resize_group(int g)
   delete [] group[g];
   group[g] = tmpg;
 
-   cout << "Resized group "<<g <<"  from "<<group_size[g]/2 <<" to "
-       << group_size[g]<<"."<<endl;
+     cout << "Resized group "<<g <<"  from "<<group_size[g]/2 <<" to "
+        << group_size[g]<<"."<<endl;
 }
 /* ----------------------------------------------------------------------
    Extend inverse arrays
@@ -215,16 +274,16 @@ void Groups::resize_inverse()
   max_size *= 2;
   int *tmp = new int[max_size];
   int *tmpi = new int[max_size];
-
+  
   //copy contents
   for(int i=0;i<max_size; i++){
     tmp[i] = my_group[i];
     tmpi[i] = my_group_i[i];
   }
-
+  
   delete [] my_group;
   delete [] my_group_i;
-
+  
   my_group = tmp;
   my_group_i = tmpi;
 
@@ -300,10 +359,12 @@ void Groups::release_group_space()
 {
   if(my_group != NULL) delete [] my_group;
   if(my_group_i != NULL) delete [] my_group_i;
+
   if(group_size != NULL) delete [] group_size;
   if(i_group != NULL) delete [] i_group;
   if(group_sum != NULL) delete [] group_sum;
   if(group_hi != NULL) delete [] group_hi;
+  if(group != NULL) delete [] group;
   if(empty_groups != NULL) delete [] empty_groups;
 }
 
@@ -319,10 +380,13 @@ void Groups::test_sampling(double *p, int nsamples)
   for(int i = 0; i < max_size; i++) count[i] = 0;
 
   for (int s = 0; s < nsamples; s++){
+    
     int grp = linear_select_group();
     //    cout << "group selected "<<grp <<endl;
     int r =  sample_with_rejection(grp, p);
     //    cout << "group sampled "<<endl;
+    
+    //int r = sample(p);
     if(r>-1) count[r]++;
     else rjct ++;
     //    cout <<"Sample group : "<< grp<<endl;
@@ -378,12 +442,12 @@ void Groups::group_diagnostic(double *p)
  	 <<group_sum[g]<<" with upper bound of "<<group_hi[g]
  	 <<"."<<endl<<endl;
 
-    for (int m = 0; m < i_group[g]; m++){
-      int l = group[g][m];
-      cout << p[group[g][m]]<<"  "<<my_group[l]<<"  "
-	   <<my_group_i[l]<<endl;
+//     for (int m = 0; m < i_group[g]; m++){
+//       int l = group[g][m];
+//       cout << p[group[g][m]]<<"  "<<my_group[l]<<"  "
+// 	   <<my_group_i[l]<<endl;
 
-    }
+//     }
     cout << endl 
 	 <<"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"<<endl;
   } 
@@ -400,3 +464,4 @@ void Groups::group_diagnostic(double *p)
 }
 /* ----------------------------------------------------------------------
    ------------------------------------------------------------------------- */
+

@@ -12,11 +12,14 @@ The distribution has to be bounded.
 
 #include "random_park.h"
 #include <cmath>
+#include <iostream>
+
+using namespace std;
 namespace SPPARKS {
 class Groups {
  public:
 
-  Groups(double, double, int);
+  Groups(double, double, int, bool, int);
   ~Groups();
 
   //setup
@@ -47,6 +50,7 @@ class Groups {
   double hi, lo, range; //distribution parameters
 
   int ngroups; //number of groups
+  bool ngroups_flag;
   int *group_size; //size of groups
   int **group; //group members
   int *i_group; //current group max index
@@ -70,3 +74,4 @@ class Groups {
 }
 
 #endif
+

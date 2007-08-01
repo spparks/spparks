@@ -29,9 +29,12 @@ class SolveNextEventGroupSearch : public Solve {
   double last_size;
   double sum;
   int seed;
+  int ngroups_in;
+  bool ngroups_flag;
   double lo, hi;
 };
 
 }
 
 #endif
+

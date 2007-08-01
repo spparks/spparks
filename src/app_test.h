@@ -70,6 +70,7 @@ class AppTest : public App {
   double *propensity;        // propensity of each event
   int nevents;
   int ndep;                  // max number of dependencies from user
+  double *old_p;             // old propensity values
   int n_event_types;
 
   //event properties
@@ -99,3 +100,4 @@ class AppTest : public App {
 }
 
 #endif
+
