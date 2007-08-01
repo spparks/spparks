@@ -561,10 +561,11 @@ void SweepLattice2d::sweep_quadrant_kmc(int icolor, int iquad)
   double *hold_propensity = applattice->propensity;
   applattice->propensity = propensity;
 
-  // update propensities along all sector boundaries
+  // update propensities on all 4 sector edges
   // necessary since ghosts of sector may have changed
 
   int nsites = 0;
+
   j = ylo;
   for (i = xlo; i <= xhi; i++) {
     isite = ij2site[i][j];
@@ -577,14 +578,15 @@ void SweepLattice2d::sweep_quadrant_kmc(int icolor, int iquad)
     sites[nsites++] = isite;
     propensity[isite] = applattice->site_propensity(i,j,0);
   }
+
   i = xlo;
-  for (j = ylo+1; j <= yhi-1; j++) {
+  for (j = ylo; j <= yhi; j++) {
     isite = ij2site[i][j];
     sites[nsites++] = isite;
     propensity[isite] = applattice->site_propensity(i,j,0);
   }
   i = xhi;
-  for (j = ylo+1; j <= yhi-1; j++) {
+  for (j = ylo; j <= yhi; j++) {
     isite = ij2site[i][j];
     sites[nsites++] = isite;
     propensity[isite] = applattice->site_propensity(i,j,0);

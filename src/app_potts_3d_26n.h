@@ -18,9 +18,9 @@ class AppPotts3d26n : public AppLattice3d {
   double site_energy(int, int, int);
   int site_pick_random(int, int, int, double);
   int site_pick_local(int, int, int, double);
-  double site_propensity(int, int, int);
-  void site_event(int, int, int);
-  void site_update_ghost(int, int, int);
+  double site_propensity(int, int, int, int);
+  void site_event(int, int, int, int);
+  void site_update_ghosts(int, int, int);
   void site_clear_mask(char ***, int, int, int);
 
  private:

@@ -252,8 +252,8 @@ void AppIsing3d6n::site_event(int i, int j, int k, int full)
 }
 
 /* ----------------------------------------------------------------------
-  update neighbors of site which has ghost cells for neighbors
-  called bt site_propensity() when single proc owns entire domain
+   update neighbors of site if neighbors are ghost cells
+   called by site_propensity() when single proc owns entire domain
 ------------------------------------------------------------------------- */
 
 void AppIsing3d6n::site_update_ghosts(int i, int j, int k)

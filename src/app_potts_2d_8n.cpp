@@ -93,7 +93,7 @@ double AppPotts2d8n::site_energy(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   pick new state for site randomly
+   randomly pick new state for site
 ------------------------------------------------------------------------- */
 
 int AppPotts2d8n::site_pick_random(int i, int j, double ran)
@@ -104,7 +104,7 @@ int AppPotts2d8n::site_pick_random(int i, int j, double ran)
 }
 
 /* ----------------------------------------------------------------------
-   pick new state for site randomly from neighbor values
+   randomly pick new state for site from neighbor values
 ------------------------------------------------------------------------- */
 
 int AppPotts2d8n::site_pick_local(int i, int j, double ran)
@@ -123,16 +123,17 @@ int AppPotts2d8n::site_pick_local(int i, int j, double ran)
 }
 
 /* ----------------------------------------------------------------------
-   compute total propensity of site
-   propensity based on einitial,efinal for each possible event
-   no energy change = propensity of 1
-   downhill energy change = propensity of 1
-   uphill energy change = propensity via Boltzmann factor
+   compute total propensity of owned site
+   based on einitial,efinal for each possible event
+   if no energy change, propensity = 1
+   if downhill energy change, propensity = 1
+   if uphill energy change, propensity set via Boltzmann factor
+   if proc owns full domain, update ghost values before computing propensity
 ------------------------------------------------------------------------- */
 
-double AppPotts2d8n::site_propensity(int i, int j)
+double AppPotts2d8n::site_propensity(int i, int j, int full)
 {
-  site_update_ghost(i,j);
+  if (full) site_update_ghosts(i,j);
 
   // loop over possible events
   // only consider spin flips to neighboring site values different from self
@@ -160,16 +161,20 @@ double AppPotts2d8n::site_propensity(int i, int j)
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
+   if proc owns full domain, neighbor sites may be across PBC
+   if only working on sector, ignore neighbor sites outside sector
 ------------------------------------------------------------------------- */
 
-void AppPotts2d8n::site_event(int i, int j)
+void AppPotts2d8n::site_event(int i, int j, int full)
 {
+  int ii,jj,isite,flag,sites[9];
+
   // pick one event from total propensity and set spin to that value
 
-  double threshhold = random->uniform() * propensity[ij2site(i,j)];
+  double threshhold = random->uniform() * propensity[ij2site[i][j]];
 
   int oldstate = lattice[i][j];
-  int ii,jj,newstate;
+  int newstate;
   double einitial = site_energy(i,j);
   double efinal;
   double prob = 0.0;
@@ -187,77 +192,32 @@ void AppPotts2d8n::site_event(int i, int j)
 
  done:
 
-  // reset propensity for self and neighbor sites
+  // compute propensity changes for self and neighbor sites
 
-  int sites[9];
-  int iii,jjj;
-  int m = 0;
-
-  for (iii = i-1; iii <= i+1; iii++)
-    for (jjj = j-1; jjj <= j+1; jjj++) {
-      ijpbc(iii,jjj,ii,jj);
-      sites[m] = ij2site(ii,jj);
-      propensity[sites[m++]] = site_propensity(ii,jj);
-    }
-
-  solve->update(9,sites,propensity);
-}
-
-/* ----------------------------------------------------------------------
-   choose and perform an event for site
-   update propensities of all affected sites
-------------------------------------------------------------------------- */
-
-void AppPotts2d8n::site_event_sector(int i, int j)
-{
-  // pick one event from total propensity and set spin to that value
-  // only update local sites; ghosts and pbcs are ignored
-
-  double threshhold = random->uniform() * propensity[ij2site(i,j)];
-
-  int oldstate = lattice[i][j];
-  int ii,jj,newstate;
-  double einitial = site_energy(i,j);
-  double efinal;
-  double prob = 0.0;
+  int nsites = 0;
 
   for (ii = i-1; ii <= i+1; ii++)
     for (jj = j-1; jj <= j+1; jj++) {
-      newstate = lattice[ii][jj];
-      if (newstate == oldstate) continue;
-      lattice[i][j] = newstate;
-      efinal = site_energy(i,j);
-      if (efinal <= einitial) prob += 1.0;
-      else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
-      if (prob >= threshhold) goto done;
-    }
-
- done:
-
-  // reset propensity for self and neighbor sites
-
-  int sites[9];
-  int m = 0;
-  int isite;
-
-  for (ii = MAX(1,i-1); ii <= MIN(i+1,nx_local); ii++)
-    for (jj = MAX(1,j-1); jj <= MIN(j+1,ny_local); jj++) {
-      isite = ij2site(ii,jj);
-      sites[m] = isite;
-      if (propensity[isite] >= 0.0) {
-	propensity[isite] = site_propensity(ii,jj);
-	m++;
+      flag = 1;
+      if (full) ijpbc(ii,jj);
+      else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	       jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
+      if (flag) {
+	isite = ij2site[ii][jj];
+	sites[nsites++] = isite;
+	propensity[isite] = site_propensity(ii,jj,full);
       }
     }
 
-  solve->update(m,sites,propensity);
+  solve->update(nsites,sites,propensity);
 }
 
 /* ----------------------------------------------------------------------
-  update neighbor cells of site that are global ghost cells
+   update neighbors of site if neighbors are ghost cells
+   called by site_propensity() when single proc owns entire domain
 ------------------------------------------------------------------------- */
 
-void AppPotts2d8n::site_update_ghost(int i, int j)
+void AppPotts2d8n::site_update_ghosts(int i, int j)
 {
   if (i == 1) {
     lattice[i-1][j-1] = lattice[nx_local][j-1];

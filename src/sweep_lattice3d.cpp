@@ -699,34 +699,55 @@ void SweepLattice3d::sweep_quadrant_kmc(int icolor, int iquad)
   double *hold_propensity = applattice->propensity;
   applattice->propensity = propensity;
 
-  // update propensities along all sector boundaries
+  // update propensities on all 6 sector faces
   // necessary since ghosts of sector may have changed
 
   int nsites = 0;
+
+  k = zlo;
+  for (i = xlo; i <= xhi; i++)
+    for (j = ylo; j <= yhi; j++) {
+      isite = ijk2site[i][j][k];
+      sites[nsites++] = isite;
+      propensity[isite] = applattice->site_propensity(i,j,k,0);
+    }
+  k = zhi;
+  for (i = xlo; i <= xhi; i++)
+    for (j = ylo; j <= yhi; j++) {
+      isite = ijk2site[i][j][k];
+      sites[nsites++] = isite;
+      propensity[isite] = applattice->site_propensity(i,j,k,0);
+    }
+
   j = ylo;
-  for (i = xlo; i <= xhi; i++) {
-    isite = ijk2site[i][j][k];
-    sites[nsites++] = isite;
-    propensity[isite] = applattice->site_propensity(i,j,k,0);
-  }
+  for (i = xlo; i <= xhi; i++)
+    for (k = zlo; k <= zhi; k++) {
+      isite = ijk2site[i][j][k];
+      sites[nsites++] = isite;
+      propensity[isite] = applattice->site_propensity(i,j,k,0);
+    }
   j = yhi;
-  for (i = xlo; i <= xhi; i++) {
-    isite = ijk2site[i][j][k];
-    sites[nsites++] = isite;
-    propensity[isite] = applattice->site_propensity(i,j,k,0);
-  }
+  for (i = xlo; i <= xhi; i++)
+    for (k = zlo; k <= zhi; k++) {
+      isite = ijk2site[i][j][k];
+      sites[nsites++] = isite;
+      propensity[isite] = applattice->site_propensity(i,j,k,0);
+    }
+
   i = xlo;
-  for (j = ylo+1; j <= yhi-1; j++) {
-    isite = ijk2site[i][j][k];
-    sites[nsites++] = isite;
-    propensity[isite] = applattice->site_propensity(i,j,k,0);
-  }
+  for (j = ylo; j <= yhi; j++)
+    for (k = zlo; k <= zhi; k++) {
+      isite = ijk2site[i][j][k];
+      sites[nsites++] = isite;
+      propensity[isite] = applattice->site_propensity(i,j,k,0);
+    }
   i = xhi;
-  for (j = ylo+1; j <= yhi-1; j++) {
-    isite = ijk2site[i][j][k];
-    sites[nsites++] = isite;
-    propensity[isite] = applattice->site_propensity(i,j,k,0);
-  }
+  for (j = ylo; j <= yhi; j++)
+    for (k = zlo; k <= zhi; k++) {
+      isite = ijk2site[i][j][k];
+      sites[nsites++] = isite;
+      propensity[isite] = applattice->site_propensity(i,j,k,0);
+    }
 
   solve->update(nsites,sites,propensity);
 
