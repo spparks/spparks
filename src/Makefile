@@ -34,6 +34,7 @@ tar:
 	mkdir spk_src
 	rm -f *~ MAKE/*~ STUBS/*~ STUBS/*.o STUBS/libmpi.a
 	cp -r *.cpp *.h Makefile* MAKE STUBS in.* spk_src
+	cp -r GPPT spk_src
 	tar -zcvf spk_src.tgz spk_src
 	rm -rf spk_src	
 

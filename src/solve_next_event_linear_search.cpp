@@ -16,7 +16,9 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-SolveNextEventLinearSearch::SolveNextEventLinearSearch(SPK *spk, int narg, char **arg) : Solve(spk, narg, arg)
+SolveNextEventLinearSearch::
+SolveNextEventLinearSearch(SPK *spk, int narg, char **arg) :
+  Solve(spk, narg, arg)
 {
   if (narg != 2) error->all("Illegal solve command");
 
@@ -29,6 +31,7 @@ SolveNextEventLinearSearch::SolveNextEventLinearSearch(SPK *spk, int narg, char 
 
 SolveNextEventLinearSearch::~SolveNextEventLinearSearch()
 {
+  delete [] prob;
   delete random;
 }
 
