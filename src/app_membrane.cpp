@@ -138,7 +138,7 @@ double AppMembrane::site_energy(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   pick new state for site randomly
+   randomly pick new state for site
 ------------------------------------------------------------------------- */
 
 int AppMembrane::site_pick_random(int i, int j, double ran)
@@ -149,7 +149,7 @@ int AppMembrane::site_pick_random(int i, int j, double ran)
 }
 
 /* ----------------------------------------------------------------------
-   pick new state for site randomly from neighbor values
+   randomly pick new state for site from neighbor values
 ------------------------------------------------------------------------- */
 
 int AppMembrane::site_pick_local(int i, int j, double ran)
@@ -160,22 +160,23 @@ int AppMembrane::site_pick_local(int i, int j, double ran)
 }
 
 /* ----------------------------------------------------------------------
-   compute total propensity of site
-   propensity based on einitial,efinal for each possible event
-   no energy change = propensity of 1
-   downhill energy change = propensity of 1
-   uphill energy change = propensity via Boltzmann factor
+   compute total propensity of owned site
+   based on einitial,efinal for each possible event
+   if no energy change, propensity = 1
+   if downhill energy change, propensity = 1
+   if uphill energy change, propensity set via Boltzmann factor
+   if proc owns full domain, update ghost values before computing propensity
 ------------------------------------------------------------------------- */
 
-double AppMembrane::site_propensity(int i, int j)
+double AppMembrane::site_propensity(int i, int j, int full)
 {
-  site_update_ghost(i,j);
+  if (full) site_update_ghosts(i,j);
 
-  // only event is to flip the spin
+  // only event is a LIPID/FLUID flip
 
   int oldstate = lattice[i][j];
-  int newstate = 1;
-  if (oldstate == 1) newstate = 2;
+  int newstate = LIPID;
+  if (oldstate == LIPID) newstate = FLUID;
 
   double einitial = site_energy(i,j);
   lattice[i][j] = newstate;
@@ -190,47 +191,81 @@ double AppMembrane::site_propensity(int i, int j)
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
+   if proc owns full domain, neighbor sites may be across PBC
+   if only working on sector, ignore neighbor sites outside sector
 ------------------------------------------------------------------------- */
 
-void AppMembrane::site_event(int i, int j)
+void AppMembrane::site_event(int i, int j, int full)
 {
-  // only event is to flip the spin
+  int ii,jj,isite,flag,sites[5];
 
-  if (lattice[i][j] == 1) lattice[i][j] = 2;
-  else lattice[i][j] = 1;
+  // only event is a LIPID/FLUID flip
 
-  // reset propensity for self and neighbor sites
+  if (lattice[i][j] == LIPID) lattice[i][j] = FLUID;
+  else lattice[i][j] = LIPID;
 
-  int sites[5];
-  int ii,jj;
+  // compute propensity changes for self and neighbor sites
 
-  ijpbc(i-1,j,ii,jj);
-  sites[0] = ij2site(ii,jj);
-  propensity[sites[0]] = site_propensity(ii,jj);
+  int nsites = 0;
 
-  ijpbc(i+1,j,ii,jj);
-  sites[1] = ij2site(ii,jj);
-  propensity[sites[1]] = site_propensity(ii,jj);
+  ii = i; jj = j;
+  isite = ij2site[ii][jj];
+  sites[nsites++] = isite;
+  propensity[isite] = site_propensity(ii,jj,full);
 
-  sites[2] = ij2site(i,j);
-  propensity[sites[2]] = site_propensity(i,j);
+  ii = i-1; jj = j;
+  flag = 1;
+  if (full) ijpbc(ii,jj);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
+  if (flag) {
+    isite = ij2site[ii][jj];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,full);
+  }
 
-  ijpbc(i,j-1,ii,jj);
-  sites[3] = ij2site(ii,jj);
-  propensity[sites[3]] = site_propensity(ii,jj);
+  ii = i+1; jj = j;
+  flag = 1;
+  if (full) ijpbc(ii,jj);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
+  if (flag) {
+    isite = ij2site[ii][jj];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,full);
+  }
 
-  ijpbc(i,j+1,ii,jj);
-  sites[4] = ij2site(ii,jj);
-  propensity[sites[4]] = site_propensity(ii,jj);
+  ii = i; jj = j-1;
+  flag = 1;
+  if (full) ijpbc(ii,jj);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
+  if (flag) {
+    isite = ij2site[ii][jj];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,full);
+  }
 
-  solve->update(5,sites,propensity);
+  ii = i; jj = j+1;
+  flag = 1;
+  if (full) ijpbc(ii,jj);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
+  if (flag) {
+    isite = ij2site[ii][jj];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,full);
+  }
+
+  solve->update(nsites,sites,propensity);
 }
 
 /* ----------------------------------------------------------------------
-  update neighbor cells of site that are global ghost cells
+   update neighbors of site if neighbors are ghost cells
+   called by site_propensity() when single proc owns entire domain
 ------------------------------------------------------------------------- */
 
-void AppMembrane::site_update_ghost(int i, int j)
+void AppMembrane::site_update_ghosts(int i, int j)
 {
   if (i == 1) lattice[i-1][j] = lattice[nx_local][j];
   if (i == nx_local) lattice[i+1][j] = lattice[1][j];
