@@ -5,6 +5,7 @@
 
 #include "stdio.h"
 #include "stdlib.h"
+#include <iostream>
 #include "string.h"
 #include "app_test.h"
 #include "spk.h"
@@ -16,7 +17,7 @@
 #include "random_park.h"
 
 using namespace SPPARKS;
-
+using namespace std;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -32,12 +33,16 @@ AppTest::AppTest(SPK *spk, int narg, char **arg) : App(spk, narg, arg)
   old_p = NULL;
   count = NULL;
   depends = NULL;
+  ran_dep = NULL;
 
   nevents = 0;
   n_event_types = 0;
+  dep_graph_flag = true;
   ntimestep = 0;
   time = 0.0;
   stoptime = 0.0;
+  stats_delta = 0.0;
+
   // classes needed by this app
   int seed = 123124;
   random = new RandomPark(seed);
@@ -55,6 +60,7 @@ AppTest::~AppTest()
   delete [] old_p;
   delete [] count;
   memory->destroy_2d_int_array(depends);
+  delete [] ran_dep;
 
   delete random;
 }
@@ -72,15 +78,21 @@ void AppTest::init()
 
   delete [] ndepends;
   memory->destroy_2d_int_array(depends);
-  ndepends = new int[nevents];
-  build_dependency_graph();
 
-  delete [] old_p;
-  old_p = new double[ndep];
+  if(dep_graph_flag){
+    ndepends = new int[nevents];
+    build_dependency_graph();
+  }
+  else{
+    ran_dep = new int[2*ndep];
+  }
+//   if(old_p != NULL)  delete [] old_p;
+//   old_p = new double[ndep];
+
   // compute initial propensity for each event
   // inform Nfold solver
   psum = 0;
-  delete [] propensity;
+  if(propensity != NULL) delete [] propensity;
   propensity = new double[nevents];
   for (int m = 0; m < nevents; m++) {
     propensity[m] = compute_propensity(m);
@@ -104,7 +116,7 @@ void AppTest::init()
     fprintf(logfile,"Step Time Counts");
     fprintf(logfile,"\n");
   }
-  stats();
+  //stats();
 
   // setup future calls to stats()
 
@@ -161,6 +173,8 @@ void AppTest::iterate()
   // uncomment to control number of total events
   int nev = 0;
   double dt;
+  int rdp; // random number of dependencies
+  int tdep; 
 
   int done = 0;
 
@@ -180,19 +194,26 @@ void AppTest::iterate()
     // inform solver of changes
 
     //update event propensity
-    //old_p[0] =  propensity[ievent];
+
     propensity[ievent] = compute_propensity(ievent);
-    //solve->update(ievent, old_p);
     solve->update(ievent, propensity);
 
     //update dependencies
-    for (d = 0; d < ndepends[ievent]; d++){
-      //old_p[d] = propensity[depends[ievent][d]];
-      propensity[depends[ievent][d]] = compute_propensity(depends[ievent][d]);
+    if (dep_graph_flag){
+      for (d = 0; d < ndepends[ievent]; d++)
+	propensity[depends[ievent][d]] = compute_propensity(depends[ievent][d]);
+      //solve->update(ndepends[ievent],depends[ievent],old_p);
+      solve->update(ndepends[ievent],depends[ievent],propensity);
     }
-    
-    //solve->update(ndepends[ievent],depends[ievent],old_p);
-    solve->update(ndepends[ievent],depends[ievent],propensity);
+    else {
+      rdp = 0.5 * ndep + ndep * random->uniform(); // random number of deps
+      for (d = 0; d < rdp; d++){                   // for each dependency
+	tdep = nevents * random->uniform();        // pick it
+        ran_dep[d] = tdep;                         // record it in the array
+	propensity[tdep] = compute_propensity(tdep); // calculate it
+      }
+      solve->update(rdp,ran_dep,propensity);       // update solver
+    }
 
     timer->stamp(TIME_UPDATE);
     // update time by dt
@@ -205,7 +226,7 @@ void AppTest::iterate()
 
     if (time > stats_time || done) {
       timer->stamp();
-      stats();
+      //stats();
       stats_time += stats_delta;
       timer->stamp(TIME_OUTPUT);
     }
@@ -227,35 +248,37 @@ void AppTest::stats()
   int max_i;
 
   for (i = 0; i< nevents; i++) ssum += count[i];
+  if (ssum == 0) ssum = 1;
 
-  if (screen)
-    //    fprintf(screen,"Deviations: \n");
   if (screen) {
-    //    fprintf(screen,"%d %g ",ntimestep,time);
     for (i = 0; i < nevents; i++){
-      deviation = ((double)count[i]/(double)ssum-propensity[i]/psum)/
-	((double)count[i]/(double)ssum+propensity[i]/psum);
-
+      deviation = ((double)count[i]/ssum - propensity[i]/psum)/
+	((double)count[i]/ssum + propensity[i]/psum);
       if(deviation > max_deviation){
 	max_deviation = deviation;
 	max_i = i;
       }
-      //      fprintf(screen,"%g ", deviation);
     }
-    //    fprintf(screen,"\n");
+  }
+  printf("PSUM %g %d\n",psum,ssum);
+  if (screen) {
+    fprintf(screen,"%d %g ",ntimestep,time);
+    for (i = 0; i < nevents; i++)
+      fprintf(screen,"%g ",(double)count[i]/ssum - propensity[i]/psum);
+    fprintf(screen,"\n");
+    
   }
   if (logfile) {
     fprintf(logfile,"%d %g ",ntimestep,time);
     for (i = 0; i < nevents; i++)
-      fprintf(logfile,"%g ", 
-	      (double)count[i]/(double)ssum-propensity[i]/psum);
+      fprintf(logfile,"%g ",(double)count[i]/ssum - propensity[i]/psum);
     fprintf(logfile,"\n");
-    
   }
+
   if(max_i>nevents-1) max_i = nevents - 1;
-  if (screen)
-    fprintf(screen,"Maximum deviation = %g at %d propensity %g \n",
-   	    max_deviation,max_i,propensity[max_i]);
+  //  if (screen)
+  // fprintf(screen,"Maximum deviation = %g at %d propensity %g \n",
+  //	    max_deviation,max_i,propensity[max_i]);
 }
 /* ---------------------------------------------------------------------- */
 
@@ -263,11 +286,14 @@ void AppTest::set_event(int narg, char **arg)
 {
   if (narg < 2) error->all("Illegal event command");
 
-  fprintf(screen,
-	  "Number of events: %s. Number of dependencies: %s. \n",
-	  arg[0], arg[1]);
-  
-  n_event_types ++;
+  if (narg > 3)
+    if (strcmp(arg[2],"lo_mem")==0){
+      dep_graph_flag = false;
+      random->init(atoi(arg[3]));
+    }
+    else error->all("Illegal event command");
+
+  n_event_types++;
   nevents = atoi(arg[0]);
   ndep = atoi(arg[1]);
 }

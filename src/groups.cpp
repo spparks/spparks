@@ -34,11 +34,14 @@ Groups::Groups(double lo_in, double hi_in, int seed_in,
   ngroups_flag = ng_flag;
   ngroups = ngr_in;
 }
+
 /* ---------------------------------------------------------------------- */
 Groups::~Groups()
 {
-  delete random;
+  for (int g = 0; g < ngroups; g++) delete [] group[g];
+  delete [] group;
   release_group_space();
+  delete random;
 }
 /* ----------------------------------------------------------------------
    Set up the partition groups data structures
@@ -259,10 +262,11 @@ void Groups::resize_group(int g)
   for(int i=0;i<i_group[g]; i++) tmpg[i] = group[g][i];
 
   delete [] group[g];
+
   group[g] = tmpg;
 
-     cout << "Resized group "<<g <<"  from "<<group_size[g]/2 <<" to "
-        << group_size[g]<<"."<<endl;
+//      cout << "Resized group "<<g <<"  from "<<group_size[g]/2 <<" to "
+//         << group_size[g]<<"."<<endl;
 }
 /* ----------------------------------------------------------------------
    Extend inverse arrays
@@ -359,12 +363,10 @@ void Groups::release_group_space()
 {
   if(my_group != NULL) delete [] my_group;
   if(my_group_i != NULL) delete [] my_group_i;
-
   if(group_size != NULL) delete [] group_size;
   if(i_group != NULL) delete [] i_group;
   if(group_sum != NULL) delete [] group_sum;
   if(group_hi != NULL) delete [] group_hi;
-  if(group != NULL) delete [] group;
   if(empty_groups != NULL) delete [] empty_groups;
 }
 

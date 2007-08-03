@@ -42,9 +42,6 @@ void SolveNextEventAliasSearch::init(int n, double *propensity)
 {
   int i;
 
-  if (screen)
-    fprintf(screen,"Using alias search algorithm to generate events.\n");
-
   if(allocated) free_arrays();
   allocated = 1;
   nevents = n;

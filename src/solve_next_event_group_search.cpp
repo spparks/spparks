@@ -37,9 +37,6 @@ Solve(spk, narg, arg)
   random = new RandomPark(seed);
   groups = new Groups(lo, hi, seed, ngroups_flag, ngroups_in);
   p = NULL;
-
-  if (screen)
-    fprintf(screen,"Using groups search algorithm to generate events.\n");
 }
 
 /* ---------------------------------------------------------------------- */

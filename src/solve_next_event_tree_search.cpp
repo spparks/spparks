@@ -20,8 +20,6 @@ SolveNextEventTreeSearch::SolveNextEventTreeSearch
 (SPK *spk, int narg, char **arg) : Solve(spk, narg, arg)
 {
   if (narg != 2) error->all("Illegal solve command");
-  if(screen)
-    fprintf(screen,"Using binary tree search algorithm to generate events.\n");
   allocated = 0;
   int seed = atoi(arg[1]);
   random = new RandomPark(seed);

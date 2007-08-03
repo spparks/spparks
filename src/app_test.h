@@ -67,6 +67,7 @@ class AppTest : public App {
   //event table
   int *ndepends;             // # of events that depend on each event
   int **depends;             // i,j = jth event that depends on ith event
+  int *ran_dep;              // random deps for on-the-fly generation
   double *propensity;        // propensity of each event
   int nevents;
   int ndep;                  // max number of dependencies from user
@@ -89,15 +90,14 @@ class AppTest : public App {
 
   void set_stats(int, char **);
 
+  bool dep_graph_flag;
   void build_dependency_graph();
   void print_depend_graph();
   double compute_propensity(int);
 
   void set_event(int, char **);
-
 };
 
 }
 
 #endif
-
