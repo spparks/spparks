@@ -7,8 +7,8 @@ SHELL = /bin/sh
 CC =		c++
 CCFLAGS =	-O -MMD -I../STUBS -DTMEMORY
 LINK =		c++
-LINKFLAGS =	-O -L../STUBS
-USRLIB =	-lmpi
+LINKFLAGS =	-O 
+USRLIB =	../STUBS/mpi.o
 SYSLIB = 
 SIZE =		size
 

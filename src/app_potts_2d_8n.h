@@ -22,6 +22,7 @@ class AppPotts2d8n : public AppLattice2d {
   void site_event(int, int, int);
   void site_update_ghosts(int, int);
   void site_clear_mask(char **, int, int);
+  void survey_neighbor(const int&, const int&, int&, int[], int[]) const;
 
  private:
   int nspins;

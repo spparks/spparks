@@ -69,7 +69,7 @@ SweepStyle(lattice3d,SweepLattice3d)
 
 // packages
 
-#include "style_gppt.h"
+//#include "style_gppt.h"
 
 // user add-ons
 

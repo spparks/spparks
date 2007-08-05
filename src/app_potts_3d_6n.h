@@ -22,6 +22,7 @@ class AppPotts3d6n : public AppLattice3d {
   void site_event(int, int, int, int);
   void site_update_ghosts(int, int, int);
   void site_clear_mask(char ***, int, int, int);
+  void survey_neighbor(const int&, const int&, int&, int[], int[]) const;
 
  private:
   int nspins;

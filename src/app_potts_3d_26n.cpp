@@ -130,6 +130,34 @@ int AppPotts3d26n::site_pick_local(int i, int j, int k, double ran)
    if proc owns full domain, update ghost values before computing propensity
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   add this neighbor spin to set of possible new spins
+------------------------------------------------------------------------- */
+
+void AppPotts3d26n::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
+  int *spnt = spins;
+  bool Lfound;
+
+  Lfound = false;
+  while (spnt < spins+ns) {
+    if (jk == *spnt++) {
+      Lfound = true;
+      break;
+    }
+  }
+
+  if (Lfound) {
+    // If found, increment counter 
+    nspins[spnt-spins-1]++;
+  } else {
+    // If not found, create new survey entry
+    spins[ns] = jk;
+    nspins[ns] = 1;
+    ns++;
+  }
+
+}
+
 double AppPotts3d26n::site_propensity(int i, int j, int k, int full)
 {
   if (full) site_update_ghosts(i,j,k);
@@ -143,16 +171,29 @@ double AppPotts3d26n::site_propensity(int i, int j, int k, int full)
   double efinal;
   double prob = 0.0;
 
+  // Data for each possible new spin
+  // nspins no longer used, as it is recalculated by site_energy(),
+  // which is somewhat wasteful, but more general.
+
+  int ns, spins[26],nspins[26],ik,jk;
+  ns = 0;
+
   for (ii = i-1; ii <= i+1; ii++)
     for (jj = j-1; jj <= j+1; jj++)
       for (kk = k-1; kk <= k+1; kk++) {
 	newstate = lattice[ii][jj][kk];
 	if (newstate == oldstate) continue;
-	lattice[i][j][k] = newstate;
-	efinal = site_energy(i,j,k);
-	if (efinal <= einitial) prob += 1.0;
-	else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
+	survey_neighbor(oldstate,newstate,ns,spins,nspins);
       }
+
+  // Use survey to compute overall propensity
+  
+  for (int is=0;is<ns;is++) {
+    lattice[i][j][k] = spins[is];
+    efinal = site_energy(i,j,k);
+    if (efinal <= einitial) prob += 1.0;
+    else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
+  }
 
   lattice[i][j][k] = oldstate;
   return prob;
@@ -179,17 +220,30 @@ void AppPotts3d26n::site_event(int i, int j, int k, int full)
   double efinal;
   double prob = 0.0;
 
+  // Data for each possible new spin
+  // nspins no longer used, as it is recalculated by site_energy(),
+  // which is somewhat wasteful, but more general.
+
+  int ns, spins[26],nspins[26];
+  ns = 0;
+
   for (ii = i-1; ii <= i+1; ii++)
     for (jj = j-1; jj <= j+1; jj++)
       for (kk = k-1; kk <= k+1; kk++) {
 	newstate = lattice[ii][jj][kk];
 	if (newstate == oldstate) continue;
-	lattice[i][j][k] = newstate;
-	efinal = site_energy(i,j,k);
-	if (efinal <= einitial) prob += 1.0;
-	else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
-	if (prob >= threshhold) goto done;
+	survey_neighbor(oldstate,newstate,ns,spins,nspins);
       }
+
+  // Use survey to pick new spin
+  
+  for (int is=0;is<ns;is++) {
+    lattice[i][j][k] = spins[is];
+    efinal = site_energy(i,j,k);
+    if (efinal <= einitial) prob += 1.0;
+    else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
+    if (prob >= threshhold) goto done;
+  }
 
  done:
 

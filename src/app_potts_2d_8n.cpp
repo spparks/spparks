@@ -123,6 +123,34 @@ int AppPotts2d8n::site_pick_local(int i, int j, double ran)
 }
 
 /* ----------------------------------------------------------------------
+   add this neighbor spin to set of possible new spins
+------------------------------------------------------------------------- */
+
+void AppPotts2d8n::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
+  int *spnt = spins;
+  bool Lfound;
+
+  Lfound = false;
+  while (spnt < spins+ns) {
+    if (jk == *spnt++) {
+      Lfound = true;
+      break;
+    }
+  }
+
+  if (Lfound) {
+    // If found, increment counter 
+    nspins[spnt-spins-1]++;
+  } else {
+    // If not found, create new survey entry
+    spins[ns] = jk;
+    nspins[ns] = 1;
+    ns++;
+  }
+
+}
+
+/* ----------------------------------------------------------------------
    compute total propensity of owned site
    based on einitial,efinal for each possible event
    if no energy change, propensity = 1
@@ -144,15 +172,28 @@ double AppPotts2d8n::site_propensity(int i, int j, int full)
   double efinal;
   double prob = 0.0;
 
-  for (ii = i-1; ii <= i+1; ii++)
+  // Data for each possible new spin
+  // nspins no longer used, as it is recalculated by site_energy(),
+  // which is somewhat wasteful, but more general.
+  int ns,spins[9],nspins[9];
+  ns = 0;
+
+  for (ii = i-1; ii <= i+1; ii++) {
     for (jj = j-1; jj <= j+1; jj++) {
       newstate = lattice[ii][jj];
       if (newstate == oldstate) continue;
-      lattice[i][j] = newstate;
-      efinal = site_energy(i,j);
-      if (efinal <= einitial) prob += 1.0;
-      else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
+      survey_neighbor(oldstate,newstate,ns,spins,nspins);
     }
+  }
+
+  // Use survey to compute overall propensity
+  
+  for (int is=0;is<ns;is++) {
+    lattice[i][j] = spins[is];
+    efinal = site_energy(i,j);
+    if (efinal <= einitial) prob += 1.0;
+    else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
+  }
 
   lattice[i][j] = oldstate;
   return prob;
@@ -179,16 +220,30 @@ void AppPotts2d8n::site_event(int i, int j, int full)
   double efinal;
   double prob = 0.0;
 
-  for (ii = i-1; ii <= i+1; ii++)
+  // Data for each possible new spin
+  // nspins no longer used, as it is recalculated by site_energy(),
+  // which is somewhat wasteful, but more general.
+
+  int ns, spins[8],nspins[8];
+  ns = 0;
+
+  for (ii = i-1; ii <= i+1; ii++) {
     for (jj = j-1; jj <= j+1; jj++) {
       newstate = lattice[ii][jj];
       if (newstate == oldstate) continue;
-      lattice[i][j] = newstate;
-      efinal = site_energy(i,j);
-      if (efinal <= einitial) prob += 1.0;
-      else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
-      if (prob >= threshhold) goto done;
+      survey_neighbor(oldstate,newstate,ns,spins,nspins);
     }
+  }
+
+  // Use survey to pick new spin
+  
+  for (int is=0;is<ns;is++) {
+    lattice[i][j] = spins[is];
+    efinal = site_energy(i,j);
+    if (efinal <= einitial) prob += 1.0;
+    else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
+    if (prob >= threshhold) goto done;
+  }
 
  done:
 

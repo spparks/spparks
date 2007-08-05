@@ -259,7 +259,7 @@ void SweepLattice2d::init()
       int nborder = 2*quad[iquad].nx + 2*quad[iquad].ny;
       quad[iquad].propensity = 
 	(double*) memory->smalloc(nsites*sizeof(double),"sweep:propensity");
-      memory->create_2d_T_array(quad[iquad].site2ij,nsites,2,"sweep:ij2site");
+      memory->create_2d_T_array(quad[iquad].site2ij,nsites,2,"sweep:site2ij");
       quad[iquad].sites =
 	(int*) memory->smalloc(nborder*sizeof(int),"sweep:sites");
 
@@ -603,13 +603,13 @@ void SweepLattice2d::sweep_quadrant_kmc(int icolor, int iquad)
     isite = solve->event(&dt);
     timer->stamp(TIME_SOLVE);
 
-    if (isite < 0) done = 1;
+    // do not allow threshold time to be exceeded
+    time += dt;	
+    if (isite < 0 || time >= delt) done = 1;
     else {
       i = site2ij[isite][0];
       j = site2ij[isite][1];
       applattice->site_event(i,j,0);
-      time += dt;	
-      if (time >= delt) done = 1;
       timer->stamp(TIME_APP);
     }
   }
