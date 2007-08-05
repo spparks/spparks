@@ -1,0 +1,143 @@
+# SPPARKS App "potts"
+
+# This group of apps run the standard potts model dynamics, using either the 
+# Metropolis algorithm (sweeping) or KMC. Apart from subtle effects, such as 
+# wild spins (KMC does not allow them), 
+# the various methods give equivalent results, if delt for 
+# Metroplis sweeping is set to 1/Ns 
+#
+# app_style	lat Nx Ny (Nz) Ns 12345 = lattice of type lat and size Nx by Ny (by Nz), Ns = spins, RN
+#		lat = potts/2d/4n potts/2d/8n potts/3d/6n potts/3d/26n
+#		Nz only included for 3d lattices
+# sweep_style   lat 12345 (mask yes/no) (strict yes/no) (kmc yes/no) (delt = time per sweep or KMC threshold time, default 1.0)
+#  		lat = lattice2d lattice3d
+#		kmc option requires that a solve_style command be provided
+# solve_style   see documentation for solve styles (if not used with kmc sweep style, serial execution only)
+# temperature	0.1 = temperature (units of energy)
+# stats		dt = print stats every dt time units
+# dump		dt file = print snapshot to file every dt time units
+# run	 	t = run for t time units
+
+# Run potts/2d/8n with sweeping, parallel kmc and serial kmc
+
+app_style	potts/2d/8n 100 100 100 12345
+sweep_style     lattice2d 12345 strict no mask yes delt 1.0e-2
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+app_style	potts/2d/8n 100 100 100 12345
+sweep_style     lattice2d 12345 kmc yes delt 1.0e-2
+solve_style     next_event_tree_search 12345
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+# Comment this run out if you want to run multi-process tests
+app_style	potts/2d/8n 100 100 100 12345
+solve_style     next_event_tree_search 12345
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+# Run potts/2d/4n with sweeping, parallel kmc and serial kmc
+
+app_style	potts/2d/4n 100 100 100 12345
+sweep_style     lattice2d 12345 strict yes mask yes delt 1.0e-2
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+app_style	potts/2d/4n 100 100 100 12345
+sweep_style     lattice2d 12345 kmc yes delt 1.0e-2
+solve_style     next_event_tree_search 12345
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+# Comment this run out if you want to run multi-process tests
+app_style	potts/2d/4n 100 100 100 12345
+solve_style     next_event_tree_search 12345
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+# Run potts/3d/26n with sweeping, parallel kmc and serial kmc
+
+app_style	potts/3d/26n 16 16 16 100 12345
+sweep_style     lattice3d 12345 strict no mask yes delt 1.0e-2
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+app_style	potts/3d/26n 16 16 16 100 12345
+sweep_style     lattice3d 12345 kmc yes delt 1.0e-2
+solve_style     next_event_tree_search 12345
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+# Comment this run out if you want to run multi-process tests
+app_style	potts/3d/26n 16 16 16 100 12345
+solve_style     next_event_tree_search 12345
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+# Run potts/3d/6n with sweeping, parallel kmc and serial kmc
+
+app_style	potts/3d/6n 32 32 32 100 12345
+sweep_style     lattice3d 12345 strict no mask yes delt 1.0e-2
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+app_style	potts/3d/6n 32 32 32 100 12345
+sweep_style     lattice3d 12345 kmc yes delt 1.0e-2
+solve_style     next_event_tree_search 12345
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+# Comment this run out if you want to run multi-process tests
+app_style	potts/3d/6n 32 32 32 100 12345
+solve_style     next_event_tree_search 12345
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
