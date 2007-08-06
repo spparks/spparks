@@ -1,0 +1,34 @@
+# mac = Apple PowerBook G4 laptop, c++, no MPI, debug flags
+# This version uses the MallocDebug library, which
+# crashes when it encounters various memory errors. 
+# Running using gdb and typing where after it crashes,
+# you can see what line the problem occurred on.
+#
+SHELL = /bin/sh
+
+# System-specific settings
+
+CC =		g++
+CCFLAGS =	-g -MMD -I../STUBS
+LINK =		g++
+LINKFLAGS =	-g ../STUBS/mpi.o -L/usr/lib
+USRLIB =	-lMallocDebug
+SYSLIB = 
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+-include $(DEPENDS)

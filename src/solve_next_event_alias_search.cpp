@@ -26,6 +26,9 @@ SolveNextEventAliasSearch::SolveNextEventAliasSearch
 
   int seed = atoi(arg[1]);
   random = new RandomPark(seed);
+  p = NULL;
+  q = NULL;
+  j = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

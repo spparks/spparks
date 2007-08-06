@@ -23,13 +23,13 @@ SolveNextEventTreeSearch::SolveNextEventTreeSearch
   allocated = 0;
   int seed = atoi(arg[1]);
   random = new RandomPark(seed);
+  tree = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 SolveNextEventTreeSearch::~SolveNextEventTreeSearch()
 {
-  //  delete [] tree;
   free_arrays();
   delete random;
 }
