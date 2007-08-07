@@ -360,8 +360,8 @@ void CommLattice2d::sector(int** lattice, const int isector) {
 
     ir = recvix;
     is = sendix;
-    printf("numx = %d recvix = %d sendix = %d delghost = %d \n ",numx,recvix,sendix,delghost);
-    printf("numy = %d recviy = %d sendiy = %d delghost = %d \n ",numy,recviy,sendiy,delghost);
+//     printf("numx = %d recvix = %d sendix = %d delghost = %d \n ",numx,recvix,sendix,delghost);
+//     printf("numy = %d recviy = %d sendiy = %d delghost = %d \n ",numy,recviy,sendiy,delghost);
     for (int i=0;i<numx;i++) {
       iy = recviy;
       for (int j=0;j<numy;j++) {

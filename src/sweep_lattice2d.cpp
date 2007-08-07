@@ -307,25 +307,25 @@ void SweepLattice2d::do_sweep(double &dt)
       comm->sector(lattice,iquad);
       timer->stamp(TIME_COMM);
 
-      applattice->stats();
+//       applattice->stats();
 
-      char *fstring1 = "Before sector() icolor = %d iquad = %d ";
-      int len1 = strlen(fstring1)+32;
-      char *title1 = new char[len1];
-      sprintf(title1,fstring1,icolor,iquad);
-      applattice->dump_detailed(title1);
-      delete [] title1;
+//       char *fstring1 = "Before sector() icolor = %d iquad = %d ";
+//       int len1 = strlen(fstring1)+32;
+//       char *title1 = new char[len1];
+//       sprintf(title1,fstring1,icolor,iquad);
+//       applattice->dump_detailed(title1);
+//       delete [] title1;
 
       (this->*sector)(icolor,iquad);
 
-      applattice->stats();
+//       applattice->stats();
 
-      char *fstring2 = "After sector() icolor = %d iquad = %d ";
-      int len2 = strlen(fstring2)+32;
-      char *title2 = new char[len2];
-      sprintf(title2,fstring2,icolor,iquad);
-      applattice->dump_detailed(title2);
-      delete [] title2;
+//       char *fstring2 = "After sector() icolor = %d iquad = %d ";
+//       int len2 = strlen(fstring2)+32;
+//       char *title2 = new char[len2];
+//       sprintf(title2,fstring2,icolor,iquad);
+//       applattice->dump_detailed(title2);
+//       delete [] title2;
 
       timer->stamp(TIME_SOLVE);
     }

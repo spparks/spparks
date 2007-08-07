@@ -276,27 +276,14 @@ void AppLattice2d::stats()
   int i,j;
   double energy,all;
   
-//   for (int iquad = 0; iquad < 4; iquad++) {
-//     comm->sector(lattice,iquad);
-//   }
-
-  comm->sector(lattice,2);
-
-  char *fstring1 = "In stats() after comm->sector() Timestep = %d";
-  int len1 = strlen(fstring1)+32;
-  char *title1 = new char[len1];
-  sprintf(title1,fstring1,ntimestep);
-  dump_detailed(title1);
-  delete [] title1;
-
   comm->all(lattice);
 
-  char *fstring2 = "In stats() after comm->all() Timestep = %d";
-  int len2 = strlen(fstring2)+32;
-  char *title2 = new char[len2];
-  sprintf(title2,fstring2,ntimestep);
-  dump_detailed(title2);
-  delete [] title2;
+//   char *fstring2 = "In stats() after comm->all() Timestep = %d";
+//   int len2 = strlen(fstring2)+32;
+//   char *title2 = new char[len2];
+//   sprintf(title2,fstring2,ntimestep);
+//   dump_detailed(title2);
+//   delete [] title2;
 
   energy = 0.0;
   for (i = 1; i <= nx_local; i++)
