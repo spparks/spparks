@@ -29,7 +29,7 @@ SweepLattice3d::SweepLattice3d(SPK *spk, int narg, char **arg) :
 {
   if (narg < 2) error->all("Illegal sweep_style command");
 
-  int seed = atoi(arg[1]);
+  seed = atoi(arg[1]);
   random = new RandomPark(seed);
   
   // parse optional args

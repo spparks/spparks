@@ -35,15 +35,16 @@ class CommLattice3d : protected SysPtr {
   int maxsector;         // max # of sectors memory is allocated for
 
   struct SwapInfo {
-    int numx, numy, numz;    // # of data to send/recv in each swap
+    int numx, numy, numz;    // # of data to send/recv in each swap = numx*numy*numz
     int sendproc, recvproc;  // proc to send/recv to/from at each swap
     int sendix, recvix;      // loc of first data value for each send/recv
     int sendiy, recviy;      // ix, iy and iz indexes for 3D data array
     int sendiz, recviz;
     int copyixa, copyixb;    // copy from/to locations for fragments
-    int copyiya, copyiyb;    // a,b refer to locations of original, copy
+    int copyiya, copyiyb;    // a,b refer to locations of original
                              // swap 0: iz comes from recviz/sendiz
                              // swap 1: only ix needed
+                             // swap 2: no copy needed
   };
 
   SwapInfo** swapinfo;       // nsector x nswap 2D array of SwapInfo objects

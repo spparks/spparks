@@ -38,6 +38,8 @@ class SweepLattice2d : public Sweep {
   char **mask;
   class RandomPark **ranlat;
 
+  int delghost,dellocal,delcol;
+  int nxlo,nxhi,nylo,nyhi;
   int nquad;
   struct {
     int xlo,xhi,ylo,yhi;     // inclusive start/stop indices in this quadrant

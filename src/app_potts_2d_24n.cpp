@@ -7,7 +7,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_potts_2d_8n.h"
+#include "app_potts_2d_24n.h"
 #include "comm_lattice2d.h"
 #include "solve.h"
 #include "random_park.h"
@@ -22,12 +22,12 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-AppPotts2d8n::AppPotts2d8n(SPK *spk, int narg, char **arg) : 
+AppPotts2d24n::AppPotts2d24n(SPK *spk, int narg, char **arg) : 
   AppLattice2d(spk,narg,arg)
 {
   // parse arguments
 
-  if (narg != 5) error->all("Invalid app_style potts/2d/8n command");
+  if (narg != 5) error->all("Invalid app_style potts/2d/24n command");
 
   nx_global = atoi(arg[1]);
   ny_global = atoi(arg[2]);
@@ -35,11 +35,22 @@ AppPotts2d8n::AppPotts2d8n(SPK *spk, int narg, char **arg) :
   seed = atoi(arg[4]);
   random = new RandomPark(seed);
 
-  masklimit = 4.0;
+  masklimit = 12.0;
+
+  delghost = 2;
 
   // define lattice and partition it across processors
-  
+  // It needs to have correct values for delghost  
   procs2lattice();
+
+  // Since delghost > 1, need to make additional check on local domain size
+  if (nx_local < 2*delghost || ny_local < 2*delghost)
+    error->one("Lattice per proc is too small");
+
+  nxlo = 1-delghost;
+  nxhi = nx_local+delghost;
+  nylo = 1-delghost;
+  nyhi = ny_local+delghost;
 
   memory->create_2d_T_array(lattice,nxlo,nxhi,nylo,nyhi,
 			    "applattice2d:lattice");
@@ -67,7 +78,7 @@ AppPotts2d8n::AppPotts2d8n(SPK *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-AppPotts2d8n::~AppPotts2d8n()
+AppPotts2d24n::~AppPotts2d24n()
 {
   delete random;
   memory->destroy_2d_T_array(lattice,nxlo,nylo);
@@ -78,18 +89,40 @@ AppPotts2d8n::~AppPotts2d8n()
    compute energy of site
 ------------------------------------------------------------------------- */
 
-double AppPotts2d8n::site_energy(int i, int j)
+double AppPotts2d24n::site_energy(int i, int j)
 {
   int isite = lattice[i][j];
   int eng = 0;
+
+  if (isite != lattice[i-2][j-2]) eng++;
+  if (isite != lattice[i-2][j-1]) eng++;
+  if (isite != lattice[i-2][j]) eng++;
+  if (isite != lattice[i-2][j+1]) eng++;
+  if (isite != lattice[i-2][j+2]) eng++;
+
+  if (isite != lattice[i-1][j-2]) eng++;
   if (isite != lattice[i-1][j-1]) eng++;
   if (isite != lattice[i-1][j]) eng++;
   if (isite != lattice[i-1][j+1]) eng++;
+  if (isite != lattice[i-1][j+2]) eng++;
+
+  if (isite != lattice[i][j-2]) eng++;
   if (isite != lattice[i][j-1]) eng++;
   if (isite != lattice[i][j+1]) eng++;
+  if (isite != lattice[i][j+2]) eng++;
+
+  if (isite != lattice[i+1][j-2]) eng++;
   if (isite != lattice[i+1][j-1]) eng++;
   if (isite != lattice[i+1][j]) eng++;
   if (isite != lattice[i+1][j+1]) eng++;
+  if (isite != lattice[i+1][j+2]) eng++;
+
+  if (isite != lattice[i+2][j-2]) eng++;
+  if (isite != lattice[i+2][j-1]) eng++;
+  if (isite != lattice[i+2][j]) eng++;
+  if (isite != lattice[i+2][j+1]) eng++;
+  if (isite != lattice[i+2][j+2]) eng++;
+
   return (double) eng;
 }
 
@@ -97,7 +130,7 @@ double AppPotts2d8n::site_energy(int i, int j)
    randomly pick new state for site
 ------------------------------------------------------------------------- */
 
-int AppPotts2d8n::site_pick_random(int i, int j, double ran)
+int AppPotts2d24n::site_pick_random(int i, int j, double ran)
 {
   int iran = (int) (nspins*ran) + 1;
   if (iran > nspins) iran = nspins;
@@ -108,26 +141,46 @@ int AppPotts2d8n::site_pick_random(int i, int j, double ran)
    randomly pick new state for site from neighbor values
 ------------------------------------------------------------------------- */
 
-int AppPotts2d8n::site_pick_local(int i, int j, double ran)
+int AppPotts2d24n::site_pick_local(int i, int j, double ran)
 {
-  int iran = (int) (8*ran) + 1;
-  if (iran > 8) iran = 8;
+  int iran = (int) (24*ran) + 1;
+  if (iran > 24) iran = 24;
 
-  if (iran == 1) return lattice[i-1][j-1];
-  else if (iran == 2) return lattice[i-1][j];
-  else if (iran == 3) return lattice[i-1][j+1];
-  else if (iran == 4) return lattice[i][j-1];
-  else if (iran == 5) return lattice[i][j+1];
-  else if (iran == 6) return lattice[i+1][j-1];
-  else if (iran == 7) return lattice[i+1][j];
-  else return lattice[i+1][j+1];
+  if (iran == 1) return lattice[i-2][j-2];
+  else if (iran == 2) return lattice[i-2][j-1];
+  else if (iran == 3) return lattice[i-2][j];
+  else if (iran == 4) return lattice[i-2][j+1];
+  else if (iran == 5) return lattice[i-2][j+2];
+
+  else if (iran == 6) return lattice[i-1][j-2];
+  else if (iran == 7) return lattice[i-1][j-1];
+  else if (iran == 8) return lattice[i-1][j];
+  else if (iran == 9) return lattice[i-1][j+1];
+  else if (iran == 10) return lattice[i-1][j+2];
+
+  else if (iran == 11) return lattice[i][j-2];
+  else if (iran == 12) return lattice[i][j-1];
+  else if (iran == 13) return lattice[i][j+1];
+  else if (iran == 14) return lattice[i][j+2];
+
+  else if (iran == 15) return lattice[i+1][j-2];
+  else if (iran == 16) return lattice[i+1][j-1];
+  else if (iran == 17) return lattice[i+1][j];
+  else if (iran == 18) return lattice[i+1][j+1];
+  else if (iran == 19) return lattice[i+1][j+2];
+
+  else if (iran == 20) return lattice[i+2][j-2];
+  else if (iran == 21) return lattice[i+2][j-1];
+  else if (iran == 22) return lattice[i+2][j];
+  else if (iran == 23) return lattice[i+2][j+1];
+  else return lattice[i+2][j+2];
 }
 
 /* ----------------------------------------------------------------------
    add this neighbor spin to set of possible new spins
 ------------------------------------------------------------------------- */
 
-void AppPotts2d8n::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
+void AppPotts2d24n::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
   int *spnt = spins;
   bool Lfound;
 
@@ -160,7 +213,7 @@ void AppPotts2d8n::survey_neighbor(const int& ik, const int& jk, int& ns, int sp
    if proc owns full domain, update ghost values before computing propensity
 ------------------------------------------------------------------------- */
 
-double AppPotts2d8n::site_propensity(int i, int j, int full)
+double AppPotts2d24n::site_propensity(int i, int j, int full)
 {
   if (full) site_update_ghosts(i,j);
 
@@ -176,11 +229,11 @@ double AppPotts2d8n::site_propensity(int i, int j, int full)
   // Data for each possible new spin
   // nspins no longer used, as it is recalculated by site_energy(),
   // which is somewhat wasteful, but more general.
-  int ns,spins[9],nspins[9];
+  int ns,spins[25],nspins[25];
   ns = 0;
 
-  for (ii = i-1; ii <= i+1; ii++) {
-    for (jj = j-1; jj <= j+1; jj++) {
+  for (ii = i-2; ii <= i+2; ii++) {
+    for (jj = j-2; jj <= j+2; jj++) {
       newstate = lattice[ii][jj];
       if (newstate == oldstate) continue;
       survey_neighbor(oldstate,newstate,ns,spins,nspins);
@@ -207,9 +260,9 @@ double AppPotts2d8n::site_propensity(int i, int j, int full)
    if only working on sector, ignore neighbor sites outside sector
 ------------------------------------------------------------------------- */
 
-void AppPotts2d8n::site_event(int i, int j, int full)
+void AppPotts2d24n::site_event(int i, int j, int full)
 {
-  int ii,jj,iloop,jloop,isite,flag,sites[9];
+  int ii,jj,iloop,jloop,isite,flag,sites[25];
 
   // pick one event from total propensity and set spin to that value
 
@@ -225,11 +278,11 @@ void AppPotts2d8n::site_event(int i, int j, int full)
   // nspins no longer used, as it is recalculated by site_energy(),
   // which is somewhat wasteful, but more general.
 
-  int ns, spins[8],nspins[8];
+  int ns, spins[24],nspins[24];
   ns = 0;
 
-  for (ii = i-1; ii <= i+1; ii++) {
-    for (jj = j-1; jj <= j+1; jj++) {
+  for (ii = i-2; ii <= i+2; ii++) {
+    for (jj = j-2; jj <= j+2; jj++) {
       newstate = lattice[ii][jj];
       if (newstate == oldstate) continue;
       survey_neighbor(oldstate,newstate,ns,spins,nspins);
@@ -252,8 +305,8 @@ void AppPotts2d8n::site_event(int i, int j, int full)
 
   int nsites = 0;
 
-  for (iloop = i-1; iloop <= i+1; iloop++)
-    for (jloop = j-1; jloop <= j+1; jloop++) {
+  for (iloop = i-2; iloop <= i+2; iloop++)
+    for (jloop = j-2; jloop <= j+2; jloop++) {
       ii = iloop; jj = jloop;
       flag = 1;
       if (full) ijpbc(ii,jj);
@@ -274,27 +327,94 @@ void AppPotts2d8n::site_event(int i, int j, int full)
    called by site_propensity() when single proc owns entire domain
 ------------------------------------------------------------------------- */
 
-void AppPotts2d8n::site_update_ghosts(int i, int j)
+void AppPotts2d24n::site_update_ghosts(int i, int j)
 {
   if (i == 1) {
+    lattice[i-2][j-2] = lattice[nx_local-1][j-2];
+    lattice[i-2][j-1] = lattice[nx_local-1][j-1];
+    lattice[i-2][j] = lattice[nx_local-1][j];
+    lattice[i-2][j+1] = lattice[nx_local-1][j+1];
+    lattice[i-2][j+2] = lattice[nx_local-1][j+2];
+
+    lattice[i-1][j-2] = lattice[nx_local][j-2];
     lattice[i-1][j-1] = lattice[nx_local][j-1];
     lattice[i-1][j] = lattice[nx_local][j];
     lattice[i-1][j+1] = lattice[nx_local][j+1];
+    lattice[i-1][j+2] = lattice[nx_local][j+2];
   }
+
+  if (i == 2) {
+    lattice[i-2][j-2] = lattice[nx_local][j-2];
+    lattice[i-2][j-1] = lattice[nx_local][j-1];
+    lattice[i-2][j] = lattice[nx_local][j];
+    lattice[i-2][j+1] = lattice[nx_local][j+1];
+    lattice[i-2][j+2] = lattice[nx_local][j+2];
+  }
+
   if (i == nx_local) {
+    lattice[i+2][j-2] = lattice[2][j-2];
+    lattice[i+2][j-1] = lattice[2][j-1];
+    lattice[i+2][j] = lattice[2][j];
+    lattice[i+2][j+1] = lattice[2][j+1];
+    lattice[i+2][j+2] = lattice[2][j+2];
+
+    lattice[i+1][j-2] = lattice[1][j-2];
     lattice[i+1][j-1] = lattice[1][j-1];
     lattice[i+1][j] = lattice[1][j];
     lattice[i+1][j+1] = lattice[1][j+1];
+    lattice[i+1][j+2] = lattice[1][j+2];
   }
+
+  if (i == nx_local-1) {
+    lattice[i+2][j-2] = lattice[1][j-2];
+    lattice[i+2][j-1] = lattice[1][j-1];
+    lattice[i+2][j] = lattice[1][j];
+    lattice[i+2][j+1] = lattice[1][j+1];
+    lattice[i+2][j+2] = lattice[1][j+2];
+  }
+
   if (j == 1) {
+    lattice[i-2][j-2] = lattice[i-2][ny_local-1];
+    lattice[i-1][j-2] = lattice[i-1][ny_local-1];
+    lattice[i][j-2] = lattice[i][ny_local-1];
+    lattice[i+1][j-2] = lattice[i+1][ny_local-1];
+    lattice[i+2][j-2] = lattice[i+2][ny_local-1];
+
+    lattice[i-2][j-1] = lattice[i-2][ny_local];
     lattice[i-1][j-1] = lattice[i-1][ny_local];
     lattice[i][j-1] = lattice[i][ny_local];
     lattice[i+1][j-1] = lattice[i+1][ny_local];
+    lattice[i+2][j-1] = lattice[i+2][ny_local];
   }
+
+  if (j == 2) {
+    lattice[i-2][j-2] = lattice[i-2][ny_local];
+    lattice[i-1][j-2] = lattice[i-1][ny_local];
+    lattice[i][j-2] = lattice[i][ny_local];
+    lattice[i+1][j-2] = lattice[i+1][ny_local];
+    lattice[i+2][j-2] = lattice[i+2][ny_local];
+  }
+
   if (j == ny_local) {
+    lattice[i-2][j+2] = lattice[i-2][2];
+    lattice[i-1][j+2] = lattice[i-1][2];
+    lattice[i][j+2] = lattice[i][2];
+    lattice[i+1][j+2] = lattice[i+1][2];
+    lattice[i+2][j+2] = lattice[i+2][2];
+
+    lattice[i-2][j+1] = lattice[i-2][1];
     lattice[i-1][j+1] = lattice[i-1][1];
     lattice[i][j+1] = lattice[i][1];
     lattice[i+1][j+1] = lattice[i+1][1];
+    lattice[i+2][j+1] = lattice[i+2][1];
+  }
+
+  if (j == ny_local-1) {
+    lattice[i-2][j+2] = lattice[i-2][1];
+    lattice[i-1][j+2] = lattice[i-1][1];
+    lattice[i][j+2] = lattice[i][1];
+    lattice[i+1][j+2] = lattice[i+1][1];
+    lattice[i+2][j+2] = lattice[i+2][1];
   }
 }
 
@@ -302,15 +422,35 @@ void AppPotts2d8n::site_update_ghosts(int i, int j)
   clear mask values of site and its neighbors
 ------------------------------------------------------------------------- */
 
-void AppPotts2d8n::site_clear_mask(char **mask, int i, int j)
+void AppPotts2d24n::site_clear_mask(char **mask, int i, int j)
 {
+  mask[i-2][j-2] = 0;
+  mask[i-2][j-1] = 0;
+  mask[i-2][j] = 0;
+  mask[i-2][j+1] = 0;
+  mask[i-2][j+2] = 0;
+
+  mask[i-1][j-2] = 0;
   mask[i-1][j-1] = 0;
   mask[i-1][j] = 0;
   mask[i-1][j+1] = 0;
+  mask[i-1][j+2] = 0;
+
+  mask[i][j-2] = 0;
   mask[i][j-1] = 0;
   mask[i][j] = 0;
   mask[i][j+1] = 0;
+  mask[i][j+2] = 0;
+
+  mask[i+1][j-2] = 0;
   mask[i+1][j-1] = 0;
   mask[i+1][j] = 0;
   mask[i+1][j+1] = 0;
+  mask[i+1][j+2] = 0;
+
+  mask[i+2][j-2] = 0;
+  mask[i+2][j-1] = 0;
+  mask[i+2][j] = 0;
+  mask[i+2][j+1] = 0;
+  mask[i+2][j+2] = 0;
 }

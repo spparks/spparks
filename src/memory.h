@@ -71,6 +71,12 @@ class Memory : protected SysPtr {
     void destroy_2d_T_array(T **, int);
     
   template<typename T>
+    void create_2d_T_array(T **&, int, int, int, int, const char *);
+
+  template<typename T>
+    void destroy_2d_T_array(T **, int, int);
+    
+  template<typename T>
     void create_3d_T_array(T ***&, int, int, int, const char *);
 
   template<typename T>
@@ -212,6 +218,33 @@ void Memory::destroy_2d_T_array(T **array, int offset)
   if (array == NULL) return;
   sfree(&array[0][offset]);
   sfree(array);
+}
+
+/* ----------------------------------------------------------------------
+   create a 2d T array with indexes from n1lo to n1hi and n2lo to n2hi inclusive 
+------------------------------------------------------------------------- */
+
+template<typename T>
+  void Memory::create_2d_T_array(T **&array, int n1lo, int n1hi, int n2lo, int n2hi, const char *name)
+{
+  int n1 = n1hi - n1lo + 1;
+  int n2 = n2hi - n2lo + 1;
+  create_2d_T_array(array,n1,n2,name);
+
+  for (int i = 0; i < n1; i++) array[i] -= n2lo;
+  array -= n1lo;
+}
+
+/* ----------------------------------------------------------------------
+   free a 2d T array with 1st and 2nd index offset 
+------------------------------------------------------------------------- */
+
+template<typename T>
+  void Memory::destroy_2d_T_array(T **array, int n1lo, int n2lo)
+{
+  if (array == NULL) return;
+  sfree(&array[n1lo][n2lo]);
+  sfree(array+n1lo);
 }
 
 /* ----------------------------------------------------------------------

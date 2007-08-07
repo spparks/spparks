@@ -39,6 +39,11 @@ AppLattice2d::AppLattice2d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   propensity = NULL;
   site2ij = NULL;
   ij2site = NULL;
+
+  // These default values may be overwritten by child class constructors
+  dellocal = 0;
+  delghost = 1;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -216,9 +221,12 @@ void AppLattice2d::iterate()
   int i,j,isite;
   double dt;
 
+  if (time >= stoptime) return
+
   timer->barrier_start(TIME_LOOP);
   
   int done = 0;
+  
   while (!done) {
     ntimestep++;
 
@@ -268,7 +276,27 @@ void AppLattice2d::stats()
   int i,j;
   double energy,all;
   
+//   for (int iquad = 0; iquad < 4; iquad++) {
+//     comm->sector(lattice,iquad);
+//   }
+
+  comm->sector(lattice,2);
+
+  char *fstring1 = "In stats() after comm->sector() Timestep = %d";
+  int len1 = strlen(fstring1)+32;
+  char *title1 = new char[len1];
+  sprintf(title1,fstring1,ntimestep);
+  dump_detailed(title1);
+  delete [] title1;
+
   comm->all(lattice);
+
+  char *fstring2 = "In stats() after comm->all() Timestep = %d";
+  int len2 = strlen(fstring2)+32;
+  char *title2 = new char[len2];
+  sprintf(title2,fstring2,ntimestep);
+  dump_detailed(title2);
+  delete [] title2;
 
   energy = 0.0;
   for (i = 1; i <= nx_local; i++)
@@ -283,6 +311,7 @@ void AppLattice2d::stats()
     if (logfile)
       fprintf(logfile,"%d %f %f\n",ntimestep,time,all);
   }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -489,4 +518,117 @@ void AppLattice2d::procs2lattice()
   else procwest = me - ny_procs;
   if (iprocx == nx_procs-1) proceast = me - nprocs + ny_procs;
   else proceast = me + ny_procs;
+
+  nxlo = 1-delghost;
+  nxhi = nx_local+delghost;
+  nylo = 1-delghost;
+  nyhi = ny_local+delghost;
+
 }
+
+/* ----------------------------------------------------------------------
+   dump a snapshot of grains to the screen in 2D layout
+   all the spins for each processor domain are printed out
+------------------------------------------------------------------------- */
+
+void AppLattice2d::dump_detailed(char* title)
+{
+  int nsend,nrecv,nxtmp,nytmp,nztmp,nxhtmp,nyhtmp,nzhtmp,nxotmp,nyotmp,nzotmp;
+  int size_one = 1;
+  int* buftmp;
+  int maxbuftmp;
+
+  // set up communication buffer
+  // maxbuftmp must equal the maximum number of spins on one domain 
+  // plus some extra stuff
+  maxbuftmp = ((nx_global-1)/nx_procs+1+2*delghost)*((ny_global-1)/ny_procs+1+2*delghost)+9;
+  nsend = (nx_local+2*delghost)*(ny_local+2*delghost)+9;
+  if (maxbuftmp < nsend) 
+    error->one("maxbuftmp size too small in AppGrain::dump_detailed()");
+  
+  buftmp = (int*) memory->smalloc(maxbuftmp*sizeof(int),"applattice2d:dump_detailed:buftmp");
+
+  // proc 0 writes interactive dump header
+
+  if (me == 0) {
+    if (screen) {
+      fprintf(screen,"*** Detailed Dump ***\n");
+      fprintf(screen,"Title = %s\n",title);
+      fprintf(screen,"nx_global = %d ny_global = %d nz_global = %d \n",nx_global,ny_global);
+    }
+  }
+
+  int m = 0;
+
+  // pack local layout info into buffer
+
+  buftmp[m++] = nx_local;
+  buftmp[m++] = ny_local;
+  buftmp[m++] = 0;
+  // Need to delete these two
+  buftmp[m++] = 0;
+  buftmp[m++] = 0;
+  buftmp[m++] = 0;
+  buftmp[m++] = nx_offset;
+  buftmp[m++] = ny_offset;
+  buftmp[m++] = 0;
+
+  // pack my lattice values into buffer
+  // Need to violate normal ordering in order to simplify output
+
+  for (int j = 1-delghost; j <= ny_local+delghost; j++) {
+    for (int i = 1-delghost; i <= nx_local+delghost; i++) {
+      buftmp[m++] = lattice[i][j];
+    }
+  }
+
+  // proc 0 pings each proc, receives it's data, writes to file
+  // all other procs wait for ping, send their data to proc 0
+
+  int tmp;
+  MPI_Status status;
+  MPI_Request request;
+  
+  if (me == 0) {
+    for (int iproc = 0; iproc < nprocs; iproc++) {
+      if (iproc) {
+	MPI_Irecv(buftmp,maxbuftmp,MPI_INT,iproc,0,world,&request);
+	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+	MPI_Wait(&request,&status);
+	MPI_Get_count(&status,MPI_INT,&nrecv);
+      } else nrecv = nsend;
+
+      if (screen) {
+	m = 0;
+	nxtmp = buftmp[m++];
+	nytmp = buftmp[m++];
+	nztmp = buftmp[m++];
+	nxhtmp = buftmp[m++];
+	nyhtmp = buftmp[m++];
+	nzhtmp = buftmp[m++];
+	nxotmp = buftmp[m++];
+	nyotmp = buftmp[m++];
+	nzotmp = buftmp[m++];
+	fprintf(screen,"iproc = %d \n",iproc);
+	fprintf(screen,"nxlocal = %d \nnylocal = %d \n",nxtmp,nytmp);
+	fprintf(screen,"nx_offset = %d \nny_offset = %d \n",nxotmp,nyotmp);
+	m = nrecv;
+	for (int j = nytmp+delghost; j >= 1-delghost; j--) {
+	  m-=nxtmp+2*delghost;
+	  for (int i = 1-delghost; i <= nxtmp+delghost; i++) {
+	    fprintf(screen,"%3d",buftmp[m++]);
+	  }
+	  fprintf(screen,"\n");
+	  m-=nxtmp+2*delghost;
+	}
+      }
+      
+    }
+  } else {
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
+    MPI_Rsend(buftmp,nsend,MPI_INT,0,0,world);
+  }
+
+  memory->sfree(buftmp);
+}
+

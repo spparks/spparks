@@ -29,7 +29,7 @@ SweepLattice2d::SweepLattice2d(SPK *spk, int narg, char **arg) :
 {
   if (narg < 2) error->all("Illegal sweep_style command");
 
-  int seed = atoi(arg[1]);
+  seed = atoi(arg[1]);
   random = new RandomPark(seed);
   
   // parse optional args
@@ -101,9 +101,6 @@ SweepLattice2d::SweepLattice2d(SPK *spk, int narg, char **arg) :
 
   // initializations
 
-  if (Lstrict) ncolor = 4;
-  else ncolor = 1;
-
   nquad = 4;
   for (int i = 0; i < nquad; i++) {
     quad[i].propensity = NULL;
@@ -123,8 +120,8 @@ SweepLattice2d::~SweepLattice2d()
   delete random;
   delete comm;
 
-  memory->destroy_2d_T_array(mask);
-  memory->destroy_2d_T_array(ranlat);
+  memory->destroy_2d_T_array(mask,nxlo,nylo);
+  memory->destroy_2d_T_array(ranlat,nxlo,nylo);
 
   if (Lkmc) {
     for (int iquad = 0; iquad < nquad; iquad++) {
@@ -160,7 +157,19 @@ void SweepLattice2d::init()
   temperature = applattice->temperature;
   if (temperature != 0.0) t_inverse = 1.0/temperature;
   masklimit = applattice->masklimit;
-  
+
+  delghost = applattice->delghost;
+  dellocal = applattice->dellocal;
+
+  nxlo = applattice->nxlo;
+  nxhi = applattice->nxhi;
+  nylo = applattice->nylo;
+  nyhi = applattice->nyhi;
+
+  delcol = delghost+1;
+  if (Lstrict) ncolor = delcol*delcol;
+  else ncolor = 1;
+
   int nx_half = nx_local/2 + 1;
   int ny_half = ny_local/2 + 1;
 
@@ -206,13 +215,13 @@ void SweepLattice2d::init()
 
   // init communication for ghost sites
 
-  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth);
+  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,delghost,dellocal);
 
   // setup mask array
   // owned and ghost values referenced in app::site_clear_mask()
 
   if (Lmask && mask == NULL) {
-    memory->create_2d_T_array(mask,nx_local+2,ny_local+2,
+    memory->create_2d_T_array(mask,nxlo,nxhi,nylo,nyhi,
 			      "sweeplattice2d:mask");
     for (int i = 1; i <= nx_local; i++) 
       for (int j = 1; j <= ny_local; j++) 
@@ -223,7 +232,7 @@ void SweepLattice2d::init()
   // only owned values referenced in strict() methods
 
   if (Lstrict && ranlat == NULL) {
-    memory->create_2d_T_array(ranlat,nx_local+2,ny_local+2,
+    memory->create_2d_T_array(ranlat,nxlo,nxhi,nylo,nyhi,
 			      "sweeplattice2d:ranlat");
     int isite;
     for (int i = 1; i <= nx_local; i++)
@@ -298,7 +307,26 @@ void SweepLattice2d::do_sweep(double &dt)
       comm->sector(lattice,iquad);
       timer->stamp(TIME_COMM);
 
+      applattice->stats();
+
+      char *fstring1 = "Before sector() icolor = %d iquad = %d ";
+      int len1 = strlen(fstring1)+32;
+      char *title1 = new char[len1];
+      sprintf(title1,fstring1,icolor,iquad);
+      applattice->dump_detailed(title1);
+      delete [] title1;
+
       (this->*sector)(icolor,iquad);
+
+      applattice->stats();
+
+      char *fstring2 = "After sector() icolor = %d iquad = %d ";
+      int len2 = strlen(fstring2)+32;
+      char *title2 = new char[len2];
+      sprintf(title2,fstring2,icolor,iquad);
+      applattice->dump_detailed(title2);
+      delete [] title2;
+
       timer->stamp(TIME_SOLVE);
     }
 
@@ -359,13 +387,24 @@ void SweepLattice2d::sweep_quadrant_mask(int icolor, int iquad)
   // may be out of date, due to state change on neighboring processor
   // could reverse comm mask values, but that might be slower
 
-  if (ylo == 1) j = ylo;
-  else if (yhi == ny_local) j = yhi;
-  for (i = xlo; i <= xhi; i++) mask[i][j] = 0;
-  if (xlo == 1) i = xlo;
-  else if (xhi == nx_local) i = xhi;
-  for (j = ylo; j <= yhi; j++) mask[i][j] = 0;
-
+  if (ylo == 1) {
+    for (i = xlo; i <= xhi; i++)
+      for (j = ylo; j < ylo+delghost; j++)
+	mask[i][j] = 0;
+  } else if (yhi == ny_local)
+    for (i = xlo; i <= xhi; i++)
+      for (j = yhi; j > yhi-delghost; j--)
+	mask[i][j] = 0;
+  
+  if (xlo == 1) {
+    for (j = ylo; j <= yhi; j++)
+      for (i = xlo; i < xlo+delghost; i++)
+	mask[i][j] = 0;
+  } else if (xhi == nx_local)
+    for (j = ylo; j <= yhi; j++)
+      for (i = xhi; i > xhi-delghost; i--)
+	mask[i][j] = 0;
+  
   for (i = xlo; i <= xhi; i++)
     for (j = ylo; j <= yhi; j++) {
       if (mask[i][j]) continue;
@@ -404,13 +443,24 @@ void SweepLattice2d::sweep_quadrant_mask_picklocal(int icolor, int iquad)
   // may be out of date, due to state change on neighboring processor
   // could reverse comm mask values, but that might be slower
 
-  if (ylo == 1) j = ylo;
-  else if (yhi == ny_local) j = yhi;
-  for (i = xlo; i <= xhi; i++) mask[i][j] = 0;
-  if (xlo == 1) i = xlo;
-  else if (xhi == nx_local) i = xhi;
-  for (j = ylo; j <= yhi; j++) mask[i][j] = 0;
-
+  if (ylo == 1) {
+    for (i = xlo; i <= xhi; i++)
+      for (j = ylo; j < ylo+delghost; j++)
+	mask[i][j] = 0;
+  } else if (yhi == ny_local)
+    for (i = xlo; i <= xhi; i++)
+      for (j = yhi; j > yhi-delghost; j--)
+	mask[i][j] = 0;
+  
+  if (xlo == 1) {
+    for (j = ylo; j <= yhi; j++)
+      for (i = xlo; i < xlo+delghost; i++)
+	mask[i][j] = 0;
+  } else if (xhi == nx_local)
+    for (j = ylo; j <= yhi; j++)
+      for (i = xhi; i > xhi-delghost; i--)
+	mask[i][j] = 0;
+  
   for (i = xlo; i <= xhi; i++)
     for (j = ylo; j <= yhi; j++) {
       if (mask[i][j]) continue;
@@ -442,27 +492,36 @@ void SweepLattice2d::sweep_quadrant_strict(int icolor, int iquad)
 {
   int i,j,i0,j0,oldstate,newstate;
   double einitial,efinal;
+  double xtmp1,xtmp2;
 
   int xlo = quad[iquad].xlo;
   int xhi = quad[iquad].xhi;
   int ylo = quad[iquad].ylo;
   int yhi = quad[iquad].yhi;
 
-  i0 = (icolor/2 + nx_offset + xlo) % 2;
-  j0 = (icolor   + ny_offset + ylo) % 2;
+  i0 = (icolor/delcol + nx_offset + xlo-1) % delcol;
+  j0 = (icolor   + ny_offset + ylo-1) % delcol;
 
-  for (i = xlo+i0; i <= xhi; i += 2)
-    for (j = ylo+j0; j <= yhi; j += 2) {
+  for (i = xlo+i0; i <= xhi; i += delcol)
+    for (j = ylo+j0; j <= yhi; j += delcol) {
+
+      // call RNG even if skipping via mask
+      // insures same answer no matter where proc boundaries are
+
+      xtmp1 = ranlat[i][j].uniform();
+      xtmp2 = ranlat[i][j].uniform();
+
       oldstate = lattice[i][j];
       einitial = applattice->site_energy(i,j);
 
-      newstate = applattice->site_pick_random(i,j,ranlat[i][j].uniform());
+      newstate = applattice->site_pick_random(i,j,xtmp1);
       lattice[i][j] = newstate;
       efinal = applattice->site_energy(i,j);
 
       if (efinal <= einitial) continue;
+
       else if (temperature == 0.0) lattice[i][j] = oldstate;
-      else if (random->uniform() > exp((einitial-efinal)*t_inverse))
+      else if (xtmp2 > exp((einitial-efinal)*t_inverse))
 	lattice[i][j] = oldstate;
     }
 }
@@ -473,6 +532,7 @@ void SweepLattice2d::sweep_quadrant_mask_strict(int icolor, int iquad)
 {
   int i,j,i0,j0,oldstate,newstate;
   double einitial,efinal;
+  double xtmp1,xtmp2;
 
   int xlo = quad[iquad].xlo;
   int xhi = quad[iquad].xhi;
@@ -483,35 +543,46 @@ void SweepLattice2d::sweep_quadrant_mask_strict(int icolor, int iquad)
   // may be out of date, due to state change on neighboring processor
   // could reverse comm mask values, but that might be slower
 
-  if (ylo == 1) j = ylo;
-  else if (yhi == ny_local) j = yhi;
-  for (i = xlo; i <= xhi; i++) mask[i][j] = 0;
-  if (xlo == 1) i = xlo;
-  else if (xhi == nx_local) i = xhi;
-  for (j = ylo; j <= yhi; j++) mask[i][j] = 0;
+  if (ylo == 1) {
+    for (i = xlo; i <= xhi; i++)
+      for (j = ylo; j < ylo+delghost; j++)
+	mask[i][j] = 0;
+  } else if (yhi == ny_local)
+    for (i = xlo; i <= xhi; i++)
+      for (j = yhi; j > yhi-delghost; j--)
+	mask[i][j] = 0;
+  
+  if (xlo == 1) {
+    for (j = ylo; j <= yhi; j++)
+      for (i = xlo; i < xlo+delghost; i++)
+	mask[i][j] = 0;
+  } else if (xhi == nx_local)
+    for (j = ylo; j <= yhi; j++)
+      for (i = xhi; i > xhi-delghost; i--)
+	mask[i][j] = 0;
+  
+  i0 = (icolor/delcol + nx_offset + xlo-1) % delcol;
+  j0 = (icolor   + ny_offset + ylo-1) % delcol;
 
-  i0 = (icolor/2 + nx_offset + xlo) % 2;
-  j0 = (icolor   + ny_offset + ylo) % 2;
+  for (i = xlo+i0; i <= xhi; i+=delcol)
+    for (j = ylo+j0; j <= yhi; j+=delcol) {
 
   // call RNG even if skipping via mask
   // insures same answer no matter where proc boundaries are
 
-  for (i = xlo+i0; i <= xhi; i+=2)
-    for (j = ylo+j0; j <= yhi; j+=2) {
-      if (mask[i][j]) {
-	ranlat[i][j].uniform();
-	continue;
-      }
+      xtmp1 = ranlat[i][j].uniform();
+      xtmp2 = ranlat[i][j].uniform();
+
+      if (mask[i][j]) continue;
 
       oldstate = lattice[i][j];
       einitial = applattice->site_energy(i,j);
       if (einitial < masklimit) {
 	mask[i][j] = 1;
-	ranlat[i][j].uniform();
 	continue;
       }
 
-      newstate = applattice->site_pick_random(i,j,ranlat[i][j].uniform());
+      newstate = applattice->site_pick_random(i,j,xtmp1);
       lattice[i][j] = newstate;
       efinal = applattice->site_energy(i,j);
 
@@ -519,7 +590,7 @@ void SweepLattice2d::sweep_quadrant_mask_strict(int icolor, int iquad)
 	applattice->site_clear_mask(mask,i,j);
 	continue;
       } else if (temperature == 0.0) lattice[i][j] = oldstate;
-      else if (random->uniform() > exp((einitial-efinal)*t_inverse))
+      else if (xtmp2 > exp((einitial-efinal)*t_inverse))
 	lattice[i][j] = oldstate;
       else applattice->site_clear_mask(mask,i,j);
     }

@@ -45,6 +45,10 @@ class AppLattice2d : public App {
   int nx_sector_lo,nx_sector_hi;     // bounds of current sector
   int ny_sector_lo,ny_sector_hi;     // as set by sweeper
 
+  int nxlo,nxhi,nylo,nyhi;           // Upper and lower indexes for local lattice
+  int delghost, dellocal;            // Thickness of ghost and local layers 
+                                     // needed for communication
+
   int **lattice;               // owned lattice + ghost lattice
   double *propensity;          // probability for each owned site
   int **ij2site;               // mapping of owned lattice to sites
@@ -70,6 +74,7 @@ class AppLattice2d : public App {
   void stats();
   void dump_header();
   void dump();
+  void dump_detailed(char*);
 
   void set_stats(int, char **);
   void set_dump(int, char **);
