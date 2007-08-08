@@ -121,7 +121,7 @@ SweepLattice2d::~SweepLattice2d()
   delete comm;
 
   memory->destroy_2d_T_array(mask,nxlo,nylo);
-  memory->destroy_2d_T_array(ranlat,nxlo,nylo);
+  memory->destroy_2d_T_array(ranlat,1,1);
 
   if (Lkmc) {
     for (int iquad = 0; iquad < nquad; iquad++) {
@@ -232,7 +232,7 @@ void SweepLattice2d::init()
   // only owned values referenced in strict() methods
 
   if (Lstrict && ranlat == NULL) {
-    memory->create_2d_T_array(ranlat,nxlo,nxhi,nylo,nyhi,
+    memory->create_2d_T_array(ranlat,1,nx_local,1,ny_local,
 			      "sweeplattice2d:ranlat");
     int isite;
     for (int i = 1; i <= nx_local; i++)
@@ -304,7 +304,8 @@ void SweepLattice2d::do_sweep(double &dt)
   for (int icolor = 0; icolor < ncolor; icolor++)
     for (int iquad = 0; iquad < nquad; iquad++) {
       timer->stamp();
-      comm->sector(lattice,iquad);
+      //      comm->sector(lattice,iquad);
+      comm->all(lattice);
       timer->stamp(TIME_COMM);
 
 //       applattice->stats();
@@ -499,8 +500,11 @@ void SweepLattice2d::sweep_quadrant_strict(int icolor, int iquad)
   int ylo = quad[iquad].ylo;
   int yhi = quad[iquad].yhi;
 
-  i0 = (icolor/delcol + nx_offset + xlo-1) % delcol;
-  j0 = (icolor   + ny_offset + ylo-1) % delcol;
+  i0 = icolor/delcol  - (nx_offset + xlo-1) % delcol;
+  i0 = (i0 < 0) ? i0+delcol : i0;
+
+  j0 = icolor%delcol  - (ny_offset + ylo-1) % delcol;
+  j0 = (j0 < 0) ? j0+delcol : j0;
 
   for (i = xlo+i0; i <= xhi; i += delcol)
     for (j = ylo+j0; j <= yhi; j += delcol) {
