@@ -425,7 +425,6 @@ void CommLattice2d::all(int **lattice)
   
   // send west, then east
   // if only 1 proc in x, copy data
-  // data is contiguous, so no need for pack/unpack
 
   if (procwest != me) {
     nsend = (ny_local+2*delghost)*delghost;

@@ -17,7 +17,10 @@ class CommLattice2d : protected SysPtr {
   void init(const int, const int, 
 	    const int, const int, const int, const int,
 	    const int, const int);
+  void setup_swapinfo();
+  void setup_reverseinfo();
   void sector(int **, const int);
+  void reverse_sector(int **, const int);
   void all(int **);
 
  private:
@@ -47,7 +50,8 @@ class CommLattice2d : protected SysPtr {
                              // swap 1: no copy needed
   };
 
-  SwapInfo** swapinfo;       // nsector x nswap 2D array of SwapInfo objects
+  SwapInfo** swapinfo;       // nsector x nswap 2D array of SwapInfo objects (forward comm)
+  SwapInfo** reverseinfo;    // nsector x nswap 2D array of SwapInfo objects (reverse comm)
 
   void allocate_swap(const int, const int);          // allocate swap arrays
   void free_swap();                                  // free swap arrays
