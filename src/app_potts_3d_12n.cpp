@@ -7,7 +7,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_potts_3d_6n.h"
+#include "app_potts_3d_12n.h"
 #include "comm_lattice3d.h"
 #include "solve.h"
 #include "random_park.h"
@@ -19,12 +19,12 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-AppPotts3d6n::AppPotts3d6n(SPK *spk, int narg, char **arg) : 
+AppPotts3d12n::AppPotts3d12n(SPK *spk, int narg, char **arg) : 
   AppLattice3d(spk,narg,arg)
 {
   // parse arguments
 
-  if (narg != 6) error->all("Invalid app_style potts/3d/6n command");
+  if (narg != 6) error->all("Invalid app_style potts/3d/12n command");
 
   nx_global = atoi(arg[1]);
   ny_global = atoi(arg[2]);
@@ -36,12 +36,13 @@ AppPotts3d6n::AppPotts3d6n(SPK *spk, int narg, char **arg) :
   masklimit = 3.0;
 
   dellocal = 0;
-  delghost = 1;
+  delghost = 2;
 
   // define lattice and partition it across processors
   
   procs2lattice();
-  memory->create_3d_T_array(lattice,nx_local+2,ny_local+2,nz_local+2,
+
+  memory->create_3d_T_array(lattice,nxlo,nxhi,nylo,nyhi,nzlo,nzhi,
 			    "applattice3d:lattice");
 
   // initialize my portion of lattice
@@ -72,10 +73,10 @@ AppPotts3d6n::AppPotts3d6n(SPK *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-AppPotts3d6n::~AppPotts3d6n()
+AppPotts3d12n::~AppPotts3d12n()
 {
   delete random;
-  memory->destroy_3d_T_array(lattice);
+  memory->destroy_3d_T_array(lattice,nxlo,nylo,nzlo);
   delete comm;
 }
 
@@ -83,16 +84,22 @@ AppPotts3d6n::~AppPotts3d6n()
    compute energy of site
 ------------------------------------------------------------------------- */
 
-double AppPotts3d6n::site_energy(int i, int j, int k)
+double AppPotts3d12n::site_energy(int i, int j, int k)
 {
   int isite = lattice[i][j][k];
   int eng = 0;
+  if (isite != lattice[i][j][k-2]) eng++;
   if (isite != lattice[i][j][k-1]) eng++;
   if (isite != lattice[i][j][k+1]) eng++;
+  if (isite != lattice[i][j][k+2]) eng++;
+  if (isite != lattice[i][j-2][k]) eng++;
   if (isite != lattice[i][j-1][k]) eng++;
   if (isite != lattice[i][j+1][k]) eng++;
+  if (isite != lattice[i][j+2][k]) eng++;
+  if (isite != lattice[i-2][j][k]) eng++;
   if (isite != lattice[i-1][j][k]) eng++;
   if (isite != lattice[i+1][j][k]) eng++;
+  if (isite != lattice[i+2][j][k]) eng++;
   return (double) eng;
 }
 
@@ -100,7 +107,7 @@ double AppPotts3d6n::site_energy(int i, int j, int k)
    randomly pick new state for site
 ------------------------------------------------------------------------- */
 
-int AppPotts3d6n::site_pick_random(int i, int j, int k, double ran)
+int AppPotts3d12n::site_pick_random(int i, int j, int k, double ran)
 {
   int iran = (int) (nspins*ran) + 1;
   if (iran > nspins) iran = nspins;
@@ -111,24 +118,30 @@ int AppPotts3d6n::site_pick_random(int i, int j, int k, double ran)
    randomly pick new state for site from neighbor values
 ------------------------------------------------------------------------- */
 
-int AppPotts3d6n::site_pick_local(int i, int j, int k, double ran)
+int AppPotts3d12n::site_pick_local(int i, int j, int k, double ran)
 {
-  int iran = (int) (6*ran) + 1;
-  if (iran > 6) iran = 6;
+  int iran = (int) (12*ran) + 1;
+  if (iran > 12) iran = 12;
 
-  if (iran == 1) return lattice[i-1][j][k];
-  else if (iran == 2) return lattice[i+1][j][k];
-  else if (iran == 3) return lattice[i][j-1][k];
-  else if (iran == 4) return lattice[i][j+1][k];
-  else if (iran == 5) return lattice[i][j][k-1];
-  else return lattice[i][j][k+1];
+  if (iran == 1) return lattice[i-2][j][k];
+  else if (iran == 2) return lattice[i-1][j][k];
+  else if (iran == 3) return lattice[i+1][j][k];
+  else if (iran == 4) return lattice[i+2][j][k];
+  else if (iran == 5) return lattice[i][j-2][k];
+  else if (iran == 6) return lattice[i][j-1][k];
+  else if (iran == 7) return lattice[i][j+1][k];
+  else if (iran == 8) return lattice[i][j+2][k];
+  else if (iran == 9) return lattice[i][j][k-2];
+  else if (iran == 10) return lattice[i][j][k-1];
+  else if (iran == 11) return lattice[i][j][k+1];
+  else return lattice[i][j][k+2];
 }
 
 /* ----------------------------------------------------------------------
    add this neighbor spin to set of possible new spins
 ------------------------------------------------------------------------- */
 
-void AppPotts3d6n::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
+void AppPotts3d12n::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
   int *spnt = spins;
   bool Lfound;
 
@@ -161,7 +174,7 @@ void AppPotts3d6n::survey_neighbor(const int& ik, const int& jk, int& ns, int sp
    if proc owns full domain, update ghost values before computing propensity
 ------------------------------------------------------------------------- */
 
-double AppPotts3d6n::site_propensity(int i, int j, int k, int full)
+double AppPotts3d12n::site_propensity(int i, int j, int k, int full)
 {
   if (full) site_update_ghosts(i,j,k);
 
@@ -178,16 +191,22 @@ double AppPotts3d6n::site_propensity(int i, int j, int k, int full)
   // nspins no longer used, as it is recalculated by site_energy(),
   // which is somewhat wasteful, but more general.
 
-  int ns, spins[6],nspins[6];
+  int ns, spins[12],nspins[12];
   ns = 0;
 
-  for (int m = 0; m < 6; m++) {
-    if (m == 0) newstate = lattice[i-1][j][k];
-    else if (m == 1) newstate = lattice[i+1][j][k];
-    else if (m == 2) newstate = lattice[i][j-1][k];
-    else if (m == 3) newstate = lattice[i][j+1][k];
-    else if (m == 4) newstate = lattice[i][j][k-1];
-    else newstate = lattice[i][j][k+1];
+  for (int m = 0; m < 12; m++) {
+    if (m == 0) newstate = lattice[i-2][j][k];
+    else if (m == 1) newstate = lattice[i-1][j][k];
+    else if (m == 2) newstate = lattice[i+1][j][k];
+    else if (m == 3) newstate = lattice[i+2][j][k];
+    else if (m == 4) newstate = lattice[i][j-2][k];
+    else if (m == 5) newstate = lattice[i][j-1][k];
+    else if (m == 6) newstate = lattice[i][j+1][k];
+    else if (m == 7) newstate = lattice[i][j+2][k];
+    else if (m == 8) newstate = lattice[i][j][k-2];
+    else if (m == 9) newstate = lattice[i][j][k-1];
+    else if (m == 10) newstate = lattice[i][j][k+1];
+    else newstate = lattice[i][j][k+2];
     if (newstate == oldstate) continue;
     survey_neighbor(oldstate,newstate,ns,spins,nspins);
   }
@@ -212,9 +231,9 @@ double AppPotts3d6n::site_propensity(int i, int j, int k, int full)
    if only working on sector, ignore neighbor sites outside sector
 ------------------------------------------------------------------------- */
 
-void AppPotts3d6n::site_event(int i, int j, int k, int full)
+void AppPotts3d12n::site_event(int i, int j, int k, int full)
 {
-  int ii,jj,kk,isite,flag,sites[7];
+  int ii,jj,kk,isite,flag,sites[13];
 
   // pick one event from total propensity and set spin to that value
 
@@ -230,16 +249,22 @@ void AppPotts3d6n::site_event(int i, int j, int k, int full)
   // nspins no longer used, as it is recalculated by site_energy(),
   // which is somewhat wasteful, but more general.
 
-  int ns, spins[8],nspins[8];
+  int ns, spins[12],nspins[12];
   ns = 0;
 
-  for (int m = 0; m < 6; m++) {
-    if (m == 0) newstate = lattice[i-1][j][k];
-    else if (m == 1) newstate = lattice[i+1][j][k];
-    else if (m == 2) newstate = lattice[i][j-1][k];
-    else if (m == 3) newstate = lattice[i][j+1][k];
-    else if (m == 4) newstate = lattice[i][j][k-1];
-    else newstate = lattice[i][j][k+1];
+  for (int m = 0; m < 12; m++) {
+    if (m == 0) newstate = lattice[i-2][j][k];
+    else if (m == 1) newstate = lattice[i-1][j][k];
+    else if (m == 2) newstate = lattice[i+1][j][k];
+    else if (m == 3) newstate = lattice[i+2][j][k];
+    else if (m == 4) newstate = lattice[i][j-2][k];
+    else if (m == 5) newstate = lattice[i][j-1][k];
+    else if (m == 6) newstate = lattice[i][j+1][k];
+    else if (m == 7) newstate = lattice[i][j+2][k];
+    else if (m == 8) newstate = lattice[i][j][k-2];
+    else if (m == 9) newstate = lattice[i][j][k-1];
+    else if (m == 10) newstate = lattice[i][j][k+1];
+    else newstate = lattice[i][j][k+2];
     if (newstate == oldstate) continue;
     survey_neighbor(oldstate,newstate,ns,spins,nspins);
   }
@@ -263,6 +288,18 @@ void AppPotts3d6n::site_event(int i, int j, int k, int full)
   sites[nsites++] = isite;
   propensity[isite] = site_propensity(ii,jj,kk,full);
 
+  ii = i-2; jj = j; kk = k;
+  flag = 1;
+  if (full) ijkpbc(ii,jj,kk);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi ||
+	   kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
+  if (flag) {
+    isite = ijk2site[ii][jj][kk];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,kk,full);
+  }
+
   ii = i-1; jj = j; kk = k;
   flag = 1;
   if (full) ijkpbc(ii,jj,kk);
@@ -276,6 +313,30 @@ void AppPotts3d6n::site_event(int i, int j, int k, int full)
   }
 
   ii = i+1; jj = j; kk = k;
+  flag = 1;
+  if (full) ijkpbc(ii,jj,kk);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi ||
+	   kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
+  if (flag) {
+    isite = ijk2site[ii][jj][kk];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,kk,full);
+  }
+
+  ii = i+2; jj = j; kk = k;
+  flag = 1;
+  if (full) ijkpbc(ii,jj,kk);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi ||
+	   kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
+  if (flag) {
+    isite = ijk2site[ii][jj][kk];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,kk,full);
+  }
+
+  ii = i; jj = j-2; kk = k;
   flag = 1;
   if (full) ijkpbc(ii,jj,kk);
   else if (ii < nx_sector_lo || ii > nx_sector_hi || 
@@ -311,6 +372,30 @@ void AppPotts3d6n::site_event(int i, int j, int k, int full)
     propensity[isite] = site_propensity(ii,jj,kk,full);
   }
 
+  ii = i; jj = j+2; kk = k;
+  flag = 1;
+  if (full) ijkpbc(ii,jj,kk);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi ||
+	   kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
+  if (flag) {
+    isite = ijk2site[ii][jj][kk];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,kk,full);
+  }
+
+  ii = i; jj = j; kk = k-2;
+  flag = 1;
+  if (full) ijkpbc(ii,jj,kk);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi ||
+	   kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
+  if (flag) {
+    isite = ijk2site[ii][jj][kk];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,kk,full);
+  }
+
   ii = i; jj = j; kk = k-1;
   flag = 1;
   if (full) ijkpbc(ii,jj,kk);
@@ -335,6 +420,18 @@ void AppPotts3d6n::site_event(int i, int j, int k, int full)
     propensity[isite] = site_propensity(ii,jj,kk,full);
   }
 
+  ii = i; jj = j; kk = k+2;
+  flag = 1;
+  if (full) ijkpbc(ii,jj,kk);
+  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
+	   jj < ny_sector_lo || jj > ny_sector_hi ||
+	   kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
+  if (flag) {
+    isite = ijk2site[ii][jj][kk];
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(ii,jj,kk,full);
+  }
+
   solve->update(nsites,sites,propensity);
 }
 
@@ -343,27 +440,62 @@ void AppPotts3d6n::site_event(int i, int j, int k, int full)
    called by site_propensity() when single proc owns entire domain
 ------------------------------------------------------------------------- */
 
-void AppPotts3d6n::site_update_ghosts(int i, int j, int k)
+void AppPotts3d12n::site_update_ghosts(int i, int j, int k)
 {
-  if (i == 1) lattice[i-1][j][k] = lattice[nx_local][j][k];
-  if (i == nx_local) lattice[i+1][j][k] = lattice[1][j][k];
-  if (j == 1) lattice[i][j-1][k] = lattice[i][ny_local][k];
-  if (j == ny_local) lattice[i][j+1][k] = lattice[i][1][k];
-  if (k == 1) lattice[i][j][k-1] = lattice[i][j][nz_local];
-  if (k == nz_local) lattice[i][j][k+1] = lattice[i][j][1];
+  if (i == 1) {
+    lattice[i-1][j][k] = lattice[nx_local][j][k];
+    lattice[i-2][j][k] = lattice[nx_local-1][j][k];
+  }
+  if (i == 2) lattice[i-2][j][k] = lattice[nx_local][j][k];
+
+  if (i == nx_local) {
+    lattice[i+1][j][k] = lattice[1][j][k];
+    lattice[i+2][j][k] = lattice[2][j][k];
+  }
+  if (i == nx_local-1) lattice[i+2][j][k] = lattice[1][j][k];
+
+  if (j == 1) {
+    lattice[i][j-1][k] = lattice[i][ny_local][k];
+    lattice[i][j-2][k] = lattice[i][ny_local-1][k];
+  }
+  if (j == 2) lattice[i][j-2][k] = lattice[i][ny_local][k];
+
+  if (j == ny_local) {
+    lattice[i][j+1][k] = lattice[i][1][k];
+    lattice[i][j+2][k] = lattice[i][2][k];
+  }
+  if (j == ny_local-1) lattice[i][j+2][k] = lattice[i][1][k];
+
+  if (k == 1) {
+    lattice[i][j][k-1] = lattice[i][j][nz_local];
+    lattice[i][j][k-2] = lattice[i][j][nz_local-1];
+  }
+  if (k == 2) lattice[i][j][k-2] = lattice[i][j][nz_local];
+
+  if (k == nz_local) {
+    lattice[i][j][k+1] = lattice[i][j][1];
+    lattice[i][j][k+2] = lattice[i][j][2];
+  }
+  if (k == nz_local-1) lattice[i][j][k+2] = lattice[i][j][1];
 }
 
 /* ----------------------------------------------------------------------
    clear mask values of site and its neighbors
 ------------------------------------------------------------------------- */
 
-void AppPotts3d6n::site_clear_mask(char ***mask, int i, int j, int k)
+void AppPotts3d12n::site_clear_mask(char ***mask, int i, int j, int k)
 {
   mask[i][j][k] = 0;
+  mask[i-2][j][k] = 0;
   mask[i-1][j][k] = 0;
   mask[i+1][j][k] = 0;
+  mask[i+2][j][k] = 0;
+  mask[i][j-2][k] = 0;
   mask[i][j-1][k] = 0;
   mask[i][j+1][k] = 0;
+  mask[i][j+2][k] = 0;
+  mask[i][j][k-2] = 0;
   mask[i][j][k-1] = 0;
   mask[i][j][k+1] = 0;
+  mask[i][j][k+2] = 0;
 }

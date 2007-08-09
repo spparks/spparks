@@ -99,9 +99,6 @@ SweepLattice3d::SweepLattice3d(SPK *spk, int narg, char **arg) :
     }
   }
 
-  if (Lstrict) ncolor = 8;
-  else ncolor = 1;
-
   nquad = 8;
   for (int i = 0; i < nquad; i++) {
     quad[i].propensity = NULL;
@@ -121,8 +118,8 @@ SweepLattice3d::~SweepLattice3d()
   delete random;
   delete comm;
 
-  memory->destroy_3d_T_array(mask);
-  memory->destroy_3d_T_array(ranlat);
+  memory->destroy_3d_T_array(mask,nxlo,nylo,nzlo);
+  memory->destroy_3d_T_array(ranlat,1,1,1);
 
   if (Lkmc) {
     for (int iquad = 0; iquad < nquad; iquad++) {
@@ -162,7 +159,22 @@ void SweepLattice3d::init()
 
   temperature = applattice->temperature;
   if (temperature != 0.0) t_inverse = 1.0/temperature;
+
+
+  // App-specific settings
   masklimit = applattice->masklimit;
+  delghost = applattice->delghost;
+  dellocal = applattice->dellocal;
+  nxlo = applattice->nxlo;
+  nxhi = applattice->nxhi;
+  nylo = applattice->nylo;
+  nyhi = applattice->nyhi;
+  nzlo = applattice->nzlo;
+  nzhi = applattice->nzhi;
+
+  delcol = delghost+1;
+  if (Lstrict) ncolor = delcol*delcol*delcol;
+  else ncolor = 1;
   
   int nx_half = nx_local/2 + 1;
   int ny_half = ny_local/2 + 1;
@@ -275,13 +287,14 @@ void SweepLattice3d::init()
   // init communication for ghost sites
 
   comm->init(nx_local,ny_local,nz_local,
-	     procwest,proceast,procsouth,procnorth,procdown,procup);
+	     procwest,proceast,procsouth,procnorth,procdown,procup,
+	     delghost,dellocal);
 
   // setup mask array
   // owned and ghost values referenced in app::site_clear_mask()
 
   if (Lmask && mask == NULL) {
-    memory->create_3d_T_array(mask,nx_local+2,ny_local+2,nz_local+2,
+    memory->create_3d_T_array(mask,nxlo,nxhi,nylo,nyhi,nzlo,nzhi,
 			      "sweeplattice3d:mask");
     
     for (int i = 1; i <= nx_local; i++) 
@@ -294,7 +307,7 @@ void SweepLattice3d::init()
   // only owned values referenced in strict() methods
 
   if (Lstrict && ranlat == NULL) {
-    memory->create_3d_T_array(ranlat,nx_local+2,ny_local+2,nz_local+2,
+    memory->create_3d_T_array(ranlat,1,nx_local,1,ny_local,1,nz_local,
 			      "sweeplattice3d:ranlat");
     int isite;
     for (int i = 1; i <= nx_local; i++)
@@ -441,27 +454,7 @@ void SweepLattice3d::sweep_quadrant_mask(int icolor, int iquad)
   int zlo = quad[iquad].zlo;
   int zhi = quad[iquad].zhi;
 
-  // unset all masks on boundary
-  // may be out of date, due to state change on neighboring processor
-  // could reverse comm mask values, but that might be slower
-
-  if (zlo == 1) k = zlo;
-  else if (zhi == nz_local) k = zhi;
-  for (i = xlo; i <= xhi; i++)
-    for (j = ylo; j <= yhi; j++)
-      mask[i][j][k] = 0;
-
-  if (ylo == 1) j = ylo;
-  else if (yhi == ny_local) j = yhi;
-  for (i = xlo; i <= xhi; i++)
-    for (k = zlo; k <= zhi; k++)
-      mask[i][j][k] = 0;
-
-  if (xlo == 1) i = xlo;
-  else if (xhi == nx_local) i = xhi;
-  for (j = ylo; j <= yhi; j++)
-    for (k = zlo; k <= zhi; k++)
-      mask[i][j][k] = 0;
+  boundary_clear_mask(xlo,xhi,ylo,yhi,zlo,zhi);
 
   for (i = xlo; i <= xhi; i++)
     for (j = ylo; j <= yhi; j++)
@@ -480,10 +473,13 @@ void SweepLattice3d::sweep_quadrant_mask(int icolor, int iquad)
 	lattice[i][j][k] = newstate;
 	efinal = applattice->site_energy(i,j,k);
 	
-	if (efinal <= einitial) continue;
-	else if (temperature == 0.0) lattice[i][j][k] = oldstate;
+	if (efinal <= einitial) {
+	  applattice->site_clear_mask(mask,i,j,k);
+	  continue;
+	} else if (temperature == 0.0) lattice[i][j][k] = oldstate;
 	else if (random->uniform() > exp((einitial-efinal)*t_inverse))
 	  lattice[i][j][k] = oldstate;
+	else applattice->site_clear_mask(mask,i,j,k);
       }
 }
 
@@ -501,27 +497,7 @@ void SweepLattice3d::sweep_quadrant_mask_picklocal(int icolor, int iquad)
   int zlo = quad[iquad].zlo;
   int zhi = quad[iquad].zhi;
 
-  // unset all masks on boundary
-  // may be out of date, due to state change on neighboring processor
-  // could reverse comm mask values, but that might be slower
-
-  if (zlo == 1) k = zlo;
-  else if (zhi == nz_local) k = zhi;
-  for (i = xlo; i <= xhi; i++)
-    for (j = ylo; j <= yhi; j++)
-      mask[i][j][k] = 0;
-
-  if (ylo == 1) j = ylo;
-  else if (yhi == ny_local) j = yhi;
-  for (i = xlo; i <= xhi; i++)
-    for (k = zlo; k <= zhi; k++)
-      mask[i][j][k] = 0;
-
-  if (xlo == 1) i = xlo;
-  else if (xhi == nx_local) i = xhi;
-  for (j = ylo; j <= yhi; j++)
-    for (k = zlo; k <= zhi; k++)
-      mask[i][j][k] = 0;
+  boundary_clear_mask(xlo,xhi,ylo,yhi,zlo,zhi);
 
   for (i = xlo; i <= xhi; i++)
     for (j = ylo; j <= yhi; j++)
@@ -563,9 +539,18 @@ void SweepLattice3d::sweep_quadrant_strict(int icolor, int iquad)
   int zlo = quad[iquad].zlo;
   int zhi = quad[iquad].zhi;
 
-  i0 = (icolor/4 + nx_offset + xlo) % 2;
-  j0 = (icolor/2 + ny_offset + ylo) % 2;
-  k0 = (icolor   + nz_offset + zlo) % 2;
+  i0 = icolor/(delcol*delcol)  - (nx_offset + xlo-1) % delcol;
+  i0 = (i0 < 0) ? i0+delcol : i0;
+
+  j0 = icolor/delcol  - (ny_offset + ylo-1) % delcol;
+  j0 = (j0 < 0) ? j0+delcol : j0;
+
+  k0 = icolor%delcol  - (nz_offset + zlo-1) % delcol;
+  k0 = (k0 < 0) ? k0+delcol : k0;
+
+//   i0 = (icolor/4 + nx_offset + xlo) % 2;
+//   j0 = (icolor/2 + ny_offset + ylo) % 2;
+//   k0 = (icolor   + nz_offset + zlo) % 2;
 
   for (i = xlo+i0; i <= xhi; i += 2)
     for (j = ylo+j0; j <= yhi; j += 2)
@@ -599,31 +584,20 @@ void SweepLattice3d::sweep_quadrant_mask_strict(int icolor, int iquad)
   int zlo = quad[iquad].zlo;
   int zhi = quad[iquad].zhi;
 
-  // unset all masks on boundary
-  // may be out of date, due to state change on neighboring processor
-  // could reverse comm mask values, but that might be slower
+  boundary_clear_mask(xlo,xhi,ylo,yhi,zlo,zhi);
 
-  if (zlo == 1) k = zlo;
-  else if (zhi == nz_local) k = zhi;
-  for (i = xlo; i <= xhi; i++)
-    for (j = ylo; j <= yhi; j++)
-      mask[i][j][k] = 0;
+  i0 = icolor/(delcol*delcol)  - (nx_offset + xlo-1) % delcol;
+  i0 = (i0 < 0) ? i0+delcol : i0;
 
-  if (ylo == 1) j = ylo;
-  else if (yhi == ny_local) j = yhi;
-  for (i = xlo; i <= xhi; i++)
-    for (k = zlo; k <= zhi; k++)
-      mask[i][j][k] = 0;
+  j0 = icolor/delcol  - (ny_offset + ylo-1) % delcol;
+  j0 = (j0 < 0) ? j0+delcol : j0;
 
-  if (xlo == 1) i = xlo;
-  else if (xhi == nx_local) i = xhi;
-  for (j = ylo; j <= yhi; j++)
-    for (k = zlo; k <= zhi; k++)
-      mask[i][j][k] = 0;
+  k0 = icolor%delcol  - (nz_offset + zlo-1) % delcol;
+  k0 = (k0 < 0) ? k0+delcol : k0;
 
-  i0 = (icolor/4 + nx_offset + xlo) % 2;
-  j0 = (icolor/2 + ny_offset + ylo) % 2;
-  k0 = (icolor   + nz_offset + zlo) % 2;
+//   i0 = (icolor/4 + nx_offset + xlo) % 2;
+//   j0 = (icolor/2 + ny_offset + ylo) % 2;
+//   k0 = (icolor   + nz_offset + zlo) % 2;
 
   // call RNG even if skipping via mask
   // insures same answer no matter where proc boundaries are
@@ -661,8 +635,6 @@ void SweepLattice3d::sweep_quadrant_mask_strict(int icolor, int iquad)
 
 /* ----------------------------------------------------------------------
    generate events in each quadrant using KMC solver
-   sweep over one sector of sites
-   skip sites that can't change via mask
  ------------------------------------------------------------------------- */
 
 void SweepLattice3d::sweep_quadrant_kmc(int icolor, int iquad)
@@ -776,4 +748,73 @@ void SweepLattice3d::sweep_quadrant_kmc(int icolor, int iquad)
 
   applattice->solve = hold_solve;
   applattice->propensity = hold_propensity;
+}
+
+/* ----------------------------------------------------------------------
+   unset all masks on boundary
+   may be out of date, due to state change on neighboring processor
+   could reverse comm mask values, but that might be slower
+ ------------------------------------------------------------------------- */
+
+void SweepLattice3d::boundary_clear_mask(int xlo, int xhi, int ylo, 
+					 int yhi, int zlo, int zhi) {
+  int i,j,k;
+
+  // unset all masks on boundary
+  // may be out of date, due to state change on neighboring processor
+  // could reverse comm mask values, but that might be slower
+
+  if (delghost == 1) {
+    if (zlo == 1) k = zlo;
+    else if (zhi == nz_local) k = zhi;
+    for (i = xlo; i <= xhi; i++)
+      for (j = ylo; j <= yhi; j++)
+	mask[i][j][k] = 0;
+
+    if (ylo == 1) j = ylo;
+    else if (yhi == ny_local) j = yhi;
+    for (i = xlo; i <= xhi; i++)
+      for (k = zlo; k <= zhi; k++)
+	mask[i][j][k] = 0;
+
+    if (xlo == 1) i = xlo;
+    else if (xhi == nx_local) i = xhi;
+    for (j = ylo; j <= yhi; j++)
+      for (k = zlo; k <= zhi; k++)
+	mask[i][j][k] = 0;
+  } else {
+    if (zlo == 1)
+      for (i = xlo; i <= xhi; i++)
+	for (j = ylo; j <= yhi; j++)
+	  for (k = zlo; k < zlo+delghost; k++)
+	    mask[i][j][k] = 0;
+    else if (zhi == nz_local) 
+      for (i = xlo; i <= xhi; i++)
+	for (j = ylo; j <= yhi; j++)
+	  for (k = zhi; k > zlo-delghost; k--)
+	    mask[i][j][k] = 0;
+
+    if (ylo == 1)
+      for (i = xlo; i <= xhi; i++)
+	for (j = ylo; j < ylo+delghost; j++)
+	  for (k = zlo; k <= zhi; k++)
+	    mask[i][j][k] = 0;
+    else if (yhi == nz_local) 
+      for (i = xlo; i <= xhi; i++)
+	for (j = yhi; j > ylo-delghost; j--)
+	  for (k = zlo; k <= zhi; k++)
+	    mask[i][j][k] = 0;
+
+    if (xlo == 1)
+      for (i = xlo; i < xlo+delghost; i++)
+	for (j = ylo; j <= yhi; j++)
+	  for (k = zlo; k <= zhi; k++)
+	    mask[i][j][k] = 0;
+    else if (xhi == nx_local) 
+      for (i = xhi; i > xlo-delghost; i--)
+	for (j = ylo; j <= yhi; j++)
+	  for (k = zlo; k <= zhi; k++)
+	    mask[i][j][k] = 0;
+
+  }
 }

@@ -15,6 +15,7 @@
 #include "app_ising_3d_26n.h"
 #include "app_potts_3d_6n.h"
 #include "app_potts_3d_26n.h"
+#include "app_potts_3d_12n.h"
 #include "app_surf.h"
 #include "app_test.h"
 #endif
@@ -31,6 +32,7 @@ AppStyle(ising/3d/6n,AppIsing3d6n)
 AppStyle(ising/3d/26n,AppIsing3d26n)
 AppStyle(potts/3d/6n,AppPotts3d6n)
 AppStyle(potts/3d/26n,AppPotts3d26n)
+AppStyle(potts/3d/12n,AppPotts3d12n)
 AppStyle(surf,AppSurf)
 AppStyle(test,AppTest)
 #endif

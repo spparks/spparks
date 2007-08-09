@@ -18,7 +18,7 @@ class SweepLattice2d : public Sweep {
   ~SweepLattice2d();
   void init();
   void do_sweep(double &);
-
+  void boundary_clear_mask(int, int, int, int);
  private:
   int seed;
   bool Lmask,Lpicklocal,Lstrict,Lkmc;
@@ -33,13 +33,14 @@ class SweepLattice2d : public Sweep {
   class CommLattice2d *comm;
   class RandomPark *random;
 
-  int ncolor;
-  double masklimit;
+  int ncolor,delcol;
   char **mask;
   class RandomPark **ranlat;
 
-  int delghost,dellocal,delcol;
+  double masklimit;              // App-specific settings
+  int delghost,dellocal;
   int nxlo,nxhi,nylo,nyhi;
+
   int nquad;
   struct {
     int xlo,xhi,ylo,yhi;     // inclusive start/stop indices in this quadrant

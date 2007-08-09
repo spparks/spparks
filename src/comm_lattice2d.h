@@ -16,9 +16,8 @@ class CommLattice2d : protected SysPtr {
   ~CommLattice2d();
   void init(const int, const int, 
 	    const int, const int, const int, const int,
-	    const int=1, const int=0);
+	    const int, const int);
   void sector(int **, const int);
-  void sector_old(int **, const int);
   void all(int **);
 
  private:

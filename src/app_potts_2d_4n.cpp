@@ -34,10 +34,13 @@ AppPotts2d4n::AppPotts2d4n(SPK *spk, int narg, char **arg) :
 
   masklimit = 2.0;
 
+  dellocal = 0;
+  delghost = 1;
+
   // define lattice and partition it across processors
   
   procs2lattice();
-  memory->create_2d_T_array(lattice,nx_local+2,ny_local+2,
+  memory->create_2d_T_array(lattice,nxlo,nxhi,nylo,nyhi,
 			    "applattice2d:lattice");
 
   // initialize my portion of lattice
@@ -58,7 +61,7 @@ AppPotts2d4n::AppPotts2d4n(SPK *spk, int narg, char **arg) :
   // setup communicator for ghost sites
 
   comm = new CommLattice2d(spk);
-  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth);
+  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,delghost,dellocal);
 }
 
 /* ---------------------------------------------------------------------- */

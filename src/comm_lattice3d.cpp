@@ -43,7 +43,8 @@ void CommLattice3d::init(const int nx_local_in, const int ny_local_in,
 			 const int nz_local_in,
 			 const int procwest_in, const int proceast_in, 
 			 const int procsouth_in, const int procnorth_in,
-			 const int procdown_in, const int procup_in)
+			 const int procdown_in, const int procup_in,
+			 const int delghost_in, const int dellocal_in)
 {
   int ii,jj,kk,irecv,isend;
 
@@ -57,6 +58,9 @@ void CommLattice3d::init(const int nx_local_in, const int ny_local_in,
   procnorth = procnorth_in;
   procdown = procdown_in;
   procup = procup_in;
+
+  delghost = delghost_in;
+  dellocal = dellocal_in;
 
   int nx_half = nx_local/2 + 1;
   int ny_half = ny_local/2 + 1;
@@ -90,51 +94,51 @@ void CommLattice3d::init(const int nx_local_in, const int ny_local_in,
 
   // swapguide[0][0] stores values for lower side, not communicating
 
-  swapguide[0][0].recvix = 0;
-  swapguide[0][0].recviy = 0;
-  swapguide[0][0].recviz = 0;
-  swapguide[0][0].sendix = 0;
-  swapguide[0][0].sendiy = 0;
-  swapguide[0][0].sendiz = 0;
-  swapguide[0][0].numx = nx_half+1;
-  swapguide[0][0].numy = ny_half+1;
-  swapguide[0][0].numz = nz_half+1;
+  swapguide[0][0].recvix = 1-delghost;
+  swapguide[0][0].recviy = 1-delghost;
+  swapguide[0][0].recviz = 1-delghost;
+  swapguide[0][0].sendix = 1-delghost;
+  swapguide[0][0].sendiy = 1-delghost;
+  swapguide[0][0].sendiz = 1-delghost;
+  swapguide[0][0].numx = nx_half-1 + 2*delghost;;
+  swapguide[0][0].numy = ny_half-1 + 2*delghost;;
+  swapguide[0][0].numz = nz_half-1 + 2*delghost;;
   swapguide[0][0].recvproc = -1;
   swapguide[0][0].sendproc = -1;
-  swapguide[0][0].copyixa = nx_local;
-  swapguide[0][0].copyixb = 0;
-  swapguide[0][0].copyiya = ny_local;
-  swapguide[0][0].copyiyb = 0;
+  swapguide[0][0].copyixa = nx_local-delghost+1;
+  swapguide[0][0].copyixb = 1-delghost;
+  swapguide[0][0].copyiya = ny_local-delghost+1;
+  swapguide[0][0].copyiyb = 1-delghost;
 
   // swapguide[0][1] stores values for lower side, communicating
 
-  swapguide[0][1].recvix = 0;
-  swapguide[0][1].recviy = 0;
-  swapguide[0][1].recviz = 0;
-  swapguide[0][1].sendix = nx_local;
-  swapguide[0][1].sendiy = ny_local;
-  swapguide[0][1].sendiz = nz_local;
-  swapguide[0][1].numx = 1;
-  swapguide[0][1].numy = 1;
-  swapguide[0][1].numz = 1;
+  swapguide[0][1].recvix = 1-delghost;
+  swapguide[0][1].recviy = 1-delghost;
+  swapguide[0][1].recviz = 1-delghost;
+  swapguide[0][1].sendix = nx_local-delghost+1;
+  swapguide[0][1].sendiy = ny_local-delghost+1;
+  swapguide[0][1].sendiz = nz_local-delghost+1;
+  swapguide[0][1].numx = delghost;
+  swapguide[0][1].numy = delghost;
+  swapguide[0][1].numz = delghost;
   swapguide[0][1].recvproc = 0;
   swapguide[0][1].sendproc = 1;
-  swapguide[0][1].copyixa = nx_local;
-  swapguide[0][1].copyixb = 0;
-  swapguide[0][1].copyiya = ny_local;
-  swapguide[0][1].copyiyb = 0;
+  swapguide[0][1].copyixa = -1;
+  swapguide[0][1].copyixb = -1;
+  swapguide[0][1].copyiya = -1;
+  swapguide[0][1].copyiyb = -1;
 
   // swapguide[1][0] stores values for upper side, not communicating
 
-  swapguide[1][0].recvix = nx_half-1;
-  swapguide[1][0].recviy = ny_half-1;
-  swapguide[1][0].recviz = nz_half-1;
-  swapguide[1][0].sendix = nx_half-1;
-  swapguide[1][0].sendiy = ny_half-1;
-  swapguide[1][0].sendiz = nz_half-1;
-  swapguide[1][0].numx = nx_local-nx_half+3;
-  swapguide[1][0].numy = ny_local-ny_half+3;
-  swapguide[1][0].numz = nz_local-nz_half+3;
+  swapguide[1][0].recvix = nx_half-delghost;
+  swapguide[1][0].recviy = ny_half-delghost;
+  swapguide[1][0].recviz = nz_half-delghost;
+  swapguide[1][0].sendix = nx_half-delghost;
+  swapguide[1][0].sendiy = ny_half-delghost;
+  swapguide[1][0].sendiz = nz_half-delghost;
+  swapguide[1][0].numx = nx_local-nx_half+1+2*delghost;
+  swapguide[1][0].numy = ny_local-ny_half+1+2*delghost;
+  swapguide[1][0].numz = nz_local-nz_half+1+2*delghost;
   swapguide[1][0].recvproc = -1;
   swapguide[1][0].sendproc = -1;
   swapguide[1][0].copyixa = 1;
@@ -150,15 +154,15 @@ void CommLattice3d::init(const int nx_local_in, const int ny_local_in,
   swapguide[1][1].sendix = 1;
   swapguide[1][1].sendiy = 1;
   swapguide[1][1].sendiz = 1;
-  swapguide[1][1].numx = 1;
-  swapguide[1][1].numy = 1;
-  swapguide[1][1].numz = 1;
+  swapguide[1][1].numx = delghost;
+  swapguide[1][1].numy = delghost;
+  swapguide[1][1].numz = delghost;
   swapguide[1][1].recvproc = 1;
   swapguide[1][1].sendproc = 0;
-  swapguide[1][1].copyixa = 1;
-  swapguide[1][1].copyixb = nx_local+1;
-  swapguide[1][1].copyiya = 1;
-  swapguide[1][1].copyiyb = ny_local+1;
+  swapguide[1][1].copyixa = -1;
+  swapguide[1][1].copyixb = -1;
+  swapguide[1][1].copyiya = -1;
+  swapguide[1][1].copyiyb = -1;
 
   // loop over both sides in each direction, and all swap directions
   // use appropriate guide values in each case
@@ -211,22 +215,34 @@ void CommLattice3d::init(const int nx_local_in, const int ny_local_in,
 	isector++;
       }
 
-  maxbuf = (nx_local+2) * (ny_local*2);
-  maxbuf = MAX(maxbuf,(nx_local+2) * (nz_local*2));
-  maxbuf = MAX(maxbuf,(ny_local+2) * (nz_local*2));
+  maxbuf = (nx_local+2*delghost) * (ny_local*2*delghost) * delghost;
+  maxbuf = MAX(maxbuf,(nx_local+2*delghost) * (nz_local*2*delghost) * delghost);
+  maxbuf = MAX(maxbuf,(ny_local+2*delghost) * (nz_local*2*delghost) * delghost);
   recvbuf = (int*) memory->smalloc(maxbuf*sizeof(int),"commlattice:recvbuf");
   sendbuf = (int*) memory->smalloc(maxbuf*sizeof(int),"commlattice:sendbuf");
 }
 
 /* ----------------------------------------------------------------------
    communicate ghost values for one sector (quadrant)
+   choose one of two different variants
 ------------------------------------------------------------------------- */
 
 void CommLattice3d::sector(int*** lattice, const int isector) {
-  int iswap,ii,ix,iy,iz,i,j,recvnum,sendnum;
+  if (delghost == 1) sector_onelayer(lattice,isector);
+  else sector_multilayer(lattice,isector);
+}
+
+/* ----------------------------------------------------------------------
+   communicate ghost values for one sector (quadrant)
+   delghost = 1
+------------------------------------------------------------------------- */
+
+void CommLattice3d::sector_onelayer(int*** lattice, const int isector) {
+  int i,j,iswap,ii,ix,iy,iz,recvnum,sendnum;
   MPI_Request request;
   MPI_Status status;
   SwapInfo* swap;
+  int ir,is,jr,js,kr,ks;
 
   // Each swap direction is a little different
   // Need to code each swap explicitly
@@ -258,7 +274,6 @@ void CommLattice3d::sector(int*** lattice, const int isector) {
   sendnum = recvnum;
 
   // Copy y-edge to ghost edge
-
   iy = sendiy;
   for (i=0;i<numy;i++) {
     lattice[ixb][iy][sendiz] = lattice[ixa][iy][sendiz];
@@ -524,10 +539,464 @@ void CommLattice3d::sector(int*** lattice, const int isector) {
 }
 
 /* ----------------------------------------------------------------------
-   update ghost values for entire sub-domain owned by this proc
+   communicate ghost values for one sector (quadrant)
+   delghost > 1
 ------------------------------------------------------------------------- */
 
-void CommLattice3d::all(int ***lattice)
+void CommLattice3d::sector_multilayer(int*** lattice, const int isector) {
+  int iswap,ii,ix,iy,iz,recvnum,sendnum;
+  MPI_Request request;
+  MPI_Status status;
+  SwapInfo* swap;
+  int ir,is,jr,js,kr,ks;
+
+  // Each swap direction is a little different
+  // Need to code each swap explicitly
+
+  // First swap is in the z direction
+
+  iswap = 0;
+  swap = &swapinfo[isector][iswap];
+
+  // local copies of SwapInfo data
+  int 
+    numx = swap->numx,
+    numy = swap->numy,
+    numz = swap->numz,
+    sendproc = swap->sendproc,
+    recvproc = swap->recvproc,
+    sendix = swap->sendix,
+    recvix = swap->recvix,
+    sendiy = swap->sendiy,
+    recviy = swap->recviy,
+    sendiz = swap->sendiz,
+    recviz = swap->recviz,
+    ixa = swap->copyixa,
+    ixb = swap->copyixb,
+    iya = swap->copyiya,
+    iyb = swap->copyiyb;
+
+  recvnum = numx*numy*delghost;
+  sendnum = recvnum;
+
+  // Copy y-edge to ghost edge
+  ir = ixb;
+  is = ixa;
+  for (int i=0;i<delghost;i++) {
+    iy = sendiy;
+    for (int j=0;j<numy;j++) {
+      iz = sendiz;
+      for (int k=0;k<delghost;k++) {
+	lattice[ir][iy][iz] = lattice[is][iy][iz]; 
+	iz++;
+      }
+      iy++;
+    }
+    ir++;
+    is++;
+  }
+
+  // Copy x-edge to ghost edge
+
+  ix = sendix;
+  for (int i=0;i<numx;i++) {
+    jr = iyb;
+    js = iya;
+    for (int j=0;j<delghost;j++) {
+      iz = sendiz;
+      for (int k=0;k<delghost;k++) {
+	lattice[ix][jr][iz] = lattice[ix][js][iz]; 
+	iz++;
+      }
+      jr++;
+      js++;
+    }
+    ix++;
+  }
+
+  // Copy corner to ghost corner; must do this last to avoid overwrite
+
+  ir = ixb;
+  is = ixa;
+  for (int i=0;i<delghost;i++) {
+    jr = iyb;
+    js = iya;
+    for (int j=0;j<delghost;j++) {
+      iz = sendiz;
+      for (int k=0;k<delghost;k++) {
+	lattice[ir][jr][iz] = lattice[is][js][iz]; 
+	iz++;
+      }
+      jr++;
+      js++;
+    }
+    ir++;
+    is++;
+  }
+
+  // Use MPI to pass data only with other processes
+
+  if (sendproc != me) {
+
+    // Pack the send buffer
+
+    ii = 0;
+    ix = sendix;
+    for (int i=0;i<numx;i++) {
+      iy = sendiy;
+      for (int j=0;j<numy;j++) {
+	iz = sendiz;
+	for (int k=0;k<delghost;k++) {
+	  sendbuf[ii] = lattice[ix][iy][iz];
+	  iz++;
+	  ii++;
+	}
+	iy++;
+      }
+      ix++;
+    }
+
+    MPI_Irecv(recvbuf,recvnum,MPI_INT,
+	      recvproc,0,world,&request);
+    MPI_Send(sendbuf,sendnum,MPI_INT,
+	     sendproc,0,world);
+    MPI_Wait(&request,&status);
+    
+    // Unpack the receive buffer
+
+    ii = 0;
+    ix = recvix;
+    for (int i=0;i<numx;i++) {
+      iy = recviy;
+      for (int j=0;j<numy;j++) {
+	iz = recviz;
+	for (int k=0;k<delghost;k++) {
+	  lattice[ix][iy][iz] = recvbuf[ii]; 
+	  iz++;
+	  ii++;
+	}
+	iy++;
+      }
+      ix++;
+    }
+
+  // Use direct access to pass data to self
+
+  } else { 
+
+    ix = recvix;
+    for (int i=0;i<numx;i++) {
+      iy = recviy;
+      for (int j=0;j<numy;j++) {
+	kr = recviz;
+	ks = sendiz;
+	for (int k=0;k<delghost;k++) {
+	  lattice[ix][iy][kr] = lattice[ix][iy][ks]; 
+	  kr++;
+	  ks++;
+	}
+	iy++;
+      }
+      ix++;
+    }
+
+  }
+
+  // Copy ghost y-edge to edge
+
+  ir = ixa;
+  is = ixb;
+  for (int i=0;i<delghost;i++) {
+    iy = recviy;
+    for (int j=0;j<numy;j++) {
+      iz = recviz;
+      for (int k=0;k<delghost;k++) {
+	lattice[ir][iy][iz] = lattice[is][iy][iz]; 
+	iz++;
+      }
+      iy++;
+    }
+    ir++;
+    is++;
+  }
+
+  // Copy ghost x-edge to edge
+
+  ix = recvix;
+  for (int i=0;i<numx;i++) {
+    jr = iya;
+    js = iyb;
+    for (int j=0;j<delghost;j++) {
+      iz = recviz;
+      for (int k=0;k<delghost;k++) {
+	lattice[ix][jr][iz] = lattice[ix][js][iz];
+	iz++;
+      }
+      jr++;
+      js++;
+    }
+    ix++;
+  }
+
+  // Copy ghost corner to corner; must do this last to avoid overwrite
+
+  ir = ixa;
+  is = ixb;
+  for (int i=0;i<delghost;i++) {
+    jr = iya;
+    js = iyb;
+    for (int j=0;j<delghost;j++) {
+      iz = recviz;
+      for (int k=0;k<delghost;k++) {
+	lattice[ir][jr][iz] = lattice[is][js][iz]; 
+	iz++;
+      }
+      jr++;
+      js++;
+    }
+    ir++;
+    is++;
+  }
+
+  // Second swap is in the y direction
+
+  iswap = 1;
+  swap = &swapinfo[isector][iswap];
+
+  // local copies of SwapInfo data
+    numx = swap->numx,
+    numy = swap->numy,
+    numz = swap->numz,
+    sendproc = swap->sendproc,
+    recvproc = swap->recvproc,
+    sendix = swap->sendix,
+    recvix = swap->recvix,
+    sendiy = swap->sendiy,
+    recviy = swap->recviy,
+    sendiz = swap->sendiz,
+    recviz = swap->recviz,
+    ixa = swap->copyixa,
+    ixb = swap->copyixb,
+    iya = swap->copyiya,
+    iyb = swap->copyiyb;
+
+  recvnum = numx*numz*delghost;
+  sendnum = recvnum;
+  
+  // Copy z-edge to ghost edge
+
+  ir = ixb;
+  is = ixa;
+  for (int i=0;i<delghost;i++) {
+    iy = sendiy;
+    for (int j=0;j<delghost;j++) {
+      iz = sendiz;
+      for (int k=0;k<numz;k++) {
+	lattice[ir][iy][iz] = lattice[is][iy][iz]; 
+	iz++;
+      }
+      iy++;
+    }
+    ir++;
+    is++;
+  }
+
+  // Use MPI to pass data only with other processes
+
+  if (sendproc != me) {
+
+    // Pack the send buffer
+
+    ii = 0;
+    ix = sendix;
+    for (int i=0;i<numx;i++) {
+      iy = sendiy;
+      for (int j=0;j<delghost;j++) {
+	iz = sendiz;
+	for (int k=0;k<numz;k++) {
+	  sendbuf[ii] = lattice[ix][iy][iz];
+	  iz++;
+	  ii++;
+	}
+	iy++;
+      }
+      ix++;
+    }
+
+    MPI_Irecv(recvbuf,recvnum,MPI_INT,
+	      recvproc,0,world,&request);
+    MPI_Send(sendbuf,sendnum,MPI_INT,
+	     sendproc,0,world);
+    MPI_Wait(&request,&status);
+    
+    // Unpack the receive buffer
+
+    ii = 0;
+    ix = recvix;
+    for (int i=0;i<numx;i++) {
+      iy = recviy;
+      for (int j=0;j<delghost;j++) {
+	iz = recviz;
+	for (int k=0;k<numz;k++) {
+	  lattice[ix][iy][iz] = recvbuf[ii]; 
+	  iz++;
+	  ii++;
+	}
+	iy++;
+      }
+      ix++;
+    }
+
+  // Use direct access to pass data to self
+
+  } else { 
+
+    ix = recvix;
+    for (int i=0;i<numx;i++) {
+      jr = recviy;
+      js = sendiy;
+      for (int j=0;j<delghost;j++) {
+	iz = recviz;
+	for (int k=0;k<numz;k++) {
+	  lattice[ix][jr][iz] = lattice[ix][js][iz]; 
+	  iz++;
+	}
+	jr++;
+	js++;
+      }
+      ix++;
+    }
+
+  }
+
+  // Copy ghost edge to z-edge
+
+  ir = ixa;
+  is = ixb;
+  for (int i=0;i<delghost;i++) {
+    iy = recviy;
+    for (int j=0;j<delghost;j++) {
+      iz = recviz;
+      for (int k=0;k<numz;k++) {
+	lattice[ir][iy][iz] = lattice[is][iy][iz]; 
+	iz++;
+      }
+      iy++;
+    }
+    ir++;
+    is++;
+  }
+
+  // Third swap is in the x direction
+
+  iswap = 2;
+  swap = &swapinfo[isector][iswap];
+
+  // local copies of SwapInfo data
+    numx = swap->numx,
+    numy = swap->numy,
+    numz = swap->numz,
+    sendproc = swap->sendproc,
+    recvproc = swap->recvproc,
+    sendix = swap->sendix,
+    recvix = swap->recvix,
+    sendiy = swap->sendiy,
+    recviy = swap->recviy,
+    sendiz = swap->sendiz,
+    recviz = swap->recviz,
+    ixa = swap->copyixa,
+    ixb = swap->copyixb,
+    iya = swap->copyiya,
+    iyb = swap->copyiyb;
+
+  recvnum = numy*numz*delghost;
+  sendnum = recvnum;
+
+  // Use MPI to pass data only with other processes
+
+  if (sendproc != me) {
+
+    // Pack the send buffer
+
+    ii = 0;
+    ix = sendix;
+    for (int i=0;i<delghost;i++) {
+      iy = sendiy;
+      for (int j=0;j<numy;j++) {
+	iz = sendiz;
+	for (int k=0;k<numz;k++) {
+	  sendbuf[ii] = lattice[ix][iy][iz];
+	  iz++;
+	  ii++;
+	}
+	iy++;
+      }
+      ix++;
+    }
+
+    MPI_Irecv(recvbuf,recvnum,MPI_INT,
+	      recvproc,0,world,&request);
+    MPI_Send(sendbuf,sendnum,MPI_INT,
+	     sendproc,0,world);
+    MPI_Wait(&request,&status);
+    
+    // Unpack the receive buffer
+
+    ii = 0;
+    ix = recvix;
+    for (int i=0;i<delghost;i++) {
+      iy = recviy;
+      for (int j=0;j<numy;j++) {
+	iz = recviz;
+	for (int k=0;k<numz;k++) {
+	  lattice[ix][iy][iz] = recvbuf[ii]; 
+	  iz++;
+	  ii++;
+	}
+	iy++;
+      }
+      ix++;
+    }
+
+  // Use direct access to pass data to self
+
+  } else { 
+
+    ir = recvix;
+    is = sendix;
+    for (int i=0;i<delghost;i++) {
+      iy = recviy;
+      for (int j=0;j<numy;j++) {
+	iz = recviz;
+	for (int k=0;k<numz;k++) {
+	  lattice[ir][iy][iz] = lattice[is][iy][iz]; 
+	  iz++;
+	}
+      iy++;
+      }
+      ir++;
+      is++;
+    }
+
+  }
+}
+
+/* ----------------------------------------------------------------------
+   update ghost values for entire sub-domain owned by this proc
+   choose one of two different variants
+------------------------------------------------------------------------- */
+
+void CommLattice3d::all(int*** lattice) {
+  if (delghost == 1) all_onelayer(lattice);
+  else all_multilayer(lattice);
+}
+
+/* ----------------------------------------------------------------------
+   update ghost values for entire sub-domain owned by this proc
+   delghost = 1
+------------------------------------------------------------------------- */
+
+void CommLattice3d::all_onelayer(int ***lattice)
 {
   int i,j,k,m;
   MPI_Request request;
@@ -638,6 +1107,160 @@ void CommLattice3d::all(int ***lattice)
 	lattice[nx_local+1][j][k] = lattice[1][j][k];
 	lattice[0][j][k] = lattice[nx_local][j][k];
       }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   update ghost values for entire sub-domain owned by this proc
+   delghost > 1
+------------------------------------------------------------------------- */
+
+void CommLattice3d::all_multilayer(int ***lattice)
+{
+  int i,j,k,m,nsend;
+  MPI_Request request;
+  MPI_Status status;
+
+  // send down, then up
+  // if only 1 proc in z, copy data
+
+  if (procdown != me) {
+    nsend = nx_local*ny_local*delghost;
+    m = 0;
+    for (i = 1; i <= nx_local; i++)
+      for (j = 1; j <= ny_local; j++)
+	for (k = 1; k <= delghost; k++)
+	sendbuf[m++] = lattice[i][j][k];
+
+    MPI_Irecv(recvbuf,nsend,MPI_INT,procup,0,world,&request);
+    MPI_Send(sendbuf,nsend,MPI_INT,procdown,0,world);
+    MPI_Wait(&request,&status);
+
+    m = 0;
+    for (i = 1; i <= nx_local; i++)
+      for (j = 1; j <= ny_local; j++)
+	for (k = 1; k <= delghost; k++)
+	  lattice[i][j][nz_local+k] = recvbuf[m++];
+
+    m = 0;
+    for (i = 1; i <= nx_local; i++)
+      for (j = 1; j <= ny_local; j++)
+	for (k = 1; k <= delghost; k++)
+	  sendbuf[m++] = lattice[i][j][nz_local-delghost+k];
+
+    MPI_Irecv(recvbuf,nsend,MPI_INT,procdown,0,world,&request);
+    MPI_Send(sendbuf,nsend,MPI_INT,procup,0,world);
+    MPI_Wait(&request,&status);
+
+    m = 0;
+    for (i = 1; i <= nx_local; i++)
+      for (j = 1; j <= ny_local; j++)
+	for (k = 1; k <= delghost; k++)
+	  lattice[i][j][k-delghost] = recvbuf[m++];
+
+  } else {
+    for (i = 1; i <= nx_local; i++)
+      for (j = 1; j <= ny_local; j++)
+	for (k = 1; k <= delghost; k++) {
+	lattice[i][j][nz_local+k] = lattice[i][j][k];
+	lattice[i][j][k-delghost] = lattice[i][j][nz_local-delghost+k];
+	}
+  }
+
+  // send south, then north
+  // if only 1 proc in y, copy data
+
+  if (procsouth != me) {
+    nsend = nx_local*(nz_local+2*delghost)*delghost;
+    m = 0;
+    for (i = 1; i <= nx_local; i++)
+      for (j = 1; j <= delghost; j++)
+	for (k = 1-delghost; k <= nz_local+delghost; k++)
+	  sendbuf[m++] = lattice[i][j][k];
+
+    MPI_Irecv(recvbuf,nsend,MPI_INT,procnorth,0,world,
+	      &request);
+    MPI_Send(sendbuf,nsend,MPI_INT,procsouth,0,world);
+    MPI_Wait(&request,&status);
+
+    m = 0;
+    for (i = 1; i <= nx_local; i++)
+      for (j = 1; j <= delghost; j++)
+	for (k = 1-delghost; k <= nz_local+delghost; k++)
+	  lattice[i][ny_local+j][k] = recvbuf[m++];
+
+    m = 0;
+    for (i = 1; i <= nx_local; i++)
+      for (j = 1; j <= delghost; j++)
+	for (k = 1-delghost; k <= nz_local+delghost; k++)
+	  sendbuf[m++] = lattice[i][ny_local-delghost+j][k];
+
+    MPI_Irecv(recvbuf,nsend,MPI_INT,procsouth,0,world,
+	      &request);
+    MPI_Send(sendbuf,nsend,MPI_INT,procnorth,0,world);
+    MPI_Wait(&request,&status);
+
+    m = 0;
+    for (i = 1; i <= nx_local; i++)
+      for (j = 1; j <= delghost; j++)
+	for (k = 1-delghost; k <= nz_local+delghost; k++)
+	  lattice[i][j-delghost][k] = recvbuf[m++];
+
+  } else {
+    for (i = 1; i <= nx_local; i++)
+      for (j = 1; j <= delghost; j++)
+	for (k = 1-delghost; k <= nz_local+delghost; k++) {
+	  lattice[i][ny_local+j][k] = lattice[i][j][k];
+	  lattice[i][j-delghost][k] = lattice[i][ny_local-delghost+j][k];
+	}
+  }
+
+  // send west, then east
+  // if only 1 proc in x, copy data
+  // data is contiguous, so no need for pack/unpack
+
+  if (procwest != me) {
+    nsend = (ny_local+2*delghost)*(nz_local+2*delghost)*delghost;
+    m = 0;
+    for (i = 1; i <= delghost; i++)
+      for (j = 1-delghost; j <= ny_local+delghost; j++)
+	for (k = 1-delghost; k <= nz_local+delghost; k++)
+	  sendbuf[m++] = lattice[i][j][k];
+
+    MPI_Irecv(recvbuf,nsend,MPI_INT,proceast,0,world,&request);
+    MPI_Send(sendbuf,nsend,MPI_INT,procwest,0,world);
+    MPI_Wait(&request,&status);
+
+    m = 0;
+    for (i = 1; i <= delghost; i++)
+      for (j = 1-delghost; j <= ny_local+delghost; j++)
+	for (k = 1-delghost; k <= nz_local+delghost; k++)
+	  lattice[nx_local+i][j][k] = recvbuf[m++];
+
+
+    m = 0;
+    for (i = 1; i <= delghost; i++)
+      for (j = 1-delghost; j <= ny_local+delghost; j++)
+	for (k = 1-delghost; k <= nz_local+delghost; k++)
+	  sendbuf[m++] = lattice[nx_local-delghost+i][j][k];
+
+    MPI_Irecv(recvbuf,nsend,MPI_INT,procwest,0,world,&request);
+    MPI_Send(sendbuf,nsend,MPI_INT,proceast,0,world);
+    MPI_Wait(&request,&status);
+
+    m = 0;
+    for (i = 1; i <= delghost; i++)
+      for (j = 1-delghost; j <= ny_local+delghost; j++)
+	for (k = 1-delghost; k <= nz_local+delghost; k++)
+	  lattice[i-delghost][j][k] = recvbuf[m++];
+
+  } else {
+    for (i = 1; i <= delghost; i++)
+      for (j = 1-delghost; j <= ny_local+delghost; j++)
+	for (k = 1-delghost; k <= nz_local+delghost; k++) {
+	  lattice[nx_local+i][j][k] = lattice[i][j][k];
+	  lattice[i-delghost][j][k] = lattice[nx_local-delghost+i][j][k];
+	}
   }
 }
 

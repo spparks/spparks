@@ -39,6 +39,11 @@ AppLattice3d::AppLattice3d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   propensity = NULL;
   site2ijk = NULL;
   ijk2site = NULL;
+
+  // These are sensible defaults, but each app-specific values
+  // should be provided in the child constructor.
+  dellocal = 0;
+  delghost = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -219,6 +224,8 @@ void AppLattice3d::iterate()
 {
   int i,j,k,isite;
   double dt;
+
+  if (time >= stoptime) return
 
   timer->barrier_start(TIME_LOOP);
   
@@ -509,7 +516,10 @@ void AppLattice3d::procs2lattice()
 
   nyz_local = ny_local*nz_local;
 
-  if (nx_local < 2 || ny_local < 2 || nz_local < 2)
+  if (dellocal > delghost) 
+    error->all("dellocal > delghost: This twisted app could be handled, but not yet");
+  if (nx_local < 2*delghost || ny_local < 2*delghost ||
+      nz_local < 2*delghost)
     error->one("Lattice per proc is too small");
 
   if (iprocz == 0) procdown = me + nz_procs - 1;
@@ -526,4 +536,11 @@ void AppLattice3d::procs2lattice()
   else procwest = me - nyz_procs;
   if (iprocx == nx_procs-1) proceast = me - nprocs + nyz_procs;
   else proceast = me + nyz_procs;
+
+  nxlo = 1-delghost;
+  nxhi = nx_local+delghost;
+  nylo = 1-delghost;
+  nyhi = ny_local+delghost;
+  nzlo = 1-delghost;
+  nzhi = ny_local+delghost;
 }

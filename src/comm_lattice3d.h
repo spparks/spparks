@@ -16,14 +16,20 @@ class CommLattice3d : protected SysPtr {
   ~CommLattice3d();
   void init(const int, const int, const int,
 	    const int, const int, const int,
-	    const int, const int, const int);
+	    const int, const int, const int,
+	    const int, const int);
   void sector(int ***, const int);
+  void sector_onelayer(int ***, const int);
+  void sector_multilayer(int ***, const int);
   void all(int ***);
+  void all_onelayer(int ***);
+  void all_multilayer(int ***);
 
  private:
   int me,nprocs;
   int nx_local,ny_local,nz_local;
   int procwest,proceast,procsouth,procnorth,procdown,procup;
+  int delghost,dellocal; // thickness of ghost and local communication layers 
 
   int *sendbuf;          // send buffer for all comm
   int *recvbuf;          // recv buffer for all comm

@@ -40,15 +40,14 @@ class AppLattice2d : public App {
 
   int nx_global,ny_global;           // global lattice (0 to nglobal-1)
   int nx_local,ny_local;             // local lattice (1 to nlocal)
-                                     // 0 and nlocal+1 are ghosts
+                                     // Does not include ghost sites
   int nx_offset,ny_offset;           // global indices of my (1,1) site
   int nx_sector_lo,nx_sector_hi;     // bounds of current sector
   int ny_sector_lo,ny_sector_hi;     // as set by sweeper
 
-  int nxlo,nxhi,nylo,nyhi;           // Upper and lower indexes for local lattice
-  int delghost, dellocal;            // Thickness of ghost and local layers 
-                                     // needed for communication
-
+  int nxlo,nxhi,nylo,nyhi;           // Upper and lower limits for local lattice
+                                     // Includes ghost layer of thickness = delghost
+                                     // local sites on 1 to nlocal
   int **lattice;               // owned lattice + ghost lattice
   double *propensity;          // probability for each owned site
   int **ij2site;               // mapping of owned lattice to sites
@@ -59,6 +58,12 @@ class AppLattice2d : public App {
   int procsouth,procnorth;
 
   double masklimit;            // app-specific, used by sweeper
+
+  int delghost, dellocal;      // App-specific thickness of 
+                               // ghost and local layers 
+                               // needed for communication.
+                               // delghost affects upper and lower
+                               // limits for local lattice
 
   FILE *fp;
   int *dumpbuf;
@@ -75,6 +80,7 @@ class AppLattice2d : public App {
   void dump_header();
   void dump();
   void dump_detailed(char*);
+  void dump_detailed_mask(char*,char**);
 
   void set_stats(int, char **);
   void set_dump(int, char **);

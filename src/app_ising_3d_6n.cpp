@@ -34,6 +34,9 @@ AppIsing3d6n::AppIsing3d6n(SPK *spk, int narg, char **arg) :
 
   masklimit = 3.0;
 
+  dellocal = 0;
+  delghost = 1;
+
   // define lattice and partition it across processors
   
   procs2lattice();
@@ -63,7 +66,7 @@ AppIsing3d6n::AppIsing3d6n(SPK *spk, int narg, char **arg) :
 
   comm = new CommLattice3d(spk);
   comm->init(nx_local,ny_local,nz_local,
-	     procwest,proceast,procsouth,procnorth,procdown,procup);
+	     procwest,proceast,procsouth,procnorth,procdown,procup,delghost,dellocal);
 }
 
 /* ---------------------------------------------------------------------- */

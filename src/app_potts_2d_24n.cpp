@@ -37,20 +37,12 @@ AppPotts2d24n::AppPotts2d24n(SPK *spk, int narg, char **arg) :
 
   masklimit = 12.0;
 
+  dellocal = 0;
   delghost = 2;
 
   // define lattice and partition it across processors
   // It needs to have correct values for delghost  
   procs2lattice();
-
-  // Since delghost > 1, need to make additional check on local domain size
-  if (nx_local < 2*delghost || ny_local < 2*delghost)
-    error->one("Lattice per proc is too small");
-
-  nxlo = 1-delghost;
-  nxhi = nx_local+delghost;
-  nylo = 1-delghost;
-  nyhi = ny_local+delghost;
 
   memory->create_2d_T_array(lattice,nxlo,nxhi,nylo,nyhi,
 			    "applattice2d:lattice");

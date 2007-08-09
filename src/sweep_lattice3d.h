@@ -18,6 +18,7 @@ class SweepLattice3d : public Sweep {
   ~SweepLattice3d();
   void init();
   void do_sweep(double &);
+  void boundary_clear_mask(int, int, int, int, int, int);
 
  private:
   int seed;
@@ -33,10 +34,13 @@ class SweepLattice3d : public Sweep {
   class CommLattice3d *comm;
   class RandomPark *random;
 
-  int ncolor;
-  double masklimit;
+  int ncolor,delcol;
   char ***mask;
   class RandomPark ***ranlat;
+
+  double masklimit;              // App-specific settings
+  int delghost,dellocal;
+  int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
 
   int nquad;
   struct {
