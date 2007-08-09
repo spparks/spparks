@@ -531,6 +531,7 @@ void SweepLattice3d::sweep_quadrant_strict(int icolor, int iquad)
 {
   int i,j,k,i0,j0,k0,oldstate,newstate;
   double einitial,efinal;
+  double xtmp1,xtmp2;
 
   int xlo = quad[iquad].xlo;
   int xhi = quad[iquad].xhi;
@@ -542,30 +543,33 @@ void SweepLattice3d::sweep_quadrant_strict(int icolor, int iquad)
   i0 = icolor/(delcol*delcol)  - (nx_offset + xlo-1) % delcol;
   i0 = (i0 < 0) ? i0+delcol : i0;
 
-  j0 = icolor/delcol  - (ny_offset + ylo-1) % delcol;
+  j0 = icolor/delcol % delcol - (ny_offset + ylo-1) % delcol;
   j0 = (j0 < 0) ? j0+delcol : j0;
 
   k0 = icolor%delcol  - (nz_offset + zlo-1) % delcol;
   k0 = (k0 < 0) ? k0+delcol : k0;
 
-//   i0 = (icolor/4 + nx_offset + xlo) % 2;
-//   j0 = (icolor/2 + ny_offset + ylo) % 2;
-//   k0 = (icolor   + nz_offset + zlo) % 2;
+  for (i = xlo+i0; i <= xhi; i += delcol)
+    for (j = ylo+j0; j <= yhi; j += delcol)
+      for (k = zlo+k0;  k <= zhi; k += delcol) {
 
-  for (i = xlo+i0; i <= xhi; i += 2)
-    for (j = ylo+j0; j <= yhi; j += 2)
-      for (k = zlo+k0;  k <= zhi; k+=2) {
+	// call RNG even if skipping via mask
+	// insures same answer no matter where proc boundaries are
+	
+	xtmp1 = ranlat[i][j][k].uniform();
+	xtmp2 = ranlat[i][j][k].uniform();
+
 	oldstate = lattice[i][j][k];
 	einitial = applattice->site_energy(i,j,k);
 	
 	newstate = 
-	  applattice->site_pick_random(i,j,k,ranlat[i][j][k].uniform());
+	  applattice->site_pick_random(i,j,k,xtmp1);
 	lattice[i][j][k] = newstate;
 	efinal = applattice->site_energy(i,j,k);
 	
 	if (efinal <= einitial) continue;
 	else if (temperature == 0.0) lattice[i][j][k] = oldstate;
-	else if (random->uniform() > exp((einitial-efinal)*t_inverse))
+	else if (xtmp2 > exp((einitial-efinal)*t_inverse))
 	  lattice[i][j][k] = oldstate;
       }
 }
@@ -576,6 +580,7 @@ void SweepLattice3d::sweep_quadrant_mask_strict(int icolor, int iquad)
 {
   int i,j,k,i0,j0,k0,oldstate,newstate;
   double einitial,efinal;
+  double xtmp1,xtmp2;
 
   int xlo = quad[iquad].xlo;
   int xhi = quad[iquad].xhi;
@@ -589,37 +594,33 @@ void SweepLattice3d::sweep_quadrant_mask_strict(int icolor, int iquad)
   i0 = icolor/(delcol*delcol)  - (nx_offset + xlo-1) % delcol;
   i0 = (i0 < 0) ? i0+delcol : i0;
 
-  j0 = icolor/delcol  - (ny_offset + ylo-1) % delcol;
+  j0 = icolor/delcol % delcol - (ny_offset + ylo-1) % delcol;
   j0 = (j0 < 0) ? j0+delcol : j0;
 
   k0 = icolor%delcol  - (nz_offset + zlo-1) % delcol;
   k0 = (k0 < 0) ? k0+delcol : k0;
 
-//   i0 = (icolor/4 + nx_offset + xlo) % 2;
-//   j0 = (icolor/2 + ny_offset + ylo) % 2;
-//   k0 = (icolor   + nz_offset + zlo) % 2;
+  for (i = xlo+i0; i <= xhi; i+=delcol)
+    for (j = ylo+j0; j <= yhi; j+=delcol)
+      for (k = zlo+k0;  k <= zhi; k += delcol) {
 
-  // call RNG even if skipping via mask
-  // insures same answer no matter where proc boundaries are
+	// call RNG even if skipping via mask
+	// insures same answer no matter where proc boundaries are
+	
+	xtmp1 = ranlat[i][j][k].uniform();
+	xtmp2 = ranlat[i][j][k].uniform();
 
-  for (i = xlo+i0; i <= xhi; i+=2)
-    for (j = ylo+j0; j <= yhi; j+=2)
-      for (k = zlo+k0;  k <= zhi; k+=2) {
-	if (mask[i][j][k]) {
-	  ranlat[i][j][k].uniform();
-	  continue;
-	}
+	if (mask[i][j][k]) continue;
 
 	oldstate = lattice[i][j][k];
 	einitial = applattice->site_energy(i,j,k);
 	if (einitial < masklimit) {
 	  mask[i][j][k] = 1;
-	  ranlat[i][j][k].uniform();
 	  continue;
 	}
 	
 	newstate =
-	  applattice->site_pick_random(i,j,k,ranlat[i][j][k].uniform());
+	  applattice->site_pick_random(i,j,k,xtmp1);
 	lattice[i][j][k] = newstate;
 	efinal = applattice->site_energy(i,j,k);
 	
@@ -627,7 +628,7 @@ void SweepLattice3d::sweep_quadrant_mask_strict(int icolor, int iquad)
 	  applattice->site_clear_mask(mask,i,j,k);
 	  continue;
 	} else if (temperature == 0.0) lattice[i][j][k] = oldstate;
-	else if (random->uniform() > exp((einitial-efinal)*t_inverse))
+	else if (xtmp2 > exp((einitial-efinal)*t_inverse))
 	  lattice[i][j][k] = oldstate;
 	else applattice->site_clear_mask(mask,i,j,k);
       }

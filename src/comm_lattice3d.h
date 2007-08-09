@@ -24,9 +24,9 @@ class CommLattice3d : protected SysPtr {
   void all(int ***);
   void all_onelayer(int ***);
   void all_multilayer(int ***);
+  int me,nprocs;
 
  private:
-  int me,nprocs;
   int nx_local,ny_local,nz_local;
   int procwest,proceast,procsouth,procnorth,procdown,procup;
   int delghost,dellocal; // thickness of ghost and local communication layers 

@@ -542,5 +542,5 @@ void AppLattice3d::procs2lattice()
   nylo = 1-delghost;
   nyhi = ny_local+delghost;
   nzlo = 1-delghost;
-  nzhi = ny_local+delghost;
+  nzhi = nz_local+delghost;
 }
