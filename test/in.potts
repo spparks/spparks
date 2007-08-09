@@ -80,27 +80,27 @@ clear
 #
 #clear
 
-# Run potts/2d/24n with sweeping, parallel kmc and serial kmc
-
-app_style	potts/2d/24n 100 100 100 12345
-sweep_style     lattice2d 12345 strict yes mask no delt 1.0e-2
-temperature	0.2
-stats           0.01
-
-run		0.1
-
-clear
-
-app_style	potts/2d/24n 100 100 100 12345
-sweep_style     lattice2d 12345 kmc yes delt 1.0e-2
-solve_style     next_event_tree_search 12345
-temperature	0.2
-stats           0.01
-
-run		0.1
-
-clear
-
+## Run potts/2d/24n with sweeping, parallel kmc and serial kmc
+#
+#app_style	potts/2d/24n 100 100 100 12345
+#sweep_style     lattice2d 12345 strict yes mask no delt 1.0e-2
+#temperature	0.2
+#stats           0.01
+#
+#run		0.1
+#
+#clear
+#
+#app_style	potts/2d/24n 100 100 100 12345
+#sweep_style     lattice2d 12345 kmc yes delt 1.0e-2
+#solve_style     next_event_tree_search 12345
+#temperature	0.2
+#stats           0.01
+#
+#run		0.1
+#
+#clear
+#
 # Comment this run out if you want to run multi-process tests
 #app_style	potts/2d/4n 100 100 100 12345
 #solve_style     next_event_tree_search 12345
@@ -154,6 +154,37 @@ run		0.1
 clear
 
 app_style	potts/3d/6n 32 32 32 100 12345
+sweep_style     lattice3d 12345 kmc yes delt 1.0e-2
+solve_style     next_event_tree_search 12345
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+# Comment this run out if you want to run multi-process tests
+#app_style	potts/3d/6n 32 32 32 100 12345
+#solve_style     next_event_tree_search 12345
+#temperature	0.2
+#stats           0.01
+#
+#run		0.1
+#
+#clear
+
+# Run potts/3d/12n with sweeping, parallel kmc and serial kmc
+
+app_style	potts/3d/12n 32 32 32 100 12345
+sweep_style     lattice3d 12345 strict no mask yes delt 1.0e-2
+temperature	0.2
+stats           0.01
+
+run		0.1
+
+clear
+
+app_style	potts/3d/12n 32 32 32 100 12345
 sweep_style     lattice3d 12345 kmc yes delt 1.0e-2
 solve_style     next_event_tree_search 12345
 temperature	0.2
