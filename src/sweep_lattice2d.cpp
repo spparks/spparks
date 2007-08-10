@@ -310,6 +310,10 @@ void SweepLattice2d::do_sweep(double &dt)
       (this->*sector)(icolor,iquad);
 
       timer->stamp(TIME_SOLVE);
+
+      comm->reverse_sector(lattice,iquad);
+      timer->stamp(TIME_COMM);
+
     }
 
   dt = delt;

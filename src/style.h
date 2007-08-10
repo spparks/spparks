@@ -7,15 +7,15 @@
 #include "app_chemistry.h"
 #include "app_ising_2d_4n.h"
 #include "app_ising_2d_8n.h"
+#include "app_ising_3d_6n.h"
+#include "app_ising_3d_26n.h"
 #include "app_membrane.h"
 #include "app_potts_2d_4n.h"
 #include "app_potts_2d_8n.h"
 #include "app_potts_2d_24n.h"
-#include "app_ising_3d_6n.h"
-#include "app_ising_3d_26n.h"
 #include "app_potts_3d_6n.h"
-#include "app_potts_3d_26n.h"
 #include "app_potts_3d_12n.h"
+#include "app_potts_3d_26n.h"
 #include "app_surf.h"
 #include "app_test.h"
 #endif
@@ -24,15 +24,15 @@
 AppStyle(chemistry,AppChemistry)
 AppStyle(ising/2d/4n,AppIsing2d4n)
 AppStyle(ising/2d/8n,AppIsing2d8n)
+AppStyle(ising/3d/6n,AppIsing3d6n)
+AppStyle(ising/3d/26n,AppIsing3d26n)
 AppStyle(membrane,AppMembrane)
 AppStyle(potts/2d/4n,AppPotts2d4n)
 AppStyle(potts/2d/8n,AppPotts2d8n)
 AppStyle(potts/2d/24n,AppPotts2d24n)
-AppStyle(ising/3d/6n,AppIsing3d6n)
-AppStyle(ising/3d/26n,AppIsing3d26n)
 AppStyle(potts/3d/6n,AppPotts3d6n)
-AppStyle(potts/3d/26n,AppPotts3d26n)
 AppStyle(potts/3d/12n,AppPotts3d12n)
+AppStyle(potts/3d/26n,AppPotts3d26n)
 AppStyle(surf,AppSurf)
 AppStyle(test,AppTest)
 #endif
