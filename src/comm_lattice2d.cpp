@@ -26,6 +26,7 @@ CommLattice2d::CommLattice2d(class SPK *spk) : SysPtr(spk)
   MPI_Comm_size(world,&nprocs);
 
   swapinfo = NULL;
+  reverseinfo = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,9 +56,26 @@ void CommLattice2d::init(const int nx_local_in, const int ny_local_in,
   delghost = delghost_in;
   dellocal = dellocal_in;
 
-  int nx_half = nx_local/2 + 1;
-  int ny_half = ny_local/2 + 1;
+  // initialize swap parameters and allocate memory
 
+  nsector = 4;
+  nswap = 2;
+  allocate_swap(nsector,nswap);
+
+  setup_swapinfo();
+  setup_reverseinfo();
+
+  maxbuf = (MAX(nx_local,ny_local)+2*delghost)*delghost;
+  recvbuf = (int*) memory->smalloc(maxbuf*sizeof(int),"commlattice:recvbuf");
+  sendbuf = (int*) memory->smalloc(maxbuf*sizeof(int),"commlattice:sendbuf");
+}
+
+/* ----------------------------------------------------------------------
+   setup up forward communication for each sector
+------------------------------------------------------------------------- */
+
+void CommLattice2d::setup_swapinfo()
+{
   // initialize swap parameters and allocate memory
 
   SwapInfo* swap;
@@ -70,9 +88,8 @@ void CommLattice2d::init(const int nx_local_in, const int ny_local_in,
   // iswap = 0 refers to the north/south swap
   // iswap = 1 refers to the east/west swap 
 
-  nsector = 4;
-  nswap = 2;
-  allocate_swap(nsector,nswap);
+  int nx_half = nx_local/2 + 1;
+  int ny_half = ny_local/2 + 1;
 
   // Assign processors to different swap directions as [iswap=0,1][dir=0,1]
 
@@ -171,17 +188,163 @@ void CommLattice2d::init(const int nx_local_in, const int ny_local_in,
       }
       isector++;
     }
+}
 
-  maxbuf = (MAX(nx_local,ny_local)+2*delghost)*delghost;
-  recvbuf = (int*) memory->smalloc(maxbuf*sizeof(int),"commlattice:recvbuf");
-  sendbuf = (int*) memory->smalloc(maxbuf*sizeof(int),"commlattice:sendbuf");
+/* ----------------------------------------------------------------------
+   setup up reverse communication for each sector
+------------------------------------------------------------------------- */
+
+void CommLattice2d::setup_reverseinfo()
+{
+  // initialize swap parameters and allocate memory
+
+  SwapInfo* swap;
+  int iswap,isector;
+  int procarray[2][2];
+  SwapInfo swapguide[2][2];
+  int ii,jj,kk,irecv,isend;
+
+  // isector = 0,1,2,3 refers to SW,NW,SE,NE quadrants, respectively
+  // iswap = 0 refers to the north/south swap
+  // iswap = 1 refers to the east/west swap 
+
+  int nx_half = nx_local/2 + 1;
+  int ny_half = ny_local/2 + 1;
+
+  // Assign processors to different swap directions as [iswap=0,1][dir=0,1]
+
+  procarray[0][0] = procsouth;
+  procarray[0][1] = procnorth;
+  procarray[1][0] = procwest;
+  procarray[1][1] = proceast;
+
+  // swapguide[0][0] stores values for lower side, not communicating
+
+  swapguide[0][0].recvix = 1-delghost;
+  swapguide[0][0].recviy = 1-delghost;
+  swapguide[0][0].sendix = 1-delghost;
+  swapguide[0][0].sendiy = 1-delghost;
+  swapguide[0][0].numx = nx_half-1 + 2*delghost;
+  swapguide[0][0].numy = ny_half-1 + 2*delghost;;
+  swapguide[0][0].recvproc = -1;
+  swapguide[0][0].sendproc = -1;
+  swapguide[0][0].copyixa = nx_local-delghost+1;
+  swapguide[0][0].copyixb = 1-delghost;
+
+  // swapguide[0][1] stores values for lower side, communicating
+
+  swapguide[0][1].recvix = 1-delghost;
+  swapguide[0][1].recviy = 1-delghost;
+  swapguide[0][1].sendix = nx_local-delghost+1;
+  swapguide[0][1].sendiy = ny_local-delghost+1;
+  swapguide[0][1].numx = delghost;
+  swapguide[0][1].numy = delghost;
+  swapguide[0][1].recvproc = 0;
+  swapguide[0][1].sendproc = 1;
+  swapguide[0][1].copyixa = -1;
+  swapguide[0][1].copyixb = -1;
+
+  // swapguide[1][0] stores values for upper side, not communicating
+
+  swapguide[1][0].recvix = nx_half-delghost;
+  swapguide[1][0].recviy = ny_half-delghost;
+  swapguide[1][0].sendix = nx_half-delghost;
+  swapguide[1][0].sendiy = ny_half-delghost;
+  swapguide[1][0].numx = nx_local-nx_half+1+2*delghost;
+  swapguide[1][0].numy = ny_local-ny_half+1+2*delghost;
+  swapguide[1][0].recvproc = -1;
+  swapguide[1][0].sendproc = -1;
+  swapguide[1][0].copyixa = 1;
+  swapguide[1][0].copyixb = nx_local+1;
+
+  // swapguide[1][1] stores values for upper side, communicating
+
+  swapguide[1][1].recvix = nx_local+1;
+  swapguide[1][1].recviy = ny_local+1;
+  swapguide[1][1].sendix = 1;
+  swapguide[1][1].sendiy = 1;
+  swapguide[1][1].numx = delghost;
+  swapguide[1][1].numy = delghost;
+  swapguide[1][1].recvproc = 1;
+  swapguide[1][1].sendproc = 0;
+  swapguide[1][1].copyixa = -1;
+  swapguide[1][1].copyixb = -1;
+
+  // loop over both sides in each direction, and all swap directions
+  // use appropriate guide values in each case
+
+  isector = 0;
+  for (int i = 0; i < 2; i++)
+    for (int j = 0; j < 2; j++) {
+      for (iswap = 0; iswap < nswap; iswap++) {
+	// Same order as setup_swapinfo(); order reversed in reverse_sector();
+	swap = &reverseinfo[isector][iswap];
+	
+	// identify which direction is communicating	  
+	
+	if (iswap == 0) {
+	  ii = 0;
+	  jj = 1;
+	  irecv = swapguide[j][jj].recvproc;
+	  isend = swapguide[j][jj].sendproc;
+	  swap->stride = ny_local+2*delghost;
+	} else {
+	  ii = 1;
+	  jj = 0;
+	  irecv = swapguide[i][ii].recvproc;
+	  isend = swapguide[i][ii].sendproc;
+	  swap->stride = 1;
+	}
+
+	// Exactly opposite to assignments in setup_swapinfo()
+	swap->recvix = swapguide[i][ii].sendix;
+	swap->recviy = swapguide[j][jj].sendiy;
+	swap->sendix = swapguide[i][ii].recvix;
+	swap->sendiy = swapguide[j][jj].recviy;
+	swap->numx = swapguide[i][ii].numx;
+	swap->numy = swapguide[j][jj].numy;
+	swap->recvproc = procarray[iswap][isend];
+	swap->sendproc = procarray[iswap][irecv];
+	// These values are not reversed; it's complicated
+	swap->copyixa = swapguide[i][ii].copyixa;
+	swap->copyixb = swapguide[i][ii].copyixb;
+      }
+      isector++;
+    }
 }
 
 /* ----------------------------------------------------------------------
    communicate ghost values for one sector (quadrant)
+   it chooses the only variant: sector_multilayer
 ------------------------------------------------------------------------- */
 
 void CommLattice2d::sector(int** lattice, const int isector) {
+  if (delghost == 1) sector_multilayer(lattice,isector);
+  else sector_multilayer(lattice,isector);
+}
+
+// // This was a version used for testing
+// void CommLattice2d::sector(int** lattice, const int isector) {
+//   if (delghost == 1) {
+//     // This is just a test
+//     sector_multilayer_destroy(lattice,isector);
+//     reverse_sector_multilayer(lattice,isector);
+//     sector_multilayer(lattice,isector);
+//   }
+//   else {
+//     // This is just a test
+//     sector_multilayer_destroy(lattice,isector);
+//         reverse_sector_multilayer(lattice,isector);
+//         sector_multilayer(lattice,isector);
+//   }
+// }
+
+/* ----------------------------------------------------------------------
+   communicate ghost values for one sector (quadrant)
+   delghost > 1
+------------------------------------------------------------------------- */
+
+void CommLattice2d::sector_multilayer(int** lattice, const int isector) {
   int iswap,ii,ix,iy,recvnum,sendnum;
   MPI_Request request;
   MPI_Status status;
@@ -360,8 +523,6 @@ void CommLattice2d::sector(int** lattice, const int isector) {
 
     ir = recvix;
     is = sendix;
-//     printf("numx = %d recvix = %d sendix = %d delghost = %d \n ",numx,recvix,sendix,delghost);
-//     printf("numy = %d recviy = %d sendiy = %d delghost = %d \n ",numy,recviy,sendiy,delghost);
     for (int i=0;i<numx;i++) {
       iy = recviy;
       for (int j=0;j<numy;j++) {
@@ -376,10 +537,432 @@ void CommLattice2d::sector(int** lattice, const int isector) {
 }
 
 /* ----------------------------------------------------------------------
-   update ghost values for entire sub-domain owned by this proc
+   communicate ghost values for one sector (quadrant)
+   delghost > 1
+   this version erases all local sites that are read
 ------------------------------------------------------------------------- */
 
-void CommLattice2d::all(int **lattice)
+void CommLattice2d::sector_multilayer_destroy(int** lattice, const int isector) {
+  int iswap,ii,ix,iy,recvnum,sendnum;
+  MPI_Request request;
+  MPI_Status status;
+  SwapInfo* swap;
+  int ir,is;
+
+  // Each swap direction is a little different
+  // Need to code each swap explicitly
+
+  // First swap is in the y direction
+
+  iswap = 0;
+  swap = &swapinfo[isector][iswap];
+
+  // local copies of SwapInfo data
+  int 
+    numx = swap->numx,
+    numy = swap->numy,
+    sendproc = swap->sendproc,
+    recvproc = swap->recvproc,
+    sendix = swap->sendix,
+    recvix = swap->recvix,
+    sendiy = swap->sendiy,
+    recviy = swap->recviy,
+    ixa = swap->copyixa,
+    ixb = swap->copyixb;
+
+  recvnum = numx*numy;
+  sendnum = recvnum;
+
+  // Copy corner to ghost corner
+
+  ir = ixb;
+  is = ixa;
+  for (int i=0;i<delghost;i++) {
+    iy = sendiy;
+    for (int j=0;j<delghost;j++) {
+      lattice[ir][iy] = lattice[is][iy]; 
+      lattice[is][iy] = 0; 
+      iy++;
+    }
+    ir++;
+    is++;
+  }
+
+  // Use MPI to pass data only with other processes
+
+  if (sendproc != me) {
+
+    // Pack the send buffer
+
+    ix = sendix;
+    ii = 0;
+    for (int i=0;i<numx;i++) {
+      iy = sendiy;
+      for (int j=0;j<numy;j++) {
+	sendbuf[ii] = lattice[ix][iy];
+	lattice[ix][iy] = 0;
+	ii++;
+	iy++;
+      }
+      ix++;
+    }
+
+    MPI_Irecv(recvbuf,recvnum,MPI_INT,
+	      recvproc,0,world,&request);
+    MPI_Send(sendbuf,sendnum,MPI_INT,
+	     sendproc,0,world);
+    MPI_Wait(&request,&status);
+    
+    // Unpack the receive buffer
+
+    ix = recvix;
+    ii = 0;
+    for (int i=0;i<numx;i++) {
+      iy = recviy;
+      for (int j=0;j<numy;j++) {
+	lattice[ix][iy] = recvbuf[ii]; 
+	ii++;
+	iy++;
+      }
+      ix++;
+    }
+
+  // Use direct access to pass data to self
+
+  } else { 
+
+    ix = recvix;
+    for (int i=0;i<numx;i++) {
+      ir = recviy;
+      is = sendiy;
+      for (int j=0;j<numy;j++) {
+	lattice[ix][ir] = lattice[ix][is]; 
+	lattice[ix][is] = 0; 
+	ir++;
+	is++;
+      }
+      ix++;
+    }
+  }
+
+  // Copy corner to ghost corner
+
+  ir = ixa;
+  is = ixb;
+  for (int i=0;i<delghost;i++) {
+    iy = recviy;
+    for (int j=0;j<delghost;j++) {
+      lattice[ir][iy] = lattice[is][iy]; 
+      iy++;
+    }
+    ir++;
+    is++;
+  }
+
+
+  // Second swap is in the x direction
+
+  iswap = 1;
+  swap = &swapinfo[isector][iswap];
+
+  // local copies of SwapInfo data
+    numx = swap->numx,
+    numy = swap->numy,
+    sendproc = swap->sendproc,
+    recvproc = swap->recvproc,
+    sendix = swap->sendix,
+    recvix = swap->recvix,
+    sendiy = swap->sendiy,
+    recviy = swap->recviy,
+    ixa = swap->copyixa,
+    ixb = swap->copyixb;
+
+  recvnum = numx*numy;
+  sendnum = recvnum;
+
+  // Use MPI to pass data only with other processes
+
+  if (sendproc != me) {
+
+    // Pack the send buffer
+
+    ix = sendix;
+    ii = 0;
+    for (int i=0;i<numx;i++) {
+      iy = sendiy;
+      for (int j=0;j<numy;j++) {
+	sendbuf[ii] = lattice[ix][iy];
+	lattice[ix][iy] = 0;
+	ii++;
+	iy++;
+      }
+      ix++;
+    }
+
+    MPI_Irecv(recvbuf,recvnum,MPI_INT,
+	      recvproc,0,world,&request);
+    MPI_Send(sendbuf,sendnum,MPI_INT,
+	     sendproc,0,world);
+    MPI_Wait(&request,&status);
+    
+    // Unpack the receive buffer
+
+    ix = recvix;
+    ii = 0;
+    for (int i=0;i<numx;i++) {
+      iy = recviy;
+      for (int j=0;j<numy;j++) {
+	lattice[ix][iy] = recvbuf[ii];
+	ii++;
+	iy++;
+      }
+      ix++;
+    }
+
+    // Use direct access to pass data to self
+
+  } else { 
+
+    ir = recvix;
+    is = sendix;
+    for (int i=0;i<numx;i++) {
+      iy = recviy;
+      for (int j=0;j<numy;j++) {
+	lattice[ir][iy] = lattice[is][iy]; 
+	lattice[is][iy] = 0; 
+	iy++;
+      }
+      ir++;
+      is++;
+    }
+
+  }
+}
+
+/* ----------------------------------------------------------------------
+   send back ghost values for one sector (quadrant)
+   it chooses the only variant: reverse_sector_multilayer
+------------------------------------------------------------------------- */
+
+void CommLattice2d::reverse_sector(int** lattice, const int isector) {
+  if (dellocal == 0) return;
+  else if (dellocal == 1) reverse_sector_multilayer(lattice,isector);
+  else reverse_sector_multilayer(lattice,isector);
+}
+
+/* ----------------------------------------------------------------------
+   send back ghost values for one sector (quadrant)
+   delghost > 1
+------------------------------------------------------------------------- */
+
+void CommLattice2d::reverse_sector_multilayer(int** lattice, const int isector) {
+  int iswap,ii,ix,iy,recvnum,sendnum;
+  MPI_Request request;
+  MPI_Status status;
+  SwapInfo* swap;
+  int ir,is;
+
+  // Each swap direction is a little different
+  // Need to code each swap explicitly
+  // These swaps are exactly the opposite of those in sector()
+
+  // First swap is in the x direction
+
+  iswap = 1;
+  swap = &reverseinfo[isector][iswap];
+
+  // local copies of SwapInfo data
+  int
+    numx = swap->numx,
+    numy = swap->numy,
+    sendproc = swap->sendproc,
+    recvproc = swap->recvproc,
+    sendix = swap->sendix,
+    recvix = swap->recvix,
+    sendiy = swap->sendiy,
+    recviy = swap->recviy,
+    ixa = swap->copyixa,
+    ixb = swap->copyixb;
+
+  recvnum = numx*numy;
+  sendnum = recvnum;
+
+  // Use MPI to pass data only with other processes
+
+  if (sendproc != me) {
+
+    // Pack the send buffer
+
+    ix = sendix;
+    ii = 0;
+    for (int i=0;i<numx;i++) {
+      iy = sendiy;
+      for (int j=0;j<numy;j++) {
+	sendbuf[ii] = lattice[ix][iy];
+	ii++;
+	iy++;
+      }
+      ix++;
+    }
+
+    MPI_Irecv(recvbuf,recvnum,MPI_INT,
+	      recvproc,0,world,&request);
+    MPI_Send(sendbuf,sendnum,MPI_INT,
+	     sendproc,0,world);
+    MPI_Wait(&request,&status);
+    
+    // Unpack the receive buffer
+
+    ix = recvix;
+    ii = 0;
+    for (int i=0;i<numx;i++) {
+      iy = recviy;
+      for (int j=0;j<numy;j++) {
+	lattice[ix][iy] = recvbuf[ii];
+	ii++;
+	iy++;
+      }
+      ix++;
+    }
+
+    // Use direct access to pass data to self
+
+  } else { 
+
+    ir = recvix;
+    is = sendix;
+    for (int i=0;i<numx;i++) {
+      iy = recviy;
+      for (int j=0;j<numy;j++) {
+	lattice[ir][iy] = lattice[is][iy]; 
+	iy++;
+      }
+      ir++;
+      is++;
+    }
+
+  }
+
+  // Second swap is in the y direction
+
+  iswap = 0;
+  swap = &reverseinfo[isector][iswap];
+
+  // local copies of SwapInfo data
+    numx = swap->numx,
+    numy = swap->numy,
+    sendproc = swap->sendproc,
+    recvproc = swap->recvproc,
+    sendix = swap->sendix,
+    recvix = swap->recvix,
+    sendiy = swap->sendiy,
+    recviy = swap->recviy,
+    ixa = swap->copyixa,
+    ixb = swap->copyixb;
+
+  recvnum = numx*numy;
+  sendnum = recvnum;
+
+  // Copy corner to ghost corner
+
+  ir = ixb;
+  is = ixa;
+  for (int i=0;i<delghost;i++) {
+    iy = sendiy;
+    for (int j=0;j<delghost;j++) {
+      lattice[ir][iy] = lattice[is][iy]; 
+      iy++;
+    }
+    ir++;
+    is++;
+  }
+
+  // Use MPI to pass data only with other processes
+
+  if (sendproc != me) {
+
+    // Pack the send buffer
+
+    ix = sendix;
+    ii = 0;
+    for (int i=0;i<numx;i++) {
+      iy = sendiy;
+      for (int j=0;j<numy;j++) {
+	sendbuf[ii] = lattice[ix][iy];
+	ii++;
+	iy++;
+      }
+      ix++;
+    }
+
+    MPI_Irecv(recvbuf,recvnum,MPI_INT,
+	      recvproc,0,world,&request);
+    MPI_Send(sendbuf,sendnum,MPI_INT,
+	     sendproc,0,world);
+    MPI_Wait(&request,&status);
+    
+    // Unpack the receive buffer
+
+    ix = recvix;
+    ii = 0;
+    for (int i=0;i<numx;i++) {
+      iy = recviy;
+      for (int j=0;j<numy;j++) {
+	lattice[ix][iy] = recvbuf[ii]; 
+	ii++;
+	iy++;
+      }
+      ix++;
+    }
+
+  // Use direct access to pass data to self
+
+  } else { 
+
+    ix = recvix;
+    for (int i=0;i<numx;i++) {
+      ir = recviy;
+      is = sendiy;
+      for (int j=0;j<numy;j++) {
+	lattice[ix][ir] = lattice[ix][is]; 
+	ir++;
+	is++;
+      }
+      ix++;
+    }
+  }
+
+  // Copy corner to ghost corner
+
+  ir = ixa;
+  is = ixb;
+  for (int i=0;i<delghost;i++) {
+    iy = recviy;
+    for (int j=0;j<delghost;j++) {
+      lattice[ir][iy] = lattice[is][iy]; 
+      iy++;
+    }
+    ir++;
+    is++;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   update ghost values for entire sub-domain owned by this proc
+   it chooses the only variant: all_multilayer
+------------------------------------------------------------------------- */
+
+void CommLattice2d::all(int** lattice) {
+  if (delghost == 1) all_multilayer(lattice);
+  else all_multilayer(lattice);
+}
+
+/* ----------------------------------------------------------------------
+   update ghost values for entire sub-domain owned by this proc
+   delghost > 1
+------------------------------------------------------------------------- */
+
+void CommLattice2d::all_multilayer(int **lattice)
 {
   int i,j,m;
   int nsend;
@@ -470,6 +1053,7 @@ void CommLattice2d::all(int **lattice)
 void CommLattice2d::free_swap()
 {
   memory->destroy_2d_T_array(swapinfo);
+  memory->destroy_2d_T_array(reverseinfo);
 }
 
 /* ----------------------------------------------------------------------
@@ -479,6 +1063,7 @@ void CommLattice2d::free_swap()
 void CommLattice2d::allocate_swap(const int idim, const int jdim)
 {
   memory->create_2d_T_array(swapinfo,idim,jdim,"commlattice:swapinfo");
+  memory->create_2d_T_array(reverseinfo,idim,jdim,"commlattice:swapinfo");
   maxsector = idim;
   maxswap = jdim;
 }

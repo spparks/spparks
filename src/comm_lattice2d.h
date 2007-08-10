@@ -20,8 +20,12 @@ class CommLattice2d : protected SysPtr {
   void setup_swapinfo();
   void setup_reverseinfo();
   void sector(int **, const int);
+  void sector_multilayer(int **, const int);
+  void sector_multilayer_destroy(int **, const int);
   void reverse_sector(int **, const int);
+  void reverse_sector_multilayer(int **, const int);
   void all(int **);
+  void all_multilayer(int **);
 
  private:
   int me,nprocs;

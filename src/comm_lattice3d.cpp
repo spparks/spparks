@@ -63,14 +63,14 @@ void CommLattice3d::init(const int nx_local_in, const int ny_local_in,
   delghost = delghost_in;
   dellocal = dellocal_in;
 
+  // initialize swap parameters and allocate memory
+
   nsector = 8;
   nswap = 3;
   allocate_swap(nsector,nswap);
 
   setup_swapinfo();
   setup_reverseinfo();
-
-  // initialize swap parameters and allocate memory
 
   maxbuf = (nx_local+2*delghost) * (ny_local*2*delghost) * delghost;
   maxbuf = MAX(maxbuf,(nx_local+2*delghost) * (nz_local*2*delghost) * delghost);
@@ -85,14 +85,14 @@ void CommLattice3d::init(const int nx_local_in, const int ny_local_in,
 
 void CommLattice3d::setup_swapinfo()
 {
-  int ii,jj,kk,irecv,isend;
-
-  // initialize swap parameters and allocate memory
-
   SwapInfo* swap;
   int iswap,isector;
   int procarray[3][2];
   SwapInfo swapguide[2][2];
+
+  int ii,jj,kk,irecv,isend;
+
+  // initialize swap parameters and allocate memory
 
   // isector = 0,1,2,3 refer to lower SW,NW,SE,NE quadrants, respectively
   // isector = 4,5,6,7 refer to upper SW,NW,SE,NE quadrants, respectively
@@ -410,16 +410,18 @@ void CommLattice3d::sector(int*** lattice, const int isector) {
   else sector_multilayer(lattice,isector);
 }
 
-// This was a version used for testing
+// // This was a version used for testing
 // void CommLattice3d::sector(int*** lattice, const int isector) {
-// //   if (delghost == 1) sector_onelayer(lattice,isector);
 //   if (delghost == 1) {
 //     // This is just a test
-//     sector_onelayer_destroy(lattice,isector);
-//     reverse_sector(lattice,isector);
 //     sector_onelayer(lattice,isector);
 //   }
-//   else sector_multilayer(lattice,isector);
+//   else {
+//     // This is just a test
+//     sector_multilayer_destroy(lattice,isector);
+//     reverse_sector_multilayer(lattice,isector);
+//     sector_multilayer(lattice,isector);
+//   }
 // }
 
 /* ----------------------------------------------------------------------
@@ -1171,6 +1173,7 @@ void CommLattice3d::sector_multilayer(int*** lattice, const int isector) {
   }
 }
 
+
 /* ----------------------------------------------------------------------
    communicate ghost values for one sector (quadrant)
    choose one of two different variants
@@ -1504,11 +1507,12 @@ void CommLattice3d::reverse_sector_multilayer(int*** lattice, const int isector)
 
   // Each swap direction is a little different
   // Need to code each swap explicitly
+  // These swaps are exactly the opposite of those in sector()
 
   // First swap is in the x direction
 
   iswap = 2;
-  swap = &swapinfo[isector][iswap];
+  swap = &reverseinfo[isector][iswap];
 
   // local copies of SwapInfo data
   int
@@ -1602,7 +1606,7 @@ void CommLattice3d::reverse_sector_multilayer(int*** lattice, const int isector)
   // Second swap is in the y direction
 
   iswap = 1;
-  swap = &swapinfo[isector][iswap];
+  swap = &reverseinfo[isector][iswap];
 
   // local copies of SwapInfo data
     numx = swap->numx,

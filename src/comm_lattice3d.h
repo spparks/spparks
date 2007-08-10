@@ -23,6 +23,7 @@ class CommLattice3d : protected SysPtr {
   void sector(int ***, const int);
   void sector_onelayer(int ***, const int);
   void sector_multilayer(int ***, const int);
+  void sector_multilayer_destroy(int ***, const int);
   void all(int ***);
   void all_onelayer(int ***);
   void all_multilayer(int ***);
