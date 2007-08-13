@@ -19,6 +19,8 @@
 
 using namespace SPPARKS;
 
+enum{LATTICE,COORD};
+
 /* ---------------------------------------------------------------------- */
 
 AppLattice3d::AppLattice3d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
@@ -34,7 +36,8 @@ AppLattice3d::AppLattice3d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   dump_delta = 0.0;
   temperature = 0.0;
   maxdumpbuf = 0;
-  dumpbuf = NULL;
+  ibuf = NULL;
+  dbuf = NULL;
   fp = NULL;
   propensity = NULL;
   site2ijk = NULL;
@@ -42,6 +45,7 @@ AppLattice3d::AppLattice3d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 
   // These are sensible defaults, but each app-specific values
   // should be provided in the child constructor.
+
   dellocal = 0;
   delghost = 1;
 }
@@ -50,7 +54,8 @@ AppLattice3d::AppLattice3d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 
 AppLattice3d::~AppLattice3d()
 {
-  delete [] dumpbuf;
+  delete [] ibuf;
+  delete [] dbuf;
   memory->sfree(propensity);
   memory->destroy_2d_T_array(site2ijk);
   memory->destroy_3d_T_array(ijk2site);
@@ -307,11 +312,18 @@ void AppLattice3d::dump_header()
 {
   // setup comm buf for dumping snapshots
 
-  delete [] dumpbuf;
+  delete [] ibuf;
+  delete [] dbuf;
   maxdumpbuf = 0;
-  int mybuf = 2*nx_local*ny_local*nz_local;
+  int mybuf = nx_local*ny_local*nz_local;
   MPI_Allreduce(&mybuf,&maxdumpbuf,1,MPI_INT,MPI_MAX,world);
-  dumpbuf = new int[maxdumpbuf];
+
+  if (dump_style == LATTICE) ibuf = new int[2*maxdumpbuf];
+  else dbuf = new double[5*maxdumpbuf];
+
+  // no header info in file if style = COORD
+
+  if (dump_style == COORD) return;
 
   // proc 0 does one-time write of nodes and element connectivity
 
@@ -368,9 +380,20 @@ void AppLattice3d::dump_header()
 
 /* ----------------------------------------------------------------------
    dump a snapshot of lattice values
+   either as lattice sites or as atom coords
 ------------------------------------------------------------------------- */
 
 void AppLattice3d::dump()
+{
+  if (dump_style == LATTICE) dump_lattice();
+  else dump_coord();
+}
+
+/* ----------------------------------------------------------------------
+   dump a snapshot of lattice values, one ELEMENT per site
+------------------------------------------------------------------------- */
+
+void AppLattice3d::dump_lattice()
 {
   int size_one = 2;
 
@@ -386,8 +409,6 @@ void AppLattice3d::dump()
 
   // pack my lattice values into buffer
   // n = global grid cell (0:Nglobal-1)
-  // number cell: fast in x, middle in y, slow in z
-  // two triangles per grid cell
 
   int n;
   int m = 0;
@@ -396,8 +417,8 @@ void AppLattice3d::dump()
       for (int k = 1; k <= nz_local; k++) {
 	n = (nz_offset+k-1)*ny_global*nx_global + 
 	  (ny_offset+j-1)*nx_global + (nx_offset+i-1);
-	dumpbuf[m++] = n + 1;
-	dumpbuf[m++] = lattice[i][j][k];
+	ibuf[m++] = n + 1;
+	ibuf[m++] = lattice[i][j][k];
       }
   int me_size = m;
 
@@ -411,7 +432,7 @@ void AppLattice3d::dump()
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(dumpbuf,maxdumpbuf,MPI_INT,iproc,0,world,&request);
+	MPI_Irecv(ibuf,maxdumpbuf,MPI_INT,iproc,0,world,&request);
 	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	MPI_Wait(&request,&status);
 	MPI_Get_count(&status,MPI_INT,&nlines);
@@ -420,14 +441,120 @@ void AppLattice3d::dump()
       
       m = 0;
       for (int i = 0; i < nlines; i++) {
-	fprintf(fp,"%d %d\n",dumpbuf[m],dumpbuf[m+1]);
+	fprintf(fp,"%d %d\n",ibuf[m],ibuf[m+1]);
 	m += size_one;
       }
     }
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(dumpbuf,me_size,MPI_INT,0,0,world);
+    MPI_Rsend(ibuf,me_size,MPI_INT,0,0,world);
   }
+}
+
+/* ----------------------------------------------------------------------
+   dump a snapshot of lattice coords values, one ATOM per site
+   app can provide the coords
+------------------------------------------------------------------------- */
+
+void AppLattice3d::dump_coord()
+{
+  int size_one = 5;
+
+  // proc 0 writes timestep header
+
+  if (me == 0) {
+    fprintf(fp,"ITEM: TIMESTEP\n");
+    fprintf(fp,"%d\n",ntimestep);
+    fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
+    fprintf(fp,"%d\n",nx_global*ny_global*nz_global);
+
+    double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;
+    box_bounds(&boxxlo,&boxxhi,&boxylo,&boxyhi,&boxzlo,&boxzhi);
+
+    fprintf(fp,"ITEM: BOX BOUNDS\n");
+    fprintf(fp,"%g %g\n",boxxlo,boxxhi);
+    fprintf(fp,"%g %g\n",boxylo,boxyhi);
+    fprintf(fp,"%g %g\n",boxzlo,boxzhi);
+    fprintf(fp,"ITEM: ATOMS\n");
+  }
+
+  // pack my lattice coords into buffer
+  // n = global grid cell (0:Nglobal-1)
+
+  double x,y,z;
+  int n;
+  int m = 0;
+  for (int i = 1; i <= nx_local; i++)
+    for (int j = 1; j <= ny_local; j++)
+      for (int k = 1; k <= nz_local; k++) {
+	n = (nz_offset+k-1)*ny_global*nx_global + 
+	  (ny_offset+j-1)*nx_global + (nx_offset+i-1);
+	dbuf[m++] = n + 1;
+	dbuf[m++] = lattice[i][j][k];
+	xyz(i,j,k,&x,&y,&z);
+	dbuf[m++] = x;
+	dbuf[m++] = y;
+	dbuf[m++] = z;
+      }
+  int me_size = m;
+
+  // proc 0 pings each proc, receives it's data, writes to file
+  // all other procs wait for ping, send their data to proc 0
+
+  int tmp,nlines;
+  MPI_Status status;
+  MPI_Request request;
+  
+  if (me == 0) {
+    for (int iproc = 0; iproc < nprocs; iproc++) {
+      if (iproc) {
+	MPI_Irecv(dbuf,maxdumpbuf,MPI_DOUBLE,iproc,0,world,&request);
+	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+	MPI_Wait(&request,&status);
+	MPI_Get_count(&status,MPI_DOUBLE,&nlines);
+	nlines /= size_one;
+      } else nlines = me_size/size_one;
+      
+      m = 0;
+      for (int i = 0; i < nlines; i++) {
+	fprintf(fp,"%d %d %g %g %g\n",
+		static_cast<int> (dbuf[m]),static_cast<int> (dbuf[m+1]),
+		dbuf[m+2],dbuf[m+3],dbuf[m+4]);
+	m += size_one;
+      }
+    }
+  } else {
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
+    MPI_Rsend(dbuf,me_size,MPI_DOUBLE,0,0,world);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   box bounds defaults to lattice size
+------------------------------------------------------------------------- */
+
+void AppLattice3d::box_bounds(double *xlo, double *xhi, double *ylo,
+			      double *yhi, double *zlo, double *zhi)
+{
+  *xlo = 0.0;
+  *ylo = 0.0;
+  *zlo = 0.0;
+  *xhi = nx_global;
+  *yhi = ny_global;
+  *zhi = nz_global;
+}
+
+/* ----------------------------------------------------------------------
+   convert local i,j,k to x,y,z
+------------------------------------------------------------------------- */
+
+void AppLattice3d::xyz(int i, int j, int k, double *x, double *y, double *z)
+{
+  *x = i-1 + nx_offset;
+  *y = j-1 + ny_offset;
+  *z = k-1 + nz_offset;
+  *y = j;
+  *z = k;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -451,13 +578,17 @@ void AppLattice3d::set_stats(int narg, char **arg)
 
 void AppLattice3d::set_dump(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal dump command");
+  if (narg != 3) error->all("Illegal dump command");
   dump_delta = atof(arg[0]);
   if (dump_delta <= 0.0) error->all("Illegal dump command");
 
+  if (strcmp(arg[1],"lattice") == 0) dump_style = LATTICE;
+  else if (strcmp(arg[1],"coord") == 0) dump_style = COORD;
+  else error->all("Illegal dump command");
+
   if (me == 0) {
     if (fp) fclose(fp);
-    fp = fopen(arg[1],"w");
+    fp = fopen(arg[2],"w");
     if (!fp) error->one("Cannot open dump file");
   }
 }
@@ -543,4 +674,11 @@ void AppLattice3d::procs2lattice()
   nyhi = ny_local+delghost;
   nzlo = 1-delghost;
   nzhi = nz_local+delghost;
+
+  nx_sector_lo = 1;
+  nx_sector_hi = nx_local;
+  ny_sector_lo = 1;
+  ny_sector_hi = ny_local;
+  nz_sector_lo = 1;
+  nz_sector_hi = nz_local;
 }

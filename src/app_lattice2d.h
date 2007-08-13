@@ -32,6 +32,7 @@ class AppLattice2d : public App {
  protected:
   int me,nprocs;
   int ntimestep,seed;
+  int dump_style;
   double time,stoptime;
   double stats_time,stats_delta;
   double dump_time,dump_delta;
@@ -66,7 +67,8 @@ class AppLattice2d : public App {
                                // limits for local lattice
 
   FILE *fp;
-  int *dumpbuf;
+  int *ibuf;
+  double *dbuf;
   int maxdumpbuf;
 
   class RandomPark *random;
@@ -79,6 +81,10 @@ class AppLattice2d : public App {
   void stats();
   void dump_header();
   void dump();
+  void dump_lattice();
+  void dump_coord();
+  virtual void box_bounds(double *, double *, double *, double *);
+  virtual void xy(int, int, double *, double *);
   void dump_detailed(char*);
   void dump_detailed_mask(char*,char**);
 
