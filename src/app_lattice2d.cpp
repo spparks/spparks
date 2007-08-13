@@ -44,8 +44,6 @@ AppLattice2d::AppLattice2d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   // should be provided in the child constructor.
   dellocal = 0;
   delghost = 1;
-
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -547,7 +545,7 @@ void AppLattice2d::dump_detailed(char* title)
     if (screen) {
       fprintf(screen,"*** Detailed Dump ***\n");
       fprintf(screen,"Title = %s\n",title);
-      fprintf(screen,"nx_global = %d ny_global = %d nz_global = %d \n",nx_global,ny_global);
+      fprintf(screen,"nx_global = %d ny_global = %d\n",nx_global,ny_global);
     }
   }
 
@@ -663,7 +661,7 @@ void AppLattice2d::dump_detailed_mask(char* title, char** mask)
     if (screen) {
       fprintf(screen,"*** Detailed Mask Dump ***\n");
       fprintf(screen,"Title = %s\n",title);
-      fprintf(screen,"nx_global = %d ny_global = %d nz_global = %d \n",nx_global,ny_global);
+      fprintf(screen,"nx_global = %d ny_global = %d\n",nx_global,ny_global);
     }
   }
 
