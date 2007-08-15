@@ -225,7 +225,7 @@ void AppLattice2d::iterate()
   int i,j,isite;
   double dt;
 
-  if (time >= stoptime) return
+  if (time >= stoptime) return;
 
   timer->barrier_start(TIME_LOOP);
   
@@ -420,7 +420,7 @@ void AppLattice2d::dump_lattice()
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(ibuf,maxdumpbuf,MPI_INT,iproc,0,world,&request);
+	MPI_Irecv(ibuf,size_one*maxdumpbuf,MPI_INT,iproc,0,world,&request);
 	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	MPI_Wait(&request,&status);
 	MPI_Get_count(&status,MPI_INT,&nlines);
@@ -494,7 +494,7 @@ void AppLattice2d::dump_coord()
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(dbuf,maxdumpbuf,MPI_DOUBLE,iproc,0,world,&request);
+	MPI_Irecv(dbuf,size_one*maxdumpbuf,MPI_DOUBLE,iproc,0,world,&request);
 	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	MPI_Wait(&request,&status);
 	MPI_Get_count(&status,MPI_DOUBLE,&nlines);

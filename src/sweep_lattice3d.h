@@ -45,10 +45,11 @@ class SweepLattice3d : public Sweep {
   int nquad;
   struct {
     int xlo,xhi,ylo,yhi,zlo,zhi; // inclusive start/stop indices in this octant
-    int nx,ny,nz;                // size of quadrant
+    int nx,ny,nz;                // size of octant
+    int nsites;                  // total sites in octant
     class Solve *solve;          // KMC solver
-    double *propensity;          // propensities for quadrant sites
-    int **site2ijk;              // map from quadrant sites to local lattice
+    double *propensity;          // propensities for octant sites
+    int **site2ijk;              // map from octant sites to local lattice
     int *sites;                  // list of sites to pass to solver
   } quad[8];
 

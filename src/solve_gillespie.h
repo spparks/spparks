@@ -23,7 +23,7 @@ class SolveGillespie : public Solve {
 
  private:
   class RandomPark *random;
-  int nreactions;
+  int nreactions,nzeroes;
   double *prob;
   double sum;
 };

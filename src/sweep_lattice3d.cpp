@@ -189,6 +189,7 @@ void SweepLattice3d::init()
   quad[0].nx = quad[0].xhi - quad[0].xlo + 1;
   quad[0].ny = quad[0].yhi - quad[0].ylo + 1;
   quad[0].nz = quad[0].zhi - quad[0].zlo + 1;
+  quad[0].nsites = quad[0].nx * quad[0].ny * quad[0].nz;
   memory->sfree(quad[0].propensity);
   memory->destroy_2d_T_array(quad[0].site2ijk);
   memory->sfree(quad[0].sites);
@@ -202,6 +203,7 @@ void SweepLattice3d::init()
   quad[1].nx = quad[1].xhi - quad[1].xlo + 1;
   quad[1].ny = quad[1].yhi - quad[1].ylo + 1;
   quad[1].nz = quad[1].zhi - quad[1].zlo + 1;
+  quad[1].nsites = quad[1].nx * quad[1].ny * quad[1].nz;
   memory->sfree(quad[1].propensity);
   memory->destroy_2d_T_array(quad[1].site2ijk);
   memory->sfree(quad[1].sites);
@@ -215,6 +217,7 @@ void SweepLattice3d::init()
   quad[2].nx = quad[2].xhi - quad[2].xlo + 1;
   quad[2].ny = quad[2].yhi - quad[2].ylo + 1;
   quad[2].nz = quad[2].zhi - quad[2].zlo + 1;
+  quad[2].nsites = quad[2].nx * quad[2].ny * quad[2].nz;
   memory->sfree(quad[2].propensity);
   memory->destroy_2d_T_array(quad[2].site2ijk);
   memory->sfree(quad[2].sites);
@@ -228,6 +231,7 @@ void SweepLattice3d::init()
   quad[3].nx = quad[3].xhi - quad[3].xlo + 1;
   quad[3].ny = quad[3].yhi - quad[3].ylo + 1;
   quad[3].nz = quad[3].zhi - quad[3].zlo + 1;
+  quad[3].nsites = quad[3].nx * quad[3].ny * quad[3].nz;
   memory->sfree(quad[3].propensity);
   memory->destroy_2d_T_array(quad[3].site2ijk);
   memory->sfree(quad[3].sites);
@@ -241,6 +245,7 @@ void SweepLattice3d::init()
   quad[4].nx = quad[4].xhi - quad[4].xlo + 1;
   quad[4].ny = quad[4].yhi - quad[4].ylo + 1;
   quad[4].nz = quad[4].zhi - quad[4].zlo + 1;
+  quad[4].nsites = quad[4].nx * quad[4].ny * quad[4].nz;
   memory->sfree(quad[4].propensity);
   memory->destroy_2d_T_array(quad[4].site2ijk);
   memory->sfree(quad[4].sites);
@@ -254,6 +259,7 @@ void SweepLattice3d::init()
   quad[5].nx = quad[5].xhi - quad[5].xlo + 1;
   quad[5].ny = quad[5].yhi - quad[5].ylo + 1;
   quad[5].nz = quad[5].zhi - quad[5].zlo + 1;
+  quad[5].nsites = quad[5].nx * quad[5].ny * quad[5].nz;
   memory->sfree(quad[5].propensity);
   memory->destroy_2d_T_array(quad[5].site2ijk);
   memory->sfree(quad[5].sites);
@@ -267,6 +273,7 @@ void SweepLattice3d::init()
   quad[6].nx = quad[6].xhi - quad[6].xlo + 1;
   quad[6].ny = quad[6].yhi - quad[6].ylo + 1;
   quad[6].nz = quad[6].zhi - quad[6].zlo + 1;
+  quad[6].nsites = quad[6].nx * quad[6].ny * quad[6].nz;
   memory->sfree(quad[6].propensity);
   memory->destroy_2d_T_array(quad[6].site2ijk);
   memory->sfree(quad[6].sites);
@@ -280,6 +287,7 @@ void SweepLattice3d::init()
   quad[7].nx = quad[7].xhi - quad[7].xlo + 1;
   quad[7].ny = quad[7].yhi - quad[7].ylo + 1;
   quad[7].nz = quad[7].zhi - quad[7].zlo + 1;
+  quad[7].nsites = quad[7].nx * quad[7].ny * quad[7].nz;
   memory->sfree(quad[7].propensity);
   memory->destroy_2d_T_array(quad[7].site2ijk);
   memory->sfree(quad[7].sites);
@@ -349,8 +357,11 @@ void SweepLattice3d::init()
 	(double*) memory->smalloc(nsites*sizeof(double),"sweep:propensity");
       memory->create_2d_T_array(quad[iquad].site2ijk,nsites,3,
 				"sweep:ijk2site");
+
+      // THIS SHOULD BE nborder in size, but using nsites for Kristi debugging
+
       quad[iquad].sites =
-	(int*) memory->smalloc(nborder*sizeof(int),"sweep:sites");
+	(int*) memory->smalloc(nsites*sizeof(int),"sweep:sites");
 
       for (i = quad[iquad].xlo; i <= quad[iquad].xhi; i++)
 	for (j = quad[iquad].ylo; j <= quad[iquad].yhi; j++)
@@ -776,12 +787,13 @@ void SweepLattice3d::sweep_quadrant_kmc(int icolor, int iquad)
 */
 
 // update all propensities for now (temporary until above code is working)
+  nsites = 0;
   for (i = xlo; i <= xhi; i++)
     for (j = ylo; j <= yhi; j++)
       for (k = zlo; k <= zhi; k++) {
 	    isite = ijk2site[i][j][k];
-        sites[nsites++] = isite;
-        propensity[isite] = applattice->site_propensity(i,j,k,0);
+	    sites[nsites++] = isite;
+	    propensity[isite] = applattice->site_propensity(i,j,k,0);
   }
   //printf("2nd prop for (2,2,6) = %g\n",propensity[ijk2site[2][2][6]]);
 

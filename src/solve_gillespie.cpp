@@ -41,8 +41,10 @@ void SolveGillespie::init(int n, double *propensity)
   nreactions = n;
   prob = new double[n];
 
+  nzeroes = 0;
   sum = 0.0;
   for (int i = 0; i < n; i++) {
+    if (propensity[i] == 0.0) nzeroes++;
     prob[i] = propensity[i];
     sum += propensity[i];
   }
@@ -55,6 +57,8 @@ void SolveGillespie::update(int n, int *indices, double *propensity)
   int m;
   for (int i = 0; i < n; i++) {
     m = indices[i];
+    if (prob[m] == 0.0) nzeroes--;
+    if (propensity[m] == 0.0) nzeroes++;
     sum -= prob[m];
     prob[m] = propensity[m];
     sum += propensity[m];
@@ -65,6 +69,8 @@ void SolveGillespie::update(int n, int *indices, double *propensity)
 
 void SolveGillespie::update(int n, double *propensity)
 {
+  if (prob[n] == 0.0) nzeroes--;
+  if (propensity[n] == 0.0) nzeroes++;
   prob[n] = propensity[n];
 }
 
@@ -81,10 +87,11 @@ int SolveGillespie::event(double *pdt)
 {
   int m;
 
-  if (sum == 0.0) return -1;
+  if (nzeroes == nreactions) return -1;
+
   double fraction = sum * random->uniform();
-  
   double partial = 0.0;
+
   for (m = 0; m < nreactions; m++) {
     partial += prob[m];
     if (partial > fraction) break;
