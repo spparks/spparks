@@ -7,7 +7,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "solve_tree_search.h"
+#include "solve_tree.h"
 #include "spk.h"
 #include "random_park.h"
 #include "error.h"
@@ -16,7 +16,7 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-SolveTreeSearch::SolveTreeSearch(SPK *spk, int narg, char **arg) : 
+SolveTree::SolveTree(SPK *spk, int narg, char **arg) : 
   Solve(spk, narg, arg)
 {
   if (narg != 2) error->all("Illegal solve command");
@@ -28,7 +28,7 @@ SolveTreeSearch::SolveTreeSearch(SPK *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-SolveTreeSearch::~SolveTreeSearch()
+SolveTree::~SolveTree()
 {
   free_arrays();
   delete random;
@@ -36,14 +36,14 @@ SolveTreeSearch::~SolveTreeSearch()
 
 /* ---------------------------------------------------------------------- */
 
-void SolveTreeSearch::init(int n, double *propensity)
+void SolveTree::init(int n, double *propensity)
 {
   int ntotal = 0;
   offset = 0;
 
   // memory allocation
 
-  if(allocated) free_arrays();
+  if (allocated) free_arrays();
   allocated = 1;
 
   nevents = n;
@@ -63,37 +63,34 @@ void SolveTreeSearch::init(int n, double *propensity)
   offset = neat - 1;
 
   for (int i = 0; i < ntotal; i++) tree[i] = 0.0;
-
   for (int i = offset; i < offset + n; i++) tree[i] = propensity[i-offset];
-
-  //  tree_to_screen(neat);
   sum_tree();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void SolveTreeSearch::update(int n, int *indices, double *propensity)
+void SolveTree::update(int n, int *indices, double *propensity)
 {
   for (int i = 0; i < n; i++) set(indices[i],propensity[indices[i]]);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void SolveTreeSearch::update(int n, double *propensity)
+void SolveTree::update(int n, double *propensity)
 {
   set(n,propensity[n]);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void SolveTreeSearch::resize(int new_size, double *propensity)
+void SolveTree::resize(int new_size, double *propensity)
 {
   init(new_size, propensity);
 }
 
 /* ---------------------------------------------------------------------- */
 
-int SolveTreeSearch::event(double *pdt)
+int SolveTree::event(double *pdt)
 {
   int m;
   double r2;
@@ -112,7 +109,7 @@ int SolveTreeSearch::event(double *pdt)
    sum entire tree, all nodes are computed
 ------------------------------------------------------------------------- */
 
-void SolveTreeSearch::sum_tree()
+void SolveTree::sum_tree()
 {
   int child1,child2;
   for (int parent = offset-1; parent >= 0; parent--) {
@@ -127,7 +124,7 @@ void SolveTreeSearch::sum_tree()
    recompute sum tree for all its ancestors
 ------------------------------------------------------------------------- */
 
-void SolveTreeSearch::set(int i, double value)
+void SolveTree::set(int i, double value)
 {
   int parent,sibling;
 
@@ -151,7 +148,7 @@ void SolveTreeSearch::set(int i, double value)
    return index (0 to M-1) of propensity bin it falls in
 ------------------------------------------------------------------------- */
 
-int SolveTreeSearch::find(double value)
+int SolveTree::find(double value)
 {
   int i,leftchild;
 
@@ -174,7 +171,7 @@ int SolveTreeSearch::find(double value)
    free arrays used by solver
 ------------------------------------------------------------------------- */
 
-void SolveTreeSearch::free_arrays()
+void SolveTree::free_arrays()
 {
   delete [] tree;
 }

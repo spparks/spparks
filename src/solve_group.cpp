@@ -7,7 +7,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "solve_group_search.h"
+#include "solve_group.h"
 #include "groups.h"
 #include "spk.h"
 #include "random_park.h"
@@ -17,7 +17,7 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-SolveGroupSearch::SolveGroupSearch(SPK *spk, int narg, char **arg) : 
+SolveGroup::SolveGroup(SPK *spk, int narg, char **arg) : 
   Solve(spk, narg, arg)
 {
   if (narg < 4) error->all("Illegal solve command");
@@ -40,7 +40,7 @@ SolveGroupSearch::SolveGroupSearch(SPK *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-SolveGroupSearch::~SolveGroupSearch()
+SolveGroup::~SolveGroup()
 {
   delete random;
   delete groups;
@@ -49,7 +49,7 @@ SolveGroupSearch::~SolveGroupSearch()
 
 /* ---------------------------------------------------------------------- */
 
-void SolveGroupSearch::init(int n, double *propensity)
+void SolveGroup::init(int n, double *propensity)
 {
   nevents = n;
   sum = 0;
@@ -77,7 +77,7 @@ void SolveGroupSearch::init(int n, double *propensity)
 
 /* ---------------------------------------------------------------------- */
 
-void SolveGroupSearch::update(int n, int *indices, double *propensity)
+void SolveGroup::update(int n, int *indices, double *propensity)
 {
   for (int i = 0; i < n; i++) {
     int j = indices[i];
@@ -92,7 +92,7 @@ void SolveGroupSearch::update(int n, int *indices, double *propensity)
 }
 /* ---------------------------------------------------------------------- */
 
-void SolveGroupSearch::update(int n, double *propensity)
+void SolveGroup::update(int n, double *propensity)
 {
   double pt = p[n];
 
@@ -106,13 +106,14 @@ void SolveGroupSearch::update(int n, double *propensity)
 
 /* ---------------------------------------------------------------------- */
 
-void SolveGroupSearch::resize(int new_size, double *propensity)
+void SolveGroup::resize(int new_size, double *propensity)
 {
   init(new_size, propensity);
 }
 
 /* ---------------------------------------------------------------------- */
-int SolveGroupSearch::event(double *pdt)
+
+int SolveGroup::event(double *pdt)
 {
   int m;
 

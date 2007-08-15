@@ -7,7 +7,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "solve_linear_search.h"
+#include "solve_linear.h"
 #include "spk.h"
 #include "random_park.h"
 #include "error.h"
@@ -16,7 +16,7 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-SolveLinearSearch::SolveLinearSearch(SPK *spk, int narg, char **arg) :
+SolveLinear::SolveLinear(SPK *spk, int narg, char **arg) : 
   Solve(spk, narg, arg)
 {
   if (narg != 2) error->all("Illegal solve command");
@@ -28,7 +28,7 @@ SolveLinearSearch::SolveLinearSearch(SPK *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-SolveLinearSearch::~SolveLinearSearch()
+SolveLinear::~SolveLinear()
 {
   delete [] prob;
   delete random;
@@ -36,7 +36,7 @@ SolveLinearSearch::~SolveLinearSearch()
 
 /* ---------------------------------------------------------------------- */
 
-void SolveLinearSearch::init(int n, double *propensity)
+void SolveLinear::init(int n, double *propensity)
 {
   delete [] prob;
   nevents = n;
@@ -53,7 +53,7 @@ void SolveLinearSearch::init(int n, double *propensity)
 
 /* ---------------------------------------------------------------------- */
 
-void SolveLinearSearch::update(int n, int *indices, double *propensity)
+void SolveLinear::update(int n, int *indices, double *propensity)
 {
   int m;
   for (int i = 0; i < n; i++) {
@@ -67,7 +67,7 @@ void SolveLinearSearch::update(int n, int *indices, double *propensity)
 }
 /* ---------------------------------------------------------------------- */
 
-void SolveLinearSearch::update(int n, double *propensity)
+void SolveLinear::update(int n, double *propensity)
 {
   if (prob[n] == 0.0) nzeroes--;
   if (propensity[n] == 0.0) nzeroes++;
@@ -78,13 +78,13 @@ void SolveLinearSearch::update(int n, double *propensity)
 /* ---------------------------------------------------------------------- */
 
 
-void SolveLinearSearch::resize(int new_size, double *propensity)
+void SolveLinear::resize(int new_size, double *propensity)
 {
   init(new_size,propensity);
 }
 /* ---------------------------------------------------------------------- */
 
-int SolveLinearSearch::event(double *pdt)
+int SolveLinear::event(double *pdt)
 {
   int m;
 

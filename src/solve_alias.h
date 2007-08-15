@@ -3,17 +3,17 @@
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
-#ifndef SOLVE_LINEAR_SEARCH_H
-#define SOLVE_LINEAR_SEARCH_H
+#ifndef SOLVE_ALIAS_H
+#define SOLVE_ALIAS_H
 
 #include "solve.h"
 
 namespace SPPARKS {
 
-class SolveLinearSearch : public Solve {
+class SolveAlias : public Solve {
  public:
-  SolveLinearSearch(class SPK *, int, char **);
-  ~SolveLinearSearch();
+  SolveAlias(class SPK *, int, char **);
+  ~SolveAlias();
   void input(int, char **) {}
   void init(int, double *);
   void update(int, int *, double *);
@@ -23,9 +23,24 @@ class SolveLinearSearch : public Solve {
 
  private:
   class RandomPark *random;
-  int nevents,nzeroes;
+  int allocated;
+  int nevents;
+
   double *prob;
+  double *p;
+  double *q;
+  int *j;
+  int *hilo;
+  int sk, sl, k, l;
+
   double sum;
+
+  void free_arrays();
+  void build_alias_table(int, double *);
+  void table_dump(int);
+  void check_table_consistency();
+
+  int sort_hilo();
 };
 
 }
