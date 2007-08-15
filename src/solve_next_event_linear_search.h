@@ -23,7 +23,7 @@ class SolveNextEventLinearSearch : public Solve {
 
  private:
   class RandomPark *random;
-  int nevents;
+  int nevents,nzeroes;
   double *prob;
   double sum;
 };

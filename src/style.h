@@ -46,19 +46,17 @@ CommandStyle(shell,Shell)
 #endif
 
 #ifdef SolveInclude
-#include "solve_gillespie.h"
-#include "solve_next_event_alias_search.h"
-#include "solve_next_event_group_search.h"
-#include "solve_next_event_linear_search.h"
-#include "solve_next_event_tree_search.h"
+#include "solve_alias_search.h"
+#include "solve_group_search.h"
+#include "solve_linear_search.h"
+#include "solve_tree_search.h"
 #endif
 
 #ifdef SolveClass
-SolveStyle(gillespie,SolveGillespie)
-SolveStyle(next_event_alias_search,SolveNextEventAliasSearch)
-SolveStyle(next_event_group_search,SolveNextEventGroupSearch)
-SolveStyle(next_event_linear_search,SolveNextEventLinearSearch)
-SolveStyle(next_event_tree_search,SolveNextEventTreeSearch)
+SolveStyle(alias_search,SolveAliasSearch)
+SolveStyle(group_search,SolveGroupSearch)
+SolveStyle(linear_search,SolveLinearSearch)
+SolveStyle(tree_search,SolveTreeSearch)
 #endif
 
 #ifdef SweepInclude
@@ -73,7 +71,7 @@ SweepStyle(lattice3d,SweepLattice3d)
 
 // packages
 
-//#include "style_gppt.h"
+#include "style_gppt.h"
 
 // user add-ons
 

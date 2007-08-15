@@ -42,8 +42,11 @@ void SolveNextEventLinearSearch::init(int n, double *propensity)
   delete [] prob;
   nevents = n;
   prob = new double[n];
-  sum = 0;
+
+  nzeroes = 0;
+  sum = 0.0;
   for (int i = 0; i < n; i++) {
+    if (propensity[i] == 0.0) nzeroes++;
     prob[i] = propensity[i];
     sum += propensity[i];
   }
@@ -53,27 +56,32 @@ void SolveNextEventLinearSearch::init(int n, double *propensity)
 
 void SolveNextEventLinearSearch::update(int n, int *indices, double *propensity)
 {
+  int m;
   for (int i = 0; i < n; i++) {
-    int current_index = indices[i];
-    sum -= prob[current_index];
-    prob[current_index] = propensity[current_index];
-    sum +=  propensity[current_index];
+    m = indices[i];
+    if (prob[m] == 0.0) nzeroes--;
+    if (propensity[m] == 0.0) nzeroes++;
+    sum -= prob[m];
+    prob[m] = propensity[m];
+    sum += propensity[m];
   }
 }
 /* ---------------------------------------------------------------------- */
 
 void SolveNextEventLinearSearch::update(int n, double *propensity)
 {
+  if (prob[n] == 0.0) nzeroes--;
+  if (propensity[n] == 0.0) nzeroes++;
   sum -= prob[n];
   prob[n] = propensity[n];
-  sum +=  propensity[n];
+  sum += propensity[n];
 }
 /* ---------------------------------------------------------------------- */
 
 
 void SolveNextEventLinearSearch::resize(int new_size, double *propensity)
 {
-  init(new_size, propensity);
+  init(new_size,propensity);
 }
 /* ---------------------------------------------------------------------- */
 
@@ -81,10 +89,11 @@ int SolveNextEventLinearSearch::event(double *pdt)
 {
   int m;
 
-  if (sum == 0.0) return -1;
+  if (nzeroes == nevents) return -1;
+
   double fraction = sum * random->uniform();
-  
   double partial = 0.0;
+
   for (m = 0; m < nevents; m++) {
     partial += prob[m];
     if (partial > fraction) break;
