@@ -19,6 +19,8 @@ class Solve : protected SysPtr {
 
   // pure virtual functions, must be defined in child class
 
+  virtual Solve *clone() = 0;
+
   virtual void input(int, char **) = 0;
   virtual void init(int, double *) = 0;
   virtual void update(int, int *, double *) = 0;

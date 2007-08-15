@@ -12,13 +12,10 @@
 #include "app_lattice3d.h"
 #include "comm_lattice3d.h"
 #include "random_park.h"
+#include "solve.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
-
-#define SolveInclude
-#include "style.h"
-#undef SolveInclude
 
 using namespace SPPARKS;
 
@@ -160,8 +157,8 @@ void SweepLattice3d::init()
   temperature = applattice->temperature;
   if (temperature != 0.0) t_inverse = 1.0/temperature;
 
-
   // App-specific settings
+
   masklimit = applattice->masklimit;
   delghost = applattice->delghost;
   dellocal = applattice->dellocal;
@@ -336,18 +333,8 @@ void SweepLattice3d::init()
 
     comm->all(lattice);
 
-    char *arg[2];
-    arg[0] = solve->style;
-    arg[1] = "12345";           // this line is a kludge
-
     for (int iquad = 0; iquad < nquad; iquad++) {
-      if (strcmp(arg[0],"none") == 0) solve = NULL;
-
-#define SolveClass
-#define SolveStyle(key,Class) \
-      else if (strcmp(arg[0],#key) == 0) quad[iquad].solve = new Class(spk,2,arg);
-#include "style.h"
-#undef SolveClass
+      quad[iquad].solve = solve->clone();
 
       int nsites = quad[iquad].nx * quad[iquad].ny * quad[iquad].nz;
       int nborder = 2 * (quad[iquad].nx*quad[iquad].ny + 
@@ -408,7 +395,6 @@ void SweepLattice3d::do_sweep(double &dt)
 
       comm->reverse_sector(lattice,iquad);
       timer->stamp(TIME_COMM);
-
     }
 
   dt = delt;

@@ -11,14 +11,11 @@
 #include "sweep_lattice2d.h"
 #include "app_lattice2d.h"
 #include "comm_lattice2d.h"
+#include "solve.h"
 #include "random_park.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
-
-#define SolveInclude
-#include "style.h"
-#undef SolveInclude
 
 using namespace SPPARKS;
 
@@ -251,18 +248,8 @@ void SweepLattice2d::init()
 
     comm->all(lattice);
 
-    char *arg[2];
-    arg[0] = solve->style;
-    arg[1] = "12345";           // this line is a kludge
-
     for (int iquad = 0; iquad < nquad; iquad++) {
-      if (strcmp(arg[0],"none") == 0) solve = NULL;
-
-#define SolveClass
-#define SolveStyle(key,Class) \
-      else if (strcmp(arg[0],#key) == 0) quad[iquad].solve = new Class(spk,2,arg);
-#include "style.h"
-#undef SolveClass
+      quad[iquad].solve = solve->clone();
 
       int nsites = quad[iquad].nx * quad[iquad].ny;
       int nborder = 2*quad[iquad].nx + 2*quad[iquad].ny;

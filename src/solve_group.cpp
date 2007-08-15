@@ -25,7 +25,8 @@ SolveGroup::SolveGroup(SPK *spk, int narg, char **arg) :
   lo = atof(arg[1]);
   hi = atof(arg[2]);
 
-  ngroups_in = 0; ngroups_flag = false;
+  ngroups_in = 0;
+  ngroups_flag = false;
   if (narg == 5) {
     ngroups_in = atoi(arg[3]); 
     ngroups_flag = true; 
@@ -49,10 +50,38 @@ SolveGroup::~SolveGroup()
 
 /* ---------------------------------------------------------------------- */
 
+SolveGroup *SolveGroup::clone()
+{
+  int narg = 5;
+  char *arg[5];
+
+  arg[0] = style;
+  arg[1] = new char[16];
+  arg[2] = new char[16];
+  arg[3] = new char[16];
+  arg[4] = new char[16];
+
+  sprintf(arg[1],"%g",lo);
+  sprintf(arg[2],"%g",hi);
+  sprintf(arg[3],"%d",ngroups_in);
+  sprintf(arg[4],"%d",seed);
+
+  SolveGroup *ptr = new SolveGroup(spk,narg,arg);
+
+  delete [] arg[1];
+  delete [] arg[2];
+  delete [] arg[3];
+  delete [] arg[4];
+  return ptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void SolveGroup::init(int n, double *propensity)
 {
   nevents = n;
-  sum = 0;
+  nzeroes = 0;
+  sum = 0.0;
   delete [] p;
   p = new double[n+10];
 
@@ -72,7 +101,7 @@ void SolveGroup::init(int n, double *propensity)
     sum += pt;
   }
 
-  groups->partition_init(p, n, n+10);
+  groups->partition_init(p,n,n+10);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,11 +111,13 @@ void SolveGroup::update(int n, int *indices, double *propensity)
   for (int i = 0; i < n; i++) {
     int j = indices[i];
     double pt = p[j];
-    if(propensity[j]!=pt){
+    if (propensity[j] != pt) {
+      if (p[j] == 0.0) nzeroes--;
+      if (propensity[j] == 0.0) nzeroes++;
       sum -= pt;
       groups->alter_element(j, p, pt);
       p[j] = propensity[j];
-      sum +=  p[j];
+      sum += p[j];
     }
   }
 }
@@ -96,7 +127,9 @@ void SolveGroup::update(int n, double *propensity)
 {
   double pt = p[n];
 
-  if(propensity[n]!=pt){
+  if (propensity[n] != pt) {
+    if (pt == 0.0) nzeroes--;
+    if (propensity[n] == 0.0) nzeroes++;
     sum -= pt;
     groups->alter_element(n, p, pt);
     p[n] = propensity[n];
@@ -108,7 +141,7 @@ void SolveGroup::update(int n, double *propensity)
 
 void SolveGroup::resize(int new_size, double *propensity)
 {
-  init(new_size, propensity);
+  init(new_size,propensity);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -117,9 +150,9 @@ int SolveGroup::event(double *pdt)
 {
   int m;
 
-  if (sum == 0.0) return -1;
-  m = groups->sample(p);
+  if (nzeroes == nevents) return -1;
 
+  m = groups->sample(p);
   *pdt = -1.0/sum * log(random->uniform());
   return m;
 }

@@ -24,7 +24,7 @@ SolveAlias::SolveAlias(SPK *spk, int narg, char **arg) :
 {
   if (narg != 2) error->all("Illegal solve command");
 
-  int seed = atoi(arg[1]);
+  seed = atoi(arg[1]);
   random = new RandomPark(seed);
   p = NULL;
   q = NULL;
@@ -37,6 +37,22 @@ SolveAlias::~SolveAlias()
 {
   delete random;
   free_arrays();
+}
+
+/* ---------------------------------------------------------------------- */
+
+SolveAlias *SolveAlias::clone()
+{
+  int narg = 2;
+  char *arg[2];
+  arg[0] = style;
+  arg[1] = new char[16];
+  sprintf(arg[1],"%d",seed);
+
+  SolveAlias *ptr = new SolveAlias(spk,narg,arg);
+
+  delete [] arg[1];
+  return ptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,8 +71,13 @@ void SolveAlias::init(int n, double *propensity)
   q = new double[n];
   hilo = new int[n];
 
+  nzeroes = 0;
   sum = 0.0;
-  for (i = 0; i < n; i++) {sum += propensity[i]; prob[i] = propensity[i];}
+  for (i = 0; i < n; i++) {
+    if (propensity[i] == 0.0) nzeroes++;
+    prob[i] = propensity[i];
+    sum += propensity[i];
+  }
 
   build_alias_table(nevents, propensity);
   //  table_dump(nevents);
@@ -169,23 +190,27 @@ void SolveAlias::table_dump(int n)
 
 void SolveAlias::update(int n, int *indices, double *propensity)
 {
+  int m;
   for (int i = 0; i < n; i++) {
-    int current_index = indices[i];
-    sum -= prob[current_index];
-    prob[current_index] = propensity[current_index];
-    sum +=  propensity[current_index];
+    m = indices[i];
+    if (prob[m] == 0.0) nzeroes--;
+    if (propensity[m] == 0.0) nzeroes++;
+    sum -= prob[m];
+    prob[m] = propensity[m];
+    sum +=  propensity[m];
   }
-
-  if (n > 0) {build_alias_table(nevents, propensity);}
+  if (n > 0) build_alias_table(nevents, propensity);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void SolveAlias::update(int n, double *propensity)
 {
+  if (prob[n] == 0.0) nzeroes--;
+  if (propensity[n] == 0.0) nzeroes++;
   sum -= prob[n];
   prob[n] = propensity[n];
-  sum +=  propensity[n];
+  sum += propensity[n];
   
   build_alias_table(nevents, propensity);
 }
@@ -194,7 +219,7 @@ void SolveAlias::update(int n, double *propensity)
 
 void SolveAlias::resize(int new_size, double *propensity)
 {
-  init(new_size, propensity);
+  init(new_size,propensity);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -203,14 +228,12 @@ int SolveAlias::event(double *pdt)
 {
   int i;
 
+  if (nzeroes == nevents) return -1;
+
   *pdt = -1.0/sum * log(random->uniform());
 
   i = (int)((double)nevents * random->uniform());
-
-  //  fprintf(screen,"event \n");
-
-  if(random->uniform()<q[i]) return i;
-  
+  if (random->uniform() < q[i]) return i;
   return j[i];
 }
 

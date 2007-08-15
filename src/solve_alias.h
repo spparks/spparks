@@ -14,6 +14,8 @@ class SolveAlias : public Solve {
  public:
   SolveAlias(class SPK *, int, char **);
   ~SolveAlias();
+  SolveAlias *clone();
+
   void input(int, char **) {}
   void init(int, double *);
   void update(int, int *, double *);
@@ -22,9 +24,10 @@ class SolveAlias : public Solve {
   int event(double *);
 
  private:
+  int seed;
   class RandomPark *random;
   int allocated;
-  int nevents;
+  int nevents,nzeroes;
 
   double *prob;
   double *p;

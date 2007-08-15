@@ -21,7 +21,7 @@ SolveLinear::SolveLinear(SPK *spk, int narg, char **arg) :
 {
   if (narg != 2) error->all("Illegal solve command");
 
-  int seed = atoi(arg[1]);
+  seed = atoi(arg[1]);
   random = new RandomPark(seed);
   prob = NULL;
 }
@@ -32,6 +32,22 @@ SolveLinear::~SolveLinear()
 {
   delete [] prob;
   delete random;
+}
+
+/* ---------------------------------------------------------------------- */
+
+SolveLinear *SolveLinear::clone()
+{
+  int narg = 2;
+  char *arg[2];
+  arg[0] = style;
+  arg[1] = new char[16];
+  sprintf(arg[1],"%d",seed);
+
+  SolveLinear *ptr = new SolveLinear(spk,narg,arg);
+
+  delete [] arg[1];
+  return ptr;
 }
 
 /* ---------------------------------------------------------------------- */

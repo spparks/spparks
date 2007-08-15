@@ -14,6 +14,8 @@ class SolveGroup : public Solve {
  public:
   SolveGroup(class SPK *, int, char **);
   ~SolveGroup();
+  SolveGroup *clone();
+
   void input(int, char **) {}
   void init(int, double *);
   void update(int, int *, double *);
@@ -22,16 +24,16 @@ class SolveGroup : public Solve {
   int event(double *);
 
  private:
+  int seed;
   class RandomPark *random;
   class Groups *groups;
-  int nevents;
+  int nevents,nzeroes;
   double *p;
   double last_size;
   double sum;
-  int seed;
   int ngroups_in;
   bool ngroups_flag;
-  double lo, hi;
+  double lo,hi;
 };
 
 }

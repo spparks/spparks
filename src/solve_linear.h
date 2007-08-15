@@ -14,6 +14,8 @@ class SolveLinear : public Solve {
  public:
   SolveLinear(class SPK *, int, char **);
   ~SolveLinear();
+  SolveLinear *clone();
+
   void input(int, char **) {}
   void init(int, double *);
   void update(int, int *, double *);
@@ -22,6 +24,7 @@ class SolveLinear : public Solve {
   int event(double *);
 
  private:
+  int seed;
   class RandomPark *random;
   int nevents,nzeroes;
   double *prob;

@@ -21,7 +21,7 @@ SolveTree::SolveTree(SPK *spk, int narg, char **arg) :
 {
   if (narg != 2) error->all("Illegal solve command");
   allocated = 0;
-  int seed = atoi(arg[1]);
+  seed = atoi(arg[1]);
   random = new RandomPark(seed);
   tree = NULL;
 }
@@ -32,6 +32,22 @@ SolveTree::~SolveTree()
 {
   free_arrays();
   delete random;
+}
+
+/* ---------------------------------------------------------------------- */
+
+SolveTree *SolveTree::clone()
+{
+  int narg = 2;
+  char *arg[2];
+  arg[0] = style;
+  arg[1] = new char[16];
+  sprintf(arg[1],"%d",seed);
+
+  SolveTree *ptr = new SolveTree(spk,narg,arg);
+
+  delete [] arg[1];
+  return ptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -56,14 +72,17 @@ void SolveTree::init(int n, double *propensity)
   while (neat < nevents) {neat *=2; m++;}
 
   // create tree of length ntotal
-  // init all leaves to 0.0
 
+  nzeroes = 0;
   ntotal = 2*neat - 1;
   tree = new double[ntotal];
   offset = neat - 1;
 
   for (int i = 0; i < ntotal; i++) tree[i] = 0.0;
-  for (int i = offset; i < offset + n; i++) tree[i] = propensity[i-offset];
+  for (int i = offset; i < offset + n; i++) {
+    tree[i] = propensity[i-offset];
+    if (tree[i] == 0.0) nzeroes++;
+  }
   sum_tree();
 }
 
@@ -85,7 +104,7 @@ void SolveTree::update(int n, double *propensity)
 
 void SolveTree::resize(int new_size, double *propensity)
 {
-  init(new_size, propensity);
+  init(new_size,propensity);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,10 +113,10 @@ int SolveTree::event(double *pdt)
 {
   int m;
   double r2;
+
+  if (nzeroes == nevents) return -1;
+
   double sumt = tree[0];
-
-  if (sumt == 0.0) return -1;
-
   r2 = random->uniform();
   m = find(r2*sumt);
   
@@ -127,6 +146,9 @@ void SolveTree::sum_tree()
 void SolveTree::set(int i, double value)
 {
   int parent,sibling;
+
+  if (tree[offset+i] == 0.0) nzeroes--;
+  if (value == 0.0) nzeroes++;
 
   tree[offset+i] = value;
 

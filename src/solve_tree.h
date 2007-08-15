@@ -14,6 +14,8 @@ class SolveTree : public Solve {
  public:
   SolveTree(class SPK *, int, char **);
   ~SolveTree();
+  SolveTree *clone();
+
   void input(int, char **) {}
   void init(int, double *);
   void update(int, int *, double *);
@@ -27,13 +29,13 @@ class SolveTree : public Solve {
   void tree_to_screen(int);
 
  private:
+  int seed;
   class RandomPark *random;
-  int nevents;
+  int nevents,nzeroes;
   double sum;
 
   double *tree;
   int offset;
-
   int allocated;
 };
 
