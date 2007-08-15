@@ -7,7 +7,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "solve_next_event_alias_search.h"
+#include "solve_alias_search.h"
 #include "spk.h"
 #include "random_park.h"
 #include "error.h"
@@ -19,8 +19,8 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-SolveNextEventAliasSearch::SolveNextEventAliasSearch
-(SPK *spk, int narg, char **arg) : Solve(spk, narg, arg)
+SolveAliasSearch::SolveAliasSearch(SPK *spk, int narg, char **arg) : 
+  Solve(spk, narg, arg)
 {
   if (narg != 2) error->all("Illegal solve command");
 
@@ -33,7 +33,7 @@ SolveNextEventAliasSearch::SolveNextEventAliasSearch
 
 /* ---------------------------------------------------------------------- */
 
-SolveNextEventAliasSearch::~SolveNextEventAliasSearch()
+SolveAliasSearch::~SolveAliasSearch()
 {
   delete random;
   free_arrays();
@@ -41,7 +41,7 @@ SolveNextEventAliasSearch::~SolveNextEventAliasSearch()
 
 /* ---------------------------------------------------------------------- */
 
-void SolveNextEventAliasSearch::init(int n, double *propensity)
+void SolveAliasSearch::init(int n, double *propensity)
 {
   int i;
 
@@ -61,11 +61,12 @@ void SolveNextEventAliasSearch::init(int n, double *propensity)
   build_alias_table(nevents, propensity);
   //  table_dump(nevents);
 }
+
 /* ----------------------------------------------------------------------
    build table
 ------------------------------------------------------------------------- */
 
-void SolveNextEventAliasSearch::build_alias_table(int n, double *propensity)
+void SolveAliasSearch::build_alias_table(int n, double *propensity)
 {
   int i, m, k;
 
@@ -96,12 +97,13 @@ void SolveNextEventAliasSearch::build_alias_table(int n, double *propensity)
     //    table_dump(nevents);   //diagnostic
   }
   //  check_table_consistency();  //diagnostic
-
 }
+
 /* ---------------------------------------------------------------------- */
 //sort hilo array
 /* ---------------------------------------------------------------------- */
-int SolveNextEventAliasSearch::sort_hilo()
+
+int SolveAliasSearch::sort_hilo()
 {
   int i, m;
   int tmp;
@@ -118,10 +120,12 @@ int SolveNextEventAliasSearch::sort_hilo()
 
   return i;
 }
+
 /* ---------------------------------------------------------------------- */
 //diagnostic table check
 /* ---------------------------------------------------------------------- */
-void SolveNextEventAliasSearch::check_table_consistency()
+
+void SolveAliasSearch::check_table_consistency()
 {
   double psum;
 
@@ -134,10 +138,12 @@ void SolveNextEventAliasSearch::check_table_consistency()
       fprintf(screen,"propensity %d incomplete in table \n",i);
   }
 }
+
 /* ---------------------------------------------------------------------- */
 //diagnostic table dump
 /* ---------------------------------------------------------------------- */
-void SolveNextEventAliasSearch::table_dump(int n)
+
+void SolveAliasSearch::table_dump(int n)
 {
   int i;
   fprintf(screen,
@@ -161,7 +167,7 @@ void SolveNextEventAliasSearch::table_dump(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void SolveNextEventAliasSearch::update(int n, int *indices, double *propensity)
+void SolveAliasSearch::update(int n, int *indices, double *propensity)
 {
   for (int i = 0; i < n; i++) {
     int current_index = indices[i];
@@ -172,9 +178,10 @@ void SolveNextEventAliasSearch::update(int n, int *indices, double *propensity)
 
   if (n > 0) {build_alias_table(nevents, propensity);}
 }
+
 /* ---------------------------------------------------------------------- */
 
-void SolveNextEventAliasSearch::update(int n, double *propensity)
+void SolveAliasSearch::update(int n, double *propensity)
 {
   sum -= prob[n];
   prob[n] = propensity[n];
@@ -182,15 +189,17 @@ void SolveNextEventAliasSearch::update(int n, double *propensity)
   
   build_alias_table(nevents, propensity);
 }
+
 /* ---------------------------------------------------------------------- */
 
-void SolveNextEventAliasSearch::resize(int new_size, double *propensity)
+void SolveAliasSearch::resize(int new_size, double *propensity)
 {
   init(new_size, propensity);
 }
+
 /* ---------------------------------------------------------------------- */
 
-int SolveNextEventAliasSearch::event(double *pdt)
+int SolveAliasSearch::event(double *pdt)
 {
   int i;
 
@@ -208,7 +217,7 @@ int SolveNextEventAliasSearch::event(double *pdt)
 /* ----------------------------------------------------------------------
    free arrays used by solver
 ------------------------------------------------------------------------- */
-void SolveNextEventAliasSearch::free_arrays()
+void SolveAliasSearch::free_arrays()
 {
 
   delete [] p;

@@ -3,17 +3,17 @@
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
-#ifndef SOLVE_NEXT_EVENT_ALIAS_SEARCH_H
-#define SOLVE_NEXT_EVENT_ALIAS_SEARCH_H
+#ifndef SOLVE_ALIAS_SEARCH_H
+#define SOLVE_ALIAS_SEARCH_H
 
 #include "solve.h"
 
 namespace SPPARKS {
 
-class SolveNextEventAliasSearch : public Solve {
+class SolveAliasSearch : public Solve {
  public:
-  SolveNextEventAliasSearch(class SPK *, int, char **);
-  ~SolveNextEventAliasSearch();
+  SolveAliasSearch(class SPK *, int, char **);
+  ~SolveAliasSearch();
   void input(int, char **) {}
   void init(int, double *);
   void update(int, int *, double *);

@@ -7,7 +7,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "solve_next_event_linear_search.h"
+#include "solve_linear_search.h"
 #include "spk.h"
 #include "random_park.h"
 #include "error.h"
@@ -16,8 +16,7 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-SolveNextEventLinearSearch::
-SolveNextEventLinearSearch(SPK *spk, int narg, char **arg) :
+SolveLinearSearch::SolveLinearSearch(SPK *spk, int narg, char **arg) :
   Solve(spk, narg, arg)
 {
   if (narg != 2) error->all("Illegal solve command");
@@ -29,7 +28,7 @@ SolveNextEventLinearSearch(SPK *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-SolveNextEventLinearSearch::~SolveNextEventLinearSearch()
+SolveLinearSearch::~SolveLinearSearch()
 {
   delete [] prob;
   delete random;
@@ -37,7 +36,7 @@ SolveNextEventLinearSearch::~SolveNextEventLinearSearch()
 
 /* ---------------------------------------------------------------------- */
 
-void SolveNextEventLinearSearch::init(int n, double *propensity)
+void SolveLinearSearch::init(int n, double *propensity)
 {
   delete [] prob;
   nevents = n;
@@ -54,7 +53,7 @@ void SolveNextEventLinearSearch::init(int n, double *propensity)
 
 /* ---------------------------------------------------------------------- */
 
-void SolveNextEventLinearSearch::update(int n, int *indices, double *propensity)
+void SolveLinearSearch::update(int n, int *indices, double *propensity)
 {
   int m;
   for (int i = 0; i < n; i++) {
@@ -68,7 +67,7 @@ void SolveNextEventLinearSearch::update(int n, int *indices, double *propensity)
 }
 /* ---------------------------------------------------------------------- */
 
-void SolveNextEventLinearSearch::update(int n, double *propensity)
+void SolveLinearSearch::update(int n, double *propensity)
 {
   if (prob[n] == 0.0) nzeroes--;
   if (propensity[n] == 0.0) nzeroes++;
@@ -79,13 +78,13 @@ void SolveNextEventLinearSearch::update(int n, double *propensity)
 /* ---------------------------------------------------------------------- */
 
 
-void SolveNextEventLinearSearch::resize(int new_size, double *propensity)
+void SolveLinearSearch::resize(int new_size, double *propensity)
 {
   init(new_size,propensity);
 }
 /* ---------------------------------------------------------------------- */
 
-int SolveNextEventLinearSearch::event(double *pdt)
+int SolveLinearSearch::event(double *pdt)
 {
   int m;
 

@@ -3,17 +3,17 @@
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
-#ifndef SOLVE_NEXT_EVENT_GROUP_SEARCH_H
-#define SOLVE_NEXT_EVENT_GROUP_SEARCH_H
+#ifndef SOLVE_LINEAR_SEARCH_H
+#define SOLVE_LINEAR_SEARCH_H
 
 #include "solve.h"
 
 namespace SPPARKS {
 
-class SolveNextEventGroupSearch : public Solve {
+class SolveLinearSearch : public Solve {
  public:
-  SolveNextEventGroupSearch(class SPK *, int, char **);
-  ~SolveNextEventGroupSearch();
+  SolveLinearSearch(class SPK *, int, char **);
+  ~SolveLinearSearch();
   void input(int, char **) {}
   void init(int, double *);
   void update(int, int *, double *);
@@ -23,18 +23,11 @@ class SolveNextEventGroupSearch : public Solve {
 
  private:
   class RandomPark *random;
-  class Groups *groups;
-  int nevents;
-  double *p;
-  double last_size;
+  int nevents,nzeroes;
+  double *prob;
   double sum;
-  int seed;
-  int ngroups_in;
-  bool ngroups_flag;
-  double lo, hi;
 };
 
 }
 
 #endif
-

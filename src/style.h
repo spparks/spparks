@@ -46,17 +46,17 @@ CommandStyle(shell,Shell)
 #endif
 
 #ifdef SolveInclude
-#include "solve_alias_search.h"
-#include "solve_group_search.h"
-#include "solve_linear_search.h"
-#include "solve_tree_search.h"
+#include "solve_alias.h"
+#include "solve_group.h"
+#include "solve_linear.h"
+#include "solve_tree.h"
 #endif
 
 #ifdef SolveClass
-SolveStyle(alias_search,SolveAliasSearch)
-SolveStyle(group_search,SolveGroupSearch)
-SolveStyle(linear_search,SolveLinearSearch)
-SolveStyle(tree_search,SolveTreeSearch)
+SolveStyle(alias,SolveAlias)
+SolveStyle(group,SolveGroup)
+SolveStyle(linear,SolveLinear)
+SolveStyle(tree,SolveTree)
 #endif
 
 #ifdef SweepInclude

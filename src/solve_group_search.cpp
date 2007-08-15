@@ -7,7 +7,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "solve_next_event_group_search.h"
+#include "solve_group_search.h"
 #include "groups.h"
 #include "spk.h"
 #include "random_park.h"
@@ -17,9 +17,8 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-SolveNextEventGroupSearch::
-SolveNextEventGroupSearch(SPK *spk, int narg, char **arg) : 
-Solve(spk, narg, arg)
+SolveGroupSearch::SolveGroupSearch(SPK *spk, int narg, char **arg) : 
+  Solve(spk, narg, arg)
 {
   if (narg < 4) error->all("Illegal solve command");
   
@@ -41,7 +40,7 @@ Solve(spk, narg, arg)
 
 /* ---------------------------------------------------------------------- */
 
-SolveNextEventGroupSearch::~SolveNextEventGroupSearch()
+SolveGroupSearch::~SolveGroupSearch()
 {
   delete random;
   delete groups;
@@ -49,17 +48,13 @@ SolveNextEventGroupSearch::~SolveNextEventGroupSearch()
 }
 
 /* ---------------------------------------------------------------------- */
-//currently set to max size same as size
-//to change, uncomment the commented lines
-//and comment their complements
-void SolveNextEventGroupSearch::init(int n, double *propensity)
+
+void SolveGroupSearch::init(int n, double *propensity)
 {
   nevents = n;
   sum = 0;
   delete [] p;
-  //p = new double[2*n];
   p = new double[n+10];
-  //p = propensity;
 
   last_size = n;
 
@@ -77,20 +72,15 @@ void SolveNextEventGroupSearch::init(int n, double *propensity)
     sum += pt;
   }
 
-  //  groups->partition_init(propensity, n, 2*n);
   groups->partition_init(p, n, n+10);
-  //groups->partition_init(p, n, n+10);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void SolveNextEventGroupSearch::update(int n, int *indices, double *propensity)
-//void SolveNextEventGroupSearch::update(int n, int *indices, double *pold)
+void SolveGroupSearch::update(int n, int *indices, double *propensity)
 {
   for (int i = 0; i < n; i++) {
     int j = indices[i];
-    //    update(j, propensity);
-    // double pt = pold[i];
     double pt = p[j];
     if(propensity[j]!=pt){
       sum -= pt;
@@ -102,43 +92,27 @@ void SolveNextEventGroupSearch::update(int n, int *indices, double *propensity)
 }
 /* ---------------------------------------------------------------------- */
 
-void SolveNextEventGroupSearch::update(int n, double *propensity)
-//void SolveNextEventGroupSearch::update(int n, double *pold)
+void SolveGroupSearch::update(int n, double *propensity)
 {
   double pt = p[n];
-  //double pt = pold[0];
 
-  //     if (lo > pt) {
-  //       lo = pt; 
-  //       fprintf(screen, "Lower bound violated. Reset to %g \n", lo);
-  //       init(n, propensity);
-  //     }
-  //     else if (hi < pt)  {
-  //       hi = pt; 
-  //       fprintf(screen, "Upper bound violated. Reset to %g \n", hi);
-  //       init(n, propensity);
-  //     }
-  //     else{
   if(propensity[n]!=pt){
-    //sum -= p[n];
     sum -= pt;
-    //groups->alter_element(n, p, pt);
     groups->alter_element(n, p, pt);
     p[n] = propensity[n];
-    //sum +=  pt;
     sum += p[n];
   }
-  //    }
 }
+
 /* ---------------------------------------------------------------------- */
 
-void SolveNextEventGroupSearch::resize(int new_size, double *propensity)
+void SolveGroupSearch::resize(int new_size, double *propensity)
 {
   init(new_size, propensity);
 }
 
 /* ---------------------------------------------------------------------- */
-int SolveNextEventGroupSearch::event(double *pdt)
+int SolveGroupSearch::event(double *pdt)
 {
   int m;
 

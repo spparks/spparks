@@ -3,17 +3,17 @@
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
-#ifndef SOLVE_NEXT_EVENT_TREE_SEARCH_H
-#define SOLVE_NEXT_EVENT_TREE_SEARCH_H
+#ifndef SOLVE_TREE_SEARCH_H
+#define SOLVE_TREE_SEARCH_H
 
 #include "solve.h"
 
 namespace SPPARKS {
 
-class SolveNextEventTreeSearch : public Solve {
+class SolveTreeSearch : public Solve {
  public:
-  SolveNextEventTreeSearch(class SPK *, int, char **);
-  ~SolveNextEventTreeSearch();
+  SolveTreeSearch(class SPK *, int, char **);
+  ~SolveTreeSearch();
   void input(int, char **) {}
   void init(int, double *);
   void update(int, int *, double *);
