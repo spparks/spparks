@@ -1,0 +1,29 @@
+# SPPARKS App "chemistry"
+
+# app_style	chemistry
+# solve_style	gillespie 12345 = style RN
+# volume	1.0e-11 = volume (liters)
+# species	A B C = add species names, can use multiple times
+# reaction	id A B 1.0e10 C D = single reaction, 0/1/2 reactants, products
+# count		species N = set particle count of a single species
+# stats		dt = delta time between printing of stats (seconds)
+# run		time = time to run for (seconds)
+
+# Simple A + B <-> C reaction via Gillepsie SSA
+
+app_style	chemistry
+solve_style	linear 12345
+
+volume		1.9098395e-11
+
+species		A B C
+
+reaction	1 A B 1.0e10 C
+reaction	2 C 1.0 A B
+
+count		A 3000
+count		B 1000
+
+stats           0.01
+
+run		1.0

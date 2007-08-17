@@ -1,0 +1,16 @@
+# Event generator test simulation
+
+app_style	test
+
+solve_style	linear  1234734
+#solve_style	alias  12345
+#solve_style	tree  12388788
+#solve_style	group  1.0e-6 1.0  1234777
+
+stats           10000000.0
+
+event           100 30 lo_mem 32606
+run		100000000.0
+
+
+#run 1.0

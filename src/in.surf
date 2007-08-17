@@ -1,0 +1,23 @@
+# 1+1 surface growth script
+
+# app_style     surf N 1.01 = 1d lattice of length N, strain = 1.0
+# solve_style	gillespie 12345 = style RN
+# temperature	1.1 = reduced LJ temp
+# potential	lj 3.0 = LJ potential, cutoff = 3.0 sigma
+# rates		R = deposition rate (atoms/sec)
+# stats		N = print stats every N events
+# dump		N file = print snapshot to file every N events
+# run		N = run N events
+
+app_style	surf 30 1.0 59389
+solve_style	linear 12345
+
+temperature	1.0
+potential	lj 3.0
+
+rates		1
+
+stats           1
+dump		1 tmp.dump
+
+run		500

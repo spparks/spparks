@@ -1,0 +1,29 @@
+# SPPARKS App "grain"
+
+# app_style	membrane Nx Ny 12345 = Nx by Ny square lattice, RN
+#		lat = square_8nn, square_4nn, cubic_26nn, cubic_6nn
+# sweep_style   grain 12345 (mask yes/no) (strict yes/no) (delt dt = time per sweep, default 1.0)
+# solve_style   see documentation for solve styles (serial execution only)
+# temperature	300.0 = temp (degrees K), currently only T=0 algorithms implemented
+# stats		dt = print stats every dt time units
+# dump		dt file = print snapshot to file every dt time units
+# run	 	t = run for t time units
+
+# membrane evolution on a 2d square lattice using 3-state model
+# need someway to initialize proteins
+
+app_style       membrane 100 100 2.0 1.0 12345
+sweep_style     lattice2d 12345 mask no
+
+inclusion	40 30 10
+inclusion	15 15 10
+
+#solve_style     linear 12345
+
+temperature	1.0
+
+stats           1.0
+dump            1.0 tmp.membrane
+
+run             10
+

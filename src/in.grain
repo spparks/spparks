@@ -1,0 +1,55 @@
+# SPPARKS App "grain"
+
+# app_style	ising lat Nx Ny (Nz) 12345
+# app_style	potts lat Nx Ny (Nz) Ns 12345
+#               lattice of type lat and size Nx by Ny (by Nz), Ns = spins, RN
+#		lat = square_8nn, square_4nn, cubic_26nn, cubic_6nn
+# sweep_style   grain 12345 (mask yes/no) (strict yes/no) (kmc yes/no) 
+#                           (delt dt = time per sweep, default 1.0)
+# solve_style   see documentation for solve styles (serial execution only)
+# temperature	1.0 = temp (0.0 default), Hamiltonian units
+# stats		dt = print stats every dt time units
+# dump		dt file = print snapshot to file every dt time units
+# run	 	t = run for t time units
+
+# Grain growth on a 2D Lattice using masking, and strict
+# This is slower than non-strict, but will give the same
+# answer on any number of processors, with or without mask.
+
+#app_style       grain square_8nn 50 50 50 12345
+#sweep_style     grain 12345 mask yes strict yes delt 0.1
+
+#app_style       grain square_8nn 4 4 2 12345
+#sweep_style     grain 12345 delt 1.0 mask no
+#solve_style     linear 12345
+
+# 2d
+
+#app_style       ising/2d/4n 50 50 12345
+#app_style       potts/2d/8n 50 50 20 12345
+
+#solve_style	linear 12345
+
+#sweep_style     lattice2d 12345 delt 1.0 mask no
+#sweep_style     lattice2d 12345 delt 1.0 mask yes
+#sweep_style     lattice2d 12345 delt 1.0 mask yes strict yes
+#sweep_style     lattice2d 12345 delt 1.0 kmc yes
+
+# 3d
+
+app_style       ising/3d/6n 20 20 20 12345
+
+solve_style	linear 12345
+
+#sweep_style     lattice3d 12345 delt 1.0 mask no
+#sweep_style     lattice3d 12345 delt 1.0 mask yes
+#sweep_style     lattice3d 12345 delt 1.0 mask yes strict yes
+sweep_style     lattice3d 12345 delt 1.0 kmc yes
+
+#temperature	1
+
+stats           1
+dump            1 lattice tmp.grain
+
+run             10
+

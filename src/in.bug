@@ -1,0 +1,48 @@
+# SPPARKS App "grain"
+
+#
+# run           time = time to run for (1 sweep = 1 time unit)
+
+# Grain growth on same lattice using Gillespie solver
+# Note that time has been rescaled by npsins
+
+app_style       grain square_8nn  10 10 100 12345
+sweep_style     grain 12345 mask no strict no
+
+stats           10
+dump            10 tmp.grain
+
+run             1
+
+# Grain growth on a 2D Lattice using masking, and not strict
+
+app_style       grain square_8nn 10 10 100 12345
+sweep_style	 none
+solve_style     linear 12346
+
+stats           1000
+dump            1000 tmp.grain
+
+run             10
+
+# 3rd run
+
+app_style       grain square_8nn 10 10 100 12345
+sweep_style	 none
+solve_style     linear 12346
+
+stats           1000
+dump            1000 tmp.grain
+
+run             10
+
+
+# Grain growth on a 2D Lattice using masking, and not strict
+
+#app_style       grain square_8nn 2 2 100 12345
+#sweep_style     grain 12345 mask no strict no
+
+#stats           1000
+#dump            1000 tmp.grain
+
+#run             1
