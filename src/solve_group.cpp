@@ -1,7 +1,9 @@
-/* ----------------------------------------------------------------------
+/*
+----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
    contact info, copyright info, etc
-------------------------------------------------------------------------- */
+------------------------------------------------------------------------
+- */
 
 #include "math.h"
 #include "stdio.h"
@@ -15,9 +17,11 @@
 
 using namespace SPPARKS;
 
-/* ---------------------------------------------------------------------- */
+/*
+----------------------------------------------------------------------
+*/
 
-SolveGroup::SolveGroup(SPK *spk, int narg, char **arg) : 
+SolveGroup::SolveGroup(SPK *spk, int narg, char **arg) :
   Solve(spk, narg, arg)
 {
   if (narg < 4) error->all("Illegal solve command");
@@ -28,8 +32,8 @@ SolveGroup::SolveGroup(SPK *spk, int narg, char **arg) :
   ngroups_in = 0;
   ngroups_flag = false;
   if (narg == 5) {
-    ngroups_in = atoi(arg[3]); 
-    ngroups_flag = true; 
+    ngroups_in = atoi(arg[3]);
+    if (ngroups_in) ngroups_flag = true;
     seed = atoi(arg[4]);
   }
   else seed = atoi(arg[3]);
@@ -39,7 +43,9 @@ SolveGroup::SolveGroup(SPK *spk, int narg, char **arg) :
   p = NULL;
 }
 
-/* ---------------------------------------------------------------------- */
+/*
+----------------------------------------------------------------------
+*/
 
 SolveGroup::~SolveGroup()
 {
@@ -48,7 +54,9 @@ SolveGroup::~SolveGroup()
   delete [] p;
 }
 
-/* ---------------------------------------------------------------------- */
+/*
+----------------------------------------------------------------------
+*/
 
 SolveGroup *SolveGroup::clone()
 {
@@ -75,10 +83,11 @@ SolveGroup *SolveGroup::clone()
   return ptr;
 }
 
-/* ---------------------------------------------------------------------- */
+/*
+----------------------------------------------------------------------
+*/
 
-void SolveGroup::init(int n, double *propensity)
-{
+void SolveGroup::init(int n, double *propensity) {
   nevents = n;
   nzeroes = 0;
   sum = 0.0;
@@ -89,12 +98,12 @@ void SolveGroup::init(int n, double *propensity)
 
   for (int i = 0; i < n; i++) {
     double pt = propensity[i];
-    if (lo > pt) {
-      lo = pt; 
+    if (lo > pt && pt > 0.0) {
+      lo = pt;
       fprintf(screen, "Lower bound violated. Reset to %g \n", lo);
     }
     else if (hi < pt)  {
-      hi = pt; 
+      hi = pt;
       fprintf(screen, "Upper bound violated. Reset to %g \n", hi);
     }
     p[i] = pt;
@@ -104,10 +113,11 @@ void SolveGroup::init(int n, double *propensity)
   groups->partition_init(p,n,n+10);
 }
 
-/* ---------------------------------------------------------------------- */
+/*
+----------------------------------------------------------------------
+*/
 
-void SolveGroup::update(int n, int *indices, double *propensity)
-{
+void SolveGroup::update(int n, int *indices, double *propensity) {
   for (int i = 0; i < n; i++) {
     int j = indices[i];
     double pt = p[j];
@@ -121,10 +131,11 @@ void SolveGroup::update(int n, int *indices, double *propensity)
     }
   }
 }
-/* ---------------------------------------------------------------------- */
+/*
+----------------------------------------------------------------------
+*/
 
-void SolveGroup::update(int n, double *propensity)
-{
+void SolveGroup::update(int n, double *propensity) {
   double pt = p[n];
 
   if (propensity[n] != pt) {
@@ -137,14 +148,17 @@ void SolveGroup::update(int n, double *propensity)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/*
+----------------------------------------------------------------------
+*/
 
-void SolveGroup::resize(int new_size, double *propensity)
-{
+void SolveGroup::resize(int new_size, double *propensity) {
   init(new_size,propensity);
 }
 
-/* ---------------------------------------------------------------------- */
+/*
+----------------------------------------------------------------------
+*/
 
 int SolveGroup::event(double *pdt)
 {
@@ -154,6 +168,9 @@ int SolveGroup::event(double *pdt)
 
   m = groups->sample(p);
   *pdt = -1.0/sum * log(random->uniform());
+
   return m;
 }
+
+
 
