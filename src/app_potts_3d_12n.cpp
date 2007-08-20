@@ -41,7 +41,6 @@ AppPotts3d12n::AppPotts3d12n(SPK *spk, int narg, char **arg) :
   // define lattice and partition it across processors
   
   procs2lattice();
-
   memory->create_3d_T_array(lattice,nxlo,nxhi,nylo,nyhi,nzlo,nzhi,
 			    "applattice3d:lattice");
 

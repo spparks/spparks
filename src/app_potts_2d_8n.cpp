@@ -37,9 +37,6 @@ AppPotts2d8n::AppPotts2d8n(SPK *spk, int narg, char **arg) :
 
   masklimit = 4.0;
 
-  dellocal = 0;
-  delghost = 1;
-
   // define lattice and partition it across processors
   
   procs2lattice();

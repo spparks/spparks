@@ -43,8 +43,8 @@ AppLattice2d::AppLattice2d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   site2ij = NULL;
   ij2site = NULL;
 
-  // These are sensible defaults, but each app-specific values
-  // should be provided in the child constructor.
+  // app can override these values in its constructor
+
   dellocal = 0;
   delghost = 1;
 }
@@ -76,6 +76,9 @@ void AppLattice2d::init()
   init_app();
 
   // error checks
+
+  if (sweep && strcmp(sweep->style,"lattice2d") != 0)
+    error->all("Mismatched sweeper with app lattice");
 
   if (sweep == NULL && solve == NULL)
     error->all("Lattice app needs a solver or sweeper");

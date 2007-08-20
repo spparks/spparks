@@ -34,14 +34,11 @@ AppIsing3d26n::AppIsing3d26n(SPK *spk, int narg, char **arg) :
 
   masklimit = 13.0;
 
-  dellocal = 0;
-  delghost = 1;
-
   // define lattice and partition it across processors
   
   procs2lattice();
-  memory->create_3d_T_array(lattice,nx_local+2,ny_local+2,nz_local+2,
-			    "applattice3d:lattice");
+  memory->create_3d_T_array(lattice,nxlo,nxhi,nylo,nyhi,nzlo,nzhi,
+			    "app:lattice");
 
   // initialize my portion of lattice
   // each site = one of 2 spins

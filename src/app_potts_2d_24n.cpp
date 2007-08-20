@@ -41,9 +41,8 @@ AppPotts2d24n::AppPotts2d24n(SPK *spk, int narg, char **arg) :
   delghost = 2;
 
   // define lattice and partition it across processors
-  // It needs to have correct values for delghost  
-  procs2lattice();
 
+  procs2lattice();
   memory->create_2d_T_array(lattice,nxlo,nxhi,nylo,nyhi,
 			    "applattice2d:lattice");
 

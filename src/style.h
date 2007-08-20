@@ -5,6 +5,7 @@
 
 #ifdef AppInclude
 #include "app_chemistry.h"
+//#include "app_ising.h"
 #include "app_ising_2d_4n.h"
 #include "app_ising_2d_8n.h"
 #include "app_ising_3d_6n.h"
@@ -22,6 +23,7 @@
 
 #ifdef AppClass
 AppStyle(chemistry,AppChemistry)
+  //AppStyle(ising,AppIsing)
 AppStyle(ising/2d/4n,AppIsing2d4n)
 AppStyle(ising/2d/8n,AppIsing2d8n)
 AppStyle(ising/3d/6n,AppIsing3d6n)
