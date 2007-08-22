@@ -36,6 +36,8 @@ class Groups {
   void group_diagnostic(double *); // output groups to screen
   void test_sampling(double *, int);   //test sampling statistics 
                                   //against distribution
+  int diag_cnt;
+
   int sample(double *); //draw a variate from current distribution
  private:
   //constants
@@ -60,7 +62,8 @@ class Groups {
 
   void allocate_group_space(int);
   void release_group_space();
-  void resize_group(int);
+  void grow_group(int);
+  void shrink_group(int);
   void resize_inverse();
 
   //sampling

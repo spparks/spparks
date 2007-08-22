@@ -120,14 +120,14 @@ void SolveGroup::init(int n, double *propensity) {
 void SolveGroup::update(int n, int *indices, double *propensity) {
   for (int i = 0; i < n; i++) {
     int j = indices[i];
-    double pt = p[j];
-    if (propensity[j] != pt) {
+    double pt = propensity[j];
+    if (p[j] != pt) {
       if (p[j] == 0.0) nzeroes--;
-      if (propensity[j] == 0.0) nzeroes++;
-      sum -= pt;
+      if (pt == 0.0) nzeroes++;
+      sum -= p[j];
       groups->alter_element(j, p, pt);
-      p[j] = propensity[j];
-      sum += p[j];
+      p[j] = pt;
+      sum += pt;
     }
   }
 }
@@ -136,15 +136,14 @@ void SolveGroup::update(int n, int *indices, double *propensity) {
 */
 
 void SolveGroup::update(int n, double *propensity) {
-  double pt = p[n];
-
-  if (propensity[n] != pt) {
-    if (pt == 0.0) nzeroes--;
-    if (propensity[n] == 0.0) nzeroes++;
-    sum -= pt;
+  double pt = propensity[n];
+  if (p[n] != pt) {
+    if (p[n] == 0.0) nzeroes--;
+    if (pt == 0.0) nzeroes++;
+    sum -= p[n];
     groups->alter_element(n, p, pt);
-    p[n] = propensity[n];
-    sum += p[n];
+    p[n] = pt;
+    sum += pt;
   }
 }
 
@@ -164,8 +163,7 @@ int SolveGroup::event(double *pdt)
 {
   int m;
 
-  if (nzeroes == nevents) return -1;
-
+  if (nzeroes == nevents) {sum = 0; return -1;}
   m = groups->sample(p);
   *pdt = -1.0/sum * log(random->uniform());
 

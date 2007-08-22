@@ -28,6 +28,8 @@ Groups::Groups(double lo_in, double hi_in, int seed_in,
   group_sum = NULL;
   empty_groups = NULL;
 
+  diag_cnt = 0;
+
   random = new RandomPark(seed_in);
   hi = hi_in;
   lo = lo_in;
@@ -181,29 +183,46 @@ void Groups::partition(double *p, double lo, double hi)
 void Groups::alter_element(int j, double *p, double p_new)
 {
   double p_old = p[j];
+  if(p_new == p_old) return;
   double diff = p_new - p_old;
-  double frac = hi/static_cast<double>(ngroups);
+  double frac;
+
+  if(p_new > hi){
+    hi = p_new;
+    partition_init(p, size, max_size);
+    // cout << "Upper bound broken. Repartitioning."<<endl;
+  }
 
   //find new group membership
   int new_group;
+  int old_group;
+
   if(ngroups_flag){
     //equal fragments
     new_group = static_cast<int>(p_new/frac);
+    frac = hi/static_cast<double>(ngroups);
   }
   else{
     //logarithmic fragments
-    new_group = -static_cast<int>(log(p_new/hi)*overlg2);
-    if (new_group > ngroups-1) new_group = ngroups - 1; 
+    if (p_new > lo)
+      new_group = -static_cast<int>(log(p_new/hi)*overlg2);
+    else {
+      new_group = ngroups - 1; 
+      //      cout << "propensity below lower bound in alter"<<endl;
+    }
   }
+
+
   //check if changed
   if(my_group[j] == new_group){
     //update group sum
     group_sum[new_group] += diff;
+    //    cout <<"Group unchanged"<<endl;
   }
   else{
     //remove from old group
     //put last element in place of removed
-    int old_group = my_group[j];
+    old_group = my_group[j];
     int old_group_i = my_group_i[j];
     int last = group[old_group][i_group[old_group]-1];
 
@@ -213,9 +232,15 @@ void Groups::alter_element(int j, double *p, double p_new)
     group_sum[old_group] -= p_old;
 
     //add to new group
-    printf("AAA\n");
-    printf("AAA %d %d\n",ngroups,new_group);
-    if(i_group[new_group] >= group_size[new_group]-1) resize_group(new_group);
+
+    if(i_group[new_group] > group_size[new_group]-1){
+      grow_group(new_group);
+    }
+    else if (i_group[new_group] < group_size[new_group]/4){
+      shrink_group(new_group);
+    }
+
+
     group[new_group][i_group[new_group]] = j;
     my_group[j] = new_group;
     my_group_i[j] = i_group[new_group];
@@ -243,9 +268,9 @@ void Groups::add_element(int j, double *p)
     g = -static_cast<int>(log(p_in/hi)*overlg2);
     if (g > ngroups-1) g = ngroups - 1;
   } 
-  //  cout << "Adding propensity "<<p_in <<" to group "<<g<<endl;
+  //   cout << "Adding propensity "<<p_in <<" to group "<<g<<endl;
   //check capacity and allocate space if needed
-  if(i_group[g] >= group_size[g]-1) resize_group(g);
+  if(i_group[g] >= group_size[g]-1) grow_group(g);
   if(size >= max_size) resize_inverse();
   //add to group
   group[g][i_group[g]] = j;
@@ -262,7 +287,7 @@ void Groups::add_element(int j, double *p)
 /* ----------------------------------------------------------------------
    Extend group space
    ------------------------------------------------------------------------- */
-void Groups::resize_group(int g)
+void Groups::grow_group(int g)
 {
   //double storage for group
   if(group_size[g] == 0) group_size[g] = 1;
@@ -276,8 +301,28 @@ void Groups::resize_group(int g)
 
   group[g] = tmpg;
 
-//      cout << "Resized group "<<g <<"  from "<<group_size[g]/2 <<" to "
-//         << group_size[g]<<"."<<endl;
+//   cout << "Grew group "<<g <<"  from "<<group_size[g]/2 <<" to "
+//        << group_size[g]<<"."<<endl;
+}
+/* ----------------------------------------------------------------------
+   Compress group space
+   ------------------------------------------------------------------------- */
+void Groups::shrink_group(int g)
+{
+  //double storage for group
+  if(group_size[g] == 0) group_size[g] = 2;
+  group_size[g] = group_size[g]/2;
+  int *tmpg = new int[group_size[g]];
+
+  //copy contents
+  for(int i=0;i<i_group[g]; i++) tmpg[i] = group[g][i];
+
+  delete [] group[g];
+
+  group[g] = tmpg;
+
+//   cout << "Shrunk group "<<g <<"  from "<<group_size[g]*2 <<" to "
+//        << group_size[g]<<"."<<endl;
 }
 /* ----------------------------------------------------------------------
    Extend inverse arrays
@@ -311,12 +356,15 @@ void Groups::resize_inverse()
 int Groups::sample(double *p)
 {
   int r= -1;
+  int grp;
+  //  int cnt = 0;
+  diag_cnt = 0;
 
   while(r<0){
-    int grp = linear_select_group();
-    //    cout << "group selected "<<grp <<endl;
-    if(grp>-1) r =  sample_with_rejection(grp, p);
-    //    cout << "group sampled "<<endl;
+    grp = linear_select_group();
+    if(grp>-1) {
+      r =  sample_with_rejection(grp, p);
+    }
   }
   return r;
 }
@@ -343,12 +391,12 @@ int Groups::linear_select_group()
   double partial = 0.0;
   g = 0;
 
-  while (1==1){
+  while (g<ngroups){
     partial += group_sum[g];
     if (partial > compare) return g;
     g++;
   }
-  //  cout << "no selection of group"<<endl;
+  //cout << "no selection of group"<<endl;
   return -1; //no group selected
 }
 /* ----------------------------------------------------------------------
@@ -447,6 +495,9 @@ void Groups::test_sampling(double *p, int nsamples)
    ------------------------------------------------------------------------- */
 void Groups::group_diagnostic(double *p)
 {
+
+  double tsum;
+
   //diagnostic
   cout <<"%%%%%%%%%%%%%%% Group diagnostic dump %%%%%%%%%%%%%%%%%%%%%"<<endl;
   cout << "Number of groups = "<<ngroups<<"."<<endl;
@@ -455,19 +506,22 @@ void Groups::group_diagnostic(double *p)
  	 <<i_group[g]<<" / "<<group_size[g]<<" sums to " 
  	 <<group_sum[g]<<" with upper bound of "<<group_hi[g]
  	 <<"."<<endl<<endl;
+    tsum = 0.0;
+    for (int m = 0; m < i_group[g]+1; m++){
+      int l = group[g][m];
+      if(p[group[g][m]]!=0)
+	cout << p[group[g][m]]<<"  "<<my_group[l]<<"  "
+	     <<my_group_i[l]<<endl;
+      tsum += p[group[g][m]];
+    }
 
-//     for (int m = 0; m < i_group[g]; m++){
-//       int l = group[g][m];
-//       cout << p[group[g][m]]<<"  "<<my_group[l]<<"  "
-// 	   <<my_group_i[l]<<endl;
-
-//     }
     cout << endl 
 	 <<"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"<<endl;
+    if(tsum != group_sum[g])cout << "sum check failed "<< tsum<<endl;
   } 
   for(int i = 0; i< size; i++){
-    //    cout << i <<"  " <<p[i]<<"  " <<p[i] - lo<< "  "<< my_group[i] <<"  "
-    //     	 << my_group_i[i]<<endl;
+//        cout << i <<"  " <<p[i]<<"  " <<p[i] - lo<< "  "<< my_group[i] <<"  "
+//         	 << my_group_i[i]<<endl;
     if(group[my_group[i]][my_group_i[i]] != i){
       cout << "At "<<i<<" the inverse table failed!"<<endl;
       cout <<" Producing "<< group[my_group[i]][my_group_i[i]]<<"."<<endl;
