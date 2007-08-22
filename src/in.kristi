@@ -1,45 +1,5 @@
 # SPPARKS App "migration"
 
-# app_style	migration lattice metal latt_const Nx Ny Nz RandNum
-#	lattice = fcc_12nn_100_011, fcc_12nn_111, or hcp_12nn_0001
-#		where aaa_12nn_zzz_xxx =>	aaa = lattice type (fcc or hcp)
-#									zzz(z) = surface normal to z axis
-#									xxx = surface normal to x axis (if an option)
-#		NOTE: (fcc_12nn_100_010 and fcc_12nn_110 are works in progress)
-#	metal = Al (aluminum) for now
-#	latt_const = lattice constant for the material
-#	Nx by Ny by Nz is size of lattice, or number of atom sites
-#	RandNum is a random number seed
-#
-# sweep_style	lattice3d 12345 mask no kmc yes delt dt
-#	dt = time per sweep, default 1.0
-# solve_style	type 12346
-#	type = linear, tree, or alias (see documentation for solve style details)
-# NOTE: Only options for migration application are:
-#		1) serial KMC solver (solve_style command line only)
-#		2) parallel KMC solver (sweep_style with "kmc yes" plus solve_style)
-#
-# boundaries	x1type x2type y1type y2type z1type z2type
-#	type = free, fixed, or periodic
-#
-# vacancies		bulk surface nx1_surf nx2_surf ny1_surf ny2_surf nz1_surf nz2_surf
-#	bulk, surface = vacancy concentrations 
-#	n**_surf = number of atom layers comprising the specified surface
-# NOTE: surface vacancies are not yet implemented
-#
-# temperature	temp
-#	temperature in Kelvin
-#
-# bias		amount
-#	amount = magnitude of EM bias in the x direction
-#
-# stats		dt = print stats every dt time units
-# dump		dt type file 
-#	dt = print snapshot to file every dt time units
-#	type = lattice (for 2D snapshots) or coord (for coordinates for viz)
-#	file = dump filename
-# run		t = run for t time units
-
 app_style	migration fcc_12nn_100_011 Al 4.05 16 12 10 12345
 #app_style	migration fcc_12nn_111 Al 4.05 16 12 10 12345
 #app_style	migration hcp_12nn_0001 Al 4.05 16 12 10 12345
