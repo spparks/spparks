@@ -1,0 +1,448 @@
+SPPARKS commands
+
+This text file provides a quick, simple description of SPPARKS input
+script commands, listed in alphabetic order.  Eventually it will be
+turned into HTML documentation.
+
+SPPARKS users can read this file to get a concise description of the
+syntax and usage of each command.
+
+Developers should use this file to keep track of the various features
+added to the code.
+
+When a command refers to an HTML doc page, it means the full
+documentation for the command already exists as an HTML page in the
+kmc/doc dir, e.g. doc/variable.html.
+
+Commands not listed here directly (e.g. run, stats) are supported by
+individual apps.  See the app documentation for a list of the commands
+specific to the app.
+
+-----------------------------------------------------------------------
+* app_style
+
+app_style style args ...
+
+define an application for SPPARKS to run
+see commands for individual styles
+
+-----------------------------------------------------------------------
+* app_style chemistry
+
+app_style chemistry
+
+evolve a set of coupled chemical reactions stochastically
+produces a time trace of species concentrations
+a Gillespie simulation like ChemCell performs
+also need to define a "solve" style
+
+Extra commands supported by this app:
+
+add_species a b c3 mine ...
+  add 1 or more chemical species
+  must be done before using them in a reaction
+add_reaction a b 3.0
+add_reaction 1.0 d
+add_reaction b2 1.0e-10 c3 d4 e3
+  0,1,2 reactants produce 0 or more products at a rate
+  units of rate depend on # of reactants
+    0-reactants = rate is molarity/sec
+    1-reactants = rate is 1/sec
+    2-reactants = rate is 1/molarity-sec
+count a2 10000
+  set initial molecule count of species a2
+  default = 0 for each species
+volume value
+  value = volume of system (liters)
+  must be set
+
+run 0.5
+  run for time (seconds)
+stats 0.1
+  print stats every this often (seconds)
+
+-----------------------------------------------------------------------
+* app_style gppt
+
+app_style gppt seed
+
+seed = RN seed
+
+run an app to do what ??
+also need to define a "solve" style ??
+
+Extra commands supported by this app: (doc these)
+
+tree_type
+population
+tempering
+fitness
+
+run 0.5
+  run for time (seconds)
+stats 0.1
+  print stats every this often (seconds)
+dump lattice/coord 0.25
+  dump snapshot every this often
+  either in lattice format or LAMMPS atom format (coord)
+
+-----------------------------------------------------------------------
+* app_style ising
+
+app_style ising/2d/4n nx ny seed
+app_style ising/2d/8n nx ny seed
+app_style ising/3d/6n nx ny nz seed
+app_style ising/3d/26n nx ny nz seed
+
+nx,ny,nz = lattice size
+seed = RN seed
+
+run an Ising model with different #'s of neighbors in stencil
+Hamiltonian =
+also need to define a "sweep" and/or "solve" style
+
+Extra commands supported by these apps:
+
+run 0.5
+  run for time (seconds)
+temperature 2.0
+  set temperature for Boltzmann factor (energy units of Hamiltonian)
+stats 0.1
+  print stats every this often (seconds)
+dump lattice/coord 0.25
+  dump snapshot every this often
+  either in lattice format or LAMMPS atom format (coord)
+
+-----------------------------------------------------------------------
+* app_style membrane
+
+app_style membrane nx ny w01 w11 seed
+
+nx,ny = lattice size
+w01,w11 = parameters in Hamiltonian
+seed = RN seed
+
+run a 2d 3-state membrane model where each site is PROTIEN inclusion,
+  LIPID, or SOLVENT
+Hamiltonian =
+also need to define a "sweep" and/or "solve" style
+
+Extra commands supported by this app:
+
+inclusion xc yc r
+  create a permanent circular protein inclusion at loc (xc,yc)
+    of radius r
+
+run 0.5
+  run for time (seconds)
+temperature 2.0
+  set temperature for Boltzmann factor (energy units of Hamiltonian)
+stats 0.1
+  print stats every this often (seconds)
+dump lattice/coord 0.25
+  dump snapshot every this often
+  either in lattice format or LAMMPS atom format (coord)
+
+-----------------------------------------------------------------------
+* app_style migration
+
+app_style migration latstyle material a nx ny nz seed
+
+latstyle = fcc_12nn_100_011, fcc_12nn_111, hcp_12nn_0001,
+	   fcc_12nn_100_010, fcc_12nn_110
+material = Al
+a = lattice constant (Angstroms)
+nx,ny,nz = lattice size
+seed = RN seed
+
+run an electromigration model of vacancy diffusion in a wire
+Hamiltonian = 
+also need to define a "sweep" and/or "solve" style
+
+Extra commands supported by this app:
+
+boundaries xlo xhi ylo yhi zlo zhi
+  each value is "fixed" or "free" or "periodic" for each of 6 sides of 3d wire
+vacancies bulk surf nx1 nx2 ny1 ny2 nz1 nz2
+  not sure what these mean
+bias value
+  value = electric field bias to apply along x-length of wire (units?)
+
+run 0.5
+  run for time (seconds)
+temperature 2.0
+  set temperature for Boltzmann factor (energy units of Hamiltonian)
+stats 0.1
+  print stats every this often (seconds)
+dump lattice/coord 0.25
+  dump snapshot every this often
+  either in lattice format or LAMMPS atom format (coord)
+
+-----------------------------------------------------------------------
+* app_style potts
+
+app_style potts/2d/4n nx ny nspins seed
+app_style potts/2d/8n nx ny nspins seed
+app_style potts/2d/24n nx ny nspins seed
+
+app_style potts/3d/6n nx ny nz nspins seed
+app_style potts/3d/26n nx ny nz nspins seed
+app_style potts/3d/12n nx ny nz nspins seed
+
+nx,ny,nz = lattice size
+nspins = # of possible spins
+seed = RN seed
+
+run a Potts model with different #'s of neighbors in stencil
+24n and 12n define special 2-hop stencils
+Hamiltonian = 
+also need to define a "sweep" and/or "solve" style
+
+Extra commands supported by these apps:
+
+run 0.5
+  run for time (seconds)
+temperature 2.0
+  set temperature for Boltzmann factor (energy units of Hamiltonian)
+stats 0.1
+  print stats every this often (seconds)
+dump lattice/coord 0.25
+  dump snapshot every this often
+  either in lattice format or LAMMPS atom format (coord)
+
+-----------------------------------------------------------------------
+* app_style surf
+
+app_style surf nlattice strain seed
+
+nlattice = lateral extent of simulation box
+strain = fractional strain in substrate (1.0 = no strain, 1.1 = 10%)
+seed = RN seed
+
+perform a 1+1d off-lattice surface growth simulation
+1+1d means a 2d simulation where a 1d surface grows vertically
+an initial substrate of immobile atoms is put down
+subsequent events are depositions and lateral diffusive hops by ad-atoms
+deposition event: atom is brought down from infinity at random position
+  allowed to relax on surface via CG
+diffusion event: ad-atom can hop left or write over barrier
+  barrier heights determine propensity for 2 events
+  after hop, atom is relaxed via CG
+currently only the event atom is relaxed
+  eventually the atom's neighborhood or entire lattice will be relaxed
+also need to define a "solve" style
+currently runs only in serial
+
+Extra commands supported by this app:
+
+potential 3.0
+  set cutoff for interatomic potential
+  only LJ potential with epsilon,sigma = 1.0 is currently supported
+  units = LJ sigma
+  default = 2.5
+rates 0.1
+  set deposition rate (1/sec)
+  default = 1.0
+
+run 100
+  run for this many events
+temperature 1.5
+  set temperature for Boltzmann factor (reduced LJ temperature units)
+  default = 0.0
+stats 5
+  print stats every this many events
+dump 10
+  dump snapshot every this many events in LAMMPS atom format
+
+-----------------------------------------------------------------------
+* app_style test
+
+app_style test
+
+run an app to do what ??
+also need to define a "solve" style ??
+
+Extra commands supported by this app: (doc these)
+
+event
+
+run 0.5
+  run for time (seconds)
+stats 0.1
+  print stats every this often (seconds)
+
+-----------------------------------------------------------------------
+* clear
+
+claer (no args)
+
+wipe out simulation, start over
+see HTML doc page
+
+-----------------------------------------------------------------------
+* echo
+
+echo none/screen/log/both
+
+echo each command to screen and/or log file
+useful for debugging
+see HTML doc page
+
+-----------------------------------------------------------------------
+* include
+
+include filename
+
+branch to another input script file and then return to this one
+useful for including a set of commands, e.g. list of reactions
+see HTML doc page
+
+-----------------------------------------------------------------------
+* jump
+
+jump filename
+jump filename label
+
+jump to beginning of another file or to a label in the file
+file can be self, in which case used for looping
+see HTML doc page
+
+-----------------------------------------------------------------------
+* label
+
+label ID
+
+mark a position in file that a "jump" will return to, e.g. start of a loop
+see HTML doc page
+
+-----------------------------------------------------------------------
+* log
+
+log filename
+
+name of log file to start printint output to
+see HTML doc page
+
+-----------------------------------------------------------------------
+* next
+
+next v1 v2 ...
+
+list of one or more variables to increment, e.g. at end of loop
+see "variable" command
+see HTML doc page
+
+-----------------------------------------------------------------------
+* print
+
+print string of words and $v to print out
+
+see HTML doc page
+
+-----------------------------------------------------------------------
+* shell
+
+shell cd sub1
+shell cd ..
+shell mkdir tmp1 tmp2 tmp3
+shell rmdir tmp1
+shell mv log.kmc hold/log.1
+shell rm TMP/file1 TMP/file2 :pre
+
+various shell commands that can be executed from input script
+cd changes dirs permanently for opening/closing files
+see HTML doc page
+
+-----------------------------------------------------------------------
+* solve_style
+
+solve_style linear seed
+solve_style tree seed
+solve_style alias seed
+solve_style group lo hi seed
+solve_style group lo hi ngroups seed
+solve_style gppt seed
+
+seed = RN seed
+lo,hi = range of propensities
+ngroups = 0 (or not listed), use logarithmic scaling
+ngroups > 1, use this number of groups
+
+update of sites owned by a processor via a KMC algorithm
+  which chooses events and associated timesteps randomly
+used when running a non lattice app (chemistry, surf, test)
+  can only run on 1 processor
+if used with a lattice app (ising, potts, membrane, migration)
+  and no sweep style is set
+    can only run on 1 processor
+    entire domain is treated via KMC
+if used with a lattice app and a sweep style is set
+  if running on 1 processor, domain is partitioned into sectors
+    KMC is run on each and periodic boundaries are updated after each event
+  if running in parallel, each proc's sub-domain is partitioned into sectors
+    KMC is run on each and boundaries are updated between sectors
+    this is an approximate parallel KMC algorithm
+
+style linear chooses the next event in linear, cost = O(N)
+  update of propensities is O(1)
+style tree chooses the next event from a binary tree, cost = O(NlogN)
+  update of propensities is also O(NlogN)
+style alias does what?
+style group does what?
+style gppt does what?
+
+-----------------------------------------------------------------------
+* sweep_style
+
+sweep_style lattice2d seed option arg option arg ...
+sweep_style lattice3d seed option arg option arg ...
+
+options and args:
+  strict yes/no = enforce ??
+  mask yes/no = use a mask on each site to skip if possible
+  picklocal yes/no = pick new spin from neighbors or all possible
+  kmc yes/no = run KMC on sub-domain or sweep in ordered fashion
+  delt 1.0 = time associated with one sweep (seconds)
+
+defaults:
+  strict no, mask no, picklocal no, kmc no, delt = 1.0
+
+perform a Metroplis or KMC update of sites owned by a processor
+  by sweeping over lattice sites in a regular fashion
+must use lattice2d or lattice3d that correspods to the app_style (2d or 3d)
+  do we check for this ??
+used when running a lattice-based app (ising, potts, membrane, migration)
+
+if define just a sweep style:
+  domain will be broken into 4 or 8 sectors for 2d or 3d
+  each will be iterated on in turn
+  communication of boundary info will be done between sectors
+if define just a solve style:
+  no sweeping is done
+  entire domain is treated as one set of KMC propensities
+if define both a sweep and solve style:
+  same partitioning into 4 or 8 sectors is done
+  each sector is treated as one set of KMC propensities
+  KMC updates are done until delt is reached
+  then boundary is updated via communication
+  this is an approximate parallel KMC algorithm
+if use sweep style when running on 1 proc, entire domain is partitioned
+  into 4 or 8 sectors
+
+what does each option mean ??
+which options can be used in combination and what do they mean ??
+if KMC option is used, options strict, picklocal, mask are ignored
+for KMC option, it's important to choose delt correctly
+  how to choose correctly ??
+  what happens if too small
+  what happens if too large
+
+-----------------------------------------------------------------------
+* variable
+
+variable name style args ...
+
+define and set value(s) for a variable that can be accessed elsewhere in script
+style = index, loop, equal, world, universe, uloop
+access is via $x or ${myvar}
+see HTML doc page
