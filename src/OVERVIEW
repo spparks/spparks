@@ -21,10 +21,44 @@ specific to the app.
 -----------------------------------------------------------------------
 * app_style
 
-app_style style args ...
+app_style style args ... options args
 
 define an application for SPPARKS to run
 see commands for individual styles
+
+styles derived from the generic AppLattice allow for additional options
+styles derived from AppLattice2d or AppLattice3d do not allow options
+
+options = lattice or site
+  lattice style args ...
+    2d styles = sq_4n or sq_8n or tri
+      lattice sq_4n a nx ny
+      lattice sq_8n a nx ny
+      lattice tri a nx ny
+        a = lattice constant
+	nx,ny = number of square or rectangular unit cells
+    3d styles = sc_6n or sc_26n or fcc or bcc or diamond
+      lattice sc_6n a nx ny nz
+      lattice sc_26n a nx ny nz
+      lattice fcc a nx ny nz
+      lattice bcc a nx ny nz
+      lattice diamond a nx ny nz
+        a = lattice constant
+	nx,ny,nz = number of square or rectangular unit cells
+    random styles = random/2d or random/3d
+      lattice random/2d N xbox ybox cutoff
+      lattice random/3d N xbox ybox zbox cutoff
+        N = # of lattice points
+	xbox,ybox,zbox = extent of simulation domain
+	cutoff = distance cutoff for connectivity between sites
+    file style = file
+      lattice file filename
+        filename = file that contains lattice points and connectivity
+	need to document format of this file
+  site int N double M
+    N,M = # of ints and doubles stored on each site
+
+option defaults: lattice = none, site = 1 int, 0 doubles
 
 -----------------------------------------------------------------------
 * app_style chemistry
@@ -89,6 +123,7 @@ dump lattice/coord 0.25
 -----------------------------------------------------------------------
 * app_style ising
 
+app_style ising seed options ...
 app_style ising/2d/4n nx ny seed
 app_style ising/2d/8n nx ny seed
 app_style ising/3d/6n nx ny nz seed
@@ -96,10 +131,25 @@ app_style ising/3d/26n nx ny nz seed
 
 nx,ny,nz = lattice size
 seed = RN seed
+options = options listed with the app_style command (e.g. lattice, site)
 
 run an Ising model with different #'s of neighbors in stencil
-Hamiltonian =
+style ising is a generic AppLattice that can be used with various lattices
+style ising/... is a specific app for a particular lattice style
 also need to define a "sweep" and/or "solve" style
+
+Model:
+
+site = spin 0 or 1
+event = spin flip between 0 <-> 1
+
+Hamiltonian:
+
+- Sum_i Sum_j delta_ij
+
+where Sum_i is over all sites
+      Sum_j is over neighbors of site i
+      delta_ij = 1 if spin_i = spin_j, else 0
 
 Extra commands supported by these apps:
 
@@ -112,6 +162,7 @@ stats 0.1
 dump lattice/coord 0.25
   dump snapshot every this often
   either in lattice format or LAMMPS atom format (coord)
+  app_style ising only allows for coord format
 
 -----------------------------------------------------------------------
 * app_style membrane
@@ -122,10 +173,29 @@ nx,ny = lattice size
 w01,w11 = parameters in Hamiltonian
 seed = RN seed
 
-run a 2d 3-state membrane model where each site is PROTIEN inclusion,
-  LIPID, or SOLVENT
-Hamiltonian =
+run a 2d 3-state membrane model
 also need to define a "sweep" and/or "solve" style
+
+Model:
+
+site = one of 3 states (protein, lipid, solvent)
+event = protein never changes, but other sites flip between lipid <-> solvent
+
+Hamiltonian:
+
+- Sum_i Sum_j (w11 a_ij + w01 b_ij)
+
+where Sum_i is over all sites
+      Sum_j is over neighbors of site i
+      w11 = user input = strength of solvent-solvent interaction
+      w01 = user input = strength of solvent-protein interaction
+      a_ij = 1 if both i,j sites are solvent, else 0
+      b_ij = 1 if one of i,j is solvent and other is protein, else 0
+
+there also needs to be a GCMC term in the Hamiltonian with an energy
+  penalty for creating too much solvent (e.g. a chemical potential)
+  else the lo-energy state is all solvent (no lipid),
+  but I don't know how to write this precisely yet
 
 Extra commands supported by this app:
 
@@ -181,6 +251,8 @@ dump lattice/coord 0.25
 -----------------------------------------------------------------------
 * app_style potts
 
+app_style potts seed options ...
+
 app_style potts/2d/4n nx ny nspins seed
 app_style potts/2d/8n nx ny nspins seed
 app_style potts/2d/24n nx ny nspins seed
@@ -192,11 +264,20 @@ app_style potts/3d/12n nx ny nz nspins seed
 nx,ny,nz = lattice size
 nspins = # of possible spins
 seed = RN seed
+options = options listed with the app_style command (e.g. lattice, site)
 
 run a Potts model with different #'s of neighbors in stencil
-24n and 12n define special 2-hop stencils
-Hamiltonian = 
+style potts is a generic AppLattice that can be used with various lattices
+style potts/... is a specific app for a particular lattice style
+  24n and 12n define special 2-hop stencils
 also need to define a "sweep" and/or "solve" style
+
+Model:
+
+site = one of nspins
+event = 
+
+Hamiltonian:
 
 Extra commands supported by these apps:
 

@@ -808,13 +808,15 @@ void AppLattice::set_stats(int narg, char **arg)
 
 void AppLattice::set_dump(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal dump command");
+  if (narg != 3) error->all("Illegal dump command");
   dump_delta = atof(arg[0]);
   if (dump_delta <= 0.0) error->all("Illegal dump command");
 
+  if (strcmp(arg[1],"coord") != 0) error->all("Illegal dump command");
+
   if (me == 0) {
     if (fp) fclose(fp);
-    fp = fopen(arg[1],"w");
+    fp = fopen(arg[2],"w");
     if (!fp) error->one("Cannot open dump file");
   }
 }
