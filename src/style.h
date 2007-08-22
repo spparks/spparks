@@ -5,12 +5,13 @@
 
 #ifdef AppInclude
 #include "app_chemistry.h"
-//#include "app_ising.h"
+#include "app_ising.h"
 #include "app_ising_2d_4n.h"
 #include "app_ising_2d_8n.h"
 #include "app_ising_3d_6n.h"
 #include "app_ising_3d_26n.h"
 #include "app_membrane.h"
+#include "app_potts.h"
 #include "app_potts_2d_4n.h"
 #include "app_potts_2d_8n.h"
 #include "app_potts_2d_24n.h"
@@ -23,12 +24,13 @@
 
 #ifdef AppClass
 AppStyle(chemistry,AppChemistry)
-  //AppStyle(ising,AppIsing)
+AppStyle(ising,AppIsing)
 AppStyle(ising/2d/4n,AppIsing2d4n)
 AppStyle(ising/2d/8n,AppIsing2d8n)
 AppStyle(ising/3d/6n,AppIsing3d6n)
 AppStyle(ising/3d/26n,AppIsing3d26n)
 AppStyle(membrane,AppMembrane)
+AppStyle(potts,AppPotts)
 AppStyle(potts/2d/4n,AppPotts2d4n)
 AppStyle(potts/2d/8n,AppPotts2d8n)
 AppStyle(potts/2d/24n,AppPotts2d24n)

@@ -18,7 +18,6 @@ class SweepLattice3d : public Sweep {
   ~SweepLattice3d();
   void init();
   void do_sweep(double &);
-  void boundary_clear_mask(int, int, int, int, int, int);
 
  private:
   int seed;
@@ -42,7 +41,7 @@ class SweepLattice3d : public Sweep {
   int delghost,dellocal;
   int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
 
-  int nquad;
+  int nsector;
   struct {
     int xlo,xhi,ylo,yhi,zlo,zhi; // inclusive start/stop indices in this octant
     int nx,ny,nz;                // size of octant
@@ -51,19 +50,21 @@ class SweepLattice3d : public Sweep {
     double *propensity;          // propensities for octant sites
     int **site2ijk;              // map from octant sites to local lattice
     int *sites;                  // list of sites to pass to solver
-  } quad[8];
+  } sector[8];
 
   typedef void (SweepLattice3d::*FnPtr)(int, int);  // pointer to sweep method
-  FnPtr sector;                   
+  FnPtr sweeper;
 
   // sweep methods
 
-  void sweep_quadrant(int, int);
-  void sweep_quadrant_mask(int, int);
-  void sweep_quadrant_mask_picklocal(int, int);
-  void sweep_quadrant_strict(int, int);
-  void sweep_quadrant_mask_strict(int, int);
-  void sweep_quadrant_kmc(int, int);
+  void sweep_sector(int, int);
+  void sweep_sector_mask(int, int);
+  void sweep_sector_mask_picklocal(int, int);
+  void sweep_sector_strict(int, int);
+  void sweep_sector_mask_strict(int, int);
+  void sweep_sector_kmc(int, int);
+
+  void boundary_clear_mask(int, int, int, int, int, int);
 };
 
 }

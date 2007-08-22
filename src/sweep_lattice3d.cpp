@@ -77,30 +77,31 @@ SweepLattice3d::SweepLattice3d(SPK *spk, int narg, char **arg) :
   if (Lkmc) {
     if (Lmask || Lpicklocal)
       error->all("Combination of sweep flags is unsupported");
-    sector = &SweepLattice3d::sweep_quadrant_kmc;
+    sweeper = &SweepLattice3d::sweep_sector_kmc;
   } else if (Lstrict) {
     if (Lmask) {
       if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sector = &SweepLattice3d::sweep_quadrant_mask_strict;
+      else sweeper = &SweepLattice3d::sweep_sector_mask_strict;
     } else {
       if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sector = &SweepLattice3d::sweep_quadrant_strict;
+      else sweeper = &SweepLattice3d::sweep_sector_strict;
     }
   } else {
     if (Lmask) {
-      if (Lpicklocal) sector = &SweepLattice3d::sweep_quadrant_mask_picklocal;
-      else sector = &SweepLattice3d::sweep_quadrant_mask;
+      if (Lpicklocal) sweeper = &SweepLattice3d::sweep_sector_mask_picklocal;
+      else sweeper = &SweepLattice3d::sweep_sector_mask;
     } else {
       if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sector = &SweepLattice3d::sweep_quadrant;
+      else sweeper = &SweepLattice3d::sweep_sector;
     }
   }
 
-  nquad = 8;
-  for (int i = 0; i < nquad; i++) {
-    quad[i].propensity = NULL;
-    quad[i].site2ijk = NULL;
-    quad[i].sites = NULL;
+  nsector = 8;
+  for (int i = 0; i < nsector; i++) {
+    sector[i].solve = NULL;
+    sector[i].propensity = NULL;
+    sector[i].site2ijk = NULL;
+    sector[i].sites = NULL;
   }
 
   // communicator needed between sweep sectors
@@ -119,11 +120,11 @@ SweepLattice3d::~SweepLattice3d()
   memory->destroy_3d_T_array(ranlat,1,1,1);
 
   if (Lkmc) {
-    for (int iquad = 0; iquad < nquad; iquad++) {
-      delete quad[iquad].solve;
-      memory->sfree(quad[iquad].propensity);
-      memory->destroy_2d_T_array(quad[iquad].site2ijk);
-      memory->sfree(quad[iquad].sites);
+    for (int isector = 0; isector < nsector; isector++) {
+      delete sector[isector].solve;
+      memory->sfree(sector[isector].propensity);
+      memory->destroy_2d_T_array(sector[isector].site2ijk);
+      memory->sfree(sector[isector].sites);
     }
   }
 }
@@ -157,7 +158,7 @@ void SweepLattice3d::init()
   temperature = applattice->temperature;
   if (temperature != 0.0) t_inverse = 1.0/temperature;
 
-  // App-specific settings
+  // app-specific settings
 
   masklimit = applattice->masklimit;
   delghost = applattice->delghost;
@@ -173,121 +174,131 @@ void SweepLattice3d::init()
   if (Lstrict) ncolor = delcol*delcol*delcol;
   else ncolor = 1;
   
+  // setup sectors
+
   int nx_half = nx_local/2 + 1;
   int ny_half = ny_local/2 + 1;
   int nz_half = nz_local/2 + 1;
 
-  quad[0].xlo = 1;
-  quad[0].xhi = nx_half-1;
-  quad[0].ylo = 1;
-  quad[0].yhi = ny_half-1;
-  quad[0].zlo = 1;
-  quad[0].zhi = nz_half-1;
-  quad[0].nx = quad[0].xhi - quad[0].xlo + 1;
-  quad[0].ny = quad[0].yhi - quad[0].ylo + 1;
-  quad[0].nz = quad[0].zhi - quad[0].zlo + 1;
-  quad[0].nsites = quad[0].nx * quad[0].ny * quad[0].nz;
-  memory->sfree(quad[0].propensity);
-  memory->destroy_2d_T_array(quad[0].site2ijk);
-  memory->sfree(quad[0].sites);
+  sector[0].xlo = 1;
+  sector[0].xhi = nx_half-1;
+  sector[0].ylo = 1;
+  sector[0].yhi = ny_half-1;
+  sector[0].zlo = 1;
+  sector[0].zhi = nz_half-1;
+  sector[0].nx = sector[0].xhi - sector[0].xlo + 1;
+  sector[0].ny = sector[0].yhi - sector[0].ylo + 1;
+  sector[0].nz = sector[0].zhi - sector[0].zlo + 1;
+  sector[0].nsites = sector[0].nx * sector[0].ny * sector[0].nz;
+  delete sector[0].solve;
+  memory->sfree(sector[0].propensity);
+  memory->destroy_2d_T_array(sector[0].site2ijk);
+  memory->sfree(sector[0].sites);
   
-  quad[1].xlo = 1;
-  quad[1].xhi = nx_half-1;
-  quad[1].ylo = 1;
-  quad[1].yhi = ny_half-1;
-  quad[1].zlo = nz_half;
-  quad[1].zhi = nz_local;
-  quad[1].nx = quad[1].xhi - quad[1].xlo + 1;
-  quad[1].ny = quad[1].yhi - quad[1].ylo + 1;
-  quad[1].nz = quad[1].zhi - quad[1].zlo + 1;
-  quad[1].nsites = quad[1].nx * quad[1].ny * quad[1].nz;
-  memory->sfree(quad[1].propensity);
-  memory->destroy_2d_T_array(quad[1].site2ijk);
-  memory->sfree(quad[1].sites);
+  sector[1].xlo = 1;
+  sector[1].xhi = nx_half-1;
+  sector[1].ylo = 1;
+  sector[1].yhi = ny_half-1;
+  sector[1].zlo = nz_half;
+  sector[1].zhi = nz_local;
+  sector[1].nx = sector[1].xhi - sector[1].xlo + 1;
+  sector[1].ny = sector[1].yhi - sector[1].ylo + 1;
+  sector[1].nz = sector[1].zhi - sector[1].zlo + 1;
+  sector[1].nsites = sector[1].nx * sector[1].ny * sector[1].nz;
+  delete sector[1].solve;
+  memory->sfree(sector[1].propensity);
+  memory->destroy_2d_T_array(sector[1].site2ijk);
+  memory->sfree(sector[1].sites);
 
-  quad[2].xlo = 1;
-  quad[2].xhi = nx_half-1;
-  quad[2].ylo = ny_half;
-  quad[2].yhi = ny_local;
-  quad[2].zlo = 1;
-  quad[2].zhi = nz_half-1;
-  quad[2].nx = quad[2].xhi - quad[2].xlo + 1;
-  quad[2].ny = quad[2].yhi - quad[2].ylo + 1;
-  quad[2].nz = quad[2].zhi - quad[2].zlo + 1;
-  quad[2].nsites = quad[2].nx * quad[2].ny * quad[2].nz;
-  memory->sfree(quad[2].propensity);
-  memory->destroy_2d_T_array(quad[2].site2ijk);
-  memory->sfree(quad[2].sites);
+  sector[2].xlo = 1;
+  sector[2].xhi = nx_half-1;
+  sector[2].ylo = ny_half;
+  sector[2].yhi = ny_local;
+  sector[2].zlo = 1;
+  sector[2].zhi = nz_half-1;
+  sector[2].nx = sector[2].xhi - sector[2].xlo + 1;
+  sector[2].ny = sector[2].yhi - sector[2].ylo + 1;
+  sector[2].nz = sector[2].zhi - sector[2].zlo + 1;
+  sector[2].nsites = sector[2].nx * sector[2].ny * sector[2].nz;
+  delete sector[2].solve;
+  memory->sfree(sector[2].propensity);
+  memory->destroy_2d_T_array(sector[2].site2ijk);
+  memory->sfree(sector[2].sites);
 
-  quad[3].xlo = 1;
-  quad[3].xhi = nx_half-1;
-  quad[3].ylo = ny_half;
-  quad[3].yhi = ny_local;
-  quad[3].zlo = nz_half;
-  quad[3].zhi = nz_local;
-  quad[3].nx = quad[3].xhi - quad[3].xlo + 1;
-  quad[3].ny = quad[3].yhi - quad[3].ylo + 1;
-  quad[3].nz = quad[3].zhi - quad[3].zlo + 1;
-  quad[3].nsites = quad[3].nx * quad[3].ny * quad[3].nz;
-  memory->sfree(quad[3].propensity);
-  memory->destroy_2d_T_array(quad[3].site2ijk);
-  memory->sfree(quad[3].sites);
+  sector[3].xlo = 1;
+  sector[3].xhi = nx_half-1;
+  sector[3].ylo = ny_half;
+  sector[3].yhi = ny_local;
+  sector[3].zlo = nz_half;
+  sector[3].zhi = nz_local;
+  sector[3].nx = sector[3].xhi - sector[3].xlo + 1;
+  sector[3].ny = sector[3].yhi - sector[3].ylo + 1;
+  sector[3].nz = sector[3].zhi - sector[3].zlo + 1;
+  sector[3].nsites = sector[3].nx * sector[3].ny * sector[3].nz;
+  delete sector[3].solve;
+  memory->sfree(sector[3].propensity);
+  memory->destroy_2d_T_array(sector[3].site2ijk);
+  memory->sfree(sector[3].sites);
 
-  quad[4].xlo = nx_half;
-  quad[4].xhi = nx_local;
-  quad[4].ylo = 1;
-  quad[4].yhi = ny_half-1;
-  quad[4].zlo = 1;
-  quad[4].zhi = nz_half-1;
-  quad[4].nx = quad[4].xhi - quad[4].xlo + 1;
-  quad[4].ny = quad[4].yhi - quad[4].ylo + 1;
-  quad[4].nz = quad[4].zhi - quad[4].zlo + 1;
-  quad[4].nsites = quad[4].nx * quad[4].ny * quad[4].nz;
-  memory->sfree(quad[4].propensity);
-  memory->destroy_2d_T_array(quad[4].site2ijk);
-  memory->sfree(quad[4].sites);
+  sector[4].xlo = nx_half;
+  sector[4].xhi = nx_local;
+  sector[4].ylo = 1;
+  sector[4].yhi = ny_half-1;
+  sector[4].zlo = 1;
+  sector[4].zhi = nz_half-1;
+  sector[4].nx = sector[4].xhi - sector[4].xlo + 1;
+  sector[4].ny = sector[4].yhi - sector[4].ylo + 1;
+  sector[4].nz = sector[4].zhi - sector[4].zlo + 1;
+  sector[4].nsites = sector[4].nx * sector[4].ny * sector[4].nz;
+  delete sector[4].solve;
+  memory->sfree(sector[4].propensity);
+  memory->destroy_2d_T_array(sector[4].site2ijk);
+  memory->sfree(sector[4].sites);
 
-  quad[5].xlo = nx_half;
-  quad[5].xhi = nx_local;
-  quad[5].ylo = 1;
-  quad[5].yhi = ny_half-1;
-  quad[5].zlo = nz_half;
-  quad[5].zhi = nz_local;
-  quad[5].nx = quad[5].xhi - quad[5].xlo + 1;
-  quad[5].ny = quad[5].yhi - quad[5].ylo + 1;
-  quad[5].nz = quad[5].zhi - quad[5].zlo + 1;
-  quad[5].nsites = quad[5].nx * quad[5].ny * quad[5].nz;
-  memory->sfree(quad[5].propensity);
-  memory->destroy_2d_T_array(quad[5].site2ijk);
-  memory->sfree(quad[5].sites);
+  sector[5].xlo = nx_half;
+  sector[5].xhi = nx_local;
+  sector[5].ylo = 1;
+  sector[5].yhi = ny_half-1;
+  sector[5].zlo = nz_half;
+  sector[5].zhi = nz_local;
+  sector[5].nx = sector[5].xhi - sector[5].xlo + 1;
+  sector[5].ny = sector[5].yhi - sector[5].ylo + 1;
+  sector[5].nz = sector[5].zhi - sector[5].zlo + 1;
+  sector[5].nsites = sector[5].nx * sector[5].ny * sector[5].nz;
+  delete sector[5].solve;
+  memory->sfree(sector[5].propensity);
+  memory->destroy_2d_T_array(sector[5].site2ijk);
+  memory->sfree(sector[5].sites);
 
-  quad[6].xlo = nx_half;
-  quad[6].xhi = nx_local;
-  quad[6].ylo = ny_half;
-  quad[6].yhi = ny_local;
-  quad[6].zlo = 1;
-  quad[6].zhi = nz_half-1;
-  quad[6].nx = quad[6].xhi - quad[6].xlo + 1;
-  quad[6].ny = quad[6].yhi - quad[6].ylo + 1;
-  quad[6].nz = quad[6].zhi - quad[6].zlo + 1;
-  quad[6].nsites = quad[6].nx * quad[6].ny * quad[6].nz;
-  memory->sfree(quad[6].propensity);
-  memory->destroy_2d_T_array(quad[6].site2ijk);
-  memory->sfree(quad[6].sites);
+  sector[6].xlo = nx_half;
+  sector[6].xhi = nx_local;
+  sector[6].ylo = ny_half;
+  sector[6].yhi = ny_local;
+  sector[6].zlo = 1;
+  sector[6].zhi = nz_half-1;
+  sector[6].nx = sector[6].xhi - sector[6].xlo + 1;
+  sector[6].ny = sector[6].yhi - sector[6].ylo + 1;
+  sector[6].nz = sector[6].zhi - sector[6].zlo + 1;
+  sector[6].nsites = sector[6].nx * sector[6].ny * sector[6].nz;
+  delete sector[6].solve;
+  memory->sfree(sector[6].propensity);
+  memory->destroy_2d_T_array(sector[6].site2ijk);
+  memory->sfree(sector[6].sites);
 
-  quad[7].xlo = nx_half;
-  quad[7].xhi = nx_local;
-  quad[7].ylo = ny_half;
-  quad[7].yhi = ny_local;
-  quad[7].zlo = nz_half;
-  quad[7].zhi = nz_local;
-  quad[7].nx = quad[7].xhi - quad[7].xlo + 1;
-  quad[7].ny = quad[7].yhi - quad[7].ylo + 1;
-  quad[7].nz = quad[7].zhi - quad[7].zlo + 1;
-  quad[7].nsites = quad[7].nx * quad[7].ny * quad[7].nz;
-  memory->sfree(quad[7].propensity);
-  memory->destroy_2d_T_array(quad[7].site2ijk);
-  memory->sfree(quad[7].sites);
+  sector[7].xlo = nx_half;
+  sector[7].xhi = nx_local;
+  sector[7].ylo = ny_half;
+  sector[7].yhi = ny_local;
+  sector[7].zlo = nz_half;
+  sector[7].zhi = nz_local;
+  sector[7].nx = sector[7].xhi - sector[7].xlo + 1;
+  sector[7].ny = sector[7].yhi - sector[7].ylo + 1;
+  sector[7].nz = sector[7].zhi - sector[7].zlo + 1;
+  sector[7].nsites = sector[7].nx * sector[7].ny * sector[7].nz;
+  delete sector[7].solve;
+  memory->sfree(sector[7].propensity);
+  memory->destroy_2d_T_array(sector[7].site2ijk);
+  memory->sfree(sector[7].sites);
 
   // init communication for ghost sites
 
@@ -324,8 +335,8 @@ void SweepLattice3d::init()
 	}
   }
 
-  // setup KMC solver and propensity arrays for each quadrant
-  // set ijk2site and site2ijk values in app to reflect quadrant mapping
+  // setup KMC solver and propensity arrays for each sector
+  // set ijk2site and site2ijk values in app to reflect sector mapping
   // propensity init requires ghost cell info for entire sub-domain
 
   if (Lkmc) {
@@ -333,46 +344,48 @@ void SweepLattice3d::init()
 
     comm->all(lattice);
 
-    for (int iquad = 0; iquad < nquad; iquad++) {
-      quad[iquad].solve = solve->clone();
+    for (int isector = 0; isector < nsector; isector++) {
+      sector[isector].solve = solve->clone();
 
-      int nsites = quad[iquad].nx * quad[iquad].ny * quad[iquad].nz;
+      int nsites = sector[isector].nx * sector[isector].ny * 
+	sector[isector].nz;
       int nborder = 2*(dellocal+delghost) * 
-	(quad[iquad].nx*quad[iquad].ny + 
-	 quad[iquad].ny*quad[iquad].nz + 
-	 quad[iquad].nx*quad[iquad].nz);
+	(sector[isector].nx*sector[isector].ny + 
+	 sector[isector].ny*sector[isector].nz + 
+	 sector[isector].nx*sector[isector].nz);
 
-      quad[iquad].propensity = 
+      sector[isector].propensity = 
 	(double*) memory->smalloc(nsites*sizeof(double),"sweep:propensity");
-      memory->create_2d_T_array(quad[iquad].site2ijk,nsites,3,
+      memory->create_2d_T_array(sector[isector].site2ijk,nsites,3,
 				"sweep:ijk2site");
 
-      quad[iquad].sites =
+      sector[isector].sites =
 	(int*) memory->smalloc(nborder*sizeof(int),"sweep:sites");
 
-      for (i = quad[iquad].xlo; i <= quad[iquad].xhi; i++)
-	for (j = quad[iquad].ylo; j <= quad[iquad].yhi; j++)
-	  for (k = quad[iquad].zlo; k <= quad[iquad].zhi; k++)
+      for (i = sector[isector].xlo; i <= sector[isector].xhi; i++)
+	for (j = sector[isector].ylo; j <= sector[isector].yhi; j++)
+	  for (k = sector[isector].zlo; k <= sector[isector].zhi; k++)
 	    ijk2site[i][j][k] = 
-	      (i-quad[iquad].xlo)*quad[iquad].ny*quad[iquad].nz + 
-	      (j-quad[iquad].ylo)*quad[iquad].nz + k-quad[iquad].zlo;
+	      (i-sector[isector].xlo)*sector[isector].ny*sector[isector].nz +
+	      (j-sector[isector].ylo)*sector[isector].nz + 
+	      k-sector[isector].zlo;
 
       for (m = 0; m < nsites; m++) {
-	i = m / quad[iquad].ny/quad[iquad].nz + 1;
-	j = (m / quad[iquad].nz) % quad[iquad].ny + 1;
-	k = m % quad[iquad].nz + 1;
-	quad[iquad].site2ijk[m][0] = i + quad[iquad].xlo - 1;
-	quad[iquad].site2ijk[m][1] = j + quad[iquad].ylo - 1;
-	quad[iquad].site2ijk[m][2] = k + quad[iquad].zlo - 1;
+	i = m / sector[isector].ny/sector[isector].nz + 1;
+	j = (m / sector[isector].nz) % sector[isector].ny + 1;
+	k = m % sector[isector].nz + 1;
+	sector[isector].site2ijk[m][0] = i + sector[isector].xlo - 1;
+	sector[isector].site2ijk[m][1] = j + sector[isector].ylo - 1;
+	sector[isector].site2ijk[m][2] = k + sector[isector].zlo - 1;
       }
 
-      for (i = quad[iquad].xlo; i <= quad[iquad].xhi; i++)
-	for (j = quad[iquad].ylo; j <= quad[iquad].yhi; j++)
-	  for (k = quad[iquad].zlo; k <= quad[iquad].zhi; k++)
-	    quad[iquad].propensity[ijk2site[i][j][k]] = 
+      for (i = sector[isector].xlo; i <= sector[isector].xhi; i++)
+	for (j = sector[isector].ylo; j <= sector[isector].yhi; j++)
+	  for (k = sector[isector].zlo; k <= sector[isector].zhi; k++)
+	    sector[isector].propensity[ijk2site[i][j][k]] = 
 	      applattice->site_propensity(i,j,k,0);
 
-      quad[iquad].solve->init(nsites,quad[iquad].propensity);
+      sector[isector].solve->init(nsites,sector[isector].propensity);
     }
   }
 }
@@ -385,15 +398,15 @@ void SweepLattice3d::init()
 void SweepLattice3d::do_sweep(double &dt)
 {
   for (int icolor = 0; icolor < ncolor; icolor++)
-    for (int iquad = 0; iquad < nquad; iquad++) {
+    for (int isector = 0; isector < nsector; isector++) {
       timer->stamp();
-      comm->sector(lattice,iquad);
+      comm->sector(lattice,isector);
       timer->stamp(TIME_COMM);
 
-      (this->*sector)(icolor,iquad);
+      (this->*sweeper)(icolor,isector);
       timer->stamp(TIME_SOLVE);
 
-      comm->reverse_sector(lattice,iquad);
+      comm->reverse_sector(lattice,isector);
       timer->stamp(TIME_COMM);
     }
 
@@ -409,17 +422,17 @@ void SweepLattice3d::do_sweep(double &dt)
    uphill energy change = accept/reject via Boltzmann factor
  ------------------------------------------------------------------------- */
    
-void SweepLattice3d::sweep_quadrant(int icolor, int iquad)
+void SweepLattice3d::sweep_sector(int icolor, int isector)
 {
   int i,j,k,oldstate,newstate;
   double einitial,efinal;
 
-  int xlo = quad[iquad].xlo;
-  int xhi = quad[iquad].xhi;
-  int ylo = quad[iquad].ylo;
-  int yhi = quad[iquad].yhi;
-  int zlo = quad[iquad].zlo;
-  int zhi = quad[iquad].zhi;
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
+  int zlo = sector[isector].zlo;
+  int zhi = sector[isector].zhi;
 
   for (i = xlo; i <= xhi; i++)
     for (j = ylo; j <= yhi; j++)
@@ -443,17 +456,17 @@ void SweepLattice3d::sweep_quadrant(int icolor, int iquad)
    skip sites that can't change via mask
  ------------------------------------------------------------------------- */
    
-void SweepLattice3d::sweep_quadrant_mask(int icolor, int iquad)
+void SweepLattice3d::sweep_sector_mask(int icolor, int isector)
 {
   int i,j,k,oldstate,newstate;
   double einitial,efinal;
 
-  int xlo = quad[iquad].xlo;
-  int xhi = quad[iquad].xhi;
-  int ylo = quad[iquad].ylo;
-  int yhi = quad[iquad].yhi;
-  int zlo = quad[iquad].zlo;
-  int zhi = quad[iquad].zhi;
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
+  int zlo = sector[isector].zlo;
+  int zhi = sector[isector].zhi;
 
   boundary_clear_mask(xlo,xhi,ylo,yhi,zlo,zhi);
 
@@ -486,17 +499,17 @@ void SweepLattice3d::sweep_quadrant_mask(int icolor, int iquad)
 
 /* ---------------------------------------------------------------------- */
 
-void SweepLattice3d::sweep_quadrant_mask_picklocal(int icolor, int iquad)
+void SweepLattice3d::sweep_sector_mask_picklocal(int icolor, int isector)
 {
   int i,j,k,oldstate,newstate;
   double einitial,efinal;
 
-  int xlo = quad[iquad].xlo;
-  int xhi = quad[iquad].xhi;
-  int ylo = quad[iquad].ylo;
-  int yhi = quad[iquad].yhi;
-  int zlo = quad[iquad].zlo;
-  int zhi = quad[iquad].zhi;
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
+  int zlo = sector[isector].zlo;
+  int zhi = sector[isector].zhi;
 
   boundary_clear_mask(xlo,xhi,ylo,yhi,zlo,zhi);
 
@@ -528,18 +541,18 @@ void SweepLattice3d::sweep_quadrant_mask_picklocal(int icolor, int iquad)
 
 /* ---------------------------------------------------------------------- */
    
-void SweepLattice3d::sweep_quadrant_strict(int icolor, int iquad)
+void SweepLattice3d::sweep_sector_strict(int icolor, int isector)
 {
   int i,j,k,i0,j0,k0,oldstate,newstate;
   double einitial,efinal;
   double xtmp1,xtmp2;
 
-  int xlo = quad[iquad].xlo;
-  int xhi = quad[iquad].xhi;
-  int ylo = quad[iquad].ylo;
-  int yhi = quad[iquad].yhi;
-  int zlo = quad[iquad].zlo;
-  int zhi = quad[iquad].zhi;
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
+  int zlo = sector[isector].zlo;
+  int zhi = sector[isector].zhi;
 
   i0 = icolor/(delcol*delcol)  - (nx_offset + xlo-1) % delcol;
   i0 = (i0 < 0) ? i0+delcol : i0;
@@ -577,18 +590,18 @@ void SweepLattice3d::sweep_quadrant_strict(int icolor, int iquad)
 
 /* ---------------------------------------------------------------------- */
    
-void SweepLattice3d::sweep_quadrant_mask_strict(int icolor, int iquad)
+void SweepLattice3d::sweep_sector_mask_strict(int icolor, int isector)
 {
   int i,j,k,i0,j0,k0,oldstate,newstate;
   double einitial,efinal;
   double xtmp1,xtmp2;
 
-  int xlo = quad[iquad].xlo;
-  int xhi = quad[iquad].xhi;
-  int ylo = quad[iquad].ylo;
-  int yhi = quad[iquad].yhi;
-  int zlo = quad[iquad].zlo;
-  int zhi = quad[iquad].zhi;
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
+  int zlo = sector[isector].zlo;
+  int zhi = sector[isector].zhi;
 
   boundary_clear_mask(xlo,xhi,ylo,yhi,zlo,zhi);
 
@@ -636,27 +649,27 @@ void SweepLattice3d::sweep_quadrant_mask_strict(int icolor, int iquad)
 }
 
 /* ----------------------------------------------------------------------
-   generate events in each quadrant using KMC solver
+   generate events in each sector using KMC solver
  ------------------------------------------------------------------------- */
 
-void SweepLattice3d::sweep_quadrant_kmc(int icolor, int iquad)
+void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
 {
   double dt,time;
   int done,isite,i,j,k;
 
   // extract sector specific info from quad struct
 
-  int xlo = quad[iquad].xlo;
-  int xhi = quad[iquad].xhi;
-  int ylo = quad[iquad].ylo;
-  int yhi = quad[iquad].yhi;
-  int zlo = quad[iquad].zlo;
-  int zhi = quad[iquad].zhi;
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
+  int zlo = sector[isector].zlo;
+  int zhi = sector[isector].zhi;
 
-  Solve *solve = quad[iquad].solve;
-  double *propensity = quad[iquad].propensity;
-  int **site2ijk = quad[iquad].site2ijk;
-  int *sites = quad[iquad].sites;
+  Solve *solve = sector[isector].solve;
+  double *propensity = sector[isector].propensity;
+  int **site2ijk = sector[isector].site2ijk;
+  int *sites = sector[isector].sites;
 
   // temporarily reset values in applattice
   // sector bounds, propensity array, solver

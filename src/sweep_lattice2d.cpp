@@ -77,32 +77,33 @@ SweepLattice2d::SweepLattice2d(SPK *spk, int narg, char **arg) :
   if (Lkmc) {
     if (Lmask || Lpicklocal)
       error->all("Combination of sweep flags is unsupported");
-    sector = &SweepLattice2d::sweep_quadrant_kmc;
+    sweeper = &SweepLattice2d::sweep_sector_kmc;
   } else if (Lstrict) {
     if (Lmask) {
       if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sector = &SweepLattice2d::sweep_quadrant_mask_strict;
+      else sweeper = &SweepLattice2d::sweep_sector_mask_strict;
     } else {
       if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sector = &SweepLattice2d::sweep_quadrant_strict;
+      else sweeper = &SweepLattice2d::sweep_sector_strict;
     }
   } else {
     if (Lmask) {
-      if (Lpicklocal) sector = &SweepLattice2d::sweep_quadrant_mask_picklocal;
-      else sector = &SweepLattice2d::sweep_quadrant_mask;
+      if (Lpicklocal) sweeper = &SweepLattice2d::sweep_sector_mask_picklocal;
+      else sweeper = &SweepLattice2d::sweep_sector_mask;
     } else {
       if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sector = &SweepLattice2d::sweep_quadrant;
+      else sweeper = &SweepLattice2d::sweep_sector;
     }
   }
 
   // initializations
 
-  nquad = 4;
-  for (int i = 0; i < nquad; i++) {
-    quad[i].propensity = NULL;
-    quad[i].site2ij = NULL;
-    quad[i].sites = NULL;
+  nsector = 4;
+  for (int i = 0; i < nsector; i++) {
+    sector[i].solve = NULL;
+    sector[i].propensity = NULL;
+    sector[i].site2ij = NULL;
+    sector[i].sites = NULL;
   }
 
   // communicator needed between sweep sectors
@@ -121,11 +122,11 @@ SweepLattice2d::~SweepLattice2d()
   memory->destroy_2d_T_array(ranlat,1,1);
 
   if (Lkmc) {
-    for (int iquad = 0; iquad < nquad; iquad++) {
-      delete quad[iquad].solve;
-      memory->sfree(quad[iquad].propensity);
-      memory->destroy_2d_T_array(quad[iquad].site2ij);
-      memory->sfree(quad[iquad].sites);
+    for (int isector = 0; isector < nsector; isector++) {
+      delete sector[isector].solve;
+      memory->sfree(sector[isector].propensity);
+      memory->destroy_2d_T_array(sector[isector].site2ij);
+      memory->sfree(sector[isector].sites);
     }
   }
 }
@@ -154,7 +155,8 @@ void SweepLattice2d::init()
   temperature = applattice->temperature;
   if (temperature != 0.0) t_inverse = 1.0/temperature;
 
-  // App-specific settings
+  // app-specific settings
+
   masklimit = applattice->masklimit;
   delghost = applattice->delghost;
   dellocal = applattice->dellocal;
@@ -167,52 +169,59 @@ void SweepLattice2d::init()
   if (Lstrict) ncolor = delcol*delcol;
   else ncolor = 1;
 
+  // setup sectors
+
   int nx_half = nx_local/2 + 1;
   int ny_half = ny_local/2 + 1;
 
-  quad[0].xlo = 1;
-  quad[0].xhi = nx_half-1;
-  quad[0].ylo = 1;
-  quad[0].yhi = ny_half-1;
-  quad[0].nx = quad[0].xhi - quad[0].xlo + 1;
-  quad[0].ny = quad[0].yhi - quad[0].ylo + 1;
-  memory->sfree(quad[0].propensity);
-  memory->destroy_2d_T_array(quad[0].site2ij);
-  memory->sfree(quad[0].sites);
+  sector[0].xlo = 1;
+  sector[0].xhi = nx_half-1;
+  sector[0].ylo = 1;
+  sector[0].yhi = ny_half-1;
+  sector[0].nx = sector[0].xhi - sector[0].xlo + 1;
+  sector[0].ny = sector[0].yhi - sector[0].ylo + 1;
+  delete sector[0].solve;
+  memory->sfree(sector[0].propensity);
+  memory->destroy_2d_T_array(sector[0].site2ij);
+  memory->sfree(sector[0].sites);
 
-  quad[1].xlo = 1;
-  quad[1].xhi = nx_half-1;
-  quad[1].ylo = ny_half;
-  quad[1].yhi = ny_local;
-  quad[1].nx = quad[1].xhi - quad[1].xlo + 1;
-  quad[1].ny = quad[1].yhi - quad[1].ylo + 1;
-  memory->sfree(quad[1].propensity);
-  memory->destroy_2d_T_array(quad[1].site2ij);
-  memory->sfree(quad[1].sites);
+  sector[1].xlo = 1;
+  sector[1].xhi = nx_half-1;
+  sector[1].ylo = ny_half;
+  sector[1].yhi = ny_local;
+  sector[1].nx = sector[1].xhi - sector[1].xlo + 1;
+  sector[1].ny = sector[1].yhi - sector[1].ylo + 1;
+  delete sector[1].solve;
+  memory->sfree(sector[1].propensity);
+  memory->destroy_2d_T_array(sector[1].site2ij);
+  memory->sfree(sector[1].sites);
   
-  quad[2].xlo = nx_half;
-  quad[2].xhi = nx_local;
-  quad[2].ylo = 1;
-  quad[2].yhi = ny_half-1;
-  quad[2].nx = quad[2].xhi - quad[2].xlo + 1;
-  quad[2].ny = quad[2].yhi - quad[2].ylo + 1;
-  memory->sfree(quad[2].propensity);
-  memory->destroy_2d_T_array(quad[2].site2ij);
-  memory->sfree(quad[2].sites);
+  sector[2].xlo = nx_half;
+  sector[2].xhi = nx_local;
+  sector[2].ylo = 1;
+  sector[2].yhi = ny_half-1;
+  sector[2].nx = sector[2].xhi - sector[2].xlo + 1;
+  sector[2].ny = sector[2].yhi - sector[2].ylo + 1;
+  delete sector[2].solve;
+  memory->sfree(sector[2].propensity);
+  memory->destroy_2d_T_array(sector[2].site2ij);
+  memory->sfree(sector[2].sites);
 
-  quad[3].xlo = nx_half;
-  quad[3].xhi = nx_local;
-  quad[3].ylo = ny_half;
-  quad[3].yhi = ny_local;
-  quad[3].nx = quad[3].xhi - quad[3].xlo + 1;
-  quad[3].ny = quad[3].yhi - quad[3].ylo + 1;
-  memory->sfree(quad[3].propensity);
-  memory->destroy_2d_T_array(quad[3].site2ij);
-  memory->sfree(quad[3].sites);
+  sector[3].xlo = nx_half;
+  sector[3].xhi = nx_local;
+  sector[3].ylo = ny_half;
+  sector[3].yhi = ny_local;
+  sector[3].nx = sector[3].xhi - sector[3].xlo + 1;
+  sector[3].ny = sector[3].yhi - sector[3].ylo + 1;
+  delete sector[3].solve;
+  memory->sfree(sector[3].propensity);
+  memory->destroy_2d_T_array(sector[3].site2ij);
+  memory->sfree(sector[3].sites);
 
   // init communication for ghost sites
 
-  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,delghost,dellocal);
+  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,
+	     delghost,dellocal);
 
   // setup mask array
   // owned and ghost values referenced in app::site_clear_mask()
@@ -239,8 +248,8 @@ void SweepLattice2d::init()
       }
   }
 
-  // setup KMC solver and propensity arrays for each quadrant
-  // set ij2site and site2ij values in app to reflect quadrant mapping
+  // setup KMC solver and propensity arrays for each sector
+  // set ij2site and site2ij values in app to reflect sector mapping
   // propensity init requires ghost cell info for entire sub-domain
 
   if (Lkmc) {
@@ -248,35 +257,36 @@ void SweepLattice2d::init()
 
     comm->all(lattice);
 
-    for (int iquad = 0; iquad < nquad; iquad++) {
-      quad[iquad].solve = solve->clone();
+    for (int isector = 0; isector < nsector; isector++) {
+      sector[isector].solve = solve->clone();
 
-      int nsites = quad[iquad].nx * quad[iquad].ny;
-      int nborder = 2*quad[iquad].nx + 2*quad[iquad].ny;
-      quad[iquad].propensity = 
+      int nsites = sector[isector].nx * sector[isector].ny;
+      int nborder = 2*sector[isector].nx + 2*sector[isector].ny;
+      sector[isector].propensity = 
 	(double*) memory->smalloc(nsites*sizeof(double),"sweep:propensity");
-      memory->create_2d_T_array(quad[iquad].site2ij,nsites,2,"sweep:site2ij");
-      quad[iquad].sites =
+      memory->create_2d_T_array(sector[isector].site2ij,nsites,2,
+				"sweep:site2ij");
+      sector[isector].sites =
 	(int*) memory->smalloc(nborder*sizeof(int),"sweep:sites");
 
-      for (i = quad[iquad].xlo; i <= quad[iquad].xhi; i++)
-	for (j = quad[iquad].ylo; j <= quad[iquad].yhi; j++)
+      for (i = sector[isector].xlo; i <= sector[isector].xhi; i++)
+	for (j = sector[isector].ylo; j <= sector[isector].yhi; j++)
 	  ij2site[i][j] = 
-	    (i-quad[iquad].xlo)*quad[iquad].ny + j-quad[iquad].ylo;
+	    (i-sector[isector].xlo)*sector[isector].ny + j-sector[isector].ylo;
 
       for (m = 0; m < nsites; m++) {
-	i = m / quad[iquad].ny + 1;
-	j = m % quad[iquad].ny +  1;
-	quad[iquad].site2ij[m][0] = i + quad[iquad].xlo - 1;
-	quad[iquad].site2ij[m][1] = j + quad[iquad].ylo - 1;
+	i = m / sector[isector].ny + 1;
+	j = m % sector[isector].ny +  1;
+	sector[isector].site2ij[m][0] = i + sector[isector].xlo - 1;
+	sector[isector].site2ij[m][1] = j + sector[isector].ylo - 1;
       }
 
-      for (i = quad[iquad].xlo; i <= quad[iquad].xhi; i++)
-	for (j = quad[iquad].ylo; j <= quad[iquad].yhi; j++)
-	  quad[iquad].propensity[ij2site[i][j]] = 
+      for (i = sector[isector].xlo; i <= sector[isector].xhi; i++)
+	for (j = sector[isector].ylo; j <= sector[isector].yhi; j++)
+	  sector[isector].propensity[ij2site[i][j]] = 
 	    applattice->site_propensity(i,j,0);
 
-      quad[iquad].solve->init(nsites,quad[iquad].propensity);
+      sector[isector].solve->init(nsites,sector[isector].propensity);
     }
   }
 }
@@ -289,18 +299,17 @@ void SweepLattice2d::init()
 void SweepLattice2d::do_sweep(double &dt)
 {
   for (int icolor = 0; icolor < ncolor; icolor++)
-    for (int iquad = 0; iquad < nquad; iquad++) {
+    for (int isector = 0; isector < nsector; isector++) {
       timer->stamp();
-      comm->sector(lattice,iquad);
+      comm->sector(lattice,isector);
       timer->stamp(TIME_COMM);
 
-      (this->*sector)(icolor,iquad);
+      (this->*sweeper)(icolor,isector);
 
       timer->stamp(TIME_SOLVE);
 
-      comm->reverse_sector(lattice,iquad);
+      comm->reverse_sector(lattice,isector);
       timer->stamp(TIME_COMM);
-
     }
 
   dt = delt;
@@ -315,15 +324,15 @@ void SweepLattice2d::do_sweep(double &dt)
    uphill energy change = accept/reject via Boltzmann factor
  ------------------------------------------------------------------------- */
    
-void SweepLattice2d::sweep_quadrant(int icolor, int iquad)
+void SweepLattice2d::sweep_sector(int icolor, int isector)
 {
   int i,j,oldstate,newstate;
   double einitial,efinal;
 
-  int xlo = quad[iquad].xlo;
-  int xhi = quad[iquad].xhi;
-  int ylo = quad[iquad].ylo;
-  int yhi = quad[iquad].yhi;
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
 
   for (i = xlo; i <= xhi; i++)
     for (j = ylo; j <= yhi; j++) {
@@ -346,15 +355,15 @@ void SweepLattice2d::sweep_quadrant(int icolor, int iquad)
    skip sites that can't change via mask
  ------------------------------------------------------------------------- */
    
-void SweepLattice2d::sweep_quadrant_mask(int icolor, int iquad)
+void SweepLattice2d::sweep_sector_mask(int icolor, int isector)
 {
   int i,j,oldstate,newstate;
   double einitial,efinal;
 
-  int xlo = quad[iquad].xlo;
-  int xhi = quad[iquad].xhi;
-  int ylo = quad[iquad].ylo;
-  int yhi = quad[iquad].yhi;
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
 
   boundary_clear_mask(xlo,xhi,ylo,yhi);
   
@@ -385,15 +394,15 @@ void SweepLattice2d::sweep_quadrant_mask(int icolor, int iquad)
 
 /* ---------------------------------------------------------------------- */
 
-void SweepLattice2d::sweep_quadrant_mask_picklocal(int icolor, int iquad)
+void SweepLattice2d::sweep_sector_mask_picklocal(int icolor, int isector)
 {
   int i,j,oldstate,newstate;
   double einitial,efinal;
 
-  int xlo = quad[iquad].xlo;
-  int xhi = quad[iquad].xhi;
-  int ylo = quad[iquad].ylo;
-  int yhi = quad[iquad].yhi;
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
 
   boundary_clear_mask(xlo,xhi,ylo,yhi);
   
@@ -424,16 +433,16 @@ void SweepLattice2d::sweep_quadrant_mask_picklocal(int icolor, int iquad)
 
 /* ---------------------------------------------------------------------- */
    
-void SweepLattice2d::sweep_quadrant_strict(int icolor, int iquad)
+void SweepLattice2d::sweep_sector_strict(int icolor, int isector)
 {
   int i,j,i0,j0,oldstate,newstate;
   double einitial,efinal;
   double xtmp1,xtmp2;
 
-  int xlo = quad[iquad].xlo;
-  int xhi = quad[iquad].xhi;
-  int ylo = quad[iquad].ylo;
-  int yhi = quad[iquad].yhi;
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
 
   i0 = icolor/delcol  - (nx_offset + xlo-1) % delcol;
   i0 = (i0 < 0) ? i0+delcol : i0;
@@ -467,16 +476,16 @@ void SweepLattice2d::sweep_quadrant_strict(int icolor, int iquad)
 
 /* ---------------------------------------------------------------------- */
    
-void SweepLattice2d::sweep_quadrant_mask_strict(int icolor, int iquad)
+void SweepLattice2d::sweep_sector_mask_strict(int icolor, int isector)
 {
   int i,j,i0,j0,oldstate,newstate;
   double einitial,efinal;
   double xtmp1,xtmp2;
 
-  int xlo = quad[iquad].xlo;
-  int xhi = quad[iquad].xhi;
-  int ylo = quad[iquad].ylo;
-  int yhi = quad[iquad].yhi;
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
 
   boundary_clear_mask(xlo,xhi,ylo,yhi);
   
@@ -519,25 +528,25 @@ void SweepLattice2d::sweep_quadrant_mask_strict(int icolor, int iquad)
 }
 
 /* ----------------------------------------------------------------------
-   generate events in each quadrant using KMC solver
+   generate events in each sector using KMC solver
  ------------------------------------------------------------------------- */
 
-void SweepLattice2d::sweep_quadrant_kmc(int icolor, int iquad)
+void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
 {
   double dt,time;
   int done,isite,i,j;
 
   // extract sector specific info from quad struct
 
-  int xlo = quad[iquad].xlo;
-  int xhi = quad[iquad].xhi;
-  int ylo = quad[iquad].ylo;
-  int yhi = quad[iquad].yhi;
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
 
-  Solve *solve = quad[iquad].solve;
-  double *propensity = quad[iquad].propensity;
-  int **site2ij = quad[iquad].site2ij;
-  int *sites = quad[iquad].sites;
+  Solve *solve = sector[isector].solve;
+  double *propensity = sector[isector].propensity;
+  int **site2ij = sector[isector].site2ij;
+  int *sites = sector[isector].sites;
 
   // temporarily reset values in applattice
   // sector bounds, propensity array, solver

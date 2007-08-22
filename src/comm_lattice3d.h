@@ -18,21 +18,9 @@ class CommLattice3d : protected SysPtr {
 	    const int, const int, const int,
 	    const int, const int, const int,
 	    const int, const int);
-  void setup_swapinfo();
-  void setup_reverseinfo();
-  void sector(int ***, const int);
-  void sector_onelayer(int ***, const int);
-  void sector_multilayer(int ***, const int);
-  void sector_multilayer_destroy(int ***, const int);
   void all(int ***);
-  void all_onelayer(int ***);
-  void all_multilayer(int ***);
+  void sector(int ***, const int);
   void reverse_sector(int ***, const int);
-  void reverse_sector_onelayer(int ***, const int);
-  void reverse_sector_multilayer(int ***, const int);
-  void reverse_all(int ***);
-  void reverse_all_onelayer(int ***);
-  void reverse_all_multilayer(int ***);
 
  private:
   int me,nprocs;
@@ -65,6 +53,18 @@ class CommLattice3d : protected SysPtr {
   SwapInfo** swapinfo;       // nsector x nswap 2D array of SwapInfo objects (forward comm)
   SwapInfo** reverseinfo;    // nsector x nswap 2D array of SwapInfo objects (reverse comm)
 
+  void setup_swapinfo();
+  void setup_reverseinfo();
+  void sector_onelayer(int ***, const int);
+  void sector_multilayer(int ***, const int);
+  void sector_multilayer_destroy(int ***, const int);
+  void all_onelayer(int ***);
+  void all_multilayer(int ***);
+  void reverse_sector_onelayer(int ***, const int);
+  void reverse_sector_multilayer(int ***, const int);
+  void reverse_all(int ***);
+  void reverse_all_onelayer(int ***);
+  void reverse_all_multilayer(int ***);
   void allocate_swap(const int, const int);          // allocate swap arrays
   void free_swap();                                  // free swap arrays
 };

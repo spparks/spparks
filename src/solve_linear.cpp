@@ -104,7 +104,10 @@ int SolveLinear::event(double *pdt)
 {
   int m;
 
-  if (nzeroes == nevents) return -1;
+  if (nzeroes == nevents) {
+    sum = 0.0;
+    return -1;
+  }
 
   double fraction = sum * random->uniform();
   double partial = 0.0;

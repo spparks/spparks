@@ -24,14 +24,14 @@ class SolveTree : public Solve {
   int event(double *);
   void sum_tree();
   void free_arrays();
-  void set(int , double);
+  void set(int, double);
   int find(double);
   void tree_to_screen(int);
 
  private:
   int seed;
   class RandomPark *random;
-  int nevents,nzeroes;
+  int nevents;
   double sum;
 
   double *tree;

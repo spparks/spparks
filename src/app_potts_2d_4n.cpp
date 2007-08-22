@@ -58,7 +58,8 @@ AppPotts2d4n::AppPotts2d4n(SPK *spk, int narg, char **arg) :
   // setup communicator for ghost sites
 
   comm = new CommLattice2d(spk);
-  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,delghost,dellocal);
+  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,
+	     delghost,dellocal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,34 +113,6 @@ int AppPotts2d4n::site_pick_local(int i, int j, double ran)
 }
 
 /* ----------------------------------------------------------------------
-   add this neighbor spin to set of possible new spins
-------------------------------------------------------------------------- */
-
-void AppPotts2d4n::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
-  int *spnt = spins;
-  bool Lfound;
-
-  Lfound = false;
-  while (spnt < spins+ns) {
-    if (jk == *spnt++) {
-      Lfound = true;
-      break;
-    }
-  }
-
-  if (Lfound) {
-    // If found, increment counter 
-    nspins[spnt-spins-1]++;
-  } else {
-    // If not found, create new survey entry
-    spins[ns] = jk;
-    nspins[ns] = 1;
-    ns++;
-  }
-
-}
-
-/* ----------------------------------------------------------------------
    compute total propensity of owned site
    based on einitial,efinal for each possible event
    if no energy change, propensity = 1
@@ -177,7 +150,7 @@ double AppPotts2d4n::site_propensity(int i, int j, int full)
     survey_neighbor(oldstate,newstate,ns,spins,nspins);
   }
 
-  // Use survey to compute overall propensity
+  // use survey to compute overall propensity
   
   for (int is=0;is<ns;is++) {
     lattice[i][j] = spins[is];
@@ -213,7 +186,7 @@ void AppPotts2d4n::site_event(int i, int j, int full)
 
   // Data for each possible new spin
   // nspins no longer used, as it is recalculated by site_energy(),
-  // which is somewhat wasteful, but more general.
+  // which is somewhat wasteful, but more general
 
   int ns, spins[8],nspins[8];
   ns = 0;
@@ -317,4 +290,32 @@ void AppPotts2d4n::site_clear_mask(char **mask, int i, int j)
   mask[i+1][j] = 0;
   mask[i][j-1] = 0;
   mask[i][j+1] = 0;
+}
+
+/* ----------------------------------------------------------------------
+   add this neighbor spin to set of possible new spins
+------------------------------------------------------------------------- */
+
+void AppPotts2d4n::survey_neighbor(const int& ik, const int& jk,
+				   int& ns, int spins[], int nspins[]) const {
+  int *spnt = spins;
+  bool Lfound;
+
+  Lfound = false;
+  while (spnt < spins+ns) {
+    if (jk == *spnt++) {
+      Lfound = true;
+      break;
+    }
+  }
+
+  if (Lfound) {
+    // If found, increment counter 
+    nspins[spnt-spins-1]++;
+  } else {
+    // If not found, create new survey entry
+    spins[ns] = jk;
+    nspins[ns] = 1;
+    ns++;
+  }
 }

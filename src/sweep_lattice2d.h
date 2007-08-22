@@ -18,7 +18,7 @@ class SweepLattice2d : public Sweep {
   ~SweepLattice2d();
   void init();
   void do_sweep(double &);
-  void boundary_clear_mask(int, int, int, int);
+
  private:
   int seed;
   bool Lmask,Lpicklocal,Lstrict,Lkmc;
@@ -41,7 +41,7 @@ class SweepLattice2d : public Sweep {
   int delghost,dellocal;
   int nxlo,nxhi,nylo,nyhi;
 
-  int nquad;
+  int nsector;
   struct {
     int xlo,xhi,ylo,yhi;     // inclusive start/stop indices in this quadrant
     int nx,ny;               // size of quadrant
@@ -49,19 +49,21 @@ class SweepLattice2d : public Sweep {
     double *propensity;      // propensities for quadrant sites
     int **site2ij;           // map from quadrant sites to local lattice
     int *sites;              // list of sites to pass to solver
-  } quad[4];
+  } sector[4];
 
   typedef void (SweepLattice2d::*FnPtr)(int, int);  // pointer to sweep method
-  FnPtr sector;                   
+  FnPtr sweeper;
 
   // sweep methods
 
-  void sweep_quadrant(int, int);
-  void sweep_quadrant_mask(int, int);
-  void sweep_quadrant_mask_picklocal(int, int);
-  void sweep_quadrant_strict(int, int);
-  void sweep_quadrant_mask_strict(int, int);
-  void sweep_quadrant_kmc(int, int);
+  void sweep_sector(int, int);
+  void sweep_sector_mask(int, int);
+  void sweep_sector_mask_picklocal(int, int);
+  void sweep_sector_strict(int, int);
+  void sweep_sector_mask_strict(int, int);
+  void sweep_sector_kmc(int, int);
+
+  void boundary_clear_mask(int, int, int, int);
 };
 
 }

@@ -10,14 +10,13 @@ namespace SPPARKS {
 
 class RandomPark {
  public:
+  int seed;
+
   RandomPark(int);
   ~RandomPark() {}
   void init(int);
   double uniform();
   int irandom(int);
-
- private:
-  int seed;
 };
 
 }

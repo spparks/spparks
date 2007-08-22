@@ -66,6 +66,7 @@ void SolveTree::init(int n, double *propensity)
   sum = 0;
 
   // m = value such that 2^m >= nevents
+
   int m = 0;
   int neat = 1;
 
@@ -73,16 +74,13 @@ void SolveTree::init(int n, double *propensity)
 
   // create tree of length ntotal
 
-  nzeroes = 0;
   ntotal = 2*neat - 1;
   tree = new double[ntotal];
   offset = neat - 1;
 
   for (int i = 0; i < ntotal; i++) tree[i] = 0.0;
-  for (int i = offset; i < offset + n; i++) {
+  for (int i = offset; i < offset + n; i++)
     tree[i] = propensity[i-offset];
-    if (tree[i] == 0.0) nzeroes++;
-  }
   sum_tree();
 }
 
@@ -114,9 +112,9 @@ int SolveTree::event(double *pdt)
   int m;
   double r2;
 
-  if (nzeroes == nevents) return -1;
-
   double sumt = tree[0];
+  if (sumt == 0.0) return -1;
+
   r2 = random->uniform();
   m = find(r2*sumt);
   
@@ -146,9 +144,6 @@ void SolveTree::sum_tree()
 void SolveTree::set(int i, double value)
 {
   int parent,sibling;
-
-  if (tree[offset+i] == 0.0) nzeroes--;
-  if (value == 0.0) nzeroes++;
 
   tree[offset+i] = value;
 
