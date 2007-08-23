@@ -60,7 +60,8 @@ AppMembrane::AppMembrane(SPK *spk, int narg, char **arg) :
   // setup communicator for ghost sites
 
   comm = new CommLattice2d(spk);
-  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,delghost,dellocal);
+  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,
+	     delghost,dellocal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -110,19 +111,10 @@ double AppMembrane::site_energy(int i, int j)
   else ieta = 1;
 
   for (int m = 0; m < 8; m++) {
-    //    if (m == 0) jsite = lattice[i-1][j];
-    //    else if (m == 1) jsite = lattice[i+1][j];
-    //    else if (m == 2) jsite = lattice[i][j-1];
-    //    else jsite = lattice[i][j+1];
-
-    if (m == 0) jsite = lattice[i-1][j-1];
-    else if (m == 1) jsite = lattice[i-1][j];
-    else if (m == 2) jsite = lattice[i-1][j+1];
-    else if (m == 3) jsite = lattice[i][j-1];
-    else if (m == 4) jsite = lattice[i][j+1];
-    else if (m == 5) jsite = lattice[i+1][j-1];
-    else if (m == 6) jsite = lattice[i+1][j];
-    else jsite = lattice[i+1][j+1];
+    if (m == 0) jsite = lattice[i-1][j];
+    else if (m == 1) jsite = lattice[i+1][j];
+    else if (m == 2) jsite = lattice[i][j-1];
+    else jsite = lattice[i][j+1];
 
     if (jsite == FLUID) jtau = 1;
     else jtau = 0;
@@ -177,6 +169,7 @@ double AppMembrane::site_propensity(int i, int j, int full)
   // only event is a LIPID/FLUID flip
 
   int oldstate = lattice[i][j];
+  if (oldstate == PROTEIN) return 0.0;
   int newstate = LIPID;
   if (oldstate == LIPID) newstate = FLUID;
 
@@ -185,9 +178,13 @@ double AppMembrane::site_propensity(int i, int j, int full)
   double efinal = site_energy(i,j);
   lattice[i][j] = oldstate;
 
+  double factor;
+  if (oldstate == LIPID) factor = 1.0;
+  else factor = 0.01;
+
   if (efinal <= einitial) return 1.0;
   else if (temperature == 0.0) return 0.0;
-  else return exp((einitial-efinal)*t_inverse);
+  else return factor*exp((einitial-efinal)*t_inverse);
 }
 
 /* ----------------------------------------------------------------------
@@ -203,6 +200,7 @@ void AppMembrane::site_event(int i, int j, int full)
 
   // only event is a LIPID/FLUID flip
 
+  if (lattice[i][j] == PROTEIN) return;
   if (lattice[i][j] == LIPID) lattice[i][j] = FLUID;
   else lattice[i][j] = LIPID;
 

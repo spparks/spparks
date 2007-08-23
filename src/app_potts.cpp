@@ -15,6 +15,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <map>
+
 using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
@@ -40,13 +42,19 @@ AppPotts::AppPotts(SPK *spk, int narg, char **arg) : AppLattice(spk,narg,arg)
 
   // initialize my portion of lattice
   // each site = one of nspins
-  // loop over global list so assigment is independent of # of procs
+  // loop over global list so assignment is independent of # of procs
+  // use map to see if I own global site
+
+  std::map<int,int> hash;
+  for (int i = 0; i < nlocal; i++)
+    hash.insert(std::pair<int,int> (id[i],i));
+  std::map<int,int>::iterator loc;
 
   int ilocal,isite;
-  for (int iglobal = 0; iglobal < nglobal; iglobal++) {
+  for (int iglobal = 1; iglobal <= nglobal; iglobal++) {
     isite = random->irandom(nspins);
-    ilocal = iglobal;     // change this line in parallel to a map lookup
-    lattice[ilocal] = isite;
+    loc = hash.find(iglobal);
+    if (loc != hash.end()) lattice[loc->second] = isite;
   }
 
   // setup communicator for ghost sites

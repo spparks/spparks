@@ -17,6 +17,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <map>
+
 using namespace SPPARKS;
 
 enum{NONE,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
@@ -24,6 +26,8 @@ enum{NONE,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+#define DELTA 100
 
 /* ---------------------------------------------------------------------- */
 
@@ -59,7 +63,10 @@ AppLattice::~AppLattice()
   delete [] latfile;
 
   memory->sfree(id);
+  memory->sfree(owner);
+  memory->sfree(index);
   memory->destroy_2d_T_array(xyz);
+
   memory->sfree(numneigh);
   memory->destroy_2d_T_array(neighbor);
 
@@ -320,13 +327,39 @@ void AppLattice::structured_lattice()
       neighbor[i][j] = connect(id[i],j);
       if (neighbor[i][j] <= 0 || neighbor[i][j] > nglobal)
 	error->all("Bad connectivity result");
+    }
+  }
 
-      // connectivity check on distance
+  memory->destroy_3d_T_array(cmap);
 
-      /*
-      double dx = xyz[i][0] - xyz[neighbor[i][j]-1][0];
-      double dy = xyz[i][1] - xyz[neighbor[i][j]-1][1];
-      double dz = xyz[i][2] - xyz[neighbor[i][j]-1][2];
+  // create and initialize other site arrays
+
+  owner = (int *) memory->smalloc(nlocal*sizeof(int),"app:owner");
+  index = (int *) memory->smalloc(nlocal*sizeof(int),"app:index");
+
+  for (i = 0; i < nlocal; i++) {
+    owner[i] = me;
+    index[i] = i;
+  }
+
+  // find and create ghost atoms
+  // convert connectivity to local indices
+
+  structured_ghost();
+
+  // DEBUG: connectivity check on distance
+
+  /*
+  printf("Nlocal,Nghost = %d %d\n",nlocal,nghost);
+  for (i = 0; i < nlocal; i++)
+    for (j = 0; j < numneigh[i]; j++) {
+      if (neighbor[i][j] < 0 || neighbor[i][j] >= nlocal+nghost) {
+	printf("INDICES: %d %d: %d %d %d\n",i,j,nlocal,nghost,nlocal+nghost);
+	error->one("Bad neighbor index");
+      }
+      double dx = xyz[i][0] - xyz[neighbor[i][j]][0];
+      double dy = xyz[i][1] - xyz[neighbor[i][j]][1];
+      double dz = xyz[i][2] - xyz[neighbor[i][j]][2];
       if (dx > 0.5*xprd) dx -= xprd;
       if (dx < -0.5*xprd) dx += xprd;
       if (dy > 0.5*yprd) dy -= yprd;
@@ -334,21 +367,139 @@ void AppLattice::structured_lattice()
       if (dz > 0.5*zprd) dz -= zprd;
       if (dz < -0.5*zprd) dz += zprd;
       double r = sqrt(dx*dx + dy*dy + dz*dz);
-      printf("DIST %d %d: %g\n",id[i],id[neighbor[i][j]-1],r);
-      */
+      printf("DIST %d %d: %g\n",id[i],id[neighbor[i][j]],r);
+    }
+  */
+}
+
+/* ----------------------------------------------------------------------
+   find ghost atoms owned by other procs for structured lattice
+   each proc knows who needed ghost neighbors are
+ ------------------------------------------------------------------------- */
+
+void AppLattice::structured_ghost()
+{
+  int i,j,k,m,size;
+
+  // put all owned sites in a map
+  // key = global ID, value = local index
+
+  std::map<int,int> hash;
+  for (i = 0; i < nlocal; i++)
+    hash.insert(std::pair<int,int> (id[i],i));
+
+  // for all neighbors of owned sites:
+  // check if I own neighbor or it's already in ghost list
+  // if not, add it to ghost list and map
+
+  int maxghost = 0;
+  GhostRequest *buf = NULL;
+  std::map<int,int>::iterator loc;
+  nghost = 0;
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < numneigh[i]; j++) {
+      m = neighbor[i][j];
+      loc = hash.find(m);
+      if (loc == hash.end()) {
+	if (nghost == maxghost) {
+	  maxghost += DELTA;
+	  buf = (GhostRequest *) 
+	    memory->srealloc(buf,maxghost*sizeof(GhostRequest),"app:buf");
+	}
+	buf[nghost].id = m;
+	buf[nghost].proc = -1;
+	hash.insert(std::pair<int,int> (m,nlocal+nghost));
+	nghost++;
+      }
     }
   }
 
-  memory->destroy_3d_T_array(cmap);
+  // setup ring of procs
 
-  // map global to local indices via maps
-  // needs to be a parallel operation that generates ghost sites
+  int next = me + 1;
+  int prev = me -1; 
+  if (next == nprocs) next = 0;
+  if (prev < 0) prev = nprocs - 1;
+
+  // maxghost = max ghosts on any proc
+
+  int maxsize;
+  MPI_Allreduce(&nghost,&maxsize,1,MPI_INT,MPI_MAX,world);
+
+  buf = (GhostRequest *) 
+    memory->srealloc(buf,maxsize*sizeof(GhostRequest),"app:buf");
+  GhostRequest *bufcopy = (GhostRequest *) 
+    memory->smalloc(maxsize*sizeof(GhostRequest),"app:bufcopy");
+
+  // cycle ghost list around ring of procs back to self
+  // when receive it, fill in info for any sites I own
+
+  MPI_Request request;
+  MPI_Status status;
+
+  size = nghost;
+
+  for (int loop = 0; loop < nprocs; loop++) {
+    if (me != next) {
+      MPI_Irecv(bufcopy,maxsize*sizeof(GhostRequest),
+		MPI_CHAR,prev,0,world,&request);
+      MPI_Send(buf,size*sizeof(GhostRequest),MPI_CHAR,next,0,world);
+      MPI_Wait(&request,&status);
+      MPI_Get_count(&status,MPI_CHAR,&size);
+      size /= sizeof(GhostRequest);
+      memcpy(buf,bufcopy,size*sizeof(GhostRequest));
+    }
+    for (i = 0; i < size; i++) {
+      if (buf[i].proc == -1) {
+	loc = hash.find(buf[i].id);
+	if (loc != hash.end() && loc->second < nlocal) {
+	  buf[i].proc = me;
+	  buf[i].index = loc->second;
+	  buf[i].x = xyz[loc->second][0];
+	  buf[i].y = xyz[loc->second][1];
+	  buf[i].z = xyz[loc->second][2];
+	}
+      }
+    }
+  }
+
+  // reallocate site arrays so can append ghost info
+
+  id = (int *) memory->srealloc(id,(nlocal+nghost)*sizeof(int),"app:id");
+  owner = (int *) memory->srealloc(owner,(nlocal+nghost)*sizeof(int),"app:id");
+  index = (int *) memory->srealloc(index,(nlocal+nghost)*sizeof(int),"app:id");
+  xyz = memory->grow_2d_T_array(xyz,nlocal+nghost,3,"app:xyz");
+  
+  // original ghost list came back to me around ring
+  // extract filled in info for my ghost sites
+  // error if anything is not filled in
+
+  for (i = 0; i < nghost; i++) {
+    if (buf[i].proc == -1) error->one("Ghost site was not found");
+    j = nlocal + i;
+    id[j] = buf[i].id;
+    owner[j] = buf[i].proc;
+    index[j] = buf[i].index;
+    xyz[j][0] = buf[i].x;
+    xyz[j][1] = buf[i].y;
+    xyz[j][2] = buf[i].z;
+  }
+
+  // convert all my neighbor connections to local indices
 
   for (i = 0; i < nlocal; i++)
-    for (j = 0; j < maxconnect; j++)
-      neighbor[i][j]--;
+    for (j = 0; j < numneigh[i]; j++) {
+      m = neighbor[i][j];
+      loc = hash.find(m);
+      if (loc == hash.end()) error->one("Ghost connection was not found");
+      neighbor[i][j] = loc->second;
+    }
 
-  nghost = 0;
+  // clean-up
+
+  memory->sfree(buf);
+  memory->sfree(bufcopy);
 }
 
 /* ----------------------------------------------------------------------
@@ -491,6 +642,29 @@ void AppLattice::random_lattice()
       }
     }
 
+  // create and initialize other site arrays
+
+  owner = (int *) memory->smalloc(nlocal*sizeof(int),"app:owner");
+  index = (int *) memory->smalloc(nlocal*sizeof(int),"app:index");
+
+  for (i = 0; i < nlocal; i++) {
+    owner[i] = me;
+    index[i] = i;
+  }
+
+  // find and create ghost atoms
+
+  random_ghost();
+}
+
+/* ----------------------------------------------------------------------
+   find ghost atoms owned by other procs for random lattice
+   procs don't know who ghost neighbors are
+   must first acquire sites within cutoff, then search them for neighbors
+ ------------------------------------------------------------------------- */
+
+void AppLattice::random_ghost()
+{
   nghost = 0;
 }
 
@@ -1014,7 +1188,7 @@ void AppLattice::offsets()
     cmap[0][4][0] = -1; cmap[0][4][1] = -1; cmap[0][4][2] = 1;
     cmap[0][5][0] =  0; cmap[0][5][1] = -1; cmap[0][5][2] = 1;
 
-    cmap[0][0][1] = -1; cmap[0][0][1] =  0; cmap[0][0][2] = 1;
+    cmap[1][0][0] = -1; cmap[1][0][1] =  0; cmap[1][0][2] = 1;
     cmap[1][1][0] =  1; cmap[1][1][1] =  0; cmap[1][1][2] = 1;
     cmap[1][2][0] =  0; cmap[1][2][1] =  0; cmap[1][2][2] = 0;
     cmap[1][3][0] =  0; cmap[1][3][1] =  1; cmap[1][3][2] = 0;

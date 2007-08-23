@@ -12,9 +12,10 @@ The distribution has to be bounded.
 #include "groups.h"
 #include "random_park.h"
 
-/* ---------------------------------------------------------------------- */
 using namespace std;
 using namespace SPPARKS;
+
+/* ---------------------------------------------------------------------- */
 
 Groups::Groups(double lo_in, double hi_in, int seed_in, 
 	       bool ng_flag, int ngr_in)
@@ -27,6 +28,7 @@ Groups::Groups(double lo_in, double hi_in, int seed_in,
   group_hi = NULL;
   group_sum = NULL;
   empty_groups = NULL;
+  nempty = 0;
 
   diag_cnt = 0;
 
@@ -38,6 +40,7 @@ Groups::Groups(double lo_in, double hi_in, int seed_in,
 }
 
 /* ---------------------------------------------------------------------- */
+
 Groups::~Groups()
 {
   for (int g = 0; g < ngroups; g++) delete [] group[g];
@@ -111,7 +114,7 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
       //     cout << "Distribution not flat in group "<<gr<<"."<<endl;
     }
     group_size[gr] ++;
-    empty_groups[gr]=1;
+    empty_groups[gr]=0;
     psum += p[i];
   }
   
@@ -176,6 +179,12 @@ void Groups::partition(double *p, double lo, double hi)
       
     }
   }
+
+  for (int g = 0; g < ngroups; g++) 
+    if(i_group[g]>0){
+      empty_groups[g] = 1;
+      nempty ++;
+    }
 }
 /* ----------------------------------------------------------------------
    Change value of an element
@@ -183,9 +192,9 @@ void Groups::partition(double *p, double lo, double hi)
 void Groups::alter_element(int j, double *p, double p_new)
 {
   double p_old = p[j];
-  if(p_new == p_old) return;
+
   double diff = p_new - p_old;
-  double frac;
+  double frac = 0;
 
   if(p_new > hi){
     hi = p_new;
@@ -212,7 +221,6 @@ void Groups::alter_element(int j, double *p, double p_new)
     }
   }
 
-
   //check if changed
   if(my_group[j] == new_group){
     //update group sum
@@ -231,6 +239,11 @@ void Groups::alter_element(int j, double *p, double p_new)
     i_group[old_group]--;
     group_sum[old_group] -= p_old;
 
+    if (i_group[old_group] == 0 || group_sum[old_group] < 1.0e-25) {
+      empty_groups[old_group] = 0;
+      nempty ++;
+    }
+
     //add to new group
 
     if(i_group[new_group] > group_size[new_group]-1){
@@ -246,6 +259,11 @@ void Groups::alter_element(int j, double *p, double p_new)
     my_group_i[j] = i_group[new_group];
     i_group[new_group]++;
     group_sum[new_group] += p_new;
+
+    if(p_new > lo & empty_groups[old_group] == 0) {
+      empty_groups[old_group] = 1;
+      nempty --;
+    }
   }
 
   //update total sum
@@ -357,14 +375,20 @@ int Groups::sample(double *p)
 {
   int r= -1;
   int grp;
-  //  int cnt = 0;
-  diag_cnt = 0;
+  int cnt = 0;
 
-  while(r<0){
+
+  while(r<0 && nempty < ngroups){
     grp = linear_select_group();
     if(grp>-1) {
       r =  sample_with_rejection(grp, p);
     }
+//     cnt ++;
+//     if(cnt > 1000) {
+//       cout <<"cycling in sample ..."<<endl;
+//       group_diagnostic(p);
+//       exit(1);
+//     }
   }
   return r;
 }
@@ -391,7 +415,7 @@ int Groups::linear_select_group()
   double partial = 0.0;
   g = 0;
 
-  while (g<ngroups){
+  while (g < ngroups && nempty < ngroups){
     partial += group_sum[g];
     if (partial > compare) return g;
     g++;
@@ -517,7 +541,7 @@ void Groups::group_diagnostic(double *p)
 
     cout << endl 
 	 <<"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"<<endl;
-    if(tsum != group_sum[g])cout << "sum check failed "<< tsum<<endl;
+    if(tsum != group_sum[g])cout << "sum check failed by "<< tsum-group_sum[g]<<endl;
   } 
   for(int i = 0; i< size; i++){
 //        cout << i <<"  " <<p[i]<<"  " <<p[i] - lo<< "  "<< my_group[i] <<"  "

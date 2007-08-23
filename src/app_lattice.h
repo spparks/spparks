@@ -61,6 +61,8 @@ class AppLattice : public App {
   double *propensity;          // probability for each owned site
 
   int *id;
+  int *owner;
+  int *index;
   double **xyz;
 
   int *numneigh;
@@ -68,6 +70,11 @@ class AppLattice : public App {
   int maxconnect;
   int nbasis;
   int ***cmap;
+
+  struct GhostRequest {
+    int id,proc,index;
+    double x,y,z;
+  };
 
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
   int procwest,proceast;            // my neighbor procs
@@ -88,7 +95,11 @@ class AppLattice : public App {
   void create_lattice();
 
   void structured_lattice();
+  void structured_ghost();
+
   void random_lattice();
+  void random_ghost();
+
   void file_lattice();
 
   void iterate();
