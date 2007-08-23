@@ -36,7 +36,7 @@ AppIsing::AppIsing(SPK *spk, int narg, char **arg) : AppLattice(spk,narg,arg)
   
   create_lattice();
   lattice = (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:lattice");
-  sites = new int[1 + maxconnect];
+  sites = new int[1 + maxneigh];
 
   // initialize my portion of lattice
   // each site = one of 2 spins

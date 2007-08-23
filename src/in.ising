@@ -14,7 +14,7 @@
 #app_style	 potts 12345 10 lattice fcc 1.0 10 10 10
 #solve_style      tree 12345
 
-app_style	 potts 12345 10 lattice random/2d 100 100.0 100.0 2.5
+app_style	 potts 12345 10 lattice random/2d 10000 100.0 100.0 2.5
 solve_style      tree 12345
 
 #app_style	 potts 12345 10 lattice random/3d 10000 10.0 10.0 10.0 1.0

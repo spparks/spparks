@@ -300,21 +300,21 @@ void AppLattice::structured_lattice()
 
   // allocate arrays to store lattice connectivity
 
-  if (latstyle == SQ_4N) maxconnect = 4;
-  else if (latstyle == SQ_8N) maxconnect = 8;
-  else if (latstyle == TRI) maxconnect = 6;
-  else if (latstyle == SC_6N) maxconnect = 6;
-  else if (latstyle == SC_26N) maxconnect = 26;
-  else if (latstyle == FCC) maxconnect = 12;
-  else if (latstyle == BCC) maxconnect = 8;
-  else if (latstyle == DIAMOND) maxconnect = 4;
+  if (latstyle == SQ_4N) maxneigh = 4;
+  else if (latstyle == SQ_8N) maxneigh = 8;
+  else if (latstyle == TRI) maxneigh = 6;
+  else if (latstyle == SC_6N) maxneigh = 6;
+  else if (latstyle == SC_26N) maxneigh = 26;
+  else if (latstyle == FCC) maxneigh = 12;
+  else if (latstyle == BCC) maxneigh = 8;
+  else if (latstyle == DIAMOND) maxneigh = 4;
 
   numneigh = (int *) memory->smalloc(nlocal*sizeof(int),"app:numneigh");
-  memory->create_2d_T_array(neighbor,nlocal,maxconnect,"app:neighbor");
+  memory->create_2d_T_array(neighbor,nlocal,maxneigh,"app:neighbor");
 
   // create connectivity offsets
 
-  memory->create_3d_T_array(cmap,nbasis,maxconnect,4,"app:cmap");
+  memory->create_3d_T_array(cmap,nbasis,maxneigh,4,"app:cmap");
   offsets();
 
   // generate lattice connectivity for each site
@@ -322,8 +322,8 @@ void AppLattice::structured_lattice()
   // global index = 1 to Nglobal
 
   for (i = 0; i < nlocal; i++) {
-    numneigh[i] = maxconnect;
-    for (j = 0; j < maxconnect; j++) {
+    numneigh[i] = maxneigh;
+    for (j = 0; j < numneigh[i]; j++) {
       neighbor[i][j] = connect(id[i],j);
       if (neighbor[i][j] <= 0 || neighbor[i][j] > nglobal)
 	error->all("Bad connectivity result");
@@ -577,7 +577,33 @@ void AppLattice::random_lattice()
     nlocal++;
   }
 
-  // count max neighbors thru expensive N^2 loop (SERIAL ONLY)
+  // create and initialize other site arrays
+
+  owner = (int *) memory->smalloc(nlocal*sizeof(int),"app:owner");
+  index = (int *) memory->smalloc(nlocal*sizeof(int),"app:index");
+
+  for (i = 0; i < nlocal; i++) {
+    owner[i] = me;
+    index[i] = i;
+  }
+
+  // find and create ghost atoms
+
+  random_ghost();
+}
+
+/* ----------------------------------------------------------------------
+   find ghost atoms owned by other procs for random lattice
+   procs don't know who ghost neighbors are
+   must first acquire sites within cutoff, then search them for neighbors
+ ------------------------------------------------------------------------- */
+
+void AppLattice::random_ghost()
+{
+  int i,j;
+
+  // count max neighbors thru expensive N^2 loop
+  // SERIAL ONLY for now
 
   numneigh = (int *) memory->smalloc(nlocal*sizeof(int),"app:numneigh");
   for (i = 0; i < nlocal; i++) numneigh[i] = 0;
@@ -609,14 +635,15 @@ void AppLattice::random_lattice()
 
   // allocate arrays to store lattice connectivity
 
-  maxconnect = 0;
-  for (i = 0; i < nlocal; i++) maxconnect = MAX(maxconnect,numneigh[i]);
-  if (maxconnect == 0) error->all("Random lattice has no connectivity");
+  int tmp = 0;
+  for (i = 0; i < nlocal; i++) tmp = MAX(tmp,numneigh[i]);
+  MPI_Allreduce(&tmp,&maxneigh,1,MPI_INT,MPI_MAX,world);
+  if (maxneigh == 0) error->all("Random lattice has no connectivity");
 
-  memory->create_2d_T_array(neighbor,nlocal,maxconnect,"app:neighbor");
+  memory->create_2d_T_array(neighbor,nlocal,maxneigh,"app:neighbor");
 
   // generate lattice connectivity for each site thru expensive N^2 loop
-  // SERIAL ONLY
+  // SERIAL ONLY for now
 
   for (i = 0; i < nlocal; i++) numneigh[i] = 0;
 
@@ -642,29 +669,6 @@ void AppLattice::random_lattice()
       }
     }
 
-  // create and initialize other site arrays
-
-  owner = (int *) memory->smalloc(nlocal*sizeof(int),"app:owner");
-  index = (int *) memory->smalloc(nlocal*sizeof(int),"app:index");
-
-  for (i = 0; i < nlocal; i++) {
-    owner[i] = me;
-    index[i] = i;
-  }
-
-  // find and create ghost atoms
-
-  random_ghost();
-}
-
-/* ----------------------------------------------------------------------
-   find ghost atoms owned by other procs for random lattice
-   procs don't know who ghost neighbors are
-   must first acquire sites within cutoff, then search them for neighbors
- ------------------------------------------------------------------------- */
-
-void AppLattice::random_ghost()
-{
   nghost = 0;
 }
 
@@ -1323,7 +1327,7 @@ void AppLattice::offsets()
     int n,m,x,y,z,i,j,k,ib;
 
     for (n = 0; n < nbasis; n++) {
-      for (m = 0; m < maxconnect; m++) {
+      for (m = 0; m < maxneigh; m++) {
 	if (n < 4) {
 	  x = ibasis[n][0] + bond[m][0];
 	  y = ibasis[n][1] + bond[m][1];

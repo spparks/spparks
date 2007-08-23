@@ -49,27 +49,32 @@ class AppLattice : public App {
   int delghost,dellocal;
   int masklimit;
 
-  int nglobal;
-  int nlocal;
-  int nghost;
-  
   double xprd,yprd,zprd;
-  double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // lattice (box) bounds
+  double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // simulation box bounds
   double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;    // my portion of box
 
-  int *lattice;                // owned lattice + ghost lattice
-  double *propensity;          // probability for each owned site
+  int nglobal;                 // global # of sites
+  int nlocal;                  // # of sites I own
+  int nghost;                  // # of ghost sites I store
 
-  int *id;
-  int *owner;
-  int *index;
-  double **xyz;
+                               // these arrays stored for owned + ghost sites
+  int *id;                     // global ID (1-N) of site
+  int *owner;                  // proc who owns the site
+  int *index;                  // index of site on owning proc
+  double **xyz;                // coords of site
 
-  int *numneigh;
-  int **neighbor;
-  int maxconnect;
-  int nbasis;
-  int ***cmap;
+  int *lattice;                // lattice values for owned + ghost sites
+  double *propensity;          // probabilities for owned sites
+
+  int maxneigh;                // max neighbors of any site
+  int *numneigh;               // # of neighbors of each owned site
+  int **neighbor;              // list of neighbors of each owned site
+                               // neighbor[i][j] =
+                               //   local index of Jth neigh of Ith owned site
+                               //   can index an owned or ghost site
+
+  int nbasis;                  // basis atoms for regular lattices
+  int ***cmap;                 // connectivity map for regular lattices
 
   struct GhostRequest {
     int id,proc,index;
