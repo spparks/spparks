@@ -49,6 +49,7 @@ class Memory : protected SysPtr {
   void destroy_4d_double_array(double ****);
 
   // Templated versions
+
   template<typename T>
     void create_1d_T_array(T *&, int, int, const char *);
 
@@ -62,7 +63,7 @@ class Memory : protected SysPtr {
     void destroy_2d_T_array(T **);
 
   template<typename T>
-    T **grow_2d_T_array(T **, int, int, const char *);
+    void grow_2d_T_array(T **&, int, int, const char *);
 
   template<typename T>
     void create_2d_T_array(T **&, int, int, int, const char *);
@@ -83,7 +84,7 @@ class Memory : protected SysPtr {
     void destroy_3d_T_array(T ***);
 
   template<typename T>
-    T ***grow_3d_T_array(T ***, int, int, int, const char *);
+    void grow_3d_T_array(T ***&, int, int, int, const char *);
     
   template<typename T>
     void create_3d_T_array(T ***&, int, int, int, int, const char *);
@@ -173,13 +174,19 @@ void Memory::destroy_2d_T_array(T **array)
 ------------------------------------------------------------------------- */
 
 template<typename T>
-T **Memory::grow_2d_T_array(T **array,
-			    int n1, int n2, const char *name)
+void Memory::grow_2d_T_array(T **&array,
+			     int n1, int n2, const char *name)
 
 {
+  if (n1 == 0 || n2 == 0) {
+    destroy_2d_T_array(array);
+    array = NULL;
+    return;
+  }
+
   if (array == NULL) {
     create_2d_T_array(array,n1,n2,name);
-    return array;
+    return;
   }
 
   T *data = (T *) srealloc(array[0],n1*n2*sizeof(T),name);
@@ -191,8 +198,6 @@ T **Memory::grow_2d_T_array(T **array,
     array[i] = &data[n];
     n += n2;
   }
-
-  return array;
 }
 
 /* ----------------------------------------------------------------------
@@ -225,7 +230,9 @@ void Memory::destroy_2d_T_array(T **array, int offset)
 ------------------------------------------------------------------------- */
 
 template<typename T>
-  void Memory::create_2d_T_array(T **&array, int n1lo, int n1hi, int n2lo, int n2hi, const char *name)
+  void Memory::create_2d_T_array(T **&array,
+				 int n1lo, int n1hi, int n2lo, int n2hi,
+				 const char *name)
 {
   int n1 = n1hi - n1lo + 1;
   int n2 = n2hi - n2lo + 1;
@@ -240,7 +247,7 @@ template<typename T>
 ------------------------------------------------------------------------- */
 
 template<typename T>
-  void Memory::destroy_2d_T_array(T **array, int n1lo, int n2lo)
+void Memory::destroy_2d_T_array(T **array, int n1lo, int n2lo)
 {
   if (array == NULL) return;
   sfree(&array[n1lo][n2lo]);
@@ -252,7 +259,8 @@ template<typename T>
 ------------------------------------------------------------------------- */
 
 template<typename T>
-void Memory::create_3d_T_array(T ***&array, int n1, int n2, int n3, const char *name)
+void Memory::create_3d_T_array(T ***&array,
+			       int n1, int n2, int n3, const char *name)
 {
   int i,j;
 
@@ -291,18 +299,21 @@ void Memory::destroy_3d_T_array(T ***array)
 ------------------------------------------------------------------------- */
 
 template<typename T>
-T ***Memory::grow_3d_T_array(T ***array,
-				       int n1, int n2, int n3, const char *name)
+void Memory::grow_3d_T_array(T ***&array,
+			     int n1, int n2, int n3, const char *name)
 {
   int i,j;
 
   if (n1 == 0 || n2 == 0 || n3 == 0) {
     destroy_3d_T_array(array);
-    return NULL;
+    array = NULL;
+    return;
   }
 
-  create_3d_T_array(array,n1,n2,n3,name);
-  if (array == NULL) return array; 
+  if (array == NULL) {
+    create_3d_T_array(array,n1,n2,n3,name);
+    return;
+  }
 
   T *data = (T *) srealloc(array[0][0],n1*n2*n3*sizeof(T),name);
   sfree(array[0]);
@@ -318,8 +329,6 @@ T ***Memory::grow_3d_T_array(T ***array,
       n += n3;
     }
   }
-
-  return array;
 }
 
 /* ----------------------------------------------------------------------
@@ -328,7 +337,7 @@ T ***Memory::grow_3d_T_array(T ***array,
 
 template<typename T>
 void Memory::create_3d_T_array(T ***&array, int n1lo, int n1hi, 
-					 int n2, int n3, const char *name)
+			       int n2, int n3, const char *name)
 {
   int n1 = n1hi - n1lo + 1;
   create_3d_T_array(array,n1,n2,n3,name);

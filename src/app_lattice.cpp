@@ -469,7 +469,7 @@ void AppLattice::structured_ghost()
   id = (int *) memory->srealloc(id,(nlocal+nghost)*sizeof(int),"app:id");
   owner = (int *) memory->srealloc(owner,(nlocal+nghost)*sizeof(int),"app:id");
   index = (int *) memory->srealloc(index,(nlocal+nghost)*sizeof(int),"app:id");
-  xyz = memory->grow_2d_T_array(xyz,nlocal+nghost,3,"app:xyz");
+  memory->grow_2d_T_array(xyz,nlocal+nghost,3,"app:xyz");
   
   // original ghost list came back to me around ring
   // extract filled in info for my ghost sites
