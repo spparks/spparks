@@ -1,15 +1,38 @@
 # SPPARKS membrane app = protein + lipid + solvent
 
-app_style       membrane 100 100 0.8 1.0 12345
+#app_style       ising 12345 lattice sq/4n 1.0 100 100
+
+#app_style       membrane 60 60 1.25 1.0 1.0 0.0 12345          # ising
+app_style       membrane 60 60 2.5 2.0 0.0 2.0 12345        # lattice gas
+
 solve_style     tree 12345
 #sweep_style     lattice2d 12345 mask no
 
-inclusion	40 30 10
-inclusion	15 15 10
+#inclusion	40 30 10
+#inclusion	15 15 10
 
-temperature	1.0
+#inclusion	20 20 4
+#inclusion	40 20 4
+#inclusion	10 37 4
+#inclusion	50 37 4
+#inclusion	20 54 4
+#inclusion	40 54 4
 
-stats           1.0
-dump            1.0 coord tmp.membrane
+temperature	0.5
 
-run             50
+stats           5.0
+dump            5.0 coord tmp.membrane
+
+run             100
+
+#temperature	0.3
+
+#run             500
+
+#temperature	0.1
+
+#run             1000
+
+#temperature	0.0
+
+#run             1000

@@ -162,6 +162,38 @@ void AppLattice::create_lattice()
     random_lattice();
   else if (latstyle == FILENAME)
     file_lattice();
+
+  // DEBUG: connectivity check on distance
+
+  printf("Nglobal,Nlocal,Nghost = %d %d %d\n",nglobal,nlocal,nghost);
+  int sum = 0;
+  for (int i = 0; i < nlocal; i++) sum += numneigh[i];
+  int all;
+  MPI_Allreduce(&sum,&all,1,MPI_INT,MPI_SUM,world);
+  printf("Total/Ave neighbor connections %d %g\n",all,(double)all/nglobal);
+
+  /*
+  for (int i = 0; i < nlocal; i++) {
+    printf("Neighs of site %d = %d\n",id[i],numneigh[i]);
+    for (int j = 0; j < numneigh[i]; j++) {
+      if (neighbor[i][j] < 0 || neighbor[i][j] >= nlocal+nghost) {
+	printf("INDICES: %d %d: %d %d %d\n",i,j,nlocal,nghost,nlocal+nghost);
+	error->one("Bad neighbor index");
+      }
+      double dx = xyz[i][0] - xyz[neighbor[i][j]][0];
+      double dy = xyz[i][1] - xyz[neighbor[i][j]][1];
+      double dz = xyz[i][2] - xyz[neighbor[i][j]][2];
+      if (dx > 0.5*xprd) dx -= xprd;
+      if (dx < -0.5*xprd) dx += xprd;
+      if (dy > 0.5*yprd) dy -= yprd;
+      if (dy < -0.5*yprd) dy += yprd;
+      if (dz > 0.5*zprd) dz -= zprd;
+      if (dz < -0.5*zprd) dz += zprd;
+      double r = sqrt(dx*dx + dy*dy + dz*dz);
+      printf("  DIST %d %d: %g\n",id[i],id[neighbor[i][j]],r);
+    }
+  }
+  */
 }
 
 /* ----------------------------------------------------------------------
@@ -201,7 +233,7 @@ void AppLattice::structured_lattice()
   if (dimension == 2) procs2lattice_2d();
   else if (dimension == 3) procs2lattice_3d();
 
-  // basis atoms of each unit cell depend on lattice
+  // basis sites of each unit cell depend on lattice
 
   double basis[8][3];
 
@@ -342,38 +374,14 @@ void AppLattice::structured_lattice()
     index[i] = i;
   }
 
-  // find and create ghost atoms
+  // find and create ghost sites
   // convert connectivity to local indices
 
   structured_ghost();
-
-  // DEBUG: connectivity check on distance
-
-  /*
-  printf("Nlocal,Nghost = %d %d\n",nlocal,nghost);
-  for (i = 0; i < nlocal; i++)
-    for (j = 0; j < numneigh[i]; j++) {
-      if (neighbor[i][j] < 0 || neighbor[i][j] >= nlocal+nghost) {
-	printf("INDICES: %d %d: %d %d %d\n",i,j,nlocal,nghost,nlocal+nghost);
-	error->one("Bad neighbor index");
-      }
-      double dx = xyz[i][0] - xyz[neighbor[i][j]][0];
-      double dy = xyz[i][1] - xyz[neighbor[i][j]][1];
-      double dz = xyz[i][2] - xyz[neighbor[i][j]][2];
-      if (dx > 0.5*xprd) dx -= xprd;
-      if (dx < -0.5*xprd) dx += xprd;
-      if (dy > 0.5*yprd) dy -= yprd;
-      if (dy < -0.5*yprd) dy += yprd;
-      if (dz > 0.5*zprd) dz -= zprd;
-      if (dz < -0.5*zprd) dz += zprd;
-      double r = sqrt(dx*dx + dy*dy + dz*dz);
-      printf("DIST %d %d: %g\n",id[i],id[neighbor[i][j]],r);
-    }
-  */
 }
 
 /* ----------------------------------------------------------------------
-   find ghost atoms owned by other procs for structured lattice
+   find ghost sites owned by other procs for structured lattice
    each proc knows who needed ghost neighbors are
  ------------------------------------------------------------------------- */
 
@@ -393,7 +401,7 @@ void AppLattice::structured_ghost()
   // if not, add it to ghost list and map
 
   int maxghost = 0;
-  GhostRequest *buf = NULL;
+  Ghost *buf = NULL;
   std::map<int,int>::iterator loc;
   nghost = 0;
 
@@ -404,8 +412,8 @@ void AppLattice::structured_ghost()
       if (loc == hash.end()) {
 	if (nghost == maxghost) {
 	  maxghost += DELTA;
-	  buf = (GhostRequest *) 
-	    memory->srealloc(buf,maxghost*sizeof(GhostRequest),"app:buf");
+	  buf = (Ghost *) 
+	    memory->srealloc(buf,maxghost*sizeof(Ghost),"app:buf");
 	}
 	buf[nghost].id = m;
 	buf[nghost].proc = -1;
@@ -427,10 +435,9 @@ void AppLattice::structured_ghost()
   int maxsize;
   MPI_Allreduce(&nghost,&maxsize,1,MPI_INT,MPI_MAX,world);
 
-  buf = (GhostRequest *) 
-    memory->srealloc(buf,maxsize*sizeof(GhostRequest),"app:buf");
-  GhostRequest *bufcopy = (GhostRequest *) 
-    memory->smalloc(maxsize*sizeof(GhostRequest),"app:bufcopy");
+  buf = (Ghost *) memory->srealloc(buf,maxsize*sizeof(Ghost),"app:buf");
+  Ghost *bufcopy = (Ghost *) 
+    memory->smalloc(maxsize*sizeof(Ghost),"app:bufcopy");
 
   // cycle ghost list around ring of procs back to self
   // when receive it, fill in info for any sites I own
@@ -442,13 +449,12 @@ void AppLattice::structured_ghost()
 
   for (int loop = 0; loop < nprocs; loop++) {
     if (me != next) {
-      MPI_Irecv(bufcopy,maxsize*sizeof(GhostRequest),
-		MPI_CHAR,prev,0,world,&request);
-      MPI_Send(buf,size*sizeof(GhostRequest),MPI_CHAR,next,0,world);
+      MPI_Irecv(bufcopy,maxsize*sizeof(Ghost),MPI_CHAR,prev,0,world,&request);
+      MPI_Send(buf,size*sizeof(Ghost),MPI_CHAR,next,0,world);
       MPI_Wait(&request,&status);
       MPI_Get_count(&status,MPI_CHAR,&size);
-      size /= sizeof(GhostRequest);
-      memcpy(buf,bufcopy,size*sizeof(GhostRequest));
+      size /= sizeof(Ghost);
+      memcpy(buf,bufcopy,size*sizeof(Ghost));
     }
     for (i = 0; i < size; i++) {
       if (buf[i].proc == -1) {
@@ -496,7 +502,7 @@ void AppLattice::structured_ghost()
       neighbor[i][j] = loc->second;
     }
 
-  // clean-up
+  // clean up
 
   memory->sfree(buf);
   memory->sfree(bufcopy);
@@ -587,13 +593,13 @@ void AppLattice::random_lattice()
     index[i] = i;
   }
 
-  // find and create ghost atoms
+  // find and create ghost sites and connectivity
 
   random_ghost();
 }
 
 /* ----------------------------------------------------------------------
-   find ghost atoms owned by other procs for random lattice
+   setup ghost sites owned by other procs for random lattice
    procs don't know who ghost neighbors are
    must first acquire sites within cutoff, then search them for neighbors
  ------------------------------------------------------------------------- */
@@ -602,16 +608,135 @@ void AppLattice::random_ghost()
 {
   int i,j;
 
+  // put all owned sites within cutoff of sub-box face into buf
+
+  int maxbuf = 0;
+  Ghost *bufsend = NULL;
+  int nsend = 0;
+
+  for (i = 0; i < nlocal; i++) {
+    if (xyz[i][0] - subxlo <= cutoff || subxhi - xyz[i][0] <= cutoff ||
+	xyz[i][1] - subylo <= cutoff || subyhi - xyz[i][1] <= cutoff ||
+	xyz[i][2] - subzlo <= cutoff || subzhi - xyz[i][2] <= cutoff) {
+      if (nsend == maxbuf) {
+	maxbuf += DELTA;
+	bufsend = (Ghost *) 
+	  memory->srealloc(bufsend,maxbuf*sizeof(Ghost),"app:bufsend");
+      }
+      bufsend[nsend].id = id[i];
+      bufsend[nsend].proc = me;
+      bufsend[nsend].index = i;
+      bufsend[nsend].x = xyz[i][0];
+      bufsend[nsend].y = xyz[i][1];
+      bufsend[nsend].z = xyz[i][2];
+      nsend++;
+    }
+  }
+
+  // setup ring of procs
+
+  int next = me + 1;
+  int prev = me -1; 
+  if (next == nprocs) next = 0;
+  if (prev < 0) prev = nprocs - 1;
+
+  // maxsend = max send sites on any proc
+
+  int maxsize;
+  MPI_Allreduce(&nsend,&maxsize,1,MPI_INT,MPI_MAX,world);
+
+  bufsend = (Ghost *) 
+    memory->srealloc(bufsend,maxsize*sizeof(Ghost),"app:bufsend");
+  Ghost *bufcopy = (Ghost *) 
+    memory->smalloc(maxsize*sizeof(Ghost),"app:bufcopy");
+
+  // cycle send list around ring of procs back to self
+  // when receive it, extract any sites within cutoff of my sub-box
+  // test for within cutoff:
+  //   for each dim:
+  //     test if site coord or 2 periodic images are between cutoff bounds
+  //     all 3 dims must satisfy this criterion to keep site as potential ghost
+  // loop < nprocs-1 skips owned sites since never recv them
+
+  MPI_Request request;
+  MPI_Status status;
+
+  maxbuf = 0;
+  Ghost *bufrecv = NULL;
+  int nrecv = 0;
+
+  int flag;
+  double coord,coordlo,coordhi;
+  int size = nsend;
+
+  for (int loop = 0; loop < nprocs-1; loop++) {
+    if (me != next) {
+      MPI_Irecv(bufcopy,maxsize*sizeof(Ghost),MPI_CHAR,prev,0,world,&request);
+      MPI_Send(bufsend,size*sizeof(Ghost),MPI_CHAR,next,0,world);
+      MPI_Wait(&request,&status);
+      MPI_Get_count(&status,MPI_CHAR,&size);
+      size /= sizeof(Ghost);
+      memcpy(bufsend,bufcopy,size*sizeof(Ghost));
+    }
+    for (i = 0; i < size; i++) {
+      coord = bufsend[i].x;
+      coordlo = bufsend[i].x - xprd;
+      coordhi = bufsend[i].x + xprd;
+      flag = 0;
+      if (coord >= subxlo-cutoff && coord <= subxhi+cutoff) flag = 1;
+      if (coordlo >= subxlo-cutoff && coordlo <= subxhi+cutoff) flag = 1;
+      if (coordhi >= subxlo-cutoff && coordhi <= subxhi+cutoff) flag = 1;
+      if (flag == 0) continue;
+
+      coord = bufsend[i].y;
+      coordlo = bufsend[i].y - yprd;
+      coordhi = bufsend[i].y + yprd;
+      flag = 0;
+      if (coord >= subylo-cutoff && coord <= subyhi+cutoff) flag = 1;
+      if (coordlo >= subylo-cutoff && coordlo <= subyhi+cutoff) flag = 1;
+      if (coordhi >= subylo-cutoff && coordhi <= subyhi+cutoff) flag = 1;
+      if (flag == 0) continue;
+
+      coord = bufsend[i].z;
+      coordlo = bufsend[i].z - zprd;
+      coordhi = bufsend[i].z + zprd;
+      flag = 0;
+      if (coord >= subzlo-cutoff && coord <= subzhi+cutoff) flag = 1;
+      if (coordlo >= subzlo-cutoff && coordlo <= subzhi+cutoff) flag = 1;
+      if (coordhi >= subzlo-cutoff && coordhi <= subzhi+cutoff) flag = 1;
+      if (flag == 0) continue;
+
+      if (nrecv == maxbuf) {
+	maxbuf += DELTA;
+	bufrecv = (Ghost *) memory->srealloc(bufrecv,maxbuf*sizeof(Ghost),
+					     "app:bufrecv");
+      }
+      bufrecv[nrecv].id = bufsend[i].id;
+      bufrecv[nrecv].proc = bufsend[i].proc;
+      bufrecv[nrecv].index = bufsend[i].index;
+      bufrecv[nrecv].x = bufsend[i].x;
+      bufrecv[nrecv].y = bufsend[i].y;
+      bufrecv[nrecv].z = bufsend[i].z;
+      nrecv++;
+    }
+  }
+
   // count max neighbors thru expensive N^2 loop
-  // SERIAL ONLY for now
+  // NOTE: would be faster to bin my owned + ghost sites
+  // loop over owned sites and received sites (possible ghosts)
+  // each time a received site is within cutoff, it becomes a ghost site
+  // increment ghost count if ghost ID not in hash
 
   numneigh = (int *) memory->smalloc(nlocal*sizeof(int),"app:numneigh");
   for (i = 0; i < nlocal; i++) numneigh[i] = 0;
 
+  nghost = 0;
+  std::map<int,int> hash;
+
   double dx,dy,dz,rsq;
   double cutsq = cutoff*cutoff;
 
-  for (i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++) {
     for (j = i+1; j < nlocal; j++) {
       dx = xyz[i][0] - xyz[j][0];
       dy = xyz[i][1] - xyz[j][1];
@@ -633,6 +758,38 @@ void AppLattice::random_ghost()
       }
     }
 
+    for (j = 0; j < nrecv; j++) {
+      dx = xyz[i][0] - bufrecv[j].x;
+      dy = xyz[i][1] - bufrecv[j].y;
+      dz = xyz[i][2] - bufrecv[j].z;
+
+      if (dx < -0.5*xprd) dx += xprd;
+      else if (dx > 0.5*xprd) dx -= xprd;
+      if (dy < -0.5*yprd) dy += yprd;
+      else if (dy > 0.5*yprd) dy -= yprd;
+      if (dimension == 3) {
+	if (dz < -0.5*zprd) dz += zprd;
+	else if (dz > 0.5*zprd) dz -= zprd;
+      }
+
+      rsq = dx*dx + dy*dy + dz*dz;
+      if (rsq < cutsq) {
+	numneigh[i]++;
+	if (hash.find(bufrecv[j].id) == hash.end()) {
+	  hash.insert(std::pair<int,int> (bufrecv[j].id,nghost));
+	  nghost++;
+	}
+      }
+    }
+  }
+
+  // reallocate site arrays so can append ghost info
+
+  id = (int *) memory->srealloc(id,(nlocal+nghost)*sizeof(int),"app:id");
+  owner = (int *) memory->srealloc(owner,(nlocal+nghost)*sizeof(int),"app:id");
+  index = (int *) memory->srealloc(index,(nlocal+nghost)*sizeof(int),"app:id");
+  memory->grow_2d_T_array(xyz,nlocal+nghost,3,"app:xyz");
+
   // allocate arrays to store lattice connectivity
 
   int tmp = 0;
@@ -642,12 +799,18 @@ void AppLattice::random_ghost()
 
   memory->create_2d_T_array(neighbor,nlocal,maxneigh,"app:neighbor");
 
-  // generate lattice connectivity for each site thru expensive N^2 loop
-  // SERIAL ONLY for now
+  // generate site connectivity thru expensive N^2 loop
+  // NOTE: would be faster to bin my owned + ghost sites
+  // loop over owned sites and received sites (possible ghosts)
+  // each time a received site is within cutoff, it becomes a ghost site
+  // increment ghost count if ghost ID not in hash
 
   for (i = 0; i < nlocal; i++) numneigh[i] = 0;
 
-  for (i = 0; i < nlocal; i++)
+  nghost = 0;
+  hash.clear();
+
+  for (i = 0; i < nlocal; i++) {
     for (j = i+1; j < nlocal; j++) {
       dx = xyz[i][0] - xyz[j][0];
       dy = xyz[i][1] - xyz[j][1];
@@ -669,7 +832,43 @@ void AppLattice::random_ghost()
       }
     }
 
-  nghost = 0;
+    for (j = 0; j < nrecv; j++) {
+      dx = xyz[i][0] - bufrecv[j].x;
+      dy = xyz[i][1] - bufrecv[j].y;
+      dz = xyz[i][2] - bufrecv[j].z;
+
+      if (dx < -0.5*xprd) dx += xprd;
+      else if (dx > 0.5*xprd) dx -= xprd;
+      if (dy < -0.5*yprd) dy += yprd;
+      else if (dy > 0.5*yprd) dy -= yprd;
+      if (dimension == 3) {
+	if (dz < -0.5*zprd) dz += zprd;
+	else if (dz > 0.5*zprd) dz -= zprd;
+      }
+
+      rsq = dx*dx + dy*dy + dz*dz;
+      if (rsq < cutsq) {
+	neighbor[i][numneigh[i]++] = j;
+	if (hash.find(bufrecv[j].id) == hash.end()) {
+	  hash.insert(std::pair<int,int> (bufrecv[j].id,nghost));
+
+	  id[nlocal+nghost] = bufrecv[j].id;
+	  owner[nlocal+nghost] = bufrecv[j].proc;
+	  index[nlocal+nghost] = bufrecv[j].index;
+	  xyz[nlocal+nghost][0] = bufrecv[j].x;
+	  xyz[nlocal+nghost][1] = bufrecv[j].y;
+	  xyz[nlocal+nghost][2] = bufrecv[j].z;
+	  nghost++;
+	}
+      }
+    }
+  }
+
+  // clean up
+
+  memory->sfree(bufsend);
+  memory->sfree(bufcopy);
+  memory->sfree(bufrecv);
 }
 
 /* ----------------------------------------------------------------------
@@ -1196,7 +1395,7 @@ void AppLattice::offsets()
     cmap[1][1][0] =  1; cmap[1][1][1] =  0; cmap[1][1][2] = 1;
     cmap[1][2][0] =  0; cmap[1][2][1] =  0; cmap[1][2][2] = 0;
     cmap[1][3][0] =  0; cmap[1][3][1] =  1; cmap[1][3][2] = 0;
-    cmap[1][4][0] =  0; cmap[1][4][1] =  1; cmap[1][4][2] = 0;
+    cmap[1][4][0] =  1; cmap[1][4][1] =  0; cmap[1][4][2] = 0;
     cmap[1][5][0] =  1; cmap[1][5][1] =  1; cmap[1][5][2] = 0;
 
   } else if (latstyle == SC_6N) {
@@ -1220,7 +1419,7 @@ void AppLattice::offsets()
 	}
 
   } else if (latstyle == FCC) {
-    int m = 0;                             // 1st basis atom
+    int m = 0;                             // 1st basis site
     for (int ii = -1; ii <= 0; ii++)       // 4 neighs with same x
       for (int jj = -1; jj <= 0; jj++) {
 	cmap[0][m][0] = 0; cmap[0][m][1] = ii; cmap[0][m][2] = jj;
@@ -1240,7 +1439,7 @@ void AppLattice::offsets()
 	m++;
       }
 
-    m = 0;                                 // 2nd basis atom
+    m = 0;                                 // 2nd basis site
     for (int ii = 0; ii <= 1; ii++)        // 4 neighs with same x
       for (int jj = 0; jj <= 1; jj++) {
 	cmap[1][m][0] = 0; cmap[1][m][1] = ii; cmap[1][m][2] = jj;
@@ -1260,7 +1459,7 @@ void AppLattice::offsets()
 	m++;
       }
 
-    m = 0;                                 // 3rd basis atom
+    m = 0;                                 // 3rd basis site
     for (int ii = -1; ii <= 0; ii++)       // 4 neighs with same x
       for (int jj = 0; jj <= 1; jj++) {
 	cmap[2][m][0] = 0; cmap[2][m][1] = ii; cmap[2][m][2] = jj;
@@ -1280,7 +1479,7 @@ void AppLattice::offsets()
 	m++;
       }
 
-    m = 0;                                 // 4th basis atom
+    m = 0;                                 // 4th basis site
     for (int ii = 0; ii <= 1; ii++)        // 4 neighs with same x
       for (int jj = -1; jj <= 0; jj++) {
 	cmap[3][m][0] = 0; cmap[3][m][1] = ii; cmap[3][m][2] = jj;

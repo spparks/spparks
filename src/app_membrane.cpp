@@ -26,13 +26,15 @@ AppMembrane::AppMembrane(SPK *spk, int narg, char **arg) :
 {
   // parse arguments
 
-  if (narg != 6) error->all("Invalid app_style membrane command");
+  if (narg != 8) error->all("Invalid app_style membrane command");
 
   nx_global = atoi(arg[1]);
   ny_global = atoi(arg[2]);
   w01 = atof(arg[3]);
   w11 = atof(arg[4]);
-  seed = atoi(arg[5]);
+  w22 = atof(arg[5]);
+  prefactor = atof(arg[6]);
+  seed = atoi(arg[7]);
   random = new RandomPark(seed);
 
   masklimit = 0;
@@ -101,31 +103,35 @@ void AppMembrane::input_app(char *command, int narg, char **arg)
 
 double AppMembrane::site_energy(int i, int j)
 {
-  int isite,jsite,itau,ieta,jtau,jeta;
+  int isite,jsite;
   double eng = 0.0;
 
   isite = lattice[i][j];
-  if (isite == FLUID) itau = 1;
-  else itau = 0;
-  if (isite == PROTEIN) ieta = 0;
-  else ieta = 1;
 
-  for (int m = 0; m < 8; m++) {
+  for (int m = 0; m < 4; m++) {
     if (m == 0) jsite = lattice[i-1][j];
     else if (m == 1) jsite = lattice[i+1][j];
     else if (m == 2) jsite = lattice[i][j-1];
     else jsite = lattice[i][j+1];
 
-    if (jsite == FLUID) jtau = 1;
-    else jtau = 0;
-    if (jsite == PROTEIN) jeta = 0;
-    else jeta = 1;
+    // compute this with matrix, not if tests
 
     // w11 = fluid-fluid interaction
     // w01 = fluid-protein interaction
 
-    eng -= w11 * (itau*jtau*ieta*jeta);
-    eng -= w01 * (itau*ieta*(1-jeta) + jtau*jeta*(1-ieta));
+    if (isite == PROTEIN) {
+      if (jsite == FLUID) eng -= w01;
+    } else if (isite == FLUID) {
+      if (jsite == PROTEIN) eng -= w01;
+      else if (jsite == FLUID) eng -= w11;
+    } else {
+      if (jsite == LIPID) eng -= w22;
+    }
+
+    //if (isite != jsite) eng += w11;
+
+    //if (isite == FLUID && jsite == FLUID) eng -= w11;
+    //if (isite == LIPID && jsite == LIPID) eng -= w11;
   }
 
   return eng;
@@ -178,13 +184,20 @@ double AppMembrane::site_propensity(int i, int j, int full)
   double efinal = site_energy(i,j);
   lattice[i][j] = oldstate;
 
-  double factor;
-  if (oldstate == LIPID) factor = 1.0;
-  else factor = 0.01;
+  double delta = efinal - einitial;
+  if (oldstate == FLUID) delta += prefactor;
+  else delta -= prefactor;
 
-  if (efinal <= einitial) return 1.0;
-  else if (temperature == 0.0) return 0.0;
-  else return factor*exp((einitial-efinal)*t_inverse);
+  double value;
+  if (efinal <= einitial) value = 1.0;
+  else if (temperature == 0.0) value = 0.0;
+  else value = exp(-(delta)*t_inverse);
+
+  //  printf("VAL %d %g: %g %g %g\n",
+  //	 oldstate,value,einitial-efinal,einitial,efinal);
+
+  if (value > 1.0) value = 1.0;
+  return value;
 }
 
 /* ----------------------------------------------------------------------

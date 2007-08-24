@@ -135,9 +135,13 @@ double AppIsing::site_propensity(int i, int full)
   double efinal = site_energy(i);
   lattice[i] = oldstate;
 
-  if (efinal <= einitial) return 1.0;
-  else if (temperature == 0.0) return 0.0;
-  else return exp((einitial-efinal)*t_inverse);
+  double value;
+  if (efinal <= einitial) value = 1.0;
+  else if (temperature == 0.0) value = 0.0;
+  else value = exp((einitial-efinal)*t_inverse);
+
+  if (value > 1.0) value = 1.0;
+  return value;
 }
 
 /* ----------------------------------------------------------------------

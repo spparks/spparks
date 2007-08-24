@@ -76,7 +76,7 @@ class AppLattice : public App {
   int nbasis;                  // basis atoms for regular lattices
   int ***cmap;                 // connectivity map for regular lattices
 
-  struct GhostRequest {
+  struct Ghost {
     int id,proc,index;
     double x,y,z;
   };

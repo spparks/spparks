@@ -24,7 +24,7 @@ class AppMembrane : public AppLattice2d {
   void site_clear_mask(char **, int, int);
 
  private:
-  double w01,w11;
+  double w01,w11,w22,prefactor;
 
   void input_app(char *, int, char **);
 };
