@@ -27,7 +27,7 @@ enum{NONE,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define DELTA 100
+#define DELTA 1000
 
 /* ---------------------------------------------------------------------- */
 

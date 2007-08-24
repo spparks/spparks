@@ -6,25 +6,26 @@
 #ifndef APP_MEMBRANE_H
 #define APP_MEMBRANE_H
 
-#include "app_lattice2d.h"
+#include "app_lattice.h"
 
 namespace SPPARKS {
 
-class AppMembrane : public AppLattice2d {
+class AppMembrane : public AppLattice {
  public:
   AppMembrane(class SPK *, int, char **);
   ~AppMembrane();
 
-  double site_energy(int, int);
-  int site_pick_random(int, int, double);
-  int site_pick_local(int, int, double);
-  double site_propensity(int, int, int);
-  void site_event(int, int, int);
-  void site_update_ghosts(int, int);
-  void site_clear_mask(char **, int, int);
+  double site_energy(int);
+  int site_pick_random(int, double);
+  int site_pick_local(int, double);
+  double site_propensity(int, int);
+  void site_event(int, int);
+  void site_clear_mask(char *, int);
 
  private:
-  double w01,w11,w22,prefactor;
+  double w01,w11,mu;
+  double interact[4][4];
+  int *sites;
 
   void input_app(char *, int, char **);
 };

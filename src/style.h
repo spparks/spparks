@@ -11,6 +11,7 @@
 #include "app_ising_3d_6n.h"
 #include "app_ising_3d_26n.h"
 #include "app_membrane.h"
+#include "app_membrane_2d.h"
 #include "app_potts.h"
 #include "app_potts_2d_4n.h"
 #include "app_potts_2d_8n.h"
@@ -30,6 +31,7 @@ AppStyle(ising/2d/8n,AppIsing2d8n)
 AppStyle(ising/3d/6n,AppIsing3d6n)
 AppStyle(ising/3d/26n,AppIsing3d26n)
 AppStyle(membrane,AppMembrane)
+AppStyle(membrane/2d,AppMembrane2d)
 AppStyle(potts,AppPotts)
 AppStyle(potts/2d/4n,AppPotts2d4n)
 AppStyle(potts/2d/8n,AppPotts2d8n)

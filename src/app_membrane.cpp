@@ -8,7 +8,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "app_membrane.h"
-#include "comm_lattice2d.h"
+#include "comm_lattice.h"
 #include "solve.h"
 #include "random_park.h"
 #include "timer.h"
@@ -22,48 +22,49 @@ enum{NONE,LIPID,FLUID,PROTEIN};
 /* ---------------------------------------------------------------------- */
 
 AppMembrane::AppMembrane(SPK *spk, int narg, char **arg) : 
-  AppLattice2d(spk,narg,arg)
+  AppLattice(spk,narg,arg)
 {
   // parse arguments
 
-  if (narg != 8) error->all("Invalid app_style membrane command");
+  if (narg < 5) error->all("Invalid app_style membrane command");
 
-  nx_global = atoi(arg[1]);
-  ny_global = atoi(arg[2]);
-  w01 = atof(arg[3]);
-  w11 = atof(arg[4]);
-  w22 = atof(arg[5]);
-  prefactor = atof(arg[6]);
-  seed = atoi(arg[7]);
+  w01 = atof(arg[1]);
+  w11 = atof(arg[2]);
+  mu = atof(arg[3]);
+  seed = atoi(arg[4]);
   random = new RandomPark(seed);
 
-  masklimit = 0;
+  options(narg-5,&arg[5]);
+
+  // setup interaction energy matrix
+  // w11 = fluid-fluid interaction
+  // w01 = fluid-protein interaction
+
+  interact[LIPID][LIPID] = interact[PROTEIN][PROTEIN] = 0.0;
+  interact[LIPID][FLUID] = interact[FLUID][LIPID] = 0.0;
+  interact[LIPID][PROTEIN] = interact[PROTEIN][LIPID] = 0.0;
+  interact[FLUID][FLUID] = -w11;
+  interact[FLUID][PROTEIN] = interact[PROTEIN][FLUID] = -w01;
 
   // define lattice and partition it across processors
-  
-  procs2lattice();
-  memory->create_2d_T_array(lattice,nxlo,nxhi,nylo,nyhi,
-			    "applattice2d:lattice");
 
-  // initialize my portion of lattice
-  // each site = LIPID
-  // loop over global list so assigment is independent of # of procs
+  create_lattice();
+  lattice = (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:lattice");
+  sites = new int[1 + maxneigh];
 
-  int i,j,ii,jj,isite;
-  for (i = 1; i <= nx_global; i++) {
-    ii = i - nx_offset;
-    for (j = 1; j <= ny_global; j++) {
-      jj = j - ny_offset;
-      if (ii >= 1 && ii <= nx_local && jj >= 1 && jj <= ny_local)
-	lattice[ii][jj] = LIPID;
-    }
-  }
+  // initialize my sites to LIPID
+
+  for (int i = 0; i < nlocal; i++) lattice[i] = LIPID;
 
   // setup communicator for ghost sites
 
-  comm = new CommLattice2d(spk);
-  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,
-	     delghost,dellocal);
+  comm = new CommLattice(spk);
+  if (dimension == 2)
+    comm->init(nlocal,procwest,proceast,procsouth,procnorth,
+	       delghost,dellocal);
+  else if (dimension == 3)
+    comm->init(nlocal,procwest,proceast,procsouth,procnorth,procdown,procup,
+	       delghost,dellocal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -71,7 +72,8 @@ AppMembrane::AppMembrane(SPK *spk, int narg, char **arg) :
 AppMembrane::~AppMembrane()
 {
   delete random;
-  memory->destroy_2d_T_array(lattice);
+  memory->sfree(lattice);
+  delete [] sites;
   delete comm;
 }
 
@@ -84,15 +86,13 @@ void AppMembrane::input_app(char *command, int narg, char **arg)
     int xc = atoi(arg[0]);
     int yc = atoi(arg[1]);
     double r = atof(arg[2]);
-    int i,j,iglobal,jglobal;
-    double rsq;
-    for (i = 1; i <= nx_local; i++) {
-      iglobal = i + nx_offset;
-      for (j = 1; j <= ny_local; j++) {
-	jglobal = j + ny_offset;
-	rsq = (iglobal-xc)*(iglobal-xc) + (jglobal-yc)*(jglobal-yc);
-	if (sqrt(rsq) < r) lattice[i][j] = PROTEIN;
-      }
+
+    double dx,dy,rsq;
+    for (int i = 0; i < nlocal; i++) {
+      dx = xyz[i][0] - xc;
+      dy = xyz[i][1] - yc;
+      rsq = dx*dx + dy*dy;
+      if (sqrt(rsq) < r) lattice[i] = PROTEIN;
     }
   } else error->all("Command not recognized by this application");
 }
@@ -101,39 +101,12 @@ void AppMembrane::input_app(char *command, int narg, char **arg)
    compute energy of site
 ------------------------------------------------------------------------- */
 
-double AppMembrane::site_energy(int i, int j)
+double AppMembrane::site_energy(int i)
 {
-  int isite,jsite;
+  int isite = lattice[i];
   double eng = 0.0;
-
-  isite = lattice[i][j];
-
-  for (int m = 0; m < 4; m++) {
-    if (m == 0) jsite = lattice[i-1][j];
-    else if (m == 1) jsite = lattice[i+1][j];
-    else if (m == 2) jsite = lattice[i][j-1];
-    else jsite = lattice[i][j+1];
-
-    // compute this with matrix, not if tests
-
-    // w11 = fluid-fluid interaction
-    // w01 = fluid-protein interaction
-
-    if (isite == PROTEIN) {
-      if (jsite == FLUID) eng -= w01;
-    } else if (isite == FLUID) {
-      if (jsite == PROTEIN) eng -= w01;
-      else if (jsite == FLUID) eng -= w11;
-    } else {
-      if (jsite == LIPID) eng -= w22;
-    }
-
-    //if (isite != jsite) eng += w11;
-
-    //if (isite == FLUID && jsite == FLUID) eng -= w11;
-    //if (isite == LIPID && jsite == LIPID) eng -= w11;
-  }
-
+  for (int j = 0; j < numneigh[i]; j++)
+    eng += interact[isite][lattice[neighbor[i][j]]];
   return eng;
 }
 
@@ -141,9 +114,9 @@ double AppMembrane::site_energy(int i, int j)
    randomly pick new state for site
 ------------------------------------------------------------------------- */
 
-int AppMembrane::site_pick_random(int i, int j, double ran)
+int AppMembrane::site_pick_random(int i, double ran)
 {
-  if (lattice[i][j] == PROTEIN) return PROTEIN;
+  if (lattice[i] == PROTEIN) return PROTEIN;
   if (ran < 0.5) return LIPID;
   else return FLUID;
 }
@@ -152,9 +125,9 @@ int AppMembrane::site_pick_random(int i, int j, double ran)
    randomly pick new state for site from neighbor values
 ------------------------------------------------------------------------- */
 
-int AppMembrane::site_pick_local(int i, int j, double ran)
+int AppMembrane::site_pick_local(int i, double ran)
 {
-  if (lattice[i][j] == PROTEIN) return PROTEIN;
+  if (lattice[i] == PROTEIN) return PROTEIN;
   if (ran < 0.5) return LIPID;
   else return FLUID;
 }
@@ -168,36 +141,27 @@ int AppMembrane::site_pick_local(int i, int j, double ran)
    if proc owns full domain, update ghost values before computing propensity
 ------------------------------------------------------------------------- */
 
-double AppMembrane::site_propensity(int i, int j, int full)
+double AppMembrane::site_propensity(int i, int full)
 {
-  if (full) site_update_ghosts(i,j);
-
   // only event is a LIPID/FLUID flip
 
-  int oldstate = lattice[i][j];
+  int oldstate = lattice[i];
   if (oldstate == PROTEIN) return 0.0;
   int newstate = LIPID;
   if (oldstate == LIPID) newstate = FLUID;
 
-  double einitial = site_energy(i,j);
-  lattice[i][j] = newstate;
-  double efinal = site_energy(i,j);
-  lattice[i][j] = oldstate;
+  double einitial = site_energy(i);
+  lattice[i] = newstate;
+  double efinal = site_energy(i);
+  lattice[i] = oldstate;
 
-  double delta = efinal - einitial;
-  if (oldstate == FLUID) delta += prefactor;
-  else delta -= prefactor;
+  if (oldstate == LIPID) efinal -= mu;
+  else if (oldstate == FLUID) efinal += mu;
+  double delta = einitial - efinal;
 
-  double value;
-  if (efinal <= einitial) value = 1.0;
-  else if (temperature == 0.0) value = 0.0;
-  else value = exp(-(delta)*t_inverse);
-
-  //  printf("VAL %d %g: %g %g %g\n",
-  //	 oldstate,value,einitial-efinal,einitial,efinal);
-
-  if (value > 1.0) value = 1.0;
-  return value;
+  if (efinal <= einitial) return 1.0;
+  else if (temperature == 0.0) return 0.0;
+  else return exp(delta*t_inverse);
 }
 
 /* ----------------------------------------------------------------------
@@ -207,94 +171,39 @@ double AppMembrane::site_propensity(int i, int j, int full)
    if only working on sector, ignore neighbor sites outside sector
 ------------------------------------------------------------------------- */
 
-void AppMembrane::site_event(int i, int j, int full)
+void AppMembrane::site_event(int i, int full)
 {
-  int ii,jj,isite,flag,sites[5];
+  int isite;
 
   // only event is a LIPID/FLUID flip
 
-  if (lattice[i][j] == PROTEIN) return;
-  if (lattice[i][j] == LIPID) lattice[i][j] = FLUID;
-  else lattice[i][j] = LIPID;
+  if (lattice[i] == PROTEIN) return;
+  if (lattice[i] == LIPID) lattice[i] = FLUID;
+  else lattice[i] = LIPID;
 
   // compute propensity changes for self and neighbor sites
 
   int nsites = 0;
+  sites[nsites++] = i;
+  propensity[i] = site_propensity(i,full);
 
-  ii = i; jj = j;
-  isite = ij2site[ii][jj];
-  sites[nsites++] = isite;
-  propensity[isite] = site_propensity(ii,jj,full);
-
-  ii = i-1; jj = j;
-  flag = 1;
-  if (full) ijpbc(ii,jj);
-  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
-  if (flag) {
-    isite = ij2site[ii][jj];
+  for (int j = 0; j < numneigh[i]; j++) {
+    isite = neighbor[i][j];
+    if (isite >= nlocal) continue;
     sites[nsites++] = isite;
-    propensity[isite] = site_propensity(ii,jj,full);
-  }
-
-  ii = i+1; jj = j;
-  flag = 1;
-  if (full) ijpbc(ii,jj);
-  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
-  if (flag) {
-    isite = ij2site[ii][jj];
-    sites[nsites++] = isite;
-    propensity[isite] = site_propensity(ii,jj,full);
-  }
-
-  ii = i; jj = j-1;
-  flag = 1;
-  if (full) ijpbc(ii,jj);
-  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
-  if (flag) {
-    isite = ij2site[ii][jj];
-    sites[nsites++] = isite;
-    propensity[isite] = site_propensity(ii,jj,full);
-  }
-
-  ii = i; jj = j+1;
-  flag = 1;
-  if (full) ijpbc(ii,jj);
-  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
-  if (flag) {
-    isite = ij2site[ii][jj];
-    sites[nsites++] = isite;
-    propensity[isite] = site_propensity(ii,jj,full);
+    propensity[isite] = site_propensity(isite,full);
   }
 
   solve->update(nsites,sites,propensity);
 }
 
 /* ----------------------------------------------------------------------
-   update neighbors of site if neighbors are ghost cells
-   called by site_propensity() when single proc owns entire domain
-------------------------------------------------------------------------- */
-
-void AppMembrane::site_update_ghosts(int i, int j)
-{
-  if (i == 1) lattice[i-1][j] = lattice[nx_local][j];
-  if (i == nx_local) lattice[i+1][j] = lattice[1][j];
-  if (j == 1) lattice[i][j-1] = lattice[i][ny_local];
-  if (j == ny_local) lattice[i][j+1] = lattice[i][1];
-}
-
-/* ----------------------------------------------------------------------
   clear mask values of site and its neighbors
+  OK to clear ghost site mask values
 ------------------------------------------------------------------------- */
 
-void AppMembrane::site_clear_mask(char **mask, int i, int j)
+void AppMembrane::site_clear_mask(char *mask, int i)
 {
-  mask[i][j] = 0;
-  mask[i-1][j] = 0;
-  mask[i+1][j] = 0;
-  mask[i][j-1] = 0;
-  mask[i][j+1] = 0;
+  mask[i] = 0;
+  for (int j = 0; j < numneigh[i]; j++) mask[neighbor[i][j]] = 0;
 }
