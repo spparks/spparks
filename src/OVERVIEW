@@ -167,13 +167,18 @@ dump lattice/coord 0.25
 -----------------------------------------------------------------------
 * app_style membrane
 
-app_style membrane nx ny w01 w11 seed
+app_style membrane w01 w11 mu seed options ...
+app_style membrane/2d nx ny w01 w11 mu seed
+
+w01 = sovent-protein interaction energy (typically 1.25)
+w11 = sovent-solvent interaction energy (typically 1.0)
+mu = chemical potential to insert a solvent (typically -2.0)
 
 nx,ny = lattice size
-w01,w11 = parameters in Hamiltonian
 seed = RN seed
+options = options listed with the app_style command (e.g. lattice, site)
 
-run a 2d 3-state membrane model
+run a 3-state membrane model
 also need to define a "sweep" and/or "solve" style
 
 Model:
@@ -183,19 +188,18 @@ event = protein never changes, but other sites flip between lipid <-> solvent
 
 Hamiltonian:
 
-- Sum_i Sum_j (w11 a_ij + w01 b_ij)
+- mu Sum_i x_i - Sum_i Sum_j (w11 a_ij + w01 b_ij)
 
 where Sum_i is over all sites
       Sum_j is over neighbors of site i
-      w11 = user input = strength of solvent-solvent interaction
-      w01 = user input = strength of solvent-protein interaction
+      mu,w11,w01 = user inputs
+      x_i = 1 if site is solvent, else 0
       a_ij = 1 if both i,j sites are solvent, else 0
       b_ij = 1 if one of i,j is solvent and other is protein, else 0
 
-there also needs to be a GCMC term in the Hamiltonian with an energy
-  penalty for creating too much solvent (e.g. a chemical potential)
-  else the lo-energy state is all solvent (no lipid),
-  but I don't know how to write this precisely yet
+This is a lattice gas GCMC model, isomorphic to a Ising model.  Basically
+the mu term is a penalty for inserting solvent, to prevent the system
+from going to all solvent (which the 2nd term would prefer).
 
 Extra commands supported by this app:
 
@@ -211,7 +215,7 @@ stats 0.1
   print stats every this often (seconds)
 dump lattice/coord 0.25
   dump snapshot every this often
-  either in lattice format or LAMMPS atom format (coord)
+  app_style membrane only allows for coord format
 
 -----------------------------------------------------------------------
 * app_style migration
