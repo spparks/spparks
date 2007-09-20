@@ -278,10 +278,28 @@ also need to define a "sweep" and/or "solve" style
 
 Model:
 
-site = one of nspins
-event = 
+site = integer spin from 1 to Q
+event = flip a spin to a neighboring site value
 
 Hamiltonian:
+
+- Sum_i Sum_j delta_ij
+
+where Sum_i is over all sites
+      Sum_j is over neighbors of site i
+      delta_ij = 1 if spin_i = spin_j, else 0
+
+Rate: Min[1,exp(-E/kT)], where E is the energy change due to the spin flip.
+
+More general Potts model:
+
+The energy is a function of the site spin, neighbor spins, and one or
+more field values (spin, etc).
+
+The neighborhood for exchanges may not be the same as
+the neighborhood used to compute site energies.
+
+A mobility prefactor M(t) may be put in front of the rate factor.
 
 Extra commands supported by these apps:
 
