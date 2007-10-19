@@ -91,8 +91,9 @@ void AppTest::init()
 
   // compute initial propensity for each event
   // inform Nfold solver
+
   psum = 0;
-  if(propensity != NULL) delete [] propensity;
+  if (propensity != NULL) delete [] propensity;
   propensity = new double[nevents];
   for (int m = 0; m < nevents; m++) {
     propensity[m] = compute_propensity(m);
@@ -102,9 +103,9 @@ void AppTest::init()
   //  solve->init(nevents,propensity);
   
   // allocate and zero event stats
-  if(count != NULL) delete [] count;
+  if (count != NULL) delete [] count;
   count = new int[2*nevents];
-  for (int t = 0; t< 2*nevents; t++) count[t] = 0;
+  for (int t = 0; t < 2*nevents; t++) count[t] = 0;
 
   // print stats header
 
@@ -181,13 +182,14 @@ void AppTest::iterate()
   timer->barrier_start(TIME_LOOP);
 
   while (!done) {
-    //uncomment to control total number of events
-    nev ++;
+
+    // uncomment to control total number of events
+    nev++;
 
     ntimestep++;
     timer->stamp();
     ievent = solve->event(&dt);
-    count[ievent] ++;
+    count[ievent]++;
     timer->stamp(TIME_SOLVE);
 
     // update propensity table
@@ -222,10 +224,11 @@ void AppTest::iterate()
     if (time >= stoptime) done = 1;
     else if (ievent < 0) done = 1;
     // uncomment to control total number of events
-    else if(nev > 100000) done = 1;
+    else if (nev > 1000000) done = 1;
 
     if (time > stats_time || done) {
       timer->stamp();
+      // comment out for huge number of events
       //stats();
       stats_time += stats_delta;
       timer->stamp(TIME_OUTPUT);
@@ -233,6 +236,9 @@ void AppTest::iterate()
   }
 
   timer->barrier_stop(TIME_LOOP);
+
+  // comment out when done with timings
+  printf("\nNumber of reactions = %d\n",nevents);
 }
 
 /* ----------------------------------------------------------------------

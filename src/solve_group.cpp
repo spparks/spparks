@@ -169,6 +169,3 @@ int SolveGroup::event(double *pdt)
 
   return m;
 }
-
-
-

@@ -138,7 +138,7 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
 
   partition(p, lo, hi);
 
-  // group_diagnostic(p);
+  //group_diagnostic(p);
 
   // test_sampling(p,1e8);
 }
@@ -166,7 +166,7 @@ void Groups::partition(double *p, double lo, double hi)
   else{
     //logarithmic fragments
     for(int j=0;j<size;j++){
-      //      cout << j << "p[j] = "<<p[j]<<endl;
+      //cout << j << "p[j] = "<<p[j]<<endl;
       if (p[j] > 1.0e-20)
 	g = -static_cast<int>(log(p[j]/hi)*overlg2);
       else g = ngroups - 1;
@@ -241,11 +241,13 @@ void Groups::alter_element(int j, double *p, double p_new)
 
     if (i_group[old_group] == 0 || group_sum[old_group] < 1.0e-25) {
       empty_groups[old_group] = 0;
-      nempty ++;
+      //      nempty ++;
     }
+
 
     //add to new group
 
+    printf("NEWGROUP %d\n",new_group);
     if(i_group[new_group] > group_size[new_group]-1){
       grow_group(new_group);
     }
@@ -262,7 +264,7 @@ void Groups::alter_element(int j, double *p, double p_new)
 
     if(p_new > lo & empty_groups[old_group] == 0) {
       empty_groups[old_group] = 1;
-      nempty --;
+      //    nempty --;
     }
   }
 
@@ -378,18 +380,21 @@ int Groups::sample(double *p)
   int cnt = 0;
 
 
-  while(r<0 && nempty < ngroups){
+  //  while(r<0 && nempty < ngroups){
+  while(r<0){
     grp = linear_select_group();
     if(grp>-1) {
       r =  sample_with_rejection(grp, p);
     }
-//     cnt ++;
-//     if(cnt > 1000) {
-//       cout <<"cycling in sample ..."<<endl;
-//       group_diagnostic(p);
-//       exit(1);
-//     }
+
+    //cnt ++;
+    //if(cnt > 1000) {
+      //      group_diagnostic(p);
+    //  cout << "cycling in sample ..."<<cnt<<endl;
+    //  exit(1);
+    //}
   }
+
   return r;
 }
 /* ----------------------------------------------------------------------
@@ -415,12 +420,13 @@ int Groups::linear_select_group()
   double partial = 0.0;
   g = 0;
 
-  while (g < ngroups && nempty < ngroups){
+  //  while (g < ngroups && nempty < ngroups){
+  while (g < ngroups){
     partial += group_sum[g];
     if (partial > compare) return g;
     g++;
   }
-  //cout << "no selection of group"<<endl;
+  //  cout << "no selection of group"<<endl;
   return -1; //no group selected
 }
 /* ----------------------------------------------------------------------
@@ -531,7 +537,7 @@ void Groups::group_diagnostic(double *p)
  	 <<group_sum[g]<<" with upper bound of "<<group_hi[g]
  	 <<"."<<endl<<endl;
     tsum = 0.0;
-    for (int m = 0; m < i_group[g]+1; m++){
+    for (int m = 0; m < i_group[g]; m++){
       int l = group[g][m];
       if(p[group[g][m]]!=0)
 	cout << p[group[g][m]]<<"  "<<my_group[l]<<"  "
@@ -541,7 +547,8 @@ void Groups::group_diagnostic(double *p)
 
     cout << endl 
 	 <<"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"<<endl;
-    if(tsum != group_sum[g])cout << "sum check failed by "<< tsum-group_sum[g]<<endl;
+    if(tsum != group_sum[g])cout << "sum check failed by "
+				 << tsum-group_sum[g]<<endl;
   } 
   for(int i = 0; i< size; i++){
 //        cout << i <<"  " <<p[i]<<"  " <<p[i] - lo<< "  "<< my_group[i] <<"  "
