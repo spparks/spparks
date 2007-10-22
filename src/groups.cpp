@@ -152,7 +152,7 @@ void Groups::partition(double *p, double lo, double hi)
 
   if(ngroups_flag){
     //equal fragments
-    double frac = hi/static_cast<double>(ngroups);
+    frac = hi/static_cast<double>(ngroups);
     for(int j=0;j<size;j++){
       g = static_cast<int>(p[j]/frac);
       //if (g > ngroups-1) g = ngroups - 1; 
@@ -165,6 +165,7 @@ void Groups::partition(double *p, double lo, double hi)
   }
   else{
     //logarithmic fragments
+    frac = hi;
     for(int j=0;j<size;j++){
       //cout << j << "p[j] = "<<p[j]<<endl;
       if (p[j] > 1.0e-20)
@@ -192,14 +193,13 @@ void Groups::partition(double *p, double lo, double hi)
 void Groups::alter_element(int j, double *p, double p_new)
 {
   double p_old = p[j];
-
   double diff = p_new - p_old;
-  double frac = 0;
+
 
   if(p_new > hi){
     hi = p_new;
     partition_init(p, size, max_size);
-    // cout << "Upper bound broken. Repartitioning."<<endl;
+    //    cout << "Upper bound broken. Repartitioning."<<endl;
   }
 
   //find new group membership
@@ -209,7 +209,6 @@ void Groups::alter_element(int j, double *p, double p_new)
   if(ngroups_flag){
     //equal fragments
     new_group = static_cast<int>(p_new/frac);
-    frac = hi/static_cast<double>(ngroups);
   }
   else{
     //logarithmic fragments
@@ -246,8 +245,9 @@ void Groups::alter_element(int j, double *p, double p_new)
 
 
     //add to new group
+ //    if(new_group > ngroups || new_group < 0)
+//     printf("NEWGROUP %d\n",new_group);
 
-    printf("NEWGROUP %d\n",new_group);
     if(i_group[new_group] > group_size[new_group]-1){
       grow_group(new_group);
     }

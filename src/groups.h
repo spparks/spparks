@@ -60,6 +60,7 @@ class Groups {
   double *group_sum; // current group sum
   int *empty_groups;  //0 for empty, 1 for non-empty
   int nempty;
+  double frac;
 
   void allocate_group_space(int);
   void release_group_space();
