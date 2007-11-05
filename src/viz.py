@@ -1,6 +1,6 @@
 # viz grain pattern
 
-m = mdump("tmp.ising")
+m = dump("tmp.ising")
 #m = mdump("tmp.membrane")
 m.map(2,"spin")
 m.etype = "spin"
@@ -10,4 +10,3 @@ m.etype = "spin"
 
 g = gl(m)
 v = vcr(g)
-

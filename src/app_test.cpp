@@ -224,7 +224,7 @@ void AppTest::iterate()
     if (time >= stoptime) done = 1;
     else if (ievent < 0) done = 1;
     // uncomment to control total number of events
-    else if (nev > 1000000) done = 1;
+    else if (nev > 100000) done = 1;
 
     if (time > stats_time || done) {
       timer->stamp();
