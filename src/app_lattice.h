@@ -100,12 +100,10 @@ class AppLattice : public App {
   void create_lattice();
 
   void structured_lattice();
-  void structured_ghost();
-
   void random_lattice();
-  void random_ghost();
-
   void file_lattice();
+  void ghosts_from_connectivity();
+  void ghosts_within_cutoff();
 
   void iterate();
   void stats();

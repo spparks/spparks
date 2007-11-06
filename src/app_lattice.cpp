@@ -28,6 +28,7 @@ enum{NONE,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define DELTA 1000
+#define MAXLINE 256
 
 /* ---------------------------------------------------------------------- */
 
@@ -156,12 +157,16 @@ void AppLattice::create_lattice()
 {
   if (latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI || 
       latstyle == SC_6N || latstyle == SC_26N || 
-      latstyle == FCC || latstyle == BCC || latstyle == DIAMOND)
+      latstyle == FCC || latstyle == BCC || latstyle == DIAMOND) {
     structured_lattice();
-  else if (latstyle == RANDOM_2D || latstyle == RANDOM_3D)
+    ghosts_from_connectivity();
+  } else if (latstyle == RANDOM_2D || latstyle == RANDOM_3D) {
     random_lattice();
-  else if (latstyle == FILENAME)
+    ghosts_within_cutoff();
+  } else if (latstyle == FILENAME) {
     file_lattice();
+    ghosts_from_connectivity();
+  }
 
   // DEBUG: connectivity check on distance
 
@@ -197,7 +202,7 @@ void AppLattice::create_lattice()
 }
 
 /* ----------------------------------------------------------------------
-   structured lattice
+   generate structured lattice
  ------------------------------------------------------------------------- */
 
 void AppLattice::structured_lattice()
@@ -349,7 +354,7 @@ void AppLattice::structured_lattice()
   memory->create_3d_T_array(cmap,nbasis,maxneigh,4,"app:cmap");
   offsets();
 
-  // generate lattice connectivity for each site
+  // generate global lattice connectivity for each site
   // connect() computes global index of Jth neighbor of global site I
   // global index = 1 to Nglobal
 
@@ -373,19 +378,266 @@ void AppLattice::structured_lattice()
     owner[i] = me;
     index[i] = i;
   }
-
-  // find and create ghost sites
-  // convert connectivity to local indices
-
-  structured_ghost();
 }
 
 /* ----------------------------------------------------------------------
-   find ghost sites owned by other procs for structured lattice
-   each proc knows who needed ghost neighbors are
+   random lattice
  ------------------------------------------------------------------------- */
 
-void AppLattice::structured_ghost()
+void AppLattice::random_lattice()
+{
+  int i,j,n;
+
+  if (latstyle == RANDOM_2D) {
+    boxxlo = boxylo = 0.0;
+    boxxhi = xprd;
+    boxyhi = yprd;
+    boxzlo = -0.5;
+    boxzhi = 0.5;
+  } else if (latstyle == RANDOM_3D) {
+    boxxlo = boxylo = boxzlo = 0.0;
+    boxxhi = xprd;
+    boxyhi = yprd;
+    boxzhi = zprd;
+  }
+
+  xprd = boxxhi - boxxlo;
+  yprd = boxyhi - boxylo;
+  zprd = boxzhi - boxzlo;
+
+  // partition domain
+
+  if (dimension == 2) procs2lattice_2d();
+  else if (dimension == 3) procs2lattice_3d();
+
+  nglobal = nrandom;
+
+  // generate random sites
+  // 1st pass = count sites I own in my sub-domain
+  // 2nd pass = generate xyz coords and store them with site ID
+  // save and restore seed between passes
+
+  double x,y,z;
+  int seed = random->seed;
+
+  nlocal = 0;
+  for (n = 0; n < nglobal; n++) {
+    x = xprd * random->uniform();
+    y = yprd * random->uniform();
+    if (dimension == 3) z = zprd * random->uniform();
+    else z = 0.0;
+    if (x < subxlo || x >= subxhi || 
+	y < subylo || y >= subyhi || 
+	z < subzlo || z >= subzhi) continue;
+    nlocal++;
+  }
+
+  random->seed = seed;
+
+  id = (int *) memory->smalloc(nlocal*sizeof(int),"app:id");
+  memory->create_2d_T_array(xyz,nlocal,3,"app:xyz");
+
+  nlocal = 0;
+  for (n = 0; n < nglobal; n++) {
+    x = xprd * random->uniform();
+    y = yprd * random->uniform();
+    if (dimension == 3) z = zprd * random->uniform();
+    else z = 0.0;
+
+    if (x < subxlo || x >= subxhi || 
+	y < subylo || y >= subyhi || 
+	z < subzlo || z >= subzhi) continue;
+    
+    id[nlocal] = n + 1;
+    xyz[nlocal][0] = x;
+    xyz[nlocal][1] = y;
+    xyz[nlocal][2] = z;
+    nlocal++;
+  }
+
+  // create and initialize other site arrays
+
+  owner = (int *) memory->smalloc(nlocal*sizeof(int),"app:owner");
+  index = (int *) memory->smalloc(nlocal*sizeof(int),"app:index");
+
+  for (i = 0; i < nlocal; i++) {
+    owner[i] = me;
+    index[i] = i;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   read lattice from file
+   vertices and global connectivity
+ ------------------------------------------------------------------------- */
+
+void AppLattice::file_lattice()
+{
+  char line[MAXLINE];
+  char *eof;
+
+  // open file
+
+  if (me == 0) {
+    fp = fopen(latfile,"r");
+    if (fp == NULL) {
+      char str[128];
+      sprintf(str,"Cannot open file %s",latfile);
+      error->one(str);
+    }
+  }
+
+  // read header, skip 2 lines, read global values
+
+  if (me == 0) {
+    eof = fgets(line,MAXLINE,fp);
+    eof = fgets(line,MAXLINE,fp);
+
+    eof = fgets(line,MAXLINE,fp);
+    sscanf(line,"%d",&dimension);
+    eof = fgets(line,MAXLINE,fp);
+    sscanf(line,"%d",&nglobal);
+    eof = fgets(line,MAXLINE,fp);
+    sscanf(line,"%d",&maxneigh);
+
+    eof = fgets(line,MAXLINE,fp);
+    sscanf(line,"%lg %lg",&boxxlo,&boxxhi);
+    eof = fgets(line,MAXLINE,fp);
+    sscanf(line,"%lg %lg",&boxylo,&boxyhi);
+    if (dimension == 3) {
+      eof = fgets(line,MAXLINE,fp);
+      sscanf(line,"%lg %lg",&boxzlo,&boxzhi);
+    } else {
+      boxzlo = -0.5;
+      boxzhi = 0.5;
+    }
+    eof = fgets(line,MAXLINE,fp);
+    if (eof == NULL) error->one("Unexpected end of lattice file");
+  }
+
+  MPI_Bcast(&dimension,1,MPI_INT,0,world);
+  MPI_Bcast(&nglobal,1,MPI_INT,0,world);
+  MPI_Bcast(&maxneigh,1,MPI_INT,0,world);
+  MPI_Bcast(&boxxlo,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&boxxhi,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&boxylo,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&boxyhi,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&boxzlo,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&boxzhi,1,MPI_DOUBLE,0,world);
+
+  xprd = boxxhi - boxxlo;
+  yprd = boxyhi - boxylo;
+  zprd = boxzhi - boxzlo;
+
+  // partition domain
+
+  if (dimension == 2) procs2lattice_2d();
+  else if (dimension == 3) procs2lattice_3d();
+
+  // read and broadcast list of global vertices
+  // keep ones in my sub-domain
+  // NOTE: one at a time for now, should be chunked later
+
+  if (me == 0) {
+    eof = fgets(line,MAXLINE,fp);
+    eof = fgets(line,MAXLINE,fp);
+  }
+
+  id = NULL;
+  xyz = NULL;
+  int max = 0;
+  nlocal = 0;
+  
+  int idone;
+  double xone[3];
+  xone[2] = 0.0;
+
+  for (int i = 0; i < nglobal; i++) {
+    if (me == 0) {
+      eof = fgets(line,MAXLINE,fp);
+      if (eof == NULL) error->one("Unexpected end of lattice file");
+      if (dimension == 2) sscanf(line,"%d %lg %lg",&idone,&xone[0],&xone[1]);
+      else sscanf(line,"%d %lg %lg %lg",&idone,&xone[0],&xone[1],&xone[2]);
+    }
+    MPI_Bcast(&idone,1,MPI_INT,0,world);
+    MPI_Bcast(xone,3,MPI_DOUBLE,0,world);
+
+    if (xone[0] < subxlo || xone[0] >= subxhi || 
+	xone[1] < subylo || xone[1] >= subyhi || 
+	xone[2] < subzlo || xone[2] >= subzhi) continue;
+
+    if (nlocal == max) {
+      max += DELTA;
+      id = (int *) memory->srealloc(id,max*sizeof(int),"app:id");
+      memory->grow_2d_T_array(xyz,max,3,"app:xyz");
+    }
+    id[nlocal] = idone;
+    xyz[nlocal][0] = xone[0];
+    xyz[nlocal][1] = xone[1];
+    xyz[nlocal][2] = xone[2];
+    nlocal++;
+  }
+
+  // allocate arrays to store lattice connectivity
+
+  numneigh = (int *) memory->smalloc(nlocal*sizeof(int),"app:numneigh");
+  memory->create_2d_T_array(neighbor,nlocal,maxneigh,"app:neighbor");
+
+  // read global connectivities for each vertex and store in neighbor
+  // read one line at a time, broadcast it, keep it if its my vertex
+  // determine if its mine via hash = map of local vertices
+
+  if (me == 0) {
+    eof = fgets(line,MAXLINE,fp);
+    eof = fgets(line,MAXLINE,fp);
+    eof = fgets(line,MAXLINE,fp);
+  }
+
+  std::map<int,int>::iterator loc;
+  std::map<int,int> hash;
+  for (int i = 0; i < nlocal; i++)
+    hash.insert(std::pair<int,int> (id[i],i));
+
+  int j,m,n;
+  int neigh[maxneigh];
+  char *word;
+
+  for (int i = 0; i < nglobal; i++) {
+    if (me == 0) {
+      eof = fgets(line,MAXLINE,fp);
+      if (eof == NULL) error->one("Unexpected end of lattice file");
+      idone = atoi(strtok(line," \t\n\r\f"));
+      n = 0;
+      while (word = strtok(NULL," \t\n\r\f")) neigh[n++] = atoi(word);
+    }
+    MPI_Bcast(&idone,1,MPI_INT,0,world);
+    MPI_Bcast(&n,1,MPI_INT,0,world);
+    MPI_Bcast(neigh,n,MPI_INT,0,world);
+
+    loc = hash.find(idone);
+    if (loc == hash.end()) continue;
+    m = loc->second;
+    numneigh[m] = n;
+    for (j = 0; j < n; j++) neighbor[m][j] = neigh[j];
+  }
+
+  // create and initialize other site arrays
+
+  owner = (int *) memory->smalloc(nlocal*sizeof(int),"app:owner");
+  index = (int *) memory->smalloc(nlocal*sizeof(int),"app:index");
+
+  for (int i = 0; i < nlocal; i++) {
+    owner[i] = me;
+    index[i] = i;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   global connectivity for each owned site is known
+   need to convert to local indices and identify ghost sites
+ ------------------------------------------------------------------------- */
+
+void AppLattice::ghosts_from_connectivity()
 {
   int i,j,k,m,size;
 
@@ -473,8 +725,10 @@ void AppLattice::structured_ghost()
   // reallocate site arrays so can append ghost info
 
   id = (int *) memory->srealloc(id,(nlocal+nghost)*sizeof(int),"app:id");
-  owner = (int *) memory->srealloc(owner,(nlocal+nghost)*sizeof(int),"app:id");
-  index = (int *) memory->srealloc(index,(nlocal+nghost)*sizeof(int),"app:id");
+  owner = (int *) memory->srealloc(owner,(nlocal+nghost)*sizeof(int),
+				   "app:owner");
+  index = (int *) memory->srealloc(index,(nlocal+nghost)*sizeof(int),
+				   "app:index");
   memory->grow_2d_T_array(xyz,nlocal+nghost,3,"app:xyz");
   
   // original ghost list came back to me around ring
@@ -509,102 +763,12 @@ void AppLattice::structured_ghost()
 }
 
 /* ----------------------------------------------------------------------
-   random lattice
+   global connectivity for each owned site is not known
+   inferred from cutoff distance
+   need to find neighbors, create local connectivity and identify ghost sites
  ------------------------------------------------------------------------- */
 
-void AppLattice::random_lattice()
-{
-  int i,j,n;
-
-  if (latstyle == RANDOM_2D) {
-    boxxlo = boxylo = 0.0;
-    boxxhi = xprd;
-    boxyhi = yprd;
-    boxzlo = -0.5;
-    boxzhi = 0.5;
-  } else if (latstyle == RANDOM_3D) {
-    boxxlo = boxylo = boxzlo = 0.0;
-    boxxhi = xprd;
-    boxyhi = yprd;
-    boxzhi = zprd;
-  }
-
-  xprd = boxxhi - boxxlo;
-  yprd = boxyhi - boxylo;
-  zprd = boxzhi - boxzlo;
-
-  // partition domain
-
-  if (dimension == 2) procs2lattice_2d();
-  else if (dimension == 3) procs2lattice_3d();
-
-  nglobal = nrandom;
-
-  // generate random sites
-  // 1st pass = count sites I own in my sub-domain
-  // 2nd pass = generate xyz coords and store them with site ID
-  // save and restore seed between passes
-
-  double x,y,z;
-  int seed = random->seed;
-
-  nlocal = 0;
-  for (n = 0; n < nglobal; n++) {
-    x = xprd * random->uniform();
-    y = yprd * random->uniform();
-    if (dimension == 3) z = zprd * random->uniform();
-    else z = 0.0;
-    if (x < subxlo || x >= subxhi || 
-	y < subylo || y >= subyhi || 
-	z < subzlo || z >= subzhi) continue;
-    nlocal++;
-  }
-
-  random->seed = seed;
-
-  id = (int *) memory->smalloc(nlocal*sizeof(int),"app:id");
-  memory->create_2d_T_array(xyz,nlocal,3,"app:xyz");
-
-  nlocal = 0;
-  for (n = 0; n < nglobal; n++) {
-    x = xprd * random->uniform();
-    y = yprd * random->uniform();
-    if (dimension == 3) z = zprd * random->uniform();
-    else z = 0.0;
-
-    if (x < subxlo || x >= subxhi || 
-	y < subylo || y >= subyhi || 
-	z < subzlo || z >= subzhi) continue;
-    
-    id[nlocal] = n + 1;
-    xyz[nlocal][0] = x;
-    xyz[nlocal][1] = y;
-    xyz[nlocal][2] = z;
-    nlocal++;
-  }
-
-  // create and initialize other site arrays
-
-  owner = (int *) memory->smalloc(nlocal*sizeof(int),"app:owner");
-  index = (int *) memory->smalloc(nlocal*sizeof(int),"app:index");
-
-  for (i = 0; i < nlocal; i++) {
-    owner[i] = me;
-    index[i] = i;
-  }
-
-  // find and create ghost sites and connectivity
-
-  random_ghost();
-}
-
-/* ----------------------------------------------------------------------
-   setup ghost sites owned by other procs for random lattice
-   procs don't know who ghost neighbors are
-   must first acquire sites within cutoff, then search them for neighbors
- ------------------------------------------------------------------------- */
-
-void AppLattice::random_ghost()
+void AppLattice::ghosts_within_cutoff()
 {
   int i,j;
 
@@ -869,14 +1033,6 @@ void AppLattice::random_ghost()
   memory->sfree(bufsend);
   memory->sfree(bufcopy);
   memory->sfree(bufrecv);
-}
-
-/* ----------------------------------------------------------------------
-   read lattice from file
- ------------------------------------------------------------------------- */
-
-void AppLattice::file_lattice()
-{
 }
 
 /* ---------------------------------------------------------------------- */
