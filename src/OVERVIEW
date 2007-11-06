@@ -54,9 +54,33 @@ options = lattice or site
     file style = file
       lattice file filename
         filename = file that contains lattice points and connectivity
-	need to document format of this file
+	see format below
   site int N double M
     N,M = # of ints and doubles stored on each site
+
+file format for file style:
+  comment              # 1st line is skipped
+	               # skipped line
+  Ndim dimenion        # Ndim = 2 or 3
+  N vertices           # N = global vertices
+  M max connectivity   # M = maximum # of connections for any vertex
+  X1 X2 xlo xhi        # x bounds
+  Y1 Y2 xlo xhi        # y bounds
+  Z1 Z2 zlo zhi        # z bounds (only if dim = 3)
+                       # skipped line
+  Vertices
+                       # skipped line
+  1 x y z	       # ID, x, y, z for each vertex
+  2 x y z              # no z value if dim = 2
+  ...
+  N x y z
+                       # skipped line
+  Edges
+                       # skipped line
+  1 n1 n2 n3 ...       # ID, list of connection IDs for neighbors
+  1 n1 n2 n3 ...       # can be different numbers of connections for each ID
+  ...
+  N n1 n2 n3 ...
 
 option defaults: lattice = none, site = 1 int, 0 doubles
 

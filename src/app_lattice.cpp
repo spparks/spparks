@@ -578,6 +578,12 @@ void AppLattice::file_lattice()
     nlocal++;
   }
 
+  // error check to see if all vertices stored by some proc
+
+  int ntotal;
+  MPI_Allreduce(&nlocal,&ntotal,1,MPI_INT,MPI_SUM,world);
+  if (ntotal != nglobal) error->all("Vertices read from file incorrectly");
+
   // allocate arrays to store lattice connectivity
 
   numneigh = (int *) memory->smalloc(nlocal*sizeof(int),"app:numneigh");
