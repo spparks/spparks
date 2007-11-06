@@ -232,6 +232,7 @@ void SweepLattice::init()
 
 void SweepLattice::do_sweep(double &dt)
 {
+  dt = delt;
 }
 
 /* ----------------------------------------------------------------------

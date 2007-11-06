@@ -14,18 +14,18 @@
 #app_style	 potts 12345 10 lattice fcc 1.0 10 10 10
 #solve_style      tree 12345
 
-#app_style	 ising 12345 lattice sq/4n 1.0 10 10
+app_style	 ising 12345 lattice sq/4n 1.0 10 10
 #app_style	 ising 12345 lattice random/2d 10000 100.0 100.0 3.0
 #app_style	 ising 12345 lattice sq/8n 1.0 100 100
 #app_style	 ising 12345 lattice tri 1.0 100 100 
-#sweep_style      lattice 12345
+sweep_style      lattice 12345
 #solve_style      tree 12345
 
 #app_style	 potts 12345 10 lattice random/3d 10000 10.0 10.0 10.0 1.0
 #solve_style      tree 12345
 
-app_style	 ising 12345 lattice file tmp.lattice
-solve_style      tree 12345
+#app_style	 ising 12345 lattice file tmp.lattice
+#solve_style      tree 12345
 
 temperature	0.2
 
