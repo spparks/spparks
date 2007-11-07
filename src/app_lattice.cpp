@@ -27,7 +27,7 @@ enum{NONE,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define DELTA 1000
+#define DELTA 100
 #define MAXLINE 256
 
 /* ---------------------------------------------------------------------- */
@@ -655,6 +655,7 @@ void AppLattice::ghosts_from_connectivity()
   // put all owned sites in a map
   // key = global ID, value = local index
 
+  std::map<int,int>::iterator loc;
   std::map<int,int> hash;
   for (i = 0; i < nlocal; i++)
     hash.insert(std::pair<int,int> (id[i],i));
@@ -665,14 +666,12 @@ void AppLattice::ghosts_from_connectivity()
 
   int maxghost = 0;
   Ghost *buf = NULL;
-  std::map<int,int>::iterator loc;
   nghost = 0;
 
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < numneigh[i]; j++) {
       m = neighbor[i][j];
-      loc = hash.find(m);
-      if (loc == hash.end()) {
+      if (hash.find(m) == hash.end()) {
 	if (nghost == maxghost) {
 	  maxghost += DELTA;
 	  buf = (Ghost *) 
@@ -721,15 +720,14 @@ void AppLattice::ghosts_from_connectivity()
       memcpy(buf,bufcopy,size*sizeof(Ghost));
     }
     for (i = 0; i < size; i++) {
-      if (buf[i].proc == -1) {
-	loc = hash.find(buf[i].id);
-	if (loc != hash.end() && loc->second < nlocal) {
-	  buf[i].proc = me;
-	  buf[i].index = loc->second;
-	  buf[i].x = xyz[loc->second][0];
-	  buf[i].y = xyz[loc->second][1];
-	  buf[i].z = xyz[loc->second][2];
-	}
+      if (buf[i].proc >= 0) continue;
+      loc = hash.find(buf[i].id);
+      if (loc != hash.end() && loc->second < nlocal) {
+	buf[i].proc = me;
+	buf[i].index = loc->second;
+	buf[i].x = xyz[loc->second][0];
+	buf[i].y = xyz[loc->second][1];
+	buf[i].z = xyz[loc->second][2];
       }
     }
   }

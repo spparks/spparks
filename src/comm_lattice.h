@@ -6,6 +6,7 @@
 #ifndef COMM_LATTICE_H
 #define COMM_LATTICE_H
 
+#include "mpi.h"
 #include "sysptr.h"
 
 namespace SPPARKS {
@@ -14,15 +15,10 @@ class CommLattice : protected SysPtr {
  public:
   CommLattice(class SPK *);
   ~CommLattice();
-  void init(const int,
-	    const int, const int, const int, const int,
-	    const int, const int);
-  void init(const int,
-	    const int, const int, const int, const int, const int, const int,
-	    const int, const int);
+  void init(class SweepLattice *, const int, const int);
   void all(int *);
   void sector(int *, const int);
-  void reverse_sector(int *, const int);
+  void reverse_sector(int *, const int) {}
 
  private:
   int me,nprocs;
@@ -31,14 +27,31 @@ class CommLattice : protected SysPtr {
   int procwest,proceast,procsouth,procnorth,procdown,procup;
   int delghost,dellocal; // thickness of ghost and local communication layers 
 
-  void setup_swapinfo();
-  void setup_reverseinfo();
-  void sector_multilayer(int *, const int);
-  void sector_multilayer_destroy(int *, const int);
-  void reverse_sector_multilayer(int *, const int);
-  void all_multilayer(int *);
-  void allocate_swap(const int, const int);          // allocate swap arrays
-  void free_swap();                                  // free swap arrays
+  struct Swap {
+    int nsend,nrecv;               // number of messages to send/recv
+    int *sproc;                    // proc for each send message
+    int *scount;                   // size of each send message
+    int **sindex;                  // list of my lattice indices for each send
+    int *sbuf;                     // length of biggest send message
+    int *rproc;                    // proc for each recv message
+    int *rcount;                   // size of each receive message
+    int **rindex;                  // list of my lattice indices for each recv
+    int **rbuf;                    // incoming buf for each recv message
+    MPI_Request *request;          // MPI datums for each recv message
+    MPI_Status *status;
+  };
+
+  Swap *allswap;
+  Swap **sectorswap;
+  int nsector;
+
+  struct Ghost {
+    int id,proc,index;
+  };
+
+  Swap *create_swap(int, int *, int, int *, int *, int **);
+  void free_swap(Swap *);
+  void perform_swap(Swap *, int *);
 };
 
 }

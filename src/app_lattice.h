@@ -13,6 +13,7 @@ namespace SPPARKS {
 
 class AppLattice : public App {
   friend class SweepLattice;
+  friend class CommLattice;
 
  public:
   AppLattice(class SPK *, int, char **);

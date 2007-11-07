@@ -59,12 +59,7 @@ AppMembrane::AppMembrane(SPK *spk, int narg, char **arg) :
   // setup communicator for ghost sites
 
   comm = new CommLattice(spk);
-  if (dimension == 2)
-    comm->init(nlocal,procwest,proceast,procsouth,procnorth,
-	       delghost,dellocal);
-  else if (dimension == 3)
-    comm->init(nlocal,procwest,proceast,procsouth,procnorth,procdown,procup,
-	       delghost,dellocal);
+  comm->init(NULL,delghost,dellocal);
 }
 
 /* ---------------------------------------------------------------------- */

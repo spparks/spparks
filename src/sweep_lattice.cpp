@@ -21,7 +21,7 @@
 
 using namespace SPPARKS;
 
-#define DELTA 1000
+#define DELTA 100
 
 /* ---------------------------------------------------------------------- */
 
@@ -225,12 +225,7 @@ void SweepLattice::init()
 
   // init communication for ghost sites
 
-  if (dimension == 2)
-    comm->init(nlocal,procwest,proceast,procsouth,procnorth,
-	       delghost,dellocal);
-  else if (dimension == 3)
-    comm->init(nlocal,procwest,proceast,procsouth,procnorth,procdown,procup,
-	       delghost,dellocal);
+  comm->init(this,delghost,dellocal);
 
   // setup mask array
   // owned and ghost values referenced in app::site_clear_mask()
@@ -271,6 +266,9 @@ void SweepLattice::init()
       sector[isector].nborder = 
 	find_border_sites(nsites,sector[isector].site2i,
 			  numneigh,neighbor,&sector[isector].border);
+      sector[isector].sites =
+	(int*) memory->smalloc(sector[isector].nborder*sizeof(int),
+			       "sweep:sites");
 
       for (m = 0; m < nsites; m++)
 	sector[isector].propensity[m] =
