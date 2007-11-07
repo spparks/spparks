@@ -627,7 +627,8 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
    could reverse comm mask values, but that might be slower
  ------------------------------------------------------------------------- */
 
-void SweepLattice2d::boundary_clear_mask(int xlo, int xhi, int ylo, int yhi) {
+void SweepLattice2d::boundary_clear_mask(int xlo, int xhi, int ylo, int yhi)
+{
   int i,j;
 
   if (delghost == 1) {
