@@ -58,7 +58,7 @@ options = lattice or site
   site int N double M
     N,M = # of ints and doubles stored on each site
 
-file format for file style:
+lattice file format for file style:
   comment              # 1st line is skipped
 	               # skipped line
   Ndim dimenion        # Ndim = 2 or 3
