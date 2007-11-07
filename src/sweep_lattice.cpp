@@ -17,7 +17,11 @@
 #include "memory.h"
 #include "error.h"
 
+#include <map>
+
 using namespace SPPARKS;
+
+#define DELTA 1000
 
 /* ---------------------------------------------------------------------- */
 
@@ -102,6 +106,9 @@ SweepLattice::SweepLattice(SPK *spk, int narg, char **arg) :
   for (int i = 0; i < nsectormax; i++) {
     sector[i].solve = NULL;
     sector[i].propensity = NULL;
+    sector[i].site2i = NULL;
+    sector[i].sites = NULL;
+    sector[i].border = NULL;
   }
 
   // communicator needed between sweep sectors
@@ -121,9 +128,12 @@ SweepLattice::~SweepLattice()
 
   if (Lkmc) {
     int nsectormax = 8;
-    for (int i = 0; i < nsectormax; i++) {
-      delete sector[i].solve;
-      memory->sfree(sector[i].propensity);
+    for (int isector = 0; isector < nsectormax; isector++) {
+      delete sector[isector].solve;
+      memory->sfree(sector[isector].propensity);
+      memory->sfree(sector[isector].site2i);
+      memory->sfree(sector[isector].sites);
+      memory->sfree(sector[isector].border);
     }
   }
 }
@@ -132,15 +142,21 @@ SweepLattice::~SweepLattice()
 
 void SweepLattice::init()
 {
+  int i,j,k,m;
+
   applattice = (AppLattice *) app;
 
   lattice = applattice->lattice;
-  int *id = applattice->id;
-
-  nlocal = applattice->nlocal;
-  nghost = applattice->nghost;
+  i2site = applattice->i2site;
 
   dimension = applattice->dimension;
+  nlocal = applattice->nlocal;
+
+  int *id = applattice->id;
+  double **xyz = applattice->xyz;
+  int *numneigh = applattice->numneigh;
+  int **neighbor = applattice->neighbor;
+
   int procwest = applattice->procwest;
   int proceast = applattice->proceast;
   int procsouth = applattice->procsouth;
@@ -165,14 +181,46 @@ void SweepLattice::init()
   else ncolor = 1;
 
   // setup sectors
+  // loop over all ownded sites to assign each to a sector (4/8 in 2d/3d)
+  // create site2i array for each sector
 
   if (dimension == 2) nsector = 4;
   else if (dimension == 3) nsector = 8;
 
   for (int isector = 0; isector < nsector; isector++) {
-    sector[isector].n = 1;
+    sector[isector].nlocal = 0;
+    sector[isector].nmax = 0;
     delete sector[isector].solve;
     memory->sfree(sector[isector].propensity);
+    memory->sfree(sector[isector].site2i);
+    memory->sfree(sector[isector].sites);
+    memory->sfree(sector[isector].border);
+  }
+
+  int iwhich,jwhich,kwhich,isector;
+  double xmid = 0.5 * (applattice->subxlo + applattice->subxhi);
+  double ymid = 0.5 * (applattice->subylo + applattice->subyhi);
+  double zmid = 0.5 * (applattice->subzlo + applattice->subzhi);
+
+  for (i = 0; i < nlocal; i++) {
+    if (xyz[i][0] < xmid) iwhich = 0;
+    else iwhich = 1;
+    if (xyz[i][1] < ymid) jwhich = 0;
+    else jwhich = 1;
+    if (xyz[i][2] < zmid) kwhich = 0;
+    else kwhich = 1;
+
+    if (dimension == 2) isector = 2*iwhich + jwhich;
+    else isector = 4*iwhich + 2*jwhich + kwhich;
+
+    if (sector[isector].nlocal == sector[isector].nmax) {
+      sector[isector].nmax += DELTA;
+      sector[isector].site2i = 
+	(int *) memory->srealloc(sector[isector].site2i,
+				 sector[isector].nmax*sizeof(int),
+				 "applattice:site2i");
+    }
+    sector[isector].site2i[sector[isector].nlocal++] = i;
   }
 
   // init communication for ghost sites
@@ -189,7 +237,7 @@ void SweepLattice::init()
 
   if (Lmask && mask == NULL) {
     mask = (char *) memory->smalloc(nlocal*sizeof(char),"sweeplattice:mask");
-    for (int i = 0; i < nlocal; i++) mask[i] = 0;
+    for (i = 0; i < nlocal; i++) mask[i] = 0;
   }
 
   // setup one RNG per site
@@ -198,27 +246,35 @@ void SweepLattice::init()
   if (Lstrict && ranlat == NULL) {
     ranlat = (RandomPark *) memory->smalloc(nlocal*sizeof(RandomPark *),
 					    "sweeplattice:ranlat");
-    int isite;
-    for (int i = 0; i < nlocal; i++)
+    for (i = 0; i < nlocal; i++)
       ranlat[i].init(seed+id[i]);
   }
 
   // setup KMC solver and propensity arrays for each sector
+  // reset app's i2site values in app to reflect sector mapping
+  // nborder = # of sites in sector with a neighbor who is outside sector
+  // border = list of these sites, stored as lattice indices
   // propensity init requires ghost cell info for entire sub-domain
 
   if (Lkmc) {
-    int i,j,m;
-
     comm->all(lattice);
 
     for (int isector = 0; isector < nsector; isector++) {
       sector[isector].solve = solve->clone();
 
-      int nsites = 1;
+      int nsites = sector[isector].nlocal;
       sector[isector].propensity = 
 	(double*) memory->smalloc(nsites*sizeof(double),"sweep:propensity");
 
-      // init propensity values for this sector
+      for (m = 0; m < nsites; m++) i2site[sector[isector].site2i[m]] = m;
+
+      sector[isector].nborder = 
+	find_border_sites(nsites,sector[isector].site2i,
+			  numneigh,neighbor,&sector[isector].border);
+
+      for (m = 0; m < nsites; m++)
+	sector[isector].propensity[m] =
+	  applattice->site_propensity(sector[isector].site2i[m],0);
 
       sector[isector].solve->init(nsites,sector[isector].propensity);
     }
@@ -226,12 +282,70 @@ void SweepLattice::init()
 }
 
 /* ----------------------------------------------------------------------
+   create list of border sites for a sector
+   border site = owned site in sector which has a neighbor outside the sector
+ ------------------------------------------------------------------------- */
+
+int SweepLattice::find_border_sites(int nsites, int *site2i,
+				    int *numneigh, int **neighbor,
+				    int **pborder)
+{
+  int i,j,m;
+
+  int *border = *pborder;
+  int nborder = 0;
+  int nmax = 0;
+
+  // put lattice index of each site into hash map
+  // use lattice index since will be looking up neighbor[][] which stores
+  //   a lattice index
+
+  std::map<int,int>::iterator loc;
+  std::map<int,int> hash;
+  for (int m = 0; m < nsites; m++)
+    hash.insert(std::pair<int,int> (site2i[m],0));
+
+  
+  for (m = 0; m < nsites; m++) {
+    i = site2i[m];
+    for (j = 0; j < numneigh[i]; j++) {
+      if (hash.find(neighbor[i][j]) == hash.end()) break;
+    }
+    if (j == numneigh[i]) continue;
+    
+    if (nborder == nmax) {
+      nmax += DELTA;
+      border = (int *) memory->srealloc(border,nmax*sizeof(int),
+					"applattice:border");
+    }
+    border[nborder++] = i;
+  }
+
+  *pborder = border;
+  return nborder;
+}
+  
+/* ----------------------------------------------------------------------
    perform single sweep over entire domain by sectors
    interleave communication
  ------------------------------------------------------------------------- */
 
 void SweepLattice::do_sweep(double &dt)
 {
+  for (int icolor = 0; icolor < ncolor; icolor++)
+    for (int isector = 0; isector < nsector; isector++) {
+      timer->stamp();
+      comm->sector(lattice,isector);
+      timer->stamp(TIME_COMM);
+
+      (this->*sweeper)(icolor,isector);
+
+      timer->stamp(TIME_SOLVE);
+
+      comm->reverse_sector(lattice,isector);
+      timer->stamp(TIME_COMM);
+    }
+
   dt = delt;
 }
 
@@ -246,6 +360,26 @@ void SweepLattice::do_sweep(double &dt)
    
 void SweepLattice::sweep_sector(int icolor, int isector)
 {
+  int i,j,m,oldstate,newstate;
+  double einitial,efinal;
+
+  int *site2i = sector[isector].site2i;
+  int nlocal = sector[isector].nlocal;
+
+  for (m = 0; m < nlocal; m++) {
+    i = site2i[m];
+    oldstate = lattice[i];
+    einitial = applattice->site_energy(i);
+  
+    newstate = applattice->site_pick_random(i,random->uniform());
+    lattice[i] = newstate;
+    efinal = applattice->site_energy(i);
+    
+    if (efinal <= einitial) continue;
+    else if (temperature == 0.0) lattice[i] = oldstate;
+    else if (random->uniform() > exp((einitial-efinal)*t_inverse))
+      lattice[i] = oldstate;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -281,6 +415,67 @@ void SweepLattice::sweep_sector_mask_strict(int icolor, int isector)
 
 void SweepLattice::sweep_sector_kmc(int icolor, int isector)
 {
+  double dt,time;
+  int done,isite,i;
+
+  // extract sector specific info from struct
+
+  int *border = sector[isector].border;
+  int nborder = sector[isector].nborder;
+  int nlocal = sector[isector].nlocal;
+
+  Solve *solve = sector[isector].solve;
+  double *propensity = sector[isector].propensity;
+  int *site2i = sector[isector].site2i;
+  int *sites = sector[isector].sites;
+
+  // temporarily reset values in applattice
+  // nlocal, solver, propensity array
+
+  int hold_nlocal = applattice->nlocal;
+  applattice->nlocal = nlocal;
+  Solve *hold_solve = applattice->solve;
+  applattice->solve = solve;
+  double *hold_propensity = applattice->propensity;
+  applattice->propensity = propensity;
+
+  // update owned propensities for sites which neighbor a sector ghost
+  // necessary since sector ghosts may have changed
+
+  int nsites = 0;
+
+  for (int m = 0; m < nborder; m++) {
+    i = border[m];
+    isite = i2site[i];
+    sites[nsites++] = isite;
+    propensity[isite] = applattice->site_propensity(i,0);
+  }
+
+  solve->update(nsites,sites,propensity);
+
+  // execute events until time threshhold reached
+
+  done = 0;
+  time = 0.0;
+  while (!done) {
+    timer->stamp();
+    isite = solve->event(&dt);
+    timer->stamp(TIME_SOLVE);
+
+    time += dt;	
+    if (isite < 0 || time >= delt) done = 1;
+    else {
+      i = site2i[isite];
+      applattice->site_event(i,0);
+      timer->stamp(TIME_APP);
+    }
+  }
+ 
+  // restore applattice values
+
+  applattice->nlocal = hold_nlocal;
+  applattice->solve = hold_solve;
+  applattice->propensity = hold_propensity;
 }
 
 /* ----------------------------------------------------------------------

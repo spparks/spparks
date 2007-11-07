@@ -24,7 +24,9 @@ class SweepLattice : public Sweep {
   bool Lmask,Lpicklocal,Lstrict,Lkmc;
   double delt;
 
-  int *lattice;
+  int dimension;
+  int nlocal;
+  int *lattice,*i2site;
   double temperature,t_inverse;
 
   class AppLattice *applattice;       
@@ -38,15 +40,19 @@ class SweepLattice : public Sweep {
   double masklimit;              // App-specific settings
   int delghost,dellocal;
 
-  int dimension;
-  int nlocal,nghost;
-
   int nsector;
   struct {
-    int n;                   // size of sector
+    int nlocal;              // # of owned sites in sector
+    int nmax;                // max # of sites vectors can hold
+    int nborder;             // # of owned sites with a ghost site as neighbor
     class Solve *solve;      // KMC solver
     double *propensity;      // propensities for sector sites
+    int *site2i;             // map from sector sites to lattice index
+    int *sites;              // list of sites to pass to solver
+    int *border;             // lattice index for each border site
   } sector[8];
+
+  int find_border_sites(int, int *, int *, int **, int **);
 
   typedef void (SweepLattice::*FnPtr)(int, int);  // pointer to sweep method
   FnPtr sweeper;

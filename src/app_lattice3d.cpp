@@ -94,7 +94,7 @@ void AppLattice3d::init()
 
   // initialize arrays
   // propensity only needed if no sweeper
-  // if KMC sweep, sweeper will allocate own propensity and site2ijk
+  // KMC sweeper will allocate own propensity and site2ijk arrays
 
   memory->sfree(propensity);
   memory->destroy_2d_T_array(site2ijk);
@@ -104,9 +104,9 @@ void AppLattice3d::init()
 
   if (sweep == NULL) {
     propensity = (double*) memory->smalloc(nsites*sizeof(double),
-					   "applattice:propensity");
+					   "applattice3d:propensity");
     memory->create_2d_T_array(site2ijk,nsites,3,
-			      "applattice2d:site2ijk");
+			      "applattice3d:site2ijk");
   } else {
     propensity = NULL;
     site2ijk = NULL;
@@ -116,7 +116,8 @@ void AppLattice3d::init()
 			    "applattice3d:ijk2site");
 
   // initialize lattice <-> site mapping arrays
-  // KMC sweeper will overwrite ij2site values
+  // KMC sweeper will overwrite app's ijk2site values
+  // KMC sweeper will create sector-specific site2ijk values and ignore app's
 
   for (i = 1 ; i <= nx_local; i++)
     for (j = 1 ; j <= ny_local; j++)

@@ -227,7 +227,7 @@ double AppPotts3d12n::site_propensity(int i, int j, int k, int full)
    choose and perform an event for site
    update propensities of all affected sites
    if proc owns full domain, neighbor sites may be across PBC
-   if only working on sector, ignore neighbor sites outside sector
+   if proc owns sector, ignore neighbor sites outside sector
 ------------------------------------------------------------------------- */
 
 void AppPotts3d12n::site_event(int i, int j, int k, int full)

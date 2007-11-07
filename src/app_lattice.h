@@ -64,7 +64,9 @@ class AppLattice : public App {
   double **xyz;                // coords of site
 
   int *lattice;                // lattice values for owned + ghost sites
-  double *propensity;          // probabilities for owned sites
+  double *propensity;          // probabilities for each owned site
+  int *i2site;                 // mapping of owned lattice to site index
+  int *site2i;                 // mapping of owned sites to lattice index
 
   int maxneigh;                // max neighbors of any site
   int *numneigh;               // # of neighbors of each owned site

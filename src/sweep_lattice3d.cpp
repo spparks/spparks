@@ -336,7 +336,8 @@ void SweepLattice3d::init()
   }
 
   // setup KMC solver and propensity arrays for each sector
-  // set ijk2site and site2ijk values in app to reflect sector mapping
+  // reset app's ij2site values to reflect sector mapping
+  // create site2ij values for each sector
   // propensity init requires ghost cell info for entire sub-domain
 
   if (Lkmc) {
@@ -349,18 +350,10 @@ void SweepLattice3d::init()
 
       int nsites = sector[isector].nx * sector[isector].ny * 
 	sector[isector].nz;
-      int nborder = 2*(dellocal+delghost) * 
-	(sector[isector].nx*sector[isector].ny + 
-	 sector[isector].ny*sector[isector].nz + 
-	 sector[isector].nx*sector[isector].nz);
-
       sector[isector].propensity = 
 	(double*) memory->smalloc(nsites*sizeof(double),"sweep:propensity");
       memory->create_2d_T_array(sector[isector].site2ijk,nsites,3,
 				"sweep:ijk2site");
-
-      sector[isector].sites =
-	(int*) memory->smalloc(nborder*sizeof(int),"sweep:sites");
 
       for (i = sector[isector].xlo; i <= sector[isector].xhi; i++)
 	for (j = sector[isector].ylo; j <= sector[isector].yhi; j++)
@@ -369,6 +362,13 @@ void SweepLattice3d::init()
 	      (i-sector[isector].xlo)*sector[isector].ny*sector[isector].nz +
 	      (j-sector[isector].ylo)*sector[isector].nz + 
 	      k-sector[isector].zlo;
+
+      int nborder = 2*(dellocal+delghost) * 
+	(sector[isector].nx*sector[isector].ny + 
+	 sector[isector].ny*sector[isector].nz + 
+	 sector[isector].nx*sector[isector].nz);
+      sector[isector].sites =
+	(int*) memory->smalloc(nborder*sizeof(int),"sweep:sites");
 
       for (m = 0; m < nsites; m++) {
 	i = m / sector[isector].ny/sector[isector].nz + 1;
@@ -657,7 +657,7 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
   double dt,time;
   int done,isite,i,j,k;
 
-  // extract sector specific info from quad struct
+  // extract sector specific info from octant struct
 
   int xlo = sector[isector].xlo;
   int xhi = sector[isector].xhi;
@@ -672,7 +672,7 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
   int *sites = sector[isector].sites;
 
   // temporarily reset values in applattice
-  // sector bounds, propensity array, solver
+  // sector bounds, solver, propensity array
 
   applattice->nx_sector_lo = xlo;
   applattice->nx_sector_hi = xhi;
@@ -686,8 +686,8 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
   double *hold_propensity = applattice->propensity;
   applattice->propensity = propensity;
 
-  // update propensities on all 6 sector faces
-  // necessary since ghosts of sector may have changed
+  // update owned propensities on all 6 sector faces
+  // necessary since sector ghosts may have changed
 
   int nsites = 0;
   int deltemp = dellocal+delghost;

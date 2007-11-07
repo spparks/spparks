@@ -167,7 +167,7 @@ double AppPotts2d4n::site_propensity(int i, int j, int full)
    choose and perform an event for site
    update propensities of all affected sites
    if proc owns full domain, neighbor sites may be across PBC
-   if only working on sector, ignore neighbor sites outside sector
+   if proc owns sector, ignore neighbor sites outside sector
 ------------------------------------------------------------------------- */
 
 void AppPotts2d4n::site_event(int i, int j, int full)

@@ -138,7 +138,7 @@ int AppMembrane::site_pick_local(int i, double ran)
    if no energy change, propensity = 1
    if downhill energy change, propensity = 1
    if uphill energy change, propensity set via Boltzmann factor
-   if proc owns full domain, update ghost values before computing propensity
+   if proc owns full domain, there are no ghosts, so ignore full flag
 ------------------------------------------------------------------------- */
 
 double AppMembrane::site_propensity(int i, int full)
@@ -167,13 +167,13 @@ double AppMembrane::site_propensity(int i, int full)
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
-   if proc owns full domain, neighbor sites may be across PBC
-   if only working on sector, ignore neighbor sites outside sector
+   if proc owns full domain, there are no ghosts, so ignore full flag
+   if proc owns sector, ignore neighbor sites that are ghosts
 ------------------------------------------------------------------------- */
 
 void AppMembrane::site_event(int i, int full)
 {
-  int isite;
+  int j,m,isite;
 
   // only event is a LIPID/FLUID flip
 
@@ -184,14 +184,16 @@ void AppMembrane::site_event(int i, int full)
   // compute propensity changes for self and neighbor sites
 
   int nsites = 0;
-  sites[nsites++] = i;
-  propensity[i] = site_propensity(i,full);
+  isite = i2site[i];
+  sites[nsites++] = isite;
+  propensity[isite] = site_propensity(i,full);
 
-  for (int j = 0; j < numneigh[i]; j++) {
-    isite = neighbor[i][j];
+  for (j = 0; j < numneigh[i]; j++) {
+    m = neighbor[i][j];
+    isite = i2site[m];
     if (isite >= nlocal) continue;
     sites[nsites++] = isite;
-    propensity[isite] = site_propensity(isite,full);
+    propensity[isite] = site_propensity(m,full);
   }
 
   solve->update(nsites,sites,propensity);

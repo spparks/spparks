@@ -249,7 +249,8 @@ void SweepLattice2d::init()
   }
 
   // setup KMC solver and propensity arrays for each sector
-  // set ij2site and site2ij values in app to reflect sector mapping
+  // reset app's ij2site values in app to reflect sector mapping
+  // create site2ij values for each sector
   // propensity init requires ghost cell info for entire sub-domain
 
   if (Lkmc) {
@@ -261,18 +262,19 @@ void SweepLattice2d::init()
       sector[isector].solve = solve->clone();
 
       int nsites = sector[isector].nx * sector[isector].ny;
-      int nborder = 2*sector[isector].nx + 2*sector[isector].ny;
       sector[isector].propensity = 
 	(double*) memory->smalloc(nsites*sizeof(double),"sweep:propensity");
       memory->create_2d_T_array(sector[isector].site2ij,nsites,2,
 				"sweep:site2ij");
-      sector[isector].sites =
-	(int*) memory->smalloc(nborder*sizeof(int),"sweep:sites");
 
       for (i = sector[isector].xlo; i <= sector[isector].xhi; i++)
 	for (j = sector[isector].ylo; j <= sector[isector].yhi; j++)
 	  ij2site[i][j] = 
 	    (i-sector[isector].xlo)*sector[isector].ny + j-sector[isector].ylo;
+
+      int nborder = 2*sector[isector].nx + 2*sector[isector].ny;
+      sector[isector].sites =
+	(int*) memory->smalloc(nborder*sizeof(int),"sweep:sites");
 
       for (m = 0; m < nsites; m++) {
 	i = m / sector[isector].ny + 1;
@@ -549,7 +551,7 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
   int *sites = sector[isector].sites;
 
   // temporarily reset values in applattice
-  // sector bounds, propensity array, solver
+  // sector bounds, solver, propensity array
 
   applattice->nx_sector_lo = xlo;
   applattice->nx_sector_hi = xhi;
@@ -561,8 +563,8 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
   double *hold_propensity = applattice->propensity;
   applattice->propensity = propensity;
 
-  // update propensities on all 4 sector edges
-  // necessary since ghosts of sector may have changed
+  // update owned propensities on all 4 sector edges
+  // necessary since sector ghosts may have changed
 
   int nsites = 0;
 
@@ -603,7 +605,6 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
     isite = solve->event(&dt);
     timer->stamp(TIME_SOLVE);
 
-    // do not allow threshold time to be exceeded
     time += dt;	
     if (isite < 0 || time >= delt) done = 1;
     else {

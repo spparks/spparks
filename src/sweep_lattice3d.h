@@ -48,7 +48,7 @@ class SweepLattice3d : public Sweep {
     int nsites;                  // total sites in octant
     class Solve *solve;          // KMC solver
     double *propensity;          // propensities for octant sites
-    int **site2ijk;              // map from octant sites to local lattice
+    int **site2ijk;              // map from octant sites to lattice index
     int *sites;                  // list of sites to pass to solver
   } sector[8];
 

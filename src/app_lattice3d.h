@@ -41,20 +41,20 @@ class AppLattice3d : public App {
 
   int nx_global,ny_global,nz_global;     // global lattice (0 to nglobal-1)
   int nx_local,ny_local,nz_local ;       // local lattice (1 to nlocal)
-                                         // Does not include ghost sites
+                                         // does not include ghost sites
   int nx_offset,ny_offset,nz_offset;     // global indices of my (1,1) site
   int nx_sector_lo,nx_sector_hi;         // bounds of current sector
   int ny_sector_lo,ny_sector_hi;         // as set by sweeper
   int nz_sector_lo,nz_sector_hi;
   int nyz_local;
 
-  int nxlo,nxhi,nylo,nyhi,nzlo,nzhi; // Upper and lower limits for local lattice
-                                     // Includes ghost layer of thickness = delghost
-                                     // local sites on 1 to nlocal
+  int nxlo,nxhi,nylo,nyhi,nzlo,nzhi; // upper/lower limits for local lattice
+                                     // w/ ghost layer of thickness = delghost
+                                     // local sites are from 1 to nlocal
 
   int ***lattice;                 // owned sites + ghost sites
   double *propensity;             // probability for each owned site
-  int ***ijk2site;                // mapping of owned lattice to sites
+  int ***ijk2site;                // mapping of owned lattice to site index
   int **site2ijk;                 // mapping of owned sites to lattice indices
 
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
@@ -62,11 +62,10 @@ class AppLattice3d : public App {
   int procsouth,procnorth;
   int procdown,procup;
 
-  double masklimit;                 // app-specific, used by sweeper
+  double masklimit;            // app-specific, used by sweeper
 
-  int delghost, dellocal;      // App-specific thickness of 
-                               // ghost and local layers 
-                               // needed for communication.
+  int delghost,dellocal;       // app-specific thickness of 
+                               // ghost and local layers needed for comm
                                // delghost affects upper and lower
                                // limits for local lattice
   FILE *fp;

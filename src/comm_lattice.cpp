@@ -96,6 +96,16 @@ void CommLattice::setup_reverseinfo()
 }
 
 /* ----------------------------------------------------------------------
+   communicate ghost values for one sector
+   it chooses the only variant: sector_multilayer
+------------------------------------------------------------------------- */
+
+void CommLattice::sector(int* lattice, const int isector) {
+  if (delghost == 1) sector_multilayer(lattice,isector);
+  else sector_multilayer(lattice,isector);
+}
+
+/* ----------------------------------------------------------------------
    communicate ghost values for one sector (quadrant)
    delghost > 1
 ------------------------------------------------------------------------- */

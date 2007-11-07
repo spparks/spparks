@@ -117,7 +117,7 @@ int AppIsing::site_pick_local(int i, double ran)
    if no energy change, propensity = 1
    if downhill energy change, propensity = 1
    if uphill energy change, propensity set via Boltzmann factor
-   full flag is ignored, since if 1 proc owns full domain, there are no ghosts
+   if proc owns full domain, there are no ghosts, so ignore full flag
 ------------------------------------------------------------------------- */
 
 double AppIsing::site_propensity(int i, int full)
@@ -143,13 +143,13 @@ double AppIsing::site_propensity(int i, int full)
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
-   full flag is ignored, since if 1 proc owns full domain, there are no ghosts
-   don't compute propensities of ghost sites
+   if proc owns full domain, there are no ghosts, so ignore full flag
+   if proc owns sector, ignore neighbor sites that are ghosts
 ------------------------------------------------------------------------- */
 
 void AppIsing::site_event(int i, int full)
 {
-  int isite;
+  int j,m,isite;
 
   // only event is a spin flip
 
@@ -159,14 +159,16 @@ void AppIsing::site_event(int i, int full)
   // compute propensity changes for self and neighbor sites
 
   int nsites = 0;
-  sites[nsites++] = i;
-  propensity[i] = site_propensity(i,full);
+  isite = i2site[i];
+  sites[nsites++] = isite;
+  propensity[isite] = site_propensity(i,full);
 
-  for (int j = 0; j < numneigh[i]; j++) {
-    isite = neighbor[i][j];
+  for (j = 0; j < numneigh[i]; j++) {
+    m = neighbor[i][j];
+    isite = i2site[m];
     if (isite >= nlocal) continue;
     sites[nsites++] = isite;
-    propensity[isite] = site_propensity(isite,full);
+    propensity[isite] = site_propensity(m,full);
   }
 
   solve->update(nsites,sites,propensity);

@@ -41,17 +41,18 @@ class AppLattice2d : public App {
 
   int nx_global,ny_global;           // global lattice (0 to nglobal-1)
   int nx_local,ny_local;             // local lattice (1 to nlocal)
-                                     // Does not include ghost sites
+                                     // does not include ghost sites
   int nx_offset,ny_offset;           // global indices of my (1,1) site
   int nx_sector_lo,nx_sector_hi;     // bounds of current sector
   int ny_sector_lo,ny_sector_hi;     // as set by sweeper
 
-  int nxlo,nxhi,nylo,nyhi;           // Upper and lower limits for local lattice
-                                     // Includes ghost layer of thickness = delghost
-                                     // local sites on 1 to nlocal
+  int nxlo,nxhi,nylo,nyhi;           // upper/lower limits for local lattice
+                                     // w/ ghost layer of thickness = delghost
+                                     // local sites are from 1 to nlocal
+
   int **lattice;               // owned lattice + ghost lattice
   double *propensity;          // probability for each owned site
-  int **ij2site;               // mapping of owned lattice to sites
+  int **ij2site;               // mapping of owned lattice to site index
   int **site2ij;               // mapping of owned sites to lattice indices
 
   int nx_procs,ny_procs;       // procs in each dim of lattice partition
@@ -60,12 +61,10 @@ class AppLattice2d : public App {
 
   double masklimit;            // app-specific, used by sweeper
 
-  int delghost, dellocal;      // App-specific thickness of 
-                               // ghost and local layers 
-                               // needed for communication.
+  int delghost,dellocal;       // app-specific thickness of 
+                               // ghost and local layers needed for comm
                                // delghost affects upper and lower
                                // limits for local lattice
-
   FILE *fp;
   int *ibuf;
   double *dbuf;

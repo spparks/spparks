@@ -48,6 +48,8 @@ AppLattice::AppLattice(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   dbuf = NULL;
   fp = NULL;
   propensity = NULL;
+  site2i = NULL;
+  i2site = NULL;
 
   // app can override these values in its constructor
 
@@ -61,6 +63,9 @@ AppLattice::~AppLattice()
 {
   delete [] dbuf;
   memory->sfree(propensity);
+  memory->sfree(site2i);
+  memory->sfree(i2site);
+
   delete [] latfile;
 
   memory->sfree(id);
@@ -640,7 +645,7 @@ void AppLattice::file_lattice()
 
 /* ----------------------------------------------------------------------
    global connectivity for each owned site is known
-   need to convert to local indices and identify ghost sites
+   convert to local indices and add ghost sites
  ------------------------------------------------------------------------- */
 
 void AppLattice::ghosts_from_connectivity()
@@ -656,7 +661,7 @@ void AppLattice::ghosts_from_connectivity()
 
   // for all neighbors of owned sites:
   // check if I own neighbor or it's already in ghost list
-  // if not, add it to ghost list and map
+  // if neither, add it to ghost list and to map
 
   int maxghost = 0;
   Ghost *buf = NULL;
@@ -699,6 +704,7 @@ void AppLattice::ghosts_from_connectivity()
 
   // cycle ghost list around ring of procs back to self
   // when receive it, fill in info for any sites I own
+  // info = me as owning proc, my local index, xyz coords
 
   MPI_Request request;
   MPI_Status status;
@@ -738,8 +744,8 @@ void AppLattice::ghosts_from_connectivity()
   memory->grow_2d_T_array(xyz,nlocal+nghost,3,"app:xyz");
   
   // original ghost list came back to me around ring
-  // extract filled in info for my ghost sites
-  // error if anything is not filled in
+  // extract info for my ghost sites
+  // error if any site is not filled in
 
   for (i = 0; i < nghost; i++) {
     if (buf[i].proc == -1) error->one("Ghost site was not found");
@@ -946,7 +952,7 @@ void AppLattice::ghosts_within_cutoff()
       if (rsq < cutsq) {
 	numneigh[i]++;
 	if (hash.find(bufrecv[j].id) == hash.end()) {
-	  hash.insert(std::pair<int,int> (bufrecv[j].id,nghost));
+	  hash.insert(std::pair<int,int> (bufrecv[j].id,0));
 	  nghost++;
 	}
       }
@@ -1020,7 +1026,7 @@ void AppLattice::ghosts_within_cutoff()
       if (rsq < cutsq) {
 	neighbor[i][numneigh[i]++] = j;
 	if (hash.find(bufrecv[j].id) == hash.end()) {
-	  hash.insert(std::pair<int,int> (bufrecv[j].id,nghost));
+	  hash.insert(std::pair<int,int> (bufrecv[j].id,0));
 
 	  id[nlocal+nghost] = bufrecv[j].id;
 	  owner[nlocal+nghost] = bufrecv[j].proc;
@@ -1070,14 +1076,31 @@ void AppLattice::init()
 
   // initialize arrays
   // propensity only needed if no sweeper
-  // if KMC sweep, sweeper will allocate own propensity and site2ij
+  // KMC sweeper will allocate own propensity and site2i arrays
 
   memory->sfree(propensity);
+  memory->sfree(site2i);
+  memory->sfree(i2site);
 
-  if (sweep == NULL)
-    propensity = (double*) memory->smalloc(nlocal*sizeof(double),
-					   "app:propensity");
-  else propensity = NULL;
+  int nsites = nlocal;
+
+  if (sweep == NULL) {
+    propensity = (double*) memory->smalloc(nsites*sizeof(double),
+					   "applattice:propensity");
+    site2i = (int *) memory->smalloc(nsites*sizeof(int),"applattice:site2i");
+  } else {
+    propensity = NULL;
+    site2i = NULL;
+  }
+
+  i2site = (int *) memory->smalloc(nsites*sizeof(int),"applattice:i2site");
+
+  // initialize lattice <-> site mapping arrays
+  // KMC sweeper will overwrite app's i2site values
+  // KMC sweeper will create sector-specific site2i values and ignore app's
+
+  for (i = 0 ; i < nlocal; i++) i2site[i] = i;
+  if (site2i) for (i = 0; i < nsites; i++) site2i[i] = i;
 
   // initialize sweeper
   

@@ -511,7 +511,7 @@ double AppMigration::site_propensity(int i, int j, int k, int full)
    update propensities of all affected sites
    if proc owns full domain, neighbor sites may be across PBC
    (Note: ghost site updates take place in called functions)
-   if only working on sector, ignore neighbor sites outside sector
+   if proc owns sector, ignore neighbor sites outside sector
 ------------------------------------------------------------------------- */
 void AppMigration::site_event(int i, int j, int k, int full)
 {		

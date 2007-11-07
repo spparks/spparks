@@ -21,6 +21,8 @@ class CommLattice : protected SysPtr {
 	    const int, const int, const int, const int, const int, const int,
 	    const int, const int);
   void all(int *);
+  void sector(int *, const int);
+  void reverse_sector(int *, const int);
 
  private:
   int me,nprocs;
@@ -31,10 +33,8 @@ class CommLattice : protected SysPtr {
 
   void setup_swapinfo();
   void setup_reverseinfo();
-  void sector(int *, const int);
   void sector_multilayer(int *, const int);
   void sector_multilayer_destroy(int *, const int);
-  void reverse_sector(int *, const int);
   void reverse_sector_multilayer(int *, const int);
   void all_multilayer(int *);
   void allocate_swap(const int, const int);          // allocate swap arrays

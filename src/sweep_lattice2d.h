@@ -47,7 +47,7 @@ class SweepLattice2d : public Sweep {
     int nx,ny;               // size of quadrant
     class Solve *solve;      // KMC solver
     double *propensity;      // propensities for quadrant sites
-    int **site2ij;           // map from quadrant sites to local lattice
+    int **site2ij;           // map from quadrant sites to lattice index
     int *sites;              // list of sites to pass to solver
   } sector[4];
 
