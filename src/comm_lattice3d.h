@@ -66,10 +66,8 @@ class CommLattice3d : protected SysPtr {
   void reverse_all_onelayer(int ***);
   void reverse_all_multilayer(int ***);
   void allocate_swap(const int, const int);          // allocate swap arrays
-  void free_swap();                                  // free swap arrays
 };
 
 }
 
 #endif
-

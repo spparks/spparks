@@ -56,11 +56,6 @@ AppPotts::AppPotts(SPK *spk, int narg, char **arg) : AppLattice(spk,narg,arg)
     loc = hash.find(iglobal);
     if (loc != hash.end()) lattice[loc->second] = isite;
   }
-
-  // setup communicator for ghost sites
-
-  comm = new CommLattice(spk);
-  comm->init(NULL,delghost,dellocal);
 }
 
 /* ---------------------------------------------------------------------- */

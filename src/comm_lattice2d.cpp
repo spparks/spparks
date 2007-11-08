@@ -27,13 +27,16 @@ CommLattice2d::CommLattice2d(class SPK *spk) : SysPtr(spk)
 
   swapinfo = NULL;
   reverseinfo = NULL;
+  sendbuf = NULL;
+  recvbuf = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 CommLattice2d::~CommLattice2d()
 {
-  free_swap();
+  memory->destroy_2d_T_array(swapinfo);
+  memory->destroy_2d_T_array(reverseinfo);
   memory->sfree(sendbuf);
   memory->sfree(recvbuf);
 }
@@ -57,6 +60,11 @@ void CommLattice2d::init(const int nx_local_in, const int ny_local_in,
   dellocal = dellocal_in;
 
   // initialize swap parameters and allocate memory
+
+  memory->destroy_2d_T_array(swapinfo);
+  memory->destroy_2d_T_array(reverseinfo);
+  memory->sfree(sendbuf);
+  memory->sfree(recvbuf);
 
   nsector = 4;
   nswap = 2;
@@ -1044,16 +1052,6 @@ void CommLattice2d::all_multilayer(int **lattice)
 	lattice[i-delghost][j] = lattice[nx_local-delghost+i][j];
       }
   }
-}
-
-/* ----------------------------------------------------------------------
-   deallocate arrays for swap parameters
-------------------------------------------------------------------------- */
-
-void CommLattice2d::free_swap()
-{
-  memory->destroy_2d_T_array(swapinfo);
-  memory->destroy_2d_T_array(reverseinfo);
 }
 
 /* ----------------------------------------------------------------------

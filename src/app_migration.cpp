@@ -164,12 +164,6 @@ void AppMigration::init_app()
 	
 	// initialize my portion of lattice sites
 	init_sites();
-	
-	// setup communicator for ghost sites
-	comm = new CommLattice3d(spk);
-	comm->init(nx_local,ny_local,nz_local,
-		   procwest,proceast,procsouth,procnorth,procdown,procup,
-		   delghost,dellocal);
 
 	// Output for testing
 	cout << "Boundary types are (0=fixed, 1=free, 2=periodic): " << x1type << x2type << y1type << y2type << z1type << z2type << endl;

@@ -474,6 +474,8 @@ void SweepLattice::sweep_sector_kmc(int icolor, int isector)
   applattice->nlocal = hold_nlocal;
   applattice->solve = hold_solve;
   applattice->propensity = hold_propensity;
+
+  MPI_Barrier(world);
 }
 
 /* ----------------------------------------------------------------------

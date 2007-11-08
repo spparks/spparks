@@ -27,13 +27,16 @@ CommLattice3d::CommLattice3d(class SPK *spk) : SysPtr(spk)
 
   swapinfo = NULL;
   reverseinfo = NULL;
+  sendbuf = NULL;
+  recvbuf = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 CommLattice3d::~CommLattice3d()
 {
-  free_swap();
+  memory->destroy_2d_T_array(swapinfo);
+  memory->destroy_2d_T_array(reverseinfo);
   memory->sfree(sendbuf);
   memory->sfree(recvbuf);
 }
@@ -64,6 +67,11 @@ void CommLattice3d::init(const int nx_local_in, const int ny_local_in,
   dellocal = dellocal_in;
 
   // initialize swap parameters and allocate memory
+
+  memory->destroy_2d_T_array(swapinfo);
+  memory->destroy_2d_T_array(reverseinfo);
+  memory->sfree(sendbuf);
+  memory->sfree(recvbuf);
 
   nsector = 8;
   nswap = 3;
@@ -2503,16 +2511,6 @@ void CommLattice3d::reverse_all_multilayer(int ***lattice)
 	lattice[i][j][nz_local-dellocal+k] = lattice[i][j][k-dellocal];
 	}
   }
-}
-
-/* ----------------------------------------------------------------------
-   deallocate arrays for swap parameters
-------------------------------------------------------------------------- */
-
-void CommLattice3d::free_swap()
-{
-  memory->destroy_2d_T_array(swapinfo);
-  memory->destroy_2d_T_array(reverseinfo);
 }
 
 /* ----------------------------------------------------------------------

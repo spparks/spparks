@@ -62,12 +62,6 @@ AppPotts3d12n::AppPotts3d12n(SPK *spk, int narg, char **arg) :
       }
     }
   }
-
-  // setup communicator for ghost sites
-
-  comm = new CommLattice3d(spk);
-  comm->init(nx_local,ny_local,nz_local,
-	     procwest,proceast,procsouth,procnorth,procdown,procup,delghost,dellocal);
 }
 
 /* ---------------------------------------------------------------------- */

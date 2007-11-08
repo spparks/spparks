@@ -43,6 +43,10 @@ AppLattice2d::AppLattice2d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   site2ij = NULL;
   ij2site = NULL;
 
+  // setup communicator for ghost sites
+
+  comm = new CommLattice2d(spk);
+
   // app can override these values in its constructor
 
   dellocal = 0;
@@ -74,6 +78,11 @@ void AppLattice2d::init()
   // app-specific initialization
 
   init_app();
+
+  // comm init
+
+  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,
+	     delghost,dellocal);
 
   // error checks
 

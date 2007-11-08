@@ -59,11 +59,15 @@ void CommLattice::init(SweepLattice *sweep,
     error->all("Reverse comm not yet supported by AppLattice");
 
   AppLattice *applattice = (AppLattice *) app;
-  dimension = applattice->dimension;
+  int dimension = applattice->dimension;
   int nlocal = applattice->nlocal;
   int *id = applattice->id;
   int *numneigh = applattice->numneigh;
   int **neighbor = applattice->neighbor;
+
+  if (allswap) free_swap(allswap);
+  for (int i = 0; i < nsector; i++) free_swap(sectorswap[i]);
+  delete [] sectorswap;
 
   allswap = create_swap(nlocal,NULL,nlocal,id,numneigh,neighbor);
 
@@ -72,7 +76,9 @@ void CommLattice::init(SweepLattice *sweep,
     else nsector = 8;
     sectorswap = new Swap*[nsector];
     for (int i = 0; i < nsector; i++)
-      sectorswap[i] = create_swap(nlocal,NULL,nlocal,id,numneigh,neighbor);
+      sectorswap[i] = create_swap(sweep->sector[i].nlocal,
+				  sweep->sector[i].site2i,
+				  nlocal,id,numneigh,neighbor);
   }
 }
 
@@ -102,7 +108,7 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
 					    int nlocal, int *id,
 					    int *numneigh, int **neighbor)
 {
-  int i,j,k,m,size,original_proc;
+  int i,j,k,m,size,original_proc,isend,irecv;
 
   Swap *swap = new Swap;
 
@@ -129,8 +135,8 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
 	  buf = (Ghost *) 
 	    memory->srealloc(buf,maxghost*sizeof(Ghost),"comm:buf");
 	}
-	buf[nghost].id = id[k];
-	buf[nghost].index = k;
+	buf[nghost].id_global = id[k];
+	buf[nghost].index_local = k;
 	buf[nghost].proc = -1;
 	hash.insert(std::pair<int,int> (k,0));
 	nghost++;
@@ -160,16 +166,22 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
   Ghost *bufcopy = (Ghost *) 
     memory->smalloc(maxsize*sizeof(Ghost),"comm:bufcopy");
 
-  // initialize send lists
+  // allocate send lists
 
   int nsend = 0;
-  int *sproc = NULL;
-  int *scount = NULL;
-  int **sindex = NULL;
+  int *sproc = new int[nprocs];
+  int *scount = new int[nprocs];
+  int *smax = new int[nprocs];
+  int **sindex = new int*[nprocs];
+  for (int i = 0; i < nprocs; i++) {
+    smax[i] = 0;
+    sindex[i] = NULL;
+  }
 
   // cycle ghost list around ring of procs back to self
-  // when receive it, fill in proc of sites I own
-  // also add the ghost to my send lists
+  // when receive it, fill in proc field for sites I own
+  // also add this object to my send lists
+  // original_proc = proc to send info to during swap
 
   MPI_Request request;
   MPI_Status status;
@@ -191,46 +203,110 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
     }
     for (i = 0; i < size; i++) {
       if (buf[i].proc >= 0) continue;
-      loc = hash.find(buf[i].id);
+      loc = hash.find(buf[i].id_global);
       if (loc != hash.end()) {
 	buf[i].proc = me;
-	// add to send list based on j = loc->second;
-	// if original_proc not on top of sproc, add it
-	// add to sindex even if already there
-	// need to avoid sending it multiple times to same proc
+
+	// if original_proc not last one in sproc[], add proc to send list
+
+	if (nsend == 0 || sproc[nsend-1] != original_proc) {
+	  sproc[nsend] = original_proc;
+	  scount[nsend] = 0;
+	  sindex[nsend] = NULL;
+	  nsend++;
+	}
+
+	// add index to send list going to a particular proc
+	// grow sindex array if necessary
+
+	isend = nsend - 1;
+	if (scount[isend] == smax[isend]) {
+	  smax[isend] += DELTA;
+	  sindex[isend] =
+	    (int *) memory->srealloc(sindex[isend],smax[isend]*sizeof(int),
+				     "comm:sindex");
+	}
+	sindex[isend][scount[isend]] = loc->second;
+	scount[isend]++;
       }
     }
+  }
+
+  // clear hash
+
+  hash.clear();
+
+  // allocate recv lists
+
+  int nrecv = 0;
+  int *rproc = new int[nprocs];
+  int *rcount = new int[nprocs];
+  int *rmax = new int[nprocs];
+  int **rindex = new int*[nprocs];
+  int **rbuf = new int*[nprocs];
+  for (int i = 0; i < nprocs; i++) {
+    rmax[i] = 0;
+    rindex[i] = NULL;
+    rbuf[i] = NULL;
   }
 
   // original ghost list came back to me around ring
   // extract info for recv lists
   // error if any site is not filled in
 
-  int nrecv = 0;
-  int *rproc = NULL;
-  int *rcount = NULL;
-  int **rindex = NULL;
-
   for (i = 0; i < nghost; i++) {
     if (buf[i].proc == -1) error->one("Ghost site was not found");
+
+    // if sending proc not in rproc[], add proc to recv list and to hash
+    // irecv = location of this proc in recv lists
+
+    loc = hash.find(buf[i].proc);
+    if (loc == hash.end()) {
+      rproc[nrecv] = buf[i].proc;
+      rcount[nrecv] = 0;
+      rindex[nrecv] = NULL;
+      hash.insert(std::pair<int,int> (buf[i].proc,nrecv));
+      irecv = nrecv;
+      nrecv++;
+    } else irecv = loc->second;
+    
+    // add index to send list going to a particular proc
+    // grow rindex array if necessary
+
+    if (rcount[irecv] == rmax[irecv]) {
+      rmax[irecv] += DELTA;
+      rindex[irecv] =
+	(int *) memory->srealloc(rindex[irecv],rmax[irecv]*sizeof(int),
+				 "comm:rindex");
+    }
+    rindex[irecv][rcount[irecv]] = buf[i].index_local;
+    rcount[irecv]++;
   }
 
   // fill in swap data struct
+  // allocate sbuf and rbuf[i] directly
 
   swap->nsend = nsend;
   swap->nrecv = nrecv;
 
   swap->sproc = sproc;
   swap->scount = scount;
+  swap->smax = smax;
   swap->sindex = sindex;
-  // figure out sbuf size
-  swap->sbuf = NULL;
+
+  int max = 0;
+  for (i = 0; i < nsend; i++) max = MAX(max,scount[i]);
+  if (max) swap->sbuf = new int[max];
+  else swap->sbuf = NULL;
 
   swap->rproc = rproc;
   swap->rcount = rcount;
+  swap->rmax = rmax;
   swap->rindex = rindex;
-  // allocate rbufs
-  swap->rbuf = NULL;
+  swap->rbuf = rbuf;
+
+  for (i = 0; i < nrecv; i++)
+    swap->rbuf[i] = new int[rcount[i]];
 
   if (swap->nrecv) {
     swap->request = new MPI_Request[swap->nrecv];
@@ -251,13 +327,15 @@ void CommLattice::free_swap(Swap *swap)
 {
   delete [] swap->sproc;
   delete [] swap->scount;
-  for (int i = 0; i < swap->nsend; i++) delete [] swap->sindex[i];
+  delete [] swap->smax;
+  for (int i = 0; i < swap->nsend; i++) memory->sfree(swap->sindex[i]);
   delete [] swap->sindex;
   delete [] swap->sbuf;
 
   delete [] swap->rproc;
   delete [] swap->rcount;
-  for (int i = 0; i < swap->nrecv; i++) delete [] swap->rindex[i];
+  delete [] swap->rmax;
+  for (int i = 0; i < swap->nrecv; i++) memory->sfree(swap->rindex[i]);
   delete [] swap->rindex;
   for (int i = 0; i < swap->nrecv; i++) delete [] swap->rbuf[i];
   delete [] swap->rbuf;

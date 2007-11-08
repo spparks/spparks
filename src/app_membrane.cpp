@@ -55,11 +55,6 @@ AppMembrane::AppMembrane(SPK *spk, int narg, char **arg) :
   // initialize my sites to LIPID
 
   for (int i = 0; i < nlocal; i++) lattice[i] = LIPID;
-
-  // setup communicator for ghost sites
-
-  comm = new CommLattice(spk);
-  comm->init(NULL,delghost,dellocal);
 }
 
 /* ---------------------------------------------------------------------- */

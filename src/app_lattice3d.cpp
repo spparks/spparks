@@ -43,6 +43,10 @@ AppLattice3d::AppLattice3d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   site2ijk = NULL;
   ijk2site = NULL;
 
+  // setup communicator for ghost sites
+
+  comm = new CommLattice3d(spk);
+
   // app can override these values in its constructor
 
   dellocal = 0;
@@ -74,6 +78,12 @@ void AppLattice3d::init()
   // app-specific initialization
 
   init_app();
+
+  // comm init
+
+  comm->init(nx_local,ny_local,nz_local,
+	     procwest,proceast,procsouth,procnorth,procdown,procup,
+	     delghost,dellocal);
 
   // error checks
 

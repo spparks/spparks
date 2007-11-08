@@ -58,7 +58,6 @@ class CommLattice2d : protected SysPtr {
   void reverse_sector_multilayer(int **, const int);
   void all_multilayer(int **);
   void allocate_swap(const int, const int);          // allocate swap arrays
-  void free_swap();                                  // free swap arrays
 };
 
 }

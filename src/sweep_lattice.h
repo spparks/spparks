@@ -12,6 +12,7 @@ namespace SPPARKS {
 
 class SweepLattice : public Sweep {
   friend class AppLattice;
+  friend class CommLattice;
 
  public:
   SweepLattice(class SPK *, int, char **);

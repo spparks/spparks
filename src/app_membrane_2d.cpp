@@ -58,12 +58,6 @@ AppMembrane2d::AppMembrane2d(SPK *spk, int narg, char **arg) :
   for (i = 1; i <= nx_local; i++)
     for (j = 1; j <= ny_local; j++)
       lattice[i][j] = LIPID;
-
-  // setup communicator for ghost sites
-
-  comm = new CommLattice2d(spk);
-  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,
-	     delghost,dellocal);
 }
 
 /* ---------------------------------------------------------------------- */

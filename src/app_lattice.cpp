@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------
-   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   SPPARKS - Stochastic Parallel PARticle Kinetic ulator
    contact info, copyright info, etc
  ------------------------------------------------------------------------- */
 
@@ -50,6 +50,10 @@ AppLattice::AppLattice(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   propensity = NULL;
   site2i = NULL;
   i2site = NULL;
+
+  // setup communicator for ghost sites
+
+  comm = new CommLattice(spk);
 
   // app can override these values in its constructor
 
@@ -1054,6 +1058,10 @@ void AppLattice::init()
   // app-specific initialization
 
   init_app();
+
+  // comm init
+  
+  comm->init(NULL,delghost,dellocal);
 
   // error checks
 

@@ -54,12 +54,6 @@ AppPotts2d4n::AppPotts2d4n(SPK *spk, int narg, char **arg) :
 	lattice[ii][jj] = isite;
     }
   }
-
-  // setup communicator for ghost sites
-
-  comm = new CommLattice2d(spk);
-  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,
-	     delghost,dellocal);
 }
 
 /* ---------------------------------------------------------------------- */
