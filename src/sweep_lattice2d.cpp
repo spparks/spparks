@@ -171,6 +171,17 @@ void SweepLattice2d::init()
 
   // setup sectors
 
+  for (int i = 0; i < 4; i++) {
+    delete sector[i].solve;
+    memory->sfree(sector[i].propensity);
+    memory->destroy_2d_T_array(sector[i].site2ij);
+    memory->sfree(sector[i].sites);
+    sector[i].solve = NULL;
+    sector[i].propensity = NULL;
+    sector[i].site2ij = NULL;
+    sector[i].sites = NULL;
+  }
+
   int nx_half = nx_local/2 + 1;
   int ny_half = ny_local/2 + 1;
 
@@ -180,10 +191,6 @@ void SweepLattice2d::init()
   sector[0].yhi = ny_half-1;
   sector[0].nx = sector[0].xhi - sector[0].xlo + 1;
   sector[0].ny = sector[0].yhi - sector[0].ylo + 1;
-  delete sector[0].solve;
-  memory->sfree(sector[0].propensity);
-  memory->destroy_2d_T_array(sector[0].site2ij);
-  memory->sfree(sector[0].sites);
 
   sector[1].xlo = 1;
   sector[1].xhi = nx_half-1;
@@ -191,10 +198,6 @@ void SweepLattice2d::init()
   sector[1].yhi = ny_local;
   sector[1].nx = sector[1].xhi - sector[1].xlo + 1;
   sector[1].ny = sector[1].yhi - sector[1].ylo + 1;
-  delete sector[1].solve;
-  memory->sfree(sector[1].propensity);
-  memory->destroy_2d_T_array(sector[1].site2ij);
-  memory->sfree(sector[1].sites);
   
   sector[2].xlo = nx_half;
   sector[2].xhi = nx_local;
@@ -202,10 +205,6 @@ void SweepLattice2d::init()
   sector[2].yhi = ny_half-1;
   sector[2].nx = sector[2].xhi - sector[2].xlo + 1;
   sector[2].ny = sector[2].yhi - sector[2].ylo + 1;
-  delete sector[2].solve;
-  memory->sfree(sector[2].propensity);
-  memory->destroy_2d_T_array(sector[2].site2ij);
-  memory->sfree(sector[2].sites);
 
   sector[3].xlo = nx_half;
   sector[3].xhi = nx_local;
@@ -213,10 +212,6 @@ void SweepLattice2d::init()
   sector[3].yhi = ny_local;
   sector[3].nx = sector[3].xhi - sector[3].xlo + 1;
   sector[3].ny = sector[3].yhi - sector[3].ylo + 1;
-  delete sector[3].solve;
-  memory->sfree(sector[3].propensity);
-  memory->destroy_2d_T_array(sector[3].site2ij);
-  memory->sfree(sector[3].sites);
 
   // init communication for ghost sites
 

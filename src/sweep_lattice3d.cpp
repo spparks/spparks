@@ -176,6 +176,17 @@ void SweepLattice3d::init()
   
   // setup sectors
 
+  for (int i = 0; i < 4; i++) {
+    delete sector[i].solve;
+    memory->sfree(sector[i].propensity);
+    memory->destroy_2d_T_array(sector[i].site2ijk);
+    memory->sfree(sector[i].sites);
+    sector[i].solve = NULL;
+    sector[i].propensity = NULL;
+    sector[i].site2ijk = NULL;
+    sector[i].sites = NULL;
+  }
+
   int nx_half = nx_local/2 + 1;
   int ny_half = ny_local/2 + 1;
   int nz_half = nz_local/2 + 1;
@@ -189,11 +200,6 @@ void SweepLattice3d::init()
   sector[0].nx = sector[0].xhi - sector[0].xlo + 1;
   sector[0].ny = sector[0].yhi - sector[0].ylo + 1;
   sector[0].nz = sector[0].zhi - sector[0].zlo + 1;
-  sector[0].nsites = sector[0].nx * sector[0].ny * sector[0].nz;
-  delete sector[0].solve;
-  memory->sfree(sector[0].propensity);
-  memory->destroy_2d_T_array(sector[0].site2ijk);
-  memory->sfree(sector[0].sites);
   
   sector[1].xlo = 1;
   sector[1].xhi = nx_half-1;
@@ -204,11 +210,6 @@ void SweepLattice3d::init()
   sector[1].nx = sector[1].xhi - sector[1].xlo + 1;
   sector[1].ny = sector[1].yhi - sector[1].ylo + 1;
   sector[1].nz = sector[1].zhi - sector[1].zlo + 1;
-  sector[1].nsites = sector[1].nx * sector[1].ny * sector[1].nz;
-  delete sector[1].solve;
-  memory->sfree(sector[1].propensity);
-  memory->destroy_2d_T_array(sector[1].site2ijk);
-  memory->sfree(sector[1].sites);
 
   sector[2].xlo = 1;
   sector[2].xhi = nx_half-1;
@@ -219,11 +220,6 @@ void SweepLattice3d::init()
   sector[2].nx = sector[2].xhi - sector[2].xlo + 1;
   sector[2].ny = sector[2].yhi - sector[2].ylo + 1;
   sector[2].nz = sector[2].zhi - sector[2].zlo + 1;
-  sector[2].nsites = sector[2].nx * sector[2].ny * sector[2].nz;
-  delete sector[2].solve;
-  memory->sfree(sector[2].propensity);
-  memory->destroy_2d_T_array(sector[2].site2ijk);
-  memory->sfree(sector[2].sites);
 
   sector[3].xlo = 1;
   sector[3].xhi = nx_half-1;
@@ -234,11 +230,6 @@ void SweepLattice3d::init()
   sector[3].nx = sector[3].xhi - sector[3].xlo + 1;
   sector[3].ny = sector[3].yhi - sector[3].ylo + 1;
   sector[3].nz = sector[3].zhi - sector[3].zlo + 1;
-  sector[3].nsites = sector[3].nx * sector[3].ny * sector[3].nz;
-  delete sector[3].solve;
-  memory->sfree(sector[3].propensity);
-  memory->destroy_2d_T_array(sector[3].site2ijk);
-  memory->sfree(sector[3].sites);
 
   sector[4].xlo = nx_half;
   sector[4].xhi = nx_local;
@@ -249,11 +240,6 @@ void SweepLattice3d::init()
   sector[4].nx = sector[4].xhi - sector[4].xlo + 1;
   sector[4].ny = sector[4].yhi - sector[4].ylo + 1;
   sector[4].nz = sector[4].zhi - sector[4].zlo + 1;
-  sector[4].nsites = sector[4].nx * sector[4].ny * sector[4].nz;
-  delete sector[4].solve;
-  memory->sfree(sector[4].propensity);
-  memory->destroy_2d_T_array(sector[4].site2ijk);
-  memory->sfree(sector[4].sites);
 
   sector[5].xlo = nx_half;
   sector[5].xhi = nx_local;
@@ -264,11 +250,6 @@ void SweepLattice3d::init()
   sector[5].nx = sector[5].xhi - sector[5].xlo + 1;
   sector[5].ny = sector[5].yhi - sector[5].ylo + 1;
   sector[5].nz = sector[5].zhi - sector[5].zlo + 1;
-  sector[5].nsites = sector[5].nx * sector[5].ny * sector[5].nz;
-  delete sector[5].solve;
-  memory->sfree(sector[5].propensity);
-  memory->destroy_2d_T_array(sector[5].site2ijk);
-  memory->sfree(sector[5].sites);
 
   sector[6].xlo = nx_half;
   sector[6].xhi = nx_local;
@@ -279,11 +260,6 @@ void SweepLattice3d::init()
   sector[6].nx = sector[6].xhi - sector[6].xlo + 1;
   sector[6].ny = sector[6].yhi - sector[6].ylo + 1;
   sector[6].nz = sector[6].zhi - sector[6].zlo + 1;
-  sector[6].nsites = sector[6].nx * sector[6].ny * sector[6].nz;
-  delete sector[6].solve;
-  memory->sfree(sector[6].propensity);
-  memory->destroy_2d_T_array(sector[6].site2ijk);
-  memory->sfree(sector[6].sites);
 
   sector[7].xlo = nx_half;
   sector[7].xhi = nx_local;
@@ -294,11 +270,6 @@ void SweepLattice3d::init()
   sector[7].nx = sector[7].xhi - sector[7].xlo + 1;
   sector[7].ny = sector[7].yhi - sector[7].ylo + 1;
   sector[7].nz = sector[7].zhi - sector[7].zlo + 1;
-  sector[7].nsites = sector[7].nx * sector[7].ny * sector[7].nz;
-  delete sector[7].solve;
-  memory->sfree(sector[7].propensity);
-  memory->destroy_2d_T_array(sector[7].site2ijk);
-  memory->sfree(sector[7].sites);
 
   // init communication for ghost sites
 
@@ -707,6 +678,7 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
 	sites[nsites++] = isite;
 	propensity[isite] = applattice->site_propensity(i,j,k,0);
       }
+
     j = ylo;
     for (i = xlo; i <= xhi; i++)
       for (k = zlo; k <= zhi; k++) {
@@ -738,50 +710,50 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
       }
 
   } else {
-    for (i = xlo; i <= xhi; i++) {
-      for (j = ylo; j <= yhi; j++) {
+    for (i = xlo; i <= xhi; i++)
+      for (j = ylo; j <= yhi; j++)
 	for (k = zlo; k <= zlo+deltemp-1; k++) {
 	  isite = ijk2site[i][j][k];
 	  sites[nsites++] = isite;
 	  propensity[isite] = applattice->site_propensity(i,j,k,0);
-	}}}
-    for (i = xlo; i <= xhi; i++) {
-      for (j = ylo; j <= yhi; j++) { 
+	}
+    for (i = xlo; i <= xhi; i++)
+      for (j = ylo; j <= yhi; j++)
 	for (k = zhi; k >= zhi-deltemp+1; k--) {
 	  isite = ijk2site[i][j][k];
 	  sites[nsites++] = isite;
 	  propensity[isite] = applattice->site_propensity(i,j,k,0);
-	}}}
+	}
 
-    for (i = xlo; i <= xhi; i++) {
-      for (j = ylo; j <= ylo+deltemp-1; j++) {
+    for (i = xlo; i <= xhi; i++)
+      for (j = ylo; j <= ylo+deltemp-1; j++)
 	for (k = zlo; k <= zhi; k++) {
 	  isite = ijk2site[i][j][k];
 	  sites[nsites++] = isite;
 	  propensity[isite] = applattice->site_propensity(i,j,k,0);
-	}}}
-    for (i = xlo; i <= xhi; i++) {
-      for (j = yhi; j >= yhi-deltemp+1; j--) {
+	}
+    for (i = xlo; i <= xhi; i++)
+      for (j = yhi; j >= yhi-deltemp+1; j--)
 	for (k = zlo; k <= zhi; k++) {
 	  isite = ijk2site[i][j][k];
 	  sites[nsites++] = isite;
 	  propensity[isite] = applattice->site_propensity(i,j,k,0);
-	}}}
+	}
     
-    for (i = xlo; i <= xlo+deltemp-1; i++) {
-      for (j = ylo; j <= yhi; j++) {
+    for (i = xlo; i <= xlo+deltemp-1; i++)
+      for (j = ylo; j <= yhi; j++)
 	for (k = zlo; k <= zhi; k++) {
 	  isite = ijk2site[i][j][k];
 	  sites[nsites++] = isite;
 	  propensity[isite] = applattice->site_propensity(i,j,k,0);
-	}}}
-    for (i = xhi; i >= xhi-deltemp+1; i--) {
-      for (j = ylo; j <= yhi; j++) {
+	}
+    for (i = xhi; i >= xhi-deltemp+1; i--)
+      for (j = ylo; j <= yhi; j++)
 	for (k = zlo; k <= zhi; k++) {
 	  isite = ijk2site[i][j][k];
 	  sites[nsites++] = isite;
 	  propensity[isite] = applattice->site_propensity(i,j,k,0);
-	}}}	  
+	}
   }
 
   solve->update(nsites,sites,propensity);

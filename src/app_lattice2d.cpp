@@ -125,6 +125,7 @@ void AppLattice2d::init()
 			    "applattice2d:ij2site");
 
   // initialize lattice <-> site mapping arrays
+  // they map proc's entire 2d sub-domain to 1d sites and vice versa
   // KMC sweeper will overwrite app's ij2site values
   // KMC sweeper will create sector-specific site2ij values and ignore app's
 

@@ -181,7 +181,7 @@ void AppMembrane::site_event(int i, int full)
   for (j = 0; j < numneigh[i]; j++) {
     m = neighbor[i][j];
     isite = i2site[m];
-    if (isite >= nlocal) continue;
+    if (isite < 0) continue;
     sites[nsites++] = isite;
     propensity[isite] = site_propensity(m,full);
   }

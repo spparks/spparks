@@ -106,6 +106,7 @@ SweepLattice::SweepLattice(SPK *spk, int narg, char **arg) :
   for (int i = 0; i < nsectormax; i++) {
     sector[i].solve = NULL;
     sector[i].propensity = NULL;
+    sector[i].i2site = NULL;
     sector[i].site2i = NULL;
     sector[i].sites = NULL;
     sector[i].border = NULL;
@@ -131,6 +132,7 @@ SweepLattice::~SweepLattice()
     for (int isector = 0; isector < nsectormax; isector++) {
       delete sector[isector].solve;
       memory->sfree(sector[isector].propensity);
+      memory->sfree(sector[isector].i2site);
       memory->sfree(sector[isector].site2i);
       memory->sfree(sector[isector].sites);
       memory->sfree(sector[isector].border);
@@ -147,25 +149,16 @@ void SweepLattice::init()
   applattice = (AppLattice *) app;
 
   lattice = applattice->lattice;
-  i2site = applattice->i2site;
 
   dimension = applattice->dimension;
   nlocal = applattice->nlocal;
+  int nghost = applattice->nghost;
+  int ntotal = nlocal + nghost;
 
   int *id = applattice->id;
   double **xyz = applattice->xyz;
   int *numneigh = applattice->numneigh;
   int **neighbor = applattice->neighbor;
-
-  int procwest = applattice->procwest;
-  int proceast = applattice->proceast;
-  int procsouth = applattice->procsouth;
-  int procnorth = applattice->procnorth;
-  int procdown,procup;
-  if (dimension == 3) {
-    procdown = applattice->procdown;
-    procup = applattice->procup;
-  }
 
   temperature = applattice->temperature;
   if (temperature != 0.0) t_inverse = 1.0/temperature;
@@ -192,9 +185,16 @@ void SweepLattice::init()
     sector[isector].nmax = 0;
     delete sector[isector].solve;
     memory->sfree(sector[isector].propensity);
+    memory->sfree(sector[isector].i2site);
     memory->sfree(sector[isector].site2i);
     memory->sfree(sector[isector].sites);
     memory->sfree(sector[isector].border);
+    sector[isector].solve = NULL;
+    sector[isector].propensity = NULL;
+    sector[isector].i2site = NULL;
+    sector[isector].site2i = NULL;
+    sector[isector].sites = NULL;
+    sector[isector].border = NULL;
   }
 
   int iwhich,jwhich,kwhich,isector;
@@ -246,7 +246,7 @@ void SweepLattice::init()
   }
 
   // setup KMC solver and propensity arrays for each sector
-  // reset app's i2site values in app to reflect sector mapping
+  // i2site = mapping to sector site for i owned by sector, else -1
   // nborder = # of sites in sector with a neighbor who is outside sector
   // border = list of these sites, stored as lattice indices
   // propensity init requires ghost cell info for entire sub-domain
@@ -259,15 +259,19 @@ void SweepLattice::init()
 
       int nsites = sector[isector].nlocal;
       sector[isector].propensity = 
-	(double*) memory->smalloc(nsites*sizeof(double),"sweep:propensity");
+	(double *) memory->smalloc(nsites*sizeof(double),"sweep:propensity");
 
-      for (m = 0; m < nsites; m++) i2site[sector[isector].site2i[m]] = m;
+      sector[isector].i2site = 
+	(int *) memory->smalloc(ntotal*sizeof(int),"sweep:i2site");
+      for (i = 0; i < ntotal; i++) sector[isector].i2site[i] = -1;
+      for (m = 0; m < nsites; m++) 
+	sector[isector].i2site[sector[isector].site2i[m]] = m;
 
       sector[isector].nborder = 
 	find_border_sites(nsites,sector[isector].site2i,
 			  numneigh,neighbor,&sector[isector].border);
       sector[isector].sites =
-	(int*) memory->smalloc(sector[isector].nborder*sizeof(int),
+	(int *) memory->smalloc(sector[isector].nborder*sizeof(int),
 			       "sweep:sites");
 
       for (m = 0; m < nsites; m++)
@@ -424,18 +428,19 @@ void SweepLattice::sweep_sector_kmc(int icolor, int isector)
 
   Solve *solve = sector[isector].solve;
   double *propensity = sector[isector].propensity;
+  int *i2site = sector[isector].i2site;
   int *site2i = sector[isector].site2i;
   int *sites = sector[isector].sites;
 
   // temporarily reset values in applattice
-  // nlocal, solver, propensity array
+  // i2site, solver, propensity array
 
-  int hold_nlocal = applattice->nlocal;
-  applattice->nlocal = nlocal;
   Solve *hold_solve = applattice->solve;
   applattice->solve = solve;
   double *hold_propensity = applattice->propensity;
   applattice->propensity = propensity;
+  int *hold_i2site = applattice->i2site;
+  applattice->i2site = i2site;
 
   // update owned propensities for sites which neighbor a sector ghost
   // necessary since sector ghosts may have changed
@@ -471,11 +476,9 @@ void SweepLattice::sweep_sector_kmc(int icolor, int isector)
  
   // restore applattice values
 
-  applattice->nlocal = hold_nlocal;
   applattice->solve = hold_solve;
   applattice->propensity = hold_propensity;
-
-  MPI_Barrier(world);
+  applattice->i2site = hold_i2site;
 }
 
 /* ----------------------------------------------------------------------

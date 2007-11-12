@@ -126,6 +126,7 @@ void AppLattice3d::init()
 			    "applattice3d:ijk2site");
 
   // initialize lattice <-> site mapping arrays
+  // they map proc's entire 3d sub-domain to 1d sites and vice versa
   // KMC sweeper will overwrite app's ijk2site values
   // KMC sweeper will create sector-specific site2ijk values and ignore app's
 

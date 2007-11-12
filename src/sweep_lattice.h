@@ -48,6 +48,7 @@ class SweepLattice : public Sweep {
     int nborder;             // # of owned sites with a ghost site as neighbor
     class Solve *solve;      // KMC solver
     double *propensity;      // propensities for sector sites
+    int *i2site;             // map from lattice index to sector sites
     int *site2i;             // map from sector sites to lattice index
     int *sites;              // list of sites to pass to solver
     int *border;             // lattice index for each border site

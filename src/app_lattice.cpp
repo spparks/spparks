@@ -1102,7 +1102,8 @@ void AppLattice::init()
   i2site = (int *) memory->smalloc(nsites*sizeof(int),"applattice:i2site");
 
   // initialize lattice <-> site mapping arrays
-  // KMC sweeper will overwrite app's i2site values
+  // they map proc's entire 1d sub-domain to 1d sites and vice versa
+  // KMC sweeper will create sector-specific i2site values and ignore app's
   // KMC sweeper will create sector-specific site2i values and ignore app's
 
   for (i = 0 ; i < nlocal; i++) i2site[i] = i;
@@ -1201,7 +1202,7 @@ void AppLattice::run(int narg, char **arg)
 
 void AppLattice::iterate()
 {
-  int i,j,isite;
+  int i,isite;
   double dt;
 
   if (time >= stoptime) return;
@@ -1220,7 +1221,8 @@ void AppLattice::iterate()
       
       if (isite < 0) done = 1;
       else {
-	site_event(isite,1);
+	i = site2i[isite];
+	site_event(i,1);
 	time += dt;
 	timer->stamp(TIME_APP);
       }
@@ -1254,7 +1256,7 @@ void AppLattice::iterate()
 
 void AppLattice::stats()
 {
-  int i,j;
+  int i;
   double energy,all;
   
   comm->all(lattice);
@@ -1421,16 +1423,6 @@ void AppLattice::procs2lattice_2d()
   int iprocx = me/ny_procs;
   int iprocy = me % ny_procs;
 
-  if (iprocy == 0) procsouth = me + ny_procs - 1;
-  else procsouth = me - 1;
-  if (iprocy == ny_procs-1) procnorth = me - ny_procs + 1;
-  else procnorth = me + 1;
-
-  if (iprocx == 0) procwest = me + nprocs - ny_procs;
-  else procwest = me - ny_procs;
-  if (iprocx == nx_procs-1) proceast = me - nprocs + ny_procs;
-  else proceast = me + ny_procs;
-
   subxlo = iprocx * xprd/nx_procs;
   if (iprocx < nx_procs-1) subxhi = (iprocx+1) * xprd/nx_procs;
   else subxhi = xprd;
@@ -1484,21 +1476,6 @@ void AppLattice::procs2lattice_3d()
   int iprocx = (me/(nyz_procs)) % nx_procs;
   int iprocy = (me/nz_procs) % ny_procs;
   int iprocz = (me/1) % nz_procs;
-
-  if (iprocz == 0) procdown = me + nz_procs - 1;
-  else procdown = me - 1;
-  if (iprocz == nz_procs-1) procup = me - nz_procs + 1;
-  else procup = me + 1;
-    
-  if (iprocy == 0) procsouth = me + nyz_procs - nz_procs;
-  else procsouth = me - nz_procs;
-  if (iprocy == ny_procs-1) procnorth = me - nyz_procs + nz_procs;
-  else procnorth = me + nz_procs;
-    
-  if (iprocx == 0) procwest = me + nprocs - nyz_procs;
-  else procwest = me - nyz_procs;
-  if (iprocx == nx_procs-1) proceast = me - nprocs + nyz_procs;
-  else proceast = me + nyz_procs;
 
   subxlo = iprocx * xprd/nx_procs;
   if (iprocx < nx_procs-1) subxhi = (iprocx+1) * xprd/nx_procs;

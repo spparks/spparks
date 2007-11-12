@@ -45,7 +45,6 @@ class SweepLattice3d : public Sweep {
   struct {
     int xlo,xhi,ylo,yhi,zlo,zhi; // inclusive start/stop indices in this octant
     int nx,ny,nz;                // size of octant
-    int nsites;                  // total sites in octant
     class Solve *solve;          // KMC solver
     double *propensity;          // propensities for octant sites
     int **site2ijk;              // map from octant sites to lattice index

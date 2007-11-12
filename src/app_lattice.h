@@ -85,9 +85,6 @@ class AppLattice : public App {
   };
 
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
-  int procwest,proceast;            // my neighbor procs
-  int procsouth,procnorth;
-  int procdown,procup;
 
   FILE *fp;
   double *dbuf;
