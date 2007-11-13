@@ -424,7 +424,6 @@ void SweepLattice::sweep_sector_kmc(int icolor, int isector)
 
   int *border = sector[isector].border;
   int nborder = sector[isector].nborder;
-  int nlocal = sector[isector].nlocal;
 
   Solve *solve = sector[isector].solve;
   double *propensity = sector[isector].propensity;

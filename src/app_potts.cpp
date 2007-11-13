@@ -162,7 +162,7 @@ void AppPotts::site_event(int i, int full)
 
   // pick one event from total propensity
 
-  double threshhold = random->uniform() * propensity[i];
+  double threshhold = random->uniform() * propensity[i2site[i]];
 
   // possible events = spin flips to neighboring site different than self
   // find one event, accumulate its probability

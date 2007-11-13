@@ -28,9 +28,11 @@
 #sweep_style      lattice2d 12345
 #solve_style      tree 12345
 
-#app_style	 ising/2d/4n 100 100 12345
+#app_style	 ising/2d/8n 100 100 12345
+#app_style	 potts/2d/8n 100 100 50 12345
 #app_style	 ising 12345 lattice sq/8n 1.0 100 100
-app_style	 potts 12345 50 lattice tri 1.0 100 100
+app_style	 potts 12345 50 lattice sq/8n 1.0 100 100
+#sweep_style      lattice2d 12345
 #sweep_style      lattice2d 12345 kmc yes
 #sweep_style      lattice 12345
 sweep_style      lattice 12345 kmc yes
@@ -38,7 +40,9 @@ solve_style      tree 12345
 		 
 temperature	0.2
 
-stats           1.0
+stats           10.0
 dump            100.0 coord tmp.ising
 
-run             1000.0
+run             10.0
+run             10.0
+run             10.0

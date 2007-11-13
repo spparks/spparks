@@ -342,6 +342,8 @@ void CommLattice::free_swap(Swap *swap)
 
   delete [] swap->request;
   delete [] swap->status;
+
+  delete swap;
 }
 
 /* ----------------------------------------------------------------------
