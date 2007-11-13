@@ -119,13 +119,11 @@ SweepLattice3d::~SweepLattice3d()
   memory->destroy_3d_T_array(mask,nxlo,nylo,nzlo);
   memory->destroy_3d_T_array(ranlat,1,1,1);
 
-  if (Lkmc) {
-    for (int isector = 0; isector < nsector; isector++) {
-      delete sector[isector].solve;
-      memory->sfree(sector[isector].propensity);
-      memory->destroy_2d_T_array(sector[isector].site2ijk);
-      memory->sfree(sector[isector].sites);
-    }
+  for (int isector = 0; isector < nsector; isector++) {
+    delete sector[isector].solve;
+    memory->sfree(sector[isector].propensity);
+    memory->destroy_2d_T_array(sector[isector].site2ijk);
+    memory->sfree(sector[isector].sites);
   }
 }
 

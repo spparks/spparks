@@ -43,6 +43,4 @@ temperature	0.2
 stats           10.0
 dump            100.0 coord tmp.ising
 
-run             10.0
-run             10.0
-run             10.0
+run             1000.0

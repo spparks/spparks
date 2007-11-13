@@ -127,16 +127,14 @@ SweepLattice::~SweepLattice()
   memory->sfree(mask);
   memory->sfree(ranlat);
 
-  if (Lkmc) {
-    int nsectormax = 8;
-    for (int isector = 0; isector < nsectormax; isector++) {
-      delete sector[isector].solve;
-      memory->sfree(sector[isector].propensity);
-      memory->sfree(sector[isector].i2site);
-      memory->sfree(sector[isector].site2i);
-      memory->sfree(sector[isector].sites);
-      memory->sfree(sector[isector].border);
-    }
+  int nsectormax = 8;
+  for (int isector = 0; isector < nsectormax; isector++) {
+    delete sector[isector].solve;
+    memory->sfree(sector[isector].propensity);
+    memory->sfree(sector[isector].i2site);
+    memory->sfree(sector[isector].site2i);
+    memory->sfree(sector[isector].sites);
+    memory->sfree(sector[isector].border);
   }
 }
 
@@ -306,7 +304,6 @@ int SweepLattice::find_border_sites(int nsites, int *site2i,
   std::map<int,int> hash;
   for (int m = 0; m < nsites; m++)
     hash.insert(std::pair<int,int> (site2i[m],0));
-
   
   for (m = 0; m < nsites; m++) {
     i = site2i[m];
