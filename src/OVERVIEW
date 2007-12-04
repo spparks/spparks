@@ -387,12 +387,27 @@ dump 10
 
 app_style test
 
-run an app to do what ??
-also need to define a "solve" style ??
+run an app to test solver performance.
+  Runs 10^6 events and displays timings
+  of solver, update, and other.
+ 
+also need to define a "solve" style:
+  see "* solve_style" below
 
-Extra commands supported by this app: (doc these)
-
-event
+Extra commands supported by this app:
+event           200  30 1
+  Defines properties of the event table:
+  1. Size of event table
+  2. Max number of dependencies
+  3. Size of propensity adjustment (%)
+  4. [optional] Low memory switch to generate
+  dependencies randomly on the fly instead
+  of storing the event table.
+  5. Random seed for the low_mem option.
+  
+  Examples:
+  event           200  30 1
+  #event           200  30 1 lo_mem 384745
 
 run 0.5
   run for time (seconds)
