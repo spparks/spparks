@@ -1,48 +1,32 @@
 /* ----------------------------------------------------------------------
-
-The method sets up data structures that permit variate sampling from a
-dynamic distribution with frequent updates. While the single variate 
-generation time is logarithmic in distribution range here, 
-the update time is constant and independent of distribution size.  
-The distribution has to be bounded.
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef GROUPS_H
 #define GROUPS_H
 
-#include "random_park.h"
-#include <cmath>
-#include <iostream>
-
-using namespace std;
 namespace SPPARKS {
+
 class Groups {
  public:
-
   Groups(double, double, int, bool, int);
   ~Groups();
 
-  //setup
   void partition_init(double *,int, int);
   void partition(double *, double, double);
 
-  //updates
-  void remove_element(int, double *); // remove a propensity 
-  void alter_element(int, double *, double); //alter a propensity
-  void add_element(int, double *); // add a propensity
+  int sample(double *);
+  void remove_element(int, double *);
+  void alter_element(int, double *, double);
+  void add_element(int, double *);
 
-
-  //diagnostics
-  void group_diagnostic(double *); // output groups to screen
-  void test_sampling(double *, int);   //test sampling statistics 
-                                  //against distribution
+  void group_diagnostic(double *);
+  void test_sampling(double *, int);
   int diag_cnt;
 
-  int sample(double *); //draw a variate from current distribution
  private:
-  //constants
   double overlg2; // 1.0/log(2.0)
-  //group parameters and storage
 
   int *my_group; //inverse group index
   int *my_group_i; //inverse group location index 
@@ -69,15 +53,11 @@ class Groups {
   void resize_group(int);
   void resize_inverse();
 
-  //sampling
   class RandomPark *random;
   int sample_with_rejection(int, double *);
   int linear_select_group();
-
-
 };
 
 }
 
 #endif
-

@@ -1,5 +1,9 @@
 /* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
+------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
 The method sets up data structures that permit variate sampling from a
 dynamic distribution with frequent updates. While the single variate 
 generation time is logarithmic in distribution range here, 
@@ -8,9 +12,10 @@ The distribution has to be bounded.
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include <iostream>
 #include "groups.h"
 #include "random_park.h"
+
+#include <iostream>
 
 using namespace std;
 using namespace SPPARKS;
@@ -50,8 +55,8 @@ Groups::~Groups()
 }
 
 /* ----------------------------------------------------------------------
-   Set up the partition groups data structures
-   ------------------------------------------------------------------------- */
+   set up the partition groups data structures
+------------------------------------------------------------------------- */
 
 void Groups::partition_init(double *p, int size_in, int max_size_in)
 {
@@ -80,12 +85,14 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
     my_group[i] = -1;
     my_group_i[i] = -1;
   }
+
   //cout << "Created "<< ngroups << " groups."<<endl;
 
   int m, g;
-  //calculate and allocate initial group storage
 
+  //calculate and allocate initial group storage
   //set group upper bounds and initialize empty/full vector
+
   double frac;
   if (ngroups_flag)
     frac = hi/static_cast<double>(ngroups);
@@ -102,9 +109,10 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
       frac /= 2.0;
     }
   }
-  //calculate initial group membership and initial sum
-  int gr;
 
+  //calculate initial group membership and initial sum
+
+  int gr;
   for(i=0;i<size;i++){
     if (ngroups_flag) gr = static_cast<int>(p[i]/frac);
     else if (p[i]> 1.0e-20) {
@@ -121,6 +129,7 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
   }
   
   //set initial group size and allocate group storage
+
   for (g = 0; g < ngroups; g++){
     if (ngroups_flag)  m = static_cast<int>
       (1.5*static_cast<double>(size)/static_cast<double>(ngroups));
@@ -129,13 +138,16 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
     group[g] = new int[m];  
     group_size[g] = m;
   }
+
   //initialize group storage
+
   for (g = 0; g < ngroups; g++){
     i_group[g] = 0;
     group_sum[g] = 0.0;
     for(m = 0; m < group_size[g]; m++)
       group[g][m]=0;
   }
+
   //partition the initial distribution
 
   partition(p, lo, hi);
@@ -154,14 +166,15 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
 //   for (int g = 0; g < ngroups; g++) cout <<group_sum[g]/psum <<"  ";
 //   cout <<endl;
 
-
   //group_diagnostic(p);
 
   // test_sampling(p,1e8);
 }
+
 /* ----------------------------------------------------------------------
-   Split distribution into a number of groups by size
-   ------------------------------------------------------------------------- */
+   split distribution into a number of groups by size
+------------------------------------------------------------------------- */
+
 void Groups::partition(double *p, double lo, double hi)
 {
   double range = hi - lo;
@@ -181,6 +194,7 @@ void Groups::partition(double *p, double lo, double hi)
       group_sum[g] += p[j];
     }
   }
+
   else{
     //logarithmic fragments
     frac = hi;
@@ -210,9 +224,12 @@ void Groups::partition(double *p, double lo, double hi)
       nempty ++;
     }
 }
+
+
 /* ----------------------------------------------------------------------
-   Change value of an element
-   ------------------------------------------------------------------------- */
+   change value of a single element
+------------------------------------------------------------------------- */
+
 void Groups::alter_element(int j, double *p, double p_new)
 {
   double p_old = p[j];
@@ -309,9 +326,11 @@ void Groups::alter_element(int j, double *p, double p_new)
   //update total sum
   psum += diff;
 }
+
 /* ----------------------------------------------------------------------
-   Choose a group for new propensity element and add to group
-   ------------------------------------------------------------------------- */
+   choose a group for new propensity element and add to group
+------------------------------------------------------------------------- */
+
 void Groups::add_element(int j, double *p)
 {
   double p_in = p[j];
@@ -342,9 +361,11 @@ void Groups::add_element(int j, double *p)
   //update size
   size ++;
 }
+
 /* ----------------------------------------------------------------------
-   Extend group space
-   ------------------------------------------------------------------------- */
+   extend group space
+------------------------------------------------------------------------- */
+
 void Groups::grow_group(int g)
 {
   //double storage for group
@@ -363,9 +384,11 @@ void Groups::grow_group(int g)
   //  realloc(group[g],group_size[g]);
 
 }
+
 /* ----------------------------------------------------------------------
-   Compress group space
-   ------------------------------------------------------------------------- */
+   compress group space
+------------------------------------------------------------------------- */
+
 void Groups::shrink_group(int g)
 {
   //double storage for group
@@ -383,9 +406,11 @@ void Groups::shrink_group(int g)
 //   cout << "Shrunk group "<<g <<"  from "<<group_size[g]*2 <<" to "
 //        << group_size[g]<<"."<<endl;
 }
+
 /* ----------------------------------------------------------------------
-   Extend inverse arrays
-   ------------------------------------------------------------------------- */
+   extend inverse arrays
+------------------------------------------------------------------------- */
+
 void Groups::resize_inverse()
 {
   //double storage for inverse
@@ -409,15 +434,16 @@ void Groups::resize_inverse()
 //   cout << "Resized inverses from "<<max_size/2 <<" to "
 //        << max_size<<"."<<endl;
 }
+
 /* ----------------------------------------------------------------------
-   Sample distribution
-   ------------------------------------------------------------------------- */
+   sample distribution
+------------------------------------------------------------------------- */
+
 int Groups::sample(double *p)
 {
   int r= -1;
   int grp;
   int cnt = 0;
-
 
   //  while(r<0 && nempty < ngroups){
   while(r<0){
@@ -436,9 +462,11 @@ int Groups::sample(double *p)
 
   return r;
 }
+
 /* ----------------------------------------------------------------------
-   Sample in-group distribution with rejection
-   ------------------------------------------------------------------------- */
+   sample in-group distribution with rejection
+------------------------------------------------------------------------- */
+
 int Groups::sample_with_rejection(int g, double *p)
 {
   int group_sample = static_cast<int>(i_group[g]*random->uniform());
@@ -448,9 +476,11 @@ int Groups::sample_with_rejection(int g, double *p)
 
   return -1;  //rejected
 }
+
 /* ----------------------------------------------------------------------
-   Sample group sum distribution with partial sums
-   ------------------------------------------------------------------------- */
+   sample group sum distribution with partial sums
+------------------------------------------------------------------------- */
+
 int Groups::linear_select_group()
 {
   int g;
@@ -471,9 +501,11 @@ int Groups::linear_select_group()
 //        <<endl;
   return -1; //no group selected
 }
+
 /* ----------------------------------------------------------------------
-   Allocate group arrays
-   ------------------------------------------------------------------------- */
+   allocate group arrays
+------------------------------------------------------------------------- */
+
 void Groups::allocate_group_space(int s)
 {
   //allocate update data structures
@@ -488,9 +520,11 @@ void Groups::allocate_group_space(int s)
   group = new int* [s];
   empty_groups = new int[s];
 }
+
 /* ----------------------------------------------------------------------
-   Clear group arrays
-   ------------------------------------------------------------------------- */
+   clear group arrays
+------------------------------------------------------------------------- */
+
 void Groups::release_group_space()
 {
   if(my_group != NULL) delete [] my_group;
@@ -503,8 +537,9 @@ void Groups::release_group_space()
 }
 
 /* ----------------------------------------------------------------------
-   Test sampling
-   ------------------------------------------------------------------------- */
+   test sampling
+------------------------------------------------------------------------- */
+
 void Groups::test_sampling(double *p, int nsamples)
 {
   int rjct = 0;
@@ -535,7 +570,7 @@ void Groups::test_sampling(double *p, int nsamples)
   double sumsqd = 0.0;
   for(int j = 0; j< size; j++){
     double ratio = static_cast<double>(count[j])*psum/ndsamples;
-    double comp = abs(100.0*(p[j] - ratio)/(ratio + p[j]));
+    double comp = fabs(100.0*(p[j] - ratio)/(ratio + p[j]));
     if(current_max < comp){
       current_max = comp;
       current_max_i = j;
@@ -562,9 +597,11 @@ void Groups::test_sampling(double *p, int nsamples)
   cout << "***********************************************************"<<endl;
   delete [] count;
 }
+
 /* ----------------------------------------------------------------------
-   Output groups to screen diagnostic
-   ------------------------------------------------------------------------- */
+   output groups to screen diagnostic
+------------------------------------------------------------------------- */
+
 void Groups::group_diagnostic(double *p)
 {
 
@@ -603,6 +640,3 @@ void Groups::group_diagnostic(double *p)
   
   cout << "Done group diagnostic .."<<endl;
 }
-/* ----------------------------------------------------------------------
-   ------------------------------------------------------------------------- */
-
