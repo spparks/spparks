@@ -66,6 +66,7 @@ class Groups {
   void release_group_space();
   void grow_group(int);
   void shrink_group(int);
+  void resize_group(int);
   void resize_inverse();
 
   //sampling

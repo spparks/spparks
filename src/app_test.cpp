@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "error.h"
 #include "random_park.h"
+#include "math.h"
 
 using namespace SPPARKS;
 using namespace std;
@@ -96,7 +97,10 @@ void AppTest::init()
   if (propensity != NULL) delete [] propensity;
   propensity = new double[nevents];
   for (int m = 0; m < nevents; m++) {
-    propensity[m] = compute_propensity(m);
+    double tp = pow(2,-random->uniform()*20);
+    //double tp = random->uniform();
+    if(tp > 1.0e-6) propensity[m] = tp;
+    else propensity[m] = 1.0e-6;
     psum += propensity[m];
   }
 
@@ -104,8 +108,8 @@ void AppTest::init()
   
   // allocate and zero event stats
   if (count != NULL) delete [] count;
-  count = new int[2*nevents];
-  for (int t = 0; t < 2*nevents; t++) count[t] = 0;
+  count = new int[nevents];
+  for (int t = 0; t < nevents; t++) count[t] = 0;
 
   // print stats header
 
@@ -224,7 +228,9 @@ void AppTest::iterate()
     if (time >= stoptime) done = 1;
     else if (ievent < 0) done = 1;
     // uncomment to control total number of events
-    else if (nev > 100000) done = 1;
+    else if (nev > 1000000) done = 1;
+
+    //    if (nev%100000==0)cout <<"event "<<nev<<endl;
 
     if (time > stats_time || done) {
       timer->stamp();
@@ -270,14 +276,14 @@ void AppTest::stats()
   if (screen) {
     fprintf(screen,"%d %g ",ntimestep,time);
     for (i = 0; i < nevents; i++)
-      fprintf(screen,"%g ",(double)count[i]/ssum - propensity[i]/psum);
+      fprintf(screen,"%6.3d ",(double)count[i]/ssum - propensity[i]/psum);
     fprintf(screen,"\n");
     
   }
   if (logfile) {
     fprintf(logfile,"%d %g ",ntimestep,time);
     for (i = 0; i < nevents; i++)
-      fprintf(logfile,"%g ",(double)count[i]/ssum - propensity[i]/psum);
+      fprintf(logfile,"%6.3d ",(double)count[i]/ssum - propensity[i]/psum);
     fprintf(logfile,"\n");
   }
 
@@ -290,18 +296,19 @@ void AppTest::stats()
 
 void AppTest::set_event(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal event command");
+  if (narg < 3) error->all("Illegal event command");
 
-  if (narg > 3)
-    if (strcmp(arg[2],"lo_mem")==0){
+  if (narg > 4)
+    if (strcmp(arg[3],"lo_mem")==0){
       dep_graph_flag = false;
-      random->init(atoi(arg[3]));
+      random->init(atoi(arg[4]));
     }
     else error->all("Illegal event command");
 
   n_event_types++;
   nevents = atoi(arg[0]);
   ndep = atoi(arg[1]);
+  tweak = atof(arg[2]); if(tweak>0) tweak /= 100.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -369,14 +376,19 @@ void AppTest::print_depend_graph()
 
 double AppTest::compute_propensity(int m)
 {
+  double p;
   //uniform
   //double p=.1;
-  //random uniform
-  double p = random->uniform();
+  //random uniform tweak
+  p = propensity[m];
+  p += p*tweak*(random->uniform()-0.5);
+  
   //even/odd
   //double p = .5 - .1 * static_cast<double>(m % 2);
   //linear
   //double p = (double)(m+1)/10.0;
+  if(p>1.0) p = 0.99999;
+  else if(p<1e-6) p = 1e-6;
 
   return p;
 }

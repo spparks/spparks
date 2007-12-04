@@ -62,6 +62,7 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
   max_size = max_size_in;
 
   overlg2 = 1.0/log(2.0); // set the value of the constant
+
   if(!ngroups_flag) ngroups = 0;
   psum = 0.0;
 
@@ -106,8 +107,9 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
 
   for(i=0;i<size;i++){
     if (ngroups_flag) gr = static_cast<int>(p[i]/frac);
-    else if (p[i]> 1.0e-20) 
+    else if (p[i]> 1.0e-20) {
       gr = -static_cast<int>(log(p[i]/hi)*overlg2);
+    }
     else gr = ngroups - 1;
     if (gr > ngroups-1) {
       gr = ngroups - 1;
@@ -121,9 +123,9 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
   //set initial group size and allocate group storage
   for (g = 0; g < ngroups; g++){
     if (ngroups_flag)  m = static_cast<int>
-      (2.0*static_cast<double>(size)/static_cast<double>(ngroups));
+      (1.5*static_cast<double>(size)/static_cast<double>(ngroups));
     else m = static_cast<int>(static_cast<double>(size)/pow(2.0,g));
-    if(group_size[g]*2>m) m = group_size[g]*2;
+    if(group_size[g]>m) m = group_size[g];
     group[g] = new int[m];  
     group_size[g] = m;
   }
@@ -138,6 +140,21 @@ void Groups::partition_init(double *p, int size_in, int max_size_in)
 
   partition(p, lo, hi);
 
+  //uncomment to see group stats header
+ //  cout <<"group: ";
+//   for (int g = 0; g < ngroups; g++) cout <<g <<"  ";
+//   cout <<endl;
+//   cout <<"bound: ";
+//   for (int g = 0; g < ngroups; g++) cout <<group_hi[g] <<"  ";
+//   cout <<endl;
+//   cout <<"popul: ";
+//   for (int g = 0; g < ngroups; g++) cout <<i_group[g] <<"  ";
+//   cout <<endl;
+//   cout <<"weight: ";
+//   for (int g = 0; g < ngroups; g++) cout <<group_sum[g]/psum <<"  ";
+//   cout <<endl;
+
+
   //group_diagnostic(p);
 
   // test_sampling(p,1e8);
@@ -149,6 +166,7 @@ void Groups::partition(double *p, double lo, double hi)
 {
   double range = hi - lo;
   int g = 0;
+  double tst;
 
   if(ngroups_flag){
     //equal fragments
@@ -168,8 +186,13 @@ void Groups::partition(double *p, double lo, double hi)
     frac = hi;
     for(int j=0;j<size;j++){
       //cout << j << "p[j] = "<<p[j]<<endl;
-      if (p[j] > 1.0e-20)
-	g = -static_cast<int>(log(p[j]/hi)*overlg2);
+      if (p[j] > 1.0e-20){
+	//	g = -static_cast<int>(log(p[j]/hi)*overlg2);
+	tst = frexp(p[j]/hi,&g); g = -g;
+// 	if(g != -expon)
+// 	  cout <<"oops, g = "<<g<<" frexp(p/hi) = "
+// 	       <<expon<<endl;
+      }
       else g = ngroups - 1;
       if (g > ngroups-1) g = ngroups - 1; 
       group[g][i_group[g]] = j;
@@ -194,13 +217,23 @@ void Groups::alter_element(int j, double *p, double p_new)
 {
   double p_old = p[j];
   double diff = p_new - p_old;
+  double tst;
+
+  //uncomment to see group stats
+//   diag_cnt ++;
+//   if(diag_cnt%3000000 == 0){
+//     cout <<"        ";
+//     for (int g = 0; g < ngroups; g++) cout <<group_sum[g]/psum <<"  ";
+//     cout <<endl;
+//   }
+  //end group stats
 
 
-  if(p_new > hi){
-    hi = p_new;
-    partition_init(p, size, max_size);
-    //    cout << "Upper bound broken. Repartitioning."<<endl;
-  }
+//   if(p_new > hi){
+//     hi = p_new;
+//     partition_init(p, size, max_size);
+//     cout << "Upper bound broken. Repartitioning."<<endl;
+//   }
 
   //find new group membership
   int new_group;
@@ -212,14 +245,17 @@ void Groups::alter_element(int j, double *p, double p_new)
   }
   else{
     //logarithmic fragments
-    if (p_new > lo)
-      new_group = -static_cast<int>(log(p_new/hi)*overlg2);
+    if (p_new > lo){
+      //    new_group = -static_cast<int>(log(p_new/hi)*overlg2);
+      tst = frexp(p[j]/hi,&new_group); 
+      new_group = -new_group;
+    }
     else {
       new_group = ngroups - 1; 
       //      cout << "propensity below lower bound in alter"<<endl;
     }
   }
-
+  
   //check if changed
   if(my_group[j] == new_group){
     //update group sum
@@ -232,28 +268,28 @@ void Groups::alter_element(int j, double *p, double p_new)
     old_group = my_group[j];
     int old_group_i = my_group_i[j];
     int last = group[old_group][i_group[old_group]-1];
-
+    
     group[old_group][old_group_i] = last;
     my_group_i[last] = old_group_i;
     i_group[old_group]--;
     group_sum[old_group] -= p_old;
+    
+    //     if (i_group[old_group] == 0 || group_sum[old_group] < 1.0e-25) {
+    //       empty_groups[old_group] = 0;
+    //       //      nempty ++;
+    //     }
 
-    if (i_group[old_group] == 0 || group_sum[old_group] < 1.0e-25) {
-      empty_groups[old_group] = 0;
-      //      nempty ++;
-    }
-
-
+    
     //add to new group
- //    if(new_group > ngroups || new_group < 0)
-//     printf("NEWGROUP %d\n",new_group);
-
+    //    if(new_group > ngroups || new_group < 0)
+    //     printf("NEWGROUP %d\n",new_group);
+    
     if(i_group[new_group] > group_size[new_group]-1){
       grow_group(new_group);
     }
-    else if (i_group[new_group] < group_size[new_group]/4){
-      shrink_group(new_group);
-    }
+    //    else if (i_group[new_group] < group_size[new_group]/4){
+    //   shrink_group(new_group);
+    // }
 
 
     group[new_group][i_group[new_group]] = j;
@@ -261,12 +297,14 @@ void Groups::alter_element(int j, double *p, double p_new)
     my_group_i[j] = i_group[new_group];
     i_group[new_group]++;
     group_sum[new_group] += p_new;
+    
+    //     if(p_new > lo & empty_groups[old_group] == 0) {
+    //       empty_groups[old_group] = 1;
+    //       //    nempty --;
+    //     }
 
-    if(p_new > lo & empty_groups[old_group] == 0) {
-      empty_groups[old_group] = 1;
-      //    nempty --;
-    }
-  }
+
+     }
 
   //update total sum
   psum += diff;
@@ -320,9 +358,10 @@ void Groups::grow_group(int g)
   delete [] group[g];
 
   group[g] = tmpg;
+  // cout << "Grew group "<<g <<"  from "<<group_size[g]/2 <<" to "
+  //      << group_size[g]<<"."<<endl;
+  //  realloc(group[g],group_size[g]);
 
-//   cout << "Grew group "<<g <<"  from "<<group_size[g]/2 <<" to "
-//        << group_size[g]<<"."<<endl;
 }
 /* ----------------------------------------------------------------------
    Compress group space
@@ -387,13 +426,13 @@ int Groups::sample(double *p)
       r =  sample_with_rejection(grp, p);
     }
 
-    //cnt ++;
-    //if(cnt > 1000) {
+    //   if(cnt > 5) {
       //      group_diagnostic(p);
     //  cout << "cycling in sample ..."<<cnt<<endl;
     //  exit(1);
     //}
   }
+  //  if (cnt <2) cout <<"num of samples = "<<cnt<<endl;
 
   return r;
 }
@@ -421,12 +460,15 @@ int Groups::linear_select_group()
   g = 0;
 
   //  while (g < ngroups && nempty < ngroups){
-  while (g < ngroups){
+  while (g < ngroups+1){
     partial += group_sum[g];
     if (partial > compare) return g;
     g++;
   }
-  //  cout << "no selection of group"<<endl;
+//   cout << "no selection of group"<<endl;
+//   cout <<"partial = "<<partial<<" compare = "<<compare<<" psum = "<<psum
+//        <<" g = "<<g<< " group_sum[g] = "<< group_sum[g]
+//        <<endl;
   return -1; //no group selected
 }
 /* ----------------------------------------------------------------------
