@@ -5,11 +5,9 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		mpic++
-#CCFLAGS =	-O -MMD -DTMEMORY
-CCFLAGS =	-MMD -DTMEMORY
+CCFLAGS =	-O -MMD -DOMPI_SKIP_MPICXX
 LINK =		mpic++
-#LINKFLAGS =	-O
-LINKFLAGS =	
+LINKFLAGS =	-O
 USRLIB =
 SYSLIB = 
 SIZE =		size

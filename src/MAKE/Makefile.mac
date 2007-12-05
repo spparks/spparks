@@ -5,7 +5,7 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		c++
-CCFLAGS =	-O -MMD -I../STUBS -DTMEMORY
+CCFLAGS =	-O -MMD -I../STUBS 
 LINK =		c++
 LINKFLAGS =	-O 
 USRLIB =	../STUBS/mpi.o
