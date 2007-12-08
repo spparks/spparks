@@ -19,9 +19,10 @@ Memory::Memory(SPK *spk) : SysPtr(spk) {}
    safe malloc 
 ------------------------------------------------------------------------- */
 
-void *Memory::smalloc(int n, const char *name)
+void *Memory::smalloc(long long int n, const char *name)
 {
   if (n == 0) return NULL;
+  //  printf("Attempting to allocate %ld bytes for array %s \n",n,name);
   void *ptr = malloc(n);
   if (ptr == NULL) {
     char str[128];
@@ -46,7 +47,7 @@ void Memory::sfree(void *ptr)
    safe realloc 
 ------------------------------------------------------------------------- */
 
-void *Memory::srealloc(void *ptr, int n, const char *name)
+void *Memory::srealloc(void *ptr, long long int n, const char *name)
 {
   if (n == 0) return NULL;
   ptr = realloc(ptr,n);

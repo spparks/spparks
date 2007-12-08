@@ -14,9 +14,9 @@ class Memory : protected SysPtr {
  public:
   explicit Memory(class SPK *);
 
-  void *smalloc(int n, const char *);
+  void *smalloc(long long int n, const char *);
   void sfree(void *);
-  void *srealloc(void *, int n, const char *name);
+  void *srealloc(void *, long long int n, const char *name);
 
   double *create_1d_double_array(int, int, const char *);
   void destroy_1d_double_array(double *, int);

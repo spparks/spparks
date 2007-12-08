@@ -68,13 +68,14 @@ void SolveTree::init(int n, double *propensity)
   // m = value such that 2^m >= nevents
 
   int m = 0;
-  int neat = 1;
+  long long int neat = 1;
 
   while (neat < nevents) {neat *=2; m++;}
 
   // create tree of length ntotal
 
-  ntotal = 2*neat - 1;
+  // Use 64bit math, so we can handle ntotal = 2^31-1
+  ntotal = 2LL*neat - 1;
   tree = new double[ntotal];
   offset = neat - 1;
 
