@@ -22,6 +22,8 @@ using namespace SPPARKS;
 AppPotts3d6n::AppPotts3d6n(SPK *spk, int narg, char **arg) : 
   AppLattice3d(spk,narg,arg)
 {
+  char* spinfile;
+
   // parse arguments
 
   if (narg != 6) error->all("Invalid app_style potts/3d/6n command");
@@ -32,6 +34,25 @@ AppPotts3d6n::AppPotts3d6n(SPK *spk, int narg, char **arg) :
   nspins = atoi(arg[4]);
   seed = atoi(arg[5]);
   random = new RandomPark(seed);
+  init_style = RANDOM;
+
+  // parse optional arguments
+
+  int iarg = 6;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"random") == 0) {
+      init_style = RANDOM;
+      iarg ++;
+    } else if (strcmp(arg[iarg],"read") == 0) {
+      init_style = READ;
+      iarg ++;
+      if (iarg >= narg) error->all("Illegal app_style potts/3d/6n command");
+      int n = strlen(arg[iarg]) + 1;
+      spinfile = new char[n];
+      spinfile = strcpy(spinfile,arg[iarg]);
+      iarg ++;
+    } else error->all("Illegal app_style potts/3d/6n command");
+  }
 
   masklimit = 3.0;
 
@@ -42,23 +63,33 @@ AppPotts3d6n::AppPotts3d6n(SPK *spk, int narg, char **arg) :
 			    "app:lattice");
 
   // initialize my portion of lattice
-  // each site = one of nspins
-  // loop over global list so assigment is independent of # of procs
 
-  int i,j,k,ii,jj,kk,isite;
-  for (i = 1; i <= nx_global; i++) {
-    ii = i - nx_offset;
-    for (j = 1; j <= ny_global; j++) {
-      jj = j - ny_offset;
-      for (k = 1; k <= nz_global; k++) {
-	kk = k - nz_offset;
-	isite = random->irandom(nspins);
-	if (ii >= 1 && ii <= nx_local && jj >= 1 && jj <= ny_local &&
-	    kk >= 1 && kk <= nz_local)
-	  lattice[ii][jj][kk] = isite;
-      }
+  if (init_style == RANDOM) {
+  // each site = one of nspins
+  // loop over global list so assignment is independent of # of procs
+    int i,j,k,ii,jj,kk,isite;
+    for (i = 1; i <= nx_global; i++) {
+      ii = i - nx_offset;
+      for (j = 1; j <= ny_global; j++) {
+	jj = j - ny_offset;
+	for (k = 1; k <= nz_global; k++) {
+	  kk = k - nz_offset;
+	  isite = random->irandom(nspins);
+	  if (ii >= 1 && ii <= nx_local && jj >= 1 && jj <= ny_local &&
+	      kk >= 1 && kk <= nz_local) {
+	    lattice[ii][jj][kk] = isite;
+	  }
+
+	}
+      } 
     }
+  } else if (init_style == READ) {
+  // rad from file
+    read_spins(spinfile);
   }
+
+  delete [] spinfile;
+
 }
 
 /* ---------------------------------------------------------------------- */

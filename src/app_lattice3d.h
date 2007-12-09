@@ -30,9 +30,11 @@ class AppLattice3d : public App {
   void virtual site_clear_mask(char ***, int, int, int) = 0;
 
  protected:
+  enum InitStyles {RANDOM,READ};
   int me,nprocs;
   int ntimestep,seed;
   int dump_style;
+  int init_style;
   double time,stoptime;
   double stats_time,stats_delta;
   double dump_time,dump_delta;
@@ -81,6 +83,7 @@ class AppLattice3d : public App {
 
   void iterate();
   void stats();
+  void stats_header();
   void dump_header();
   void dump();
   void dump_lattice();
@@ -96,6 +99,8 @@ class AppLattice3d : public App {
   void procs2lattice();
 
   void ijkpbc(int &, int &, int &);
+
+  void read_spins(const char*);
 };
 
 // remap i,j,k indices via PBC if needed

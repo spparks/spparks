@@ -15,6 +15,7 @@ Solve::Solve(SPK *spk, int narg, char **arg) : SysPtr(spk)
   int n = strlen(arg[0]) + 1;
   style = new char[n];
   strcpy(style,arg[0]);
+  sum = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -22,4 +23,11 @@ Solve::Solve(SPK *spk, int narg, char **arg) : SysPtr(spk)
 Solve::~Solve()
 {
   delete [] style;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double Solve::get_total_propensity()
+{
+  return sum;
 }

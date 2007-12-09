@@ -83,6 +83,7 @@ void SolveTree::init(int n, double *propensity)
   for (int i = offset; i < offset + n; i++)
     tree[i] = propensity[i-offset];
   sum_tree();
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -113,13 +114,13 @@ int SolveTree::event(double *pdt)
   int m;
   double r2;
 
-  double sumt = tree[0];
-  if (sumt == 0.0) return -1;
+  if (sum == 0.0) return -1;
 
   r2 = random->uniform();
-  m = find(r2*sumt);
+  m = find(r2*sum);
   
-  *pdt = -1.0/sumt * log(random->uniform());
+  *pdt = -1.0/sum * log(random->uniform());
+
   return m;
 }
 
@@ -135,6 +136,8 @@ void SolveTree::sum_tree()
     child2 = 2*parent + 2;
     tree[parent] = tree[child1] + tree[child2];
   }
+  // Update total propensity
+  sum = tree[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -159,6 +162,10 @@ void SolveTree::set(int i, double value)
     tree[parent] = tree[i] + tree[sibling];
     i = parent;
   }
+
+  // Update total propensity
+  sum = tree[0];
+
 }
 
 /* ----------------------------------------------------------------------
@@ -193,3 +200,4 @@ void SolveTree::free_arrays()
 {
   delete [] tree;
 }
+

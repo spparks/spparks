@@ -11,11 +11,16 @@
 namespace SPPARKS {
 
 class Solve : protected SysPtr {
+ protected:
+  double sum;
+
  public:
   char *style;
 
   Solve(class SPK *, int, char **);
   virtual ~Solve();
+
+  double get_total_propensity();
 
   // pure virtual functions, must be defined in child class
 

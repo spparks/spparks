@@ -32,7 +32,6 @@ class SolveTree : public Solve {
   int seed;
   class RandomPark *random;
   int nevents;
-  double sum;
 
   double *tree;
   int offset;

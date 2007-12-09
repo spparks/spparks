@@ -154,3 +154,4 @@ int SolveGroup::event(double *pdt)
   *pdt = -1.0/sum * log(random->uniform());
   return m;
 }
+

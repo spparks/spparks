@@ -30,7 +30,6 @@ class SolveGroup : public Solve {
   int nevents,nzeroes;
   double *p;
   double last_size;
-  double sum;
   int ngroups_in;
   bool ngroups_flag;
   double lo,hi;

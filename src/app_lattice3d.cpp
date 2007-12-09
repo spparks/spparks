@@ -19,7 +19,9 @@
 
 using namespace SPPARKS;
 
-enum{LATTICE,COORD};
+enum DumpStyles {LATTICE,COORD};
+
+#define MAXLINE 256
 
 /* ---------------------------------------------------------------------- */
 
@@ -178,19 +180,7 @@ void AppLattice3d::init()
     dump();
   }
 
-  // print stats header and initial stats
-  
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"Timestep Time Energy");
-      fprintf(screen,"\n");
-    }
-    if (logfile) {
-      fprintf(logfile,"Timestep Time Energy");
-      fprintf(logfile,"\n");
-    }
-  }
-
+  stats_header();
   stats();
 }
 
@@ -297,6 +287,7 @@ void AppLattice3d::stats()
 {
   int i,j,k;
   double energy,all;
+  double ptot;
   
   comm->all(lattice);
 
@@ -308,11 +299,36 @@ void AppLattice3d::stats()
 
   MPI_Allreduce(&energy,&all,1,MPI_DOUBLE,MPI_SUM,world);
 
+  if (solve == NULL) {
+    ptot = 0.0;
+  } else {
+    ptot = solve->get_total_propensity();
+  }
+
   if (me == 0) {
     if (screen)
-      fprintf(screen,"%d %f %f\n",ntimestep,time,all);
+      fprintf(screen,"%d %f %f %f\n",ntimestep,time,all,ptot);
     if (logfile)
-      fprintf(logfile,"%d %f %f\n",ntimestep,time,all);
+      fprintf(logfile,"%d %f %f %f\n",ntimestep,time,all,ptot);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   print stats header
+------------------------------------------------------------------------- */
+
+void AppLattice3d::stats_header()
+{
+
+  if (me == 0) {
+    if (screen) {
+      fprintf(screen,"Timestep Time Energy Propensity");
+      fprintf(screen,"\n");
+    }
+    if (logfile) {
+      fprintf(logfile,"Timestep Time Energy Propensity");
+      fprintf(logfile,"\n");
+    }
   }
 }
 
@@ -694,4 +710,81 @@ void AppLattice3d::procs2lattice()
   ny_sector_hi = ny_local;
   nz_sector_lo = 1;
   nz_sector_hi = nz_local;
+}
+
+/* ----------------------------------------------------------------------
+   read lattice spin values from file
+   unique grain identifier and spin values (agg3d pic file)
+   the grain identifier is ignored, only the spin value is stored.
+ ------------------------------------------------------------------------- */
+
+void AppLattice3d::read_spins(const char* infile)
+{
+  char line[MAXLINE];
+  char *eof;
+  int i,j,k,ii,jj,kk,isite,nbuf,nglobal,ndata,maxbuf,ierr;
+  int* ipnt;
+  // open file
+
+  if (me == 0) {
+    fp = fopen(infile,"r");
+    if (fp == NULL) {
+      char str[128];
+      sprintf(str,"Cannot open file %s",infile);
+      error->one(str);
+    }
+  }
+
+  nglobal = nx_global*ny_global*nz_global;
+  ndata = 2;
+  maxbuf = 1000;
+  delete [] ibuf;
+  ibuf = new int[ndata*maxbuf];
+  isite = 0;
+  while (isite < nglobal) {
+    nbuf = 0;
+    ipnt = ibuf;
+    while (nbuf < maxbuf && isite < nglobal) {
+      if (me == 0) {
+	eof = fgets(line,MAXLINE,fp);
+	if (eof == NULL) error->one("Unexpected end of lattice spin file");
+	while (line[0]=='#') {
+	  eof = fgets(line,MAXLINE,fp);
+	  if (eof == NULL) error->one("Unexpected end of lattice spin file");
+	}
+
+	ierr = sscanf(line,"%d %d",ipnt,ipnt+1);
+	if (ierr != 2) {
+	  error->one("Unexpected value in spin file");
+	}
+      }
+      ipnt+=ndata;
+      nbuf++;
+      isite++;
+    }
+    MPI_Bcast(ibuf,ndata*nbuf,MPI_INT,0,world);
+
+    ipnt = ibuf;
+    for (int m = isite-nbuf; m < isite; m++) {
+      // This file format breaks the SPParKS rule 
+      // In agg3d, the innermost loop is on the first coordinate
+      i = m % nx_global + 1;
+      j = (m / nx_global) % ny_global + 1;
+      k = m / ny_global/nx_global + 1;
+      ii = i - nx_offset;
+      jj = j - ny_offset;
+      kk = k - nz_offset;
+      if (ii >= 1 && ii <= nx_local && jj >= 1 && jj <= ny_local &&
+	  kk >= 1 && kk <= nz_local)
+	lattice[ii][jj][kk] = ipnt[1];
+      ipnt+=ndata;
+    }
+  }
+
+  if (me == 0) {
+    fclose(fp);
+  }
+
+  delete [] ibuf;
+
 }

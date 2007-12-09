@@ -1139,19 +1139,7 @@ void AppLattice::init()
     dump();
   }
 
-  // print stats header and initial stats
-  
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"Timestep Time Energy");
-      fprintf(screen,"\n");
-    }
-    if (logfile) {
-      fprintf(logfile,"Timestep Time Energy");
-      fprintf(logfile,"\n");
-    }
-  }
-
+  stats_header();
   stats();
 }
 
@@ -1258,6 +1246,7 @@ void AppLattice::stats()
 {
   int i;
   double energy,all;
+  double ptot;
   
   comm->all(lattice);
 
@@ -1267,13 +1256,38 @@ void AppLattice::stats()
 
   MPI_Allreduce(&energy,&all,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"%d %f %f\n",ntimestep,time,all);
-    if (logfile)
-      fprintf(logfile,"%d %f %f\n",ntimestep,time,all);
+  if (solve == NULL) {
+    ptot = 0.0;
+  } else {
+    ptot = solve->get_total_propensity();
   }
 
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,"%d %f %f %f\n",ntimestep,time,all,ptot);
+    if (logfile)
+      fprintf(logfile,"%d %f %f %f\n",ntimestep,time,all,ptot);
+  }
+
+}
+
+/* ----------------------------------------------------------------------
+   print stats header
+------------------------------------------------------------------------- */
+
+void AppLattice::stats_header()
+{
+
+  if (me == 0) {
+    if (screen) {
+      fprintf(screen,"Timestep Time Energy Propensity");
+      fprintf(screen,"\n");
+    }
+    if (logfile) {
+      fprintf(logfile,"Timestep Time Energy Propensity");
+      fprintf(logfile,"\n");
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

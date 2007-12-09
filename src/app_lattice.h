@@ -107,6 +107,7 @@ class AppLattice : public App {
 
   void iterate();
   void stats();
+  void stats_header();
   void dump_header();
   void dump();
 

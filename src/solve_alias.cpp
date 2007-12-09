@@ -247,3 +247,4 @@ void SolveAlias::free_arrays()
   delete [] q;
   delete [] j;
 }
+

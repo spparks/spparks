@@ -36,8 +36,6 @@ class SolveAlias : public Solve {
   int *hilo;
   int sk, sl, k, l;
 
-  double sum;
-
   void free_arrays();
   void build_alias_table(int, double *);
   void table_dump(int);

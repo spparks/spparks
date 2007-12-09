@@ -11,18 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef AppInclude
-#include "app_gppt.h"
-#endif
+/* #ifdef AppInclude */
+/* #include "app_gppt.h" */
+/* #endif */
 
-#ifdef AppClass
-AppStyle(gppt,AppGPPT)
-#endif
+/* #ifdef AppClass */
+/* AppStyle(gppt,AppGPPT) */
+/* #endif */
 
-#ifdef SolveInclude
-#include "solve_gppt.h"
-#endif
+/* #ifdef SolveInclude */
+/* #include "solve_gppt.h" */
+/* #endif */
 
-#ifdef SolveClass
-SolveStyle(gppt,SolveGPPT)
-#endif
+/* #ifdef SolveClass */
+/* SolveStyle(gppt,SolveGPPT) */
+/* #endif */

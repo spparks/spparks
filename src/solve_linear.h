@@ -28,7 +28,6 @@ class SolveLinear : public Solve {
   class RandomPark *random;
   int nevents,nzeroes;
   double *prob;
-  double sum;
 };
 
 }

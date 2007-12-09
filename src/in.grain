@@ -21,16 +21,17 @@
 
 # 3d
 
-app_style       ising/3d/6n 20 20 20 12345
+#app_style       potts/3d/26n 10 10 20 12345 read pic.dat
+app_style       potts/3d/26n 10 10 20 20 12345 read pic.dat
 
-solve_style	linear 12345
+solve_style	tree 12345
 
 #sweep_style     lattice3d 12345 delt 1.0 mask no
 #sweep_style     lattice3d 12345 delt 1.0 mask yes
 #sweep_style     lattice3d 12345 delt 1.0 mask yes strict yes
-sweep_style     lattice3d 12345 delt 1.0 kmc yes
+#sweep_style     lattice3d 12345 delt 1.0 kmc yes
 
-#temperature	1
+temperature	1.0
 
 stats           1
 dump            1 lattice tmp.grain
