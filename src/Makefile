@@ -26,7 +26,8 @@ help:
 	@echo 'make makelist = create Makefile.list with explicit file list'
 	@echo 'make tar = make tarball of src dir'
 	@echo 'make package = see what packages are available'
-	@echo 'make test = runs set of tests in ../test'
+	@echo 'make test = runs set of tests in ../test using spk_serial'
+	@echo 'make TESTTARGET=<a target> test = runs set of tests in ../test using some other target'
 
 clean:
 	rm -r Obj_*
