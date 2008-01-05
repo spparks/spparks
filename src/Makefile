@@ -26,6 +26,7 @@ help:
 	@echo 'make makelist = create Makefile.list with explicit file list'
 	@echo 'make tar = make tarball of src dir'
 	@echo 'make package = see what packages are available'
+	@echo 'make test = runs set of tests in ../test'
 
 clean:
 	rm -r Obj_*
@@ -46,6 +47,20 @@ tar:
 	@cd Obj_$@; \
 	$(MAKE)  "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm $(SRC) $(INC) Makefile*; fi
+
+	@cd ../test; files="`ls in.*`"; \
+
+# Can overide this on command line e.g. make TESTTARGET=mac_mpi test
+TESTTARGET = serial
+
+test:
+	@cp MAKE/Makefile.$(TESTTARGET) ../test/Makefile
+	@cd ../test; rm -f test.out; \
+	files="in.abc in.abc.alex in.event in.ising in.kristi in.membrane in.potts in.surf"; \
+	for file in $$files; do echo >> test.out;echo >> test.out; \
+	echo "*** Testing file $$file ***" >> test.out;echo >> test.out; \
+	$(MAKE) "INPUTFILE = $$file" "EXE = ../src/$(ROOT)_$(TESTTARGET)" test >> test.out; \
+	done; rm Makefile
 
 # Update Makefile.lib and Makefile.list
 

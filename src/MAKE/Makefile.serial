@@ -8,12 +8,17 @@ CC =		g++
 CCFLAGS =	-O -I../STUBS
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-O -L../STUBS
-USRLIB =	-lmpi
+LINKFLAGS =	-O
+USRLIB =	../STUBS/mpi.o
 SYSLIB = 
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size
+
+# Test rule
+
+test:
+	$(EXE) < $(INPUTFILE)
 
 # Link target
 
@@ -37,4 +42,4 @@ lib:	$(OBJ)
 # Individual dependencies
 
 DEPENDS = $(OBJ:.o=.d)
-include $(DEPENDS)
+-include $(DEPENDS)

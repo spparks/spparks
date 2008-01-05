@@ -1,16 +1,17 @@
-# 1+1 surface growth script ???
+# 1+1 surface growth script
 
-app_style	growth/2d
-solve_style	gillespie/variable 12345
+app_style	surf 30 1.0 59389
+solve_style	linear 12345
 
-lattice		100 3.65
-temperature	300.0
-
-deposit		1.0e8
-diffusive	3.0e-6
+temperature	1.0
 potential	lj 3.0
 
-stats           10
-dump		100 snapshot
+rates		1
 
-run		1000
+stats           1
+dump		1 tmp.dump
+
+run		50
+
+
+

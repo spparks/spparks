@@ -6,9 +6,12 @@
 # the various methods give equivalent results, if delt for 
 # Metroplis sweeping is set to 1/Ns 
 #
-# app_style	lat Nx Ny (Nz) Ns 12345 = lattice of type lat and size Nx by Ny (by Nz), Ns = spins, RN
+# app_style	lat Nx Ny (Nz) Ns 12345 (random) (read filename)
+#  		    = lattice of type lat and size Nx by Ny (by Nz), Ns = spins, RN
 #		lat = potts/2d/4n potts/2d/8n potts/3d/6n potts/3d/26n
 #		Nz only included for 3d lattices
+#		random option initializes spin values using random values
+#		read option reads initial spin values from file = filename
 # sweep_style   lat 12345 (mask yes/no) (strict yes/no) (kmc yes/no) (delt = time per sweep or KMC threshold time, default 1.0)
 #  		lat = lattice2d lattice3d
 #		kmc option requires that a solve_style command be provided
@@ -203,3 +206,15 @@ clear
 #run		0.1
 #
 #clear
+
+
+app_style       potts/3d/26n 10 10 20 20 12345 read pic.dat
+
+solve_style     tree 12345
+
+temperature     1.0
+
+stats           0.1
+dump            1 lattice tmp.grain
+
+run             1

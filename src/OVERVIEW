@@ -26,9 +26,13 @@ app_style style args ... options args
 define an application for SPPARKS to run
 see commands for individual styles
 
-styles derived from AppLattice2d or AppLattice3d do not allow options
-styles derived from the generic AppLattice allow for additional options
-  described here
+styles derived from AppLattice2d and AppLattice3d allow for
+  the following options:
+ 
+options = (random) or (read <filename>)
+
+styles derived from the generic AppLattice allow for the 
+  the following options:
 
 options = lattice or site
   lattice style args ...

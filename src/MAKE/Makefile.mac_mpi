@@ -12,6 +12,11 @@ USRLIB =
 SYSLIB = 
 SIZE =		size
 
+# Test rule
+
+test:
+	mpirun -np 1 $(EXE) < $(INPUTFILE)
+
 # Link rule
 
 $(EXE):	$(OBJ)

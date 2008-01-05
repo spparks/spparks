@@ -18,8 +18,8 @@ OBJ = 		$(SRC:.c=.o)
 CC =		g++
 CCFLAGS =	-O
 ARCHIVE =	ar
-#ARCHFLAG =	rs
-ARCHFLAG =	r
+ARCHFLAG =	rs
+#ARCHFLAG =	r
 
 # Target
 

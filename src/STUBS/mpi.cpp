@@ -94,6 +94,12 @@ void MPI_Waitany(int count, MPI_Request *request, int *index,
   printf("MPI Stub WARNING: Should not wait on message from self\n");
 }
 
+void MPI_Waitall(int count, MPI_Request *request, 
+		 MPI_Status *status)
+{
+  printf("MPI Stub WARNING: Should not wait on message from self\n");
+}
+
 void MPI_Sendrecv(void *sbuf, int scount, MPI_Datatype sdatatype,
 		  int dest, int stag, void *rbuf, int rcount,
 		  MPI_Datatype rdatatype, int source, int rtag,

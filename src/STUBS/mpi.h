@@ -53,6 +53,8 @@ void MPI_Irecv(void *buf, int count, MPI_Datatype datatype,
 void MPI_Wait(MPI_Request *request, MPI_Status *status);
 void MPI_Waitany(int count, MPI_Request *request, int *index, 
 		 MPI_Status *status);
+void MPI_Waitall(int count, MPI_Request *request, 
+	         MPI_Status *status);
 void MPI_Sendrecv(void *sbuf, int scount, MPI_Datatype sdatatype,
 		  int dest, int stag, void *rbuf, int rcount,
 		  MPI_Datatype rdatatype, int source, int rtag,

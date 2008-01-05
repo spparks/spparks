@@ -1,11 +1,193 @@
-# Simple A + B <-> C reaction via Gillepsie SSA
+# Event generator test simulation
+
+#solve_style	linear  1234734
+#solve_style	alias  12345
+#solve_style	tree  12388788
 
 app_style	test
-solve_style	next_event_linear_search  12345
-#solve_style	next_event_tree_search  12345
+solve_style	group  1.0e-8 1.0 20 1234777
+#event           100  30
+event           100  30 lo_mem 384745
+run		1000000.0
 
-event           1000
+clear
 
-stats           100.0
+app_style	test
+solve_style	group  1.0e-8 1.0 20 1234777
+#event           200  30
+event           200  30 lo_mem 384745
+run		1000000.0
 
-run		1000.0
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           400  30
+#event           400  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           800  30
+#event           800  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           1600  30
+#event           1600  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           3200  30
+#event           3200  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           6400  30
+#event           6400  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           12800  30
+#event           12800  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           25600  30
+#event           25600  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           51200  30
+#event           51200  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           102400  30
+#event           102400  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           204800  30
+#event           204800  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           409600  30
+#event           409600  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           819200  30
+#event           819200  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           1638400  30
+#event           1638400  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           3276800  30
+#event           3276800  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           6553600  30
+#event           6553600  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           13107200  30
+#event           13107200  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+# too big for non lo_mem version
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           26214400  30
+#event           26214400  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           52428800  30
+#event           52428800  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           104857600  30
+#event           104857600  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+#app_style	test
+#solve_style	group  1.0e-8 1.0 20 1234777
+#event           209715200  30
+#event           209715200  30 lo_mem 384745
+#run		100000000.0
+
+#clear
+
+# too big for lo_mem group search
+#event           419430400  30
+#event           419430400  30 lo_mem 384745
+#run		100000000.0
+
+# too big for lo_mem tree search
+##event           838860800  30
+#event           838860800  30 lo_mem 384745
+#run		100000000.0
