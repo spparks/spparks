@@ -14,6 +14,11 @@ USRLIB =
 SYSLIB =	-lstdc++ -lm
 SIZE =		size
 
+# Test rule
+
+test:
+	mpiexec -np 2 $(EXE) < $(INPUTFILE)
+
 # Link rule
 
 $(EXE):	$(OBJ)
