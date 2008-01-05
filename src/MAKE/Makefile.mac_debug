@@ -1,4 +1,4 @@
-# mac = Apple PowerBook G4 laptop, c++, no MPI, debug flags
+# mac_debug = Apple PowerBook G4 laptop, c++, no MPI, debug flags
 # This version uses the MallocDebug library, which
 # crashes when it encounters various memory errors. 
 # Running using gdb and typing where after it crashes,

@@ -25,7 +25,7 @@ using namespace SPPARKS;
 AppPotts2d24n::AppPotts2d24n(SPK *spk, int narg, char **arg) : 
   AppLattice2d(spk,narg,arg)
 {
-  char* spinfile;
+  char* spinfile = NULL;
 
   // parse arguments
 

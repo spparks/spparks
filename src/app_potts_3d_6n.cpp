@@ -22,7 +22,7 @@ using namespace SPPARKS;
 AppPotts3d6n::AppPotts3d6n(SPK *spk, int narg, char **arg) : 
   AppLattice3d(spk,narg,arg)
 {
-  char* spinfile;
+  char* spinfile = NULL;
 
   // parse arguments
 
