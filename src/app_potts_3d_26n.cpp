@@ -20,38 +20,18 @@ using namespace SPPARKS;
 /* ---------------------------------------------------------------------- */
 
 AppPotts3d26n::AppPotts3d26n(SPK *spk, int narg, char **arg) : 
-  AppLattice3d(spk,narg,arg)
+  AppPotts3d(spk,narg,arg)
 {
-  char* spinfile = NULL;
 
-  // parse arguments
+  // parse any remaining arguments
 
-  if (narg < 6) error->all("Invalid app_style potts/3d/26n command");
-
-  nx_global = atoi(arg[1]);
-  ny_global = atoi(arg[2]);
-  nz_global = atoi(arg[3]);
-  nspins = atoi(arg[4]);
-  seed = atoi(arg[5]);
-  random = new RandomPark(seed);
-  init_style = RANDOM;
-
-  // parse optional arguments
-
-  int iarg = 6;
+  int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"random") == 0) {
-      init_style = RANDOM;
+    if (strcmp(arg[iarg],"sample_argument") == 0) {
       iarg ++;
-    } else if (strcmp(arg[iarg],"read") == 0) {
-      init_style = READ;
-      iarg ++;
-      if (iarg >= narg) error->all("Illegal app_style potts/3d/26n command");
-      int n = strlen(arg[iarg]) + 1;
-      spinfile = new char[n];
-      spinfile = strcpy(spinfile,arg[iarg]);
-      iarg ++;
-    } else error->all("Illegal app_style potts/3d/26n command");
+    } else {
+      error->all("Illegal app_style potts/3d/26n command");
+    }
   }
 
   masklimit = 13.0;
@@ -87,8 +67,6 @@ AppPotts3d26n::AppPotts3d26n(SPK *spk, int narg, char **arg) :
   // rad from file
     read_spins(spinfile);
   }
-
-  delete [] spinfile;
 
 }
 /* ---------------------------------------------------------------------- */

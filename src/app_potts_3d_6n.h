@@ -6,11 +6,11 @@
 #ifndef APP_POTTS_3D_6N_H
 #define APP_POTTS_3D_6N_H
 
-#include "app_lattice3d.h"
+#include "app_potts_3d.h"
 
 namespace SPPARKS {
 
-class AppPotts3d6n : public AppLattice3d {
+class AppPotts3d6n : public AppPotts3d {
  public:
   AppPotts3d6n(class SPK *, int, char **);
   ~AppPotts3d6n();
@@ -24,8 +24,6 @@ class AppPotts3d6n : public AppLattice3d {
   void site_clear_mask(char ***, int, int, int);
   void survey_neighbor(const int&, const int&, int&, int[], int[]) const;
 
- private:
-  int nspins;
 };
 
 }

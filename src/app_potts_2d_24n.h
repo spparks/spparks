@@ -6,11 +6,11 @@
 #ifndef APP_POTTS_2D_24N_H
 #define APP_POTTS_2D_24N_H
 
-#include "app_lattice2d.h"
+#include "app_potts_2d.h"
 
 namespace SPPARKS {
 
-class AppPotts2d24n : public AppLattice2d {
+class AppPotts2d24n : public AppPotts2d {
  public:
   AppPotts2d24n(class SPK *, int, char **);
   ~AppPotts2d24n();
@@ -24,8 +24,6 @@ class AppPotts2d24n : public AppLattice2d {
   void site_clear_mask(char **, int, int);
   void survey_neighbor(const int&, const int&, int&, int[], int[]) const;
 
- private:
-  int nspins;
 };
 
 }

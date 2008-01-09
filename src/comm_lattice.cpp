@@ -26,7 +26,7 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-CommLattice::CommLattice(class SPK *spk) : SysPtr(spk)
+CommLattice::CommLattice(SPK *spk) : SysPtr(spk)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
