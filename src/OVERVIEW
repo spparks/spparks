@@ -387,14 +387,16 @@ dump 10
   dump snapshot every this many events in LAMMPS atom format
 
 -----------------------------------------------------------------------
-* app_style test
+* app_style test/group and test/group2
 
-app_style test
+app_style test/group
+app_style test/group2
 
-run an app to test solver performance.
-  Runs 10^6 events and displays timings
-  of solver, update, and other.
- 
+run an app to test group solver performance
+two versions of this app
+  group = Alex's original version
+  group2 = Steve's trimmed down version (used for JCP paper)
+
 also need to define a "solve" style:
   see "* solve_style" below
 
