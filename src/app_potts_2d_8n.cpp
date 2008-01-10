@@ -25,6 +25,7 @@ using namespace SPPARKS;
 AppPotts2d8n::AppPotts2d8n(SPK *spk, int narg, char **arg) : 
   AppPotts2d(spk,narg,arg)
 {
+  char* spinfile = NULL;
 
   // parse any remaining arguments
 
@@ -67,7 +68,6 @@ AppPotts2d8n::AppPotts2d8n(SPK *spk, int narg, char **arg) :
   }
 
   delete [] spinfile;
-
 }
 
 /* ---------------------------------------------------------------------- */

@@ -41,17 +41,17 @@ added   else if (!strcmp(command,"event")) event();
 added definitions for the test app and next_event_linear_search style
 ----------------------------------------------------------------------*/
 
-#ifndef APP_TEST_H
-#define APP_TEST_H
+#ifndef APP_TEST_GROUP_H
+#define APP_TEST_GROUP_H
 
 #include "app.h"
 
 namespace SPPARKS {
 
-class AppTest : public App {
+class AppTestGroup : public App {
  public:
-  AppTest(class SPK *, int, char **);
-  ~AppTest();
+  AppTestGroup(class SPK *, int, char **);
+  ~AppTestGroup();
   void init();
   void input(char *, int, char **);
   void run(int, char **);
@@ -60,9 +60,9 @@ class AppTest : public App {
 
   class RandomPark *random;
 
-  //time keeping
   int ntimestep;
-  double time,stoptime;
+  double time;
+  int nlimit;
 
   //event table
   int *ndepends;             // # of events that depend on each event

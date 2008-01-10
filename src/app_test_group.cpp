@@ -7,7 +7,7 @@
 #include "stdlib.h"
 #include <iostream>
 #include "string.h"
-#include "app_test.h"
+#include "app_test_group.h"
 #include "spk.h"
 #include "solve.h"
 #include "finish.h"
@@ -25,9 +25,10 @@ using namespace std;
 
 /* ---------------------------------------------------------------------- */
 
-AppTest::AppTest(SPK *spk, int narg, char **arg) : App(spk, narg, arg)
+AppTestGroup::AppTestGroup(SPK *spk, int narg, char **arg) :
+  App(spk, narg, arg)
 {
-  if (narg != 1) error->all("Invalid app_style test command");
+  if (narg != 1) error->all("Invalid app_style test/group command");
 
   propensity = NULL;
   ndepends = NULL;
@@ -41,7 +42,6 @@ AppTest::AppTest(SPK *spk, int narg, char **arg) : App(spk, narg, arg)
   dep_graph_flag = true;
   ntimestep = 0;
   time = 0.0;
-  stoptime = 0.0;
   stats_delta = 0.0;
 
   // classes needed by this app
@@ -54,7 +54,7 @@ AppTest::AppTest(SPK *spk, int narg, char **arg) : App(spk, narg, arg)
 
 /* ---------------------------------------------------------------------- */
 
-AppTest::~AppTest()
+AppTestGroup::~AppTestGroup()
 {
   delete [] propensity;
   delete [] ndepends;
@@ -68,7 +68,7 @@ AppTest::~AppTest()
 
 /* ---------------------------------------------------------------------- */
 
-void AppTest::init()
+void AppTestGroup::init()
 {
 
   if (n_event_types == 0)
@@ -121,17 +121,11 @@ void AppTest::init()
     fprintf(logfile,"Step Time Counts");
     fprintf(logfile,"\n");
   }
-  //stats();
-
-  // setup future calls to stats()
-
-  stats_time = time + stats_delta;
-  if (stats_delta == 0.0) stats_time = stoptime;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AppTest::input(char *command, int narg, char **arg)
+void AppTestGroup::input(char *command, int narg, char **arg)
 {
   if (narg == 0) error->all("Invalid command");
   else if (strcmp(command,"event") == 0) set_event(narg,arg);
@@ -144,10 +138,10 @@ void AppTest::input(char *command, int narg, char **arg)
    perform a run
 ------------------------------------------------------------------------- */
 
-void AppTest::run(int narg, char **arg)
+void AppTestGroup::run(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal run command");
-  stoptime = time + atof(arg[0]);
+  nlimit = atoi(arg[0]);
 
   // error check
 
@@ -172,25 +166,21 @@ void AppTest::run(int narg, char **arg)
    iterate on solver
 ------------------------------------------------------------------------- */
 
-void AppTest::iterate()
+void AppTestGroup::iterate()
 {
   int d,ievent;
-  // uncomment to control number of total events
-  int nev = 0;
   double dt;
   int rdp; // random number of dependencies
   int tdep; 
 
+  ntimestep = 0;
   int done = 0;
 
   timer->barrier_start(TIME_LOOP);
 
   while (!done) {
-
-    // uncomment to control total number of events
-    nev++;
-
     ntimestep++;
+
     timer->stamp();
     ievent = solve->event(&dt);
     count[ievent]++;
@@ -225,33 +215,20 @@ void AppTest::iterate()
     // update time by dt
 
     time += dt;
-    if (time >= stoptime) done = 1;
+    if (ntimestep >= nlimit) done = 1;
     else if (ievent < 0) done = 1;
-    // uncomment to control total number of events
-    else if (nev > 1000000) done = 1;
-
-    //    if (nev%100000==0)cout <<"event "<<nev<<endl;
-
-    if (time > stats_time || done) {
-      timer->stamp();
-      // comment out for huge number of events
-      //stats();
-      stats_time += stats_delta;
-      timer->stamp(TIME_OUTPUT);
-    }
   }
 
   timer->barrier_stop(TIME_LOOP);
-
-  // comment out when done with timings
-  printf("\nNumber of reactions = %d\n",nevents);
+  
+  printf("\nNumber of reactions, events = %d %d\n",nevents,ntimestep);
 }
 
 /* ----------------------------------------------------------------------
    print stats
 ------------------------------------------------------------------------- */
 
-void AppTest::stats()
+void AppTestGroup::stats()
 {
   int i;
   ssum = 0;
@@ -294,7 +271,7 @@ void AppTest::stats()
 }
 /* ---------------------------------------------------------------------- */
 
-void AppTest::set_event(int narg, char **arg)
+void AppTestGroup::set_event(int narg, char **arg)
 {
   if (narg < 3) error->all("Illegal event command");
 
@@ -313,7 +290,7 @@ void AppTest::set_event(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void AppTest::set_stats(int narg, char **arg)
+void AppTestGroup::set_stats(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal stats command");
   stats_delta = atof(arg[0]);
@@ -324,15 +301,17 @@ void AppTest::set_stats(int narg, char **arg)
    reaction N depends on M if a reactant of N is a reactant or product of M
 ------------------------------------------------------------------------- */
 
-void AppTest::build_dependency_graph()
+void AppTestGroup::build_dependency_graph()
 {
   int m;
   
   int nmax = ndep;
   
-  for (m = 0; m < nevents; m++) 
-    ndepends[m] = static_cast<int>((ndep+1)*random->uniform());
-  
+  for (int m = 0; m < nevents; m++) 
+    ndepends[m] = static_cast<int>(ndep*random->uniform()) + 1;
+  //for (m = 0; m < nevents; m++) 
+  //  ndepends[m] = static_cast<int>((ndep+1)*random->uniform());
+
   for (m = 0; m < nevents; m++)
     nmax = MAX(nmax,ndepends[m]);
   
@@ -348,13 +327,15 @@ void AppTest::build_dependency_graph()
       while (depends[m][e] == m)
 	depends[m][e] = static_cast<int>(nevents*random->uniform());
     }
+
   // uncomment to print dependency graph
   //print_depend_graph();
 }
 /* ----------------------------------------------------------------------
    print dependency network
 ------------------------------------------------------------------------- */
-void AppTest::print_depend_graph()
+
+void AppTestGroup::print_depend_graph()
 {
 
   int m;
@@ -374,7 +355,7 @@ void AppTest::print_depend_graph()
    compute propensity of a single event
 ------------------------------------------------------------------------- */
 
-double AppTest::compute_propensity(int m)
+double AppTestGroup::compute_propensity(int m)
 {
   double p;
   //uniform
