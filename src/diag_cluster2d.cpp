@@ -43,6 +43,7 @@ DiagCluster2d::DiagCluster2d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg
 
 DiagCluster2d::~DiagCluster2d()
 {
+  memory->destroy_2d_T_array(cluster_ids,nxlo,nylo);
   if (me == 0 ) {
     fclose(fp);
     if (idump) fclose(fpdump);
@@ -54,6 +55,23 @@ DiagCluster2d::~DiagCluster2d()
 void DiagCluster2d::init(double time)
 {
   applattice2d = (AppLattice2d *) app;
+  nx_global = applattice2d->nx_global;
+  ny_global = applattice2d->ny_global;
+  nx_procs = applattice2d->nx_procs;
+  ny_procs = applattice2d->ny_procs;
+  delghost = applattice2d->delghost;
+  nx_local = applattice2d->nx_local;
+  ny_local = applattice2d->ny_local;
+  nx_offset = applattice2d->nx_offset;
+  ny_offset = applattice2d->ny_offset;
+  nxlo = applattice2d->nxlo;
+  nylo = applattice2d->nylo;
+  nxhi = applattice2d->nxhi;
+  nyhi = applattice2d->nyhi;
+
+  memory->create_2d_T_array(cluster_ids,nxlo,nxhi,nylo,nyhi,
+			    "diagcluster2d:cluster");
+
   write_header();
   analyze_clusters(time);
   diag_time = time + diag_delta;
@@ -87,9 +105,9 @@ void DiagCluster2d::write_header()
 {
   if (me == 0) {
     fprintf(fp,"Clustering Analysis for 2D Lattice (diag_style cluster2d) \n");
-    fprintf(fp,"App = %s \n",applattice2d->style);
-    fprintf(fp,"nx_global = %d \n",applattice2d->nx_global);
-    fprintf(fp,"ny_global = %d \n",applattice2d->ny_global);
+    fprintf(fp,"App = %s \n",style);
+    fprintf(fp,"nx_global = %d \n",nx_global);
+    fprintf(fp,"ny_global = %d \n",ny_global);
     fprintf(fp,"nprocs = %d \n",nprocs);
   }
 }
@@ -105,12 +123,21 @@ void DiagCluster2d::dump_clusters(double time)
   int* buftmp;
   int maxbuftmp;
   int id;
+  int isite;
+
+  if (me == 0) {
+    fprintf(fpdump,"ITEM: TIME\n");
+    fprintf(fpdump,"%g\n",time);
+    fprintf(fpdump,"ITEM: DIMENSIONS\n");
+    fprintf(fpdump,"%d\n%d\n",nx_global,ny_global);
+    fprintf(fpdump,"ITEM: ELEMENT CLUSTERID\n");
+  }
 
   // set up communication buffer
   // maxbuftmp must equal the maximum number of spins on one domain 
   // plus some extra stuff
-  maxbuftmp = ((applattice2d->nx_global-1)/applattice2d->nx_procs+1+2*applattice2d->delghost)*((applattice2d->ny_global-1)/applattice2d->ny_procs+1+2*applattice2d->delghost)+9;
-  nsend = (applattice2d->nx_local+2*applattice2d->delghost)*(applattice2d->ny_local+2*applattice2d->delghost)+9;
+  maxbuftmp = (nx_global/nx_procs+1)*(ny_global/ny_procs+1)+4;
+  nsend = nx_local*ny_local+9;
   if (maxbuftmp < nsend) 
     error->one("maxbuftmp size too small in DiagCluster2d::dump_clusters()");
   
@@ -118,32 +145,22 @@ void DiagCluster2d::dump_clusters(double time)
 
   // proc 0 writes interactive dump header
 
-  if (me == 0) {
-    fprintf(fpdump,"\n\n***************************\n");
-    fprintf(fpdump,"Time = %f \n",time);
-    fprintf(fpdump,"nx_global = %d ny_global = %d\n",applattice2d->nx_global,applattice2d->ny_global);
-  }
+  // proc 0 writes timestep header
 
   int m = 0;
 
   // pack local layout info into buffer
 
-  buftmp[m++] = applattice2d->nx_local;
-  buftmp[m++] = applattice2d->ny_local;
-  buftmp[m++] = 0;
-  // Need to delete these two
-  buftmp[m++] = 0;
-  buftmp[m++] = 0;
-  buftmp[m++] = 0;
-  buftmp[m++] = applattice2d->nx_offset;
-  buftmp[m++] = applattice2d->ny_offset;
-  buftmp[m++] = 0;
+  buftmp[m++] = nx_local;
+  buftmp[m++] = ny_local;
+  buftmp[m++] = nx_offset;
+  buftmp[m++] = ny_offset;
 
   // pack my lattice values into buffer
-  // Need to violate normal ordering in order to simplify output
+  // Violating normal ordering to satisfy output convention
 
-  for (int j = 1-applattice2d->delghost; j <= applattice2d->ny_local+applattice2d->delghost; j++) {
-    for (int i = 1-applattice2d->delghost; i <= applattice2d->nx_local+applattice2d->delghost; i++) {
+  for (int j = 1; j <= ny_local; j++) {
+    for (int i = 1; i <= nx_local; i++) {
       buftmp[m++] = cluster_ids[i][j];
     }
   }
@@ -167,31 +184,19 @@ void DiagCluster2d::dump_clusters(double time)
       m = 0;
       nxtmp = buftmp[m++];
       nytmp = buftmp[m++];
-      nztmp = buftmp[m++];
-      nxhtmp = buftmp[m++];
-      nyhtmp = buftmp[m++];
-      nzhtmp = buftmp[m++];
       nxotmp = buftmp[m++];
       nyotmp = buftmp[m++];
-      nzotmp = buftmp[m++];
-      fprintf(fpdump,"iproc = %d \n",iproc);
-      fprintf(fpdump,"nxlocal = %d \nnylocal = %d \n",nxtmp,nytmp);
-      fprintf(fpdump,"nx_offset = %d \nny_offset = %d \n",nxotmp,nyotmp);
-      m = nrecv;
-      for (int j = nytmp+applattice2d->delghost; j >= 1-applattice2d->delghost; j--) {
-	m-=nxtmp+2*applattice2d->delghost;
-	for (int i = 1-applattice2d->delghost; i <= nxtmp+applattice2d->delghost; i++) {
+
+  // print lattice values
+  // isite = global grid cell (1:Nglobal)
+  // ordered fast in x, slow in y
+
+      for (int j = 1; j <= nytmp; j++) {
+	for (int i = 1; i <= nxtmp; i++) {
+	  isite = (nyotmp+j-1)*nx_global + (nxotmp+i-1) + 1;
 	  id = clustlist[buftmp[m++]-1].global_id;
-	  fprintf(fpdump,"%3d",id);
-//   // change ids to reduced ids
-//   for (int i = 1; i <= nx_local; i++) {
-//     for (int j = 1; j <= ny_local; j++) {
-//       cluster_ids[i][j] = clustlist[cluster_ids[i][j]-idoffset].global_id;
-//     }
-//   }
+	  fprintf(fpdump,"%3d %3d \n",isite,id);
 	}
-	fprintf(fpdump,"\n");
-	m-=nxtmp+2*applattice2d->delghost;
       }
     }
     
@@ -201,8 +206,6 @@ void DiagCluster2d::dump_clusters(double time)
   }
 
   memory->sfree(buftmp);
-  memory->destroy_2d_T_array(cluster_ids,applattice2d->nxlo,applattice2d->nylo);
-
 }
 
 
@@ -222,8 +225,8 @@ void DiagCluster2d::dump_clusters_detailed()
   // set up communication buffer
   // maxbuftmp must equal the maximum number of spins on one domain 
   // plus some extra stuff
-  maxbuftmp = ((applattice2d->nx_global-1)/applattice2d->nx_procs+1+2*applattice2d->delghost)*((applattice2d->ny_global-1)/applattice2d->ny_procs+1+2*applattice2d->delghost)+9;
-  nsend = (applattice2d->nx_local+2*applattice2d->delghost)*(applattice2d->ny_local+2*applattice2d->delghost)+9;
+  maxbuftmp = ((nx_global-1)/nx_procs+1+2*delghost)*((ny_global-1)/ny_procs+1+2*delghost)+9;
+  nsend = (nx_local+2*delghost)*(ny_local+2*delghost)+9;
   if (maxbuftmp < nsend) 
     error->one("maxbuftmp size too small in DiagCluster2d::dump_clusters()");
   
@@ -233,29 +236,29 @@ void DiagCluster2d::dump_clusters_detailed()
 
   if (me == 0) {
     fprintf(fpdump,"*** Cluster Dump ***\n");
-    fprintf(fpdump,"nx_global = %d ny_global = %d\n",applattice2d->nx_global,applattice2d->ny_global);
+    fprintf(fpdump,"nx_global = %d ny_global = %d\n",nx_global,ny_global);
   }
 
   int m = 0;
 
   // pack local layout info into buffer
 
-  buftmp[m++] = applattice2d->nx_local;
-  buftmp[m++] = applattice2d->ny_local;
+  buftmp[m++] = nx_local;
+  buftmp[m++] = ny_local;
   buftmp[m++] = 0;
   // Need to delete these two
   buftmp[m++] = 0;
   buftmp[m++] = 0;
   buftmp[m++] = 0;
-  buftmp[m++] = applattice2d->nx_offset;
-  buftmp[m++] = applattice2d->ny_offset;
+  buftmp[m++] = nx_offset;
+  buftmp[m++] = ny_offset;
   buftmp[m++] = 0;
 
   // pack my lattice values into buffer
   // Need to violate normal ordering in order to simplify output
 
-  for (int j = 1-applattice2d->delghost; j <= applattice2d->ny_local+applattice2d->delghost; j++) {
-    for (int i = 1-applattice2d->delghost; i <= applattice2d->nx_local+applattice2d->delghost; i++) {
+  for (int j = 1-delghost; j <= ny_local+delghost; j++) {
+    for (int i = 1-delghost; i <= nx_local+delghost; i++) {
       buftmp[m++] = cluster_ids[i][j];
     }
   }
@@ -290,21 +293,15 @@ void DiagCluster2d::dump_clusters_detailed()
       fprintf(fpdump,"nxlocal = %d \nnylocal = %d \n",nxtmp,nytmp);
       fprintf(fpdump,"nx_offset = %d \nny_offset = %d \n",nxotmp,nyotmp);
       m = nrecv;
-      for (int j = nytmp+applattice2d->delghost; j >= 1-applattice2d->delghost; j--) {
-	m-=nxtmp+2*applattice2d->delghost;
-	for (int i = 1-applattice2d->delghost; i <= nxtmp+applattice2d->delghost; i++) {
+      for (int j = nytmp+delghost; j >= 1-delghost; j--) {
+	m-=nxtmp+2*delghost;
+	for (int i = 1-delghost; i <= nxtmp+delghost; i++) {
 	  // work out the correct global id of this site
 	  id = clustlist[buftmp[m++]-1].global_id;
 	  fprintf(fpdump,"%3d",id);
-//   // change ids to reduced ids
-//   for (int i = 1; i <= nx_local; i++) {
-//     for (int j = 1; j <= ny_local; j++) {
-//       cluster_ids[i][j] = clustlist[cluster_ids[i][j]-idoffset].global_id;
-//     }
-//   }
 	}
 	fprintf(fpdump,"\n");
-	m-=nxtmp+2*applattice2d->delghost;
+	m-=nxtmp+2*delghost;
       }
     }
     
@@ -314,8 +311,6 @@ void DiagCluster2d::dump_clusters_detailed()
   }
 
   memory->sfree(buftmp);
-  memory->destroy_2d_T_array(cluster_ids,applattice2d->nxlo,applattice2d->nylo);
-
 }
 
 
@@ -352,35 +347,32 @@ void DiagCluster2d::generate_clusters()
   //   return stack[nstack--]
   //   area++
 
-  memory->create_2d_T_array(cluster_ids,applattice2d->nxlo,applattice2d->nxhi,applattice2d->nylo,applattice2d->nyhi,
-			    "diagcluster2d:cluster");
-
   // Set ghost site ids to -1
   // Use four equal sized rectangles arranged in a ring
-  for (int j = 1-applattice2d->delghost; j <= applattice2d->ny_local; j++) {
-    for (int i = 1-applattice2d->delghost; i <= 0; i++) {
+  for (int j = 1-delghost; j <= ny_local; j++) {
+    for (int i = 1-delghost; i <= 0; i++) {
       cluster_ids[i][j] = -1;
     }
   }
-  for (int j = applattice2d->ny_local+1; j <= applattice2d->ny_local+applattice2d->delghost; j++) {
-    for (int i = 1-applattice2d->delghost; i <= applattice2d->nx_local; i++) {
+  for (int j = ny_local+1; j <= ny_local+delghost; j++) {
+    for (int i = 1-delghost; i <= nx_local; i++) {
       cluster_ids[i][j] = -1;
     }
   }
-  for (int j = 1; j <= applattice2d->ny_local+applattice2d->delghost; j++) {
-    for (int i = applattice2d->nx_local+1; i <= applattice2d->nx_local+applattice2d->delghost; i++) {
+  for (int j = 1; j <= ny_local+delghost; j++) {
+    for (int i = nx_local+1; i <= nx_local+delghost; i++) {
       cluster_ids[i][j] = -1;
     }
   }
-  for (int j = 1-applattice2d->delghost; j <= 0; j++) {
-    for (int i = 1; i <= applattice2d->nx_local+applattice2d->delghost; i++) {
+  for (int j = 1-delghost; j <= 0; j++) {
+    for (int i = 1; i <= nx_local+delghost; i++) {
       cluster_ids[i][j] = -1;
     }
   }
 
   // Set local site ids to zero 
-  for (int j = 1; j <= applattice2d->ny_local; j++) {
-    for (int i = 1; i <= applattice2d->nx_local; i++) {
+  for (int j = 1; j <= ny_local; j++) {
+    for (int i = 1; i <= nx_local; i++) {
       cluster_ids[i][j] = 0;
     }
   }
@@ -393,8 +385,8 @@ void DiagCluster2d::generate_clusters()
   volsum = 0;
 
   // loop over all owned sites
-  for (int i = 1; i <= applattice2d->nx_local; i++) {
-    for (int j = 1; j <= applattice2d->ny_local; j++) {
+  for (int i = 1; i <= nx_local; i++) {
+    for (int j = 1; j <= ny_local; j++) {
 
       // If already visited, skip
       if (cluster_ids[i][j] != 0) {
@@ -433,8 +425,8 @@ void DiagCluster2d::generate_clusters()
   }
 
   // change site ids to global ids
-  for (int i = 1; i <= applattice2d->nx_local; i++) {
-    for (int j = 1; j <= applattice2d->ny_local; j++) {
+  for (int i = 1; i <= nx_local; i++) {
+    for (int j = 1; j <= ny_local; j++) {
       cluster_ids[i][j] = clustlist[cluster_ids[i][j]-1].global_id;
     }
   }
@@ -442,8 +434,8 @@ void DiagCluster2d::generate_clusters()
   applattice2d->comm->all(cluster_ids);
 
   // loop over all owned sites adjacent to boundary
-  for (int i = 1; i <= applattice2d->nx_local; i++) {
-    for (int j = 1; j <= applattice2d->ny_local; j++) {
+  for (int i = 1; i <= nx_local; i++) {
+    for (int j = 1; j <= ny_local; j++) {
 
       applattice2d->connected_ghosts(i,j,cluster_ids,clustlist,idoffset);
 
