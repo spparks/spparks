@@ -49,7 +49,6 @@ AppMembrane::AppMembrane(SPK *spk, int narg, char **arg) :
   // define lattice and partition it across processors
 
   create_lattice();
-  lattice = (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:lattice");
   sites = new int[1 + maxneigh];
 
   // initialize my sites to LIPID
@@ -62,7 +61,6 @@ AppMembrane::AppMembrane(SPK *spk, int narg, char **arg) :
 AppMembrane::~AppMembrane()
 {
   delete random;
-  memory->sfree(lattice);
   delete [] sites;
   delete comm;
 }

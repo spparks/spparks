@@ -59,6 +59,9 @@ void CommLattice::init(SweepLattice *sweep,
     error->all("Reverse comm not yet supported by AppLattice");
 
   AppLattice *applattice = (AppLattice *) app;
+  sitecustom = applattice->sitecustom;
+  lattice = applattice->lattice;
+
   int dimension = applattice->dimension;
   int nlocal = applattice->nlocal;
   int *id = applattice->id;
@@ -86,18 +89,20 @@ void CommLattice::init(SweepLattice *sweep,
    communicate ghost values for one sector
 ------------------------------------------------------------------------- */
 
-void CommLattice::sector(int *lattice, const int isector)
+void CommLattice::sector(const int isector)
 {
-  perform_swap(sectorswap[isector],lattice);
+  if (sitecustom == 0) perform_swap_lattice(sectorswap[isector]);
+  else perform_swap_data(sectorswap[isector]);
 }
 
 /* ----------------------------------------------------------------------
    update ghost values for entire sub-domain owned by this proc
 ------------------------------------------------------------------------- */
 
-void CommLattice::all(int *lattice)
+void CommLattice::all()
 {
-  perform_swap(allswap,lattice);
+  if (sitecustom == 0) perform_swap_lattice(allswap);
+  else perform_swap_data(allswap);
 }
 
 /* ----------------------------------------------------------------------
@@ -348,9 +353,49 @@ void CommLattice::free_swap(Swap *swap)
 
 /* ----------------------------------------------------------------------
    communicate ghost values via Swap instructions
+   use lattice array as source/destination
 ------------------------------------------------------------------------- */
 
-void CommLattice::perform_swap(Swap *swap, int *lattice)
+void CommLattice::perform_swap_lattice(Swap *swap)
+{
+  int i,j;
+  int *index;
+  int *buf;
+
+  // post receives
+
+  for (i = 0; i < swap->nrecv; i++)
+    MPI_Irecv(swap->rbuf[i],swap->rcount[i],MPI_INT,swap->rproc[i],0,world,
+	      &swap->request[i]);
+
+  // pack data to send to each proc and send it
+
+  for (i = 0; i < swap->nsend; i++) {
+    index = swap->sindex[i];
+    buf = swap->sbuf;
+    for (j = 0; j < swap->scount[i]; j++) buf[j] = lattice[index[j]];
+    MPI_Send(buf,swap->scount[i],MPI_INT,swap->sproc[i],0,world);
+  }
+
+  // wait on incoming messages
+
+  if (swap->nrecv) MPI_Waitall(swap->nrecv,swap->request,swap->status);
+
+  // unpack received buffers of data from each proc
+
+  for (i = 0; i < swap->nrecv; i++) {
+    index = swap->rindex[i];
+    buf = swap->rbuf[i];
+    for (j = 0; j < swap->rcount[i]; j++) lattice[index[j]] = buf[j];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   communicate ghost values via Swap instructions
+   use generalized data as source destination via call-backs to app
+------------------------------------------------------------------------- */
+
+void CommLattice::perform_swap_data(Swap *swap)
 {
   int i,j;
   int *index;

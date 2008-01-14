@@ -37,7 +37,6 @@ AppPotts::AppPotts(SPK *spk, int narg, char **arg) : AppLattice(spk,narg,arg)
   // define lattice and partition it across processors
   
   create_lattice();
-  lattice = (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:lattice");
   sites = new int[1 + maxneigh];
 
   // initialize my portion of lattice
@@ -63,7 +62,6 @@ AppPotts::AppPotts(SPK *spk, int narg, char **arg) : AppLattice(spk,narg,arg)
 AppPotts::~AppPotts()
 {
   delete random;
-  memory->sfree(lattice);
   delete [] sites;
   delete comm;
 }

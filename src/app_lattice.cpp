@@ -51,6 +51,11 @@ AppLattice::AppLattice(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   site2i = NULL;
   i2site = NULL;
 
+  lattice = NULL;
+  iarray = NULL;
+  darray = NULL;
+  ninteger = ndouble = 0;
+  
   // setup communicator for ghost sites
 
   comm = new CommLattice(spk);
@@ -69,6 +74,12 @@ AppLattice::~AppLattice()
   memory->sfree(propensity);
   memory->sfree(site2i);
   memory->sfree(i2site);
+
+  memory->sfree(lattice);
+  for (int i = 0; i < ninteger; i++) memory->sfree(iarray[i]);
+  for (int i = 0; i < ndouble; i++) memory->sfree(darray[i]);
+  delete [] iarray;
+  delete [] darray;
 
   delete [] latfile;
 
@@ -94,6 +105,7 @@ void AppLattice::options(int narg, char **arg)
 
   latstyle = NONE;
   latfile = NULL;
+  sitecustom = 0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -152,6 +164,15 @@ void AppLattice::options(int narg, char **arg)
 	latfile = strcpy(latfile,arg[2]);
 	iarg += 3;
       }
+
+    } else if (strcmp(arg[iarg],"site") == 0) {
+      if (iarg+2 > narg) error->all("Illegal app_style command");
+      ninteger = atoi(arg[iarg+1]);
+      ndouble = atoi(arg[iarg+2]);
+      if (ninteger == 0 && ndouble == 0) sitecustom = 0;
+      else sitecustom = 1;
+      iarg += 2;
+
     } else error->all("Illegal app_style command ");
   }
 
@@ -160,6 +181,7 @@ void AppLattice::options(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    generate lattice and processor decomposition
+   allocate per-site memory: single lattice value or customized arrays
  ------------------------------------------------------------------------- */
 
 void AppLattice::create_lattice()
@@ -175,6 +197,20 @@ void AppLattice::create_lattice()
   } else if (latstyle == FILENAME) {
     file_lattice();
     ghosts_from_connectivity();
+  }
+
+  if (sitecustom == 0)
+    lattice =
+      (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:lattice");
+  else {
+    if (ninteger) iarray = new int*[ninteger];
+    for (int i = 0; i < ninteger; i++)
+      iarray[i] = (int *)
+	memory->smalloc((nlocal+nghost)*sizeof(int),"app:iarray");
+    if (ndouble) darray = new double*[ndouble];
+    for (int i = 0; i < ndouble; i++)
+      darray[i] = (double *)
+	memory->smalloc((nlocal+nghost)*sizeof(double),"app:darray");
   }
 
   // DEBUG: connectivity check on distance
@@ -1117,7 +1153,7 @@ void AppLattice::init()
   // if KMC sweep, sweeper does its own init of its propensity arrays
 
   if (propensity) {
-    comm->all(lattice);
+    comm->all();
 
     for (i = 0 ; i < nlocal; i++)
       propensity[i] = site_propensity(i,0);
@@ -1248,7 +1284,7 @@ void AppLattice::stats()
   double energy,all;
   double ptot;
   
-  comm->all(lattice);
+  comm->all();
 
   energy = 0.0;
   for (i = 0; i < nlocal; i++)

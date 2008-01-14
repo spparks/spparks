@@ -77,6 +77,7 @@ SweepLattice::SweepLattice(SPK *spk, int narg, char **arg) :
   }
 
   // set sweep method function ptr
+  // NOTE: might have to be in init so can set it for general data
 
   if (Lkmc) {
     if (Lmask || Lpicklocal)
@@ -96,7 +97,7 @@ SweepLattice::SweepLattice(SPK *spk, int narg, char **arg) :
       else sweeper = &SweepLattice::sweep_sector_mask;
     } else {
       if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sweeper = &SweepLattice::sweep_sector;
+      else sweeper = &SweepLattice::sweep_sector_lattice;
     }
   }
 
@@ -146,6 +147,7 @@ void SweepLattice::init()
 
   applattice = (AppLattice *) app;
 
+  int sitecustom = applattice->sitecustom;
   lattice = applattice->lattice;
 
   dimension = applattice->dimension;
@@ -250,7 +252,7 @@ void SweepLattice::init()
   // propensity init requires ghost cell info for entire sub-domain
 
   if (Lkmc) {
-    comm->all(lattice);
+    comm->all();
 
     for (int isector = 0; isector < nsector; isector++) {
       sector[isector].solve = solve->clone();
@@ -334,14 +336,14 @@ void SweepLattice::do_sweep(double &dt)
   for (int icolor = 0; icolor < ncolor; icolor++)
     for (int isector = 0; isector < nsector; isector++) {
       timer->stamp();
-      comm->sector(lattice,isector);
+      comm->sector(isector);
       timer->stamp(TIME_COMM);
 
       (this->*sweeper)(icolor,isector);
 
       timer->stamp(TIME_SOLVE);
 
-      comm->reverse_sector(lattice,isector);
+      comm->reverse_sector(isector);
       timer->stamp(TIME_COMM);
     }
 
@@ -349,7 +351,7 @@ void SweepLattice::do_sweep(double &dt)
 }
 
 /* ----------------------------------------------------------------------
-   sweep over one sector of sites
+   sweep over one sector of sites using lattice array as state
    application picks a new state for the site
    compute energy change due to state change
    no energy change = accept
@@ -357,7 +359,40 @@ void SweepLattice::do_sweep(double &dt)
    uphill energy change = accept/reject via Boltzmann factor
  ------------------------------------------------------------------------- */
    
-void SweepLattice::sweep_sector(int icolor, int isector)
+void SweepLattice::sweep_sector_lattice(int icolor, int isector)
+{
+  int i,j,m,oldstate,newstate;
+  double einitial,efinal;
+
+  int *site2i = sector[isector].site2i;
+  int nlocal = sector[isector].nlocal;
+
+  for (m = 0; m < nlocal; m++) {
+    i = site2i[m];
+    oldstate = lattice[i];
+    einitial = applattice->site_energy(i);
+  
+    newstate = applattice->site_pick_random(i,random->uniform());
+    lattice[i] = newstate;
+    efinal = applattice->site_energy(i);
+    
+    if (efinal <= einitial) continue;
+    else if (temperature == 0.0) lattice[i] = oldstate;
+    else if (random->uniform() > exp((einitial-efinal)*t_inverse))
+      lattice[i] = oldstate;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   sweep over one sector of sites using general data model for state
+   application picks a new state for the site
+   compute energy change due to state change
+   no energy change = accept
+   downhill energy change = accept
+   uphill energy change = accept/reject via Boltzmann factor
+ ------------------------------------------------------------------------- */
+   
+void SweepLattice::sweep_sector_data(int icolor, int isector)
 {
   int i,j,m,oldstate,newstate;
   double einitial,efinal;

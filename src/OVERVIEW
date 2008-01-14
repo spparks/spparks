@@ -60,10 +60,13 @@ options = lattice or site
       lattice file filename
         filename = file that contains lattice points and connectivity
 	see format below
-  site int N double M (not yet implemented)
-    N,M = # of ints and doubles stored on each site
+  site N M
+    N = # of int quantites to store on each site
+    M = # of double quantites to store on each site
+    if both are 0, then a single int is stored in the variable "lattice"
+    otherwise multiple arrays of ints and doubles are stored
 
-file format for lattice file style:
+file format for the lattice file style:
   comment              # 1st line is skipped
 	               # skipped line
   Ndim dimenion        # Ndim = 2 or 3
@@ -87,7 +90,7 @@ file format for lattice file style:
   ...
   N n1 n2 n3 ...
 
-option defaults: lattice = none, site = 1 int, 0 doubles
+option defaults: lattice = none, site 0 0
 
 -----------------------------------------------------------------------
 * app_style chemistry

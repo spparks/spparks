@@ -61,7 +61,9 @@ class SweepLattice : public Sweep {
 
   // sweep methods
 
-  void sweep_sector(int, int);
+  void sweep_sector_lattice(int, int);
+  void sweep_sector_data(int, int);
+
   void sweep_sector_mask(int, int);
   void sweep_sector_mask_picklocal(int, int);
   void sweep_sector_strict(int, int);

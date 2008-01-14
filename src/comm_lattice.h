@@ -16,9 +16,9 @@ class CommLattice : protected SysPtr {
   CommLattice(class SPK *);
   ~CommLattice();
   void init(class SweepLattice *, const int, const int);
-  void all(int *);
-  void sector(int *, const int);
-  void reverse_sector(int *, const int) {}
+  void all();
+  void sector(int);
+  void reverse_sector(int) {}
 
  private:
   int me,nprocs;
@@ -48,9 +48,13 @@ class CommLattice : protected SysPtr {
     int id_global,index_local,proc;
   };
 
+  int sitecustom;
+  int *lattice;
+
   Swap *create_swap(int, int *, int, int *, int *, int **);
   void free_swap(Swap *);
-  void perform_swap(Swap *, int *);
+  void perform_swap_lattice(Swap *);
+  void perform_swap_data(Swap *);
 };
 
 }

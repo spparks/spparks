@@ -20,6 +20,7 @@
 #include "app_potts_3d_12n.h"
 #include "app_potts_3d_26n.h"
 #include "app_surf.h"
+#include "app_template.h"
 #include "app_test_group.h"
 #include "app_test2_group.h"
 #endif
@@ -41,6 +42,7 @@ AppStyle(potts/3d/6n,AppPotts3d6n)
 AppStyle(potts/3d/12n,AppPotts3d12n)
 AppStyle(potts/3d/26n,AppPotts3d26n)
 AppStyle(surf,AppSurf)
+AppStyle(template,AppTemplate)
 AppStyle(test/group,AppTestGroup)
 AppStyle(test2/group,AppTest2Group)
 #endif
@@ -79,14 +81,6 @@ SolveStyle(tree,SolveTree)
 SweepStyle(lattice,SweepLattice)
 SweepStyle(lattice2d,SweepLattice2d)
 SweepStyle(lattice3d,SweepLattice3d)
-#endif
-
-#ifdef DiagInclude
-#include "diag_cluster2d.h"
-#endif
-
-#ifdef DiagClass
-DiagStyle(cluster2d,DiagCluster2d)
 #endif
 
 // packages
