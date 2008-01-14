@@ -103,6 +103,10 @@ AppSurf::~AppSurf()
 
 void AppSurf::init()
 {
+
+  if (nprocs > 1)
+    error->all("Cannot use AppSurf in parallel");
+
   lj1 = 48.0 * epsilon * pow(sigma,12.0);
   lj2 = 24.0 * epsilon * pow(sigma,6.0);
   lj3 = 4.0 * epsilon * pow(sigma,12.0);

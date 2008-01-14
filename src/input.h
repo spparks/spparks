@@ -55,6 +55,7 @@ class Input : protected SysPtr {
   void run();
   void solve_style();
   void sweep_style();
+  void diag();
 };
 
 }

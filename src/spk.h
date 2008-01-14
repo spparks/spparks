@@ -22,6 +22,7 @@ class SPK {
   class Solve *solve;            // solver
   class Sweep *sweep;            // sweep
   class Timer *timer;            // timer
+  class Output *output;          // output
 
   MPI_Comm world;          // communicator for my world of procs
   FILE *infile;            // infile for my world

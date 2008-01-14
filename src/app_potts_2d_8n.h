@@ -23,6 +23,8 @@ class AppPotts2d8n : public AppPotts2d {
   void site_update_ghosts(int, int);
   void site_clear_mask(char **, int, int);
   void survey_neighbor(const int&, const int&, int&, int[], int[]) const;
+  void push_connected_neighbors(int, int , int**, int, std::stack<int>*);
+  void connected_ghosts(int, int, int**, Cluster*, int);
 
 };
 

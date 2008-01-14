@@ -64,7 +64,7 @@ AppPotts3d26n::AppPotts3d26n(SPK *spk, int narg, char **arg) :
       } 
     }
   } else if (init_style == READ) {
-  // rad from file
+  // read from file
     read_spins(spinfile);
   }
 
@@ -124,15 +124,6 @@ int AppPotts3d26n::site_pick_local(int i, int j, int k, double ran)
 }
 
 /* ----------------------------------------------------------------------
-   compute total propensity of owned site
-   based on einitial,efinal for each possible event
-   if no energy change, propensity = 1
-   if downhill energy change, propensity = 1
-   if uphill energy change, propensity set via Boltzmann factor
-   if proc owns full domain, update ghost values before computing propensity
-------------------------------------------------------------------------- */
-
-/* ----------------------------------------------------------------------
    add this neighbor spin to set of possible new spins
 ------------------------------------------------------------------------- */
 
@@ -159,6 +150,15 @@ void AppPotts3d26n::survey_neighbor(const int& ik, const int& jk, int& ns, int s
   }
 
 }
+
+/* ----------------------------------------------------------------------
+   compute total propensity of owned site
+   based on einitial,efinal for each possible event
+   if no energy change, propensity = 1
+   if downhill energy change, propensity = 1
+   if uphill energy change, propensity set via Boltzmann factor
+   if proc owns full domain, update ghost values before computing propensity
+------------------------------------------------------------------------- */
 
 double AppPotts3d26n::site_propensity(int i, int j, int k, int full)
 {

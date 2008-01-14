@@ -17,6 +17,16 @@ class App : protected SysPtr {
   App(class SPK *, int, char **);
   virtual ~App();
   
+  // virtual functions with empty definitions
+  // may be overridden in child class
+
+  virtual void stats(){};
+  virtual void stats_header(){};
+  virtual void dump_header(){};
+  virtual void dump(){};
+  virtual void set_stats(int, char **){};
+  virtual void set_dump(int, char **){};
+
   // pure virtual functions, must be defined in child class
   
   virtual void input(char *, int, char **) = 0;
@@ -27,6 +37,7 @@ class App : protected SysPtr {
   App(); // Not a sane operation.
   App(const App&); // Not a sane operation.
   App& operator=(const App&); // Not a sane operation.
+
 };
 
 }

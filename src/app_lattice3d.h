@@ -71,8 +71,8 @@ class AppLattice3d : public App {
                                // delghost affects upper and lower
                                // limits for local lattice
   FILE *fp;
-  int *ibuf;
-  double *dbuf;
+  int *ibufdump, *ibufread;
+  double *dbufdump;
   int maxdumpbuf;
 
   class RandomPark *random;

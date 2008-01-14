@@ -15,16 +15,19 @@
 #include "sweep.h"
 #include "error.h"
 #include "memory.h"
+#include "output.h"
 
 #define AppInclude
 #define CommandInclude
 #define SolveInclude
 #define SweepInclude
+#define DiagInclude
 #include "style.h"
 #undef AppInclude
 #undef CommandInclude
 #undef SolveInclude
 #undef SweepInclude
+#undef DiagInclude
 
 using namespace SPPARKS;
 
@@ -380,6 +383,7 @@ int Input::execute_command()
   else if (!strcmp(command,"variable")) variable_command();
 
   else if (!strcmp(command,"app_style")) app_style();
+  else if (!strcmp(command,"diag_style")) diag();
   else if (!strcmp(command,"run")) run();
   else if (!strcmp(command,"solve_style")) solve_style();
   else if (!strcmp(command,"sweep_style")) sweep_style();
@@ -570,19 +574,15 @@ void Input::variable_command()
 }
 
 /* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
-
-/* ---------------------------------------------------------------------- */
 
 void Input::app_style()
 {
   if (narg < 1) error->all("Illegal app command");
-   delete app;
-   delete solve;
-   delete sweep;
-   solve = NULL;
-   sweep = NULL;
+  delete app;
+  delete solve;
+  delete sweep;
+  solve = NULL;
+  sweep = NULL;
 
   if (strcmp(arg[0],"none") == 0) error->all("Invalid app style");
 
@@ -640,4 +640,26 @@ void Input::sweep_style()
 
   else error->all("Invalid sweep style");
 }
+
+/* ---------------------------------------------------------------------- */
+
+void Input::diag()
+{
+  if (narg < 1) error->all("Illegal diag command");
+
+  if (strcmp(arg[0],"none") == 0) error->all("Invalid diag style");
+
+#define DiagClass
+#define DiagStyle(key,Class) \
+  else if (strcmp(arg[0],#key) == 0) { \
+    Diag* diag = new Class(spk,narg,arg); \
+    output->add_diag(diag); \
+  }
+  
+#include "style.h"
+#undef DiagClass
+
+  else error->all("Invalid diag style");
+}
+
 

@@ -16,6 +16,8 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "output.h"
+
 
 using namespace SPPARKS;
 
@@ -34,12 +36,11 @@ AppLattice2d::AppLattice2d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 
   ntimestep = 0;
   time = 0.0;
-  stats_delta = 0.0;
-  dump_delta = 0.0;
   temperature = 0.0;
   maxdumpbuf = 0;
-  ibuf = NULL;
-  dbuf = NULL;
+  ibufread = NULL;
+  ibufdump = NULL;
+  dbufdump = NULL;
   fp = NULL;
   propensity = NULL;
   site2ij = NULL;
@@ -59,8 +60,9 @@ AppLattice2d::AppLattice2d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 
 AppLattice2d::~AppLattice2d()
 {
-  delete [] ibuf;
-  delete [] dbuf;
+  delete [] ibufread;
+  delete [] ibufdump;
+  delete [] dbufdump;
   memory->sfree(propensity);
   memory->destroy_2d_T_array(site2ij);
   memory->destroy_2d_T_array(ij2site);
@@ -161,24 +163,10 @@ void AppLattice2d::init()
     solve->init(nsites,propensity);
   }
 
-  // setup future stat and dump calls
+  // Initialize output
 
-  stats_time = time + stats_delta;
-  if (stats_delta == 0.0) stats_time = stoptime;
-  dump_time = time + dump_delta;
-  if (dump_delta == 0.0) dump_time = stoptime;
+  output->init(time);
 
-  // print dump file header and 1st snapshot
-
-  if (dump_delta > 0.0) {
-    dump_header();
-    dump();
-  }
-
-  // print stats header and initial stats
-  
-  stats_header();
-  stats();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -187,8 +175,8 @@ void AppLattice2d::input(char *command, int narg, char **arg)
 {
   if (narg == 0) error->all("Invalid command");
   if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
-  else if (strcmp(command,"stats") == 0) set_stats(narg,arg);
-  else if (strcmp(command,"dump") == 0) set_dump(narg,arg);
+  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
+  else if (strcmp(command,"dump") == 0) output->set_dump(narg,arg);
   else input_app(command,narg,arg);
 }
 
@@ -231,6 +219,13 @@ void AppLattice2d::iterate()
   int i,j,isite;
   double dt;
 
+//   char *fstring1 = "Time = %f ";
+//   int len1 = strlen(fstring1)+32;
+//   char *title1 = new char[len1];
+//   sprintf(title1,fstring1,time);
+//   dump_detailed(title1);
+//   delete [] title1;
+    
   if (time >= stoptime) return;
 
   timer->barrier_start(TIME_LOOP);
@@ -261,19 +256,19 @@ void AppLattice2d::iterate()
 
     if (time >= stoptime) done = 1;
 
-    if (time >= stats_time || done) {
-      stats();
-      stats_time += stats_delta;
-      timer->stamp(TIME_OUTPUT);
-    }
+    // Do output
 
-    if (time >= dump_time || done) {
-      if (dump_delta > 0.0) dump();
-      dump_time += dump_delta;
-      timer->stamp(TIME_OUTPUT);
-    }
+    output->compute(time,done);
+
   }
   
+//   char *fstring2 = "Time = %f ";
+//   int len2 = strlen(fstring2)+32;
+//   char *title2 = new char[len2];
+//   sprintf(title2,fstring2,time);
+//   dump_detailed(title2);
+//   delete [] title2;
+
   timer->barrier_stop(TIME_LOOP);
 }
 
@@ -339,14 +334,17 @@ void AppLattice2d::dump_header()
 {
   // setup comm buf for dumping snapshots
 
-  delete [] ibuf;
-  delete [] dbuf;
   maxdumpbuf = 0;
   int mybuf = nx_local*ny_local;
   MPI_Allreduce(&mybuf,&maxdumpbuf,1,MPI_INT,MPI_MAX,world);
 
-  if (dump_style == LATTICE) ibuf = new int[2*maxdumpbuf];
-  else dbuf = new double[5*maxdumpbuf];
+  if (dump_style == LATTICE) {
+    delete [] ibufread;
+    ibufdump = new int[2*maxdumpbuf];
+  } else {
+    delete [] dbufdump;
+    dbufdump = new double[5*maxdumpbuf];
+  }
 
   // no header info in file if style = COORD
 
@@ -437,8 +435,8 @@ void AppLattice2d::dump_lattice()
   for (int i = 1; i <= nx_local; i++)
     for (int j = 1; j <= ny_local; j++) {
       n = (ny_offset+j-1)*nx_global + (nx_offset+i-1);
-      ibuf[m++] = n + 1;
-      ibuf[m++] = lattice[i][j];
+      ibufdump[m++] = n + 1;
+      ibufdump[m++] = lattice[i][j];
     }
   int me_size = m;
 
@@ -452,7 +450,7 @@ void AppLattice2d::dump_lattice()
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(ibuf,size_one*maxdumpbuf,MPI_INT,iproc,0,world,&request);
+	MPI_Irecv(ibufdump,size_one*maxdumpbuf,MPI_INT,iproc,0,world,&request);
 	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	MPI_Wait(&request,&status);
 	MPI_Get_count(&status,MPI_INT,&nlines);
@@ -461,13 +459,13 @@ void AppLattice2d::dump_lattice()
       
       m = 0;
       for (int i = 0; i < nlines; i++) {
-	fprintf(fp,"%d %d\n",ibuf[m],ibuf[m+1]);
+	fprintf(fp,"%d %d\n",ibufdump[m],ibufdump[m+1]);
 	m += size_one;
       }
     }
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(ibuf,me_size,MPI_INT,0,0,world);
+    MPI_Rsend(ibufdump,me_size,MPI_INT,0,0,world);
   }
 }
 
@@ -507,12 +505,12 @@ void AppLattice2d::dump_coord()
   for (int i = 1; i <= nx_local; i++)
     for (int j = 1; j <= ny_local; j++) {
       n = (ny_offset+j-1)*nx_global + (nx_offset+i-1);
-      dbuf[m++] = n + 1;
-      dbuf[m++] = lattice[i][j];
+      dbufdump[m++] = n + 1;
+      dbufdump[m++] = lattice[i][j];
       xy(i-1+nx_offset,j-1+ny_offset,&x,&y);
-      dbuf[m++] = x;
-      dbuf[m++] = y;
-      dbuf[m++] = 0.0;
+      dbufdump[m++] = x;
+      dbufdump[m++] = y;
+      dbufdump[m++] = 0.0;
     }
   int me_size = m;
 
@@ -526,7 +524,7 @@ void AppLattice2d::dump_coord()
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(dbuf,size_one*maxdumpbuf,MPI_DOUBLE,iproc,0,world,&request);
+	MPI_Irecv(dbufdump,size_one*maxdumpbuf,MPI_DOUBLE,iproc,0,world,&request);
 	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	MPI_Wait(&request,&status);
 	MPI_Get_count(&status,MPI_DOUBLE,&nlines);
@@ -536,14 +534,14 @@ void AppLattice2d::dump_coord()
       m = 0;
       for (int i = 0; i < nlines; i++) {
 	fprintf(fp,"%d %d %g %g %g\n",
-		static_cast<int> (dbuf[m]),static_cast<int> (dbuf[m+1]),
-		dbuf[m+2],dbuf[m+3],dbuf[m+4]);
+		static_cast<int> (dbufdump[m]),static_cast<int> (dbufdump[m+1]),
+		dbufdump[m+2],dbufdump[m+3],dbufdump[m+4]);
 	m += size_one;
       }
     }
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(dbuf,me_size,MPI_DOUBLE,0,0,world);
+    MPI_Rsend(dbufdump,me_size,MPI_DOUBLE,0,0,world);
   }
 }
 
@@ -585,7 +583,6 @@ void AppLattice2d::set_temperature(int narg, char **arg)
 void AppLattice2d::set_stats(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal stats command");
-  stats_delta = atof(arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -593,8 +590,6 @@ void AppLattice2d::set_stats(int narg, char **arg)
 void AppLattice2d::set_dump(int narg, char **arg)
 {
   if (narg != 3) error->all("Illegal dump command");
-  dump_delta = atof(arg[0]);
-  if (dump_delta <= 0.0) error->all("Illegal dump command");
 
   if (strcmp(arg[1],"lattice") == 0) dump_style = LATTICE;
   else if (strcmp(arg[1],"coord") == 0) dump_style = COORD;
@@ -927,12 +922,12 @@ void AppLattice2d::read_spins(const char* infile)
   nglobal = nx_global*ny_global;
   ndata = 2;
   maxbuf = 1000;
-  delete [] ibuf;
-  ibuf = new int[ndata*maxbuf];
+  delete [] ibufread;
+  ibufread = new int[ndata*maxbuf];
   isite = 0;
   while (isite < nglobal) {
     nbuf = 0;
-    ipnt = ibuf;
+    ipnt = ibufread;
     while (nbuf < maxbuf && isite < nglobal) {
       if (me == 0) {
 	eof = fgets(line,MAXLINE,fp);
@@ -951,9 +946,9 @@ void AppLattice2d::read_spins(const char* infile)
       nbuf++;
       isite++;
     }
-    MPI_Bcast(ibuf,ndata*nbuf,MPI_INT,0,world);
+    MPI_Bcast(ibufread,ndata*nbuf,MPI_INT,0,world);
 
-    ipnt = ibuf;
+    ipnt = ibufread;
     for (int m = isite-nbuf; m < isite; m++) {
       // This file format breaks the SPParKS rule 
       // In agg3d, the innermost loop is on the first coordinate
@@ -971,6 +966,25 @@ void AppLattice2d::read_spins(const char* infile)
     fclose(fp);
   }
 
-  delete [] ibuf;
+}
 
+/* ----------------------------------------------------------------------
+   This is to prevent clustering for undefined child apps
+   Should eventually replace with pure virtual function
+------------------------------------------------------------------------- */
+
+void AppLattice2d::push_connected_neighbors(int i, int j, int** cluster_ids, int id, std::stack<int>*)
+{
+  error->all("Connectivity not defined for this AppLattice2d child class");
+}
+
+
+/* ----------------------------------------------------------------------
+   This is to prevent clustering for undefined child apps
+   Should eventually replace with pure virtual function
+------------------------------------------------------------------------- */
+
+void AppLattice2d::connected_ghosts(int i, int j, int** cluster_ids, Cluster* clustlist, int idoffset)
+{
+  error->all("Connectivity not defined for this AppLattice2d child class");
 }

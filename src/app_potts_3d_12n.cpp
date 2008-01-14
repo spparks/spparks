@@ -67,11 +67,9 @@ AppPotts3d12n::AppPotts3d12n(SPK *spk, int narg, char **arg) :
       } 
     }
   } else if (init_style == READ) {
-  // rad from file
+  // read from file
     read_spins(spinfile);
   }
-
-  delete [] spinfile;
 
 }
 

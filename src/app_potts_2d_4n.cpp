@@ -59,11 +59,9 @@ AppPotts2d4n::AppPotts2d4n(SPK *spk, int narg, char **arg) :
       } 
     }
   } else if (init_style == READ) {
-  // rad from file
+  // read from file
     read_spins(spinfile);
   }
-
-  delete [] spinfile;
 
 }
 

@@ -14,6 +14,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "cluster.h"
 
 using namespace SPPARKS;
 
@@ -25,7 +26,6 @@ using namespace SPPARKS;
 AppPotts2d8n::AppPotts2d8n(SPK *spk, int narg, char **arg) : 
   AppPotts2d(spk,narg,arg)
 {
-  char* spinfile = NULL;
 
   // parse any remaining arguments
 
@@ -63,11 +63,10 @@ AppPotts2d8n::AppPotts2d8n(SPK *spk, int narg, char **arg) :
       } 
     }
   } else if (init_style == READ) {
-  // rad from file
+  // read from file
     read_spins(spinfile);
   }
 
-  delete [] spinfile;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -319,3 +318,52 @@ void AppPotts2d8n::site_clear_mask(char **mask, int i, int j)
   mask[i+1][j] = 0;
   mask[i+1][j+1] = 0;
 }
+
+/* ----------------------------------------------------------------------
+   push connected neighbors of this site onto stack
+     and assign current id
+   ghost neighbors are masked by id = -1
+   previously burned sites are masked by id > 0
+ ------------------------------------------------------------------------- */
+
+void AppPotts2d8n::push_connected_neighbors(int i, int j, int** cluster_ids, int id, std::stack<int>* cluststack)
+{
+  int iii,jjj;
+
+  for (int ii = i-1; ii <= i+1; ii++) {
+    for (int jj = j-1; jj <= j+1; jj++) {
+      iii = ii;
+      jjj = jj;
+      if (lattice[iii][jjj] == lattice[i][j] &&
+	  cluster_ids[iii][jjj] == 0) {
+	cluststack->push(iii);
+	cluststack->push(jjj);
+	cluster_ids[iii][jjj] = id;
+      }
+    }
+  }
+
+}
+
+/* ----------------------------------------------------------------------
+   Add cluster id of connected ghost sites to neighbor list of cluster
+ ------------------------------------------------------------------------- */
+
+void AppPotts2d8n::connected_ghosts(int i, int j, int** cluster_ids, Cluster* clustlist, int idoffset)
+{
+  int iclust;
+
+  for (int ii = i-1; ii <= i+1; ii++) {
+    for (int jj = j-1; jj <= j+1; jj++) {
+      if (lattice[ii][jj] == lattice[i][j] &&
+	  (ii < 1 || ii > nx_local || 
+	   jj < 1 || jj > ny_local )) {
+	iclust = cluster_ids[i][j]-idoffset;
+	// Add ghost cluster to neighbors of local cluster
+        clustlist[iclust].add_neigh(cluster_ids[ii][jj]);
+      }
+    }
+  }
+
+}
+

@@ -9,10 +9,14 @@
 #include "stdio.h"
 #include "app.h"
 
+#include <stack>
+#include "cluster.h"
+
 namespace SPPARKS {
 
 class AppLattice2d : public App {
   friend class SweepLattice2d;
+  friend class DiagCluster2d;
 
  public:
   AppLattice2d(class SPK *, int, char **);
@@ -36,8 +40,6 @@ class AppLattice2d : public App {
   int dump_style;
   int init_style;
   double time,stoptime;
-  double stats_time,stats_delta;
-  double dump_time,dump_delta;
   double temperature,t_inverse;
   int nsweep;
 
@@ -67,9 +69,10 @@ class AppLattice2d : public App {
                                // ghost and local layers needed for comm
                                // delghost affects upper and lower
                                // limits for local lattice
+
   FILE *fp;
-  int *ibuf;
-  double *dbuf;
+  int *ibufdump, *ibufread;
+  double *dbufdump;
   int maxdumpbuf;
 
   class RandomPark *random;
@@ -98,6 +101,20 @@ class AppLattice2d : public App {
   void ijpbc(int &, int &);
 
   void read_spins(const char*);
+
+/*   // Functions and Data for Cluster Analysis */
+/*   void dump_clusters(char*); */
+/*   void generate_clusters(int**); */
+/*   void add_cluster(int, int, int, int*); */
+/*   int ncluster; */
+/*   int ncluster_local; */
+/*   int ncluster_global; */
+/*   Cluster* clustlist; */
+/*   std::stack<int> cluststack;      // stack for performing cluster analysis */
+
+  virtual void push_connected_neighbors(int, int , int**, int, std::stack<int>*);
+  virtual void connected_ghosts(int, int, int**, Cluster*, int);
+
 };
 
 // remap i,j indices via PBC if needed

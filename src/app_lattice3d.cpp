@@ -38,8 +38,9 @@ AppLattice3d::AppLattice3d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   dump_delta = 0.0;
   temperature = 0.0;
   maxdumpbuf = 0;
-  ibuf = NULL;
-  dbuf = NULL;
+  ibufread = NULL;
+  ibufdump = NULL;
+  dbufdump = NULL;
   fp = NULL;
   propensity = NULL;
   site2ijk = NULL;
@@ -59,8 +60,10 @@ AppLattice3d::AppLattice3d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 
 AppLattice3d::~AppLattice3d()
 {
-  delete [] ibuf;
-  delete [] dbuf;
+
+  delete [] ibufread;
+  delete [] ibufdump;
+  delete [] dbufdump;
   memory->sfree(propensity);
   memory->destroy_2d_T_array(site2ijk);
   memory->destroy_3d_T_array(ijk2site);
@@ -341,14 +344,17 @@ void AppLattice3d::dump_header()
 {
   // setup comm buf for dumping snapshots
 
-  delete [] ibuf;
-  delete [] dbuf;
   maxdumpbuf = 0;
   int mybuf = nx_local*ny_local*nz_local;
   MPI_Allreduce(&mybuf,&maxdumpbuf,1,MPI_INT,MPI_MAX,world);
 
-  if (dump_style == LATTICE) ibuf = new int[2*maxdumpbuf];
-  else dbuf = new double[5*maxdumpbuf];
+  if (dump_style == LATTICE) {
+    delete [] ibufdump;
+    ibufdump = new int[2*maxdumpbuf];
+  } else {
+    delete [] dbufdump;
+    dbufdump = new double[5*maxdumpbuf];
+  }
 
   // no header info in file if style = COORD
 
@@ -446,8 +452,8 @@ void AppLattice3d::dump_lattice()
       for (int k = 1; k <= nz_local; k++) {
 	n = (nz_offset+k-1)*ny_global*nx_global + 
 	  (ny_offset+j-1)*nx_global + (nx_offset+i-1);
-	ibuf[m++] = n + 1;
-	ibuf[m++] = lattice[i][j][k];
+	ibufdump[m++] = n + 1;
+	ibufdump[m++] = lattice[i][j][k];
       }
   int me_size = m;
 
@@ -461,7 +467,7 @@ void AppLattice3d::dump_lattice()
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(ibuf,size_one*maxdumpbuf,MPI_INT,iproc,0,world,&request);
+	MPI_Irecv(ibufdump,size_one*maxdumpbuf,MPI_INT,iproc,0,world,&request);
 	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	MPI_Wait(&request,&status);
 	MPI_Get_count(&status,MPI_INT,&nlines);
@@ -470,13 +476,13 @@ void AppLattice3d::dump_lattice()
       
       m = 0;
       for (int i = 0; i < nlines; i++) {
-	fprintf(fp,"%d %d\n",ibuf[m],ibuf[m+1]);
+	fprintf(fp,"%d %d\n",ibufdump[m],ibufdump[m+1]);
 	m += size_one;
       }
     }
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(ibuf,me_size,MPI_INT,0,0,world);
+    MPI_Rsend(ibufdump,me_size,MPI_INT,0,0,world);
   }
 }
 
@@ -518,12 +524,12 @@ void AppLattice3d::dump_coord()
       for (int k = 1; k <= nz_local; k++) {
 	n = (nz_offset+k-1)*ny_global*nx_global + 
 	  (ny_offset+j-1)*nx_global + (nx_offset+i-1);
-	dbuf[m++] = n + 1;
-	dbuf[m++] = lattice[i][j][k];
+	dbufdump[m++] = n + 1;
+	dbufdump[m++] = lattice[i][j][k];
 	xyz(i,j,k,&x,&y,&z);
-	dbuf[m++] = x;
-	dbuf[m++] = y;
-	dbuf[m++] = z;
+	dbufdump[m++] = x;
+	dbufdump[m++] = y;
+	dbufdump[m++] = z;
       }
   int me_size = m;
 
@@ -537,7 +543,7 @@ void AppLattice3d::dump_coord()
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(dbuf,size_one*maxdumpbuf,MPI_DOUBLE,iproc,0,world,&request);
+	MPI_Irecv(dbufdump,size_one*maxdumpbuf,MPI_DOUBLE,iproc,0,world,&request);
 	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	MPI_Wait(&request,&status);
 	MPI_Get_count(&status,MPI_DOUBLE,&nlines);
@@ -547,14 +553,14 @@ void AppLattice3d::dump_coord()
       m = 0;
       for (int i = 0; i < nlines; i++) {
 	fprintf(fp,"%d %d %g %g %g\n",
-		static_cast<int> (dbuf[m]),static_cast<int> (dbuf[m+1]),
-		dbuf[m+2],dbuf[m+3],dbuf[m+4]);
+		static_cast<int> (dbufdump[m]),static_cast<int> (dbufdump[m+1]),
+		dbufdump[m+2],dbufdump[m+3],dbufdump[m+4]);
 	m += size_one;
       }
     }
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(dbuf,me_size,MPI_DOUBLE,0,0,world);
+    MPI_Rsend(dbufdump,me_size,MPI_DOUBLE,0,0,world);
   }
 }
 
@@ -724,6 +730,7 @@ void AppLattice3d::read_spins(const char* infile)
   char *eof;
   int i,j,k,ii,jj,kk,isite,nbuf,nglobal,ndata,maxbuf,ierr;
   int* ipnt;
+  int i1,i2;
   // open file
 
   if (me == 0) {
@@ -736,14 +743,14 @@ void AppLattice3d::read_spins(const char* infile)
   }
 
   nglobal = nx_global*ny_global*nz_global;
-  ndata = 2;
+  ndata = 1;
   maxbuf = 1000;
-  delete [] ibuf;
-  ibuf = new int[ndata*maxbuf];
+  delete [] ibufread;
+  ibufread = new int[ndata*maxbuf];
   isite = 0;
   while (isite < nglobal) {
     nbuf = 0;
-    ipnt = ibuf;
+    ipnt = ibufread;
     while (nbuf < maxbuf && isite < nglobal) {
       if (me == 0) {
 	eof = fgets(line,MAXLINE,fp);
@@ -753,8 +760,13 @@ void AppLattice3d::read_spins(const char* infile)
 	  if (eof == NULL) error->one("Unexpected end of lattice spin file");
 	}
 
-	ierr = sscanf(line,"%d %d",ipnt,ipnt+1);
-	if (ierr != 2) {
+	// Ignore first field if two fields present
+	ierr = sscanf(line,"%d %d",&i1,&i2);
+	if (ierr == 1) {
+	  *ipnt = i1;
+	} else if (ierr == 2) {
+	  *ipnt = i2;
+	} else {
 	  error->one("Unexpected value in spin file");
 	}
       }
@@ -762,9 +774,9 @@ void AppLattice3d::read_spins(const char* infile)
       nbuf++;
       isite++;
     }
-    MPI_Bcast(ibuf,ndata*nbuf,MPI_INT,0,world);
+    MPI_Bcast(ibufread,ndata*nbuf,MPI_INT,0,world);
 
-    ipnt = ibuf;
+    ipnt = ibufread;
     for (int m = isite-nbuf; m < isite; m++) {
       // This file format breaks the SPParKS rule 
       // In agg3d, the innermost loop is on the first coordinate
@@ -776,7 +788,7 @@ void AppLattice3d::read_spins(const char* infile)
       kk = k - nz_offset;
       if (ii >= 1 && ii <= nx_local && jj >= 1 && jj <= ny_local &&
 	  kk >= 1 && kk <= nz_local)
-	lattice[ii][jj][kk] = ipnt[1];
+	lattice[ii][jj][kk] = ipnt[0];
       ipnt+=ndata;
     }
   }
@@ -784,7 +796,5 @@ void AppLattice3d::read_spins(const char* infile)
   if (me == 0) {
     fclose(fp);
   }
-
-  delete [] ibuf;
 
 }

@@ -35,6 +35,7 @@ public:
     solve(sys->solve),
     sweep(sys->sweep),
     timer(sys->timer),
+    output(sys->output),
     world(sys->world),
     infile(sys->infile),
     screen(sys->screen),
@@ -53,6 +54,7 @@ protected:
   class Solve *&solve;            // solver
   class Sweep *&sweep;            // sweep
   class Timer *&timer;            // timer
+  class Output *&output;          // output
 
   MPI_Comm &world;          // communicator for my world of procs
   FILE *&infile;            // infile for my world

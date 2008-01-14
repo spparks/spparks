@@ -596,3 +596,12 @@ define and set value(s) for a variable that can be accessed elsewhere in script
 style = index, loop, equal, world, universe, uloop
 access is via $x or ${myvar}
 see HTML doc page
+
+-----------------------------------------------------------------------
+* diag_style
+
+diag_style style delta args
+
+Run a diagnostic function called style after every delta time units.
+
+diag_style	cluster2d 0.1 cluster.dat cluster.dump
