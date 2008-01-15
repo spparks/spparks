@@ -17,7 +17,7 @@ SIZE =		size
 # Test rule
 
 test:
-	mpiexec -np 2 $(EXE) < $(INPUTFILE)
+	mpiexec -pernode $(EXE) < $(INPUTFILE)
 
 # Link rule
 

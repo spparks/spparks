@@ -67,9 +67,11 @@ AppLattice3d::~AppLattice3d()
   memory->destroy_2d_T_array(site2ijk);
   memory->destroy_3d_T_array(ijk2site);
 
-  if (fp) {
-    fclose(fp);
-    fp = NULL;
+  if (me == 0) {
+    if (fp) {
+      fclose(fp);
+      fp = NULL;
+    }
   }
 }
 
@@ -708,11 +710,13 @@ void AppLattice3d::read_spins(const char* infile)
   int i,j,k,ii,jj,kk,isite,nbuf,nglobal,ndata,maxbuf,ierr;
   int* ipnt;
   int i1,i2;
+  FILE* fpspins;
+
   // open file
 
   if (me == 0) {
-    fp = fopen(infile,"r");
-    if (fp == NULL) {
+    fpspins = fopen(infile,"r");
+    if (fpspins == NULL) {
       char str[128];
       sprintf(str,"Cannot open file %s",infile);
       error->one(str);
@@ -730,10 +734,10 @@ void AppLattice3d::read_spins(const char* infile)
     ipnt = ibufread;
     while (nbuf < maxbuf && isite < nglobal) {
       if (me == 0) {
-	eof = fgets(line,MAXLINE,fp);
+	eof = fgets(line,MAXLINE,fpspins);
 	if (eof == NULL) error->one("Unexpected end of lattice spin file");
 	while (line[0]=='#') {
-	  eof = fgets(line,MAXLINE,fp);
+	  eof = fgets(line,MAXLINE,fpspins);
 	  if (eof == NULL) error->one("Unexpected end of lattice spin file");
 	}
 
@@ -771,7 +775,7 @@ void AppLattice3d::read_spins(const char* infile)
   }
 
   if (me == 0) {
-    fclose(fp);
+    fclose(fpspins);
   }
 
 }
