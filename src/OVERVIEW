@@ -288,6 +288,7 @@ dump lattice/coord 0.25
 * app_style potts
 
 app_style potts seed nspins options ...
+app_style potts/variable seed nspins options ...
 
 app_style potts/2d/4n nx ny nspins seed
 app_style potts/2d/8n nx ny nspins seed
@@ -304,6 +305,8 @@ options = options listed with the app_style command (e.g. lattice, site)
 
 run a Potts model with different #'s of neighbors in stencil
 style potts is a generic AppLattice that can be used with various lattices
+style potts/variable is a generic AppLattice
+  that can be used with various lattices and also defines one int spin per site
 style potts/... is a specific app for a particular lattice style
   24n and 12n define special 2-hop stencils
 also need to define a "sweep" and/or "solve" style
