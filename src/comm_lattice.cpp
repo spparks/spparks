@@ -60,7 +60,11 @@ void CommLattice::init(SweepLattice *sweep,
 
   AppLattice *applattice = (AppLattice *) app;
   sitecustom = applattice->sitecustom;
+  ninteger = applattice->ninteger;
+  ndouble = applattice->ndouble;
   lattice = applattice->lattice;
+  iarray = applattice->iarray;
+  darray = applattice->darray;
 
   int dimension = applattice->dimension;
   int nlocal = applattice->nlocal;
@@ -92,7 +96,9 @@ void CommLattice::init(SweepLattice *sweep,
 void CommLattice::sector(const int isector)
 {
   if (sitecustom == 0) perform_swap_lattice(sectorswap[isector]);
-  else perform_swap_data(sectorswap[isector]);
+  else if (ninteger && !ndouble) perform_swap_int(sectorswap[isector]);
+  else if (ndouble && !ninteger) perform_swap_double(sectorswap[isector]);
+  else perform_swap_general(sectorswap[isector]);
 }
 
 /* ----------------------------------------------------------------------
@@ -102,7 +108,9 @@ void CommLattice::sector(const int isector)
 void CommLattice::all()
 {
   if (sitecustom == 0) perform_swap_lattice(allswap);
-  else perform_swap_data(allswap);
+  else if (ninteger && !ndouble) perform_swap_int(allswap);
+  else if (ndouble && !ninteger) perform_swap_double(allswap);
+  else perform_swap_general(allswap);
 }
 
 /* ----------------------------------------------------------------------
@@ -248,11 +256,13 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
   int *rcount = new int[nprocs];
   int *rmax = new int[nprocs];
   int **rindex = new int*[nprocs];
-  int **rbuf = new int*[nprocs];
+  int **ribuf = new int*[nprocs];
+  double **rdbuf = new double*[nprocs];
   for (int i = 0; i < nprocs; i++) {
     rmax[i] = 0;
     rindex[i] = NULL;
-    rbuf[i] = NULL;
+    ribuf[i] = NULL;
+    rdbuf[i] = NULL;
   }
 
   // original ghost list came back to me around ring
@@ -288,8 +298,29 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
     rcount[irecv]++;
   }
 
+  // allocate sbuf and rbuf[i] directly for ints and doubles
+  // sizes depend on number of quantities stored per site
+
+  int max = 0;
+  for (i = 0; i < nsend; i++) max = MAX(max,scount[i]);
+
+  int *sibuf = NULL;
+  double *sdbuf = NULL;
+  if (max) {
+    if (sitecustom == 0) sibuf = new int[max];
+    else if (ninteger && !ndouble) sibuf = new int[ninteger*max];
+    else if (ndouble && !ninteger) sdbuf = new double[ndouble*max];
+    else sdbuf = new double[(ninteger+ndouble)*max];
+  }
+
+  for (i = 0; i < nrecv; i++) {
+    if (sitecustom == 0) ribuf[i] = new int[rcount[i]];
+    else if (ninteger && !ndouble) ribuf[i] = new int[ninteger*rcount[i]];
+    else if (ndouble && !ninteger) rdbuf[i] = new double[ndouble*rcount[i]];
+    else rdbuf[i] = new double[(ninteger+ndouble)*rcount[i]];
+  }
+
   // fill in swap data struct
-  // allocate sbuf and rbuf[i] directly
 
   swap->nsend = nsend;
   swap->nrecv = nrecv;
@@ -298,20 +329,15 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
   swap->scount = scount;
   swap->smax = smax;
   swap->sindex = sindex;
-
-  int max = 0;
-  for (i = 0; i < nsend; i++) max = MAX(max,scount[i]);
-  if (max) swap->sbuf = new int[max];
-  else swap->sbuf = NULL;
+  swap->sibuf = sibuf;
+  swap->sdbuf = sdbuf;
 
   swap->rproc = rproc;
   swap->rcount = rcount;
   swap->rmax = rmax;
   swap->rindex = rindex;
-  swap->rbuf = rbuf;
-
-  for (i = 0; i < nrecv; i++)
-    swap->rbuf[i] = new int[rcount[i]];
+  swap->ribuf = ribuf;
+  swap->rdbuf = rdbuf;
 
   if (swap->nrecv) {
     swap->request = new MPI_Request[swap->nrecv];
@@ -335,15 +361,18 @@ void CommLattice::free_swap(Swap *swap)
   delete [] swap->smax;
   for (int i = 0; i < swap->nsend; i++) memory->sfree(swap->sindex[i]);
   delete [] swap->sindex;
-  delete [] swap->sbuf;
+  delete [] swap->sibuf;
+  delete [] swap->sdbuf;
 
   delete [] swap->rproc;
   delete [] swap->rcount;
   delete [] swap->rmax;
   for (int i = 0; i < swap->nrecv; i++) memory->sfree(swap->rindex[i]);
   delete [] swap->rindex;
-  for (int i = 0; i < swap->nrecv; i++) delete [] swap->rbuf[i];
-  delete [] swap->rbuf;
+  for (int i = 0; i < swap->nrecv; i++) delete [] swap->ribuf[i];
+  for (int i = 0; i < swap->nrecv; i++) delete [] swap->rdbuf[i];
+  delete [] swap->ribuf;
+  delete [] swap->rdbuf;
 
   delete [] swap->request;
   delete [] swap->status;
@@ -365,14 +394,14 @@ void CommLattice::perform_swap_lattice(Swap *swap)
   // post receives
 
   for (i = 0; i < swap->nrecv; i++)
-    MPI_Irecv(swap->rbuf[i],swap->rcount[i],MPI_INT,swap->rproc[i],0,world,
+    MPI_Irecv(swap->ribuf[i],swap->rcount[i],MPI_INT,swap->rproc[i],0,world,
 	      &swap->request[i]);
 
   // pack data to send to each proc and send it
 
   for (i = 0; i < swap->nsend; i++) {
     index = swap->sindex[i];
-    buf = swap->sbuf;
+    buf = swap->sibuf;
     for (j = 0; j < swap->scount[i]; j++) buf[j] = lattice[index[j]];
     MPI_Send(buf,swap->scount[i],MPI_INT,swap->sproc[i],0,world);
   }
@@ -385,35 +414,38 @@ void CommLattice::perform_swap_lattice(Swap *swap)
 
   for (i = 0; i < swap->nrecv; i++) {
     index = swap->rindex[i];
-    buf = swap->rbuf[i];
+    buf = swap->ribuf[i];
     for (j = 0; j < swap->rcount[i]; j++) lattice[index[j]] = buf[j];
   }
 }
 
 /* ----------------------------------------------------------------------
    communicate ghost values via Swap instructions
-   use generalized data as source destination via call-backs to app
+   use iarray as source/destination, all integer data
 ------------------------------------------------------------------------- */
 
-void CommLattice::perform_swap_data(Swap *swap)
+void CommLattice::perform_swap_int(Swap *swap)
 {
-  int i,j;
-  int *index;
-  int *buf;
+  int i,j,m,n;
+  int *index,*buf,*vector;
 
   // post receives
 
   for (i = 0; i < swap->nrecv; i++)
-    MPI_Irecv(swap->rbuf[i],swap->rcount[i],MPI_INT,swap->rproc[i],0,world,
-	      &swap->request[i]);
+    MPI_Irecv(swap->ribuf[i],ninteger*swap->rcount[i],MPI_INT,
+	      swap->rproc[i],0,world,&swap->request[i]);
 
   // pack data to send to each proc and send it
 
   for (i = 0; i < swap->nsend; i++) {
     index = swap->sindex[i];
-    buf = swap->sbuf;
-    for (j = 0; j < swap->scount[i]; j++) buf[j] = lattice[index[j]];
-    MPI_Send(buf,swap->scount[i],MPI_INT,swap->sproc[i],0,world);
+    buf = swap->sibuf;
+    m = 0;
+    for (n = 0; n < ninteger; n++) {
+      vector = iarray[n];
+      for (j = 0; j < swap->scount[i]; j++) buf[m++] = vector[index[j]];
+    }
+    MPI_Send(buf,ninteger*swap->scount[i],MPI_INT,swap->sproc[i],0,world);
   }
 
   // wait on incoming messages
@@ -424,7 +456,115 @@ void CommLattice::perform_swap_data(Swap *swap)
 
   for (i = 0; i < swap->nrecv; i++) {
     index = swap->rindex[i];
-    buf = swap->rbuf[i];
-    for (j = 0; j < swap->rcount[i]; j++) lattice[index[j]] = buf[j];
+    buf = swap->ribuf[i];
+    m = 0;
+    for (n = 0; n < ninteger; n++) {
+      vector = iarray[n];
+      for (j = 0; j < swap->rcount[i]; j++) vector[index[j]] = buf[m++];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   communicate ghost values via Swap instructions
+   use darray as source/destination, all double data
+------------------------------------------------------------------------- */
+
+void CommLattice::perform_swap_double(Swap *swap)
+{
+  int i,j,m,n;
+  int *index;
+  double *buf,*vector;
+
+  // post receives
+
+  for (i = 0; i < swap->nrecv; i++)
+    MPI_Irecv(swap->rdbuf[i],ndouble*swap->rcount[i],MPI_DOUBLE,
+	      swap->rproc[i],0,world,&swap->request[i]);
+
+  // pack data to send to each proc and send it
+
+  for (i = 0; i < swap->nsend; i++) {
+    index = swap->sindex[i];
+    buf = swap->sdbuf;
+    m = 0;
+    for (n = 0; n < ndouble; n++) {
+      vector = darray[n];
+      for (j = 0; j < swap->scount[i]; j++) buf[m++] = vector[index[j]];
+    }
+    MPI_Send(buf,ndouble*swap->scount[i],MPI_DOUBLE,swap->sproc[i],0,world);
+  }
+
+  // wait on incoming messages
+
+  if (swap->nrecv) MPI_Waitall(swap->nrecv,swap->request,swap->status);
+
+  // unpack received buffers of data from each proc
+
+  for (i = 0; i < swap->nrecv; i++) {
+    index = swap->rindex[i];
+    buf = swap->rdbuf[i];
+    m = 0;
+    for (n = 0; n < ndouble; n++) {
+      vector = darray[n];
+      for (j = 0; j < swap->rcount[i]; j++) vector[index[j]] = buf[m++];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   communicate ghost values via Swap instructions
+   use iarray and darray as source/destination, mixed integer/double data
+------------------------------------------------------------------------- */
+
+void CommLattice::perform_swap_general(Swap *swap)
+{
+  int i,j,m,n;
+  int *index,*ivector;
+  double *buf,*dvector;
+
+  // post receives
+
+  int ntotal = ninteger + ndouble;
+  for (i = 0; i < swap->nrecv; i++)
+    MPI_Irecv(swap->rdbuf[i],ntotal*swap->rcount[i],MPI_DOUBLE,
+	      swap->rproc[i],0,world,&swap->request[i]);
+
+  // pack data to send to each proc and send it
+
+  for (i = 0; i < swap->nsend; i++) {
+    index = swap->sindex[i];
+    buf = swap->sdbuf;
+    m = 0;
+    for (n = 0; n < ninteger; n++) {
+      ivector = iarray[n];
+      for (j = 0; j < swap->scount[i]; j++) buf[m++] = ivector[index[j]];
+    }
+    for (n = 0; n < ndouble; n++) {
+      dvector = darray[n];
+      for (j = 0; j < swap->scount[i]; j++) buf[m++] = dvector[index[j]];
+    }
+    MPI_Send(buf,ntotal*swap->scount[i],MPI_DOUBLE,swap->sproc[i],0,world);
+  }
+
+  // wait on incoming messages
+
+  if (swap->nrecv) MPI_Waitall(swap->nrecv,swap->request,swap->status);
+
+  // unpack received buffers of data from each proc
+
+  for (i = 0; i < swap->nrecv; i++) {
+    index = swap->rindex[i];
+    buf = swap->rdbuf[i];
+    m = 0;
+    for (n = 0; n < ninteger; n++) {
+      ivector = iarray[n];
+      for (j = 0; j < swap->rcount[i]; j++)
+	ivector[index[j]] = static_cast<int> (buf[m++]);
+    }
+    for (n = 0; n < ndouble; n++) {
+      dvector = darray[n];
+      for (j = 0; j < swap->rcount[i]; j++) dvector[index[j]] = buf[m++];
+    }
   }
 }

@@ -13,6 +13,7 @@
 #include "app_membrane.h"
 #include "app_membrane_2d.h"
 #include "app_potts.h"
+#include "app_potts_variable.h"
 #include "app_potts_2d_4n.h"
 #include "app_potts_2d_8n.h"
 #include "app_potts_2d_24n.h"
@@ -35,6 +36,7 @@ AppStyle(ising/3d/26n,AppIsing3d26n)
 AppStyle(membrane,AppMembrane)
 AppStyle(membrane/2d,AppMembrane2d)
 AppStyle(potts,AppPotts)
+AppStyle(potts/variable,AppPottsVariable)
 AppStyle(potts/2d/4n,AppPotts2d4n)
 AppStyle(potts/2d/8n,AppPotts2d8n)
 AppStyle(potts/2d/24n,AppPotts2d24n)

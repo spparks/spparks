@@ -27,15 +27,17 @@ class CommLattice : protected SysPtr {
   struct Swap {
     int nsend,nrecv;               // number of messages to send/recv
     int *sproc;                    // proc for each send message
-    int *scount;                   // size of each send message
-    int *smax;                     // max size of each send message
+    int *scount;                   // size of each send message in sites
+    int *smax;                     // max size of each send message in sites
     int **sindex;                  // list of my lattice indices for each send
-    int *sbuf;                     // length of biggest send message
+    int *sibuf;                    // biggest int send message
+    double *sdbuf;                 // biggest double send message
     int *rproc;                    // proc for each recv message
-    int *rcount;                   // size of each recv message
-    int *rmax;                     // max size of each recv message
+    int *rcount;                   // size of each recv message in sites
+    int *rmax;                     // max size of each recv message in sites
     int **rindex;                  // list of my lattice indices for each recv
-    int **rbuf;                    // incoming buf for each recv message
+    int **ribuf;                   // each int recv message
+    double **rdbuf;                // each double recv message
     MPI_Request *request;          // MPI datums for each recv message
     MPI_Status *status;
   };
@@ -49,15 +51,19 @@ class CommLattice : protected SysPtr {
   };
 
   int sitecustom;
+  int ninteger,ndouble;
   int *lattice;
+  int **iarray;
+  double **darray;
 
   Swap *create_swap(int, int *, int, int *, int *, int **);
   void free_swap(Swap *);
   void perform_swap_lattice(Swap *);
-  void perform_swap_data(Swap *);
+  void perform_swap_int(Swap *);
+  void perform_swap_double(Swap *);
+  void perform_swap_general(Swap *);
 };
 
 }
 
 #endif
-

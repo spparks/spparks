@@ -166,12 +166,12 @@ void AppLattice::options(int narg, char **arg)
       }
 
     } else if (strcmp(arg[iarg],"site") == 0) {
-      if (iarg+2 > narg) error->all("Illegal app_style command");
+      if (iarg+3 > narg) error->all("Illegal app_style command");
       ninteger = atoi(arg[iarg+1]);
       ndouble = atoi(arg[iarg+2]);
       if (ninteger == 0 && ndouble == 0) sitecustom = 0;
       else sitecustom = 1;
-      iarg += 2;
+      iarg += 3;
 
     } else error->all("Illegal app_style command ");
   }

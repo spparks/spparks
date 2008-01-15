@@ -75,32 +75,6 @@ SweepLattice::SweepLattice(SPK *spk, int narg, char **arg) :
       iarg += 2;
     } else error->all("Illegal sweep_style command");
   }
-
-  // set sweep method function ptr
-  // NOTE: might have to be in init so can set it for general data
-
-  if (Lkmc) {
-    if (Lmask || Lpicklocal)
-      error->all("Combination of sweep flags is unsupported");
-    sweeper = &SweepLattice::sweep_sector_kmc;
-  } else if (Lstrict) {
-    if (Lmask) {
-      if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sweeper = &SweepLattice::sweep_sector_mask_strict;
-    } else {
-      if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sweeper = &SweepLattice::sweep_sector_strict;
-    }
-  } else {
-    if (Lmask) {
-      if (Lpicklocal) sweeper = &SweepLattice::sweep_sector_mask_picklocal;
-      else sweeper = &SweepLattice::sweep_sector_mask;
-    } else {
-      if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sweeper = &SweepLattice::sweep_sector_lattice;
-    }
-  }
-
   // initializations
 
   int nsectormax = 8;
@@ -149,6 +123,12 @@ void SweepLattice::init()
 
   int sitecustom = applattice->sitecustom;
   lattice = applattice->lattice;
+
+  // shouldn't never access these array eventually
+  // use callbacks to app instead
+
+  iarray = applattice->iarray;
+  darray = applattice->darray;
 
   dimension = applattice->dimension;
   nlocal = applattice->nlocal;
@@ -281,6 +261,38 @@ void SweepLattice::init()
       sector[isector].solve->init(nsites,sector[isector].propensity);
     }
   }
+
+  // set sweep method function ptr
+
+  if (Lkmc) {
+    if (Lmask || Lpicklocal)
+      error->all("Combination of sweep flags is unsupported");
+    sweeper = &SweepLattice::sweep_sector_kmc;
+  } else if (Lstrict) {
+    if (Lmask) {
+      if (Lpicklocal || sitecustom)
+	error->all("Combination of sweep flags is unsupported");
+      else sweeper = &SweepLattice::sweep_sector_mask_strict;
+    } else {
+      if (Lpicklocal || sitecustom)
+	error->all("Combination of sweep flags is unsupported");
+      else sweeper = &SweepLattice::sweep_sector_strict;
+    }
+  } else {
+    if (Lmask) {
+      if (sitecustom)
+	error->all("Combination of sweep flags is unsupported");
+      else if (Lpicklocal)
+	sweeper = &SweepLattice::sweep_sector_mask_picklocal;
+      else sweeper = &SweepLattice::sweep_sector_mask;
+    } else {
+      if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
+      else if (sitecustom == 0)
+	sweeper = &SweepLattice::sweep_sector_lattice;
+      else
+	sweeper = &SweepLattice::sweep_sector_data;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -384,7 +396,7 @@ void SweepLattice::sweep_sector_lattice(int icolor, int isector)
 }
 
 /* ----------------------------------------------------------------------
-   sweep over one sector of sites using general data model for state
+   sweep over one sector of sites using general data for state
    application picks a new state for the site
    compute energy change due to state change
    no energy change = accept
@@ -402,17 +414,17 @@ void SweepLattice::sweep_sector_data(int icolor, int isector)
 
   for (m = 0; m < nlocal; m++) {
     i = site2i[m];
-    oldstate = lattice[i];
+    oldstate = iarray[0][i];
     einitial = applattice->site_energy(i);
   
     newstate = applattice->site_pick_random(i,random->uniform());
-    lattice[i] = newstate;
+    iarray[0][i] = newstate;
     efinal = applattice->site_energy(i);
     
     if (efinal <= einitial) continue;
-    else if (temperature == 0.0) lattice[i] = oldstate;
+    else if (temperature == 0.0) iarray[0][i] = oldstate;
     else if (random->uniform() > exp((einitial-efinal)*t_inverse))
-      lattice[i] = oldstate;
+      iarray[0][i] = oldstate;
   }
 }
 

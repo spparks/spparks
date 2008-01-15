@@ -25,9 +25,13 @@ class SweepLattice : public Sweep {
   bool Lmask,Lpicklocal,Lstrict,Lkmc;
   double delt;
 
+  int *lattice;
+  int **iarray;              // shouldn't need iarray,darray eventually
+  double **darray;           // use callbacks to app instead
+
   int dimension;
   int nlocal;
-  int *lattice,*i2site;
+  int *i2site;
   double temperature,t_inverse;
 
   class AppLattice *applattice;       
