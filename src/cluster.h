@@ -23,6 +23,7 @@ class Cluster {
   void print(FILE*);
 
   friend class DiagCluster2d;
+  friend class DiagCluster3d;
 };
 
 }

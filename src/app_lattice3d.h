@@ -9,10 +9,14 @@
 #include "stdio.h"
 #include "app.h"
 
+#include <stack>
+#include "cluster.h"
+
 namespace SPPARKS {
 
 class AppLattice3d : public App {
   friend class SweepLattice3d;
+  friend class DiagCluster3d;
 
  public:
   AppLattice3d(class SPK *, int, char **);
@@ -101,6 +105,10 @@ class AppLattice3d : public App {
   void ijkpbc(int &, int &, int &);
 
   void read_spins(const char*);
+
+  virtual void push_connected_neighbors(int, int, int, int***, int, std::stack<int>*);
+  virtual void connected_ghosts(int, int, int, int***, Cluster*, int);
+
 };
 
 // remap i,j,k indices via PBC if needed

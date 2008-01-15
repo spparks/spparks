@@ -3,8 +3,8 @@
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
-#ifndef DIAG_CLUSTER_H
-#define DIAG_CLUSTER_H
+#ifndef DIAG_CLUSTER2D_H
+#define DIAG_CLUSTER2D_H
 
 #include "stdio.h"
 #include <stack>

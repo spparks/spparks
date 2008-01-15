@@ -16,6 +16,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "output.h"
 
 using namespace SPPARKS;
 
@@ -34,8 +35,6 @@ AppLattice3d::AppLattice3d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 
   ntimestep = 0;
   time = 0.0;
-  stats_delta = 0.0;
-  dump_delta = 0.0;
   temperature = 0.0;
   maxdumpbuf = 0;
   ibufread = NULL;
@@ -169,22 +168,10 @@ void AppLattice3d::init()
     solve->init(nsites,propensity);
   }
 
-  // setup future stat and dump calls
+  // Initialize output
 
-  stats_time = time + stats_delta;
-  if (stats_delta == 0.0) stats_time = stoptime;
-  dump_time = time + dump_delta;
-  if (dump_delta == 0.0) dump_time = stoptime;
+  output->init(time);
 
-  // print dump file header and 1st snapshot
-
-  if (dump_delta > 0.0) {
-    dump_header();
-    dump();
-  }
-
-  stats_header();
-  stats();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -193,8 +180,8 @@ void AppLattice3d::input(char *command, int narg, char **arg)
 {
   if (narg == 0) error->all("Invalid command");
   if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
-  else if (strcmp(command,"stats") == 0) set_stats(narg,arg);
-  else if (strcmp(command,"dump") == 0) set_dump(narg,arg);
+  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
+  else if (strcmp(command,"dump") == 0) output->set_dump(narg,arg);
   else input_app(command,narg,arg);
 }
 
@@ -266,17 +253,10 @@ void AppLattice3d::iterate()
 
     if (time >= stoptime) done = 1;
 
-    if (time >= stats_time || done) {
-      stats();
-      stats_time += stats_delta;
-      timer->stamp(TIME_OUTPUT);
-    }
+    // Do output
 
-    if (time >= dump_time || done) {
-      if (dump_delta > 0.0) dump();
-      dump_time += dump_delta;
-      timer->stamp(TIME_OUTPUT);
-    }
+    output->compute(time,done);
+
   }
   
   timer->barrier_stop(TIME_LOOP);
@@ -606,7 +586,6 @@ void AppLattice3d::set_temperature(int narg, char **arg)
 void AppLattice3d::set_stats(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal stats command");
-  stats_delta = atof(arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -614,8 +593,6 @@ void AppLattice3d::set_stats(int narg, char **arg)
 void AppLattice3d::set_dump(int narg, char **arg)
 {
   if (narg != 3) error->all("Illegal dump command");
-  dump_delta = atof(arg[0]);
-  if (dump_delta <= 0.0) error->all("Illegal dump command");
 
   if (strcmp(arg[1],"lattice") == 0) dump_style = LATTICE;
   else if (strcmp(arg[1],"coord") == 0) dump_style = COORD;
@@ -797,4 +774,25 @@ void AppLattice3d::read_spins(const char* infile)
     fclose(fp);
   }
 
+}
+
+/* ----------------------------------------------------------------------
+   This is to prevent clustering for undefined child apps
+   Should eventually replace with pure virtual function
+------------------------------------------------------------------------- */
+
+void AppLattice3d::push_connected_neighbors(int i, int j, int k, int*** cluster_ids, int id, std::stack<int>*)
+{
+  error->all("Connectivity not defined for this AppLattice3d child class");
+}
+
+
+/* ----------------------------------------------------------------------
+   This is to prevent clustering for undefined child apps
+   Should eventually replace with pure virtual function
+------------------------------------------------------------------------- */
+
+void AppLattice3d::connected_ghosts(int i, int j, int k, int*** cluster_ids, Cluster* clustlist, int idoffset)
+{
+  error->all("Connectivity not defined for this AppLattice3d child class");
 }

@@ -332,13 +332,11 @@ void AppPotts2d8n::push_connected_neighbors(int i, int j, int** cluster_ids, int
 
   for (int ii = i-1; ii <= i+1; ii++) {
     for (int jj = j-1; jj <= j+1; jj++) {
-      iii = ii;
-      jjj = jj;
-      if (lattice[iii][jjj] == lattice[i][j] &&
-	  cluster_ids[iii][jjj] == 0) {
-	cluststack->push(iii);
-	cluststack->push(jjj);
-	cluster_ids[iii][jjj] = id;
+      if (lattice[ii][jj] == lattice[i][j] &&
+	  cluster_ids[ii][jj] == 0) {
+	cluststack->push(ii);
+	cluststack->push(jj);
+	cluster_ids[ii][jj] = id;
       }
     }
   }

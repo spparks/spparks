@@ -85,6 +85,16 @@ SweepStyle(lattice2d,SweepLattice2d)
 SweepStyle(lattice3d,SweepLattice3d)
 #endif
 
+#ifdef DiagInclude
+#include "diag_cluster2d.h"
+#include "diag_cluster3d.h"
+#endif
+
+#ifdef DiagClass
+DiagStyle(cluster2d,DiagCluster2d)
+DiagStyle(cluster3d,DiagCluster3d)
+#endif
+
 // packages
 
 #include "style_gppt.h"

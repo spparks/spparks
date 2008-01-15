@@ -24,6 +24,8 @@ class AppPotts3d26n : public AppPotts3d {
   void site_clear_mask(char ***, int, int, int);
   void survey_neighbor(const int&, const int&, int&, int[], int[]) const;
 
+  void push_connected_neighbors(int, int, int, int***, int, std::stack<int>*);
+  void connected_ghosts(int, int, int, int***, Cluster*, int);
 };
 
 }

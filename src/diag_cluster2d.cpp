@@ -20,6 +20,8 @@ using namespace SPPARKS;
 
 DiagCluster2d::DiagCluster2d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
+  fpdump = NULL;
+
   if (narg < 3 || narg > 4) error->all("Illegal diag_style cluster2d command");
 
   int iarg = 2;
@@ -118,7 +120,7 @@ void DiagCluster2d::write_header()
 
 void DiagCluster2d::dump_clusters(double time)
 {
-  int nsend,nrecv,nxtmp,nytmp,nztmp,nxhtmp,nyhtmp,nzhtmp,nxotmp,nyotmp,nzotmp;
+  int nsend,nrecv,nxtmp,nytmp,nxotmp,nyotmp;
   int size_one = 1;
   int* buftmp;
   int maxbuftmp;
@@ -137,7 +139,7 @@ void DiagCluster2d::dump_clusters(double time)
   // maxbuftmp must equal the maximum number of spins on one domain 
   // plus some extra stuff
   maxbuftmp = (nx_global/nx_procs+1)*(ny_global/ny_procs+1)+4;
-  nsend = nx_local*ny_local+9;
+  nsend = nx_local*ny_local+4;
   if (maxbuftmp < nsend) 
     error->one("maxbuftmp size too small in DiagCluster2d::dump_clusters()");
   

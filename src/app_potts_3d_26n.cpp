@@ -325,3 +325,56 @@ void AppPotts3d26n::site_clear_mask(char ***mask, int i, int j, int k)
       for (kk = k-1; kk <= k+1; kk++)
 	mask[ii][jj][kk] = 0;
 }
+
+/* ----------------------------------------------------------------------
+   push connected neighbors of this site onto stack
+     and assign current id
+   ghost neighbors are masked by id = -1
+   previously burned sites are masked by id > 0
+ ------------------------------------------------------------------------- */
+
+void AppPotts3d26n::push_connected_neighbors(int i, int j, int k, int*** cluster_ids, int id, std::stack<int>* cluststack)
+{
+  int iii,jjj,kkk;
+
+  for (int ii = i-1; ii <= i+1; ii++) {
+    for (int jj = j-1; jj <= j+1; jj++) {
+      for (int kk = k-1; kk <= k+1; kk++) {
+	if (lattice[ii][jj][kk] == lattice[i][j][k] &&
+	    cluster_ids[ii][jj][kk] == 0) {
+	  cluststack->push(ii);
+	  cluststack->push(jj);
+	  cluststack->push(kk);
+	  cluster_ids[ii][jj][kk] = id;
+	}
+      }
+    }
+  }
+
+}
+
+/* ----------------------------------------------------------------------
+   Add cluster id of connected ghost sites to neighbor list of cluster
+ ------------------------------------------------------------------------- */
+
+void AppPotts3d26n::connected_ghosts(int i, int j, int k, int*** cluster_ids, Cluster* clustlist, int idoffset)
+{
+  int iclust;
+
+  for (int ii = i-1; ii <= i+1; ii++) {
+    for (int jj = j-1; jj <= j+1; jj++) {
+      for (int kk = k-1; kk <= k+1; kk++) {
+	if (lattice[ii][jj][kk] == lattice[i][j][k] &&
+	    (ii < 1 || ii > nx_local || 
+	     jj < 1 || jj > ny_local ||
+	     kk < 1 || kk > nz_local )) {
+	  iclust = cluster_ids[i][j][k]-idoffset;
+	  // Add ghost cluster to neighbors of local cluster
+	  clustlist[iclust].add_neigh(cluster_ids[ii][jj][kk]);
+	}
+      }
+    }
+  }
+
+}
+
