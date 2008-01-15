@@ -25,6 +25,7 @@ DiagCluster3d::DiagCluster3d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg
 {
   fp = NULL;
   fpdump = NULL;
+  clustlist = NULL;
 
   if (narg < 3) error->all("Illegal diag_style cluster3d command");
 

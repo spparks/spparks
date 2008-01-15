@@ -20,7 +20,9 @@ using namespace SPPARKS;
 
 DiagCluster2d::DiagCluster2d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
+  fp = NULL;
   fpdump = NULL;
+  clustlist = NULL;
 
   if (narg < 3 || narg > 4) error->all("Illegal diag_style cluster2d command");
 
