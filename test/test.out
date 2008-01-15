@@ -16,14 +16,14 @@ Step Time A B C
 107311 80.0004 2345 345 655
 120945 90.001 2317 317 683
 134494 100 2336 336 664
-Loop time of 0.049387 on 1 procs
+Loop time of 0.0527561 on 1 procs
 
-Solve time (%) = 0.0264378 (53.5318)
+Solve time (%) = 0.0260847 (49.4439)
 Update time (%) = 0 (0)
 Comm  time (%) = 0 (0)
-Outpt time (%) = 3.09944e-05 (0.0627583)
+Outpt time (%) = 3.29018e-05 (0.0623658)
 App   time (%) = 0 (0)
-Other time (%) = 0.0229182 (46.4054)
+Other time (%) = 0.0266385 (50.4937)
 
 
 *** Testing file in.abc.alex ***
@@ -42,14 +42,14 @@ Step Time A B C
 107311 80.0004 2345 345 655
 120945 90.001 2317 317 683
 134494 100 2336 336 664
-Loop time of 0.04954 on 1 procs
+Loop time of 0.0501721 on 1 procs
 
-Solve time (%) = 0.0265341 (53.5609)
+Solve time (%) = 0.0265362 (52.8904)
 Update time (%) = 0 (0)
 Comm  time (%) = 0 (0)
-Outpt time (%) = 3.71933e-05 (0.0750772)
+Outpt time (%) = 3.48091e-05 (0.0693794)
 App   time (%) = 0 (0)
-Other time (%) = 0.0229688 (46.364)
+Other time (%) = 0.0236011 (47.0402)
 
 
 *** Testing file in.event ***
@@ -58,26 +58,26 @@ Other time (%) = 0.0229688 (46.364)
 SPPARKS (1 Oct 2006)
 Step Time Counts
 
-Number of reactions = 100
-Loop time of 1.1288 on 1 procs
+Number of reactions, events = 100 1000000
+Loop time of 1.09251 on 1 procs
 
-Solve time (%) = 0.298509 (26.4448)
-Update time (%) = 0.734075 (65.0314)
-Comm  time (%) = 0 (0)
-Outpt time (%) = 9.53674e-07 (8.44857e-05)
-App   time (%) = 0 (0)
-Other time (%) = 0.0962148 (8.52363)
-Step Time Counts
-
-Number of reactions = 200
-Loop time of 1.11317 on 1 procs
-
-Solve time (%) = 0.303896 (27.3002)
-Update time (%) = 0.713283 (64.077)
+Solve time (%) = 0.327049 (29.9357)
+Update time (%) = 0.679866 (62.23)
 Comm  time (%) = 0 (0)
 Outpt time (%) = 0 (0)
 App   time (%) = 0 (0)
-Other time (%) = 0.0959866 (8.62285)
+Other time (%) = 0.0855901 (7.83429)
+Step Time Counts
+
+Number of reactions, events = 200 1000000
+Loop time of 1.07454 on 1 procs
+
+Solve time (%) = 0.327543 (30.4822)
+Update time (%) = 0.661 (61.5149)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.085994 (8.00289)
 
 
 *** Testing file in.ising ***
@@ -96,14 +96,14 @@ Timestep Time Energy Propensity
 80 80.000000 8568.000000 0.000000
 90 90.000000 8180.000000 0.000000
 100 100.000000 7776.000000 0.000000
-Loop time of 0.393685 on 1 procs
+Loop time of 0.396004 on 1 procs
 
-Solve time (%) = 0.0259702 (6.5967)
+Solve time (%) = 0.0267086 (6.74453)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000320435 (0.0813936)
-Outpt time (%) = 0.0142457 (3.61856)
-App   time (%) = 0.326757 (82.9995)
-Other time (%) = 0.026392 (6.70383)
+Comm  time (%) = 0.000343084 (0.0866366)
+Outpt time (%) = 0.014317 (3.61538)
+App   time (%) = 0.327975 (82.8211)
+Other time (%) = 0.0266604 (6.73237)
 Timestep Time Energy Propensity
 100 100.000000 7776.000000 0.000000
 110 110.000000 7360.000000 0.000000
@@ -116,14 +116,14 @@ Timestep Time Energy Propensity
 180 180.000000 6350.000000 0.000000
 190 190.000000 6244.000000 0.000000
 200 200.000000 6220.000000 0.000000
-Loop time of 0.11832 on 1 procs
+Loop time of 0.119082 on 1 procs
 
-Solve time (%) = 0.00809336 (6.84023)
+Solve time (%) = 0.0083313 (6.99627)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000314951 (0.266186)
-Outpt time (%) = 0.0141931 (11.9955)
-App   time (%) = 0.0784094 (66.269)
-Other time (%) = 0.0173092 (14.6291)
+Comm  time (%) = 0.000317335 (0.266485)
+Outpt time (%) = 0.0142815 (11.993)
+App   time (%) = 0.0786803 (66.0724)
+Other time (%) = 0.0174716 (14.6719)
 
 
 *** Testing file in.kristi ***
@@ -142,14 +142,14 @@ Timestep Time Energy Propensity
 691 6000000.000000 -5604.789000 0.000000
 770 9000000.000000 -5619.721000 0.000000
 853 12000000.000000 -5632.546000 0.000000
-Loop time of 0.236167 on 1 procs
+Loop time of 0.235995 on 1 procs
 
-Solve time (%) = 0.00024581 (0.104083)
+Solve time (%) = 0.000253201 (0.107291)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000355959 (0.150723)
-Outpt time (%) = 0.0048368 (2.04804)
-App   time (%) = 0.176097 (74.5647)
-Other time (%) = 0.0546312 (23.1325)
+Comm  time (%) = 0.000340939 (0.144469)
+Outpt time (%) = 0.00486183 (2.06014)
+App   time (%) = 0.177077 (75.034)
+Other time (%) = 0.0534625 (22.6541)
 
 
 *** Testing file in.membrane ***
@@ -165,14 +165,14 @@ Timestep Time Energy Propensity
 189270 300.000720 -12054.000000 575.987522
 245531 400.003600 -11351.000000 537.378907
 303643 500.002792 -11775.500000 559.522517
-Loop time of 0.701294 on 1 procs
+Loop time of 0.745806 on 1 procs
 
-Solve time (%) = 0.0926352 (13.2092)
+Solve time (%) = 0.0921705 (12.3585)
 Update time (%) = 0 (0)
 Comm  time (%) = 0 (0)
-Outpt time (%) = 0.144236 (20.5671)
-App   time (%) = 0.437599 (62.3988)
-Other time (%) = 0.0268235 (3.82486)
+Outpt time (%) = 0.146857 (19.691)
+App   time (%) = 0.480072 (64.3696)
+Other time (%) = 0.0267067 (3.58092)
 Timestep Time Energy Propensity
 303643 500.002792 -11775.500000 338.392912
 311141 600.008994 -10731.000000 69.587270
@@ -190,14 +190,14 @@ Timestep Time Energy Propensity
 366312 1800.109952 -9653.000000 52.804011
 370709 1900.007756 -9773.500000 33.851236
 374255 2000.079860 -9883.500000 34.239534
-Loop time of 0.590236 on 1 procs
+Loop time of 0.574989 on 1 procs
 
-Solve time (%) = 0.0203571 (3.44898)
+Solve time (%) = 0.0202372 (3.51958)
 Update time (%) = 0 (0)
 Comm  time (%) = 0 (0)
-Outpt time (%) = 0.462146 (78.2984)
-App   time (%) = 0.101478 (17.1927)
-Other time (%) = 0.00625563 (1.05985)
+Outpt time (%) = 0.440141 (76.5477)
+App   time (%) = 0.108367 (18.8469)
+Other time (%) = 0.00624323 (1.0858)
 
 
 *** Testing file in.potts ***
@@ -217,14 +217,14 @@ Timestep Time Energy Propensity
 9 0.090000 70776.000000 0.000000
 10 0.100000 70222.000000 0.000000
 11 0.110000 69648.000000 0.000000
-Loop time of 0.0156012 on 1 procs
+Loop time of 0.0172849 on 1 procs
 
-Solve time (%) = 0.013061 (83.7184)
+Solve time (%) = 0.0142934 (82.6933)
 Update time (%) = 0 (0)
-Comm  time (%) = 4.14848e-05 (0.265909)
-Outpt time (%) = 0.00249434 (15.9881)
+Comm  time (%) = 4.95911e-05 (0.286904)
+Outpt time (%) = 0.00293589 (16.9853)
 App   time (%) = 0 (0)
-Other time (%) = 4.29153e-06 (0.0275078)
+Other time (%) = 5.96046e-06 (0.0344837)
 Timestep Time Energy Propensity
 0 0.000000 79250.000000 0.000000
 1 0.010000 77996.000000 0.000000
@@ -238,14 +238,14 @@ Timestep Time Energy Propensity
 9 0.090000 70652.000000 0.000000
 10 0.100000 69956.000000 0.000000
 11 0.110000 69206.000000 0.000000
-Loop time of 0.038775 on 1 procs
+Loop time of 0.0394728 on 1 procs
 
-Solve time (%) = 0.00190115 (4.90303)
+Solve time (%) = 0.00185657 (4.7034)
 Update time (%) = 0 (0)
-Comm  time (%) = 3.95775e-05 (0.10207)
-Outpt time (%) = 0.00236654 (6.10327)
-App   time (%) = 0.0298278 (76.9255)
-Other time (%) = 0.00463986 (11.9661)
+Comm  time (%) = 3.40939e-05 (0.086373)
+Outpt time (%) = 0.00244308 (6.18926)
+App   time (%) = 0.0304313 (77.0942)
+Other time (%) = 0.00470781 (11.9267)
 Timestep Time Energy Propensity
 0 0.000000 39612.000000 0.000000
 1 0.010000 38878.000000 0.000000
@@ -259,14 +259,14 @@ Timestep Time Energy Propensity
 9 0.090000 34646.000000 0.000000
 10 0.100000 34292.000000 0.000000
 11 0.110000 33934.000000 0.000000
-Loop time of 0.0123739 on 1 procs
+Loop time of 0.0119898 on 1 procs
 
-Solve time (%) = 0.0106509 (86.0751)
+Solve time (%) = 0.010282 (85.7563)
 Update time (%) = 0 (0)
-Comm  time (%) = 3.31402e-05 (0.267823)
-Outpt time (%) = 0.00168562 (13.6224)
+Comm  time (%) = 3.3617e-05 (0.280379)
+Outpt time (%) = 0.00166821 (13.9136)
 App   time (%) = 0 (0)
-Other time (%) = 4.29153e-06 (0.0346821)
+Other time (%) = 5.96046e-06 (0.0497127)
 Timestep Time Energy Propensity
 0 0.000000 39612.000000 0.000000
 1 0.010000 38968.000000 0.000000
@@ -280,14 +280,14 @@ Timestep Time Energy Propensity
 9 0.090000 34530.000000 0.000000
 10 0.100000 34090.000000 0.000000
 11 0.110000 33628.000000 0.000000
-Loop time of 0.0111389 on 1 procs
+Loop time of 0.010895 on 1 procs
 
-Solve time (%) = 0.00116491 (10.458)
+Solve time (%) = 0.00113416 (10.4099)
 Update time (%) = 0 (0)
-Comm  time (%) = 3.83854e-05 (0.344606)
-Outpt time (%) = 0.00167346 (15.0235)
-App   time (%) = 0.00572491 (51.3955)
-Other time (%) = 0.00253725 (22.7783)
+Comm  time (%) = 3.86238e-05 (0.354509)
+Outpt time (%) = 0.00180292 (16.5481)
+App   time (%) = 0.00554562 (50.9005)
+Other time (%) = 0.0023737 (21.787)
 Timestep Time Energy Propensity
 0 0.000000 237674.000000 0.000000
 1 0.010000 224902.000000 0.000000
@@ -301,14 +301,14 @@ Timestep Time Energy Propensity
 9 0.090000 215872.000000 0.000000
 10 0.100000 214688.000000 0.000000
 11 0.110000 213538.000000 0.000000
-Loop time of 0.0222089 on 1 procs
+Loop time of 0.022979 on 1 procs
 
-Solve time (%) = 0.0175602 (79.0684)
+Solve time (%) = 0.0182896 (79.5925)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000598431 (2.69455)
-Outpt time (%) = 0.0040133 (18.0707)
+Comm  time (%) = 0.000561953 (2.4455)
+Outpt time (%) = 0.00409126 (17.8043)
 App   time (%) = 0 (0)
-Other time (%) = 3.69549e-05 (0.166396)
+Other time (%) = 3.62396e-05 (0.157707)
 Timestep Time Energy Propensity
 0 0.000000 237674.000000 0.000000
 1 0.010000 234330.000000 0.000000
@@ -322,14 +322,14 @@ Timestep Time Energy Propensity
 9 0.090000 219132.000000 0.000000
 10 0.100000 217754.000000 0.000000
 11 0.110000 216456.000000 0.000000
-Loop time of 0.527954 on 1 procs
+Loop time of 0.521885 on 1 procs
 
-Solve time (%) = 0.00360656 (0.68312)
+Solve time (%) = 0.00346184 (0.663334)
 Update time (%) = 0 (0)
-Comm  time (%) = 6.55651e-05 (0.0124187)
-Outpt time (%) = 0.00407791 (0.772399)
-App   time (%) = 0.504228 (95.5061)
-Other time (%) = 0.0159757 (3.02597)
+Comm  time (%) = 7.27177e-05 (0.0139337)
+Outpt time (%) = 0.00411439 (0.788371)
+App   time (%) = 0.498346 (95.4896)
+Other time (%) = 0.0158901 (3.04476)
 Timestep Time Energy Propensity
 0 0.000000 105510.000000 0.000000
 1 0.010000 103956.000000 0.000000
@@ -343,14 +343,14 @@ Timestep Time Energy Propensity
 9 0.090000 97630.000000 0.000000
 10 0.100000 97102.000000 0.000000
 11 0.110000 96518.000000 0.000000
-Loop time of 0.0212309 on 1 procs
+Loop time of 0.020906 on 1 procs
 
-Solve time (%) = 0.0157142 (74.0154)
+Solve time (%) = 0.0154669 (73.9833)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000194311 (0.915226)
-Outpt time (%) = 0.00530624 (24.993)
+Comm  time (%) = 0.0001688 (0.807426)
+Outpt time (%) = 0.00525618 (25.142)
 App   time (%) = 0 (0)
-Other time (%) = 1.62125e-05 (0.0763625)
+Other time (%) = 1.40667e-05 (0.0672855)
 Timestep Time Energy Propensity
 0 0.000000 105510.000000 0.000000
 767 0.010000 104200.000000 0.000000
@@ -364,14 +364,14 @@ Timestep Time Energy Propensity
 4891 0.090000 97942.000000 0.000000
 5223 0.100000 97444.000000 0.000000
 5517 0.110000 96878.000000 0.000000
-Loop time of 0.536521 on 1 procs
+Loop time of 0.532757 on 1 procs
 
-Solve time (%) = 0.00151181 (0.281781)
+Solve time (%) = 0.00151515 (0.284398)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000191689 (0.035728)
-Outpt time (%) = 0.00532007 (0.991587)
-App   time (%) = 0.410331 (76.4799)
-Other time (%) = 0.119167 (22.211)
+Comm  time (%) = 0.000186443 (0.0349959)
+Outpt time (%) = 0.00545907 (1.02468)
+App   time (%) = 0.408692 (76.7126)
+Other time (%) = 0.116904 (21.9433)
 Timestep Time Energy Propensity
 0 0.000000 194704.000000 0.000000
 1 0.010000 191088.000000 0.000000
@@ -385,14 +385,14 @@ Timestep Time Energy Propensity
 9 0.090000 172752.000000 0.000000
 10 0.100000 171272.000000 0.000000
 11 0.110000 169920.000000 0.000000
-Loop time of 0.053622 on 1 procs
+Loop time of 0.0534542 on 1 procs
 
-Solve time (%) = 0.044224 (82.4736)
+Solve time (%) = 0.0440037 (82.3205)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000493765 (0.920825)
-Outpt time (%) = 0.0088923 (16.5833)
+Comm  time (%) = 0.000470161 (0.87956)
+Outpt time (%) = 0.00896573 (16.7727)
 App   time (%) = 0 (0)
-Other time (%) = 1.19209e-05 (0.0222314)
+Other time (%) = 1.45435e-05 (0.0272075)
 Timestep Time Energy Propensity
 0 0.000000 194704.000000 0.000000
 1750 0.010000 191380.000000 0.000000
@@ -406,14 +406,14 @@ Timestep Time Energy Propensity
 15459 0.090000 172388.000000 0.000000
 16904 0.100000 170866.000000 0.000000
 18392 0.110000 169344.000000 0.000000
-Loop time of 0.125823 on 1 procs
+Loop time of 0.127121 on 1 procs
 
-Solve time (%) = 0.00539184 (4.28525)
+Solve time (%) = 0.00536418 (4.21974)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00049448 (0.392997)
-Outpt time (%) = 0.00892305 (7.09175)
-App   time (%) = 0.0566492 (45.0229)
-Other time (%) = 0.0543644 (43.2071)
+Comm  time (%) = 0.000511646 (0.402487)
+Outpt time (%) = 0.00903606 (7.10823)
+App   time (%) = 0.0570834 (44.9047)
+Other time (%) = 0.055126 (43.3649)
 Timestep Time Energy Propensity
 0 0.000000 389280.000000 0.000000
 1 0.010000 382692.000000 0.000000
@@ -427,14 +427,14 @@ Timestep Time Energy Propensity
 9 0.090000 354966.000000 0.000000
 10 0.100000 352882.000000 0.000000
 11 0.110000 350878.000000 0.000000
-Loop time of 0.0748708 on 1 procs
+Loop time of 0.0740621 on 1 procs
 
-Solve time (%) = 0.0592737 (79.168)
+Solve time (%) = 0.0587649 (79.3455)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00200653 (2.67999)
-Outpt time (%) = 0.0135787 (18.1361)
+Comm  time (%) = 0.0018158 (2.45172)
+Outpt time (%) = 0.013474 (18.1928)
 App   time (%) = 0 (0)
-Other time (%) = 1.19209e-05 (0.015922)
+Other time (%) = 7.39098e-06 (0.00997943)
 Timestep Time Energy Propensity
 0 0.000000 389280.000000 0.000000
 3531 0.010000 382950.000000 0.000000
@@ -448,14 +448,14 @@ Timestep Time Energy Propensity
 26517 0.090000 355020.000000 0.000000
 28931 0.100000 352696.000000 0.000000
 31081 0.110000 350648.000000 0.000000
-Loop time of 0.653686 on 1 procs
+Loop time of 0.665166 on 1 procs
 
-Solve time (%) = 0.00938249 (1.43532)
+Solve time (%) = 0.0113819 (1.71113)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00207877 (0.318008)
-Outpt time (%) = 0.0136502 (2.08819)
-App   time (%) = 0.372998 (57.0608)
-Other time (%) = 0.255576 (39.0977)
+Comm  time (%) = 0.00197721 (0.29725)
+Outpt time (%) = 0.0137091 (2.061)
+App   time (%) = 0.378008 (56.8291)
+Other time (%) = 0.26009 (39.1015)
 Timestep Time Energy Propensity
 0 0.000000 51916.000000 51108.487320
 3292 0.100043 48348.000000 22623.485507
@@ -468,14 +468,14 @@ Timestep Time Energy Propensity
 9844 0.800266 38550.000000 4129.771600
 10259 0.900014 37582.000000 3545.975834
 10543 1.000272 36596.000000 3115.678747
-Loop time of 0.929786 on 1 procs
+Loop time of 0.926082 on 1 procs
 
-Solve time (%) = 0.00332046 (0.35712)
+Solve time (%) = 0.0032661 (0.352679)
 Update time (%) = 0 (0)
 Comm  time (%) = 0 (0)
-Outpt time (%) = 0.00309253 (0.332606)
-App   time (%) = 0.922384 (99.2039)
-Other time (%) = 0.00098896 (0.106364)
+Outpt time (%) = 0.00313473 (0.338493)
+App   time (%) = 0.918527 (99.1842)
+Other time (%) = 0.00115395 (0.124605)
 
 
 *** Testing file in.surf ***
@@ -1156,11 +1156,11 @@ BARRIER: 0.703759 -7.2998e-05 -0.0012
 PRE-RELAX 100, f= 7.26336e-05 -4.6962, eng= -1.79272
 CG: 2 12; engs= -1.79272 -2.24608, f= 0.000552852 -2.5143e-06
 POST-RELAX 100, f= 0.000552852 -2.5143e-06, eng= -2.24608
-Loop time of 0.1098 on 1 procs
+Loop time of 0.111251 on 1 procs
 
 Solve time (%) = 0 (0)
 Update time (%) = 0 (0)
 Comm  time (%) = 0 (0)
 Outpt time (%) = 0 (0)
 App   time (%) = 0 (0)
-Other time (%) = 0.1098 (100)
+Other time (%) = 0.111251 (100)
