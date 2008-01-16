@@ -756,6 +756,8 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
 
   solve->update(nsites,sites,propensity);
 
+  timer->stamp(TIME_APP);
+
   // execute events until time threshhold reached
 
   done = 0;
@@ -765,7 +767,6 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
     timer->stamp();
     isite = solve->event(&dt);
     timer->stamp(TIME_SOLVE);
-
     if (isite < 0) done = 1;
     else {
       i = site2ijk[isite][0];

@@ -259,6 +259,7 @@ void AppLattice2d::iterate()
     // Do output
 
     output->compute(time,done);
+    timer->stamp(TIME_OUTPUT);
 
   }
   

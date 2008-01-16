@@ -258,6 +258,7 @@ void AppLattice3d::iterate()
     // Do output
 
     output->compute(time,done);
+    timer->stamp(TIME_OUTPUT);
 
   }
   

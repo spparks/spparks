@@ -589,6 +589,8 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
 
   solve->update(nsites,sites,propensity);
 
+  timer->stamp(TIME_APP);
+
   // execute events until time threshhold reached
 
   done = 0;

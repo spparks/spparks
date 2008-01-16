@@ -32,11 +32,10 @@ class DiagCluster3d : public Diag {
   void dump_clusters_detailed();
   void generate_clusters();
   void add_cluster(int, int, int, int*);
+  void free_clustlist();
 
   int*** cluster_ids;
   int ncluster;
-  int ncluster_local;
-  int ncluster_global;
   Cluster* clustlist;
   std::stack<int> cluststack;      // stack for performing cluster analysis
 

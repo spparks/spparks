@@ -1,0 +1,45 @@
+# debug = RedHat Linux box, g++, no MPI, debug flags
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+CC =		g++
+CCFLAGS =	-g -I../STUBS
+DEPFLAGS =	-M
+LINK =		g++
+LINKFLAGS =	-g
+USRLIB =	../STUBS/mpi.o
+SYSLIB = 
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# Test rule
+
+test:
+	valgrind -v --leak-check=full $(EXE) < $(INPUTFILE)
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+-include $(DEPENDS)

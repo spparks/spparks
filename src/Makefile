@@ -49,8 +49,6 @@ tar:
 	$(MAKE)  "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm $(SRC) $(INC) Makefile*; fi
 
-	@cd ../test; files="`ls in.*`"; \
-
 # Can overide this on command line e.g. make TESTTARGET=mac_mpi test
 TESTTARGET = serial
 
@@ -60,7 +58,7 @@ test:
 	files="in.abc in.abc.alex in.event in.ising in.kristi in.membrane in.potts in.surf"; \
 	for file in $$files; do echo >> test.out;echo >> test.out; \
 	echo "*** Testing file $$file ***" >> test.out;echo >> test.out; \
-	$(MAKE) "INPUTFILE = $$file" "EXE = ../src/$(ROOT)_$(TESTTARGET)" test >> test.out; \
+	$(MAKE) "INPUTFILE = $$file" "EXE = ../src/$(ROOT)_$(TESTTARGET)" test >> test.out 2>&1; \
 	done; rm Makefile
 
 # Update Makefile.lib and Makefile.list

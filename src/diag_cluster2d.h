@@ -32,21 +32,22 @@ class DiagCluster2d : public Diag {
   void dump_clusters_detailed();
   void generate_clusters();
   void add_cluster(int, int, int, int*);
+  void free_clustlist();
 
   int** cluster_ids;
   int ncluster;
-  int ncluster_local;
-  int ncluster_global;
   Cluster* clustlist;
   std::stack<int> cluststack;      // stack for performing cluster analysis
 
   FILE *fp, *fpdump;
   class AppLattice2d *applattice2d;
-  int idump;
 
   int nx_global,ny_global,nx_procs,ny_procs,delghost;
   int nx_local,ny_local,nx_offset,ny_offset,nxlo,nylo,nxhi,nyhi;
 
+  enum DumpStyles {STANDARD};
+  int dump_style;
+  int idump;
 };
 
 }
