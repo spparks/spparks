@@ -81,22 +81,22 @@ double AppIsing::site_energy(int i)
    randomly pick new state for site
 ------------------------------------------------------------------------- */
 
-int AppIsing::site_pick_random(int i, double ran)
+void AppIsing::site_pick_random(int i, double ran)
 {
   int iran = (int) (2*ran) + 1;
   if (iran > 2) iran = 2;
-  return iran;
+  lattice[i] = iran;
 }
 
 /* ----------------------------------------------------------------------
    randomly pick new state for site from neighbor values
 ------------------------------------------------------------------------- */
 
-int AppIsing::site_pick_local(int i, double ran)
+void AppIsing::site_pick_local(int i, double ran)
 {
   int iran = (int) (numneigh[i]*ran) + 1;
   if (iran > numneigh[i]) iran = numneigh[i];
-  return lattice[neighbor[i][iran]];
+  lattice[i] = lattice[neighbor[i][iran]];
 }
 
 /* ----------------------------------------------------------------------

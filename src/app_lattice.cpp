@@ -55,6 +55,8 @@ AppLattice::AppLattice(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   iarray = NULL;
   darray = NULL;
   ninteger = ndouble = 0;
+  onesite.ivalue = NULL;
+  onesite.dvalue = NULL;
   
   // setup communicator for ghost sites
 
@@ -80,6 +82,9 @@ AppLattice::~AppLattice()
   for (int i = 0; i < ndouble; i++) memory->sfree(darray[i]);
   delete [] iarray;
   delete [] darray;
+
+  delete [] onesite.ivalue;
+  delete [] onesite.dvalue;
 
   delete [] latfile;
 
@@ -171,6 +176,8 @@ void AppLattice::options(int narg, char **arg)
       ndouble = atoi(arg[iarg+2]);
       if (ninteger == 0 && ndouble == 0) sitecustom = 0;
       else sitecustom = 1;
+      if (ninteger) onesite.ivalue = new int[ninteger];
+      if (ndouble) onesite.dvalue = new double[ndouble];
       iarg += 3;
 
     } else error->all("Illegal app_style command ");
@@ -1785,4 +1792,28 @@ void AppLattice::offsets()
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   save the state of a site
+   only called for sites with general data, not for default lattice
+ ------------------------------------------------------------------------- */
+
+void AppLattice::site_save(int i)
+{
+  int m;
+  for (m = 0; m < ninteger; m++) onesite.ivalue[m] = iarray[m][i];
+  for (m = 0; m < ndouble; m++) onesite.dvalue[m] = darray[m][i];
+}
+
+/* ----------------------------------------------------------------------
+   restore the state of a site
+   only called for sites with general data, not for default lattice
+ ------------------------------------------------------------------------- */
+
+void AppLattice::site_restore(int i)
+{
+  int m;
+  for (m = 0; m < ninteger; m++) iarray[m][i] = onesite.ivalue[m];
+  for (m = 0; m < ndouble; m++) darray[m][i] = onesite.dvalue[m];
 }

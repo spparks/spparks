@@ -102,22 +102,22 @@ double AppMembrane::site_energy(int i)
    randomly pick new state for site
 ------------------------------------------------------------------------- */
 
-int AppMembrane::site_pick_random(int i, double ran)
+void AppMembrane::site_pick_random(int i, double ran)
 {
-  if (lattice[i] == PROTEIN) return PROTEIN;
-  if (ran < 0.5) return LIPID;
-  else return FLUID;
+  if (lattice[i] == PROTEIN) return;
+  if (ran < 0.5) lattice[i] = LIPID;
+  else lattice[i] = FLUID;
 }
 
 /* ----------------------------------------------------------------------
    randomly pick new state for site from neighbor values
 ------------------------------------------------------------------------- */
 
-int AppMembrane::site_pick_local(int i, double ran)
+void AppMembrane::site_pick_local(int i, double ran)
 {
-  if (lattice[i] == PROTEIN) return PROTEIN;
-  if (ran < 0.5) return LIPID;
-  else return FLUID;
+  if (lattice[i] == PROTEIN) return;
+  if (ran < 0.5) lattice[i] = LIPID;
+  else lattice[i] = FLUID;
 }
 
 /* ----------------------------------------------------------------------

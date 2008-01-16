@@ -25,13 +25,13 @@ class AppLattice3d : public App {
   void input(char *, int, char **);
   void run(int, char **);
 
-  double virtual site_energy(int, int, int) = 0;
-  int virtual site_pick_random(int, int, int, double) = 0;
-  int virtual site_pick_local(int, int, int, double) = 0;
-  double virtual site_propensity(int, int, int, int) = 0;
-  void virtual site_event(int, int, int, int) = 0;
-  void virtual site_update_ghosts(int, int, int) = 0;
-  void virtual site_clear_mask(char ***, int, int, int) = 0;
+  virtual double site_energy(int, int, int) = 0;
+  virtual int site_pick_random(int, int, int, double) = 0;
+  virtual int site_pick_local(int, int, int, double) = 0;
+  virtual double site_propensity(int, int, int, int) = 0;
+  virtual void site_event(int, int, int, int) = 0;
+  virtual void site_update_ghosts(int, int, int) = 0;
+  virtual void site_clear_mask(char ***, int, int, int) = 0;
 
  protected:
   enum InitStyles {RANDOM,READ};

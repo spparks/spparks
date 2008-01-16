@@ -26,8 +26,6 @@ class SweepLattice : public Sweep {
   double delt;
 
   int *lattice;
-  int **iarray;              // shouldn't need iarray,darray eventually
-  double **darray;           // use callbacks to app instead
 
   int dimension;
   int nlocal;

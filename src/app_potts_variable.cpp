@@ -80,7 +80,6 @@ AppPottsVariable::~AppPottsVariable()
 
 double AppPottsVariable::site_energy(int i)
 {
-  
   int isite = spin[i];
   int eng = 0;
   for (int j = 0; j < numneigh[i]; j++)
@@ -92,22 +91,22 @@ double AppPottsVariable::site_energy(int i)
    randomly pick new state for site
 ------------------------------------------------------------------------- */
 
-int AppPottsVariable::site_pick_random(int i, double ran)
+void AppPottsVariable::site_pick_random(int i, double ran)
 {
   int iran = (int) (nspins*ran) + 1;
   if (iran > nspins) iran = nspins;
-  return iran;
+  spin[i] = iran;
 }
 
 /* ----------------------------------------------------------------------
    randomly pick new state for site from neighbor values
 ------------------------------------------------------------------------- */
 
-int AppPottsVariable::site_pick_local(int i, double ran)
+void AppPottsVariable::site_pick_local(int i, double ran)
 {
   int iran = (int) (numneigh[i]*ran) + 1;
   if (iran > numneigh[i]) iran = numneigh[i];
-  return spin[neighbor[i][iran]];
+  spin[i] = spin[neighbor[i][iran]];
 }
 
 /* ----------------------------------------------------------------------

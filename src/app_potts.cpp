@@ -83,22 +83,22 @@ double AppPotts::site_energy(int i)
    randomly pick new state for site
 ------------------------------------------------------------------------- */
 
-int AppPotts::site_pick_random(int i, double ran)
+void AppPotts::site_pick_random(int i, double ran)
 {
   int iran = (int) (nspins*ran) + 1;
   if (iran > nspins) iran = nspins;
-  return iran;
+  lattice[i] = iran;
 }
 
 /* ----------------------------------------------------------------------
    randomly pick new state for site from neighbor values
 ------------------------------------------------------------------------- */
 
-int AppPotts::site_pick_local(int i, double ran)
+void AppPotts::site_pick_local(int i, double ran)
 {
   int iran = (int) (numneigh[i]*ran) + 1;
   if (iran > numneigh[i]) iran = numneigh[i];
-  return lattice[neighbor[i][iran]];
+  lattice[i] = lattice[neighbor[i][iran]];
 }
 
 /* ----------------------------------------------------------------------

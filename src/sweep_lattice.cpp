@@ -124,12 +124,6 @@ void SweepLattice::init()
   int sitecustom = applattice->sitecustom;
   lattice = applattice->lattice;
 
-  // shouldn't never access these array eventually
-  // use callbacks to app instead
-
-  iarray = applattice->iarray;
-  darray = applattice->darray;
-
   dimension = applattice->dimension;
   nlocal = applattice->nlocal;
   int nghost = applattice->nghost;
@@ -373,7 +367,7 @@ void SweepLattice::do_sweep(double &dt)
    
 void SweepLattice::sweep_sector_lattice(int icolor, int isector)
 {
-  int i,j,m,oldstate,newstate;
+  int i,j,m,oldstate;
   double einitial,efinal;
 
   int *site2i = sector[isector].site2i;
@@ -384,8 +378,7 @@ void SweepLattice::sweep_sector_lattice(int icolor, int isector)
     oldstate = lattice[i];
     einitial = applattice->site_energy(i);
   
-    newstate = applattice->site_pick_random(i,random->uniform());
-    lattice[i] = newstate;
+    applattice->site_pick_random(i,random->uniform());
     efinal = applattice->site_energy(i);
     
     if (efinal <= einitial) continue;
@@ -406,7 +399,7 @@ void SweepLattice::sweep_sector_lattice(int icolor, int isector)
    
 void SweepLattice::sweep_sector_data(int icolor, int isector)
 {
-  int i,j,m,oldstate,newstate;
+  int i,j,m;
   double einitial,efinal;
 
   int *site2i = sector[isector].site2i;
@@ -414,17 +407,16 @@ void SweepLattice::sweep_sector_data(int icolor, int isector)
 
   for (m = 0; m < nlocal; m++) {
     i = site2i[m];
-    oldstate = iarray[0][i];
     einitial = applattice->site_energy(i);
+    applattice->site_save(i);
   
-    newstate = applattice->site_pick_random(i,random->uniform());
-    iarray[0][i] = newstate;
+    applattice->site_pick_random(i,random->uniform());
     efinal = applattice->site_energy(i);
     
     if (efinal <= einitial) continue;
-    else if (temperature == 0.0) iarray[0][i] = oldstate;
+    else if (temperature == 0.0) applattice->site_restore(i);
     else if (random->uniform() > exp((einitial-efinal)*t_inverse))
-      iarray[0][i] = oldstate;
+      applattice->site_restore(i);
   }
 }
 

@@ -22,12 +22,15 @@ class AppLattice : public App {
   void input(char *, int, char **);
   void run(int, char **);
 
-  double virtual site_energy(int) = 0;
-  int virtual site_pick_random(int,double) = 0;
-  int virtual site_pick_local(int, double) = 0;
-  double virtual site_propensity(int, int) = 0;
-  void virtual site_event(int, int) = 0;
-  void virtual site_clear_mask(char *, int) = 0;
+  virtual double site_energy(int) = 0;
+  virtual void site_pick_random(int,double) = 0;
+  virtual void site_pick_local(int, double) = 0;
+  virtual double site_propensity(int, int) = 0;
+  virtual void site_event(int, int) = 0;
+  virtual void site_clear_mask(char *, int) = 0;
+
+  void site_save(int);
+  void site_restore(int);
 
  protected:
   int me,nprocs;
@@ -89,6 +92,11 @@ class AppLattice : public App {
     int id,proc,index;
     double x,y,z;
   };
+
+  struct {                     // storage for a single site with general data
+    int *ivalue;
+    double *dvalue;
+  } onesite;
 
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
 

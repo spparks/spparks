@@ -16,8 +16,8 @@ class AppPottsVariable : public AppLattice {
   ~AppPottsVariable();
 
   double site_energy(int);
-  int site_pick_random(int, double);
-  int site_pick_local(int, double);
+  void site_pick_random(int, double);
+  void site_pick_local(int, double);
   double site_propensity(int, int);
   void site_event(int, int);
   void site_clear_mask(char *, int);
