@@ -488,7 +488,7 @@ void DiagCluster3d::dump_clusters(double time)
   if (me == 0) {
     if (dump_style == STANDARD) {
       fprintf(fpdump,"ITEM: TIME\n");
-      fprintf(fpdump,"%f\n",time);
+      fprintf(fpdump,"%g\n",time);
       fprintf(fpdump,"ITEM: DIMENSIONS\n");
       fprintf(fpdump,"%d\n%d\n%d\n",nx_global,ny_global,nz_global);
       fprintf(fpdump,"ITEM: ELEMENT CLUSTERID\n");

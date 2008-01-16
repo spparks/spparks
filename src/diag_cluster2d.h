@@ -29,7 +29,7 @@ class DiagCluster2d : public Diag {
   void analyze_clusters(double);
   void write_header();
   void dump_clusters(double);
-  void dump_clusters_detailed();
+  void dump_clusters_detailed(double);
   void generate_clusters();
   void add_cluster(int, int, int, int*);
   void free_clustlist();
@@ -45,7 +45,7 @@ class DiagCluster2d : public Diag {
   int nx_global,ny_global,nx_procs,ny_procs,delghost;
   int nx_local,ny_local,nx_offset,ny_offset,nxlo,nylo,nxhi,nyhi;
 
-  enum DumpStyles {STANDARD};
+  enum DumpStyles {STANDARD, DETAILED};
   int dump_style;
   int idump;
 };

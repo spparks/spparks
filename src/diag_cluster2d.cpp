@@ -27,7 +27,7 @@ DiagCluster2d::DiagCluster2d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg
   idump = 0;
   dump_style = STANDARD;
 
-  if (narg < 3 || narg > 4) error->all("Illegal diag_style cluster2d command");
+  if (narg < 3 ) error->all("Illegal diag_style cluster2d command");
 
   int iarg = 2;
   if (me == 0) {
@@ -36,14 +36,49 @@ DiagCluster2d::DiagCluster2d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg
   }
   iarg++;
 
-  if (narg == 4) {
-    dump_style = STANDARD;
-    idump = 1;
-    if (me == 0) {
-      fpdump = fopen(arg[iarg],"w");
-      if (!fpdump) error->one("Cannot open diag_style cluster2d dump file");
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"dump_style") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	if (strcmp(arg[iarg],"standard") == 0) {
+	  idump = 1;
+	  dump_style = STANDARD;
+	  iarg++;
+	  if (iarg < narg) {
+	    if (me == 0) {
+	      fpdump = fopen(arg[iarg],"w");
+	      if (!fpdump) error->one("Cannot open diag_style cluster2d dump file");
+	    }
+	  } else {
+	    error->all("Illegal diag_style cluster2d command");
+	  }
+	} else if (strcmp(arg[iarg],"detailed") == 0) {
+	  idump = 1;
+	  dump_style = DETAILED;
+	  iarg++;
+	  if (iarg < narg) {
+	    if (me == 0) {
+	      fpdump = fopen(arg[iarg],"w");
+	      if (!fpdump) error->one("Cannot open diag_style cluster2d dump file");
+	    }
+	  } else {
+	    error->all("Illegal diag_style cluster2d command");
+	  }
+	} else if (strcmp(arg[iarg],"none") == 0) {
+	  idump = 0;
+	} else {
+	    error->all("Illegal diag_style cluster2d command");
+	}
+      } else {
+	error->all("Illegal diag_style cluster2d command");
+      }
+    } else {
+      error->all("Illegal diag_style cluster2d command");
     }
+    iarg++;
   }
+
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,7 +140,14 @@ void DiagCluster2d::analyze_clusters(double time)
     fprintf(fp,"Time = %f \n",time);
   }
   generate_clusters();
-  if (idump) dump_clusters(time);
+  if (idump) {
+    if (dump_style == STANDARD) {
+      dump_clusters(time);
+    } else if (dump_style == DETAILED) {
+      dump_clusters_detailed(time);
+    }
+  }
+
   free_clustlist();
 }
 /* ---------------------------------------------------------------------- */
@@ -114,7 +156,6 @@ void DiagCluster2d::write_header()
 {
   if (me == 0) {
     fprintf(fp,"Clustering Analysis for 2D Lattice (diag_style cluster2d) \n");
-    fprintf(fp,"App = %s \n",style);
     fprintf(fp,"nx_global = %d \n",nx_global);
     fprintf(fp,"ny_global = %d \n",ny_global);
     fprintf(fp,"nprocs = %d \n",nprocs);
@@ -477,13 +518,27 @@ void DiagCluster2d::dump_clusters(double time)
   memory->sfree(buftmp);
 }
 
+/* ---------------------------------------------------------------------- */
+
+void DiagCluster2d::free_clustlist()
+{
+  // Can not call Cluster destructor, because 
+  // that would free memory twice.
+  // Instead, need to delete neighlist manually.
+  for (int i = 0; i < ncluster; i++) {
+    free(clustlist[i].neighlist);
+  }
+  memory->sfree(clustlist);
+  clustlist = NULL;
+  ncluster = 0;
+}
 
 /* ----------------------------------------------------------------------
    dump a snapshot of cluster identities to the screen in 2D layout
    all the cluster identities for each processor domain are printed out
 ------------------------------------------------------------------------- */
 
-void DiagCluster2d::dump_clusters_detailed()
+void DiagCluster2d::dump_clusters_detailed(double time)
 {
   int nsend,nrecv,nxtmp,nytmp,nztmp,nxhtmp,nyhtmp,nzhtmp,nxotmp,nyotmp,nzotmp;
   int size_one = 1;
@@ -505,6 +560,7 @@ void DiagCluster2d::dump_clusters_detailed()
 
   if (me == 0) {
     fprintf(fpdump,"*** Cluster Dump ***\n");
+    fprintf(fpdump,"Time = %d \n",time);
     fprintf(fpdump,"nx_global = %d ny_global = %d\n",nx_global,ny_global);
   }
 
@@ -581,19 +637,3 @@ void DiagCluster2d::dump_clusters_detailed()
 
   memory->sfree(buftmp);
 }
-
-/* ---------------------------------------------------------------------- */
-
-void DiagCluster2d::free_clustlist()
-{
-  // Can not call Cluster destructor, because 
-  // that would free memory twice.
-  // Instead, need to delete neighlist manually.
-  for (int i = 0; i < ncluster; i++) {
-    free(clustlist[i].neighlist);
-  }
-  memory->sfree(clustlist);
-  clustlist = NULL;
-  ncluster = 0;
-}
-
