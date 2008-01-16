@@ -560,7 +560,7 @@ void DiagCluster2d::dump_clusters_detailed(double time)
 
   if (me == 0) {
     fprintf(fpdump,"*** Cluster Dump ***\n");
-    fprintf(fpdump,"Time = %d \n",time);
+    fprintf(fpdump,"Time = %f \n",time);
     fprintf(fpdump,"nx_global = %d ny_global = %d\n",nx_global,ny_global);
   }
 

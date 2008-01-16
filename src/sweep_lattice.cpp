@@ -456,6 +456,8 @@ void SweepLattice::sweep_sector_kmc(int icolor, int isector)
   double dt,time;
   int done,isite,i;
 
+  timer->stamp();
+
   // extract sector specific info from struct
 
   int *border = sector[isector].border;
@@ -490,6 +492,10 @@ void SweepLattice::sweep_sector_kmc(int icolor, int isector)
   }
 
   solve->update(nsites,sites,propensity);
+
+  // attribute this chunk of time to Communication,
+  // because it is due to the spatial decomposition
+  timer->stamp(TIME_COMM);
 
   // execute events until time threshhold reached
 

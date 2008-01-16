@@ -102,16 +102,6 @@ class AppLattice2d : public App {
 
   void read_spins(const char*);
 
-/*   // Functions and Data for Cluster Analysis */
-/*   void dump_clusters(char*); */
-/*   void generate_clusters(int**); */
-/*   void add_cluster(int, int, int, int*); */
-/*   int ncluster; */
-/*   int ncluster_local; */
-/*   int ncluster_global; */
-/*   Cluster* clustlist; */
-/*   std::stack<int> cluststack;      // stack for performing cluster analysis */
-
   virtual void push_connected_neighbors(int, int , int**, int, std::stack<int>*);
   virtual void connected_ghosts(int, int, int**, Cluster*, int);
 
