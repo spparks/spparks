@@ -36,7 +36,7 @@ namespace SPPARKS {
     virtual void buffer(char **, int&) = 0;
     
     virtual double go(double *) = 0;
-    virtual inline double go(int){};
+    virtual double go(int);
     virtual void set_left_child(Node *in) = 0;
     virtual void set_right_child(Node *in)= 0;
     virtual void clear() = 0;
