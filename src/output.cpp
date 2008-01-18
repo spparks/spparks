@@ -116,7 +116,7 @@ void Output::compute(double time, int done)
 void Output::add_diag(Diag *diag)
 {
   ndiags++;
-  diaglist = (Diag **) memory->srealloc(diaglist,ndiags*sizeof(Diag*),"output:diaglist");
+  diaglist = (Diag **) memory->srealloc(diaglist,ndiags*sizeof(Diag *),"output:diaglist");
   diaglist[ndiags-1] = diag;
 }
 

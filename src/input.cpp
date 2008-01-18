@@ -652,8 +652,8 @@ void Input::diag()
 #define DiagClass
 #define DiagStyle(key,Class) \
   else if (strcmp(arg[0],#key) == 0) { \
-    Diag* diag = new Class(spk,narg,arg); \
-    output->add_diag(diag); \
+    Diag *diagtmp = new Class(spk,narg,arg); \
+    output->add_diag(diagtmp); \
   }
   
 #include "style.h"

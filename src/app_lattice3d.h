@@ -17,6 +17,7 @@ namespace SPPARKS {
 class AppLattice3d : public App {
   friend class SweepLattice3d;
   friend class DiagCluster3d;
+  friend class DiagEprof3d;
 
  public:
   AppLattice3d(class SPK *, int, char **);
