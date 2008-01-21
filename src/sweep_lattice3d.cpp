@@ -174,7 +174,7 @@ void SweepLattice3d::init()
   
   // setup sectors
 
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < nsector; i++) {
     delete sector[i].solve;
     memory->sfree(sector[i].propensity);
     memory->destroy_2d_T_array(sector[i].site2ijk);
