@@ -588,7 +588,18 @@ void AppLattice3d::set_temperature(int narg, char **arg)
 
 void AppLattice3d::set_stats(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal stats command");
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"your_option_here") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	int itmp = atoi(arg[iarg]);
+      } else {
+	error->all("Illegal stats command");
+      }
+    }
+    iarg++;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

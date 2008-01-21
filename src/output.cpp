@@ -22,6 +22,7 @@ Output::Output(SPK *spk) : SysPtr(spk)
   dump_delta = 0.0;
   ndiags = 0;
   diaglist = NULL;
+  stats_ilogfreq = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -41,8 +42,19 @@ void Output::init(double time)
 {
   // setup future stat and dump calls
 
-  stats_time = time + stats_delta;
   dump_time = time + dump_delta;
+
+  if (stats_ilogfreq == 0) {
+    stats_time = time + stats_delta;
+  } else if (stats_ilogfreq == 1) {
+    stats_time = time + stats_delta;
+    stats_t0 = time;
+    stats_delta *= stats_scale;
+  } else if (stats_ilogfreq == 2) {
+    stats_time = time + stats_delta;
+    stats_t0 = time;
+    stats_irepeat = 0;
+  }
 
   // print dump file header and 1st snapshot
 
@@ -69,8 +81,24 @@ void Output::init(double time)
 
 void Output::set_stats(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal stats command");
+  if (narg < 1) error->all("Illegal stats command");
   stats_delta = atof(arg[0]);
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"logfreq") == 0) {
+      stats_ilogfreq = 2;
+      iarg++;
+      if (iarg+1 < narg) {
+	stats_nrepeat = atoi(arg[iarg]);
+	iarg++;
+	stats_scale = atof(arg[iarg]);
+      } else {
+	error->all("Illegal stats command");
+      }
+    }
+    iarg++;
+  }
+      
   app->set_stats(narg, arg);
 }
 
@@ -92,7 +120,23 @@ void Output::compute(double time, int done)
 {
   if ((stats_delta > 0.0 && time >= stats_time) || done) {
     app->stats();
-    stats_time += stats_delta;
+    if (stats_ilogfreq == 0) {
+      stats_time += stats_delta;
+    } else if (stats_ilogfreq == 1) {
+      stats_time = stats_t0+stats_delta;
+      stats_delta *= stats_scale;
+    } else if (stats_ilogfreq == 2) {
+      stats_time += stats_delta;
+      stats_irepeat++;
+      if (stats_irepeat == stats_nrepeat) {
+	stats_delta *= stats_scale;
+	stats_time = stats_t0+stats_delta;
+	stats_irepeat = 0;
+      }
+    } else { 
+      error->all("Invalid ilogfreq style");
+    }
+
     timer->stamp(TIME_OUTPUT);
   }
   
