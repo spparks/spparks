@@ -12,15 +12,17 @@ namespace SPPARKS {
 
 class Diag : protected SysPtr {
  public:
-  char *style;
-  
   Diag(class SPK *, int, char **);
   virtual ~Diag();
-  
-  // virtual functions with empty definitions
+
+  int check_time(double, int);
+  void setup_time(double);
+
+  // virtual functions with default definitions
   // may be overridden in child class
 
-  virtual void foo(int, char **){};
+  virtual void stats(char *strtmp) {strtmp[0] = '\0';};
+  virtual void stats_header(char *strtmp) {strtmp[0] = '\0';};
 
   // pure virtual functions, must be defined in child class
   
@@ -33,8 +35,11 @@ class Diag : protected SysPtr {
   Diag& operator=(const Diag&); // Not a sane operation.
 
  protected:
-  double diag_time,diag_delta;
+  char *style;
   int me,nprocs;
+
+  double diag_time,diag_delta,diag_scale;
+  int diag_nrepeat,diag_irepeat,diag_ilogfreq,diag_t0;
 
 };
 

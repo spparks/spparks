@@ -18,6 +18,9 @@ using namespace SPPARKS;
 
 Output::Output(SPK *spk) : SysPtr(spk)
 {
+  MPI_Comm_rank(world,&me);
+  MPI_Comm_size(world,&nprocs);
+
   stats_delta = 0.0;
   dump_delta = 0.0;
   ndiags = 0;
@@ -49,10 +52,6 @@ void Output::init(double time)
   } else if (stats_ilogfreq == 1) {
     stats_time = time + stats_delta;
     stats_t0 = time;
-    stats_delta *= stats_scale;
-  } else if (stats_ilogfreq == 2) {
-    stats_time = time + stats_delta;
-    stats_t0 = time;
     stats_irepeat = 0;
   }
 
@@ -63,16 +62,16 @@ void Output::init(double time)
     app->dump();
   }
 
-  // print stats header and initial stats
-  
-  app->stats_header();
-  app->stats();
-
   // Initialize all diagnostics
 
   for (int i = 0; i < ndiags; i++) {
     diaglist[i]->init(time);
   }
+
+  // print stats header and initial stats
+  
+  stats_header();
+  stats();
 
 }
 
@@ -86,7 +85,7 @@ void Output::set_stats(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"logfreq") == 0) {
-      stats_ilogfreq = 2;
+      stats_ilogfreq = 1;
       iarg++;
       if (iarg+1 < narg) {
 	stats_nrepeat = atoi(arg[iarg]);
@@ -98,8 +97,6 @@ void Output::set_stats(int narg, char **arg)
     }
     iarg++;
   }
-      
-  app->set_stats(narg, arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -119,13 +116,9 @@ void Output::set_dump(int narg, char **arg)
 void Output::compute(double time, int done)
 {
   if ((stats_delta > 0.0 && time >= stats_time) || done) {
-    app->stats();
     if (stats_ilogfreq == 0) {
       stats_time += stats_delta;
     } else if (stats_ilogfreq == 1) {
-      stats_time = stats_t0+stats_delta;
-      stats_delta *= stats_scale;
-    } else if (stats_ilogfreq == 2) {
       stats_time += stats_delta;
       stats_irepeat++;
       if (stats_irepeat == stats_nrepeat) {
@@ -133,17 +126,13 @@ void Output::compute(double time, int done)
 	stats_time = stats_t0+stats_delta;
 	stats_irepeat = 0;
       }
-    } else { 
-      error->all("Invalid ilogfreq style");
     }
-
-    timer->stamp(TIME_OUTPUT);
+    stats();
   }
   
   if ((dump_delta > 0.0 && time >= dump_time) || done) {
     if (dump_delta > 0.0) app->dump();
     dump_time += dump_delta;
-    timer->stamp(TIME_OUTPUT);
   }
 
   // Perform all diagnostics
@@ -152,7 +141,7 @@ void Output::compute(double time, int done)
     diaglist[i]->compute(time,done);
   }
 
-
+  timer->stamp(TIME_OUTPUT);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -164,3 +153,51 @@ void Output::add_diag(Diag *diag)
   diaglist[ndiags-1] = diag;
 }
 
+/* ----------------------------------------------------------------------
+   print stats
+------------------------------------------------------------------------- */
+
+void Output::stats()
+{
+  char str[1024] = {'\0'};
+  char *strpnt = str;
+
+  app->stats(strpnt);
+  strpnt += strlen(strpnt);
+
+  for (int i = 0; i < ndiags; i++) {
+    diaglist[i]->stats(strpnt);
+    strpnt += strlen(strpnt);
+  }
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,"%s\n",str);
+    if (logfile)
+      fprintf(logfile,"%s\n",str);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   print stats header
+------------------------------------------------------------------------- */
+
+void Output::stats_header()
+{
+  char str[1024] = {'\0'};
+  char *strpnt = str;
+
+  app->stats_header(strpnt);
+  strpnt += strlen(strpnt);
+
+  for (int i = 0; i < ndiags; i++) {
+    diaglist[i]->stats_header(strpnt);
+    strpnt += strlen(strpnt);
+  }
+
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,"%s\n",str);
+    if (logfile)
+      fprintf(logfile,"%s\n",str);
+  }
+}

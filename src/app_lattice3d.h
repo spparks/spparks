@@ -87,8 +87,8 @@ class AppLattice3d : public App {
   void virtual init_app() {}
 
   void iterate();
-  void stats();
-  void stats_header();
+  void stats(char *);
+  void stats_header(char *);
   void dump_header();
   void dump();
   void dump_lattice();

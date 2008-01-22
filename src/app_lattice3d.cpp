@@ -269,53 +269,18 @@ void AppLattice3d::iterate()
    print stats
 ------------------------------------------------------------------------- */
 
-void AppLattice3d::stats()
+void AppLattice3d::stats(char *strtmp)
 {
-  int i,j,k;
-  double energy,all;
-  double ptot;
-  
-  comm->all(lattice);
-
-  energy = 0.0;
-  for (i = 1; i <= nx_local; i++)
-    for (j = 1; j <= ny_local; j++)
-      for (k = 1; k <= nz_local; k++)
-	energy += site_energy(i,j,k);
-
-  MPI_Allreduce(&energy,&all,1,MPI_DOUBLE,MPI_SUM,world);
-
-  if (solve == NULL) {
-    ptot = 0.0;
-  } else {
-    ptot = solve->get_total_propensity();
-  }
-
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"%d %f %f %f\n",ntimestep,time,all,ptot);
-    if (logfile)
-      fprintf(logfile,"%d %f %f %f\n",ntimestep,time,all,ptot);
-  }
+  sprintf(strtmp," %10d %10g",ntimestep,time);
 }
 
 /* ----------------------------------------------------------------------
    print stats header
 ------------------------------------------------------------------------- */
 
-void AppLattice3d::stats_header()
+void AppLattice3d::stats_header(char *strtmp)
 {
-
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"Timestep Time Energy Propensity");
-      fprintf(screen,"\n");
-    }
-    if (logfile) {
-      fprintf(logfile,"Timestep Time Energy Propensity");
-      fprintf(logfile,"\n");
-    }
-  }
+  fprintf(screen," %10s %10s","Timestep","Time");
 }
 
 /* ----------------------------------------------------------------------

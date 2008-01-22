@@ -31,17 +31,19 @@ DiagCluster3d::DiagCluster3d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg
   idump = 0;
   dump_style = STANDARD;
 
-  if (narg < 3) error->all("Illegal diag_style cluster3d command");
-
   int iarg = 2;
-  if (me == 0) {
-    fp = fopen(arg[iarg],"w");
-    if (!fp) error->one("Cannot open diag_style cluster3d output file");
-  }
-  iarg++;
-
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"dump_style") == 0) {
+    if (strcmp(arg[iarg],"filename") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	if (me == 0) {
+	  fp = fopen(arg[iarg],"w");
+	  if (!fp) error->one("Cannot open diag_style cluster3d output file");
+	}
+      } else {
+	error->all("Illegal diag_style cluster3d command");
+      } 
+    } else if (strcmp(arg[iarg],"dump_style") == 0) {
       iarg++;
       if (iarg < narg) {
 	if (strcmp(arg[iarg],"standard") == 0) {
@@ -77,7 +79,7 @@ DiagCluster3d::DiagCluster3d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg
 	error->all("Illegal diag_style cluster3d command");
       }
     } else {
-      error->all("Illegal diag_style cluster3d command");
+      //      error->all("Illegal diag_style cluster3d command");
     }
     iarg++;
   }
@@ -126,7 +128,8 @@ void DiagCluster3d::init(double time)
 
   write_header();
   analyze_clusters(time);
-  diag_time = time + diag_delta;
+
+  setup_time(time);
 }
 
 
@@ -134,10 +137,7 @@ void DiagCluster3d::init(double time)
 
 void DiagCluster3d::compute(double time, int done)
 {
-  if ((diag_delta > 0.0 && time >= diag_time) || done) {
-    analyze_clusters(time);
-    diag_time += diag_delta;
-  }
+  if (check_time(time, done)) analyze_clusters(time);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,17 +148,11 @@ void DiagCluster3d::analyze_clusters(double time)
     fprintf(fp,"\n\n--------------------------------------------------\n");
     fprintf(fp,"Time = %f \n",time);
   }
+  free_clustlist();
   generate_clusters();
   if (idump) {
     dump_clusters(time);
   }
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"nclusters = %d \n",ncluster);
-    if (logfile)
-      fprintf(logfile,"nclusters = %d \n",ncluster);
-  }
-  free_clustlist();
 }
 /* ---------------------------------------------------------------------- */
 
@@ -682,3 +676,14 @@ void DiagCluster3d::free_clustlist()
   ncluster = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void DiagCluster3d::stats(char *strtmp) {
+  sprintf(strtmp," %10d",ncluster);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DiagCluster3d::stats_header(char *strtmp) {
+  sprintf(strtmp," %10s","Nclust");
+}

@@ -27,7 +27,8 @@ class Output : protected SysPtr {
  private:
   double stats_time,stats_delta,stats_scale;
   double dump_time,dump_delta;
-  int stats_nrepeat, stats_irepeat, stats_ilogfreq,stats_t0;
+  int me,nprocs;
+  int stats_nrepeat,stats_irepeat,stats_ilogfreq,stats_t0;
 };
 
 }

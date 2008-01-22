@@ -20,6 +20,8 @@ class DiagEprof3d : public Diag {
 
   void init(double);
   void compute(double, int);
+  void stats(char *);
+  void stats_header(char *);
 
  protected:
 
@@ -45,6 +47,8 @@ class DiagEprof3d : public Diag {
   enum ProfStyles {STANDARD,BOUNDARY};
   int prof_style;
   int iboundary;
+  int nbound;
+  double eav,eb1,eb2;
 
 };
 

@@ -1,4 +1,4 @@
-/* -----------------------q-----------------------------------------------
+/* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
@@ -31,19 +31,23 @@ DiagEprof3d::DiagEprof3d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
   prof_style = STANDARD;
   prof_index = 0;
   iboundary = 0;
-
-  if (narg < 3) error->all("Illegal diag_style eprof3d command");
+  eav = 0.0;
+  eb1 = 0.0;
+  eb2 = 0.0;
 
   int iarg = 2;
-
-  if (me == 0) {
-    fp = fopen(arg[iarg],"w");
-    if (!fp) error->one("Cannot open diag_style eprof3d output file");
-  }
-  iarg++;
-
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"axis") == 0) {
+    if (strcmp(arg[iarg],"filename") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	if (me == 0) {
+	  fp = fopen(arg[iarg],"w");
+	  if (!fp) error->one("Cannot open diag_style eprof3d output file");
+	}
+      } else {
+	error->all("Illegal diag_style cluster3d command");
+      } 
+    } else if (strcmp(arg[iarg],"axis") == 0) {
       iarg++;
       if (iarg < narg) {
 	if (strcmp(arg[iarg],"x") == 0) {
@@ -61,7 +65,7 @@ DiagEprof3d::DiagEprof3d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
     } else if (strcmp(arg[iarg],"boundary") == 0) {
       iboundary = 1;
     } else {
-      error->all("Illegal diag_style eprof3d command");
+      //      error->all("Illegal diag_style eprof3d command");
     }
     iarg++;
   }
@@ -122,11 +126,12 @@ void DiagEprof3d::init(double time)
       ndata = nz_global;
     }
   } else {
-    ndata = nx_global/(4*nx_procs)+1;
+    nbound = nx_global/(4*nx_procs)+1;
     ntmp = ny_global/(4*ny_procs)+1;
-    ndata = MAX(ndata,ntmp);
+    nbound = MAX(nbound,ntmp);
     ntmp = nz_global/(4*nz_procs)+1;
-    ndata = MAX(ndata,ntmp);
+    nbound = MAX(nbound,ntmp);
+    ndata = 2*nbound+1;
 
     ntmp = nx_global/nx_procs+1;
     ixtable = (int*) memory->smalloc(ntmp*sizeof(int),"diageprof3d:write_prof:ixtable");
@@ -142,7 +147,8 @@ void DiagEprof3d::init(double time)
 
   write_header();
   write_prof(time);
-  diag_time = time + diag_delta;
+
+  setup_time(time);
 }
 
 
@@ -150,10 +156,7 @@ void DiagEprof3d::init(double time)
 
 void DiagEprof3d::compute(double time, int done)
 {
-  if ((diag_delta > 0.0 && time >= diag_time) || done) {
-    write_prof(time);
-    diag_time += diag_delta;
-  }
+  if (check_time(time, done)) write_prof(time);
 }
 
 /* ----------------------------------------------------------------------
@@ -176,6 +179,7 @@ void DiagEprof3d::write_prof(double time)
   int maxbuftmp;
   int iprof,iprofz,iprofyz;
   int nxhtmp,nyhtmp,nzhtmp,ix,iy,iz;
+  int absx,absy,absz,absyz;
 
   if (me == 0) {
     if (prof_style == STANDARD) {
@@ -276,9 +280,9 @@ void DiagEprof3d::write_prof(double time)
 	  nxhtmp = nxtmp/2+1;
 	  for (int i = 1; i <= nxtmp; i++) {
 	    if (i < nxhtmp) {
-	      ix = MIN(i-1,nxhtmp-1-i);
+	      ix = nbound-1-MIN(i-1,nxhtmp-1-i);
 	    } else {
-	      ix = MIN(i-nxhtmp,nxtmp-i);
+	      ix = nbound+1+MIN(i-nxhtmp,nxtmp-i);
 	    }
 	    ixtable[i] = ix;
 	  }
@@ -286,9 +290,9 @@ void DiagEprof3d::write_prof(double time)
 	  nyhtmp = nytmp/2+1;
 	  for (int j = 1; j <= nytmp; j++) {
 	    if (j < nyhtmp) {
-	      iy = MIN(j-1,nyhtmp-1-j);
+	      iy = nbound-1-MIN(j-1,nyhtmp-1-j);
 	    } else {
-	      iy = MIN(j-nyhtmp,nytmp-j);
+	      iy = nbound+1+MIN(j-nyhtmp,nytmp-j);
 	    }
 	    iytable[j] = iy;
 	  }
@@ -296,19 +300,38 @@ void DiagEprof3d::write_prof(double time)
 	  nzhtmp = nztmp/2+1;
 	  for (int k = 1; k <= nztmp; k++) {
 	    if (k < nzhtmp) {
-	      iz = MIN(k-1,nzhtmp-1-k);
+	      iz = nbound-1-MIN(k-1,nzhtmp-1-k);
 	    } else {
-	      iz = MIN(k-nzhtmp,nztmp-k);
+	      iz = nbound+1+MIN(k-nzhtmp,nztmp-k);
 	    }
 	    iztable[k] = iz;
 	  }
 
 	  for (int k = 1; k <= nztmp; k++) {
+
 	    iprofz = iztable[k]; 
+	    absz = abs(iprofz-nbound);
+
 	    for (int j = 1; j <= nytmp; j++) {
-	      iprofyz = MIN(iprofz,iytable[j]); 
+
+	      absy = abs(iytable[j]-nbound);
+	      if (absy < absz) {
+		iprofyz = iytable[j];
+		absyz = absy;
+	      } else {
+		iprofyz = iprofz;
+		absyz = absz;
+	      }
+
 	      for (int i = 1; i <= nxtmp; i++) {
-		iprof = MIN(iprofyz,ixtable[i]); 
+
+		absx = abs(ixtable[i]-nbound);
+		if (absx < absyz) {
+		  iprof = ixtable[i];
+		} else {
+		  iprof = iprofyz;
+		}
+
 		prof[iprof]+=buftmp[m++];
 		count[iprof]++;
 	      }
@@ -326,17 +349,58 @@ void DiagEprof3d::write_prof(double time)
   
   if (me == 0) {
     int ii;
+    double etmp;
+
+    eav = 0.0;
+
     if (prof_style == STANDARD) {
-      for (int iprof = 0; iprof < ndata; iprof++) {
-	ii = iprof+1;
-	if (count[iprof] > 0) {
-	  fprintf(fp,"%d %g \n",ii,prof[iprof]/count[iprof]);
+      for (int iiprof = 0; iiprof < ndata; iiprof++) {
+	if (iboundary == 0) {
+	  ii = iiprof+1;
 	} else {
-	  fprintf(fp,"%d %g \n",ii,count[iprof]);
+	  if (iiprof < nbound) {
+	    ii = iiprof - nbound;
+	  } else {
+	    ii = iiprof - nbound;
+	  }
 	}
+
+	if (count[iiprof] > 0) {
+	  etmp = prof[iiprof]/count[iiprof]	  ;
+	  eav += prof[iiprof];
+	} else {
+	  etmp = 0.0;
+	}
+	fprintf(fp,"%d %g %g \n",ii,etmp,count[iiprof]);
       }
+      eav /= nx_global*ny_global*nz_global;
+      iprof = nbound-1;
+      if (count[iprof] > 0) eb1 = prof[iprof]/count[iprof];
+      else eb1 = 0.0;
+      iprof = nbound+1;
+      if (count[iprof] > 0) eb2 = prof[iprof]/count[iprof];
+      else eb2 = 0.0;
     }
   }
 
 }
 
+/* ---------------------------------------------------------------------- */
+
+void DiagEprof3d::stats(char *strtmp) {
+  if (iboundary == 0) {
+    sprintf(strtmp," %10g",eav);
+  } else {
+    sprintf(strtmp," %10g %10g %10g",eav,eb1,eb2);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DiagEprof3d::stats_header(char *strtmp) {
+  if (iboundary == 0) {
+    sprintf(strtmp," %10s","Eav");
+  } else {
+    sprintf(strtmp," %10s %10s %10s","Eav","Eb1","Eb2");
+  }
+}

@@ -22,6 +22,10 @@ class App : protected SysPtr {
 
   virtual void stats(){};
   virtual void stats_header(){};
+
+  virtual void stats(char *strtmp) {strtmp[0] = '\0';};
+  virtual void stats_header(char *strtmp) {strtmp[0] = '\0';};
+
   virtual void dump_header(){};
   virtual void dump(){};
   virtual void set_stats(int, char **){};

@@ -22,6 +22,8 @@ class DiagCluster3d : public Diag {
 
   void init(double);
   void compute(double, int);
+  void stats(char *);
+  void stats_header(char *);
 
  protected:
 
