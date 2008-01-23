@@ -13,6 +13,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "output.h"
 
 using namespace SPPARKS;
 
@@ -77,7 +78,6 @@ AppSurf::AppSurf(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   // default settings
 
   ntimestep = 0;
-  nstats = ndump = 0;
   temperature = 0.0;
   cutoff = 2.5;
   rate_deposit = 1.0;
@@ -151,29 +151,10 @@ void AppSurf::init()
   zlo = zhi = 0.0;
   for (i = 0; i < nlocal; i++) zhi = MAX(zhi,atoms[i].z);
 
-  // setup future stat and dump calls
+  // Initialize output
 
-  stats_next = nstats;
-  dump_next = ndump;
+  output->init(time);
 
-  // print stats header
-  
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"Timestep Time Natoms Energy");
-      fprintf(screen,"\n");
-    }
-    if (logfile) {
-      fprintf(logfile,"Timestep Time Natoms Energy");
-      fprintf(logfile,"\n");
-    }
-  }
-
-  // initial stats and dump
-
-  energy = etotal();
-  if (nstats) stats();
-  if (ndump) dump();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -184,8 +165,8 @@ void AppSurf::input(char *command, int narg, char **arg)
   if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
   else if (strcmp(command,"potential") == 0) set_potential(narg,arg);
   else if (strcmp(command,"rates") == 0) set_rates(narg,arg);
-  else if (strcmp(command,"stats") == 0) set_stats(narg,arg);
-  else if (strcmp(command,"dump") == 0) set_dump(narg,arg);
+  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
+  else if (strcmp(command,"dump") == 0) output->set_dump(narg,arg);
   else error->all("Invalid command");
 }
 
@@ -222,6 +203,7 @@ void AppSurf::iterate()
   int i,iatom,which;
   double delta,rate,dt,xnew,znew;
   double eng,fx,fz;
+  int done = 0;
 
   timer->barrier_start(TIME_LOOP);
 
@@ -357,18 +339,12 @@ void AppSurf::iterate()
     energy = etotal();
     pbc();
 
-    if (ntimestep == stats_next) {
-      timer->stamp();
-      stats();
-      stats_next += nstats;
-      timer->stamp(TIME_OUTPUT);
-    }
-    if (ntimestep == dump_next) {
-      timer->stamp();
-      dump();
-      dump_next += ndump;
-      timer->stamp(TIME_OUTPUT);
-    }
+    // Do output
+
+    timer->stamp();
+    output->compute(time,done);
+    timer->stamp(TIME_OUTPUT);
+
   }
 
   timer->barrier_stop(TIME_LOOP);
@@ -817,16 +793,18 @@ void AppSurf::pbc()
    print stats
 ------------------------------------------------------------------------- */
 
-void AppSurf::stats()
+void AppSurf::stats(char *strtmp)
 {
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"%d %g %d %g\n",ntimestep,time,nlocal,energy);
-    }
-    if (logfile) {
-      fprintf(logfile,"%d %g %d %g\n",ntimestep,time,nlocal,energy);
-    }
-  }
+  sprintf(strtmp," %10d %10g %10d %10g",ntimestep,time,nlocal,energy);
+}
+
+/* ----------------------------------------------------------------------
+   print stats header
+------------------------------------------------------------------------- */
+
+void AppSurf::stats_header(char *strtmp)
+{
+  sprintf(strtmp," %10s %10s %10s %10s","Step","Time","Natoms","Energy");
 }
 
 /* ----------------------------------------------------------------------
@@ -864,8 +842,18 @@ void AppSurf::set_temperature(int narg, char **arg)
 
 void AppSurf::set_stats(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal stats command");
-  nstats = atoi(arg[0]);
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"your_option_here") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	int itmp = atoi(arg[iarg]);
+      } else {
+	error->all("Illegal stats command");
+      }
+    }
+    iarg++;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -889,7 +877,6 @@ void AppSurf::set_rates(int narg, char **arg)
 void AppSurf::set_dump(int narg, char **arg)
 {
   if (narg != 2) error->all("Illegal dump command");
-  ndump = atoi(arg[0]);
   if (me == 0) {
     fp = fopen(arg[1],"w");
     if (fp == NULL) error->one("Cannot open dump file");

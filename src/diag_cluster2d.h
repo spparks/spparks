@@ -22,6 +22,8 @@ class DiagCluster2d : public Diag {
 
   void init(double);
   void compute(double, int);
+  void stats(char *);
+  void stats_header(char *);
 
  protected:
 
@@ -45,9 +47,11 @@ class DiagCluster2d : public Diag {
   int nx_global,ny_global,nx_procs,ny_procs,delghost;
   int nx_local,ny_local,nx_offset,ny_offset,nxlo,nylo,nxhi,nyhi;
 
-  enum DumpStyles {STANDARD, DETAILED};
+  enum DumpStyles {STANDARD, OPENDX, DETAILED};
   int dump_style;
   int idump;
+  char* opendxroot;
+  int opendxcount;
 };
 
 }

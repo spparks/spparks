@@ -527,7 +527,7 @@ void DiagCluster3d::dump_clusters(double time)
       randomkeys = (int *) memory->smalloc(ncluster*sizeof(int),"diagcluster3d:randomkeys");
       randomtmp = new RandomPark(12345);
       for (int i = 0; i < ncluster; i++) {
-	randomkeys[i] = randomtmp->irandom(ncluster);
+	randomkeys[i] = randomtmp->irandom(nsites);
       }
     }
   }
@@ -612,8 +612,10 @@ void DiagCluster3d::dump_clusters(double time)
 	for (int k = 1; k <= nztmp; k++) {
 	  for (int j = 1; j <= nytmp; j++) {
 	    for (int i = 1; i <= nxtmp; i++) {
-	      isite = ((nzotmp+k-1)*ny_global + nyotmp+j-1)
-		*nx_global + (nxotmp+i-1);
+	      // This ordering of sites matches OpenDX
+	      // ordered fast in z, slower in y, slowest in x	      
+	      isite = ((nxotmp+i-1)*ny_global + nyotmp+j-1)
+		*nz_global + (nzotmp+k-1);
 	      id = randomkeys[clustlist[buftmp[m++]-1].global_id-1];
 	      datadx[isite] = id;
 	    }

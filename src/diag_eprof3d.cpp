@@ -75,7 +75,6 @@ DiagEprof3d::DiagEprof3d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
 
 DiagEprof3d::~DiagEprof3d()
 {
-  memory->destroy_3d_T_array(lat3d,nxlo,nylo,nzlo);
   memory->sfree(prof);
   memory->sfree(count);
   if (iboundary == 1) {
@@ -115,8 +114,6 @@ void DiagEprof3d::init(double time)
   nyhi = applattice3d->nyhi;
   nzhi = applattice3d->nzhi;
 
-  memory->create_3d_T_array(lat3d,nxlo,nxhi,nylo,nyhi,nzlo,nzhi,
-			    "diageprof3d:lat3d");
   if (iboundary == 0) {
     if (prof_index == 0) {
       ndata = nx_global;

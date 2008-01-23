@@ -16,6 +16,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "output.h"
 
 #include <map>
 
@@ -41,8 +42,6 @@ AppLattice::AppLattice(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 
   ntimestep = 0;
   time = 0.0;
-  stats_delta = 0.0;
-  dump_delta = 0.0;
   temperature = 0.0;
   maxdumpbuf = 0;
   dbuf = NULL;
@@ -1168,22 +1167,10 @@ void AppLattice::init()
     solve->init(nlocal,propensity);
   }
 
-  // setup future stat and dump calls
+  // Initialize output
 
-  stats_time = time + stats_delta;
-  if (stats_delta == 0.0) stats_time = stoptime;
-  dump_time = time + dump_delta;
-  if (dump_delta == 0.0) dump_time = stoptime;
+  output->init(time);
 
-  // print dump file header and 1st snapshot
-
-  if (dump_delta > 0.0) {
-    dump_header();
-    dump();
-  }
-
-  stats_header();
-  stats();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1192,8 +1179,8 @@ void AppLattice::input(char *command, int narg, char **arg)
 {
   if (narg == 0) error->all("Invalid command");
   if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
-  else if (strcmp(command,"stats") == 0) set_stats(narg,arg);
-  else if (strcmp(command,"dump") == 0) set_dump(narg,arg);
+  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
+  else if (strcmp(command,"dump") == 0) output->set_dump(narg,arg);
   else input_app(command,narg,arg);
 }
 
@@ -1265,17 +1252,11 @@ void AppLattice::iterate()
 
     if (time >= stoptime) done = 1;
 
-    if (time >= stats_time || done) {
-      stats();
-      stats_time += stats_delta;
-      timer->stamp(TIME_OUTPUT);
-    }
+    // Do output
 
-    if (time >= dump_time || done) {
-      if (dump_delta > 0.0) dump();
-      dump_time += dump_delta;
-      timer->stamp(TIME_OUTPUT);
-    }
+    output->compute(time,done);
+    timer->stamp(TIME_OUTPUT);
+
   }
   
   timer->barrier_stop(TIME_LOOP);
@@ -1285,52 +1266,18 @@ void AppLattice::iterate()
    print stats
 ------------------------------------------------------------------------- */
 
-void AppLattice::stats()
+void AppLattice::stats(char *strtmp)
 {
-  int i;
-  double energy,all;
-  double ptot;
-  
-  comm->all();
-
-  energy = 0.0;
-  for (i = 0; i < nlocal; i++)
-    energy += site_energy(i);
-
-  MPI_Allreduce(&energy,&all,1,MPI_DOUBLE,MPI_SUM,world);
-
-  if (solve == NULL) {
-    ptot = 0.0;
-  } else {
-    ptot = solve->get_total_propensity();
-  }
-
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"%d %f %f %f\n",ntimestep,time,all,ptot);
-    if (logfile)
-      fprintf(logfile,"%d %f %f %f\n",ntimestep,time,all,ptot);
-  }
-
+  sprintf(strtmp," %10d %10g",ntimestep,time);
 }
 
 /* ----------------------------------------------------------------------
    print stats header
 ------------------------------------------------------------------------- */
 
-void AppLattice::stats_header()
+void AppLattice::stats_header(char *strtmp)
 {
-
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"Timestep Time Energy Propensity");
-      fprintf(screen,"\n");
-    }
-    if (logfile) {
-      fprintf(logfile,"Timestep Time Energy Propensity");
-      fprintf(logfile,"\n");
-    }
-  }
+  sprintf(strtmp," %10s %10s","Step","Time");
 }
 
 /* ----------------------------------------------------------------------
@@ -1427,8 +1374,18 @@ void AppLattice::set_temperature(int narg, char **arg)
 
 void AppLattice::set_stats(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal stats command");
-  stats_delta = atof(arg[0]);
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"your_option_here") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	int itmp = atoi(arg[iarg]);
+      } else {
+	error->all("Illegal stats command");
+      }
+    }
+    iarg++;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1436,8 +1393,6 @@ void AppLattice::set_stats(int narg, char **arg)
 void AppLattice::set_dump(int narg, char **arg)
 {
   if (narg != 3) error->all("Illegal dump command");
-  dump_delta = atof(arg[0]);
-  if (dump_delta <= 0.0) error->all("Illegal dump command");
 
   if (strcmp(arg[1],"coord") != 0) error->all("Illegal dump command");
 

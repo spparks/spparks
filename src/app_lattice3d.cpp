@@ -280,7 +280,7 @@ void AppLattice3d::stats(char *strtmp)
 
 void AppLattice3d::stats_header(char *strtmp)
 {
-  fprintf(screen," %10s %10s","Timestep","Time");
+  sprintf(strtmp," %10s %10s","Step","Time");
 }
 
 /* ----------------------------------------------------------------------

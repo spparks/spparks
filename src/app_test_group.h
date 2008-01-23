@@ -77,9 +77,6 @@ class AppTestGroup : public App {
 
   //event properties
 
-  //stats timing
-  double stats_time,stats_delta;
-
   //stats
   int *count;
   int ssum;
@@ -87,7 +84,8 @@ class AppTestGroup : public App {
 
   //methods
   void iterate();
-  void stats();
+  void stats(char *);
+  void stats_header(char *);
 
   void set_stats(int, char **);
 

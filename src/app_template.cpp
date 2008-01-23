@@ -14,6 +14,7 @@
 #include "error.h"
 #include <iostream>
 #include "tree.h"
+#include "output.h"
 
 using namespace SPPARKS;
 using namespace std;
@@ -34,8 +35,6 @@ AppTemplate::AppTemplate(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   ntimestep = 0;
   time = 0.0;
  
-  stats_delta = 0.0;
-
   st = NULL;
   tr = NULL;
   xpr = NULL;
@@ -65,26 +64,10 @@ void AppTemplate::init()
 
   //use event descriptors to generate initial event table
 
+  // Initialize output
 
+  output->init(time);
 
-  // print stats header
-
-  if (screen) {
-    fprintf(screen,"Step Time");
-    //    for (int m = 0; m < nspecies; m++) fprintf(screen," %s",sname[m]);
-    fprintf(screen,"\n");
-  }
-  if (logfile) {
-    fprintf(logfile,"Step Time");
-    //    for (int m = 0; m < nspecies; m++) fprintf(logfile," %s",sname[m]);
-    fprintf(logfile,"\n");
-  }
-  stats();
-
-  // setup future calls to stats()
-
-  stats_time = time + stats_delta;
-  if (stats_delta == 0.0) stats_time = stoptime;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -95,7 +78,7 @@ void AppTemplate::input(char *command, int narg, char **arg)
 
   if (strcmp(command,"run") == 0) run(narg,arg);
 
-  else if (strcmp(command,"stats") == 0) set_stats(narg,arg);
+  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
 
   else if (strcmp(command,"state") == 0) set_state(narg,arg);
 
@@ -230,11 +213,11 @@ void AppTemplate::iterate()
     time += dt;
     if (time >= stoptime) done = 1;
 
-    if (time > stats_time || done) {
-      stats();
-      stats_time += stats_delta;
-      timer->stamp(TIME_OUTPUT);
-    }
+    // Do output
+
+    output->compute(time,done);
+    timer->stamp(TIME_OUTPUT);
+
   }
 
   timer->barrier_stop(TIME_LOOP);
@@ -244,27 +227,36 @@ void AppTemplate::iterate()
    print stats
 ------------------------------------------------------------------------- */
 
-void AppTemplate::stats()
+void AppTemplate::stats(char *strtmp)
 {
-  if (screen) {
-    fprintf(screen,"%d %g",ntimestep,time);
-    //    for (int m = 0; m < nspecies; m++) fprintf(screen," %d",pcount[m]);
-    fprintf(screen,"\n");
-  }
-  if (logfile) {
-    fprintf(logfile,"%d %g",ntimestep,time);
-    //    for (int m = 0; m < nspecies; m++) fprintf(logfile," %d",pcount[m]);
-    fprintf(logfile,"\n");
-  }
+  sprintf(strtmp," %10d %10g",ntimestep,time);
 }
 
+/* ----------------------------------------------------------------------
+   print stats header
+------------------------------------------------------------------------- */
+
+void AppTemplate::stats_header(char *strtmp)
+{
+  sprintf(strtmp," %10s %10s","Step","Time");
+}
 
 /* ---------------------------------------------------------------------- */
 
 void AppTemplate::set_stats(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal stats command");
-  stats_delta = atof(arg[0]);
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"your_option_here") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	int itmp = atoi(arg[iarg]);
+      } else {
+	error->all("Illegal stats command");
+      }
+    }
+    iarg++;
+  }
 }
 
 /* ----------------------------------------------------------------------

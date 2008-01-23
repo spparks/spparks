@@ -22,6 +22,8 @@ namespace SPPARKS {
     void init();
     void input(char *, int, char **);
     void run(int, char **);
+    void stats(char *);
+    void stats_header(char *);
 
   private:
     int ntimestep;
@@ -30,9 +32,6 @@ namespace SPPARKS {
     int nevents;
     
     void iterate();
-    void stats();
-    double stats_time, stats_delta;
-    
     
     void set_stats(int, char **);
     void set_state(int, char **);

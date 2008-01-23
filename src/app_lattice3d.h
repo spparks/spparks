@@ -18,6 +18,7 @@ class AppLattice3d : public App {
   friend class SweepLattice3d;
   friend class DiagCluster3d;
   friend class DiagEprof3d;
+  friend class DiagEnergy3d;
 
  public:
   AppLattice3d(class SPK *, int, char **);
@@ -41,8 +42,6 @@ class AppLattice3d : public App {
   int dump_style;
   int init_style;
   double time,stoptime;
-  double stats_time,stats_delta;
-  double dump_time,dump_delta;
   double temperature,t_inverse;
   int nsweep;
 

@@ -16,6 +16,7 @@
 #include "error.h"
 #include "random_park.h"
 #include "math.h"
+#include "output.h"
 
 using namespace SPPARKS;
 using namespace std;
@@ -42,7 +43,6 @@ AppTestGroup::AppTestGroup(SPK *spk, int narg, char **arg) :
   dep_graph_flag = true;
   ntimestep = 0;
   time = 0.0;
-  stats_delta = 0.0;
 
   // classes needed by this app
   int seed = 123124;
@@ -111,16 +111,10 @@ void AppTestGroup::init()
   count = new int[nevents];
   for (int t = 0; t < nevents; t++) count[t] = 0;
 
-  // print stats header
+  // Initialize output
 
-  if (screen) {
-    fprintf(screen,"Step Time Counts");
-    fprintf(screen,"\n");
-  }
-  if (logfile) {
-    fprintf(logfile,"Step Time Counts");
-    fprintf(logfile,"\n");
-  }
+  output->init(time);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,7 +124,7 @@ void AppTestGroup::input(char *command, int narg, char **arg)
   if (narg == 0) error->all("Invalid command");
   else if (strcmp(command,"event") == 0) set_event(narg,arg);
   else if (strcmp(command,"run") == 0) run(narg,arg);
-  else if (strcmp(command,"stats") == 0) set_stats(narg,arg);
+  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
   else error->all("Invalid command");
 }
 
@@ -217,6 +211,12 @@ void AppTestGroup::iterate()
     time += dt;
     if (ntimestep >= nlimit) done = 1;
     else if (ievent < 0) done = 1;
+
+    // Do output
+
+    output->compute(time,done);
+    timer->stamp(TIME_OUTPUT);
+
   }
 
   timer->barrier_stop(TIME_LOOP);
@@ -228,7 +228,7 @@ void AppTestGroup::iterate()
    print stats
 ------------------------------------------------------------------------- */
 
-void AppTestGroup::stats()
+void AppTestGroup::stats(char *strtmp)
 {
   int i;
   ssum = 0;
@@ -236,32 +236,28 @@ void AppTestGroup::stats()
   double max_deviation = 0.0;
   int max_i;
 
+  char *strpnt = strtmp;
+
   for (i = 0; i< nevents; i++) ssum += count[i];
   if (ssum == 0) ssum = 1;
 
-  if (screen) {
-    for (i = 0; i < nevents; i++){
-      deviation = ((double)count[i]/ssum - propensity[i]/psum)/
-	((double)count[i]/ssum + propensity[i]/psum);
-      if(deviation > max_deviation){
-	max_deviation = deviation;
-	max_i = i;
-      }
+  for (i = 0; i < nevents; i++){
+    deviation = ((double)count[i]/ssum - propensity[i]/psum)/
+      ((double)count[i]/ssum + propensity[i]/psum);
+    if(deviation > max_deviation){
+      max_deviation = deviation;
+      max_i = i;
     }
   }
+
   printf("PSUM %g %d\n",psum,ssum);
-  if (screen) {
-    fprintf(screen,"%d %g ",ntimestep,time);
-    for (i = 0; i < nevents; i++)
-      fprintf(screen,"%6.3d ",(double)count[i]/ssum - propensity[i]/psum);
-    fprintf(screen,"\n");
-    
-  }
-  if (logfile) {
-    fprintf(logfile,"%d %g ",ntimestep,time);
-    for (i = 0; i < nevents; i++)
-      fprintf(logfile,"%6.3d ",(double)count[i]/ssum - propensity[i]/psum);
-    fprintf(logfile,"\n");
+
+  sprintf(strpnt," %10d %10g",ntimestep,time);
+  strpnt += strlen(strpnt);
+
+  for (i = 0; i < nevents; i++) {
+    sprintf(strpnt,"%6.3d ",(double)count[i]/ssum - propensity[i]/psum);
+    strpnt += strlen(strpnt);
   }
 
   if(max_i>nevents-1) max_i = nevents - 1;
@@ -269,6 +265,16 @@ void AppTestGroup::stats()
   // fprintf(screen,"Maximum deviation = %g at %d propensity %g \n",
   //	    max_deviation,max_i,propensity[max_i]);
 }
+
+/* ----------------------------------------------------------------------
+   print stats header
+------------------------------------------------------------------------- */
+
+void AppTestGroup::stats_header(char *strtmp)
+{
+  sprintf(strtmp," %10s %10s %10s","Step","Time","Counts");
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AppTestGroup::set_event(int narg, char **arg)
@@ -292,8 +298,18 @@ void AppTestGroup::set_event(int narg, char **arg)
 
 void AppTestGroup::set_stats(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal stats command");
-  stats_delta = atof(arg[0]);
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"your_option_here") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	int itmp = atoi(arg[iarg]);
+      } else {
+	error->all("Illegal stats command");
+      }
+    }
+    iarg++;
+  }
 }
 
 /* ----------------------------------------------------------------------

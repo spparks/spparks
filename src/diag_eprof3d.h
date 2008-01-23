@@ -29,7 +29,6 @@ class DiagEprof3d : public Diag {
   void write_header();
   void write_prof(double);
 
-  double*** lat3d;
   int ndata;
   double *prof;
   double *count;

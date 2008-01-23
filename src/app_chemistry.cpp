@@ -12,6 +12,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "output.h"
 
 using namespace SPPARKS;
 
@@ -32,7 +33,6 @@ AppChemistry::AppChemistry(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
   ntimestep = 0;
   time = 0.0;
   volume = 0.0;
-  stats_delta = 0.0;
 
   nspecies = 0;
   sname = NULL;
@@ -106,24 +106,10 @@ void AppChemistry::init()
   rcount = new int[nreactions];
   for (int m = 0; m < nreactions; m++) rcount[m] = 0;
 
-  // print stats header
+  // Initialize output
 
-  if (screen) {
-    fprintf(screen,"Step Time");
-    for (int m = 0; m < nspecies; m++) fprintf(screen," %s",sname[m]);
-    fprintf(screen,"\n");
-  }
-  if (logfile) {
-    fprintf(logfile,"Step Time");
-    for (int m = 0; m < nspecies; m++) fprintf(logfile," %s",sname[m]);
-    fprintf(logfile,"\n");
-  }
-  stats();
+  output->init(time);
 
-  // setup future calls to stats()
-
-  stats_time = time + stats_delta;
-  if (stats_delta == 0.0) stats_time = stoptime;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,7 +121,7 @@ void AppChemistry::input(char *command, int narg, char **arg)
   else if (strcmp(command,"reaction") == 0) add_reaction(narg,arg);
   else if (strcmp(command,"run") == 0) run(narg,arg);
   else if (strcmp(command,"species") == 0) add_species(narg,arg);
-  else if (strcmp(command,"stats") == 0) set_stats(narg,arg);
+  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
   else if (strcmp(command,"volume") == 0) set_volume(narg,arg);
   else error->all("Invalid command");
 }
@@ -219,11 +205,13 @@ void AppChemistry::iterate()
 
     }
 
-    if (time > stats_time || done) {
-      stats();
-      stats_time += stats_delta;
-      timer->stamp(TIME_OUTPUT);
-    }
+    timer->stamp(TIME_APP);
+
+    // Do output
+
+    output->compute(time,done);
+    timer->stamp(TIME_OUTPUT);
+
   }
 
   timer->barrier_stop(TIME_LOOP);
@@ -233,17 +221,31 @@ void AppChemistry::iterate()
    print stats
 ------------------------------------------------------------------------- */
 
-void AppChemistry::stats()
+void AppChemistry::stats(char *strtmp)
 {
-  if (screen) {
-    fprintf(screen,"%d %g",ntimestep,time);
-    for (int m = 0; m < nspecies; m++) fprintf(screen," %d",pcount[m]);
-    fprintf(screen,"\n");
+  char *strpnt = strtmp;
+  sprintf(strpnt," %10d %10g",ntimestep,time);
+  strpnt += strlen(strpnt);
+
+  for (int m = 0; m < nspecies; m++) {
+    sprintf(strpnt," %10d",pcount[m]);
+    strpnt += strlen(strpnt);
   }
-  if (logfile) {
-    fprintf(logfile,"%d %g",ntimestep,time);
-    for (int m = 0; m < nspecies; m++) fprintf(logfile," %d",pcount[m]);
-    fprintf(logfile,"\n");
+}
+
+/* ----------------------------------------------------------------------
+   print stats header
+------------------------------------------------------------------------- */
+
+void AppChemistry::stats_header(char *strtmp)
+{
+  char *strpnt = strtmp;
+  sprintf(strpnt," %10s %10s","Step","Time");
+  strpnt += strlen(strpnt);
+
+  for (int m = 0; m < nspecies; m++) {
+    sprintf(strpnt," %10s",sname[m]);
+    strpnt += strlen(strpnt);
   }
 }
 
@@ -370,8 +372,18 @@ void AppChemistry::add_species(int narg, char **arg)
 
 void AppChemistry::set_stats(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal stats command");
-  stats_delta = atof(arg[0]);
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"your_option_here") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	int itmp = atoi(arg[iarg]);
+      } else {
+	error->all("Illegal stats command");
+      }
+    }
+    iarg++;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

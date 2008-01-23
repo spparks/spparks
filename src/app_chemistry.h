@@ -46,10 +46,10 @@ class AppChemistry : public App {
   double factor_dual;
 
   int *rcount;               // statistics
-  double stats_time,stats_delta;
 
   void iterate();
-  void stats();
+  void stats(char *);
+  void stats_header(char *);
 
   void set_count(int, char **);
   void add_species(int, char **);

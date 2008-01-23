@@ -277,53 +277,18 @@ void AppLattice2d::iterate()
    print stats
 ------------------------------------------------------------------------- */
 
-void AppLattice2d::stats()
+void AppLattice2d::stats(char *strtmp)
 {
-  int i,j;
-  double energy,all;
-  double ptot;
-
-  comm->all(lattice);
-
-  energy = 0.0;
-  for (i = 1; i <= nx_local; i++)
-    for (j = 1; j <= ny_local; j++)
-      energy += site_energy(i,j);
-
-  MPI_Allreduce(&energy,&all,1,MPI_DOUBLE,MPI_SUM,world);
-
-  if (solve == NULL) {
-    ptot = 0.0;
-  } else {
-    ptot = solve->get_total_propensity();
-  }
-
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"%d %f %f %f\n",ntimestep,time,all,ptot);
-    if (logfile)
-      fprintf(logfile,"%d %f %f %f\n",ntimestep,time,all,ptot);
-  }
-
+  sprintf(strtmp," %10d %10g",ntimestep,time);
 }
 
 /* ----------------------------------------------------------------------
    print stats header
 ------------------------------------------------------------------------- */
 
-void AppLattice2d::stats_header()
+void AppLattice2d::stats_header(char *strtmp)
 {
-
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"Timestep Time Energy Propensity");
-      fprintf(screen,"\n");
-    }
-    if (logfile) {
-      fprintf(logfile,"Timestep Time Energy Propensity");
-      fprintf(logfile,"\n");
-    }
-  }
+  sprintf(strtmp," %10s %10s","Step","Time");
 }
 
 /* ----------------------------------------------------------------------

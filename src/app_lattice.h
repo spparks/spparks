@@ -14,6 +14,7 @@ namespace SPPARKS {
 class AppLattice : public App {
   friend class SweepLattice;
   friend class CommLattice;
+  friend class DiagEnergy;
 
  public:
   AppLattice(class SPK *, int, char **);
@@ -37,8 +38,6 @@ class AppLattice : public App {
   int ntimestep,seed;
   int dump_style;
   double time,stoptime;
-  double stats_time,stats_delta;
-  double dump_time,dump_delta;
   double temperature,t_inverse;
   int nsweep;
 
@@ -120,8 +119,8 @@ class AppLattice : public App {
   void ghosts_within_cutoff();
 
   void iterate();
-  void stats();
-  void stats_header();
+  void stats(char *);
+  void stats_header(char *);
   void dump_header();
   void dump();
 

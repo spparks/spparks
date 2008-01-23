@@ -97,6 +97,8 @@ void Output::set_stats(int narg, char **arg)
     }
     iarg++;
   }
+
+  app->set_stats(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,7 +143,6 @@ void Output::compute(double time, int done)
     stats();
   }
   
-  timer->stamp(TIME_OUTPUT);
 }
 
 /* ---------------------------------------------------------------------- */

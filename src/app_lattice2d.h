@@ -17,6 +17,7 @@ namespace SPPARKS {
 class AppLattice2d : public App {
   friend class SweepLattice2d;
   friend class DiagCluster2d;
+  friend class DiagEnergy2d;
 
  public:
   AppLattice2d(class SPK *, int, char **);
@@ -82,8 +83,8 @@ class AppLattice2d : public App {
   void virtual init_app() {}
 
   void iterate();
-  void stats();
-  void stats_header();
+  void stats(char *);
+  void stats_header(char *);
   void dump_header();
   void dump();
   void dump_lattice();

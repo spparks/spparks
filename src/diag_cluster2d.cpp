@@ -4,6 +4,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "output.h"
@@ -14,6 +15,8 @@
 #include "diag_cluster2d.h"
 #include "app_lattice2d.h"
 #include "comm_lattice2d.h"
+#include "random_park.h"
+
 using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
@@ -23,21 +26,24 @@ DiagCluster2d::DiagCluster2d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg
   fp = NULL;
   fpdump = NULL;
   clustlist = NULL;
+  opendxroot = NULL;
   ncluster = 0;
   idump = 0;
   dump_style = STANDARD;
 
-  if (narg < 3 ) error->all("Illegal diag_style cluster2d command");
-
   int iarg = 2;
-  if (me == 0) {
-    fp = fopen(arg[iarg],"w");
-    if (!fp) error->one("Cannot open diag_style cluster2d output file");
-  }
-  iarg++;
-
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"dump_style") == 0) {
+    if (strcmp(arg[iarg],"filename") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	if (me == 0) {
+	  fp = fopen(arg[iarg],"w");
+	  if (!fp) error->one("Cannot open diag_style cluster2d output file");
+	}
+      } else {
+	error->all("Illegal diag_style cluster2d command");
+      } 
+    } else if (strcmp(arg[iarg],"dump_style") == 0) {
       iarg++;
       if (iarg < narg) {
 	if (strcmp(arg[iarg],"standard") == 0) {
@@ -49,6 +55,18 @@ DiagCluster2d::DiagCluster2d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg
 	      fpdump = fopen(arg[iarg],"w");
 	      if (!fpdump) error->one("Cannot open diag_style cluster2d dump file");
 	    }
+	  } else {
+	    error->all("Illegal diag_style cluster2d command");
+	  }
+	} else if (strcmp(arg[iarg],"opendx") == 0) {
+	  idump = 1;
+	  dump_style = OPENDX;
+	  iarg++;
+	  if (iarg < narg) {
+	    int n = strlen(arg[iarg]) + 1;
+	    opendxroot = new char[n];
+	    strcpy(opendxroot,arg[iarg]);
+	    opendxcount = 0;
 	  } else {
 	    error->all("Illegal diag_style cluster2d command");
 	  }
@@ -73,11 +91,10 @@ DiagCluster2d::DiagCluster2d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg
 	error->all("Illegal diag_style cluster2d command");
       }
     } else {
-      error->all("Illegal diag_style cluster2d command");
+      //      error->all("Illegal diag_style cluster2d command");
     }
     iarg++;
   }
-
 
 }
 
@@ -87,6 +104,7 @@ DiagCluster2d::~DiagCluster2d()
 {
   memory->destroy_2d_T_array(cluster_ids,nxlo,nylo);
   free_clustlist();
+  delete [] opendxroot;
   if (me == 0 ) {
     if (fp) fclose(fp);
     if (fpdump) fclose(fpdump);
@@ -117,7 +135,8 @@ void DiagCluster2d::init(double time)
 
   write_header();
   analyze_clusters(time);
-  diag_time = time + diag_delta;
+
+  setup_time(time);
 }
 
 
@@ -125,10 +144,7 @@ void DiagCluster2d::init(double time)
 
 void DiagCluster2d::compute(double time, int done)
 {
-  if ((diag_delta > 0.0 && time >= diag_time) || done) {
-    analyze_clusters(time);
-    diag_time += diag_delta;
-  }
+  if (check_time(time, done)) analyze_clusters(time);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -139,16 +155,15 @@ void DiagCluster2d::analyze_clusters(double time)
     fprintf(fp,"\n\n--------------------------------------------------\n");
     fprintf(fp,"Time = %f \n",time);
   }
+  free_clustlist();
   generate_clusters();
   if (idump) {
-    if (dump_style == STANDARD) {
+    if (dump_style == STANDARD || dump_style == OPENDX) {
       dump_clusters(time);
     } else if (dump_style == DETAILED) {
       dump_clusters_detailed(time);
     }
   }
-
-  free_clustlist();
 }
 /* ---------------------------------------------------------------------- */
 
@@ -434,15 +449,64 @@ void DiagCluster2d::dump_clusters(double time)
   int maxbuftmp;
   int id;
   int isite;
+  int nsites = nx_global*ny_global;
+  int* datadx;
+  int* randomkeys;
+  RandomPark *randomtmp;
 
   if (me == 0) {
-    fprintf(fpdump,"ITEM: TIME\n");
-    fprintf(fpdump,"%g\n",time);
-    fprintf(fpdump,"ITEM: DIMENSIONS\n");
-    fprintf(fpdump,"%d\n%d\n",nx_global,ny_global);
-    fprintf(fpdump,"ITEM: ELEMENT CLUSTERID\n");
-  }
+    if (dump_style == STANDARD) {
+      fprintf(fpdump,"ITEM: TIME\n");
+      fprintf(fpdump,"%g\n",time);
+      fprintf(fpdump,"ITEM: DIMENSIONS\n");
+      fprintf(fpdump,"%d\n%d\n",nx_global,ny_global);
+      fprintf(fpdump,"ITEM: ELEMENT CLUSTERID\n");
+    } else if (dump_style == OPENDX) {
+      int lroot = strlen(opendxroot);
+      int lnum;
+      int lsuf = 3;
+      if (opendxcount == 0) {
+	lnum = 1;
+      } else {
+	lnum = int(log(opendxcount)/log(10))+1;
+      }
+      if (lnum < 5) lnum = 5;
+      char filetmp[100];
+      if (99 < lroot+lnum+lsuf) error->one("diag_style cluster3d dump file name too long");
+      strcpy(filetmp,opendxroot);
+      sprintf(filetmp+lroot,"%05d",opendxcount);
+      sprintf(filetmp+lroot+lnum,"%s",".dx");
+      if (me == 0) {
+	fpdump = fopen(filetmp,"w");
+	if (!fpdump) error->one("Cannot open diag_style cluster3d dump file");
+      }
 
+      opendxcount++;
+
+      fprintf(fpdump,"# Cluster ID dump file for OpenDX\n");
+      fprintf(fpdump,"# Time = %g\n",time);
+      fprintf(fpdump,"# Create regular grid.\n");
+      fprintf(fpdump,"object 1 class gridpositions counts %d %d %d\n",
+	      nx_global+1,ny_global+1,2);
+      fprintf(fpdump,"origin  0 0 0 \n");
+      fprintf(fpdump,"delta   1 0 0 \n");
+      fprintf(fpdump,"delta   0 1 0 \n");
+      fprintf(fpdump,"delta   0 0 1 \n");
+      fprintf(fpdump,"\n# Create connections.\n");
+      fprintf(fpdump,"object 2 class gridconnections counts %d %d %d\n",
+	      nx_global+1,ny_global+1,2);
+      fprintf(fpdump,"\n# Feed data.\n");
+      fprintf(fpdump,"object 3 class array type int rank 0 items %d data follows\n#data goes here\n",
+	      nx_global*ny_global);
+      datadx = (int *) memory->smalloc(nsites*sizeof(int),"diagcluster3d:datadx");
+      randomkeys = (int *) memory->smalloc(ncluster*sizeof(int),"diagcluster3d:randomkeys");
+      randomtmp = new RandomPark(12345);
+      for (int i = 0; i < ncluster; i++) {
+	randomkeys[i] = randomtmp->irandom(nsites);
+      }
+    }
+  }
+  
   // set up communication buffer
   // maxbuftmp must equal the maximum number of spins on one domain 
   // plus some extra stuff
@@ -501,11 +565,23 @@ void DiagCluster2d::dump_clusters(double time)
   // isite = global grid cell (1:Nglobal)
   // ordered fast in x, slow in y
 
-      for (int j = 1; j <= nytmp; j++) {
-	for (int i = 1; i <= nxtmp; i++) {
-	  isite = (nyotmp+j-1)*nx_global + (nxotmp+i-1) + 1;
-	  id = clustlist[buftmp[m++]-1].global_id;
-	  fprintf(fpdump,"%3d %3d \n",isite,id);
+      if (dump_style == STANDARD) {
+	for (int j = 1; j <= nytmp; j++) {
+	  for (int i = 1; i <= nxtmp; i++) {
+	    isite = (nyotmp+j-1)*nx_global + (nxotmp+i-1) + 1;
+	    id = clustlist[buftmp[m++]-1].global_id;
+	    fprintf(fpdump,"%3d %3d \n",isite,id);
+	  }
+	}
+      } else if (dump_style == OPENDX) {
+	for (int j = 1; j <= nytmp; j++) {
+	  for (int i = 1; i <= nxtmp; i++) {
+	    // This ordering of sites matches OpenDX
+	    // ordered fast in z, slower in y, slowest in x	      
+	    isite = (nxotmp+i-1)*ny_global + nyotmp+j-1;
+	    id = randomkeys[clustlist[buftmp[m++]-1].global_id-1];
+	    datadx[isite] = id;
+	  }
 	}
       }
     }
@@ -514,8 +590,38 @@ void DiagCluster2d::dump_clusters(double time)
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
     MPI_Rsend(buftmp,nsend,MPI_INT,0,0,world);
   }
-
+  
   memory->sfree(buftmp);
+
+  if (me == 0) {
+    if (dump_style == STANDARD) {
+      //
+    } else if (dump_style == OPENDX) {
+      isite = 0;
+      while (isite < nsites) {
+	for (int i = 0; i < 20; i++) {
+	  fprintf(fpdump,"%d ",datadx[isite++]);
+	  if (isite == nsites) break;
+	}
+	fprintf(fpdump,"\n");
+      }
+      fprintf(fpdump,"attribute \"dep\" string \"connections\"\n");
+      fprintf(fpdump,"\n# Create a field.\n");
+      fprintf(fpdump,"object \"9 grain microstructure\" class field\n");
+      fprintf(fpdump,"component \"positions\" value 1\n");
+      fprintf(fpdump,"component \"connections\" value 2\n");
+      fprintf(fpdump,"component \"data\" value 3\n");
+      fprintf(fpdump,"\nend\n");
+      
+      fclose(fpdump);
+      fpdump = NULL;
+      
+      memory->sfree(datadx);
+      memory->sfree(randomkeys);
+      delete randomtmp;
+      
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -636,4 +742,16 @@ void DiagCluster2d::dump_clusters_detailed(double time)
   }
 
   memory->sfree(buftmp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DiagCluster2d::stats(char *strtmp) {
+  sprintf(strtmp," %10d",ncluster);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DiagCluster2d::stats_header(char *strtmp) {
+  sprintf(strtmp," %10s","Nclust");
 }

@@ -24,7 +24,6 @@ class AppSurf : public App {
   int nlattice,seed;
   double strain;
   double temperature;
-  int nstats,ndump;
   double rate_deposit;
   double cutoff;
   int nsteps;
@@ -33,7 +32,6 @@ class AppSurf : public App {
   FILE *fp;
   double hop_distance;
   double attempt_frequency;
-  int stats_next,dump_next;
   double xlo,xhi,xprd;
   double zlo,zhi;
   double time;
@@ -92,7 +90,8 @@ class AppSurf : public App {
   int linemin_secant(int, int *, double *, double &, double, double,
 		     double &, int &);
 
-  void stats();
+  void stats(char *);
+  void stats_header(char *);
   void dump();
 
   void set_temperature(int, char **);
