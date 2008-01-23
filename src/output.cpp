@@ -115,6 +115,17 @@ void Output::set_dump(int narg, char **arg)
 
 void Output::compute(double time, int done)
 {
+  if ((dump_delta > 0.0 && time >= dump_time) || done) {
+    if (dump_delta > 0.0) app->dump();
+    dump_time += dump_delta;
+  }
+
+  // Perform all diagnostics
+
+  for (int i = 0; i < ndiags; i++) {
+    diaglist[i]->compute(time,done);
+  }
+
   if ((stats_delta > 0.0 && time >= stats_time) || done) {
     if (stats_ilogfreq == 0) {
       stats_time += stats_delta;
@@ -130,17 +141,6 @@ void Output::compute(double time, int done)
     stats();
   }
   
-  if ((dump_delta > 0.0 && time >= dump_time) || done) {
-    if (dump_delta > 0.0) app->dump();
-    dump_time += dump_delta;
-  }
-
-  // Perform all diagnostics
-
-  for (int i = 0; i < ndiags; i++) {
-    diaglist[i]->compute(time,done);
-  }
-
   timer->stamp(TIME_OUTPUT);
 }
 
