@@ -231,8 +231,14 @@ void AppSurf::iterate()
 
     ghost_comm();
 
+    // single deposition event
+
     nevents = 0;
     add_event(nlocal,DEPOSITION,rate_deposit,0.0,0.0);
+
+    // add 2 hop events for each mobile atom
+    // type 1 = immobile, type 2 = mobile, type 3 = just deposited
+    // no hop possible if >= 4 neighbors within hop distance
 
     for (i = 0; i < nlocal; i++) {
       if (atoms[i].type == 1) continue;
@@ -254,6 +260,8 @@ void AppSurf::iterate()
     solve->init(nevents,rates);
     which = solve->event(&dt);
     time += dt;
+
+    // perform deposition event
 
     if (events[which].style == DEPOSITION) {
       iatom = nlocal;
@@ -277,6 +285,8 @@ void AppSurf::iterate()
 	     elo,fzlo,eng,fz,ehi,fzhi);
       atoms[iatom].z = ztmp;
 #endif
+
+    // perform hop event
 
     } else {
       iatom = events[which].iatom;
@@ -995,7 +1005,7 @@ double AppSurf::dbrent(int iatom, double ax, double bx, double cx,
 void AppSurf::sd(int n, int *list)
 {
   int i,ilist,m,fail,niter,neval;
-  double alpha,dot;
+  double alpha,fdotf;
   double einitial,eprevious,ecurrent;
 
   int ndof = 2*n;
@@ -1017,12 +1027,7 @@ void AppSurf::sd(int n, int *list)
     // line minimization along direction h from current atom->x
 
     eprevious = ecurrent;
-    //printf("DIR: %g %g\n",h[0],h[1]);
-    //printf("XINIT: eng = %g; %g %g\n",ecurrent,
-    //         atoms[list[0]].x,atoms[list[0]].z);
     fail = linemin_secant(n,list,h,ecurrent,DMIN,DMAX,alpha,neval);
-    //printf("XFINAL: eng = %g; %g %g\n",ecurrent,
-    //	   atoms[list[0]].x,atoms[list[0]].z);
 
     // if max_eval exceeded, all done
     // if linemin failed or energy did not decrease sufficiently, all done
@@ -1036,12 +1041,12 @@ void AppSurf::sd(int n, int *list)
     // set h to new f = -Grad(x)
     // done if size sq of grad vector < EPS
 
-    dot = 0.0;
+    fdotf = 0.0;
     for (ilist = 0; ilist < n; ilist++) {
       i = list[ilist];
-      dot += atoms[i].fx*atoms[i].fx + atoms[i].fz*atoms[i].fz;
+      fdotf += atoms[i].fx*atoms[i].fx + atoms[i].fz*atoms[i].fz;
     }
-    if (dot < EPS) break;
+    if (fdotf < EPS) break;
 
     m = 0;
     for (ilist = 0; ilist < n; ilist++) {
@@ -1053,7 +1058,7 @@ void AppSurf::sd(int n, int *list)
 
   delete [] h;
 
-  //printf("SD: %d %d; %g %g\n",niter,neval,einitial,ecurrent);
+  printf("SD: %d %d; %g %g\n",niter,neval,einitial,ecurrent);
 }
 
 /* ----------------------------------------------------------------------
@@ -1096,23 +1101,15 @@ void AppSurf::cg(int n, int *list)
     // line minimization along direction h from current atom->x
 
     eprevious = ecurrent;
-    //printf("DIR: %g %g\n",h[0],h[1]);
-    //printf("XINIT: eng = %g; %g %g\n",ecurrent,
-    //	   atoms[list[0]].x,atoms[list[0]].z);
     fail = linemin_secant(n,list,h,ecurrent,DMIN,DMAX,alpha,neval);
-    //printf("XFINAL: eng = %g; %g %g\n",ecurrent,
-    //   atoms[list[0]].x,atoms[list[0]].z);
 
     // if max_eval exceeded, all done
     // if linemin failed or energy did not decrease sufficiently:
-    //   all done if searched in grad direction
+    //   if searched in grad direction, then all done
     //   else force next search to be in grad direction (CG restart)
 
     if (neval >= MAX_EVAL) break;
 
-    //    printf("BREAK: %d %g %g %g %g\n",
-    //   fail,ecurrent,eprevious,ecurrent-eprevious,
-    //   TOLERANCE * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS));
     if (fail || fabs(ecurrent-eprevious) <= 
     	TOLERANCE * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS)) {
       if (gradsearch == 1) break;
@@ -1163,10 +1160,10 @@ void AppSurf::cg(int n, int *list)
 
 /* ----------------------------------------------------------------------
    line minimization methods
-   find minimum-energy starting at x along dir direction
-   input: n = # of degrees of freedom on this proc
-          x = ptr to atom->x[0] as vector
-	  dir = search direction as vector
+   find minimum-energy starting at current position moving in dir direction
+   input: n = # of atoms being minimized
+          list = list of which atoms they are
+	  dir = search direction as vector of length 2n
 	  eng = current energy at initial x
 	  min/max dist = min/max distance to move any atom coord
    output: return 0 if successful move, set alpha
@@ -1176,12 +1173,9 @@ void AppSurf::cg(int n, int *list)
 	     INSURE last call to eng_force() is consistent with returns
 	       if fail, eng_force() of original x
 	       if succeed, eng_force() at x + alpha*dir
-             atom->x = coords at new configuration
-	     atom->f = force (-Grad) is evaulated at new configuration
+             atoms[]->x = coords at new configuration
+	     atoms[]->f = force (-Grad) is evaulated at new configuration
 	     ecurrent = energy of new configuration
-   NOTE: when call eng_force: n,x,dir,eng may change due to atom migration
-	 updated values are returned by eng_force()
-	 this routine CANNOT store atom-based quantities b/c of migration
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -1286,6 +1280,7 @@ int AppSurf::linemin_secant(int n, int *list, double *dir, double &eng,
   dsq = fme;
 
   // alphamin = smallest allowed step of mindist
+  // alphamax = largest allowed step (in single iteration) of maxdist
 
   fme = 0.0;
   for (i = 0; i < ndof; i++) fme = MAX(fme,fabs(dir[i]));
@@ -1307,7 +1302,6 @@ int AppSurf::linemin_secant(int n, int *list, double *dir, double &eng,
     atoms[i].z += alphamin*dir[m++];
   }
   eng = eng_force(n,list);
-  //printf("  First eng: %g %g\n",alphamin,eng);
   nfunc++;
 
   if (eng >= e0) {
@@ -1326,8 +1320,11 @@ int AppSurf::linemin_secant(int n, int *list, double *dir, double &eng,
   // alphadelta = new increment to move, alpha = accumulated move
   // first step is alpha = 0, first previous step is at mindist
   // prevent func evals for alpha outside mindist to maxdist
-  // if happens on 1st iteration, secant approx is likely searching
+  // if happens on 1st iteration and alpha < mindist
+  //   secant approx is likely searching
   //   for a maximum (negative alpha), so reevaluate at alphamin
+  // if happens on 1st iteration and alpha > maxdist
+  //   wants to take big step, so reevaluate at alphamax
 
   tmp = 0.0;
   m = 0;
@@ -1353,7 +1350,6 @@ int AppSurf::linemin_secant(int n, int *list, double *dir, double &eng,
 
     eng = eng_force(n,list);
     nfunc++;
-    //printf(" AAA %d %g %g\n",nfunc,eng,alpha);
 
     tmp = 0.0;
     m = 0;
@@ -1364,12 +1360,11 @@ int AppSurf::linemin_secant(int n, int *list, double *dir, double &eng,
     }
     //MPI_Allreduce(&tmp,&eta,1,MPI_DOUBLE,MPI_SUM,world);
     eta = tmp;
-    //printf(" BBB %d %g, f= %g %g\n",
-    //   nfunc,eta,atoms[list[0]].fx,atoms[list[0]].fz);
 
     alphadelta *= eta / (eta_prev - eta);
     eta_prev = eta;
     if (alphadelta*alphadelta*dsq <= epssq) break;
+
     if (alpha+alphadelta < alphamin || alpha+alphadelta > alphamax) {
       if (iter == 0) {
 	if (alpha+alphadelta < alphamin) alpha = alphamin;
