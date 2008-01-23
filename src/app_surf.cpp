@@ -103,7 +103,6 @@ AppSurf::~AppSurf()
 
 void AppSurf::init()
 {
-
   if (nprocs > 1)
     error->all("Cannot use AppSurf in parallel");
 
