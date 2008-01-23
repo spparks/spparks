@@ -181,6 +181,8 @@ void DiagEprof3d::write_prof(double time)
   int nxhtmp,nyhtmp,nzhtmp,ix,iy,iz;
   int absx,absy,absz,absyz;
 
+  applattice3d->comm->all(applattice3d->lattice);
+
   if (me == 0) {
     if (prof_style == STANDARD) {
       fprintf(fp,"ITEM: TIME\n");
