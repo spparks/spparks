@@ -15,6 +15,7 @@
 #include "error.h"
 #include "random_park.h"
 #include "math.h"
+#include "output.h"
 
 using namespace SPPARKS;
 
@@ -82,16 +83,10 @@ void AppTest2Group::init()
     psum += propensity[m];
   }
 
-  // print header
+  // Initialize output
 
-  if (screen) {
-    fprintf(screen,"Starting Test");
-    fprintf(screen,"\n");
-  }
-  if (logfile) {
-    fprintf(logfile,"Starting Test");
-    fprintf(logfile,"\n");
-  }
+  output->init(time);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -192,7 +187,10 @@ void AppTest2Group::iterate()
 
   // comment out if don't want event counts
 
-  //stats();
+//     // Do output
+
+//     output->compute(time,done);
+//     timer->stamp(TIME_OUTPUT);
   //delete [] count;
 
   if (screen) fprintf(screen,"\nNumber of reactions, events = %d %d\n",
@@ -205,18 +203,25 @@ void AppTest2Group::iterate()
    print stats
 ------------------------------------------------------------------------- */
 
-void AppTest2Group::stats()
+void AppTest2Group::stats(char *strtmp)
 {
-  if (screen) {
-    fprintf(screen,"Reactions counts:\n");
-    for (int m = 0; m < nevents; m++) fprintf(screen," %d",count[m]);
-    fprintf(screen,"\n");
+  char *strpnt = strtmp;
+  
+  sprintf(strpnt,"Reactions counts: ");
+  strpnt += strlen(strpnt);
+  for (int m = 0; m < nevents; m++) {
+    sprintf(strpnt," %d",count[m]);
+    strpnt += strlen(strpnt);
   }
-  if (logfile) {
-    fprintf(logfile,"Reactions counts:\n");
-    for (int m = 0; m < nevents; m++) fprintf(logfile," %d",count[m]);
-    fprintf(logfile,"\n");
-  }
+}
+
+/* ----------------------------------------------------------------------
+   print stats header
+------------------------------------------------------------------------- */
+
+void AppTest2Group::stats_header(char *strtmp)
+{
+  sprintf(strtmp," %20s ","Reaction Counts");
 }
 
 /* ---------------------------------------------------------------------- */

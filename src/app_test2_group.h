@@ -41,6 +41,9 @@ class AppTest2Group : public App {
   void build_dependency_graph();
   double compute_propensity(int);
   void set_event(int, char **);
+
+  void stats(char *);
+  void stats_header(char *);
 };
 
 }
