@@ -38,8 +38,8 @@ class Diag : protected SysPtr {
   char *style;
   int me,nprocs;
 
-  double diag_time,diag_delta,diag_scale;
-  int diag_nrepeat,diag_irepeat,diag_ilogfreq,diag_t0;
+  double diag_time,diag_delta,diag_scale,diag_t0;
+  int diag_nrepeat,diag_irepeat,diag_ilogfreq;
 
 };
 

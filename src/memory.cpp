@@ -26,7 +26,7 @@ void *Memory::smalloc(long long int n, const char *name)
   void *ptr = malloc(n);
   if (ptr == NULL) {
     char str[128];
-    sprintf(str,"Failed to allocate %d bytes for array %s",n,name);
+    sprintf(str,"Failed to allocate %ld bytes for array %s",n,name);
     error->one(str);
   }
 
@@ -53,7 +53,7 @@ void *Memory::srealloc(void *ptr, long long int n, const char *name)
   ptr = realloc(ptr,n);
   if (ptr == NULL) {
     char str[128];
-    sprintf(str,"Failed to reallocate %d bytes for array %s",n,name);
+    sprintf(str,"Failed to reallocate %ld bytes for array %s",n,name);
     error->one(str);
   }
   return ptr;

@@ -25,10 +25,10 @@ class Output : protected SysPtr {
   int ndiags;
   Diag** diaglist;
  private:
-  double stats_time,stats_delta,stats_scale;
+  double stats_time,stats_delta,stats_scale,stats_t0;
   double dump_time,dump_delta;
   int me,nprocs;
-  int stats_nrepeat,stats_irepeat,stats_ilogfreq,stats_t0;
+  int stats_nrepeat,stats_irepeat,stats_ilogfreq;
 };
 
 }

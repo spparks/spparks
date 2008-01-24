@@ -160,7 +160,7 @@ void Output::add_diag(Diag *diag)
 
 void Output::stats()
 {
-  char str[1024] = {'\0'};
+  char str[2048] = {'\0'};
   char *strpnt = str;
 
   app->stats(strpnt);
@@ -170,6 +170,7 @@ void Output::stats()
     diaglist[i]->stats(strpnt);
     strpnt += strlen(strpnt);
   }
+
   if (me == 0) {
     if (screen)
       fprintf(screen,"%s\n",str);

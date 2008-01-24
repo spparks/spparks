@@ -196,13 +196,13 @@ void AppTestGroup::iterate()
       solve->update(ndepends[ievent],depends[ievent],propensity);
     }
     else {
-      rdp = 0.5 * ndep + ndep * random->uniform(); // random number of deps
-      for (d = 0; d < rdp; d++){                   // for each dependency
-	tdep = nevents * random->uniform();        // pick it
-        ran_dep[d] = tdep;                         // record it in the array
-	propensity[tdep] = compute_propensity(tdep); // calculate it
+      rdp = (int) (0.5 * ndep + ndep * random->uniform());// random number of deps
+      for (d = 0; d < rdp; d++){                          // for each dependency
+	tdep = (int) (nevents * random->uniform());       // pick it
+        ran_dep[d] = tdep;                                // record it in the array
+	propensity[tdep] = compute_propensity(tdep);      // calculate it
       }
-      solve->update(rdp,ran_dep,propensity);       // update solver
+      solve->update(rdp,ran_dep,propensity);              // update solver
     }
 
     timer->stamp(TIME_UPDATE);
@@ -234,7 +234,7 @@ void AppTestGroup::stats(char *strtmp)
   ssum = 0;
   double deviation;
   double max_deviation = 0.0;
-  int max_i;
+  int max_i = 0;
 
   char *strpnt = strtmp;
 
@@ -256,7 +256,7 @@ void AppTestGroup::stats(char *strtmp)
   strpnt += strlen(strpnt);
 
   for (i = 0; i < nevents; i++) {
-    sprintf(strpnt,"%6.3d ",(double)count[i]/ssum - propensity[i]/psum);
+    sprintf(strpnt," %6.3g",(double)count[i]/ssum - propensity[i]/psum);
     strpnt += strlen(strpnt);
   }
 
