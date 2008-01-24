@@ -11,9 +11,11 @@
 namespace SPPARKS {
 
 class App : protected SysPtr {
- public:
+  public:
+  enum AppClasses {GENERAL,LATTICE,LATTICE2D,LATTICE3D};
   char *style;
-  
+  int appclass;
+
   App(class SPK *, int, char **);
   virtual ~App();
   

@@ -35,7 +35,7 @@ DiagEnergy::DiagEnergy(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
 	  if (!fp) error->one("Cannot open diag_style energy output file");
 	}
       } else {
-	error->all("Illegal diag_style cluster command");
+	error->all("Illegal diag_style energy command");
       } 
     } else {
       //      error->all("Illegal diag_style energy command");
@@ -54,7 +54,11 @@ DiagEnergy::~DiagEnergy()
 
 void DiagEnergy::init(double time)
 {
+  if (app->appclass != App::LATTICE) error->all("diag_style incompatible with app_style");
+
   applattice = (AppLattice *) app;
+
+  nlocal = applattice->nlocal;
 
   applattice->comm->all();
   
@@ -79,10 +83,12 @@ void DiagEnergy::compute(double time, int done)
     applattice->comm->all();
 
     etmp = 0.0;
-    for (int i = 1; i <= nlocal; i++)
-	  etmp += applattice->site_energy(i);
+    for (int i = 1; i <= nlocal; i++) 
+      etmp += applattice->site_energy(i);
+
     
     MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,world);
+
   }
   
 }

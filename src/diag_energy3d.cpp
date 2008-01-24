@@ -35,7 +35,7 @@ DiagEnergy3d::DiagEnergy3d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
 	  if (!fp) error->one("Cannot open diag_style energy3d output file");
 	}
       } else {
-	error->all("Illegal diag_style cluster3d command");
+	error->all("Illegal diag_style energy3d command");
       } 
     } else {
       //      error->all("Illegal diag_style energy3d command");
@@ -54,6 +54,8 @@ DiagEnergy3d::~DiagEnergy3d()
 
 void DiagEnergy3d::init(double time)
 {
+  if (app->appclass != App::LATTICE3D) error->all("diag_style incompatible with app_style");
+
   applattice3d = (AppLattice3d *) app;
   nx_local = applattice3d->nx_local;
   ny_local = applattice3d->ny_local;

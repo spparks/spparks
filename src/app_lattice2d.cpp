@@ -29,6 +29,8 @@ enum{LATTICE,COORD};
 
 AppLattice2d::AppLattice2d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 {
+  appclass = LATTICE2D;
+
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 

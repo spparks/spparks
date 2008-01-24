@@ -93,6 +93,8 @@ void DiagEprof3d::init(double time)
 {
   int ntmp;
 
+  if (app->appclass != App::LATTICE3D) error->all("diag_style incompatible with app_style");
+
   applattice3d = (AppLattice3d *) app;
   nx_global = applattice3d->nx_global;
   ny_global = applattice3d->ny_global;

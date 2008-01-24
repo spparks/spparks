@@ -9,12 +9,16 @@
 #include "stdio.h"
 #include "app.h"
 
+#include <stack>
+#include "cluster.h"
+
 namespace SPPARKS {
 
 class AppLattice : public App {
   friend class SweepLattice;
   friend class CommLattice;
   friend class DiagEnergy;
+  friend class DiagCluster;
 
  public:
   AppLattice(class SPK *, int, char **);
@@ -133,6 +137,9 @@ class AppLattice : public App {
 
   int connect(int, int);
   void offsets();
+
+  virtual void push_connected_neighbors(int, int*, int, std::stack<int>*);
+  virtual void connected_ghosts(int, int*, Cluster*, int);
 };
 
 }

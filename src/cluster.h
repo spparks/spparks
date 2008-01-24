@@ -22,6 +22,7 @@ class Cluster {
   void add_neigh(int);
   void print(FILE*);
 
+  friend class DiagCluster;
   friend class DiagCluster2d;
   friend class DiagCluster3d;
 };

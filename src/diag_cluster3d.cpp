@@ -145,8 +145,10 @@ void DiagCluster3d::compute(double time, int done)
 void DiagCluster3d::analyze_clusters(double time)
 {
   if (me == 0) {
-    fprintf(fp,"\n\n--------------------------------------------------\n");
-    fprintf(fp,"Time = %f \n",time);
+    if (fp) {
+      fprintf(fp,"\n\n--------------------------------------------------\n");
+      fprintf(fp,"Time = %f \n",time);
+    }
   }
   free_clustlist();
   generate_clusters();
@@ -159,12 +161,13 @@ void DiagCluster3d::analyze_clusters(double time)
 void DiagCluster3d::write_header()
 {
   if (me == 0) {
-    fprintf(fp,"Clustering Analysis for 3D Lattice (diag_style cluster3d) \n");
-    fprintf(fp,"nx_global = %d \n",nx_global);
-    fprintf(fp,"ny_global = %d \n",ny_global);
-    fprintf(fp,"nz_global = %d \n",nz_global);
-    fprintf(fp,"nprocs = %d \n",nprocs);
-
+    if (fp) {
+      fprintf(fp,"Clustering Analysis for 3D Lattice (diag_style cluster3d) \n");
+      fprintf(fp,"nx_global = %d \n",nx_global);
+      fprintf(fp,"ny_global = %d \n",ny_global);
+      fprintf(fp,"nz_global = %d \n",nz_global);
+      fprintf(fp,"nprocs = %d \n",nprocs);
+    }
   }
 }
 
@@ -436,14 +439,16 @@ void DiagCluster3d::generate_clusters()
       clustlist[i].volume = vol;
       volsum+=vol;
     }
-    
-    fprintf(fp,"ncluster = %d \nsize = ",ncluster_reduced);
-    for (int i = 0; i < ncluster; i++) {
-      if (clustlist[i].volume > 0.0) {
-	fprintf(fp," %d",clustlist[i].volume);
+
+    if (fp) {
+      fprintf(fp,"ncluster = %d \nsize = ",ncluster_reduced);
+      for (int i = 0; i < ncluster; i++) {
+	if (clustlist[i].volume > 0.0) {
+	  fprintf(fp," %d",clustlist[i].volume);
+	}
       }
+      fprintf(fp,"\n");
     }
-    fprintf(fp,"\n");
   }
   
 

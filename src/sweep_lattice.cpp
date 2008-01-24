@@ -199,7 +199,7 @@ void SweepLattice::init()
 
   // init communication for ghost sites
 
-  comm->init(this,delghost,dellocal);
+  comm->init(this,delghost,dellocal,NULL);
 
   // setup mask array
   // owned and ghost values referenced in app::site_clear_mask()

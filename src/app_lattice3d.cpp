@@ -28,6 +28,8 @@ enum DumpStyles {LATTICE,COORD};
 
 AppLattice3d::AppLattice3d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 {
+  appclass = LATTICE3D;
+
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 

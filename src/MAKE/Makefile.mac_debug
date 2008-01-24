@@ -16,6 +16,11 @@ USRLIB =	-lMallocDebug
 SYSLIB = 
 SIZE =		size
 
+# Test rule
+
+test:
+	$(EXE) < $(INPUTFILE)
+
 # Link rule
 
 $(EXE):	$(OBJ)

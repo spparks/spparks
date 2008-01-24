@@ -115,6 +115,8 @@ DiagCluster2d::~DiagCluster2d()
 
 void DiagCluster2d::init(double time)
 {
+  if (app->appclass != App::LATTICE2D) error->all("diag_style incompatible with app_style");
+
   applattice2d = (AppLattice2d *) app;
   nx_global = applattice2d->nx_global;
   ny_global = applattice2d->ny_global;
@@ -152,8 +154,10 @@ void DiagCluster2d::compute(double time, int done)
 void DiagCluster2d::analyze_clusters(double time)
 {
   if (me == 0) {
-    fprintf(fp,"\n\n--------------------------------------------------\n");
-    fprintf(fp,"Time = %f \n",time);
+    if (fp) {
+      fprintf(fp,"\n\n--------------------------------------------------\n");
+      fprintf(fp,"Time = %f \n",time);
+    }
   }
   free_clustlist();
   generate_clusters();
@@ -170,10 +174,12 @@ void DiagCluster2d::analyze_clusters(double time)
 void DiagCluster2d::write_header()
 {
   if (me == 0) {
-    fprintf(fp,"Clustering Analysis for 2D Lattice (diag_style cluster2d) \n");
-    fprintf(fp,"nx_global = %d \n",nx_global);
-    fprintf(fp,"ny_global = %d \n",ny_global);
-    fprintf(fp,"nprocs = %d \n",nprocs);
+    if (fp) {
+      fprintf(fp,"Clustering Analysis for 2D Lattice (diag_style cluster2d) \n");
+      fprintf(fp,"nx_global = %d \n",nx_global);
+      fprintf(fp,"ny_global = %d \n",ny_global);
+      fprintf(fp,"nprocs = %d \n",nprocs);
+    }
   }
 }
 
@@ -412,13 +418,15 @@ void DiagCluster2d::generate_clusters()
       volsum+=vol;
     }
     
-    fprintf(fp,"ncluster = %d \nsize = ",ncluster_reduced);
-    for (int i = 0; i < ncluster; i++) {
-      if (clustlist[i].volume > 0.0) {
-	fprintf(fp," %d",clustlist[i].volume);
+    if (fp) {
+      fprintf(fp,"ncluster = %d \nsize = ",ncluster_reduced);
+      for (int i = 0; i < ncluster; i++) {
+	if (clustlist[i].volume > 0.0) {
+	  fprintf(fp," %d",clustlist[i].volume);
+	}
       }
+      fprintf(fp,"\n");
     }
-    fprintf(fp,"\n");
   }
   
 

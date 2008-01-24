@@ -35,7 +35,7 @@ DiagEnergy2d::DiagEnergy2d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
 	  if (!fp) error->one("Cannot open diag_style energy2d output file");
 	}
       } else {
-	error->all("Illegal diag_style cluster2d command");
+	error->all("Illegal diag_style energy2d command");
       } 
     } else {
       //      error->all("Illegal diag_style energy2d command");
@@ -54,6 +54,9 @@ DiagEnergy2d::~DiagEnergy2d()
 
 void DiagEnergy2d::init(double time)
 {
+
+  if (app->appclass != App::LATTICE2D) error->all("diag_style incompatible with app_style");
+
   applattice2d = (AppLattice2d *) app;
   nx_local = applattice2d->nx_local;
   ny_local = applattice2d->ny_local;

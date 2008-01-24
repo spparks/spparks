@@ -35,6 +35,8 @@ enum{NONE,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
 
 AppLattice::AppLattice(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
 {
+  appclass = LATTICE;
+
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
@@ -86,6 +88,8 @@ AppLattice::~AppLattice()
   delete [] onesite.dvalue;
 
   delete [] latfile;
+
+  delete comm;
 
   memory->sfree(id);
   memory->sfree(owner);
@@ -1103,7 +1107,7 @@ void AppLattice::init()
 
   // comm init
   
-  comm->init(NULL,delghost,dellocal);
+  comm->init(NULL,delghost,dellocal,NULL);
 
   // error checks
 
@@ -1771,4 +1775,25 @@ void AppLattice::site_restore(int i)
   int m;
   for (m = 0; m < ninteger; m++) iarray[m][i] = onesite.ivalue[m];
   for (m = 0; m < ndouble; m++) darray[m][i] = onesite.dvalue[m];
+}
+
+/* ----------------------------------------------------------------------
+   This is to prevent clustering for undefined child apps
+   Should eventually replace with pure virtual function
+------------------------------------------------------------------------- */
+
+void AppLattice::push_connected_neighbors(int i, int* cluster_ids, int id, std::stack<int>*)
+{
+  error->all("Connectivity not defined for this AppLattice child class");
+}
+
+
+/* ----------------------------------------------------------------------
+   This is to prevent clustering for undefined child apps
+   Should eventually replace with pure virtual function
+------------------------------------------------------------------------- */
+
+void AppLattice::connected_ghosts(int i, int* cluster_ids, Cluster* clustlist, int idoffset)
+{
+  error->all("Connectivity not defined for this AppLattice child class");
 }

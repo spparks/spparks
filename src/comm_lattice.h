@@ -15,7 +15,7 @@ class CommLattice : protected SysPtr {
  public:
   CommLattice(class SPK *);
   ~CommLattice();
-  void init(class SweepLattice *, const int, const int);
+  void init(class SweepLattice *, const int, const int, int *);
   void all();
   void sector(int);
   void reverse_sector(int) {}
