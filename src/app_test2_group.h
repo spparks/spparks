@@ -38,7 +38,6 @@ class AppTest2Group : public App {
   int *ran_dep;              // random deps for on-the-fly generation
 
   void iterate();
-  void stats();
   void build_dependency_graph();
   double compute_propensity(int);
   void set_event(int, char **);
