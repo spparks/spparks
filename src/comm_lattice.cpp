@@ -59,13 +59,14 @@ void CommLattice::init(SweepLattice *sweep,
     error->all("Reverse comm not yet supported by AppLattice");
 
   AppLattice *applattice = (AppLattice *) app;
-  sitecustom = applattice->sitecustom;
   ninteger = applattice->ninteger;
   ndouble = applattice->ndouble;
   if (lattice_in) {
     lattice = lattice_in;
+    sitecustom = applattice->sitecustom;
   } else {
     lattice = applattice->lattice;
+    sitecustom = 0;
   }
 
   iarray = applattice->iarray;
@@ -404,10 +405,14 @@ void CommLattice::perform_swap_lattice(Swap *swap)
 
   // pack data to send to each proc and send it
 
+  AppLattice *applattice = (AppLattice *) app;
+
   for (i = 0; i < swap->nsend; i++) {
     index = swap->sindex[i];
     buf = swap->sibuf;
-    for (j = 0; j < swap->scount[i]; j++) buf[j] = lattice[index[j]];
+    for (j = 0; j < swap->scount[i]; j++) {
+      buf[j] = lattice[index[j]];
+    }
     MPI_Send(buf,swap->scount[i],MPI_INT,swap->sproc[i],0,world);
   }
 
@@ -420,7 +425,9 @@ void CommLattice::perform_swap_lattice(Swap *swap)
   for (i = 0; i < swap->nrecv; i++) {
     index = swap->rindex[i];
     buf = swap->ribuf[i];
-    for (j = 0; j < swap->rcount[i]; j++) lattice[index[j]] = buf[j];
+    for (j = 0; j < swap->rcount[i]; j++) {
+      lattice[index[j]] = buf[j];
+    }
   }
 }
 

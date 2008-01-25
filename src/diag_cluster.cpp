@@ -121,7 +121,7 @@ void DiagCluster::init(double time)
   id = applattice->id;
 
   memory->destroy_1d_T_array(cluster_ids,0);
-  memory->create_1d_T_array(cluster_ids,0,nlocal-1,"diagcluster:cluster");
+  memory->create_1d_T_array(cluster_ids,0,nlocal+nghost-1,"diagcluster:cluster");
 
   if (!comm) comm = new CommLattice(spk);
   comm->init(NULL,applattice->delghost,applattice->dellocal,cluster_ids);
@@ -152,9 +152,9 @@ void DiagCluster::analyze_clusters(double time)
   }
   free_clustlist();
   generate_clusters();
-  if (idump) {
-    dump_clusters(time);
-  }
+   if (idump) {
+     dump_clusters(time);
+   }
 }
 /* ---------------------------------------------------------------------- */
 
@@ -256,6 +256,7 @@ void DiagCluster::generate_clusters()
     cluster_ids[i] = clustlist[cluster_ids[i]-1].global_id;
   }
 
+  // Communicate side ids
   comm->all();
 
   // loop over all owned sites adjacent to boundary
@@ -382,7 +383,6 @@ void DiagCluster::generate_clusters()
     }
   }
   
-
 }
 
 
