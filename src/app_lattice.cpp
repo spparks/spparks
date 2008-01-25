@@ -1776,22 +1776,43 @@ void AppLattice::site_restore(int i)
 }
 
 /* ----------------------------------------------------------------------
-   This is to prevent clustering for undefined child apps
-   Should eventually replace with pure virtual function
-------------------------------------------------------------------------- */
+   push connected neighbors of this site onto stack
+     and assign current id
+   ghost neighbors are masked by id = -1
+   previously burned sites are masked by id > 0
+ ------------------------------------------------------------------------- */
 
-void AppLattice::push_connected_neighbors(int i, int* cluster_ids, int id, std::stack<int>*)
+void AppLattice::push_connected_neighbors(int i, int* cluster_ids, int id, std::stack<int>* cluststack)
 {
-  error->all("Connectivity not defined for this AppLattice child class");
+  int ii;
+  int isite = lattice[i];
+
+  for (int j = 0; j < numneigh[i]; j++) {
+    ii = neighbor[i][j];
+    if (lattice[ii] == isite && cluster_ids[ii] == 0) {
+      cluststack->push(ii);
+      cluster_ids[ii] = id;
+    }
+  }
 }
 
-
 /* ----------------------------------------------------------------------
-   This is to prevent clustering for undefined child apps
-   Should eventually replace with pure virtual function
-------------------------------------------------------------------------- */
+   Add cluster id of connected ghost sites to neighbor list of cluster
+ ------------------------------------------------------------------------- */
 
 void AppLattice::connected_ghosts(int i, int* cluster_ids, Cluster* clustlist, int idoffset)
 {
-  error->all("Connectivity not defined for this AppLattice child class");
+  int iclust;
+  int ii;
+  int isite = lattice[i];
+
+  for (int j = 0; j < numneigh[i]; j++) {
+    ii = neighbor[i][j];
+    if (lattice[ii] == isite && ii >= nlocal) {
+      iclust = cluster_ids[i]-idoffset;
+      // Add ghost cluster to neighbors of local cluster
+      clustlist[iclust].add_neigh(cluster_ids[ii]);
+    }
+  }
 }
+

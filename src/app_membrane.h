@@ -28,10 +28,6 @@ class AppMembrane : public AppLattice {
   int *sites;
 
   void input_app(char *, int, char **);
-
-  virtual void push_connected_neighbors(int, int*, int, std::stack<int>*);
-  virtual void connected_ghosts(int, int*, Cluster*, int);
-
 };
 
 }

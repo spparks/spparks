@@ -37,6 +37,9 @@ class AppLattice : public App {
   void site_save(int);
   void site_restore(int);
 
+  void push_connected_neighbors(int, int*, int, std::stack<int>*);
+  void connected_ghosts(int, int*, Cluster*, int);
+
  protected:
   int me,nprocs;
   int ntimestep,seed;
@@ -137,9 +140,6 @@ class AppLattice : public App {
 
   int connect(int, int);
   void offsets();
-
-  virtual void push_connected_neighbors(int, int*, int, std::stack<int>*);
-  virtual void connected_ghosts(int, int*, Cluster*, int);
 };
 
 }

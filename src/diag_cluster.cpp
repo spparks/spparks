@@ -385,8 +385,8 @@ void DiagCluster::generate_clusters()
       }
       fprintf(fp,"\n");
     }
+    ncluster = ncluster_reduced;
   }
-  
 }
 
 
