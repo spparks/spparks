@@ -14,7 +14,7 @@ When a command refers to an HTML doc page, it means the full
 documentation for the command already exists as an HTML page in the
 kmc/doc dir, e.g. doc/variable.html.
 
-Commands not listed here directly (e.g. run, stats) are supported by
+Commands not listed here directly (e.g. run) are supported by
 individual apps.  See the app documentation for a list of the commands
 specific to the app.
 
@@ -376,8 +376,6 @@ run 100
 temperature 1.5
   set temperature for Boltzmann factor (reduced LJ temperature units)
   default = 0.0
-stats 5
-  print stats every this many events
 dump 10
   dump snapshot every this many events in LAMMPS atom format
 
@@ -421,6 +419,60 @@ clear (no args)
 
 wipe out simulation, start over
 see HTML doc page
+
+-----------------------------------------------------------------------
+* diag_style
+
+diag_style style delta arg option arg option ...
+
+Run a diagnostic function called style after every delta time units. The option logfreq
+is available for all diag_styles and requires two arguments, just like in the stats
+command.
+
+The diagnostic functions available are: 
+
+cluster
+cluster3d
+cluster2d
+eprof3d
+energy
+energy2d
+energy3d
+
+These diagnostics are only available for app_styles derived from AppLattice, AppLattice2d, AppLattice3d, as indicated by the suffix. 
+
+eprof3d prints average energy per site for each slab of sites
+in the x, y or z directions. The overall average energy is used
+for stats output.
+
+diag_style	eprof3d 0.1 axis x filename eprof3d.dat
+
+If the boundary option is provided, the average energy is
+provided as a function of distance from the nearest sector boundary.
+In this case, the overall average energy and the average energy immediately
+to the left and right of the sector boundary is used for stats output.
+
+diag_style	eprof3d 0.1 filename eprof3d.dat boundary
+
+Cluster analysis is available for 3D, 2D, general lattice apps, if the 
+push_connected_neighbors() and connected_ghosts() functions have been
+defined. If not, SPPARKS will exit with a helpful error message. Clustering uses
+an application-defined site-site connectivity 
+(e.g. sites are adjacent and have same spin value) 
+to identify the set of connected clusters. It prints the
+number of sites in each cluster to a file specified by the filename option. 
+The number of clusters is used for stats output. If a dump_style option is
+given, then the cluster id for each site is printed out. The cluster ids
+are arbitrary integers such that two sites have the same id if and only
+if they belong to the same cluster. The standard dump_style generates 
+LAMMPS-like output with two columns: site index and cluster id. The 
+opendx dump_style generates a file that can be read by the OpenDX script
+called aniso0.net to visualize the clusters in 3D. OpenDX can also be used to
+visualize 2D lattices.
+
+diag_style      cluster3d 1.0 filename cluster3d.a.0.1.dat dump_style opendx cluster3d.a.0.1.dump
+
+The energy diagnostic computes the total energy for all sites and uses it for stats output.
 
 -----------------------------------------------------------------------
 * echo
@@ -536,9 +588,14 @@ style gppt does what?
 
 -----------------------------------------------------------------------
 * stats 0.1
-  print stats every this often (seconds)
+  print stats every this often (seconds). stats are obtained
+  from the application and from the list of diagnostics that
+  were created using diag_style commands. Note that if stats is
+  called on a timestep when the diagnostic was not called, the
+  information provided by the diagnostic may be old.
 
-  there is now an option called logfreq:
+  there is an option called logfreq that requires two arguments,
+  the number of repetitions and the boost factor:
 
   This gives t = 0,0.01,0.02,...,0.07,1.0,2.0,....,7.0,10.0,20.0,....
   stats       0.01 logfreq 7 10.0
@@ -602,41 +659,3 @@ style = index, loop, equal, world, universe, uloop
 access is via $x or ${myvar}
 see HTML doc page
 
------------------------------------------------------------------------
-* diag_style
-
-diag_style style delta arg option arg option ...
-
-Run a diagnostic function called style after every delta time units.
-
-There diagnostic functions available are: 
-
-cluster
-cluster3d
-cluster2d
-eprof3d
-energy
-energy2d
-energy3d
-
-The energy profile is only available for the 3D 
-lattice apps. It prints the average energy per site for each slab of sites
-in the x, y or z directions.
-
-diag_style	eprof3d 0.1 x eprof3d.dat
-
-Cluster analysis is available for 3D, 2D, general lattice apps, if the 
-push_connected_neighbors() and connected_ghosts() functions have been
-defined. If not, SPPARKS will exit with a helpful error message. Clustering uses
-a application-definition of site-site connectivity (e.g. sites are adjacent and have same
-spin value) to identify the set of connected clusters. It prints the
-number of sites in each cluster to a file. If a dump_style option is
-given, then the cluster id for each site is printed out. The cluster ids
-are arbitrary integers such that two sites have the same id if and only
-if they belong to the same cluster. The standard dump_style generates 
-LAMMPS-like output with two columns: site index and cluster id. The 
-opendx dump_style generates a file that can be read by the OpenDX script
-called aniso0.net to visualize the clusters in 3D. OpenDX can also be used to
-visualize 2D lattices.
-
-diag_style      cluster3d 1.0 filename cluster3d.a.0.1.dat dump_style opendx cluster3d.a.0.1.dump
