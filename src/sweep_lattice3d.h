@@ -21,7 +21,7 @@ class SweepLattice3d : public Sweep {
 
  private:
   int seed;
-  bool Lmask,Lpicklocal,Lstrict,Lkmc;
+  bool Lmask,Lpicklocal,Lstrict,Lkmc,Ladapt;
   double delt;
 
   int nx_local,ny_local,nz_local;
