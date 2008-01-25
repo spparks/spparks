@@ -12,7 +12,7 @@
 app_style       membrane 1.25 1.0 -3.0 12345 lattice tri 1.0 100 50
 
 solve_style     tree 12345
-#sweep_style     lattice2d 12345 mask no
+sweep_style     lattice 12345 kmc yes
 
 #inclusion	40 30 10
 #inclusion	15 15 10
