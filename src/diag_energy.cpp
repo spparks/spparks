@@ -63,7 +63,7 @@ void DiagEnergy::init(double time)
   applattice->comm->all();
   
   double etmp = 0.0;
-  for (int i = 1; i <= nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     etmp += applattice->site_energy(i);
   
   MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,world);
@@ -83,7 +83,7 @@ void DiagEnergy::compute(double time, int done)
     applattice->comm->all();
 
     etmp = 0.0;
-    for (int i = 1; i <= nlocal; i++) 
+    for (int i = 0; i < nlocal; i++) 
       etmp += applattice->site_energy(i);
 
     

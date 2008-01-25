@@ -23,10 +23,11 @@ using namespace SPPARKS;
 
 DiagCluster::DiagCluster(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
+  cluster_ids = NULL;
+  comm = NULL;
   fp = NULL;
   fpdump = NULL;
   clustlist = NULL;
-  opendxroot = NULL;
   ncluster = 0;
   idump = 0;
   dump_style = STANDARD;
@@ -93,7 +94,6 @@ DiagCluster::~DiagCluster()
   delete comm;
   memory->destroy_1d_T_array(cluster_ids,0);
   free_clustlist();
-  delete [] opendxroot;
   if (me == 0 ) {
     if (fp) fclose(fp);
     if (fpdump) fclose(fpdump);
@@ -120,9 +120,10 @@ void DiagCluster::init(double time)
   xyz = applattice->xyz;
   id = applattice->id;
 
-  memory->create_1d_T_array(cluster_ids,0,nlocal,"diagcluster:cluster");
+  memory->destroy_1d_T_array(cluster_ids,0);
+  memory->create_1d_T_array(cluster_ids,0,nlocal-1,"diagcluster:cluster");
 
-  comm = new CommLattice(spk);
+  if (!comm) comm = new CommLattice(spk);
   comm->init(NULL,applattice->delghost,applattice->dellocal,cluster_ids);
 
   write_header();
@@ -202,7 +203,7 @@ void DiagCluster::generate_clusters()
   //   area++
 
   // Set ghost site ids to -1
-  for (int i = nlocal; i < nghost; i++) {
+  for (int i = nlocal; i < nlocal+nghost; i++) {
     cluster_ids[i] = -1;
   }
 
@@ -255,7 +256,7 @@ void DiagCluster::generate_clusters()
     cluster_ids[i] = clustlist[cluster_ids[i]-1].global_id;
   }
 
-  applattice->comm->all();
+  comm->all();
 
   // loop over all owned sites adjacent to boundary
   for (int i = 0; i < nlocal; i++) {
@@ -406,7 +407,7 @@ void DiagCluster::dump_clusters(double time)
   int nsend,nrecv;
   double* dbuftmp;
   int maxbuftmp;
-  int isite,cid;
+  int cid;
 
   if (me == 0) {
     if (dump_style == STANDARD) {
@@ -431,9 +432,8 @@ void DiagCluster::dump_clusters(double time)
   int m = 0;
 
   // pack my lattice values into buffer
-  // Violating normal ordering to satisfy output convention
 
-  for (int i = 0; i <= nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     dbuftmp[m++] = id[i];
     dbuftmp[m++] = cluster_ids[i];
     dbuftmp[m++] = xyz[i][0];
@@ -455,21 +455,21 @@ void DiagCluster::dump_clusters(double time)
 	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	MPI_Wait(&request,&status);
 	MPI_Get_count(&status,MPI_DOUBLE,&nrecv);
-      } else nrecv = nsend;
+	nrecv /= size_one;
+      } else nrecv = nlocal;
       
       m = 0;
 
   // print lattice values
-  // isite = global grid cell (1:Nglobal)
-  // ordered fast in x, slower in y, slowest in z
 
       if (dump_style == STANDARD) {
-	for (int i = 1; i <= nrecv; i++) {
-	  isite = dbuftmp[m++];
-	  cid = dbuftmp[m++]-1;
+	for (int i = 0; i < nrecv; i++) {
+	  cid = static_cast<int>(dbuftmp[m+1])-1;
 	  cid = clustlist[cid].global_id;
-	  fprintf(fpdump,"%3d %3d \n",isite,cid);
-	  m+=3;
+	  fprintf(fpdump,"%d %d %g %g %g\n",
+		  static_cast<int>(dbuftmp[m]),cid,
+		  dbuftmp[m+2],dbuftmp[m+3],dbuftmp[m+4]);
+	  m += size_one;
 	}
       }
     }

@@ -55,11 +55,9 @@ class DiagCluster : public Diag {
   int nlocal;                  // # of sites I own
   int nghost;                  // # of ghost sites I store
 
-  enum DumpStyles {STANDARD,OPENDX};
+  enum DumpStyles {STANDARD};
   int dump_style;
   int idump;
-  char* opendxroot;
-  int opendxcount;
 };
 
 }

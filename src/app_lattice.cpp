@@ -89,8 +89,6 @@ AppLattice::~AppLattice()
 
   delete [] latfile;
 
-  delete comm;
-
   memory->sfree(id);
   memory->sfree(owner);
   memory->sfree(index);
