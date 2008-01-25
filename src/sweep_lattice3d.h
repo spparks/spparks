@@ -54,6 +54,8 @@ class SweepLattice3d : public Sweep {
   typedef void (SweepLattice3d::*FnPtr)(int, int);  // pointer to sweep method
   FnPtr sweeper;
 
+  double psum,psumall,deln0;
+
   // sweep methods
 
   void sweep_sector(int, int);

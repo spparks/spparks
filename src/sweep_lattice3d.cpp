@@ -312,6 +312,8 @@ void SweepLattice3d::init()
   if (Lkmc) {
     int i,j,k,m;
 
+    psum = 0.0;
+
     comm->all(lattice);
 
     for (int isector = 0; isector < nsector; isector++) {
@@ -355,8 +357,14 @@ void SweepLattice3d::init()
 	      applattice->site_propensity(i,j,k,0);
 
       sector[isector].solve->init(nsites,sector[isector].propensity);
+      psum += sector[isector].solve->get_total_propensity();
     }
+
+    // Compute deln0, which controls future timesteps
+    MPI_Allreduce(&psum,&psumall,1,MPI_DOUBLE,MPI_SUM,world);
+    deln0 = psumall*delt;
   }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -366,6 +374,10 @@ void SweepLattice3d::init()
 
 void SweepLattice3d::do_sweep(double &dt)
 {
+  if (Lkmc) {
+    psum = 0.0;
+  }
+
   for (int icolor = 0; icolor < ncolor; icolor++)
     for (int isector = 0; isector < nsector; isector++) {
       timer->stamp();
@@ -380,6 +392,15 @@ void SweepLattice3d::do_sweep(double &dt)
     }
 
   dt = delt;
+
+  // adjust KMC threshold time
+  if (Lkmc) {
+    MPI_Allreduce(&psum,&psumall,1,MPI_DOUBLE,MPI_SUM,world);
+    if (psumall > 0.0) {
+      delt = deln0/psumall;
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -782,6 +803,10 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
       timer->stamp(TIME_APP);
     }
   }
+
+  // Sum the final propensity
+
+  psum += applattice->solve->get_total_propensity();
  
   // restore applattice values
 

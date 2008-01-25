@@ -128,21 +128,29 @@ void Output::compute(double time, int done)
     diaglist[i]->compute(time,done);
   }
 
-  if ((stats_delta > 0.0 && time >= stats_time) || done) {
+  if ((stats_delta > 0.0 && time >= stats_time) || done) stats();
+
+  if ((stats_delta > 0.0 && time >= stats_time)) {
     if (stats_ilogfreq == 0) {
-      stats_time += stats_delta;
+      // Ensure that new stats_time exceeds time
+      while (time >= stats_time) {
+	stats_time += stats_delta;
+      }
+      
     } else if (stats_ilogfreq == 1) {
-      stats_time += stats_delta;
-      stats_irepeat++;
-      if (stats_irepeat == stats_nrepeat) {
-	stats_delta *= stats_scale;
-	stats_time = stats_t0+stats_delta;
-	stats_irepeat = 0;
+      // Ensure that new stats_time exceeds time
+      while (time >= stats_time) {
+	stats_time += stats_delta;
+	stats_irepeat++;
+	if (stats_irepeat == stats_nrepeat) {
+	  stats_delta *= stats_scale;
+	  stats_time = stats_t0+stats_delta;
+	  stats_irepeat = 0;
+	}
       }
     }
-    stats();
   }
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
