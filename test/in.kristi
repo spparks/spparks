@@ -20,6 +20,7 @@ vacancies	0.5 0.0 0 0 0 0 0 0
 temperature	500.0
 bias		0.05
 stats		100000
+diag_style	energy3d 100000
 dump		150000000 lattice tmplatt.mig
 #dump		1500000 coord tmpcoord.mig
 run		10000000
