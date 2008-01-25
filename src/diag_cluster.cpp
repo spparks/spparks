@@ -202,6 +202,10 @@ void DiagCluster::generate_clusters()
   //   return stack[nstack--]
   //   area++
 
+  // Update ghost spins
+    applattice->comm->all();
+
+
   // Set ghost site ids to -1
   for (int i = nlocal; i < nlocal+nghost; i++) {
     cluster_ids[i] = -1;
