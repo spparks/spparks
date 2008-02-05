@@ -695,6 +695,8 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
   int nsites = 0;
   int deltemp = dellocal+delghost;
 
+  double factmp,dttmp;
+
   if (deltemp <= 1) {
     k = zlo;
     for (i = xlo; i <= xhi; i++)
@@ -805,12 +807,25 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
     timer->stamp(TIME_SOLVE);
     if (isite < 0) done = 1;
     else {
-      i = site2ijk[isite][0];
-      j = site2ijk[isite][1];
-      k = site2ijk[isite][2];
-      applattice->site_event(i,j,k,0);
       time += dt;	
-      if (time >= delt) done = 1;
+      if (time >= delt) {
+    	done = 1;
+	dttmp = time - delt;
+	if (dt > 0.0) {
+	  factmp = dttmp/dt;
+	  if (random->uniform() > factmp) {
+	    i = site2ijk[isite][0];
+	    j = site2ijk[isite][1];
+	    k = site2ijk[isite][2];
+	    applattice->site_event(i,j,k,0);
+	  }
+	}
+      } else {
+	i = site2ijk[isite][0];
+	j = site2ijk[isite][1];
+	k = site2ijk[isite][2];
+	applattice->site_event(i,j,k,0);
+      }
       timer->stamp(TIME_APP);
     }
   }
