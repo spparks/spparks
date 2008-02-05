@@ -376,7 +376,7 @@ void DiagCluster2d::generate_clusters()
 
   if (me == 0) {
     int* neighs;
-    int jneigh,ncluster_reduced;
+    int jneigh;
 
     volsum = 0;
     ncluster_reduced = 0;
@@ -427,7 +427,6 @@ void DiagCluster2d::generate_clusters()
       }
       fprintf(fp,"\n");
     }
-    ncluster = ncluster_reduced;
   }
   
 
@@ -756,7 +755,7 @@ void DiagCluster2d::dump_clusters_detailed(double time)
 /* ---------------------------------------------------------------------- */
 
 void DiagCluster2d::stats(char *strtmp) {
-  sprintf(strtmp," %10d",ncluster);
+  sprintf(strtmp," %10d",ncluster_reduced);
 }
 
 /* ---------------------------------------------------------------------- */

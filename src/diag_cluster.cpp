@@ -334,7 +334,7 @@ void DiagCluster::generate_clusters()
 
   if (me == 0) {
     int* neighs;
-    int jneigh,ncluster_reduced;
+    int jneigh;
 
     volsum = 0;
     ncluster_reduced = 0;
@@ -385,7 +385,6 @@ void DiagCluster::generate_clusters()
       }
       fprintf(fp,"\n");
     }
-    ncluster = ncluster_reduced;
   }
 }
 
@@ -505,7 +504,7 @@ void DiagCluster::free_clustlist()
 /* ---------------------------------------------------------------------- */
 
 void DiagCluster::stats(char *strtmp) {
-  sprintf(strtmp," %10d",ncluster);
+  sprintf(strtmp," %10d",ncluster_reduced);
 }
 
 /* ---------------------------------------------------------------------- */
