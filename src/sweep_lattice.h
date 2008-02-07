@@ -22,7 +22,7 @@ class SweepLattice : public Sweep {
 
  private:
   int seed;
-  bool Lmask,Lpicklocal,Lstrict,Lkmc;
+  bool Lmask,Lpicklocal,Lstrict,Lkmc,Ladapt;
   double delt;
 
   int *lattice;
@@ -60,6 +60,8 @@ class SweepLattice : public Sweep {
 
   typedef void (SweepLattice::*FnPtr)(int, int);  // pointer to sweep method
   FnPtr sweeper;
+
+  double pmax,pmaxall,deln0;
 
   // sweep methods
 

@@ -19,6 +19,8 @@
 
 using namespace SPPARKS;
 
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 /* ---------------------------------------------------------------------- */
 
 SweepLattice2d::SweepLattice2d(SPK *spk, int narg, char **arg) : 
@@ -36,6 +38,7 @@ SweepLattice2d::SweepLattice2d(SPK *spk, int narg, char **arg) :
   Lstrict = false;
   Lpicklocal = false;
   Lkmc = false;
+  Ladapt = false;
   ranlat = NULL;
   delt = 1.0;
 
@@ -68,6 +71,12 @@ SweepLattice2d::SweepLattice2d(SPK *spk, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"delt") == 0) {
       if (iarg+2 > narg) error->all("Illegal sweep_style command");
       delt = atof(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"adapt") == 0) {
+      if (iarg+2 > narg) error->all("Illegal sweep_style command");
+      if (strcmp(arg[iarg+1],"yes") == 0) Ladapt = true;
+      else if (strcmp(arg[iarg+1],"no") == 0) Ladapt = false;
+      else error->all("Illegal sweep_style command");
       iarg += 2;
     } else error->all("Illegal sweep_style command");
   }
@@ -283,6 +292,23 @@ void SweepLattice2d::init()
 
       sector[isector].solve->init(nsites,sector[isector].propensity);
     }
+
+    // Compute deln0, which controls future timesteps
+    if (Ladapt) {
+      pmax = 0.0;
+      int ntmp ;
+      double ptmp;
+      for (int isector = 0; isector < nsector; isector++) {
+	ntmp = sector[isector].solve->get_num_active();
+	if (ntmp > 0) {
+	  ptmp = sector[isector].solve->get_total_propensity();
+	  ptmp /= ntmp;
+	  pmax = MAX(ptmp,pmax);
+	}
+      }
+      MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
+      deln0 = pmaxall*delt;
+    }
   }
 }
 
@@ -293,6 +319,14 @@ void SweepLattice2d::init()
 
 void SweepLattice2d::do_sweep(double &dt)
 {
+  if (Ladapt) {
+    pmax = 0.0;
+  } 
+
+  if (!Lkmc) {
+    applattice->ntimestep++;
+  } 
+
   for (int icolor = 0; icolor < ncolor; icolor++)
     for (int isector = 0; isector < nsector; isector++) {
       timer->stamp();
@@ -308,6 +342,14 @@ void SweepLattice2d::do_sweep(double &dt)
     }
 
   dt = delt;
+
+  // adjust KMC threshold time
+  if (Ladapt) {
+    MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_SUM,world);
+    if (pmaxall > 0.0) {
+      delt = deln0/pmaxall;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -604,16 +646,31 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
     isite = solve->event(&dt);
     timer->stamp(TIME_SOLVE);
 
-    time += dt;	
-    if (isite < 0 || time >= delt) done = 1;
+    if (isite < 0) done = 1;
     else {
-      i = site2ij[isite][0];
-      j = site2ij[isite][1];
-      applattice->site_event(i,j,0);
+      time += dt;	
+      if (time >= delt) {
+    	done = 1;
+      } else {
+	i = site2ij[isite][0];
+	j = site2ij[isite][1];
+	applattice->site_event(i,j,0);
+	applattice->ntimestep++;
+      }
       timer->stamp(TIME_APP);
     }
   }
  
+  // Compute deln0, which controls future timesteps
+  if (Ladapt) {
+    int ntmp = applattice->solve->get_num_active();
+    if (ntmp > 0) {
+      double ptmp = applattice->solve->get_total_propensity();
+      ptmp /= ntmp;
+      pmax = MAX(ptmp,pmax);
+    }
+  }
+
   // restore applattice values
 
   applattice->solve = hold_solve;

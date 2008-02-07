@@ -31,3 +31,10 @@ double Solve::get_total_propensity()
 {
   return sum;
 }
+
+/* ---------------------------------------------------------------------- */
+
+int Solve::get_num_active()
+{
+  return num_active;
+}

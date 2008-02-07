@@ -27,7 +27,7 @@ class SolveGroup : public Solve {
   int seed;
   class RandomPark *random;
   class Groups *groups;
-  int nevents,nzeroes;
+  int nevents;
   double *p;
   double last_size;
   int ngroups_in;

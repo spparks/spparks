@@ -27,7 +27,7 @@ class SolveGroup2 : public Solve {
   int seed;
   class RandomPark *random;
   class Groups2 *groups;
-  int nevents,nzeroes;
+  int nevents;
 
   double *p;                     // local copy of propensities
   double sum;

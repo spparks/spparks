@@ -54,7 +54,7 @@ SolveTree *SolveTree::clone()
 
 void SolveTree::init(int n, double *propensity)
 {
-  int ntotal = 0;
+  ntotal = 0;
   offset = 0;
 
   // memory allocation
@@ -64,6 +64,7 @@ void SolveTree::init(int n, double *propensity)
 
   nevents = n;
   sum = 0;
+  num_active = 0;
 
   // m = value such that 2^m >= nevents
 
@@ -80,7 +81,7 @@ void SolveTree::init(int n, double *propensity)
   offset = neat - 1;
 
   for (int i = 0; i < ntotal; i++) tree[i] = 0.0;
-  for (int i = offset; i < offset + n; i++)
+  for (int i = offset; i < offset + n; i++) 
     tree[i] = propensity[i-offset];
   sum_tree();
 
@@ -138,6 +139,12 @@ void SolveTree::sum_tree()
   }
   // Update total propensity
   sum = tree[0];
+
+  // Update number of active events
+  num_active = 0;
+  for (int i = offset; i < ntotal; i++) 
+    if (tree[i] > 0.0) num_active++;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -148,6 +155,10 @@ void SolveTree::sum_tree()
 void SolveTree::set(int i, double value)
 {
   int parent,sibling;
+
+  // Update number of active events
+  if (tree[offset+i] > 0.0) num_active--;
+  if (value > 0.0) num_active++;
 
   tree[offset+i] = value;
 

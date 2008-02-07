@@ -80,7 +80,7 @@ SolveGroup *SolveGroup::clone()
 void SolveGroup::init(int n, double *propensity)
 {
   nevents = n;
-  nzeroes = 0;
+  num_active = 0;
   sum = 0.0;
   delete [] p;
   p = new double[n+10];
@@ -112,8 +112,8 @@ void SolveGroup::update(int n, int *indices, double *propensity)
     int j = indices[i];
     double pt = propensity[j];
     if (p[j] != pt) {
-      if (p[j] == 0.0) nzeroes--;
-      if (pt == 0.0) nzeroes++;
+      if (p[j] > 0.0) num_active--;
+      if (pt > 0.0) num_active++;
       sum -= p[j];
       groups->alter_element(j,p,pt);
       p[j] = pt;
@@ -128,8 +128,8 @@ void SolveGroup::update(int n, double *propensity)
 {
   double pt = propensity[n];
   if (p[n] != pt) {
-    if (p[n] == 0.0) nzeroes--;
-    if (pt == 0.0) nzeroes++;
+    if (p[n] > 0.0) num_active--;
+    if (pt > 0.0) num_active++;
     sum -= p[n];
     groups->alter_element(n,p,pt);
     p[n] = pt;
@@ -149,7 +149,7 @@ void SolveGroup::resize(int new_size, double *propensity)
 int SolveGroup::event(double *pdt)
 {
   int m;
-  if (nzeroes == nevents) {sum = 0; return -1;}
+  if (num_active == 0) {sum = 0.0; return -1;}
   m = groups->sample(p);
   *pdt = -1.0/sum * log(random->uniform());
   return m;

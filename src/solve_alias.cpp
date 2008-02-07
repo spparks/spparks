@@ -71,10 +71,10 @@ void SolveAlias::init(int n, double *propensity)
   q = new double[n];
   hilo = new int[n];
 
-  nzeroes = 0;
+  num_active = 0;
   sum = 0.0;
   for (i = 0; i < n; i++) {
-    if (propensity[i] == 0.0) nzeroes++;
+    if (propensity[i] > 0.0) num_active++;
     prob[i] = propensity[i];
     sum += propensity[i];
   }
@@ -193,8 +193,8 @@ void SolveAlias::update(int n, int *indices, double *propensity)
   int m;
   for (int i = 0; i < n; i++) {
     m = indices[i];
-    if (prob[m] == 0.0) nzeroes--;
-    if (propensity[m] == 0.0) nzeroes++;
+    if (prob[m] > 0.0) num_active--;
+    if (propensity[m] > 0.0) num_active++;
     sum -= prob[m];
     prob[m] = propensity[m];
     sum +=  propensity[m];
@@ -206,8 +206,8 @@ void SolveAlias::update(int n, int *indices, double *propensity)
 
 void SolveAlias::update(int n, double *propensity)
 {
-  if (prob[n] == 0.0) nzeroes--;
-  if (propensity[n] == 0.0) nzeroes++;
+  if (prob[n] > 0.0) num_active--;
+  if (propensity[n] > 0.0) num_active++;
   sum -= prob[n];
   prob[n] = propensity[n];
   sum += propensity[n];
@@ -228,7 +228,7 @@ int SolveAlias::event(double *pdt)
 {
   int i;
 
-  if (nzeroes == nevents) return -1;
+  if (num_active == 0) return -1;
 
   *pdt = -1.0/sum * log(random->uniform());
 

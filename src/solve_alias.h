@@ -27,7 +27,7 @@ class SolveAlias : public Solve {
   int seed;
   class RandomPark *random;
   int allocated;
-  int nevents,nzeroes;
+  int nevents;
 
   double *prob;
   double *p;

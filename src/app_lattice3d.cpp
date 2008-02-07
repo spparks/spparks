@@ -273,7 +273,9 @@ void AppLattice3d::iterate()
 
 void AppLattice3d::stats(char *strtmp)
 {
-  sprintf(strtmp," %10d %10g",ntimestep,time);
+  int ntimestepall;
+  MPI_Allreduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,world);
+  sprintf(strtmp," %10d %10g",ntimestepall,time);
 }
 
 /* ----------------------------------------------------------------------

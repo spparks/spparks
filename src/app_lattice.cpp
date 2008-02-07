@@ -1232,7 +1232,6 @@ void AppLattice::iterate()
   int done = 0;
   
   while (!done) {
-    ntimestep++;
 
     if (propensity) {
       timer->stamp();
@@ -1241,6 +1240,7 @@ void AppLattice::iterate()
       
       if (isite < 0) done = 1;
       else {
+	ntimestep++;
 	i = site2i[isite];
 	site_event(i,1);
 	time += dt;
@@ -1270,7 +1270,9 @@ void AppLattice::iterate()
 
 void AppLattice::stats(char *strtmp)
 {
-  sprintf(strtmp," %10d %10g",ntimestep,time);
+  int ntimestepall;
+  MPI_Allreduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,world);
+  sprintf(strtmp," %10d %10g",ntimestepall,time);
 }
 
 /* ----------------------------------------------------------------------

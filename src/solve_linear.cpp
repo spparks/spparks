@@ -58,12 +58,13 @@ void SolveLinear::init(int n, double *propensity)
   nevents = n;
   prob = new double[n];
 
-  nzeroes = 0;
   sum = 0.0;
+  num_active = 0;
+
   for (int i = 0; i < n; i++) {
-    if (propensity[i] == 0.0) nzeroes++;
     prob[i] = propensity[i];
     sum += propensity[i];
+    if (propensity[i] > 0.0) num_active++;
   }
 }
 
@@ -74,8 +75,8 @@ void SolveLinear::update(int n, int *indices, double *propensity)
   int m;
   for (int i = 0; i < n; i++) {
     m = indices[i];
-    if (prob[m] == 0.0) nzeroes--;
-    if (propensity[m] == 0.0) nzeroes++;
+    if (prob[m] > 0.0) num_active--;
+    if (propensity[m] > 0.0) num_active++;
     sum -= prob[m];
     prob[m] = propensity[m];
     sum += propensity[m];
@@ -85,8 +86,8 @@ void SolveLinear::update(int n, int *indices, double *propensity)
 
 void SolveLinear::update(int n, double *propensity)
 {
-  if (prob[n] == 0.0) nzeroes--;
-  if (propensity[n] == 0.0) nzeroes++;
+  if (prob[n] > 0.0) num_active--;
+  if (propensity[n] > 0.0) num_active++;
   sum -= prob[n];
   prob[n] = propensity[n];
   sum += propensity[n];
@@ -104,7 +105,7 @@ int SolveLinear::event(double *pdt)
 {
   int m;
 
-  if (nzeroes == nevents) {
+  if (num_active == 0) {
     sum = 0.0;
     return -1;
   }

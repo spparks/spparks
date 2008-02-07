@@ -26,7 +26,7 @@ class SolveLinear : public Solve {
  private:
   int seed;
   class RandomPark *random;
-  int nevents,nzeroes;
+  int nevents;
   double *prob;
 };
 

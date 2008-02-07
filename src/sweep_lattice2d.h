@@ -21,7 +21,7 @@ class SweepLattice2d : public Sweep {
 
  private:
   int seed;
-  bool Lmask,Lpicklocal,Lstrict,Lkmc;
+  bool Lmask,Lpicklocal,Lstrict,Lkmc,Ladapt;
   double delt;
 
   int nx_local,ny_local;
@@ -54,6 +54,7 @@ class SweepLattice2d : public Sweep {
   typedef void (SweepLattice2d::*FnPtr)(int, int);  // pointer to sweep method
   FnPtr sweeper;
 
+  double pmax,pmaxall,deln0;
   // sweep methods
 
   void sweep_sector(int, int);

@@ -19,6 +19,8 @@
 
 using namespace SPPARKS;
 
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 /* ---------------------------------------------------------------------- */
 
 SweepLattice3d::SweepLattice3d(SPK *spk, int narg, char **arg) : 
@@ -366,12 +368,19 @@ void SweepLattice3d::init()
 
     // Compute deln0, which controls future timesteps
     if (Ladapt) {
-      psum = 0.0;
+      pmax = 0.0;
+      int ntmp ;
+      double ptmp;
       for (int isector = 0; isector < nsector; isector++) {
-	psum += sector[isector].solve->get_total_propensity();
+	ntmp = sector[isector].solve->get_num_active();
+	if (ntmp > 0) {
+	  ptmp = sector[isector].solve->get_total_propensity();
+	  ptmp /= ntmp;
+	  pmax = MAX(ptmp,pmax);
+	}
       }
-      MPI_Allreduce(&psum,&psumall,1,MPI_DOUBLE,MPI_SUM,world);
-      deln0 = psumall*delt;
+      MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
+      deln0 = pmaxall*delt;
     }
 
   }
@@ -386,8 +395,12 @@ void SweepLattice3d::init()
 void SweepLattice3d::do_sweep(double &dt)
 {
   if (Ladapt) {
-    psum = 0.0;
-  }
+    pmax = 0.0;
+  } 
+
+  if (!Lkmc) {
+    applattice->ntimestep++;
+  } 
 
   for (int icolor = 0; icolor < ncolor; icolor++)
     for (int isector = 0; isector < nsector; isector++) {
@@ -406,9 +419,9 @@ void SweepLattice3d::do_sweep(double &dt)
 
   // adjust KMC threshold time
   if (Ladapt) {
-    MPI_Allreduce(&psum,&psumall,1,MPI_DOUBLE,MPI_SUM,world);
-    if (psumall > 0.0) {
-      delt = deln0/psumall;
+    MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_SUM,world);
+    if (pmaxall > 0.0) {
+      delt = deln0/pmaxall;
     }
   }
 
@@ -695,8 +708,6 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
   int nsites = 0;
   int deltemp = dellocal+delghost;
 
-  double factmp,dttmp;
-
   if (deltemp <= 1) {
     k = zlo;
     for (i = xlo; i <= xhi; i++)
@@ -801,7 +812,6 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
   done = 0;
   time = 0.0;
   while (!done) {
-    applattice->ntimestep++;
     timer->stamp();
     isite = solve->event(&dt);
     timer->stamp(TIME_SOLVE);
@@ -810,31 +820,25 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
       time += dt;	
       if (time >= delt) {
     	done = 1;
-	dttmp = time - delt;
-	if (dt > 0.0) {
-	  factmp = dttmp/dt;
-	  if (random->uniform() > factmp) {
-	    i = site2ijk[isite][0];
-	    j = site2ijk[isite][1];
-	    k = site2ijk[isite][2];
-	    applattice->site_event(i,j,k,0);
-	  }
-	}
       } else {
 	i = site2ijk[isite][0];
 	j = site2ijk[isite][1];
 	k = site2ijk[isite][2];
 	applattice->site_event(i,j,k,0);
+	applattice->ntimestep++;
       }
       timer->stamp(TIME_APP);
     }
   }
 
-  // Sum the final propensity
-
   // Compute deln0, which controls future timesteps
   if (Ladapt) {
-    psum += applattice->solve->get_total_propensity();
+    int ntmp = applattice->solve->get_num_active();
+    if (ntmp > 0) {
+      double ptmp = applattice->solve->get_total_propensity();
+      ptmp /= ntmp;
+      pmax = MAX(ptmp,pmax);
+    }
   }
  
   // restore applattice values
