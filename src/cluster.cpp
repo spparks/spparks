@@ -9,7 +9,7 @@
 
 using namespace SPPARKS;
 
-Cluster::Cluster(int id, int vol, int nn, int* neighs) {
+Cluster::Cluster(int id, double vol, int nn, double* neighs) {
   global_id = id;
   volume = vol;
   nneigh = nn;
@@ -18,7 +18,7 @@ Cluster::Cluster(int id, int vol, int nn, int* neighs) {
   } else {
     neighlist = (int*) malloc(nneigh*sizeof(int));
     for (int i = 0; i < nneigh; i++) {
-      neighlist[i] = neighs[i];
+      neighlist[i] = static_cast<int> (neighs[i]);
     }
   }
 }
@@ -55,7 +55,7 @@ void Cluster::add_neigh(int id) {
 }
   
 void Cluster::print(FILE* fp) {
-  fprintf(fp,"%d %d %d ",global_id,volume,nneigh);
+  fprintf(fp,"%d %g %d ",global_id,volume,nneigh);
   for (int ineigh = 0; ineigh < nneigh; ineigh++) {
     fprintf(fp,"%d ",neighlist[ineigh]);
   }

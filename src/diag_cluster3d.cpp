@@ -151,6 +151,7 @@ void DiagCluster3d::analyze_clusters(double time)
     }
   }
   free_clustlist();
+  applattice3d->comm->all(applattice3d->lattice);
   generate_clusters();
   if (idump) {
     dump_clusters(time);
@@ -260,10 +261,11 @@ void DiagCluster3d::generate_clusters()
     }
   }
 
-  int vol,volsum,voltot,nclustertot,ii,jj,kk,id;
+  double vol,volsum,voltot;
+  int nclustertot,ii,jj,kk,id;
 
   ncluster = 0;
-  volsum = 0;
+  volsum = 0.0;
 
   // loop over all owned sites
   for (int i = 1; i <= nx_local; i++) {
@@ -277,7 +279,7 @@ void DiagCluster3d::generate_clusters()
 
       // Push first site onto stack
       id = ncluster+1;
-      vol = 0;
+      vol = 0.0;
       add_cluster(id,vol,0,NULL);
       cluststack.push(i);
       cluststack.push(j);
@@ -292,7 +294,7 @@ void DiagCluster3d::generate_clusters()
 	cluststack.pop();
 	ii = cluststack.top();
 	cluststack.pop();
-	vol++;
+	vol+=1.0;
 	applattice3d->push_connected_neighbors(ii,jj,kk,cluster_ids,ncluster,&cluststack);
       }
       clustlist[ncluster-1].volume = vol;
@@ -302,7 +304,7 @@ void DiagCluster3d::generate_clusters()
   }
 
   int idoffset;
-  MPI_Allreduce(&volsum,&voltot,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&volsum,&voltot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&ncluster,&nclustertot,1,MPI_INT,MPI_SUM,world);
   MPI_Scan(&ncluster,&idoffset,1,MPI_INT,MPI_SUM,world);
   idoffset = idoffset-ncluster+1;
@@ -334,7 +336,7 @@ void DiagCluster3d::generate_clusters()
 
   // pack my clusters into buffer
   int me_size,m,maxbuf;
-  int* ibufclust;
+  double* dbufclust;
   int tmp,nrecv;
   MPI_Status status;
   MPI_Request request;
@@ -348,21 +350,21 @@ void DiagCluster3d::generate_clusters()
 
   MPI_Allreduce(&me_size,&maxbuf,1,MPI_INT,MPI_MAX,world);
 
-  ibufclust = new int[maxbuf];
+  dbufclust = new double[maxbuf];
 
   if (me != 0) {
     m = 0;
     for (int i = 0; i < ncluster; i++) {
-      ibufclust[m++] = clustlist[i].global_id;
-      ibufclust[m++] = clustlist[i].volume;
-      ibufclust[m++] = clustlist[i].nneigh;
+      dbufclust[m++] = clustlist[i].global_id;
+      dbufclust[m++] = clustlist[i].volume;
+      dbufclust[m++] = clustlist[i].nneigh;
       for (int j = 0; j < clustlist[i].nneigh; j++) {
-	ibufclust[m++] = clustlist[i].neighlist[j];
+	dbufclust[m++] = clustlist[i].neighlist[j];
       }
     }
     
     if (me_size != m) {
-      error->one("Mismatch in counting for ibufclust");
+      error->one("Mismatch in counting for dbufclust");
     }
 
   }
@@ -372,27 +374,27 @@ void DiagCluster3d::generate_clusters()
 
   if (me == 0) {
     for (int iproc = 1; iproc < nprocs; iproc++) {
-      MPI_Irecv(ibufclust,maxbuf,MPI_INT,iproc,0,world,&request);
+      MPI_Irecv(dbufclust,maxbuf,MPI_DOUBLE,iproc,0,world,&request);
       MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
       MPI_Wait(&request,&status);
-      MPI_Get_count(&status,MPI_INT,&nrecv);
+      MPI_Get_count(&status,MPI_DOUBLE,&nrecv);
       
       m = 0;
       while (m < nrecv) {
-	id = ibufclust[m++];
-	vol = ibufclust[m++];
-	nn = ibufclust[m++];
-	add_cluster(id,vol,nn,&ibufclust[m]);
+	id = static_cast<int> (dbufclust[m++]);
+	vol = dbufclust[m++];
+	nn = static_cast<int> (dbufclust[m++]);
+	add_cluster(id,vol,nn,&dbufclust[m]);
 	m+=nn;
 	volsum+=vol;
       }
     }
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(ibufclust,me_size,MPI_INT,0,0,world);
+    MPI_Rsend(dbufclust,me_size,MPI_DOUBLE,0,0,world);
   }
 
-  delete [] ibufclust;
+  delete [] dbufclust;
 
   // Perform cluster analysis on the clusters
 
@@ -400,25 +402,24 @@ void DiagCluster3d::generate_clusters()
     int* neighs;
     int jneigh;
 
-    volsum = 0;
     ncluster_reduced = 0;
 
     // loop over all clusters
     for (int i = 0; i < ncluster; i++) {
       
       // If already visited, skip
-      if (clustlist[i].volume == 0) {
+      if (clustlist[i].volume < 0.0) {
 	continue;
       }
       
       // Push first cluster onto stack
       id = clustlist[i].global_id;
-      vol = 0;
+      vol = 0.0;
       ncluster_reduced++;
-      
+      //      fprintf(fp,"vol new = %g \n",clustlist[i].volume);
       cluststack.push(i);
       vol+=clustlist[i].volume;
-      clustlist[i].volume = 0;
+      clustlist[i].volume = -1.0;
       
       while (cluststack.size()) {
 	// First top then pop
@@ -428,23 +429,22 @@ void DiagCluster3d::generate_clusters()
 	neighs = clustlist[ii].neighlist;
 	for (int j = 0; j < clustlist[ii].nneigh; j++) {
 	  jneigh = neighs[j]-idoffset;
-	  if (clustlist[jneigh].volume != 0) {
+	  if (clustlist[jneigh].volume > 0.0) {
 	    cluststack.push(jneigh);
 	    vol+=clustlist[jneigh].volume;
 	    clustlist[jneigh].global_id = id;
-	    clustlist[jneigh].volume = 0;
+	    clustlist[jneigh].volume = -1.0;
 	  }
 	}
       }
       clustlist[i].volume = vol;
-      volsum+=vol;
     }
 
     if (fp) {
-      fprintf(fp,"ncluster = %d \nsize = ",ncluster_reduced);
+      fprintf(fp,"ncluster_reduced = %d \nsize = ",ncluster_reduced);
       for (int i = 0; i < ncluster; i++) {
 	if (clustlist[i].volume > 0.0) {
-	  fprintf(fp," %d",clustlist[i].volume);
+	  fprintf(fp," %g",clustlist[i].volume);
 	}
       }
       fprintf(fp,"\n");
@@ -457,7 +457,7 @@ void DiagCluster3d::generate_clusters()
 
 /* ---------------------------------------------------------------------- */
 
-void DiagCluster3d::add_cluster(int id, int vol, int nn, int* neighs)
+void DiagCluster3d::add_cluster(int id, double vol, int nn, double* neighs)
 {
   // grow cluster array
 

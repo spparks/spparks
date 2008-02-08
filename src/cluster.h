@@ -10,13 +10,13 @@ namespace SPPARKS {
 
 class Cluster {
  private:
-  int volume;
+  double volume;
   int global_id;
   int nneigh;
   int* neighlist;
   
  public:
-  Cluster(int, int, int, int*);
+  Cluster(int, double, int, double*);
   Cluster& operator=(const Cluster&);
   ~Cluster();
   void add_neigh(int);
