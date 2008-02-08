@@ -41,6 +41,7 @@ SweepLattice3d::SweepLattice3d(SPK *spk, int narg, char **arg) :
   Ladapt = false;
   ranlat = NULL;
   delt = 1.0;
+  deln0 = 0.0;
 
   int iarg = 2;
   while (iarg < narg) {
@@ -77,6 +78,11 @@ SweepLattice3d::SweepLattice3d(SPK *spk, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"yes") == 0) Ladapt = true;
       else if (strcmp(arg[iarg+1],"no") == 0) Ladapt = false;
       else error->all("Illegal sweep_style command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"deln") == 0) {
+      if (iarg+2 > narg) error->all("Illegal sweep_style command");
+      Ladapt = true;
+      deln0 = atof(arg[iarg+1]);
       iarg += 2;
     } else error->all("Illegal sweep_style command");
   }
@@ -366,7 +372,7 @@ void SweepLattice3d::init()
       sector[isector].solve->init(nsites,sector[isector].propensity);
     }
 
-    // Compute deln0, which controls future timesteps
+    // Compute deln0, if it has not been specified, which controls future timesteps
     if (Ladapt) {
       pmax = 0.0;
       int ntmp ;
@@ -380,7 +386,8 @@ void SweepLattice3d::init()
 	}
       }
       MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
-      deln0 = pmaxall*delt;
+      if (deln0 <= 0.0) deln0 = pmaxall*delt;
+      else if (pmaxall > 0.0) delt = deln0/pmaxall;
     }
 
   }
@@ -421,6 +428,7 @@ void SweepLattice3d::do_sweep(double &dt)
   if (Ladapt) {
     MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_SUM,world);
     if (pmaxall > 0.0) {
+      // Should consider basing this on maximum propensity of one site. 
       delt = deln0/pmaxall;
     }
   }
@@ -831,7 +839,7 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
     }
   }
 
-  // Compute deln0, which controls future timesteps
+  // Compute maximum sector propensity per site, which controls future timesteps
   if (Ladapt) {
     int ntmp = applattice->solve->get_num_active();
     if (ntmp > 0) {
