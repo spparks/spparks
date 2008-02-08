@@ -137,7 +137,10 @@ void DiagCluster::init(double time)
 
 void DiagCluster::compute(double time, int done)
 {
-  if (check_time(time, done)) analyze_clusters(time);
+  if (check_time(time, done)) {
+    applattice->comm->all();
+    analyze_clusters(time);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,7 +154,6 @@ void DiagCluster::analyze_clusters(double time)
     }
   }
   free_clustlist();
-  applattice->comm->all();
   generate_clusters();
    if (idump) {
      dump_clusters(time);

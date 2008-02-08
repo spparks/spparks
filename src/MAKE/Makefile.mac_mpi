@@ -15,7 +15,7 @@ SIZE =		size
 # Test rule
 
 test:
-	mpirun -np 8 $(EXE) < $(INPUTFILE)
+	mpirun -np 1 $(EXE) < $(INPUTFILE)
 
 # Link rule
 

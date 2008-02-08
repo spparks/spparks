@@ -30,6 +30,7 @@ DiagCluster3d::DiagCluster3d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg
   ncluster = 0;
   idump = 0;
   dump_style = STANDARD;
+  radius = 0.0;
 
   int iarg = 2;
   while (iarg < narg) {
@@ -137,7 +138,10 @@ void DiagCluster3d::init(double time)
 
 void DiagCluster3d::compute(double time, int done)
 {
-  if (check_time(time, done)) analyze_clusters(time);
+  if (check_time(time, done)) {
+    applattice3d->comm->all(applattice3d->lattice);
+    analyze_clusters(time);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,7 +155,6 @@ void DiagCluster3d::analyze_clusters(double time)
     }
   }
   free_clustlist();
-  applattice3d->comm->all(applattice3d->lattice);
   generate_clusters();
   if (idump) {
     dump_clusters(time);
@@ -440,8 +443,17 @@ void DiagCluster3d::generate_clusters()
       clustlist[i].volume = vol;
     }
 
+    radius = 0.0;
+    double onethird = 1.0/3.0;
+    for (int i = 0; i < ncluster; i++) {
+      if (clustlist[i].volume > 0.0) {
+	radius += pow(clustlist[i].volume,onethird);
+      }
+    }
+    radius /= ncluster_reduced;
+
     if (fp) {
-      fprintf(fp,"ncluster_reduced = %d \nsize = ",ncluster_reduced);
+      fprintf(fp,"ncluster_reduced = %d \nvolumes = ",ncluster_reduced);
       for (int i = 0; i < ncluster; i++) {
 	if (clustlist[i].volume > 0.0) {
 	  fprintf(fp," %g",clustlist[i].volume);
@@ -686,11 +698,11 @@ void DiagCluster3d::free_clustlist()
 /* ---------------------------------------------------------------------- */
 
 void DiagCluster3d::stats(char *strtmp) {
-  sprintf(strtmp," %10d",ncluster_reduced);
+  sprintf(strtmp," %10d %10g",ncluster_reduced,radius);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DiagCluster3d::stats_header(char *strtmp) {
-  sprintf(strtmp," %10s","Nclust");
+  sprintf(strtmp," %10s %10s","Nclust","AveRadius");
 }

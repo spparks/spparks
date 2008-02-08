@@ -38,6 +38,7 @@ class DiagCluster3d : public Diag {
 
   int*** cluster_ids;
   int ncluster, ncluster_reduced;
+  double radius;
   Cluster* clustlist;
   std::stack<int> cluststack;      // stack for performing cluster analysis
 

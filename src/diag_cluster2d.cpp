@@ -146,7 +146,10 @@ void DiagCluster2d::init(double time)
 
 void DiagCluster2d::compute(double time, int done)
 {
-  if (check_time(time, done)) analyze_clusters(time);
+  if (check_time(time, done)) {
+    applattice2d->comm->all(applattice2d->lattice);
+    analyze_clusters(time);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -160,7 +163,6 @@ void DiagCluster2d::analyze_clusters(double time)
     }
   }
   free_clustlist();
-  applattice2d->comm->all(applattice2d->lattice);
   generate_clusters();
   if (idump) {
     if (dump_style == STANDARD || dump_style == OPENDX) {
