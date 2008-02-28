@@ -1,12 +1,6 @@
 # viz grain pattern
 
-m = dump("tmp.grain")
-#m = mdump("tmp.membrane")
-m.map(2,"spin")
-m.etype = "spin"
-
-#e = ensight(m)
-#e.one("spin","Spin")
-
-g = gl(m)
+d = dump("tmp.membrane")
+g = gl(d)
+g.arad(0,0.05)
 v = vcr(g)

@@ -69,7 +69,7 @@ options = lattice or site
 file format for the lattice file style:
   comment              # 1st line is skipped
 	               # skipped line
-  Ndim dimenion        # Ndim = 2 or 3
+  Ndim dimension       # Ndim = 2 or 3
   N vertices           # N = global vertices
   M max connectivity   # M = maximum # of connections for any vertex
   X1 X2 xlo xhi        # x bounds

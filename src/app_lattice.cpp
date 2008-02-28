@@ -1439,13 +1439,13 @@ void AppLattice::procs2lattice_2d()
   int iprocx = me/ny_procs;
   int iprocy = me % ny_procs;
 
-  subxlo = iprocx * xprd/nx_procs;
-  if (iprocx < nx_procs-1) subxhi = (iprocx+1) * xprd/nx_procs;
-  else subxhi = xprd;
+  subxlo = boxxlo + iprocx * xprd/nx_procs;
+  if (iprocx < nx_procs-1) subxhi = boxxlo + (iprocx+1) * xprd/nx_procs;
+  else subxhi = boxxhi;
 
-  subylo = iprocy * yprd/ny_procs;
-  if (iprocy < ny_procs-1) subyhi = (iprocy+1) * yprd/ny_procs;
-  else subyhi = yprd;
+  subylo = boxylo + iprocy * yprd/ny_procs;
+  if (iprocy < ny_procs-1) subyhi = boxylo + (iprocy+1) * yprd/ny_procs;
+  else subyhi = boxyhi;
 
   subzlo = -0.5;
   subzhi = 0.5;
@@ -1493,17 +1493,17 @@ void AppLattice::procs2lattice_3d()
   int iprocy = (me/nz_procs) % ny_procs;
   int iprocz = (me/1) % nz_procs;
 
-  subxlo = iprocx * xprd/nx_procs;
-  if (iprocx < nx_procs-1) subxhi = (iprocx+1) * xprd/nx_procs;
-  else subxhi = xprd;
+  subxlo = boxxlo + iprocx * xprd/nx_procs;
+  if (iprocx < nx_procs-1) subxhi = boxxlo + (iprocx+1) * xprd/nx_procs;
+  else subxhi = boxxhi;
 
-  subylo = iprocy * yprd/ny_procs;
-  if (iprocy < ny_procs-1) subyhi = (iprocy+1) * yprd/ny_procs;
-  else subyhi = yprd;
+  subylo = boxylo + iprocy * yprd/ny_procs;
+  if (iprocy < ny_procs-1) subyhi = boxylo + (iprocy+1) * yprd/ny_procs;
+  else subyhi = boxyhi;
 
-  subzlo = iprocz * zprd/nz_procs;
-  if (iprocz < nz_procs-1) subzhi = (iprocz+1) * zprd/nz_procs;
-  else subzhi = zprd;
+  subzlo = boxzlo + iprocz * zprd/nz_procs;
+  if (iprocz < nz_procs-1) subzhi = boxzlo + (iprocz+1) * zprd/nz_procs;
+  else subzhi = boxzhi;
 }
 
 /* ---------------------------------------------------------------------- */

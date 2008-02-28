@@ -70,16 +70,18 @@ AppMembrane::~AppMembrane()
 void AppMembrane::input_app(char *command, int narg, char **arg)
 {
   if (strcmp(command,"inclusion") == 0) {
-    if (narg != 3) error->all("Invalid inclusion command");
-    int xc = atoi(arg[0]);
-    int yc = atoi(arg[1]);
-    double r = atof(arg[2]);
+    if (narg != 4) error->all("Invalid inclusion command");
+    double xc = atof(arg[0]);
+    double yc = atof(arg[1]);
+    double zc = atof(arg[2]);
+    double r = atof(arg[3]);
 
-    double dx,dy,rsq;
+    double dx,dy,dz,rsq;
     for (int i = 0; i < nlocal; i++) {
       dx = xyz[i][0] - xc;
       dy = xyz[i][1] - yc;
-      rsq = dx*dx + dy*dy;
+      dz = xyz[i][2] - zc;
+      rsq = dx*dx + dy*dy + dz*dz;
       if (sqrt(rsq) < r) lattice[i] = PROTEIN;
     }
   } else error->all("Command not recognized by this application");

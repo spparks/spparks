@@ -221,6 +221,7 @@ void AppSurf::iterate()
     // type 1 = immobile, type 2 = mobile, type 3 = just deposited
     // no hop possible if >= 4 neighbors within hop distance
 
+    /*
     for (i = 0; i < nlocal; i++) {
       if (atoms[i].type == 1) continue;
       else if (atoms[i].type == 3) atoms[i].type = 2;
@@ -237,6 +238,7 @@ void AppSurf::iterate()
       rate = attempt_frequency * exp(-delta / temperature);
       add_event(i,HOPRIGHT,rate,xnew+hop_distance/2.0,znew);
     }
+    */
 
     solve->init(nevents,rates);
     which = solve->event(&dt);
