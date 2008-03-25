@@ -17,6 +17,7 @@ using namespace SPPARKS;
 VarNode::VarNode() : Node()
 {
   type = VARIABLE;
+  nb_flag = 0;
 }
 /* ---------------------------------------------------------------------- */
 VarNode::~VarNode()

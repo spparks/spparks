@@ -10,8 +10,9 @@
 #include "random_park.h"
 #include "state.h"
 #include "sysptr.h"
+#include <iostream>
 
-
+using namespace std;
 namespace SPPARKS {
   
 #define MUT_CONST    0
@@ -29,16 +30,12 @@ namespace SPPARKS {
     
     Node *root;
     
-    Node *build_tree(RandomPark*, int);
-    
+    Node *build_tree(RandomPark*, int);  
     Node *random_node(RandomPark*, int);
-    
-    void mutate_branch(RandomPark*, Node *&);
   
-    void mutate_constant(RandomPark*, Node *&, double);
-    
-    void mutate_variable(RandomPark*, Node *&);
-    
+    void mutate_branch(RandomPark*, Node *&);
+    void mutate_constant(RandomPark*, Node *&, double);   
+    void mutate_variable(RandomPark*, Node *&);   
     void mutate_operator(RandomPark*, Node *&);
     
     void crossover(RandomPark*, Node *&, Node *&, int);
@@ -64,14 +61,31 @@ namespace SPPARKS {
     Node *postfix2tree();
     void clean_string(char *);
     
-    State *state;
-    inline void set_state(State * st){state = st;}
-    
+
+    int state_flag;
+    inline void set_state(State * st)
+      {state_flag == 1; state = st;}
+
+    int lattice_flag;
+    inline void set_lattice(int **iarr, double **darr)
+      {
+	if(lattice_flag == 0){
+	  lattice_flag = 1; 
+	  iarray = iarr;
+	  darray = darr;
+	}
+      }   
+    int get_variable(char *, int &);
+    inline void set_names(char **intnm, int ni, char **dblnm, int di)
+      {
+	name_int = intnm; n_int_var = ni;
+	name_dbl = dblnm; n_dbl_var = di;
+      }
+
     int max_depth;
     
   private:
     double const_lo;
-    
     double const_hi;
     
     double range;
@@ -87,11 +101,18 @@ namespace SPPARKS {
     
     void clear_tokens(char**);
     
-    
-    
     Node **children;
     Node **parents;
-    
+
+    State *state;
+    //lattice vars 
+    double **darray;
+    int **iarray;
+    char **name_int;
+    char **name_dbl;
+    int n_int_var;
+    int n_dbl_var;
+
   };
 }
 #endif

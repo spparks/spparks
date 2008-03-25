@@ -29,6 +29,7 @@ class ConstNode : public Node {
 
   inline double go(double * var){return value;}
   inline double go(int index_in){return value;}
+  inline double go(int index_in, int index_nb){return value;}
   inline void set_value(double value_in){value = value_in;}
   inline void set_left_child(Node *in){};
   inline void set_right_child(Node *in){};

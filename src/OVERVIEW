@@ -376,7 +376,7 @@ run 100
 temperature 1.5
   set temperature for Boltzmann factor (reduced LJ temperature units)
   default = 0.0
-dump 10
+dump 10 file
   dump snapshot every this many events in LAMMPS atom format
 
 -----------------------------------------------------------------------

@@ -15,15 +15,23 @@ namespace SPPARKS {
     int size;
     int max_nb;
     State *state;
-    std::string nbname;
+    int state_flag;
+    char name[30];
     
   public:
     Neighborhood(char *, State *);
+    Neighborhood(char *, int *, int **, int, int);
     ~Neighborhood();
     
-    int **nbr;
-    
-    void init(char *);
+    int *numneigh_in;
+    int **neighbor_in;
+    int **neighbor;
+    int *numneigh;
+    int nsites;
+    int maxnb;
+
+    void init(int, char**);
+    inline char* get_name(){return &name[0];}
   };
 }
 

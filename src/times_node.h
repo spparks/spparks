@@ -20,8 +20,11 @@ class TimesNode : public Node {
 
   double go(double *);
   inline double go(int index_in){
-    return left_child->go(index_in) * right_child->go(index_in);}
-
+    return left_child->go(index_in) * right_child->go(index_in);
+  }
+  inline double go(int index_in, int index_nb){
+    return left_child->go(index_in, index_nb) * right_child->go(index_in,index_nb);
+  }
   void write(FILE *);
   void write_tex(FILE *);
   void write_stack(FILE *);

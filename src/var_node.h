@@ -44,12 +44,15 @@ class VarNode : public Node {
   inline char *get_name(){return var_name;}
   inline void set_data_type(int in){data_type = in;}
   virtual void set_data_pointer(void *in){data_p = in;}
+  inline void set_nb(){nb_flag = 1;}
 
   void *data_p;
+  int nb_flag;
   private:
 
   int var_index;
   int data_type;
+
 
 };
 

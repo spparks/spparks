@@ -74,6 +74,12 @@ void Tree::init(double const_lo_in, double const_hi_in,
 
   input_line = new char[250];
   state = NULL;
+  state_flag = 0;
+
+  darray = NULL;
+  iarray = NULL;
+  lattice_flag = 0;
+
 }
 /* ---------------------------------------------------------------------- */
 Node *Tree::random_node(RandomPark* random, int ran_type)
@@ -522,7 +528,14 @@ Node * Tree::copy(Node *root)
   else if(op == VAR_DBL || op == VAR_INT)  {
     strcpy(name,static_cast<VarNode*>(root)->get_name());
     static_cast<VarNode*>(rn)->set_name(name);
-    var = state->get_attribute(name, type);
+    if(static_cast<VarNode*>(root)->nb_flag == 1)
+      static_cast<VarNode*>(rn)->set_nb();
+    if (state_flag == 1) var = state->get_attribute(name, type);
+    else if (lattice_flag){
+      int v = get_variable(name, type);
+      if (type==2) var = darray[v];
+      else if (type==1) var = iarray[v];
+    }
     if(op == VAR_DBL)
       static_cast<DblVarNode*>(rn)->set_data_pointer(var);
     if(op == VAR_INT)
@@ -588,7 +601,6 @@ Node *Tree::from_string(char *str)
 
   //  clean_string(str);
   strcpy(input_line,str);
-  //  strcat(input_line,"\0");
   //convert input formula string to tokens
   string2tokens();
   //convert input tokens to postfix
@@ -604,8 +616,6 @@ void Tree::clean_string(char *str)
   int i = 0;
   int j = 0;
 
-  cout << "length of string incoming to clean = "<<strlen(str)<<endl;
-  cout <<"the characters are: "<<endl;
   while(i != strlen(str)){
     cout <<i<<"  "<<str[i]<<endl;
       i++;
@@ -759,9 +769,9 @@ void Tree::string2tokens()
   }
   strcpy(tokens[m],"#");
 
-  cout <<"tokens: "<<endl;
-  if(!stack_empty(tokens)) write_tokens(tokens);
-  else cout <<"empty."<<endl;
+//   cout <<"tokens: "<<endl;
+//   if(!stack_empty(tokens)) write_tokens(tokens);
+//   else cout <<"empty."<<endl;
   //  cout <<"peek priority = "<<stack_peek(postfix)<<endl;
 }
 /* ---------------------------------------------------------------------- */
@@ -798,36 +808,49 @@ Node *Tree::postfix2tree()
       current_nd = new DivideNode();
     else if (current_string.compare(0,1,"^")==0)
       current_nd = new PowNode();
-    else if (current_string.compare(0,1,"@")==0)
+    else if (current_string.compare(0,1,"@")==0 ||
+	     current_string.compare(0,1,"%")==0)
       {
-	if(state==NULL){
-	  cout <<"state is not initialized in tree."<<endl;
-	  break;
-	}
 	var_name.clear();
 	var_name.assign(postfix[k]);
 	var_name.erase(0,1);
 	strcpy(var_name_char,var_name.c_str());
 	
 	void *data = NULL;
-	data = state->get_attribute(var_name_char, type);
-	if(data==NULL) break;
-	
-	//	if (current_string.compare(1,3,"dbl")==0){
-	if (type==2){
-	  current_nd = new DblVarNode();
-	  static_cast<DblVarNode*>(current_nd)->set_data_pointer(data);
-	  //	  if(type!=2)cout <<"type mismatch in name desc."<<endl;
-	}
-	//	else if (current_string.compare(1,3,"int")==0){
-	else if (type==1){
-	  current_nd = new IntVarNode();
-	  static_cast<IntVarNode*>(current_nd)->set_data_pointer(data);
-	  //	  if(type!=1)cout <<"type mismatch in name desc."<<endl;
-	}
-	
+	int v;
+	//STATE
+	if(state_flag == 1)
+	  {
+	    data = state->get_attribute(var_name_char, type);
+	    if (type==2){
+	      current_nd = new DblVarNode();
+	      static_cast<DblVarNode*>(current_nd)->set_data_pointer(data);
+	    }
+	    else if (type==1){
+	      current_nd = new IntVarNode();
+	      static_cast<IntVarNode*>(current_nd)->set_data_pointer(data);
+	    }
+	  }
+	else if (lattice_flag == 1)
+	  {
+	    v = get_variable(&var_name_char[0], type);
+	    if (type==2){
+	      data = darray[v];
+	      current_nd = new DblVarNode();
+	      static_cast<DblVarNode*>(current_nd)->set_data_pointer(data);
+	    }
+	    else if (type==1){
+	      data = iarray[v];
+	      current_nd = new IntVarNode();
+	      static_cast<IntVarNode*>(current_nd)->set_data_pointer(data);
+	      
+	    }
+	  }
 	static_cast<VarNode*>(current_nd)->set_data_type(type);
 	static_cast<VarNode*>(current_nd)->set_name(var_name_char);
+	if(current_string.compare(0,1,"%")==0)
+	  static_cast<VarNode*>(current_nd)->set_nb();
+       
       }
     
     else if (current_string.find_first_of("0123456789")<1){
@@ -964,3 +987,21 @@ int Tree::stack_peek(char **tk)
   return 99;
 }
 /* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   find variable by name
+------------------------------------------------------------------------- */
+int Tree::get_variable(char *name, int &type)
+{
+  for (int i = 0; i < n_int_var; i++)
+    if(strcmp(name, name_int[i])==0) {
+      type = 1; 
+      return i;
+    }
+  for (int i = 0; i < n_dbl_var; i++)
+    if(strcmp(name, name_dbl[i])==0) {
+      type = 2; 
+      return i;
+    }
+  //  error->all("Variable not found.");
+  return -1;
+}

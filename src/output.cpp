@@ -32,10 +32,7 @@ Output::Output(SPK *spk) : SysPtr(spk)
 
 Output::~Output()
 {
-  // Free memory allocated to diagnostics.
-  for (int i = 0; i < ndiags; i++) {
-    delete diaglist[i];
-  }
+  for (int i = 0; i < ndiags; i++) delete diaglist[i];
   memory->sfree(diaglist);
 }
 
@@ -158,7 +155,8 @@ void Output::compute(double time, int done)
 void Output::add_diag(Diag *diag)
 {
   ndiags++;
-  diaglist = (Diag **) memory->srealloc(diaglist,ndiags*sizeof(Diag *),"output:diaglist");
+  diaglist = (Diag **) memory->srealloc(diaglist,ndiags*sizeof(Diag *),
+					"output:diaglist");
   diaglist[ndiags-1] = diag;
 }
 

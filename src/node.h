@@ -18,15 +18,15 @@ namespace SPPARKS {
 #define POW          4
 #define CONSTANT     5
 #define VARIABLE     6
-#define VAR_DBL     7
-#define VAR_INT     8
-#define VAR_BOOL    9
+#define VAR_DBL      7
+#define VAR_INT      8
+#define VAR_BOOL     9
 
   class Node {
   public:
     
     Node();
-    virtual ~Node(){}
+    virtual ~Node();
     
     // pure virtual functions, must be defined in child class
     
@@ -35,8 +35,9 @@ namespace SPPARKS {
     virtual void write_stack(FILE *) = 0;
     virtual void buffer(char **, int&) = 0;
     
-    virtual double go(double *) = 0;
-    virtual double go(int) {return 0.0;}
+    virtual double go(double *)=0;
+    virtual double go(int){return 0;};
+    virtual double go(int, int){return 0;};
     virtual void set_left_child(Node *in) = 0;
     virtual void set_right_child(Node *in)= 0;
     virtual void clear() = 0;

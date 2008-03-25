@@ -2,9 +2,10 @@
 #define XPRESSION_H
 
 #include "sysptr.h"
-#include "state.h"
+#include "neighborhood.h"
 #include "tree.h"
 #include "stdio.h"
+
 
 namespace SPPARKS{
   
@@ -12,8 +13,8 @@ namespace SPPARKS{
     
   protected:
     
-    char *name;
-    State *state;
+    char name[50];
+
 
     Tree *tree;
     Node *root;
@@ -25,11 +26,16 @@ namespace SPPARKS{
     char *get_name();
     void set_name(char *);
     void set_expression(int, char**);
-    inline void set_state(State * st){state = st;}
+
     inline void set_tree(Tree *t){tree = t;}
 
     double eval(int);
-    
+    double sum(int);
+   
+    Neighborhood *nbr;
+    int nb_flag;
+    inline void set_neighborhood(Neighborhood *nb)
+      {nb_flag = 1; nbr = nb;}
     
   };
   
