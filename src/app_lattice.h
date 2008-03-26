@@ -28,7 +28,7 @@ class AppLattice : public App {
   void run(int, char **);
 
   virtual double site_energy(int) = 0;
-  virtual void site_pick_random(int,double) = 0;
+  virtual void site_pick_random(int ,double) = 0;
   virtual void site_pick_local(int, double) = 0;
   virtual double site_propensity(int, int) = 0;
   virtual void site_event(int, int) = 0;

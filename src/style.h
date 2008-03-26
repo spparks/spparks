@@ -22,6 +22,7 @@
 #include "app_potts_3d_12n.h"
 #include "app_potts_3d_26n.h"
 #include "app_surf.h"
+#include "app_surf2.h"
 #include "app_test_group.h"
 #include "app_test2_group.h"
 #endif
@@ -45,6 +46,7 @@ AppStyle(potts/3d/6n,AppPotts3d6n)
 AppStyle(potts/3d/12n,AppPotts3d12n)
 AppStyle(potts/3d/26n,AppPotts3d26n)
 AppStyle(surf,AppSurf)
+AppStyle(surf2,AppSurf2)
 AppStyle(test/group,AppTestGroup)
 AppStyle(test2/group,AppTest2Group)
 #endif
