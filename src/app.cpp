@@ -6,11 +6,11 @@
 #include "string.h"
 #include "app.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-App::App(SPK *spk, int narg, char **arg) : SysPtr(spk)
+App::App(SPPARKS *spk, int narg, char **arg) : SysPtr(spk)
 {
   int n = strlen(arg[0]) + 1;
   style = new char[n];

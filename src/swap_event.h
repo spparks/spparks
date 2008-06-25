@@ -8,7 +8,7 @@
 
 #include "event.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
   
 class SwapEvent : public Event {
   public: 

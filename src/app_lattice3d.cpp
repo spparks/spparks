@@ -18,7 +18,7 @@
 #include "error.h"
 #include "output.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 enum DumpStyles {LATTICE,COORD};
 
@@ -26,7 +26,7 @@ enum DumpStyles {LATTICE,COORD};
 
 /* ---------------------------------------------------------------------- */
 
-AppLattice3d::AppLattice3d(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
+AppLattice3d::AppLattice3d(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
 {
   appclass = LATTICE3D;
 

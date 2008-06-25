@@ -20,7 +20,7 @@ An event is defined by the local update of the state that it performs:
 #include "expression.h"
 #include "neighborhood.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
@@ -45,7 +45,7 @@ Event::~Event()
 
 /* ---------------------------------------------------------------------- */
 
-void Event::set_propensity(int ptp, class Xpression *xpr)
+void Event::set_propensity(int ptp, class Expression *xpr)
 {
   ptype = ptp; 
   prop = xpr;  

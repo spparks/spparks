@@ -15,11 +15,11 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppIsing3d6n::AppIsing3d6n(SPK *spk, int narg, char **arg) : 
+AppIsing3d6n::AppIsing3d6n(SPPARKS *spk, int narg, char **arg) : 
   AppLattice3d(spk,narg,arg)
 {
   // parse arguments

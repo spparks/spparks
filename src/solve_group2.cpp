@@ -12,14 +12,14 @@
 #include "random_park.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-SolveGroup2::SolveGroup2(SPK *spk, int narg, char **arg) :
+SolveGroup2::SolveGroup2(SPPARKS *spk, int narg, char **arg) :
   Solve(spk, narg, arg)
 {
   if (narg < 4) error->all("Illegal solve command");

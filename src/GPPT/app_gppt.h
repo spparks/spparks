@@ -14,11 +14,11 @@
 #include "population.h"
 
 using namespace std;
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class AppGPPT : public App {
  public:
-  AppGPPT(class SPK *, int, char **);
+  AppGPPT(class SPPARKS *, int, char **);
   ~AppGPPT();
   void init();
   void input(char *, int, char **);

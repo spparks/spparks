@@ -6,7 +6,7 @@
 #ifndef NEIGHBORHOOD_H
 #define NEIGHBORHOOD_H
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Neighborhood{
   protected:

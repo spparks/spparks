@@ -8,11 +8,11 @@
 
 #include "app_lattice2d.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class AppIsing2d4n : public AppLattice2d {
  public:
-  AppIsing2d4n(class SPK *, int, char **);
+  AppIsing2d4n(class SPPARKS *, int, char **);
   ~AppIsing2d4n();
 
   double site_energy(int, int);

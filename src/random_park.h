@@ -6,7 +6,7 @@
 #ifndef RANDOM_PARK_H
 #define RANDOM_PARK_H
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class RandomPark {
  public:

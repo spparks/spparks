@@ -9,13 +9,13 @@
 #include "stdio.h"
 #include "diag.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class DiagEprof3d : public Diag {
   friend class SweepLattice3d;
 
  public:
-  DiagEprof3d(class SPK *, int, char **);
+  DiagEprof3d(class SPPARKS *, int, char **);
   virtual ~DiagEprof3d();
 
   void init(double);

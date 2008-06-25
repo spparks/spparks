@@ -17,11 +17,11 @@
 
 #include <map>
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppIsing::AppIsing(SPK *spk, int narg, char **arg) : AppLattice(spk,narg,arg)
+AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) : AppLattice(spk,narg,arg)
 {
   // parse arguments
 

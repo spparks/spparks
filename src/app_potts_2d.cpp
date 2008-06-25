@@ -15,11 +15,11 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppPotts2d::AppPotts2d(SPK *spk, int& narg, char **arg) : 
+AppPotts2d::AppPotts2d(SPPARKS *spk, int& narg, char **arg) : 
   AppLattice2d(spk,narg,arg)
 {
 

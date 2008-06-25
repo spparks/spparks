@@ -15,7 +15,7 @@
 #include "error.h"
 #include "output.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 enum{DEPOSITION,HOPLEFT,HOPRIGHT};
 
@@ -47,7 +47,7 @@ enum{DEPOSITION,HOPLEFT,HOPRIGHT};
 
 /* ---------------------------------------------------------------------- */
 
-AppSurf::AppSurf(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
+AppSurf::AppSurf(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
 {
   if (narg != 4) error->all("Invalid app_style surf command");
 

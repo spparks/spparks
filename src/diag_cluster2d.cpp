@@ -17,11 +17,11 @@
 #include "comm_lattice2d.h"
 #include "random_park.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DiagCluster2d::DiagCluster2d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
+DiagCluster2d::DiagCluster2d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
   fp = NULL;
   fpdump = NULL;

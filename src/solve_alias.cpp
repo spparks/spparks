@@ -11,11 +11,11 @@
 #include "random_park.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-SolveAlias::SolveAlias(SPK *spk, int narg, char **arg) : 
+SolveAlias::SolveAlias(SPPARKS *spk, int narg, char **arg) : 
   Solve(spk, narg, arg)
 {
   if (narg != 2) error->all("Illegal solve command");

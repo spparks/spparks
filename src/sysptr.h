@@ -3,17 +3,12 @@
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   In the following description, classname System refers to the
-   top-level class, which in this case is called SPK.
-   Parent class for all classes in the code, except System.
-   Contains references to member data of an System object.
-   System contains a single instance of each of the major classes.
-   This construction prevents multiple System instances from 
-      stomping on each other while avoiding the need to have
-      each object in the code explicitly identify which System 
-      object they belong to.
-------------------------------------------------------------------------- */
+// SysPtr class contains ptrs to master copy of
+//   fundamental SPPARKS class ptrs stored in spparks.h
+// top-level SPPARKS classes inherit from SysPtr to access spparks.h ptrs
+// these variables are auto-initialized by SysPtr class constructor
+// *& variables are really pointers to the pointers in spparks.h
+// & enables them to be accessed directly in any class, e.g. error->all()
 
 #ifndef SYSPTR_H
 #define SYSPTR_H
@@ -22,40 +17,40 @@
 #include "stdio.h"
 #include "spparks.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class SysPtr {
 public:
-  explicit SysPtr(class SPK *sys) :
-    spk(sys),
-    universe(sys->universe),
-    input(sys->input),
-    memory(sys->memory),
-    error(sys->error),
-    app(sys->app),
-    solve(sys->solve),
-    sweep(sys->sweep),
-    timer(sys->timer),
-    output(sys->output),
-    world(sys->world),
-    infile(sys->infile),
-    screen(sys->screen),
-    logfile(sys->logfile) {}
+  explicit SysPtr(SPPARKS *ptr) :
+    spk(ptr),
+    universe(ptr->universe),
+    input(ptr->input),
+    memory(ptr->memory),
+    error(ptr->error),
+    app(ptr->app),
+    solve(ptr->solve),
+    sweep(ptr->sweep),
+    timer(ptr->timer),
+    output(ptr->output),
+    world(ptr->world),
+    infile(ptr->infile),
+    screen(ptr->screen),
+    logfile(ptr->logfile) {}
   virtual ~SysPtr() {}
+  
+ protected:
+  SPPARKS *spk;
 
-protected:
-  class SPK *spk;
+  Universe *&universe;      // universe of processors
+  Input *&input;            // input script processing
+  Memory *&memory;          // memory allocation functions
+  Error *&error;            // error handling
 
-  class Universe *&universe;      // universe of processors
-  class Input *&input;            // input script processing
-  class Memory *&memory;          // memory allocation functions
-  class Error *&error;            // error handling
-
-  class App *&app;                // application
-  class Solve *&solve;            // solver
-  class Sweep *&sweep;            // sweep
-  class Timer *&timer;            // timer
-  class Output *&output;          // output
+  App *&app;                // application
+  Solve *&solve;            // solver
+  Sweep *&sweep;            // sweep
+  Timer *&timer;            // timer
+  Output *&output;          // output
 
   MPI_Comm &world;          // communicator for my world of procs
   FILE *&infile;            // infile for my world

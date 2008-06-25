@@ -16,7 +16,7 @@
 #include "timer.h"
 #include "output.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ----------------------------------------------------------------------
    allocate fundamental classes (memory, error, universe, input)
@@ -25,7 +25,7 @@ using namespace SPPARKS;
    input is allocated at end after MPI info is setup
 ------------------------------------------------------------------------- */
 
-SPK::SPK(int narg, char **arg, MPI_Comm communicator)
+SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
 {
   error = new Error(this);
   memory = new Memory(this);
@@ -238,7 +238,7 @@ SPK::SPK(int narg, char **arg, MPI_Comm communicator)
    delete fundamental classes
 ------------------------------------------------------------------------- */
 
-SPK::~SPK()
+SPPARKS::~SPPARKS()
 {
   destroy();
 
@@ -263,7 +263,7 @@ SPK::~SPK()
    fundamental classes are allocated in constructor
 ------------------------------------------------------------------------- */
 
-void SPK::create()
+void SPPARKS::create()
 {
   app = NULL;
   solve = NULL;
@@ -276,7 +276,7 @@ void SPK::create()
    init top-level classes
 ------------------------------------------------------------------------- */
 
-void SPK::init()
+void SPPARKS::init()
 {
   //app->init();
   //solve->init();
@@ -287,7 +287,7 @@ void SPK::init()
    fundamental classes are deleted in destructor
 ------------------------------------------------------------------------- */
 
-void SPK::destroy()
+void SPPARKS::destroy()
 {
   delete app;
   delete solve;

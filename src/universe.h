@@ -10,7 +10,7 @@
 #include "stdio.h"
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Universe : protected SysPtr {
  public:
@@ -27,15 +27,10 @@ class Universe : protected SysPtr {
   int *procs_per_world;   // # of procs in each world
   int *root_proc;         // root proc in each world
 
-  explicit Universe(class SPK *, MPI_Comm);
+  explicit Universe(class SPPARKS *, MPI_Comm);
   ~Universe();
   void add_world(char *);
   int consistent();
-
- private:
-  Universe(); // Not a sane operation.
-  Universe(const Universe&); // Not a sane operation.
-  Universe& operator=(const Universe&); // Not a sane operation.
 };
 
 }

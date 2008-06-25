@@ -8,7 +8,7 @@
 
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class App : protected SysPtr {
   public:
@@ -16,7 +16,7 @@ class App : protected SysPtr {
   char *style;
   int appclass;
 
-  App(class SPK *, int, char **);
+  App(class SPPARKS *, int, char **);
   virtual ~App();
   
   // virtual functions with empty definitions
@@ -35,11 +35,6 @@ class App : protected SysPtr {
   virtual void input(char *, int, char **) = 0;
   virtual void init() = 0;
   virtual void run(int, char **) = 0;
-
- private:
-  App(); // Not a sane operation.
-  App(const App&); // Not a sane operation.
-  App& operator=(const App&); // Not a sane operation.
 };
 
 }

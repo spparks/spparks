@@ -8,7 +8,7 @@
 #include "neighborhood.h"
 #include "state.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 

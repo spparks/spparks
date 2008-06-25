@@ -8,11 +8,11 @@
 
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class CommLattice2d : protected SysPtr {
  public:
-  CommLattice2d(class SPK *);
+  CommLattice2d(class SPPARKS *);
   ~CommLattice2d();
   void init(const int, const int, 
 	    const int, const int, const int, const int,

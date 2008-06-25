@@ -8,13 +8,13 @@
 
 #include "sweep.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class SweepLattice2d : public Sweep {
   friend class AppLattice2d;
 
  public:
-  SweepLattice2d(class SPK *, int, char **);
+  SweepLattice2d(class SPPARKS *, int, char **);
   ~SweepLattice2d();
   void init();
   void do_sweep(double &);

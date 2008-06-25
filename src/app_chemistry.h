@@ -8,11 +8,11 @@
 
 #include "app.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class AppChemistry : public App {
  public:
-  AppChemistry(class SPK *, int, char **);
+  AppChemistry(class SPPARKS *, int, char **);
   virtual ~AppChemistry();
   void init();
   void input(char *, int, char **);

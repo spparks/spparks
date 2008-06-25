@@ -12,11 +12,11 @@
 #include "random_park.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-SolveGPPT::SolveGPPT(SPK *spk, int narg, char **arg) : Solve(spk, narg, arg) 
+SolveGPPT::SolveGPPT(SPPARKS *spk, int narg, char **arg) : Solve(spk, narg, arg) 
 {
   if (narg != 2) error->all("Illegal solve command");
 

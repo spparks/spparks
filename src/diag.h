@@ -8,11 +8,11 @@
 
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Diag : protected SysPtr {
  public:
-  Diag(class SPK *, int, char **);
+  Diag(class SPPARKS *, int, char **);
   virtual ~Diag();
 
   int check_time(double, int);
@@ -28,11 +28,6 @@ class Diag : protected SysPtr {
   
   virtual void init(double) = 0;
   virtual void compute(double, int) = 0;
-
- private:
-  Diag(); // Not a sane operation.
-  Diag(const Diag&); // Not a sane operation.
-  Diag& operator=(const Diag&); // Not a sane operation.
 
  protected:
   char *style;

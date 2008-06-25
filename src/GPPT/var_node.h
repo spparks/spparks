@@ -10,7 +10,7 @@
 #include "string.h"
 #include "node.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class VarNode : public Node {
  public:

@@ -46,11 +46,11 @@ added definitions for the test app and next_event_linear_search style
 
 #include "app.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class AppTestGroup : public App {
  public:
-  AppTestGroup(class SPK *, int, char **);
+  AppTestGroup(class SPPARKS *, int, char **);
   ~AppTestGroup();
   void init();
   void input(char *, int, char **);

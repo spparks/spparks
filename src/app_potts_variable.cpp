@@ -17,11 +17,11 @@
 
 #include <map>
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsVariable::AppPottsVariable(SPK *spk, int narg, char **arg) : 
+AppPottsVariable::AppPottsVariable(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
   // parse arguments

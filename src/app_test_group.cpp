@@ -16,14 +16,14 @@
 #include "math.h"
 #include "output.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-AppTestGroup::AppTestGroup(SPK *spk, int narg, char **arg) :
+AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
   App(spk, narg, arg)
 {
   if (narg != 1) error->all("Invalid app_style test/group command");

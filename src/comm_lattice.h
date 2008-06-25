@@ -9,11 +9,11 @@
 #include "mpi.h"
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class CommLattice : protected SysPtr {
  public:
-  CommLattice(class SPK *);
+  CommLattice(class SPPARKS *);
   ~CommLattice();
   void init(class SweepLattice *, const int, const int, int *);
   void all();

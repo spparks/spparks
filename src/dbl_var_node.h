@@ -8,7 +8,7 @@
 
 #include "var_node.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
   class DblVarNode : public VarNode {
   public:

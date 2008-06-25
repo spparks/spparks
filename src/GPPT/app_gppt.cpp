@@ -27,14 +27,14 @@
 #include "population.h"
 
 using namespace std;
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-AppGPPT::AppGPPT(SPK *spk, int narg, char **arg) : App(spk, narg, arg)
+AppGPPT::AppGPPT(SPPARKS *spk, int narg, char **arg) : App(spk, narg, arg)
 {
   if (narg != 2) error->all("Invalid app_style GPPT command");
 
@@ -226,9 +226,11 @@ void AppGPPT::input(char *command, int narg, char **arg)
 
   else error->all("Invalid command");
 }
+
 /* ----------------------------------------------------------------------
    perform a run
 ------------------------------------------------------------------------- */
+
 void AppGPPT::run(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal run command");
@@ -247,9 +249,11 @@ void AppGPPT::run(int narg, char **arg)
 
   Finish finish(spk);
 }
+
 /* ----------------------------------------------------------------------
    iterate on solver
 ------------------------------------------------------------------------- */
+
 void AppGPPT::iterate()
 {
   int d,ievent;
@@ -295,9 +299,11 @@ void AppGPPT::iterate()
 
   timer->barrier_stop(TIME_LOOP);
 }
+
 /* ----------------------------------------------------------------------
    print stats
 ------------------------------------------------------------------------- */
+
 void AppGPPT::stats()
 {
   int i;
@@ -329,6 +335,7 @@ void AppGPPT::stats()
   }
 
 }
+
 /* ----------------------------------------------------------------------
    proc 0 writes dump header
 ------------------------------------------------------------------------- */
@@ -344,6 +351,7 @@ void AppGPPT::dump_header()
 
   }
 }
+
 /* ----------------------------------------------------------------------
    dump a snapshot of two populations stats
 ------------------------------------------------------------------------- */
@@ -371,7 +379,9 @@ void AppGPPT::dump()
   }
 
 }
+
 /* ---------------------------------------------------------------------- */
+
 void AppGPPT::set_tree_type(int narg, char **arg)
 {
   if (narg != 4) error->all("Illegal tree_type command");
@@ -394,7 +404,9 @@ void AppGPPT::set_tree_type(int narg, char **arg)
     }
   }
 }
+
 /* ---------------------------------------------------------------------- */
+
 void AppGPPT::set_population(int narg, char **arg)
 {
   if (narg != 2) error->all("Illegal population command");
@@ -411,7 +423,9 @@ void AppGPPT::set_population(int narg, char **arg)
     }
   }
 }
+
 /* ---------------------------------------------------------------------- */
+
 void AppGPPT::set_tempering(int narg, char **arg)
 {
   if (narg != 4) error->all("Illegal tempering command");
@@ -444,7 +458,9 @@ void AppGPPT::set_tempering(int narg, char **arg)
     }
   }
 }
+
 /* ---------------------------------------------------------------------- */
+
 void AppGPPT::set_stats(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal stats command");
@@ -459,6 +475,7 @@ void AppGPPT::set_stats(int narg, char **arg)
     }
   }
 }
+
 /* ---------------------------------------------------------------------- */
 
 // *** dump() DOES NOT WORK ANY MORE, EXCEPT MAYBE ON ONE PROCESSOR ***//
@@ -475,12 +492,16 @@ void AppGPPT::set_dump(int narg, char **arg)
   dpop1 = atoi(arg[2]);
   dpop2 = atoi(arg[3]);
 }
+
 /* ---------------------------------------------------------------------- */
+
 void AppGPPT::set_fitness(int narg, char **arg)
 {
   fit->set_fitness(narg, arg, me);
 }
+
 /* ---------------------------------------------------------------------- */
+
 void AppGPPT::get_best_fitness()
 {
   double current_best_fitness;
@@ -537,6 +558,7 @@ void AppGPPT::get_best_fitness()
 }
 
 /* ---------------------------------------------------------------------- */
+
 void AppGPPT::swap_trees(int par)
 {
   Population *curr_pop;
@@ -593,8 +615,9 @@ void AppGPPT::swap_trees(int par)
     curr_pop->swap_nbr(par, temp_nbr, test_tree);
   }
 }
+
 /* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
+
 void AppGPPT::pack_buffer(Node *root)
 {
   int buf_cnt;
@@ -628,6 +651,7 @@ void AppGPPT::pack_buffer(Node *root)
 }
 
 /* ---------------------------------------------------------------------- */
+
 Node* AppGPPT::unpack_buffer()
 {
   int buf_cnt;
@@ -652,6 +676,8 @@ Node* AppGPPT::unpack_buffer()
   }
 
 }
+
+/* ---------------------------------------------------------------------- */
 
 void AppGPPT::write_tight_buf() {
   int buf_cnt = 0;

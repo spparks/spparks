@@ -6,11 +6,11 @@
 #include "string.h"
 #include "sweep.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Sweep::Sweep(SPK *spk, int narg, char **arg) : SysPtr(spk)
+Sweep::Sweep(SPPARKS *spk, int narg, char **arg) : SysPtr(spk)
 {
   int n = strlen(arg[0]) + 1;
   style = new char[n];

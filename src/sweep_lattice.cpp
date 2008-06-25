@@ -19,7 +19,7 @@
 
 #include <map>
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define DELTA 100
 
@@ -27,7 +27,7 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-SweepLattice::SweepLattice(SPK *spk, int narg, char **arg) : 
+SweepLattice::SweepLattice(SPPARKS *spk, int narg, char **arg) : 
   Sweep(spk,narg,arg)
 {
   if (narg < 2) error->all("Illegal sweep_style command");

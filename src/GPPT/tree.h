@@ -6,7 +6,7 @@
 #ifndef TREE_H
 #define TREE_H
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
   
 #define MUT_CONST    0
 #define MUT_VAR      1

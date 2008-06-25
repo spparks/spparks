@@ -8,11 +8,11 @@
 
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Groups2 : protected SysPtr {
  public:
-  Groups2(class SPK *, double, double, int, int, int);
+  Groups2(class SPPARKS *, double, double, int, int, int);
   ~Groups2();
 
   void partition_init(double *,int);

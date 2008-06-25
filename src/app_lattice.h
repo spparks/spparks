@@ -12,7 +12,7 @@
 #include <stack>
 #include "cluster.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class AppLattice : public App {
   friend class SweepLattice;
@@ -21,7 +21,7 @@ class AppLattice : public App {
   friend class DiagCluster;
 
  public:
-  AppLattice(class SPK *, int, char **);
+  AppLattice(class SPPARKS *, int, char **);
   virtual ~AppLattice();
   void init();
   void input(char *, int, char **);

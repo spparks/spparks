@@ -12,11 +12,11 @@
 #include "random_park.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-SolveGroup::SolveGroup(SPK *spk, int narg, char **arg) :
+SolveGroup::SolveGroup(SPPARKS *spk, int narg, char **arg) :
   Solve(spk, narg, arg)
 {
   if (narg < 4) error->all("Illegal solve command");

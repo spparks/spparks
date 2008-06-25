@@ -8,11 +8,11 @@
 #include "node.h"
 #include "neighborhood.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Xpression::Xpression()
+Expression::Expression()
 {
   tree = NULL;
   memset(name,0,50);
@@ -20,27 +20,27 @@ Xpression::Xpression()
 
 /* ---------------------------------------------------------------------- */
 
-Xpression::~Xpression()
+Expression::~Expression()
 {
 }
 
 /* ---------------------------------------------------------------------- */
 
-char *Xpression::get_name()
+char *Expression::get_name()
 { 
   return &name[0];
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Xpression::set_name(char *tname)
+void Expression::set_name(char *tname)
 {
   strcpy(name,tname);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Xpression::set_expression(int narg, char **arg)
+void Expression::set_expression(int narg, char **arg)
 {
    set_name(arg[0]);
 
@@ -54,14 +54,14 @@ void Xpression::set_expression(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double Xpression::eval(int indx)
+double Expression::eval(int indx)
 {
   return root->go(indx);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double Xpression::sum(int ndx)
+double Expression::sum(int ndx)
 {
   double sum = 0.0;
   int ndx_nb;

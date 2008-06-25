@@ -8,11 +8,11 @@
 
 #include "solve.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class SolveAlias : public Solve {
  public:
-  SolveAlias(class SPK *, int, char **);
+  SolveAlias(class SPPARKS *, int, char **);
   ~SolveAlias();
   SolveAlias *clone();
 

@@ -5,7 +5,7 @@
 
 #include "dbl_var_node.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 

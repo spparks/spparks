@@ -20,7 +20,7 @@
 #include "int_var_node.h"
 
 using namespace std;
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 

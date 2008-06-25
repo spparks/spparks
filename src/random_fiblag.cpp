@@ -6,7 +6,7 @@
 #include "math.h"
 #include "random_fiblag.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 

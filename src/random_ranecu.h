@@ -6,7 +6,7 @@
 #ifndef RANDOM_RANECU_H
 #define RANDOM_RANECU_H
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class RandomRanecu {
  public:

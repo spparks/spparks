@@ -9,11 +9,11 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Memory::Memory(SPK *spk) : SysPtr(spk) {}
+Memory::Memory(SPPARKS *spk) : SysPtr(spk) {}
 
 /* ----------------------------------------------------------------------
    safe malloc 

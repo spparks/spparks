@@ -20,7 +20,7 @@
 
 #include <map>
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 enum{NONE,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
        RANDOM_2D,RANDOM_3D,FILENAME};
@@ -33,7 +33,7 @@ enum{NONE,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
 
 /* ---------------------------------------------------------------------- */
 
-AppLattice::AppLattice(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
+AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
 {
   appclass = LATTICE;
 

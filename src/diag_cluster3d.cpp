@@ -17,11 +17,11 @@
 #include "comm_lattice3d.h"
 #include "random_park.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DiagCluster3d::DiagCluster3d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
+DiagCluster3d::DiagCluster3d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
   fp = NULL;
   fpdump = NULL;

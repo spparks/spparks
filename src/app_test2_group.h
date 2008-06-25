@@ -8,11 +8,11 @@
 
 #include "app.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class AppTest2Group : public App {
  public:
-  AppTest2Group(class SPK *, int, char **);
+  AppTest2Group(class SPPARKS *, int, char **);
   ~AppTest2Group();
   void init();
   void input(char *, int, char **);

@@ -16,14 +16,14 @@
 #include "app_lattice3d.h"
 #include "comm_lattice3d.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-DiagEprof3d::DiagEprof3d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
+DiagEprof3d::DiagEprof3d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
   fp = NULL;
   prof = NULL;

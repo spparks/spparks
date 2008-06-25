@@ -8,11 +8,11 @@
 
 #include "sysptr.h"
 #include "diag.h"
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Output : protected SysPtr {
  public:
-  explicit Output(class SPK *);
+  explicit Output(class SPPARKS *);
   ~Output();
   void init(double);
   void set_stats(int, char **);

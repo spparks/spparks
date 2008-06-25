@@ -10,7 +10,7 @@
 #include "sysptr.h"
 #include "tree.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Population : protected SysPtr {
  public:

@@ -8,7 +8,7 @@
 
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Solve : protected SysPtr {
  protected:
@@ -18,7 +18,7 @@ class Solve : protected SysPtr {
  public:
   char *style;
 
-  Solve(class SPK *, int, char **);
+  Solve(class SPPARKS *, int, char **);
   virtual ~Solve();
 
   double get_total_propensity();

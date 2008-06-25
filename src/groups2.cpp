@@ -9,11 +9,11 @@
 #include "random_park.h"
 #include "memory.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Groups2::Groups2(SPK *spk, double lo_in, double hi_in, int seed_in, 
+Groups2::Groups2(SPPARKS *spk, double lo_in, double hi_in, int seed_in, 
 		 int ng_flag, int ngr_in) : SysPtr(spk)
 {
   my_group = NULL;

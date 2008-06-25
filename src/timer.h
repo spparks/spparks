@@ -8,7 +8,7 @@
 
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 enum{TIME_LOOP,TIME_SOLVE,TIME_UPDATE,TIME_COMM,TIME_OUTPUT,TIME_APP,TIME_N};
 
@@ -16,7 +16,7 @@ class Timer : protected SysPtr {
  public:
   double *array;
 
-  explicit Timer(class SPK *);
+  explicit Timer(class SPPARKS *);
   ~Timer();
   void init();
   void stamp();

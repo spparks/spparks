@@ -8,11 +8,11 @@
 
 #include "solve.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class SolveTree : public Solve {
  public:
-  SolveTree(class SPK *, int, char **);
+  SolveTree(class SPPARKS *, int, char **);
   ~SolveTree();
   SolveTree *clone();
 

@@ -15,14 +15,14 @@
 #include "app_lattice2d.h"
 #include "comm_lattice2d.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-DiagEnergy2d::DiagEnergy2d(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
+DiagEnergy2d::DiagEnergy2d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
 
   int iarg = 2;

@@ -13,11 +13,11 @@
 #include "timer.h"
 #include "diag.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Diag::Diag(SPK *spk, int narg, char **arg) : SysPtr(spk)
+Diag::Diag(SPPARKS *spk, int narg, char **arg) : SysPtr(spk)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

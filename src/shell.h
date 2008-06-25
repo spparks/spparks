@@ -8,17 +8,12 @@
 
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Shell : protected SysPtr {
  public:
-  explicit Shell(class SPK *);
+  explicit Shell(class SPPARKS *);
   void command(int, char **);
-
- private:
-  Shell(); // Not a sane operation.
-  Shell(const Shell&); // Not a sane operation.
-  Shell& operator=(const Shell&); // Not a sane operation.
 };
 
 }

@@ -15,7 +15,7 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #include <map>
 
@@ -26,7 +26,7 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-CommLattice::CommLattice(SPK *spk) : SysPtr(spk)
+CommLattice::CommLattice(SPPARKS *spk) : SysPtr(spk)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

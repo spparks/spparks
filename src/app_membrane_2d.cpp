@@ -15,13 +15,13 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 enum{NONE,LIPID,FLUID,PROTEIN};
 
 /* ---------------------------------------------------------------------- */
 
-AppMembrane2d::AppMembrane2d(SPK *spk, int narg, char **arg) : 
+AppMembrane2d::AppMembrane2d(SPPARKS *spk, int narg, char **arg) : 
   AppLattice2d(spk,narg,arg)
 {
   // parse arguments

@@ -9,7 +9,7 @@
 #include "stdio.h"
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Input : protected SysPtr {
  public:
@@ -17,7 +17,7 @@ class Input : protected SysPtr {
   char **arg;                  // parsed args for command
   class Variable *variable;    // defined variables
 
-  Input(class SPK *, int, char **);
+  Input(class SPPARKS *, int, char **);
   ~Input();
   void file();                   // process all input
   void file(char *);             // process an input script

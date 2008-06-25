@@ -17,11 +17,11 @@
 #include "comm_lattice.h"
 #include "random_park.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DiagCluster::DiagCluster(SPK *spk, int narg, char **arg) : Diag(spk,narg,arg)
+DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
   cluster_ids = NULL;
   comm = NULL;

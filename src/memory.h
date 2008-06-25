@@ -8,11 +8,11 @@
 
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Memory : protected SysPtr {
  public:
-  explicit Memory(class SPK *);
+  explicit Memory(class SPPARKS *);
 
   void *smalloc(long long int n, const char *);
   void sfree(void *);
@@ -103,11 +103,6 @@ class Memory : protected SysPtr {
 
   template<typename T>
     void destroy_4d_T_array(T ****);
-
- private:
-  Memory(); // Not a sane operation.
-  Memory(const Memory&); // Not a sane operation.
-  Memory& operator=(const Memory&); // Not a sane operation.
 };
 
 // Non-inline function definitions still need to go in the header file

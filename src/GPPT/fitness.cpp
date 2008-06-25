@@ -9,11 +9,11 @@
 #include "random_park.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Fitness::Fitness(SPK *spk) : SysPtr(spk)
+Fitness::Fitness(SPPARKS *spk) : SysPtr(spk)
 {
   nvar = 0;
 

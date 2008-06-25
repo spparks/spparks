@@ -8,14 +8,14 @@
 
 #include "sweep.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class SweepLattice : public Sweep {
   friend class AppLattice;
   friend class CommLattice;
 
  public:
-  SweepLattice(class SPK *, int, char **);
+  SweepLattice(class SPPARKS *, int, char **);
   ~SweepLattice();
   void init();
   void do_sweep(double &);

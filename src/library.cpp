@@ -12,25 +12,25 @@
 #include "app.h"
 #include "input.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ----------------------------------------------------------------------
-   create an instance of SPK and return pointer to it
+   create an instance of SPPARKS and return pointer to it
 ------------------------------------------------------------------------- */
 
 void spk_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 {
-  SPK *spk = new SPK(argc,argv,communicator);
+  SPPARKS *spk = new SPPARKS(argc,argv,communicator);
   *ptr = (void *) spk;
 }
 
 /* ----------------------------------------------------------------------
-   destruct an instance of SPK
+   destruct an instance of SPPARKS
 ------------------------------------------------------------------------- */
 
 void spk_close(void *ptr)
 {
-  SPK *spk = (SPK *) ptr;
+  SPPARKS *spk = (SPPARKS *) ptr;
   delete spk;
 }
 
@@ -40,7 +40,7 @@ void spk_close(void *ptr)
 
 void spk_file(void *ptr, char *str)
 {
-  SPK *spk = (SPK *) ptr;
+  SPPARKS *spk = (SPPARKS *) ptr;
   spk->input->file(str);
 }
 
@@ -50,11 +50,11 @@ void spk_file(void *ptr, char *str)
 
 char *spk_command(void *ptr, char *str)
 {
-  SPK *spk = (SPK *) ptr;
+  SPPARKS *spk = (SPPARKS *) ptr;
   return spk->input->one(str);
 }
 
 /* ----------------------------------------------------------------------
-   add SPK-specific library functions
-   all must receive SPK pointer as argument
+   add SPPARKS-specific library functions
+   all must receive SPPARKS pointer as argument
 ------------------------------------------------------------------------- */

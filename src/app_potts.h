@@ -8,11 +8,11 @@
 
 #include "app_lattice.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class AppPotts : public AppLattice {
  public:
-  AppPotts(class SPK *, int, char **);
+  AppPotts(class SPPARKS *, int, char **);
   ~AppPotts();
 
   double site_energy(int);

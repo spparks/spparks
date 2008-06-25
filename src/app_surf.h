@@ -9,11 +9,11 @@
 #include "stdio.h"
 #include "app.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class AppSurf : public App {
  public:
-  AppSurf(class SPK *, int, char **);
+  AppSurf(class SPPARKS *, int, char **);
   ~AppSurf();
   void init();
   void input(char *, int, char **);

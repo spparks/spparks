@@ -12,7 +12,7 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define VARDELTA 4
 
@@ -20,7 +20,7 @@ enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE};
 
 /* ---------------------------------------------------------------------- */
 
-Variable::Variable(SPK *spk) : SysPtr(spk)
+Variable::Variable(SPPARKS *spk) : SysPtr(spk)
 {
   MPI_Comm_rank(world,&me);
 

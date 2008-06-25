@@ -8,11 +8,11 @@
 #include "error.h"
 #include "universe.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Error::Error(SPK *spk) : SysPtr(spk)
+Error::Error(SPPARKS *spk) : SysPtr(spk)
 {
 }
 

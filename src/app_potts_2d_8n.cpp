@@ -16,14 +16,14 @@
 #include "error.h"
 #include "cluster.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-AppPotts2d8n::AppPotts2d8n(SPK *spk, int narg, char **arg) : 
+AppPotts2d8n::AppPotts2d8n(SPPARKS *spk, int narg, char **arg) : 
   AppPotts2d(spk,narg,arg)
 {
 

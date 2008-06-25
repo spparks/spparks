@@ -8,11 +8,11 @@
 
 #include "app_potts_2d.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class AppPotts2d4n : public AppPotts2d {
  public:
-  AppPotts2d4n(class SPK *, int, char **);
+  AppPotts2d4n(class SPPARKS *, int, char **);
   ~AppPotts2d4n();
 
   double site_energy(int, int);

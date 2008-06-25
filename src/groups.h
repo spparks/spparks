@@ -6,7 +6,7 @@
 #ifndef GROUPS_H
 #define GROUPS_H
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Groups {
  public:

@@ -9,7 +9,7 @@
 #include "math.h"
 #include "node.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class PowNode : public Node {
  public:

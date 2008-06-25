@@ -6,11 +6,11 @@
 #include "string.h"
 #include "solve.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Solve::Solve(SPK *spk, int narg, char **arg) : SysPtr(spk)
+Solve::Solve(SPPARKS *spk, int narg, char **arg) : SysPtr(spk)
 {
   int n = strlen(arg[0]) + 1;
   style = new char[n];

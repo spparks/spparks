@@ -8,7 +8,7 @@
 
 #include "node.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class TimesNode : public Node {
  public:

@@ -15,11 +15,11 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppPotts3d::AppPotts3d(SPK *spk, int& narg, char **arg) : 
+AppPotts3d::AppPotts3d(SPPARKS *spk, int& narg, char **arg) : 
   AppLattice3d(spk,narg,arg)
 {
 

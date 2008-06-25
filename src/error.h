@@ -8,11 +8,11 @@
 
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Error : protected SysPtr {
  public:
-  explicit Error(class SPK *);
+  explicit Error(class SPPARKS *);
 
   void universe_all(const char *);
   void universe_one(const char *);
@@ -20,11 +20,6 @@ class Error : protected SysPtr {
   void all(const char *);
   void one(const char *);
   void warning(const char *);
-
- private:
-  Error(); // Not a sane operation.
-  Error(const Error&); // Not a sane operation.
-  Error& operator=(const Error&); // Not a sane operation.
 };
 
 }

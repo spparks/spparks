@@ -8,7 +8,7 @@
 
 #include "string.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 #define FLIP        0
 #define KFLIP       1
@@ -44,7 +44,7 @@ class Event{
       {lo = ilo; hi = ihi;}
     inline void set_src(int srctype_in){srctype = srctype_in;}
     virtual int site_event(int, double)=0;
-    void set_propensity(int, class Xpression *);
+    void set_propensity(int, class Expression *);
     inline void set_temperature(double t)
       {if(t>0)beta = 1.0/t;else beta = 0.0;}
     virtual void init(){}
@@ -63,11 +63,11 @@ class Event{
     int srctype;
     int maxnb;
 
-    class Xpression *prop;
+    class Expression *prop;
     int ptype;
     double beta;
   };
+
 }
 
 #endif
-

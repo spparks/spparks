@@ -17,7 +17,7 @@ The distribution has to be bounded.
 #include <iostream>
 
 using namespace std;
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 

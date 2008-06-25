@@ -15,11 +15,11 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppIsing2d8n::AppIsing2d8n(SPK *spk, int narg, char **arg) : 
+AppIsing2d8n::AppIsing2d8n(SPPARKS *spk, int narg, char **arg) : 
   AppLattice2d(spk,narg,arg)
 {
   // parse arguments

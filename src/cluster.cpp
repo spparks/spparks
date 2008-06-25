@@ -7,7 +7,7 @@
 #include "stdio.h"
 #include "cluster.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 Cluster::Cluster(int id, double vol, int nn, double* neighs) {
   global_id = id;

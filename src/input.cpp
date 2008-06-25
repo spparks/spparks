@@ -29,14 +29,14 @@
 #undef SweepInclude
 #undef DiagInclude
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define MAXLINE 1024
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */
 
-Input::Input(SPK *spk, int argc, char **argv) : SysPtr(spk)
+Input::Input(SPPARKS *spk, int argc, char **argv) : SysPtr(spk)
 {
   MPI_Comm_rank(world,&me);
 

@@ -8,9 +8,9 @@
 
 #include "tree.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
   
-class Xpression {
+class Expression {
     
   protected:
     char name[50];
@@ -18,8 +18,8 @@ class Xpression {
     class Node *root;
     
   public:
-    Xpression();
-    ~Xpression();
+    Expression();
+    ~Expression();
     
     char *get_name();
     void set_name(char *);

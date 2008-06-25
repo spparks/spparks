@@ -14,7 +14,7 @@
 #include "error.h"
 #include "output.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define MAX_PRODUCT 5
 #define AVOGADRO 6.023e23
@@ -24,7 +24,7 @@ using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-AppChemistry::AppChemistry(SPK *spk, int narg, char **arg) : App(spk,narg,arg)
+AppChemistry::AppChemistry(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
 {
   if (narg != 1) error->all("Invalid app_style chemistry command");
 

@@ -8,7 +8,7 @@
 
 #include "stdio.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 #define PLUS         0
 #define MINUS        1

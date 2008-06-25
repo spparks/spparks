@@ -12,11 +12,11 @@
 #include "node.h"
 
 using namespace std;
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Fitness : protected SysPtr {
  public:
-    Fitness(SPK *);
+    Fitness(SPPARKS *);
     ~Fitness();
     double compute(Node *);
     void init();

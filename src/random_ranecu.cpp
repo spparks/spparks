@@ -6,7 +6,7 @@
 #include "math.h"
 #include "random_ranecu.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 

@@ -6,7 +6,7 @@
 #ifndef CLUSTER_H
 #define CLUSTER_H
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Cluster {
  private:

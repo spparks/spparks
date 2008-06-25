@@ -8,11 +8,11 @@
 
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Variable : protected SysPtr {
  public:
-  explicit Variable(class SPK *);
+  explicit Variable(class SPPARKS *);
   ~Variable();
   void set(int, char **);
   void set(char *, char *);
@@ -33,11 +33,6 @@ class Variable : protected SysPtr {
   void copy(int, char **, char **);
   char *evaluate(char *);
   void remove(int);
-
- private:
-  Variable(); // Not a sane operation.
-  Variable(const Variable&); // Not a sane operation.
-  Variable& operator=(const Variable&); // Not a sane operation.
 };
 
 }

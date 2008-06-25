@@ -6,7 +6,7 @@
 #ifndef RANDOM_FIBLAG_H
 #define RANDOM_FIBLAG_H
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class RandomFibLag {
  public:

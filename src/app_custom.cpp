@@ -8,20 +8,20 @@
 #include "string.h"
 #include "stdlib.h"
 #include "app_custom.h"
+#include "flip_event.h"
+#include "swap_event.h"
 #include "comm_lattice.h"
 #include "solve.h"
 #include "random_park.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
-#include "flip_event.h"
-#include "swap_event.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppCustom::AppCustom(SPK *spk, int narg, char **arg) : 
+AppCustom::AppCustom(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
   // parse arguments
@@ -397,7 +397,7 @@ void AppCustom::set_expression(int narg, char **arg)
     tr->set_lattice(iarray, darray);
     tr->set_names(name_int, n_int_var, name_dbl, n_dbl_var);
   }
-  Xpression *xpr_local = new Xpression();
+  Expression *xpr_local = new Expression();
   xpr_local->set_tree(tr);
   xpr_local->set_expression(narg, arg);
   expr.push_back(xpr_local);
@@ -457,7 +457,7 @@ Neighborhood *AppCustom::get_neighborhood(char *name_in)
    find an expression
 ------------------------------------------------------------------------- */
 
-Xpression *AppCustom::get_expression(char *name_in)
+Expression *AppCustom::get_expression(char *name_in)
 {
   for (int xp = 0; xp < expr.size(); xp++){
     if(strcmp(name_in, expr[xp]->get_name())==0) return expr[xp];
@@ -532,7 +532,7 @@ void AppCustom::set_event(int narg, char **arg)
 
   current_event->set_temperature(temperature);
   //default propensity is a ZERO tree
-  Xpression *my_expression = get_expression("ZERO");
+  Expression *my_expression = get_expression("ZERO");
   current_event->set_propensity(1,my_expression);
 
   current_event->init();
@@ -561,7 +561,7 @@ void AppCustom::set_propensity(int narg, char **arg)
 
   if (narg < 2) error->one("Illegal propensity command");
   Event *my_event = get_event(arg[0]);
-  Xpression *my_expression = get_expression(arg[2]);
+  Expression *my_expression = get_expression(arg[2]);
 
   if(strcmp(arg[1],"boltz")==0) ptype = PROP_BOLTZ;
   else if(strcmp(arg[1],"eval")==0) ptype = PROP_EVAL;

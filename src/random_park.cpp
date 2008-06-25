@@ -6,7 +6,7 @@
 #include "math.h"
 #include "random_park.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define IA 16807
 #define IM 2147483647

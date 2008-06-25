@@ -17,13 +17,13 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-SweepLattice3d::SweepLattice3d(SPK *spk, int narg, char **arg) : 
+SweepLattice3d::SweepLattice3d(SPPARKS *spk, int narg, char **arg) : 
   Sweep(spk,narg,arg)
 {
   if (narg < 2) error->all("Illegal sweep_style command");

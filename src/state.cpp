@@ -8,7 +8,7 @@
 #include "state.h"
 #include "random_park.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 

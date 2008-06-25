@@ -9,12 +9,12 @@
 #include "stdio.h"
 #include "diag.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class DiagEnergy2d : public Diag {
 
  public:
-  DiagEnergy2d(class SPK *, int, char **);
+  DiagEnergy2d(class SPPARKS *, int, char **);
   virtual ~DiagEnergy2d();
 
   void init(double);

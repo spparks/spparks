@@ -3,15 +3,15 @@
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_H
-#define SPK_H
+#ifndef SPPARKS_H
+#define SPPARKS_H
 
 #include "mpi.h"
 #include "stdio.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
-class SPK {
+class SPPARKS {
  public:
   class Universe *universe;      // universe of processors
   class Input *input;            // input script processing
@@ -29,8 +29,8 @@ class SPK {
   FILE *screen;            // screen output for my world
   FILE *logfile;           // logfile for my world
 
-  SPK(int, char **, MPI_Comm);
-  ~SPK();
+  SPPARKS(int, char **, MPI_Comm);
+  ~SPPARKS();
   void create();
   void init();
   void destroy();

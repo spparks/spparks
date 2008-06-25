@@ -6,7 +6,7 @@
 #include "stdio.h"
 #include "divide_node.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 

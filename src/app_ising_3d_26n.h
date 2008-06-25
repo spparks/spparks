@@ -8,11 +8,11 @@
 
 #include "app_lattice3d.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class AppIsing3d26n : public AppLattice3d {
  public:
-  AppIsing3d26n(class SPK *, int, char **);
+  AppIsing3d26n(class SPPARKS *, int, char **);
   ~AppIsing3d26n();
 
   double site_energy(int, int, int);

@@ -9,11 +9,11 @@
 #include "solve.h"
 #include "node.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
   
 class SolveGPPT : public Solve {
  public:
-  SolveGPPT(class SPK *, int, char **);
+  SolveGPPT(class SPPARKS *, int, char **);
   ~SolveGPPT();
   SolveGPPT *clone();
 

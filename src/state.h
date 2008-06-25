@@ -15,7 +15,7 @@
 #include "random_park.h"
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
   
 class State {
   protected:

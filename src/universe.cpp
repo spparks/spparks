@@ -9,13 +9,13 @@
 #include "universe.h"
 #include "memory.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ----------------------------------------------------------------------
    create & initialize the universe of processors in communicator
 ------------------------------------------------------------------------- */
 
-Universe::Universe(SPK *spk, MPI_Comm communicator) : SysPtr(spk)
+Universe::Universe(SPPARKS *spk, MPI_Comm communicator) : SysPtr(spk)
 {
   version = (char *)"1 Oct 2006";
 

@@ -15,14 +15,14 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-AppPotts2d24n::AppPotts2d24n(SPK *spk, int narg, char **arg) : 
+AppPotts2d24n::AppPotts2d24n(SPPARKS *spk, int narg, char **arg) : 
   AppPotts2d(spk,narg,arg)
 {
 

@@ -15,11 +15,11 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppPotts2d4n::AppPotts2d4n(SPK *spk, int narg, char **arg) : 
+AppPotts2d4n::AppPotts2d4n(SPPARKS *spk, int narg, char **arg) : 
   AppPotts2d(spk,narg,arg)
 {
 

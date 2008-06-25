@@ -11,13 +11,13 @@
 #include "cluster.h"
 #include "diag.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class DiagCluster3d : public Diag {
   friend class SweepLattice3d;
 
  public:
-  DiagCluster3d(class SPK *, int, char **);
+  DiagCluster3d(class SPPARKS *, int, char **);
   virtual ~DiagCluster3d();
 
   void init(double);

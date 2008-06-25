@@ -10,11 +10,11 @@
 #include "shell.h"
 #include "error.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Shell::Shell(SPK *spk) : SysPtr(spk) {}
+Shell::Shell(SPPARKS *spk) : SysPtr(spk) {}
 
 /* ---------------------------------------------------------------------- */
 

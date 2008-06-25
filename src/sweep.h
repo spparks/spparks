@@ -8,13 +8,13 @@
 
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Sweep : protected SysPtr {
  public:
   char *style;
 
-  Sweep(class SPK *, int, char **);
+  Sweep(class SPPARKS *, int, char **);
   virtual ~Sweep();
   virtual void init() = 0;
   virtual void do_sweep(double&) = 0;

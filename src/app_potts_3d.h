@@ -8,11 +8,11 @@
 
 #include "app_lattice3d.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class AppPotts3d : public AppLattice3d {
  public:
-  AppPotts3d(class SPK *, int&, char **);
+  AppPotts3d(class SPPARKS *, int&, char **);
   ~AppPotts3d();
 
  protected:

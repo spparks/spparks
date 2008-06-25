@@ -10,11 +10,11 @@
 #include "timer.h"
 #include "memory.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Finish::Finish (SPK *spk) : SysPtr(spk)
+Finish::Finish (SPPARKS *spk) : SysPtr(spk)
 {
   int i;
   int histo[10];

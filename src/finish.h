@@ -8,20 +8,15 @@
 
 #include "sysptr.h"
 
-namespace SPPARKS {
+namespace SPPARKS_NS {
 
 class Finish : protected SysPtr {
  public:
-  explicit Finish(class SPK *);
+  explicit Finish(class SPPARKS *);
   ~Finish() {}
 
  private:
   void stats(int, double *, double *, double *, double *, int, int *);
-
- private:
-  Finish(); // Not a sane operation.
-  Finish(const Finish&); // Not a sane operation.
-  Finish& operator=(const Finish&); // Not a sane operation.
 };
 
 }

@@ -7,11 +7,11 @@
 #include "timer.h"
 #include "memory.h"
 
-using namespace SPPARKS;
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Timer::Timer(SPK *spk) : SysPtr(spk)
+Timer::Timer(SPPARKS *spk) : SysPtr(spk)
 {
   array = (double *) memory->smalloc(TIME_N*sizeof(double),"array");
 }
