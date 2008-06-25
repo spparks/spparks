@@ -4,12 +4,9 @@
 #include "stdlib.h"
 #include "string.h"
 #include "divide_node.h"
-#include "spk.h"
 #include "random_park.h"
 #include "error.h"
-#include <iostream>
 
-using namespace std;
 using namespace SPPARKS;
 /* ---------------------------------------------------------------------- */
 DivideNode::DivideNode() : Node()
@@ -50,6 +47,9 @@ void DivideNode::write_stack(FILE *dest)
 /* ---------------------------------------------------------------------- */
 double DivideNode::go(double * var)
 {
+
+  cout <<"trying to divide "<<left_child->go(var)<<
+    " by "<< right_child->go(var)<<endl;
   return left_child->go(var)/right_child->go(var);
 }
 /* ---------------------------------------------------------------------- */

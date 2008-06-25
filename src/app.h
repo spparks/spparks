@@ -40,7 +40,6 @@ class App : protected SysPtr {
   App(); // Not a sane operation.
   App(const App&); // Not a sane operation.
   App& operator=(const App&); // Not a sane operation.
-
 };
 
 }

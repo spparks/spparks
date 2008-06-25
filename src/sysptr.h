@@ -19,13 +19,14 @@
 #define SYSPTR_H
 
 #include "mpi.h"
-#include "spk.h"
+#include "stdio.h"
+#include "spparks.h"
 
 namespace SPPARKS {
 
 class SysPtr {
 public:
-  explicit SysPtr(SPK *sys) :
+  explicit SysPtr(class SPK *sys) :
     spk(sys),
     universe(sys->universe),
     input(sys->input),
@@ -43,7 +44,7 @@ public:
   virtual ~SysPtr() {}
 
 protected:
-  SPK *spk;
+  class SPK *spk;
 
   class Universe *&universe;      // universe of processors
   class Input *&input;            // input script processing

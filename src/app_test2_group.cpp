@@ -7,7 +7,6 @@
 #include "stdlib.h"
 #include "string.h"
 #include "app_test2_group.h"
-#include "spk.h"
 #include "solve.h"
 #include "finish.h"
 #include "timer.h"

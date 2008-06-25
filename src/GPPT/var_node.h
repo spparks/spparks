@@ -32,9 +32,27 @@ class VarNode : public Node {
   inline void clear(){delete this;};
   inline void clear_ch(){};
 
+  inline bool equals(Node *in){
+    if (in->type == type)
+      if(static_cast<VarNode*>(in)->get_value()==var_index)
+	return true;
+
+    return false;
+  };
+  char var_name[16];
+  inline void set_name(char *name_in){strcpy(var_name,name_in);}
+  inline char *get_name(){return var_name;}
+  inline void set_data_type(int in){data_type = in;}
+  virtual void set_data_pointer(void *in){data_p = in;}
+  inline void set_nb(){nb_flag = 1;}
+
+  void *data_p;
+  int nb_flag;
   private:
 
   int var_index;
+  int data_type;
+
 
 };
 

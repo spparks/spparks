@@ -5,10 +5,8 @@
 
 #include "stdio.h"
 #include "stdlib.h"
-#include <iostream>
 #include "string.h"
 #include "app_test_group.h"
-#include "spk.h"
 #include "solve.h"
 #include "finish.h"
 #include "timer.h"
@@ -19,7 +17,6 @@
 #include "output.h"
 
 using namespace SPPARKS;
-using namespace std;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))

@@ -4,12 +4,9 @@
 #include "stdlib.h"
 #include "string.h"
 #include "var_node.h"
-#include "spk.h"
 #include "random_park.h"
 #include "error.h"
-#include <iostream>
 
-using namespace std;
 using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
@@ -17,6 +14,7 @@ using namespace SPPARKS;
 VarNode::VarNode() : Node()
 {
   type = VARIABLE;
+  nb_flag = 0;
 }
 /* ---------------------------------------------------------------------- */
 VarNode::~VarNode()

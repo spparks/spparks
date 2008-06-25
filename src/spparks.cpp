@@ -5,7 +5,7 @@
 
 #include "mpi.h"
 #include "string.h"
-#include "spk.h"
+#include "spparks.h"
 #include "memory.h"
 #include "error.h"
 #include "universe.h"

@@ -11,34 +11,42 @@ SRC =	$(wildcard *.cpp)
 INC =	$(wildcard *.h)
 OBJ = 	$(SRC:.cpp=.o)
 
+# Package variables
+
+PACKAGE = gppt
+PACKAGEUC = $(shell perl -e 'printf("%s", uc("$(PACKAGE)"));')
+YESDIR = $(shell perl -e 'printf("%s", uc("$(@:yes-%=%)"));')
+NODIR  = $(shell perl -e 'printf("%s", uc("$(@:no-%=%)"));')
+
 # Targets
 
+# List of all targets
+
 help:
-	@echo 'Type "make target" where target is one of:'
+	@echo ''
+	@echo 'make clean-all           delete all object files'
+	@echo 'make clean-machine       delete object files for one machine'
+	@echo 'make tar                 spk_src.tar.gz of src dir and packages'
+	@echo 'make makelib             update Makefile.lib for library build'
+	@echo 'make makelist            update Makefile.list used by old makes'
+	@echo ''
+	@echo 'make package             list available packages'
+	@echo 'make package-status      status of all packages'
+	@echo 'make yes-package         install a single package in src dir'
+	@echo 'make no-package          remove a single package from src dir'
+	@echo 'make yes-all             install all packages in src dir'
+	@echo 'make no-all              remove all packages from src dir'
+	@echo ''
+	@echo 'make package-update      replace src files with package files'
+	@echo 'make package-overwrite   replace package files with src files'
+	@echo ''
+	@echo 'make machine             build LAMMPS where machine is one of:'
 	@echo ''
 	@files="`ls MAKE/Makefile.*`"; \
-	for file in $$files; do head -1 $$file; done
+	  for file in $$files; do head -1 $$file; done
 	@echo ''
-	@echo 'or else:'
-	@echo ''
-	@echo 'make help = usage information'
-	@echo 'make clean = remove all Obj directories and *.o files'
-	@echo 'make makelist = create Makefile.list with explicit file list'
-	@echo 'make tar = make tarball of src dir'
-	@echo 'make package = see what packages are available'
-	@echo 'make test = runs set of tests in ../test using spk_serial'
-	@echo 'make TESTTARGET=<a target> test = runs set of tests in ../test using some other target'
 
-clean:
-	rm -r Obj_*
-
-tar:
-	mkdir spk_src
-	rm -f *~ MAKE/*~ STUBS/*~ STUBS/*.o STUBS/libmpi.a
-	cp -r *.cpp *.h OVERVIEW Makefile* MAKE STUBS in.* spk_src
-	cp -r GPPT spk_src
-	tar -zcvf spk_src.tgz spk_src
-	rm -rf spk_src	
+# Build the code
 
 .DEFAULT:
 	@test -f MAKE/Makefile.$@
@@ -49,17 +57,27 @@ tar:
 	$(MAKE)  "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm $(SRC) $(INC) Makefile*; fi
 
-# Can overide this on command line e.g. make TESTTARGET=mac_mpi test
-TESTTARGET = serial
+# Remove machine-specific object files
 
-test:
-	@cp MAKE/Makefile.$(TESTTARGET) ../test/Makefile
-	@cd ../test; rm -f test.out; \
-	files="in.abc in.abc.alex in.event in.ising in.kristi in.membrane in.potts in.surf"; \
-	for file in $$files; do echo >> test.out;echo >> test.out; \
-	echo "*** Testing file $$file ***" >> test.out;echo >> test.out; \
-	$(MAKE) "INPUTFILE = $$file" "EXE = ../src/$(ROOT)_$(TESTTARGET)" test >> test.out 2>&1; \
-	done; rm Makefile
+clean:
+	@echo 'make clean-all           delete all object files'
+	@echo 'make clean-machine       delete object files for one machine'
+
+clean-all:
+	rm -rf Obj_*
+
+clean-%:
+	rm -rf Obj_$(@:clean-%=%)
+
+# Create a tarball of src dir and packages
+
+tar:
+	@cd STUBS; make clean
+	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
+	  src/Make* src/Package.csh src/MAKE src/*.cpp src/*.h src/STUBS \
+	  $(patsubst %,src/%,$(PACKAGEUC)) --exclude=*/.svn
+	@cd STUBS; make
+	@echo "Created $(ROOT)_src.tar.gz"
 
 # Update Makefile.lib and Makefile.list
 
@@ -69,42 +87,54 @@ makelib:
 makelist:
 	@csh Make.csh Makefile.list
 
-# Packages
+# Package management
 
 package:
-	@echo 'Available packages:'
-	@echo '  gppt'
-	@echo 'make yes-name     to include a package'
-	@echo 'make no-name      to exclude a package'
-	@echo 'make yes-all      to include all packages'
-	@echo 'make no-all       to exclude all packages'
+	@echo 'Standard packages:' $(PACKAGE)
+	@echo ''
+	@echo 'User-contributed packages:' $(PACKUSER)
+	@echo ''
+	@echo 'make package             list available packages'
+	@echo 'make package-status      status of all packages'
+	@echo 'make yes-package         install a single package in src dir'
+	@echo 'make no-package          remove a single package from src dir'
+	@echo 'make yes-all             install all packages in src dir'
+	@echo 'make no-all              remove all packages from src dir'
+	@echo ''
+	@echo 'make package-update      replace src files with package files'
+	@echo 'make package-overwrite   replace package files with src files'
 
 yes-all:
-	make yes-gppt
+	@for p in $(PACKAGE); do $(MAKE) yes-$$p; done
 
 no-all:
-	@echo 'Removing files, ignore any rm errors ...'
-	@cd GPPT; csh -f Install.csh 0
-	@make clean
+	@for p in $(PACKAGE); do $(MAKE) no-$$p; done
 
-yes-gppt:
-	@cd GPPT; csh -f Install.csh 1
-no-gppt:
-	@echo 'Removing files, ignore any rm errors ...'
-	@cd GPPT; csh -f Install.csh 0
-	@make clean
+yes-%:
+	@if [ ! -e $(YESDIR) ]; then \
+	  echo "Package $(@:yes-%=%) does not exist"; \
+	else \
+	  echo "Installing package $(@:yes-%=%)"; \
+	  cd $(YESDIR); csh -f Install.csh 1; \
+	fi;
 
-# update src files with package files
+no-%:
+	@if [ ! -e $(NODIR) ]; then \
+	  echo "Package $(@:no-%=%) does not exist"; \
+	else \
+	  echo "Uninstalling package $(@:no-%=%), ignore errors"; \
+	  cd $(NODIR); csh -f Install.csh 0; cd ..; $(MAKE) clean-all; \
+        fi;
+
+# status = list differences between src and package files
+# update = replace src files with newer package files
+# overwrite = overwrite package files with newer src files
+
+package-status:
+	@for p in $(PACKAGEUC); do csh -f Package.csh $$p status; done
 
 package-update:
-	@csh -f Package.csh GPPT update
-
-# overwrite package files with src files
+	@for p in $(PACKAGEUC); do csh -f Package.csh $$p update; done
 
 package-overwrite:
-	@csh -f Package.csh GPPT overwrite
-
-# check differences between src and pacakge files
-
-package-check:
-	@csh -f Package.csh GPPT check
+	@for p in $(PACKAGEUC); do csh -f Package.csh $$p overwrite; done

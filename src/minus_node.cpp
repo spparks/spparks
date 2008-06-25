@@ -4,12 +4,9 @@
 #include "stdlib.h"
 #include "string.h"
 #include "minus_node.h"
-#include "spk.h"
 #include "random_park.h"
 #include "error.h"
-#include <iostream>
 
-using namespace std;
 using namespace SPPARKS;
 /* ---------------------------------------------------------------------- */
 MinusNode::MinusNode() : Node()

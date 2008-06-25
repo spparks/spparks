@@ -8,13 +8,9 @@
 #include "stdlib.h"
 #include "string.h"
 #include "solve_alias.h"
-#include "spk.h"
 #include "random_park.h"
 #include "error.h"
 
-#include <iostream>
-
-using namespace std;
 using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */

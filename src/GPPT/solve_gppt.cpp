@@ -9,10 +9,8 @@
 #include "stdlib.h"
 #include "string.h"
 #include "solve_gppt.h"
-#include "spk.h"
 #include "random_park.h"
 #include "error.h"
-#include <iostream>
 
 using namespace std;
 using namespace SPPARKS;
@@ -25,8 +23,6 @@ SolveGPPT::SolveGPPT(SPK *spk, int narg, char **arg) : Solve(spk, narg, arg)
 
   int seed = atoi(arg[1]);
   random = new RandomPark(seed);
-  
-  //  cout<< "Using solver GPPT."<<endl;
 }
 
 /* ---------------------------------------------------------------------- */

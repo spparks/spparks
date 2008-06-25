@@ -4,7 +4,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
-#include "spk.h"
+#include "spparks.h"
 #include "input.h"
 
 using namespace SPPARKS;

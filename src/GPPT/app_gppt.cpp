@@ -8,7 +8,6 @@
 #include "string.h"
 #include "app_gppt.h"
 #include "solve_gppt.h"
-#include "spk.h"
 #include "solve.h"
 #include "finish.h"
 #include "timer.h"
@@ -27,9 +26,7 @@
 #include "tree.h"
 #include "population.h"
 
-using namespace std;
 using namespace SPPARKS;
-
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))

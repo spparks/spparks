@@ -9,7 +9,6 @@
 #include "string.h"
 #include "solve_group2.h"
 #include "groups2.h"
-#include "spk.h"
 #include "random_park.h"
 #include "error.h"
 
