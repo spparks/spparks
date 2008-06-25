@@ -45,6 +45,9 @@ help:
 	@files="`ls MAKE/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
+	@echo 'make test = runs set of tests in ../test using Makefile.serial'
+	@echo 'make TESTMACHINE=<machine> test = tests using Makefile.<machine>'
+	@echo ''
 
 # Build the code
 
@@ -56,6 +59,19 @@ help:
 	@cd Obj_$@; \
 	$(MAKE)  "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm $(SRC) $(INC) Makefile*; fi
+
+# Run the tests in directory ../test using Makefile.$(TESTMACHINE)
+TESTMACHINE = serial
+ 
+test: 
+	@make $(TESTMACHINE)
+	@cp MAKE/Makefile.$(TESTMACHINE) ../test/Makefile
+	@cd ../test; rm -f test.out; \
+	files="in.abc in.abc.alex in.event in.ising in.kristi in.membrane in.potts in.surf"; \
+	for file in $$files; do echo >> test.out;echo >> test.out; \
+	echo "*** Testing file $$file ***" >> test.out;echo >> test.out; \
+	$(MAKE) "INPUTFILE = $$file" "EXE = ../src/$(ROOT)_$(TESTMACHINE)" test >> test.out 2>&1; \
+	done; rm Makefile
 
 # Remove machine-specific object files
 
