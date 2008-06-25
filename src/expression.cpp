@@ -1,12 +1,13 @@
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
+------------------------------------------------------------------------- */
+
+#include "string.h"
 #include "expression.h"
-#include <iostream>
-#include "random_park.h"
-#include "error.h"
-#include "tree.h"
 #include "node.h"
 #include "neighborhood.h"
 
-using namespace std;
 using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
@@ -16,21 +17,29 @@ Xpression::Xpression()
   tree = NULL;
   memset(name,0,50);
 }
+
 /* ---------------------------------------------------------------------- */
+
 Xpression::~Xpression()
 {
 }
+
 /* ---------------------------------------------------------------------- */
+
 char *Xpression::get_name()
 { 
   return &name[0];
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Xpression::set_name(char *tname)
 {
   strcpy(name,tname);
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Xpression::set_expression(int narg, char **arg)
 {
    set_name(arg[0]);
@@ -42,13 +51,16 @@ void Xpression::set_expression(int narg, char **arg)
    //  cout << "resulting line "<<inpln<<endl;
    root = tree->from_string(inpln);
 }
+
 /* ---------------------------------------------------------------------- */
 
 double Xpression::eval(int indx)
 {
   return root->go(indx);
 }
+
 /* ---------------------------------------------------------------------- */
+
 double Xpression::sum(int ndx)
 {
   double sum = 0.0;

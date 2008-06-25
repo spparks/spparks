@@ -1,25 +1,23 @@
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
+------------------------------------------------------------------------- */
 
 #ifndef NEIGHBORHOOD_H
 #define NEIGHBORHOOD_H
 
-#include "random_park.h"
-#include "state.h"
-#include <string>
-#include "sysptr.h"
-
 namespace SPPARKS {
-  class Neighborhood{
-    
+
+class Neighborhood{
   protected:
-    
     int size;
     int max_nb;
-    State *state;
+    class State *state;
     int state_flag;
     char name[30];
     
   public:
-    Neighborhood(char *, State *);
+    Neighborhood(char *, class State *);
     Neighborhood(char *, int *, int **, int, int);
     ~Neighborhood();
     

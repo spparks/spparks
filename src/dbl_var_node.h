@@ -1,13 +1,11 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef DBL_VAR_NODE_H
 #define DBL_VAR_NODE_H
 
-#include <cmath>
-#include "node.h"
-#include <iostream>
 #include "var_node.h"
 
 namespace SPPARKS {
@@ -25,7 +23,7 @@ namespace SPPARKS {
     
     double *data_p;
   };
-}
 
+}
 
 #endif

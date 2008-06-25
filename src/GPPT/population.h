@@ -1,28 +1,26 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef POPULATION_H
 #define POPULATION_H
 
-#include "random_park.h"
-#include "node.h"
-#include "tree.h"
+#include "stdio.h"
 #include "sysptr.h"
-#include "fitness.h"
+#include "tree.h"
 
 namespace SPPARKS {
 
 class Population : protected SysPtr {
  public:
-
     Population();
     ~Population();
-    void init(int, int, Tree *, Fitness *, int, double);
+    void init(int, int, class Tree *, class Fitness *, int, double);
 
     void build_new_population();
     int linear_select_mutation();
-    bool accept(Node *, Node *, double &);
+    bool accept(class Node *, class Node *, double &);
 
     inline double get_temperature(){return temperature;}
     inline void set_temperature(double t){
@@ -45,11 +43,10 @@ class Population : protected SysPtr {
 
     void set_weights();
 
-    RandomPark *random;
-    Fitness *fit;
-    Tree *tree;
-
-    Node **roots;
+    class RandomPark *random;
+    class Fitness *fit;
+    class Tree *tree;
+    class Node **roots;
     int ntrees;
 
     int best_index;

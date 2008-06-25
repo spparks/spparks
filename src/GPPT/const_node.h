@@ -1,16 +1,12 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef CONST_NODE_H
 #define CONST_NODE_H
 
-#include "random_park.h"
-#include <cmath>
 #include "node.h"
-#include <iostream>
-
-using namespace std;
 
 namespace SPPARKS {
 
@@ -18,7 +14,6 @@ class ConstNode : public Node {
  public:
   ConstNode();
   ~ConstNode();
-
 
   void write(FILE *);
   void write_tex(FILE *);

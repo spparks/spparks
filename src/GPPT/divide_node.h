@@ -1,16 +1,13 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef DIVIDE_NODE_H
 #define DIVIDE_NODE_H
 
-#include "random_park.h"
-#include <cmath>
 #include "node.h"
-#include <iostream>
 
-using namespace std;
 namespace SPPARKS {
 
 class DivideNode : public Node {

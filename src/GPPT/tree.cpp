@@ -1,14 +1,14 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
+
 #include <iostream>
-#include "random_park.h"
-#include "node.h"
-#include "tree.h"
-#include <cmath>
-#include <string>
-#include <sstream>
 #include <vector>
+#include <string>
+#include "tree.h"
+#include "node.h"
+#include "state.h"
 #include "plus_node.h"
 #include "minus_node.h"
 #include "times_node.h"
@@ -18,14 +18,18 @@
 #include "var_node.h"
 #include "dbl_var_node.h"
 #include "int_var_node.h"
-/* ---------------------------------------------------------------------- */
-using namespace std;
 
+using namespace std;
 using namespace SPPARKS;
+
+/* ---------------------------------------------------------------------- */
+
 Tree::Tree()
 {
 }
+
 /* ---------------------------------------------------------------------- */
+
 Tree::~Tree()
 {
   delete [] parents;
@@ -40,7 +44,9 @@ Tree::~Tree()
 
   delete [] input_line;
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Tree::init(double const_lo_in, double const_hi_in, 
  int num_var, int max_depth_in)
 {
@@ -81,7 +87,9 @@ void Tree::init(double const_lo_in, double const_hi_in,
   lattice_flag = 0;
 
 }
+
 /* ---------------------------------------------------------------------- */
+
 Node *Tree::random_node(RandomPark* random, int ran_type)
 {
   Node *rn;
@@ -111,7 +119,9 @@ Node *Tree::random_node(RandomPark* random, int ran_type)
     
   return rn;
 }
+
 /* ---------------------------------------------------------------------- */
+
 Node *Tree::build_tree(RandomPark* random, int max_depth)
 {
   int depth = 0;
@@ -142,9 +152,6 @@ Node *Tree::build_tree(RandomPark* random, int max_depth)
 	ccnt += 2;
       }
     //display parents
-//     cout << "depth "<<depth<<" : ";
-//     for(t=0;t<pcnt;t++) parents[t]->write_stack(screen);
-//     cout << endl;
 
     //promote children
     for(t=0;t<ccnt;t++) {
@@ -157,7 +164,9 @@ Node *Tree::build_tree(RandomPark* random, int max_depth)
   }
   return root;
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Tree::mutate_branch(RandomPark* random, Node *&root)
 {
   int dir;
@@ -200,6 +209,7 @@ void Tree::mutate_branch(RandomPark* random, Node *&root)
   }
   else root = current_node;
 }
+
 /* ---------------------------------------------------------------------- */
 
 void Tree::mutate_constant(RandomPark* random, Node *&root, 
@@ -261,13 +271,12 @@ void Tree::mutate_constant(RandomPark* random, Node *&root,
     pos = static_cast<int>(new_value / range);
     new_value -= pos*range;
     new_value += const_lo;
-    //     cout << "Changed constant "<< leaf << " from "; 
-    //     leaves[leaf]->write_stack();
-    //     cout  << " to "<< new_value<<endl;
     static_cast<ConstNode*>(leaves[leaf])->set_value(new_value);
   }
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Tree::mutate_variable(RandomPark* random, Node *&root)
 {
   Node *leaves[nch];
@@ -317,17 +326,12 @@ void Tree::mutate_variable(RandomPark* random, Node *&root)
     
     int leaf = static_cast<int>(nlv * random->uniform());
 
-//     cout << "Changed variable "<< leaf << " from "; 
-//     leaves[leaf]->write_stack();
-//     cout  << " to ";
-    
     static_cast<VarNode*>(leaves[leaf])->set_value(v);
-    
-//     leaves[leaf]->write_stack();
-//     cout  <<endl;
   }
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Tree::mutate_operator(RandomPark* random, Node *&root)
 {
   Node *leaves[nch];
@@ -408,17 +412,13 @@ void Tree::mutate_operator(RandomPark* random, Node *&root)
     else if(dir[leaf] == -1) root = rn;
 
     delete leaves[leaf];
-    
-//     cout << "Changed operator " << leaf << " from "; 
-//     leaves[leaf]->write_stack(screen);
-//     cout  << " to ";
-    
-//     rn->write_stack(screen);
-//     cout  <<endl;
   }
 }
+
 /* ---------------------------------------------------------------------- */
-void Tree::crossover(RandomPark* random, Node *&root1, Node *&root2, int ran_depth)
+
+void Tree::crossover(RandomPark* random, Node *&root1, Node *&root2,
+		     int ran_depth)
 {
   int dir1, dir2;
   int depth;
@@ -485,7 +485,9 @@ void Tree::crossover(RandomPark* random, Node *&root1, Node *&root2, int ran_dep
   else root2 = node1;
 
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Tree::swap(Node *&root1, Node *&root2)
 {
   Node *temp;
@@ -494,7 +496,9 @@ void Tree::swap(Node *&root1, Node *&root2)
   root1 = root2;
   root2 = temp;
 }
+
 /* ---------------------------------------------------------------------- */
+
 Node * Tree::copy(Node *root)
 {
   int op = root->type;
@@ -544,7 +548,9 @@ Node * Tree::copy(Node *root)
   }
   return rn;
 }
+
 /* ---------------------------------------------------------------------- */
+
 Node *Tree::from_buffer(char **buf, int &n)
 {
   int op = 0;
@@ -592,9 +598,9 @@ Node *Tree::from_buffer(char **buf, int &n)
   }
   return rn;
 }
-/* ---------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */
+
 Node *Tree::from_string(char *str)
 {
   Node *rn = NULL;
@@ -610,7 +616,9 @@ Node *Tree::from_string(char *str)
 
   return rn;
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Tree::clean_string(char *str)
 {
   int i = 0;
@@ -635,9 +643,10 @@ void Tree::clean_string(char *str)
     }
   strcat(input_line,"\0");
   input_line[j] = 0;
-
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Tree::infix2postfix()
 {
   int k = 0;
@@ -651,7 +660,6 @@ void Tree::infix2postfix()
 
   clear_tokens(op_stack);
   clear_tokens(postfix);
-
 
   t = op_priority(tokens[0]);
  
@@ -687,17 +695,6 @@ void Tree::infix2postfix()
 
 
     else flag = false;
-
-//     cout << "token "<<k<<"  "<<tokens[k]<<endl;
-//     cout <<"op_stack: "<<endl;
-//     if(!stack_empty(op_stack)) write_tokens(op_stack);
-//     else cout <<"empty."<<endl;
-//     //    cout <<"peek priority = "<<stack_peek(op_stack)<<endl;
-//     cout <<"postfix: "<<endl;
-//     if(!stack_empty(postfix)) write_tokens(postfix);
-//     else cout <<"empty."<<endl;
-//     //    cout <<"peek priority = "<<stack_peek(postfix)<<endl;
-
     k++;
   }
   while (!stack_empty(op_stack))
@@ -705,24 +702,14 @@ void Tree::infix2postfix()
       flag = pop(current, op_stack);
       flag = push(current,postfix);
     }
-//   cout <<"op_stack: "<<endl;
-//   if(!stack_empty(op_stack)) write_tokens(op_stack);
-//   else cout <<"empty."<<endl;
-//   cout <<"peek priority = "<<stack_peek(op_stack)<<endl;
-//   cout <<"postfix: "<<endl;
-//   if(!stack_empty(postfix)) write_tokens(postfix);
-//   else cout <<"empty."<<endl;
-//   cout <<"peek priority = "<<stack_peek(postfix)<<endl;
 }
+
 /* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
+
 void Tree::string2tokens()
 {
   int m = 0;
   char *temp;
-
-  // cout  <<"input_line "<<input_line<<" of length "<<strlen(input_line)<<endl;
-  strcat(input_line,"#\0");
 
   char test[250];
   memset(test,0,250);
@@ -760,22 +747,16 @@ void Tree::string2tokens()
 
   tkn = strtok(test, " ");
   while(tkn != NULL){
-    //    printf ("%s\n",tkn);
     strcpy(tokens[m],tkn);
     strcat(tokens[m],"\0");
-    //    printf ("token %d %s\n",m, tokens[m]);
     tkn = strtok(NULL, " ");
     m++;
   }
   strcpy(tokens[m],"#");
-
-//   cout <<"tokens: "<<endl;
-//   if(!stack_empty(tokens)) write_tokens(tokens);
-//   else cout <<"empty."<<endl;
-  //  cout <<"peek priority = "<<stack_peek(postfix)<<endl;
 }
+
 /* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
+
 Node *Tree::postfix2tree()
 {
   vector<Node *> node_stack;
@@ -885,9 +866,9 @@ Node *Tree::postfix2tree()
 
 
 }
-/* ---------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */
+
 int Tree::op_priority(char *op)
 {
 
@@ -916,12 +897,16 @@ int Tree::op_priority(char *op)
   }
 
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Tree::clear_tokens(char **tk)
 {
   memset(tk[0],'#',1);
 }
+
 /* ---------------------------------------------------------------------- */
+
 bool Tree::pop(char last[250], char **tk)
 {
   int t = 0;
@@ -936,7 +921,9 @@ bool Tree::pop(char last[250], char **tk)
   }
   return false;
 }
+
 /* ---------------------------------------------------------------------- */
+
 bool Tree::push(char last[250], char **tk)
 {
   int t = 0;
@@ -951,7 +938,9 @@ bool Tree::push(char last[250], char **tk)
   }
   return false;
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Tree::write_tokens(char **tk)
 {
   int t = 0;
@@ -963,7 +952,9 @@ void Tree::write_tokens(char **tk)
       cout << "word "<<i<<"  "<<tk[i]<<endl;
   else cout <<"exceeded stack size with no terminating character"<<endl;
 }
+
 /* ---------------------------------------------------------------------- */
+
 bool Tree::stack_empty(char **tk)
 {
   int t = 0;
@@ -974,8 +965,9 @@ bool Tree::stack_empty(char **tk)
   }
   return false;
 }
+
 /* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
+
 int Tree::stack_peek(char **tk)
 {
   int t = 0;
@@ -986,10 +978,11 @@ int Tree::stack_peek(char **tk)
   }
   return 99;
 }
-/* ---------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    find variable by name
 ------------------------------------------------------------------------- */
+
 int Tree::get_variable(char *name, int &type)
 {
   for (int i = 0; i < n_int_var; i++)

@@ -1,16 +1,14 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef POW_NODE_H
 #define POW_NODE_H
 
-#include "random_park.h"
-#include <cmath>
+#include "math.h"
 #include "node.h"
-#include <iostream>
 
-using namespace std;
 namespace SPPARKS {
 
 class PowNode : public Node {

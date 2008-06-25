@@ -1,20 +1,16 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef SWAP_EVENT_H
 #define SWAP_EVENT_H
 
-#include "random_park.h"
-#include "sysptr.h"
 #include "event.h"
-//#include "expression.h"
-#include <iostream>
 
-using namespace std;
 namespace SPPARKS {
   
-  class SwapEvent : public Event {
+class SwapEvent : public Event {
   public: 
     SwapEvent();
     ~SwapEvent();
@@ -26,8 +22,8 @@ namespace SPPARKS {
   private:
     int *endval;
     int nevent;
-    
-  };
+};
+
 }
 
 #endif

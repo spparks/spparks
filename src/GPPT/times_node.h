@@ -1,16 +1,13 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef TIMES_NODE_H
 #define TIMES_NODE_H
 
-#include "random_park.h"
-#include <cmath>
 #include "node.h"
-#include <iostream>
 
-using namespace std;
 namespace SPPARKS {
 
 class TimesNode : public Node {
@@ -58,11 +55,10 @@ class TimesNode : public Node {
     }
     return false;
   };
-  private:
 
+ private:
   Node *left_child;
   Node *right_child;
-
 };
 
 }

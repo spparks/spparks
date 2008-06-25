@@ -1,14 +1,17 @@
-#include "state.h"
-#include <iostream>
-#include "random_park.h"
-#include "error.h"
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
+------------------------------------------------------------------------- */
 
-using namespace std;
+#include "stdlib.h"
+#include "string.h"
+#include "state.h"
+#include "random_park.h"
+
 using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
 
-//State::State(SPK *spk, int size_in, int seed) : SysPtr(spk)
 State::State(int size_in, int seed) 
 {
   size = size_in;
@@ -21,8 +24,8 @@ State::State(int size_in, int seed)
 
 State::~State()
 {
-
 }
+
 /* ---------------------------------------------------------------------- */
 void State::init_var(int narg, char **arg)
 {
@@ -71,7 +74,9 @@ void State::init_var(int narg, char **arg)
   //  else error->one("Unknown distribution type in init.");
 
 }
+
 /* ---------------------------------------------------------------------- */
+
 void State::add_attribute(char *name_in, int data_type_in)
 {
   bool bl;
@@ -97,6 +102,7 @@ void State::add_attribute(char *name_in, int data_type_in)
 }
 
 /* ---------------------------------------------------------------------- */
+
 void *State::get_attribute(char *name_in, int &type_out)
 {
   int cnt = 0;
@@ -113,7 +119,7 @@ void *State::get_attribute(char *name_in, int &type_out)
 }
 
 /* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
+
 int State::get_attribute(char *name_in)
 {
   int cnt = 0;

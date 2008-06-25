@@ -1,25 +1,17 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
-#include <iostream>
-#include "random_park.h"
-#include "node.h"
-#include "fitness.h"
-#include "population.h"
-#include <cmath>
+
+#include "math.h"
 #include "string.h"
-#include "plus_node.h"
-#include "minus_node.h"
-#include "times_node.h"
-#include "divide_node.h"
-#include "const_node.h"
-#include "var_node.h"
+#include "fitness.h"
+#include "random_park.h"
 #include "error.h"
-//#include "spk.h"
+
+using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
-using namespace std;
-using namespace SPPARKS;
 
 Fitness::Fitness(SPK *spk) : SysPtr(spk)
 {
@@ -28,7 +20,9 @@ Fitness::Fitness(SPK *spk) : SysPtr(spk)
   random = new RandomPark(321123);
 
 }
+
 /* ---------------------------------------------------------------------- */
+
 Fitness::~Fitness()
 {
   delete [] var;
@@ -40,16 +34,17 @@ Fitness::~Fitness()
   delete [] hits;
   delete [] weight;
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Fitness::init()
 {
-  if(nvar > 0){
-    var = new double[nvar];
-  }
-  else error->all("Number of variables not set.");
-
+  if (nvar > 0) var = new double[nvar];
+  else error->all("Number of variables not set");
 }
+
 /* ---------------------------------------------------------------------- */
+
 double Fitness::compute(Node * root)
 {
   int n;
@@ -70,7 +65,7 @@ double Fitness::compute(Node * root)
 
   for(n=0;n<nsnaps;n++) {
     diff = energy[n]-test_e[n];
-    test = abs(diff);
+    test = fabs(diff);
     if (test > max) {max = test; imax = n;}
     least_sq += weight[n]*diff*diff;
   }
@@ -100,7 +95,9 @@ double Fitness::compute(Node * root)
 
   return sqrt(least_sq);
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Fitness::update_weight(int sum)
 {
   int n;
@@ -114,7 +111,9 @@ void Fitness::update_weight(int sum)
   for(n=0;n<nsnaps+1;n++) hits[n] = 0;
 
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Fitness::set_fitness(int narg, char **arg, int me)
 {
   if (narg != 2) error->all("Illegal fitness command");
@@ -177,7 +176,9 @@ void Fitness::set_fitness(int narg, char **arg, int me)
     }
   }
 }
-  /* ---------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------- */
+
 double Fitness::get_distance()
 {
   double lo = 0.45;
@@ -194,7 +195,9 @@ double Fitness::get_distance()
 
   return dist;
 }
-  /* ---------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------- */
+
 void Fitness::read_fit_file(int me)
 {
   int cnt; 

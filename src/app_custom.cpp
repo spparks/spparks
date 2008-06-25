@@ -16,10 +16,7 @@
 #include "error.h"
 #include "flip_event.h"
 #include "swap_event.h"
-#include <map>
-#include <iostream>
 
-using namespace std;
 using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
@@ -171,11 +168,9 @@ void AppCustom::site_event(int i, int full)
   for (ev = 0; ev < nevent; ev++){
     int val = events[ev]->site_event(i, threshold);
     if(val == 1) {
-      //  cout <<"flip "<<i<<endl;
       break;
     }
     if(val > 99){
-      //    cout <<"swap "<<i <<" and "<<val-100<<endl;
       second_site = val - 100;
       break;
     }
@@ -255,9 +250,11 @@ void AppCustom::site_clear_mask(char *mask, int i)
   mask[i] = 0;
   for (int j = 0; j < numneigh[i]; j++) mask[neighbor[i][j]] = 0;
 }
+
 /* ----------------------------------------------------------------------
    parse commands
 ------------------------------------------------------------------------- */
+
 void AppCustom::input_app(char *command, int narg, char **arg)
 {
   //  fprintf(screen,"command = %s \n",command);
@@ -270,9 +267,11 @@ void AppCustom::input_app(char *command, int narg, char **arg)
   else if (strcmp(command,"energy") == 0) set_energy(narg,arg);
   else error->all("Command not recognized by this application");
 }
+
 /* ----------------------------------------------------------------------
    add variable
 ------------------------------------------------------------------------- */
+
 void AppCustom::set_variable(int narg, char **arg)
 {
   if (narg != 2) error->one("Illegal variable command");
@@ -298,9 +297,11 @@ void AppCustom::set_variable(int narg, char **arg)
   }
 
 }
+
 /* ----------------------------------------------------------------------
    initialize variable
 ------------------------------------------------------------------------- */
+
 void AppCustom::init_variable(int narg, char **arg)
 {
   if (narg < 2) error->one("Illegal init command");
@@ -359,9 +360,11 @@ void AppCustom::init_variable(int narg, char **arg)
 //     for(v = 0; v < nlocal; v++) 
 //       fprintf(screen,"dbl %d = %g\n", v, darray[np][v]);
 }
+
 /* ----------------------------------------------------------------------
    find variable by name
 ------------------------------------------------------------------------- */
+
 int AppCustom::get_variable(char *name, int &type)
 {
   for (int i = 0; i < n_int_var; i++){
@@ -379,9 +382,11 @@ int AppCustom::get_variable(char *name, int &type)
   error->all("Variable not found.");
   return -1;
 }
+
 /* ----------------------------------------------------------------------
    add expression
 ------------------------------------------------------------------------- */
+
 void AppCustom::set_expression(int narg, char **arg)
 {
   if (narg < 2) error->one("Illegal expression command");
@@ -398,9 +403,11 @@ void AppCustom::set_expression(int narg, char **arg)
   expr.push_back(xpr_local);
 
 }
+
 /* ----------------------------------------------------------------------
    add neighborhood
 ------------------------------------------------------------------------- */
+
 void AppCustom::set_neighborhood(int narg, char **arg)
 {
   int test_nb=-1;
@@ -432,9 +439,11 @@ void AppCustom::set_neighborhood(int narg, char **arg)
   }
 
 }
+
 /* ----------------------------------------------------------------------
    find a neighborhood
 ------------------------------------------------------------------------- */
+
 Neighborhood *AppCustom::get_neighborhood(char *name_in)
 {
   for (int nb = 0; nb < nbhd.size(); nb++){
@@ -443,9 +452,11 @@ Neighborhood *AppCustom::get_neighborhood(char *name_in)
   error->all("Neighborhood not found.");
   return NULL;
 }
+
 /* ----------------------------------------------------------------------
    find an expression
 ------------------------------------------------------------------------- */
+
 Xpression *AppCustom::get_expression(char *name_in)
 {
   for (int xp = 0; xp < expr.size(); xp++){
@@ -454,9 +465,11 @@ Xpression *AppCustom::get_expression(char *name_in)
   error->all("Expression not found.");
   return NULL;
 }
+
 /* ----------------------------------------------------------------------
    add an event
 ------------------------------------------------------------------------- */
+
 void AppCustom::set_event(int narg, char **arg)
 {
   Event *current_event;
@@ -524,9 +537,11 @@ void AppCustom::set_event(int narg, char **arg)
 
   current_event->init();
 }
+
 /* ----------------------------------------------------------------------
    find an event
 ------------------------------------------------------------------------- */
+
 Event *AppCustom::get_event(char *name_in)
 {
   for (int ev = 0; ev < events.size(); ev++){
@@ -535,9 +550,11 @@ Event *AppCustom::get_event(char *name_in)
   error->all("Event not found.");
   return NULL;
 }
+
 /* ----------------------------------------------------------------------
    set propensity for an event
 ------------------------------------------------------------------------- */
+
 void AppCustom::set_propensity(int narg, char **arg)
 {
   int ptype = -1;
@@ -552,9 +569,11 @@ void AppCustom::set_propensity(int narg, char **arg)
 
   my_event->set_propensity(ptype, my_expression);
 }
+
 /* ----------------------------------------------------------------------
    set energy expression
 ------------------------------------------------------------------------- */
+
 void AppCustom::set_energy(int narg, char **arg)
 {
   if (narg < 1) error->one("Illegal energy command");

@@ -1,16 +1,15 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef VAR_NODE_H
 #define VAR_NODE_H
 
-#include "random_park.h"
-#include <cmath>
+#include "stdio.h"
+#include "string.h"
 #include "node.h"
-#include <iostream>
 
-using namespace std;
 namespace SPPARKS {
 
 class VarNode : public Node {
@@ -39,6 +38,7 @@ class VarNode : public Node {
 
     return false;
   };
+
   char var_name[16];
   inline void set_name(char *name_in){strcpy(var_name,name_in);}
   inline char *get_name(){return var_name;}
@@ -52,8 +52,6 @@ class VarNode : public Node {
 
   int var_index;
   int data_type;
-
-
 };
 
 }

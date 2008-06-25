@@ -12,7 +12,6 @@
 #include "random_park.h"
 #include "error.h"
 
-using namespace std;
 using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */

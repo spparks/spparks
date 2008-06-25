@@ -1,16 +1,13 @@
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
+------------------------------------------------------------------------- */
 
 #ifndef EVENT_H
 #define EVENT_H
 
-#include "random_park.h"
-#include "state.h"
-#include <string>
-#include "sysptr.h"
-//#include "expression.h"
-//#include "neighborhood.h"
-#include <iostream>
+#include "string.h"
 
-using namespace std;
 namespace SPPARKS {
 
 #define FLIP        0
@@ -25,7 +22,7 @@ namespace SPPARKS {
 #define PROP_EVAL   1
 #define PROP_NB_SUM 2
   
-  class Event{
+class Event{
     
   public:
     Event();
@@ -55,10 +52,8 @@ namespace SPPARKS {
     virtual double site_propensity(int site){return 0;}
 
     class Neighborhood *nbr;
-
     
   protected:
-    
     char name[30];
 
     int vtype;
@@ -71,7 +66,6 @@ namespace SPPARKS {
     class Xpression *prop;
     int ptype;
     double beta;
-    
   };
 }
 

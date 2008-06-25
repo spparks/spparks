@@ -14,7 +14,6 @@ The distribution has to be bounded.
 #include "math.h"
 #include "groups.h"
 #include "random_park.h"
-
 #include <iostream>
 
 using namespace std;

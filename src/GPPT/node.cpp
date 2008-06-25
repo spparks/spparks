@@ -1,24 +1,20 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
-#include <iostream>
-#include "random_park.h"
+
 #include "node.h"
-#include <cmath>
-#include "string.h"
+
+using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
-using namespace std;
-using namespace SPPARKS;
 
 Node::Node()
 {
-
 }
+
 /* ---------------------------------------------------------------------- */
 
 Node::~Node()
 {
-
 }
-/* ---------------------------------------------------------------------- */

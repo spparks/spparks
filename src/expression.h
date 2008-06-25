@@ -1,23 +1,21 @@
-#ifndef XPRESSION_H
-#define XPRESSION_H
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
+------------------------------------------------------------------------- */
 
-#include "sysptr.h"
-#include "neighborhood.h"
+#ifndef EXPRESSION_H
+#define EXPRESSION_H
+
 #include "tree.h"
-#include "stdio.h"
 
-
-namespace SPPARKS{
+namespace SPPARKS {
   
-  class Xpression{
+class Xpression {
     
   protected:
-    
     char name[50];
-
-
-    Tree *tree;
-    Node *root;
+    class Tree *tree;
+    class Node *root;
     
   public:
     Xpression();
@@ -27,16 +25,15 @@ namespace SPPARKS{
     void set_name(char *);
     void set_expression(int, char**);
 
-    inline void set_tree(Tree *t){tree = t;}
+    inline void set_tree(class Tree *t){tree = t;}
 
     double eval(int);
     double sum(int);
    
-    Neighborhood *nbr;
+    class Neighborhood *nbr;
     int nb_flag;
-    inline void set_neighborhood(Neighborhood *nb)
+    inline void set_neighborhood(class Neighborhood *nb)
       {nb_flag = 1; nbr = nb;}
-    
   };
   
 }

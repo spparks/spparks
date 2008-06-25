@@ -6,6 +6,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include <iostream>
 #include "app_gppt.h"
 #include "solve_gppt.h"
 #include "solve.h"
@@ -14,7 +15,6 @@
 #include "memory.h"
 #include "error.h"
 #include "random_park.h"
-#include <iostream>
 #include "node.h"
 #include "plus_node.h"
 #include "minus_node.h"
@@ -26,6 +26,7 @@
 #include "tree.h"
 #include "population.h"
 
+using namespace std;
 using namespace SPPARKS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))

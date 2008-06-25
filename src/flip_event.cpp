@@ -1,28 +1,32 @@
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
+------------------------------------------------------------------------- */
+
+#include "math.h"
 #include "flip_event.h"
-#include "event.h"
-#include <iostream>
-#include "random_park.h"
-#include "state.h"
 #include "neighborhood.h"
 #include "expression.h"
 
-using namespace std;
 using namespace SPPARKS;
 
-
 /* ---------------------------------------------------------------------- */
+
 FlipEvent::FlipEvent() : Event()
 {
   type = FLIP;
   ptype = PROP_EVAL;
 }
+
 /* ---------------------------------------------------------------------- */
+
 FlipEvent::~FlipEvent() 
 {
   delete [] endval;
 }
 
 /* ---------------------------------------------------------------------- */
+
 void FlipEvent::init()
 {
   if (srctype == SRC_TO_NBR){
@@ -39,7 +43,9 @@ void FlipEvent::init()
   }
   
 }
+
 /* ---------------------------------------------------------------------- */
+
 int FlipEvent::site_event(int site, double threshold)
 {
   double tot_prop = 0;
@@ -49,15 +55,10 @@ int FlipEvent::site_event(int site, double threshold)
   double eold = 0;
   double enew = 0;
 
-
   int oldval = ivar[site];
   if (ptype == PROP_BOLTZ) eold = prop->sum(site);
 
-  // cout <<endl<<"Site "<< site <<" propensity:"<<endl;
-  // cout <<"Current variable value = "<<ivar[site]<<endl;
-  // cout <<"Current energy value = "<<eold<<endl<<endl;
-
-  if (srctype == SRC_TO_NBR){
+  if (srctype == SRC_TO_NBR) {
     int nnb = nbr->numneigh[site];
 
     // cout << "Neighbor values: ";
@@ -70,28 +71,17 @@ int FlipEvent::site_event(int site, double threshold)
       val = ivar[nbr->neighbor[site][v]];
       if (val == ivar[site]) continue;
       for(w = 0; w < nevent; w++) if(val == endval[w]) break;
-      if(w < nevent)continue;
+      if (w < nevent) continue;
       endval[nevent] = val;
       nevent++; 
       ivar[site] = endval[w];
-      if     (ptype == PROP_BOLTZ)  {
+      if (ptype == PROP_BOLTZ)  {
 	enew = prop->sum(site);
-	//cout <<"New energy = "<<enew<<" for end value "<<endval[v]<<endl;
 	if (enew <= eold) tot_prop += 1.0;
 	else tot_prop += exp((eold-enew)*beta);
-	//if (enew <= eold) 
-	  //cout << "Propensity contribution = "<<1.0<<endl;
-	//else
-	  //cout << "Propensity contribution = "<<exp((eold-enew)*beta)<<endl;
       }
       else if(ptype == PROP_NB_SUM) tot_prop += prop->sum(site);
       else if(ptype == PROP_EVAL)   tot_prop += prop->eval(site);
-
-      //cout <<"total propensity so far = "<<tot_prop<<endl;
-
-      //cout << "Possible end values: ";
-      //for (int n = 0; n < nevent; n++) cout<<" "<<endval[n];
-      //cout <<endl;
 
       if (tot_prop>= threshold) return 1;
     }
@@ -99,7 +89,9 @@ int FlipEvent::site_event(int site, double threshold)
 
   return 0;
 }
+
 /* ---------------------------------------------------------------------- */
+
 double FlipEvent::site_propensity(int site)
 {
   double tot_prop = 0;
@@ -108,10 +100,6 @@ double FlipEvent::site_propensity(int site)
   int val = -1;
   int w;
   double eold;
-
-  //cout <<"#####################################################"<<endl;
-  //cout <<endl<<"Site "<< site <<" propensity:"<<endl;
-  //cout <<"Current variable value = "<<ivar[site]<<endl;
 
   if (srctype == SRC_TO_NBR){
     int nnb = nbr->numneigh[site];
@@ -125,43 +113,22 @@ double FlipEvent::site_propensity(int site)
     }
   }
 
-  //cout << "Neighbor values: ";
-  //for (int n = 0; n < nbr->numneigh[site]; n++) 
-    //cout<<" "<<ivar[nbr->neighbor[site][n]];
-  //cout <<endl;
-
-  //cout << "Possible end values: ";
-  //for (int n = 0; n < nevent; n++) //cout<<" "<<endval[n];
-  //cout <<endl;
-
-  //cout <<"Beta = "<<beta<<endl;
-
   int oldval = ivar[site];
   if (ptype == PROP_BOLTZ) eold = prop->sum(site);
-
-  //cout <<"Old energy = "<<eold<<endl;
 
   for (int v = 0; v < nevent; v++){
 
     ivar[site] = endval[v];
 
-    if     (ptype == PROP_BOLTZ)  {
+    if (ptype == PROP_BOLTZ) {
       double enew = prop->sum(site);
-      //cout <<"New energy = "<<enew<<" for end value "<<endval[v]<<endl;
       if (enew <= eold) tot_prop += 1.0;
       else tot_prop += exp((eold-enew)*beta);
-      //if (enew <= eold) 
-	//cout << "Propensity contribution = "<<1.0<<endl;
-      //else
-	//cout << "Propensity contribution = "<<exp((eold-enew)*beta)<<endl;
     }
     else if(ptype == PROP_NB_SUM) tot_prop += prop->sum(site);
     else if(ptype == PROP_EVAL)   tot_prop += prop->eval(site);
-    
   }
-  //cout << "Total propensity = "<<tot_prop<<endl;
-  //cout <<"#####################################################"<<endl;
+
   ivar[site] = oldval;
   return tot_prop;
 }
-/* ---------------------------------------------------------------------- */

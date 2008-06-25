@@ -1,13 +1,17 @@
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
+------------------------------------------------------------------------- */
+
+#include "stdlib.h"
+#include "string.h"
 #include "neighborhood.h"
-#include <iostream>
-#include "random_park.h"
 #include "state.h"
 
-
-using namespace std;
 using namespace SPPARKS;
 
 /* ---------------------------------------------------------------------- */
+
 Neighborhood::Neighborhood(char *name_in, State *state_in)
 {
   memset(name,0,30);
@@ -17,7 +21,9 @@ Neighborhood::Neighborhood(char *name_in, State *state_in)
   size = state->get_size();
   maxnb = 0;
 }
+
 /* ---------------------------------------------------------------------- */
+
 Neighborhood::Neighborhood(char *name_in, int *num, 
 			   int **nghb, int ns, int maxn_in)
 {
@@ -30,18 +36,22 @@ Neighborhood::Neighborhood(char *name_in, int *num,
   nsites = ns;
   maxnb = maxn_in;
 }
+
 /* ---------------------------------------------------------------------- */
+
 Neighborhood::~Neighborhood()
 {
-
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Neighborhood::init(int narg, char **arg)
 {
   int order = 0;
   
   //parse description of neighborhood
-  if(state_flag == 0){      // lattice_app
+  
+  if( state_flag == 0){      // lattice_app
     
     if(strcmp(arg[1],"nearest")==0){
       order = atoi(arg[2]);
@@ -53,15 +63,11 @@ void Neighborhood::init(int narg, char **arg)
 	  neighbor[s] = new int[numneigh[s]];
 	  for(int n = 0; n < numneigh[s]; n++)
 	    neighbor[s][n] = neighbor_in[s][n];
-	  
 	}
       }
     }
   }
-  
-  else if (state_flag == 1){     // template app
-    
+  else if (state_flag == 1){  // template app
+
   }
-  
 }
-  /* ---------------------------------------------------------------------- */

@@ -1,15 +1,14 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef NODE_H
 #define NODE_H
 
-#include "random_park.h"
-#include <cmath>
+#include "stdio.h"
 
 namespace SPPARKS {
-
 
 #define PLUS         0
 #define MINUS        1
@@ -22,7 +21,7 @@ namespace SPPARKS {
 #define VAR_INT      8
 #define VAR_BOOL     9
 
-  class Node {
+class Node {
   public:
     
     Node();
@@ -45,9 +44,7 @@ namespace SPPARKS {
     
     virtual bool equals(Node *in) = 0;
     
-    
     int type;
-    
 };
   
 }

@@ -1,23 +1,21 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef FITNESS_H
 #define FITNESS_H
 
-#include "random_park.h"
-#include "node.h"
-#include "tree.h"
 #include "sysptr.h"
+#include "stdio.h"
 #include <string>
+#include "node.h"
 
 using namespace std;
 namespace SPPARKS {
 
-
 class Fitness : protected SysPtr {
  public:
-
     Fitness(SPK *);
     ~Fitness();
     double compute(Node *);
@@ -29,7 +27,7 @@ class Fitness : protected SysPtr {
     void update_weight(int);
     
   private:
-    RandomPark *random;
+    class RandomPark *random;
 
     double *var;
     int nvar;

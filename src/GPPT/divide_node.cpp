@@ -1,27 +1,32 @@
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
+------------------------------------------------------------------------- */
 
-#include "math.h"
 #include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
 #include "divide_node.h"
-#include "random_park.h"
-#include "error.h"
 
 using namespace SPPARKS;
+
 /* ---------------------------------------------------------------------- */
+
 DivideNode::DivideNode() : Node()
 { 
   type = DIVIDE;
   left_child = NULL;
   right_child = NULL;
 }
+
 /* ---------------------------------------------------------------------- */
+
 DivideNode::~DivideNode()
 {
 //   delete left_child;
 //   delete right_child;
 }
+
 /* ---------------------------------------------------------------------- */
+
 void DivideNode::write_tex(FILE *dest)
 {
   fprintf(dest,"\\left( \\frac{");
@@ -30,7 +35,9 @@ void DivideNode::write_tex(FILE *dest)
   right_child->write_tex(dest);
   fprintf(dest,"}\\right)");
 }
+
 /* ---------------------------------------------------------------------- */
+
 void DivideNode::write(FILE *dest)
 {
   fprintf(dest,"(");
@@ -39,17 +46,17 @@ void DivideNode::write(FILE *dest)
   right_child->write(dest);
   fprintf(dest,")");
 }
+
 /* ---------------------------------------------------------------------- */
+
 void DivideNode::write_stack(FILE *dest)
 {
   fprintf(dest,"/");
 }
+
 /* ---------------------------------------------------------------------- */
+
 double DivideNode::go(double * var)
 {
-
-  cout <<"trying to divide "<<left_child->go(var)<<
-    " by "<< right_child->go(var)<<endl;
   return left_child->go(var)/right_child->go(var);
 }
-/* ---------------------------------------------------------------------- */

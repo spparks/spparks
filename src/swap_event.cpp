@@ -1,33 +1,38 @@
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
+------------------------------------------------------------------------- */
+
+#include "math.h"
 #include "swap_event.h"
-#include "event.h"
-#include <iostream>
-#include "random_park.h"
-#include "state.h"
 #include "neighborhood.h"
 #include "expression.h"
 
-using namespace std;
 using namespace SPPARKS;
 
-
 /* ---------------------------------------------------------------------- */
+
 SwapEvent::SwapEvent() : Event()
 {
   type = SWAP;
   ptype = PROP_EVAL;
 }
+
 /* ---------------------------------------------------------------------- */
+
 SwapEvent::~SwapEvent() 
 {
   delete [] endval;
 }
 
 /* ---------------------------------------------------------------------- */
+
 void SwapEvent::init()
 {
-  
 }
+
 /* ---------------------------------------------------------------------- */
+
 int SwapEvent::site_event(int site, double threshold)
 {
   double tot_prop = 0;
@@ -35,7 +40,6 @@ int SwapEvent::site_event(int site, double threshold)
   int w;
   double eold = 0;
   double enew = 0;
-
 
   if (srctype == SRC_TO_NBR){
     int nnb = nbr->numneigh[site];
@@ -69,7 +73,9 @@ int SwapEvent::site_event(int site, double threshold)
   
   return 0;
 }
+
 /* ---------------------------------------------------------------------- */
+
 double SwapEvent::site_propensity(int site)
 {
   double tot_prop = 0;
@@ -104,4 +110,3 @@ double SwapEvent::site_propensity(int site)
 
   return tot_prop;
 }
-/* ---------------------------------------------------------------------- */

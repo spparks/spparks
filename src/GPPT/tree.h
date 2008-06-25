@@ -1,18 +1,11 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef TREE_H
 #define TREE_H
 
-#include "node.h"
-#include <cmath>
-#include "random_park.h"
-#include "state.h"
-#include "sysptr.h"
-#include <iostream>
-
-using namespace std;
 namespace SPPARKS {
   
 #define MUT_CONST    0
@@ -22,34 +15,33 @@ namespace SPPARKS {
 #define MUT_CROSS    4
 #define MUT_SWAP     5
   
-  class Tree{
+class Tree{
   public:
-    
     Tree();
     ~Tree();
     
-    Node *root;
-    
-    Node *build_tree(RandomPark*, int);  
-    Node *random_node(RandomPark*, int);
+    class Node *root;
+    class Node *build_tree(class RandomPark*, int);  
+    class Node *random_node(class RandomPark*, int);
   
-    void mutate_branch(RandomPark*, Node *&);
-    void mutate_constant(RandomPark*, Node *&, double);   
-    void mutate_variable(RandomPark*, Node *&);   
-    void mutate_operator(RandomPark*, Node *&);
+    void mutate_branch(class RandomPark*, class Node *&);
+    void mutate_constant(class RandomPark*, class Node *&, double);   
+    void mutate_variable(class RandomPark*, class Node *&);   
+    void mutate_operator(class RandomPark*, class Node *&);
     
-    void crossover(RandomPark*, Node *&, Node *&, int);
+    void crossover(class RandomPark*, class Node *&, class Node *&, int);
     
-    void swap(Node *&, Node *&);
+    void swap(class Node *&, class Node *&);
     
     void init(double, double, int, int);
     
-    Node *copy(Node *);
+    class Node *copy(class Node *);
     
-    Node *from_buffer(char **, int&);
+    class Node *from_buffer(char **, int&);
     
     //create tree from input expression
-    Node *from_string(char*);
+
+    class Node *from_string(char*);
     void infix2postfix();
     void string2tokens();  
     int op_priority(char*);
@@ -58,12 +50,12 @@ namespace SPPARKS {
     void write_tokens(char **);
     bool stack_empty(char **);
     int stack_peek(char **);
-    Node *postfix2tree();
+    class Node *postfix2tree();
     void clean_string(char *);
     
 
     int state_flag;
-    inline void set_state(State * st)
+    inline void set_state(class State * st)
       {state_flag == 1; state = st;}
 
     int lattice_flag;
@@ -101,18 +93,19 @@ namespace SPPARKS {
     
     void clear_tokens(char**);
     
-    Node **children;
-    Node **parents;
+    class Node **children;
+    class Node **parents;
 
-    State *state;
+    class State *state;
+
     //lattice vars 
+
     double **darray;
     int **iarray;
     char **name_int;
     char **name_dbl;
     int n_int_var;
     int n_dbl_var;
-
   };
 }
 #endif

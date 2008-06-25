@@ -1,15 +1,12 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef MINUS_NODE_H
 #define MINUS_NODE_H
 
-#include "random_park.h"
-#include <cmath>
 #include "node.h"
-#include <iostream>
-using namespace std;
 
 namespace SPPARKS {
 

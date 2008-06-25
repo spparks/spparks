@@ -1,3 +1,7 @@
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
+------------------------------------------------------------------------- */
 
 #ifndef STATE_H
 #define STATE_H
@@ -13,10 +17,8 @@
 
 namespace SPPARKS {
   
-  //  class State : protected SysPtr {
-  class State{
+class State {
   protected:
-    
     int nvars_current;
     int size;
     int step[NVARS_MAX];
@@ -28,7 +30,6 @@ namespace SPPARKS {
     int seed;
     
   public:
-    //    State(class SPK *,int, int);
     State(int, int);
     ~State();
     
@@ -40,7 +41,6 @@ namespace SPPARKS {
     inline int get_size(){return size;}
     void parse_variable(char *);
     void init_var(int, char **);
-
   };
   
 }

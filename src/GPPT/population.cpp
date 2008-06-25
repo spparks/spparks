@@ -1,37 +1,34 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
-#include <iostream>
-#include <sstream>
-#include "random_park.h"
-#include "node.h"
-#include "tree.h"
+
+#include "math.h"
 #include "population.h"
-#include <cmath>
-#include "string.h"
-#include "plus_node.h"
-#include "minus_node.h"
-#include "times_node.h"
-#include "divide_node.h"
-#include "const_node.h"
-#include "var_node.h"
+#include "node.h"
+#include "random_park.h"
+#include "fitness.h"
 #include "error.h"
 
-/* ---------------------------------------------------------------------- */
-using namespace std;
 using namespace SPPARKS;
+
+/* ---------------------------------------------------------------------- */
 
 Population::Population() : SysPtr(spk)
 {
 }
+
 /* ---------------------------------------------------------------------- */
+
 Population::~Population()
 {
   for(int t=0;t<ntrees;t++) roots[t]->clear();
   delete [] roots;
   delete [] fitness;
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Population::init(int seed, int num_in, Tree * tree_in,
 		      Fitness *fit_in, int max_depth, double temp_in)
 {
@@ -62,6 +59,7 @@ void Population::init(int seed, int num_in, Tree * tree_in,
 }
 
 /* ---------------------------------------------------------------------- */
+
 void Population::calc_best_fit(){
   best_fit = 1e12;
   best_index = 0;
@@ -73,6 +71,7 @@ void Population::calc_best_fit(){
 }
 
 /* ---------------------------------------------------------------------- */
+
 void Population::build_new_population()
 {
   Node *tree1;
@@ -122,7 +121,9 @@ void Population::build_new_population()
   //update best fit
   calc_best_fit();
 }
+
 /* ---------------------------------------------------------------------- */
+
 double Population::get_stats(double &sigma)
 {
   double mean = 0.0;
@@ -142,7 +143,9 @@ double Population::get_stats(double &sigma)
 
   return mean;
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Population::set_weights()
 {
   double sum =0.0;
@@ -156,7 +159,9 @@ void Population::set_weights()
   for(i = 0; i < MUT_SWAP+2; i++)
     accepted[i]=0;
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Population::update_weights()
 {
   double acc_ratio[MUT_SWAP+1];
@@ -177,7 +182,9 @@ void Population::update_weights()
   for (i = 0; i < MUT_SWAP+1; i++) weight[i] /= sum;
   for (i = 0; i < MUT_SWAP+2; i++) accepted[i]=0;
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Population::write_best_tree(FILE * dest)
 {
   fprintf(dest, "Best tree: \n");
@@ -185,18 +192,23 @@ void Population::write_best_tree(FILE * dest)
   fprintf(dest, "Fit: %g \n", fitness[best_index]);
   fprintf(dest, "Tree value: %g \n",fit->tree_value(roots[best_index]));
 }
+
 /* ---------------------------------------------------------------------- */
+
 Node *Population::get_best_tree()
 {
   return roots[best_index]; 
 }
+
 /* ---------------------------------------------------------------------- */
+
 Node *Population::get_tree(int t)
 {
   return roots[t]; 
 }
 
 /* ---------------------------------------------------------------------- */
+
 bool Population::accept(Node *tree1, Node *tree2, double &fit_in)
 {
   double fit1, fit2;
@@ -214,7 +226,8 @@ bool Population::accept(Node *tree1, Node *tree2, double &fit_in)
 
 /* ----------------------------------------------------------------------
    Sample mutation distribution with partial sums
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
+
 int Population::linear_select_mutation()
 {
   int g = 0;
@@ -229,7 +242,9 @@ int Population::linear_select_mutation()
   error->all("Mutation operator selection failed.");
 
 }
+
 /* ---------------------------------------------------------------------- */
+
 void Population::swap_nbr(int par, double t_in, Node *test_tree)
 {
   int n = 0;

@@ -1,19 +1,16 @@
 /* ----------------------------------------------------------------------
-
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
 #ifndef PLUS_NODE_H
 #define PLUS_NODE_H
 
-#include "random_park.h"
-#include <cmath>
 #include "node.h"
-#include <iostream>
 
-using namespace std;
 namespace SPPARKS {
 
-  class PlusNode : public Node {
+class PlusNode : public Node {
   public:
     PlusNode();
     ~PlusNode();
@@ -60,12 +57,11 @@ namespace SPPARKS {
       }
       return false;
     };
+
   private:
-    
     Node *left_child;
     Node *right_child;
-    
-  };
+};
   
 }
 
