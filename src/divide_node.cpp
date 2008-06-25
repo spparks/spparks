@@ -50,9 +50,6 @@ void DivideNode::write_stack(FILE *dest)
 /* ---------------------------------------------------------------------- */
 double DivideNode::go(double * var)
 {
-
-  cout <<"trying to divide "<<left_child->go(var)<<
-    " by "<< right_child->go(var)<<endl;
   return left_child->go(var)/right_child->go(var);
 }
 /* ---------------------------------------------------------------------- */

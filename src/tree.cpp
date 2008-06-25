@@ -6,9 +6,7 @@
 #include "node.h"
 #include "tree.h"
 #include <cmath>
-#include <string>
-#include <sstream>
-#include <vector>
+#include "string.h"
 #include "plus_node.h"
 #include "minus_node.h"
 #include "times_node.h"
@@ -16,13 +14,12 @@
 #include "pow_node.h"
 #include "const_node.h"
 #include "var_node.h"
-#include "dbl_var_node.h"
-#include "int_var_node.h"
+
 /* ---------------------------------------------------------------------- */
 using namespace std;
-
 using namespace SPPARKS;
-Tree::Tree()
+
+Tree::Tree() : SysPtr(spk)
 {
 }
 /* ---------------------------------------------------------------------- */
@@ -30,15 +27,6 @@ Tree::~Tree()
 {
   delete [] parents;
   delete [] children;
-
-  for (int c = 0; c < 50; c++) delete [] tokens[c];
-  delete [] tokens;
-  for (int c = 0; c < 50; c++) delete [] postfix[c];
-  delete [] postfix;
-  for (int c = 0; c < 50; c++) delete [] op_stack[c];
-  delete [] op_stack;
-
-  delete [] input_line;
 }
 /* ---------------------------------------------------------------------- */
 void Tree::init(double const_lo_in, double const_hi_in, 
@@ -58,27 +46,6 @@ void Tree::init(double const_lo_in, double const_hi_in,
 
   children = new Node *[nch];
   parents = new Node *[npr];
-
-  tokens = new char*[50];
-  postfix = new char*[50];
-  op_stack = new char*[50];
-  for (int c = 0; c < 50; c++) {
-    tokens[c] = new char[16];
-    postfix[c] = new char[16];
-    op_stack[c] = new char[16];
-  }
-
-  clear_tokens(tokens);
-  clear_tokens(postfix);
-  clear_tokens(op_stack);
-
-  input_line = new char[250];
-  state = NULL;
-  state_flag = 0;
-
-  darray = NULL;
-  iarray = NULL;
-  lattice_flag = 0;
 
 }
 /* ---------------------------------------------------------------------- */
@@ -143,7 +110,7 @@ Node *Tree::build_tree(RandomPark* random, int max_depth)
       }
     //display parents
 //     cout << "depth "<<depth<<" : ";
-//     for(t=0;t<pcnt;t++) parents[t]->write_stack(screen);
+//     for(t=0;t<pcnt;t++) parents[t]->write_stack();
 //     cout << endl;
 
     //promote children
@@ -202,8 +169,7 @@ void Tree::mutate_branch(RandomPark* random, Node *&root)
 }
 /* ---------------------------------------------------------------------- */
 
-void Tree::mutate_constant(RandomPark* random, Node *&root, 
-			   double temperature)
+void Tree::mutate_constant(RandomPark* random, Node *&root, double temperature)
 {
   Node *leaves[nch];
   bool done = false;
@@ -256,8 +222,8 @@ void Tree::mutate_constant(RandomPark* random, Node *&root,
 
   if (nlv > 0){
     int leaf = static_cast<int>(nlv * random->uniform());
-    new_value = static_cast<ConstNode*>(leaves[leaf])->get_value() 
-      - const_lo + temperature * new_value;
+    new_value = static_cast<ConstNode*>(leaves[leaf])->get_value() - const_lo + 
+      temperature * new_value;
     pos = static_cast<int>(new_value / range);
     new_value -= pos*range;
     new_value += const_lo;
@@ -500,9 +466,6 @@ Node * Tree::copy(Node *root)
   int op = root->type;
   Node *rn;
   Node *nt;
-  int type;
-  char name[16];
-  void *var;
   
   if     (op == PLUS)      rn = new PlusNode();
   else if(op == MINUS)     rn = new MinusNode();
@@ -511,8 +474,6 @@ Node * Tree::copy(Node *root)
   else if(op == POW)       rn = new PowNode();
   else if(op == CONSTANT)  rn = new ConstNode();
   else if(op == VARIABLE)  rn = new VarNode();
-  else if(op == VAR_DBL)  rn = new DblVarNode();
-  else if(op == VAR_INT)  rn = new IntVarNode();
 
   if (op < POW+1) {
     nt = copy(static_cast<PlusNode*>(root)->get_left_child());
@@ -524,24 +485,6 @@ Node * Tree::copy(Node *root)
       set_value(static_cast<ConstNode*>(root)->get_value());
   else if (op == VARIABLE) static_cast<VarNode*>(rn)->
       set_value(static_cast<VarNode*>(root)->get_value());
-
-  else if(op == VAR_DBL || op == VAR_INT)  {
-    strcpy(name,static_cast<VarNode*>(root)->get_name());
-    static_cast<VarNode*>(rn)->set_name(name);
-    if(static_cast<VarNode*>(root)->nb_flag == 1)
-      static_cast<VarNode*>(rn)->set_nb();
-    if (state_flag == 1) var = state->get_attribute(name, type);
-    else if (lattice_flag){
-      int v = get_variable(name, type);
-      if (type==2) var = darray[v];
-      else if (type==1) var = iarray[v];
-    }
-    if(op == VAR_DBL)
-      static_cast<DblVarNode*>(rn)->set_data_pointer(var);
-    if(op == VAR_INT)
-      static_cast<IntVarNode*>(rn)->set_data_pointer(var);
-    static_cast<VarNode*>(rn)->set_data_type(type);
-  }
   return rn;
 }
 /* ---------------------------------------------------------------------- */
@@ -552,7 +495,6 @@ Node *Tree::from_buffer(char **buf, int &n)
   int index = 0;
   Node *rn;
   Node *nt;
-  int type;
 
   op = atoi(buf[n]);
 
@@ -562,18 +504,12 @@ Node *Tree::from_buffer(char **buf, int &n)
   else if(op == DIVIDE)    rn = new DivideNode();
   else if(op == POW)       rn = new PowNode();
   else if(op == CONSTANT){ 
-    rn = new ConstNode(); 
-    sscanf(buf[n],"%d %lg ",&op, &c);
+                           rn = new ConstNode(); 
+                           sscanf(buf[n],"%d %lg ",&op, &c);
   }
   else if(op == VARIABLE){  
-    rn = new VarNode();
-    sscanf(buf[n],"%d %d ",&op, &index);
-  }
-  else if(op == VAR_DBL)  {
-    rn = new DblVarNode();
-  }
-  else if(op == VAR_INT)  {
-    rn = new IntVarNode();
+                           rn = new VarNode();
+                           sscanf(buf[n],"%d %d ",&op, &index);
   }
 
  if (op < POW+1) {
@@ -584,424 +520,8 @@ Node *Tree::from_buffer(char **buf, int &n)
   }
   else if (op == CONSTANT) {static_cast<ConstNode*>(rn)->set_value(c);}
   else if (op == VARIABLE) {static_cast<VarNode*>(rn)->set_value(index);}
-  else if(op == VAR_DBL)  {
-
-  }
-  else if(op == VAR_INT)  {
-
-  }
-  return rn;
-}
-/* ---------------------------------------------------------------------- */
-
-/* ---------------------------------------------------------------------- */
-Node *Tree::from_string(char *str)
-{
-  Node *rn = NULL;
-
-  //  clean_string(str);
-  strcpy(input_line,str);
-  //convert input formula string to tokens
-  string2tokens();
-  //convert input tokens to postfix
-  infix2postfix();
-  //convert postfix to a tree
-  rn = postfix2tree();
 
   return rn;
 }
 /* ---------------------------------------------------------------------- */
-void Tree::clean_string(char *str)
-{
-  int i = 0;
-  int j = 0;
 
-  while(i != strlen(str)){
-    cout <<i<<"  "<<str[i]<<endl;
-      i++;
-  }
-  while (i != strlen(str))
-    {
-      if (str[i] == 32)
-        {
-	  i++;
-        }
-      else
-        {
-	  input_line[j] = str[i];
-	  i++;
-	  j++;
-        }
-    }
-  strcat(input_line,"\0");
-  input_line[j] = 0;
-
-}
-/* ---------------------------------------------------------------------- */
-void Tree::infix2postfix()
-{
-  int k = 0;
-  int n = 0;
-  int m = 0;
-  int t = -1;
-  bool flag = true;
-
-  char current[250];
-  memset(current,0,250);
-
-  clear_tokens(op_stack);
-  clear_tokens(postfix);
-
-
-  t = op_priority(tokens[0]);
- 
-  while(t != 99){
-
-    t = op_priority(tokens[k]);
-
-    if(t == 0){
-      flag = push(tokens[k],op_stack);}
-
-    else if(t == 1){
-      while (!stack_empty(op_stack) && t < stack_peek(op_stack))
-	{
-	  flag = pop(current, op_stack);
-	  flag = push(current,postfix);
-	}
-      flag = pop(current,op_stack);
-      if(strcmp(current,"(")>0) 
-	cout <<"paren pair failed to anihilate!"<<endl;
-    }
-
-    else if (t == 2 || t == 3 || t == 4){
-      while (!stack_empty(op_stack) & stack_peek(op_stack)>=t)
-	{
-	  flag = pop(current, op_stack);
-	  flag = push(current,postfix);
-	}
-      flag = push(tokens[k],op_stack);
-    }
-
-    else if (t == 8 || t == 10){
-      flag = push(tokens[k],postfix);}
-
-
-    else flag = false;
-
-//     cout << "token "<<k<<"  "<<tokens[k]<<endl;
-//     cout <<"op_stack: "<<endl;
-//     if(!stack_empty(op_stack)) write_tokens(op_stack);
-//     else cout <<"empty."<<endl;
-//     //    cout <<"peek priority = "<<stack_peek(op_stack)<<endl;
-//     cout <<"postfix: "<<endl;
-//     if(!stack_empty(postfix)) write_tokens(postfix);
-//     else cout <<"empty."<<endl;
-//     //    cout <<"peek priority = "<<stack_peek(postfix)<<endl;
-
-    k++;
-  }
-  while (!stack_empty(op_stack))
-    {
-      flag = pop(current, op_stack);
-      flag = push(current,postfix);
-    }
-//   cout <<"op_stack: "<<endl;
-//   if(!stack_empty(op_stack)) write_tokens(op_stack);
-//   else cout <<"empty."<<endl;
-//   cout <<"peek priority = "<<stack_peek(op_stack)<<endl;
-//   cout <<"postfix: "<<endl;
-//   if(!stack_empty(postfix)) write_tokens(postfix);
-//   else cout <<"empty."<<endl;
-//   cout <<"peek priority = "<<stack_peek(postfix)<<endl;
-}
-/* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
-void Tree::string2tokens()
-{
-  int m = 0;
-  char *temp;
-
-  // cout  <<"input_line "<<input_line<<" of length "<<strlen(input_line)<<endl;
-  strcat(input_line,"#\0");
-
-  char test[250];
-  memset(test,0,250);
-
-  int pos1 = 0;
-  int pos2 = 0;
-
-  while(pos1 < strlen(input_line)){
-    if(strncmp(&input_line[pos1],"#",1)==0 ||
-       strncmp(&input_line[pos1],"+",1)==0 ||
-       strncmp(&input_line[pos1],"-",1)==0 ||
-       strncmp(&input_line[pos1],"*",1)==0 ||
-       strncmp(&input_line[pos1],"/",1)==0 ||
-       strncmp(&input_line[pos1],"^",1)==0 ||
-       strncmp(&input_line[pos1],"(",1)==0 ||
-       strncmp(&input_line[pos1],")",1)==0
-       ) 
-      {
-	strncpy(&test[pos2]," ",1); pos2++;
-	test[pos2] = input_line[pos1]; pos2++;
-	strncpy(&test[pos2]," ",1); pos2++;
-	pos1++;
-      }
-    else{
-      test[pos2] = input_line[pos1]; 
-      pos1++;pos2++;
-    }
-  }
-  while(test[pos2]==32) pos2--; //remove trailing zeroes
-  test[pos2+1] = 0; //terminate string
-
-  clear_tokens(tokens);
-
-  char* tkn;
-
-  tkn = strtok(test, " ");
-  while(tkn != NULL){
-    //    printf ("%s\n",tkn);
-    strcpy(tokens[m],tkn);
-    strcat(tokens[m],"\0");
-    //    printf ("token %d %s\n",m, tokens[m]);
-    tkn = strtok(NULL, " ");
-    m++;
-  }
-  strcpy(tokens[m],"#");
-
-//   cout <<"tokens: "<<endl;
-//   if(!stack_empty(tokens)) write_tokens(tokens);
-//   else cout <<"empty."<<endl;
-  //  cout <<"peek priority = "<<stack_peek(postfix)<<endl;
-}
-/* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
-Node *Tree::postfix2tree()
-{
-  vector<Node *> node_stack;
-  int k = 0;
-  int op = 0;
-  string current_string;
-  string var_name;
-  char var_name_char[16];
-  Node *current_nd;
-  Node *tnd;
-
-  bool flag = true;
-  double tmp = 0.0;
-  void *var_p = NULL;
-  int type = -1;
-
-  while(op_priority(postfix[k])<99){
-    current_string.clear();
-    current_string.assign(postfix[k]);
-
-    op = op_priority(postfix[k]);
-
-    if(current_string.compare(0,1,"+")==0)
-      current_nd = new PlusNode();
-    else if (current_string.compare(0,1,"-")==0)
-      current_nd = new MinusNode();
-    else if (current_string.compare(0,1,"*")==0)
-      current_nd = new TimesNode();
-    else if (current_string.compare(0,1,"/")==0)
-      current_nd = new DivideNode();
-    else if (current_string.compare(0,1,"^")==0)
-      current_nd = new PowNode();
-    else if (current_string.compare(0,1,"@")==0 ||
-	     current_string.compare(0,1,"%")==0)
-      {
-	var_name.clear();
-	var_name.assign(postfix[k]);
-	var_name.erase(0,1);
-	strcpy(var_name_char,var_name.c_str());
-	
-	void *data = NULL;
-	int v;
-	//STATE
-	if(state_flag == 1)
-	  {
-	    data = state->get_attribute(var_name_char, type);
-	    if (type==2){
-	      current_nd = new DblVarNode();
-	      static_cast<DblVarNode*>(current_nd)->set_data_pointer(data);
-	    }
-	    else if (type==1){
-	      current_nd = new IntVarNode();
-	      static_cast<IntVarNode*>(current_nd)->set_data_pointer(data);
-	    }
-	  }
-	else if (lattice_flag == 1)
-	  {
-	    v = get_variable(&var_name_char[0], type);
-	    if (type==2){
-	      data = darray[v];
-	      current_nd = new DblVarNode();
-	      static_cast<DblVarNode*>(current_nd)->set_data_pointer(data);
-	    }
-	    else if (type==1){
-	      data = iarray[v];
-	      current_nd = new IntVarNode();
-	      static_cast<IntVarNode*>(current_nd)->set_data_pointer(data);
-	      
-	    }
-	  }
-	static_cast<VarNode*>(current_nd)->set_data_type(type);
-	static_cast<VarNode*>(current_nd)->set_name(var_name_char);
-	if(current_string.compare(0,1,"%")==0)
-	  static_cast<VarNode*>(current_nd)->set_nb();
-       
-      }
-    
-    else if (current_string.find_first_of("0123456789")<1){
-      current_nd = new ConstNode();
-      sscanf(postfix[k],"%lg",&tmp);
-      static_cast<ConstNode*>(current_nd)->set_value(tmp);
-    }
-    else
-      {
-	cout << "Invalid token in formula "<<postfix[k]<<endl;
-	break;
-      }
-    if(op<8){
-      if(!node_stack.empty()){
-	tnd = copy(node_stack.back());
-	current_nd->set_right_child(tnd);
-	node_stack.pop_back();
-      }
-      else cout <<"postfix error: no operands"<<endl;
-      if(!node_stack.empty()){
-	tnd = copy(node_stack.back());
-	current_nd->set_left_child(tnd);
-	node_stack.pop_back();
-      }
-      else cout <<"postfix error: no operands"<<endl;
-    }
-    node_stack.push_back(current_nd);
-    k++;
-  }
-  if(!node_stack.empty()) return node_stack.back();
-  else {cout << "postfix error. No root remains."<<endl; return NULL;}
-
-
-}
-/* ---------------------------------------------------------------------- */
-
-/* ---------------------------------------------------------------------- */
-int Tree::op_priority(char *op)
-{
-
-  switch ( op[0] ) {
-    
-  case '(' :  
-    return 0;
-  case ')' :
-    return 1;
-  case '+' :  
-    return 2;
-  case '-' :
-    return 2;
-  case '*' :  
-    return 3;
-  case '/' :
-    return 3;
-  case '^' :
-    return 4;
-  case '@' :
-    return 8;
-  case '#' :
-    return 99;
-  default:
-    return 10;
-  }
-
-}
-/* ---------------------------------------------------------------------- */
-void Tree::clear_tokens(char **tk)
-{
-  memset(tk[0],'#',1);
-}
-/* ---------------------------------------------------------------------- */
-bool Tree::pop(char last[250], char **tk)
-{
-  int t = 0;
-
-  while (op_priority(tk[t])<99) t++;
-
-  if(t>0){
-    strcpy(last, tk[t-1]);
-    strcat(last,"\0");
-    memset(tk[t-1],'#',1);
-    return true;
-  }
-  return false;
-}
-/* ---------------------------------------------------------------------- */
-bool Tree::push(char last[250], char **tk)
-{
-  int t = 0;
-  
-  while (op_priority(tk[t])<99) t++;
-
-  if(t<50){
-    strcpy(tk[t],last);
-    strcat(tk[t],"\0");
-    memset(tk[t+1],'#',1);
-    return true;
-  }
-  return false;
-}
-/* ---------------------------------------------------------------------- */
-void Tree::write_tokens(char **tk)
-{
-  int t = 0;
-  
-  while (op_priority(tk[t])<99) t++;
-
-  if (t<50 & t> 0)
-    for(int i = 0; i < t; i++)
-      cout << "word "<<i<<"  "<<tk[i]<<endl;
-  else cout <<"exceeded stack size with no terminating character"<<endl;
-}
-/* ---------------------------------------------------------------------- */
-bool Tree::stack_empty(char **tk)
-{
-  int t = 0;
-  while (op_priority(tk[t])<99) t++;
-
-  if(t==0){
-    return true;
-  }
-  return false;
-}
-/* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
-int Tree::stack_peek(char **tk)
-{
-  int t = 0;
-  while (op_priority(tk[t])<99) t++;
-
-  if(t>0){
-    return op_priority(tk[t-1]);
-  }
-  return 99;
-}
-/* ---------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------
-   find variable by name
-------------------------------------------------------------------------- */
-int Tree::get_variable(char *name, int &type)
-{
-  for (int i = 0; i < n_int_var; i++)
-    if(strcmp(name, name_int[i])==0) {
-      type = 1; 
-      return i;
-    }
-  for (int i = 0; i < n_dbl_var; i++)
-    if(strcmp(name, name_dbl[i])==0) {
-      type = 2; 
-      return i;
-    }
-  //  error->all("Variable not found.");
-  return -1;
-}

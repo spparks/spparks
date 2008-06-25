@@ -19,8 +19,6 @@ class MinusNode : public Node {
   ~MinusNode();
 
   double go(double *);
-  inline double go(int index_in){
-    return left_child->go(index_in) - right_child->go(index_in);}
 
   void write(FILE *);
   void write_tex(FILE *);
@@ -46,15 +44,6 @@ class MinusNode : public Node {
       left_child->clear(); 
       right_child->clear();
     }
-  inline bool equals(Node *in){
-    if (in->type == type){
-      Node* left = static_cast<MinusNode*>(in)->get_left_child();
-      Node* right = static_cast<MinusNode*>(in)->get_right_child();
-      if(left_child->equals(left) && right_child->equals(right))
-	return true;
-    }
-    return false;
-  };
   private:
 
   Node *left_child;
