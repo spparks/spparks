@@ -100,9 +100,9 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
 	error->universe_one("Cannot open universe screen file");
     }
     if (logflag == 0) {
-      universe->ulogfile = fopen("log.spk","w");
+      universe->ulogfile = fopen("log.spparks","w");
       if (universe->ulogfile == NULL) 
-	error->universe_one("Cannot open log.spk");
+	error->universe_one("Cannot open log.spparks");
     } else if (strcmp(arg[logflag],"none") == 0)
       universe->ulogfile = NULL;
     else {
@@ -173,7 +173,7 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
     if (me == 0) {
       if (logflag == 0) {
 	char str[32];
-	sprintf(str,"log.spk.%d",universe->iworld);
+	sprintf(str,"log.spparks.%d",universe->iworld);
 	logfile = fopen(str,"w");
 	if (logfile == NULL) error->one("Cannot open logfile");
       } else if (strcmp(arg[logflag],"none") == 0)

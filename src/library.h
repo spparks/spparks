@@ -7,7 +7,7 @@
 
 #include "mpi.h"
 
-void spk_open(int, char **, MPI_Comm); // start SPPARKS w/ command-line args
-void spk_close();                      // shut-down SPPARKS
-void spk_file(char *);                 // execute an input script
-char *spk_command(char *);             // execute a single SPPARKS command
+void spparks_open(int, char **, MPI_Comm);   // start SPPARKS w/ cmdline args
+void spparks_close();                        // shut-down SPPARKS
+void spparks_file(char *);                   // execute an input script
+char *spparks_command(char *);               // execute a SPPARKS command
