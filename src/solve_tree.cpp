@@ -136,14 +136,16 @@ void SolveTree::sum_tree()
     child2 = 2*parent + 2;
     tree[parent] = tree[child1] + tree[child2];
   }
+
   // Update total propensity
+
   sum = tree[0];
 
   // Update number of active events
+
   num_active = 0;
   for (int i = offset; i < ntotal; i++) 
     if (tree[i] > 0.0) num_active++;
-
 }
 
 /* ----------------------------------------------------------------------

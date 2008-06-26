@@ -89,6 +89,7 @@ void SolveGroup2::init(int n, double *propensity)
 
   sum = 0.0;
   for (int i = 0; i < n; i++) {
+    if (propensity[i] > 0.0) num_active++;
     p[i] = MAX(propensity[i],lo);
     p[i] = MIN(p[i],hi);
     sum += p[i];

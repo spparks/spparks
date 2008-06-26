@@ -174,6 +174,7 @@ void AppTestGroup::iterate()
 
     timer->stamp();
     ievent = solve->event(&dt);
+
     count[ievent]++;
     timer->stamp(TIME_SOLVE);
 

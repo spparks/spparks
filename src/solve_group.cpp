@@ -87,6 +87,7 @@ void SolveGroup::init(int n, double *propensity)
   last_size = n;
 
   for (int i = 0; i < n; i++) {
+    if (propensity[i] > 0.0) num_active++;
     double pt = propensity[i];
     if (lo > pt && pt > 0.0) {
       lo = pt;

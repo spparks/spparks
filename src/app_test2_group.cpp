@@ -32,6 +32,7 @@ AppTest2Group::AppTest2Group(SPPARKS *spk, int narg, char **arg) :
   ndepends = NULL;
   depends = NULL;
   ran_dep = NULL;
+  count = NULL;
 
   nevents = 0;
   dep_graph_flag = true;
@@ -51,7 +52,7 @@ AppTest2Group::~AppTest2Group()
   delete [] ndepends;
   memory->destroy_2d_int_array(depends);
   delete [] ran_dep;
-
+  delete [] count;
   delete random;
 }
 
@@ -82,10 +83,17 @@ void AppTest2Group::init()
     psum += propensity[m];
   }
 
-  // Initialize output
+  // comment out if don't want event counts, including call to output->init
 
-  output->init(time);
+  // allocate and zero event stats
 
+  //delete [] count;
+  //count = new int[nevents];
+  //for (int m = 0; m < nevents; m++) count[m] = 0;
+
+  // initialize output
+
+  //output->init(time);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,11 +143,6 @@ void AppTest2Group::iterate()
   int i,m,n,ievent,rdp,tdep;
   double dt;
 
-  // comment out if don't want event counts
-
-  //count = new int[nevents];
-  //for (i = 0; i < nevents; i++) count[i] = 0;
-
   ntimestep = 0;
   int done = 0;
 
@@ -152,6 +155,7 @@ void AppTest2Group::iterate()
     ievent = solve->event(&dt);
 
     // comment out if don't want event counts
+
     //count[ievent]++;
 
     timer->stamp(TIME_SOLVE);
@@ -186,11 +190,8 @@ void AppTest2Group::iterate()
 
   // comment out if don't want event counts
 
-//     // Do output
-
-//     output->compute(time,done);
-//     timer->stamp(TIME_OUTPUT);
-  //delete [] count;
+  //output->compute(time,done);
+  //timer->stamp(TIME_OUTPUT);
 
   if (screen) fprintf(screen,"\nNumber of reactions, events = %d %d\n",
 		      nevents,ntimestep);

@@ -61,9 +61,9 @@ void SolveLinear::init(int n, double *propensity)
   num_active = 0;
 
   for (int i = 0; i < n; i++) {
+    if (propensity[i] > 0.0) num_active++;
     prob[i] = propensity[i];
     sum += propensity[i];
-    if (propensity[i] > 0.0) num_active++;
   }
 }
 
