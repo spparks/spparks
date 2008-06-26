@@ -233,7 +233,6 @@ void AppLattice3d::iterate()
   
   int done = 0;
   while (!done) {
-    ntimestep++;
 
     if (propensity) {
       timer->stamp();
@@ -242,6 +241,7 @@ void AppLattice3d::iterate()
       
       if (isite < 0) done = 1;
       else {
+	ntimestep++;
 	i = site2ijk[isite][0];
 	j = site2ijk[isite][1];
 	k = site2ijk[isite][2];

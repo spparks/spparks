@@ -85,6 +85,26 @@ SweepStyle(lattice2d,SweepLattice2d)
 SweepStyle(lattice3d,SweepLattice3d)
 #endif
 
+#ifdef DiagInclude
+#include "diag_cluster.h"
+#include "diag_cluster2d.h"
+#include "diag_cluster3d.h"
+#include "diag_eprof3d.h"
+#include "diag_energy.h"
+#include "diag_energy2d.h"
+#include "diag_energy3d.h"
+#endif
+
+#ifdef DiagClass
+DiagStyle(cluster,DiagCluster)
+DiagStyle(cluster2d,DiagCluster2d)
+DiagStyle(cluster3d,DiagCluster3d)
+DiagStyle(energy,DiagEnergy)
+DiagStyle(energy2d,DiagEnergy2d)
+DiagStyle(energy3d,DiagEnergy3d)
+DiagStyle(eprof3d,DiagEprof3d)
+#endif
+
 // packages
 
 #include "style_gppt.h"

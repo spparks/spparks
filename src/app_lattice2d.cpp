@@ -235,8 +235,6 @@ void AppLattice2d::iterate()
   int done = 0;
   
   while (!done) {
-    ntimestep++;
-
     if (propensity) {
       timer->stamp();
       isite = solve->event(&dt);
@@ -244,6 +242,7 @@ void AppLattice2d::iterate()
       
       if (isite < 0) done = 1;
       else {
+	ntimestep++;
 	i = site2ij[isite][0];
 	j = site2ij[isite][1];
 	site_event(i,j,1);

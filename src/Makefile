@@ -62,7 +62,7 @@ help:
 
 # Run the tests in directory ../test using Makefile.$(TESTMACHINE)
 TESTMACHINE = serial
- 
+
 test: 
 	@make $(TESTMACHINE)
 	@cp MAKE/Makefile.$(TESTMACHINE) ../test/Makefile
