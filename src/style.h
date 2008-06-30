@@ -5,7 +5,6 @@
 
 #ifdef AppInclude
 #include "app_chemistry.h"
-#include "app_custom.h"
 #include "app_ising.h"
 #include "app_ising_2d_4n.h"
 #include "app_ising_2d_8n.h"
@@ -21,14 +20,12 @@
 #include "app_potts_3d_6n.h"
 #include "app_potts_3d_12n.h"
 #include "app_potts_3d_26n.h"
-#include "app_surf.h"
 #include "app_test_group.h"
 #include "app_test2_group.h"
 #endif
 
 #ifdef AppClass
 AppStyle(chemistry,AppChemistry)
-AppStyle(custom,AppCustom)
 AppStyle(ising,AppIsing)
 AppStyle(ising/2d/4n,AppIsing2d4n)
 AppStyle(ising/2d/8n,AppIsing2d8n)
@@ -44,7 +41,6 @@ AppStyle(potts/2d/24n,AppPotts2d24n)
 AppStyle(potts/3d/6n,AppPotts3d6n)
 AppStyle(potts/3d/12n,AppPotts3d12n)
 AppStyle(potts/3d/26n,AppPotts3d26n)
-AppStyle(surf,AppSurf)
 AppStyle(test/group,AppTestGroup)
 AppStyle(test2/group,AppTest2Group)
 #endif
@@ -58,7 +54,6 @@ CommandStyle(shell,Shell)
 #endif
 
 #ifdef SolveInclude
-#include "solve_alias.h"
 #include "solve_group.h"
 #include "solve_group2.h"
 #include "solve_linear.h"
@@ -66,7 +61,6 @@ CommandStyle(shell,Shell)
 #endif
 
 #ifdef SolveClass
-SolveStyle(alias,SolveAlias)
 SolveStyle(group,SolveGroup)
 SolveStyle(group2,SolveGroup2)
 SolveStyle(linear,SolveLinear)
@@ -107,7 +101,7 @@ DiagStyle(eprof3d,DiagEprof3d)
 
 // packages
 
-#include "style_gppt.h"
+//#include "style_gppt.h"
 
 // user add-ons
 

@@ -13,7 +13,7 @@ OBJ = 	$(SRC:.cpp=.o)
 
 # Package variables
 
-PACKAGE = gppt
+PACKAGE =
 PACKAGEUC = $(shell perl -e 'printf("%s", uc("$(PACKAGE)"));')
 YESDIR = $(shell perl -e 'printf("%s", uc("$(@:yes-%=%)"));')
 NODIR  = $(shell perl -e 'printf("%s", uc("$(@:no-%=%)"));')
@@ -107,8 +107,6 @@ makelist:
 
 package:
 	@echo 'Standard packages:' $(PACKAGE)
-	@echo ''
-	@echo 'User-contributed packages:' $(PACKUSER)
 	@echo ''
 	@echo 'make package             list available packages'
 	@echo 'make package-status      status of all packages'
