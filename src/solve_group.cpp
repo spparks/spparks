@@ -7,16 +7,19 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "solve_group.h"
-#include "groups.h"
+#include "solve_group2.h"
+#include "groups2.h"
 #include "random_park.h"
 #include "error.h"
 
 using namespace SPPARKS_NS;
 
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 /* ---------------------------------------------------------------------- */
 
-SolveGroup::SolveGroup(SPPARKS *spk, int narg, char **arg) :
+SolveGroup2::SolveGroup2(SPPARKS *spk, int narg, char **arg) :
   Solve(spk, narg, arg)
 {
   if (narg < 4) error->all("Illegal solve command");
@@ -34,13 +37,13 @@ SolveGroup::SolveGroup(SPPARKS *spk, int narg, char **arg) :
   else seed = atoi(arg[3]);
 
   random = new RandomPark(seed);
-  groups = new Groups(lo,hi,seed,ngroups_flag,ngroups_in);
+  groups = new Groups2(spk,lo,hi,seed,ngroups_flag,ngroups_in);
   p = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
-SolveGroup::~SolveGroup()
+SolveGroup2::~SolveGroup2()
 {
   delete random;
   delete groups;
@@ -49,7 +52,7 @@ SolveGroup::~SolveGroup()
 
 /* ---------------------------------------------------------------------- */
 
-SolveGroup *SolveGroup::clone()
+SolveGroup2 *SolveGroup2::clone()
 {
   int narg = 5;
   char *arg[5];
@@ -65,7 +68,7 @@ SolveGroup *SolveGroup::clone()
   sprintf(arg[3],"%d",ngroups_in);
   sprintf(arg[4],"%d",seed);
 
-  SolveGroup *ptr = new SolveGroup(spk,narg,arg);
+  SolveGroup2 *ptr = new SolveGroup2(spk,narg,arg);
 
   delete [] arg[1];
   delete [] arg[2];
@@ -76,37 +79,28 @@ SolveGroup *SolveGroup::clone()
 
 /* ---------------------------------------------------------------------- */
 
-void SolveGroup::init(int n, double *propensity)
+void SolveGroup2::init(int n, double *propensity)
 {
   nevents = n;
   num_active = 0;
-  sum = 0.0;
+
   delete [] p;
-  p = new double[n+10];
+  p = new double[n];
 
-  last_size = n;
-
+  sum = 0.0;
   for (int i = 0; i < n; i++) {
     if (propensity[i] > 0.0) num_active++;
-    double pt = propensity[i];
-    if (lo > pt && pt > 0.0) {
-      lo = pt;
-      fprintf(screen, "Lower bound violated. Reset to %g \n", lo);
-    }
-    else if (hi < pt)  {
-      hi = pt;
-      fprintf(screen, "Upper bound violated. Reset to %g \n", hi);
-    }
-    p[i] = pt;
-    sum += pt;
+    p[i] = MAX(propensity[i],lo);
+    p[i] = MIN(p[i],hi);
+    sum += p[i];
   }
 
-  groups->partition_init(p,n,n+10);
+  groups->partition_init(p,n);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void SolveGroup::update(int n, int *indices, double *propensity)
+void SolveGroup2::update(int n, int *indices, double *propensity)
 {
   for (int i = 0; i < n; i++) {
     int j = indices[i];
@@ -124,7 +118,7 @@ void SolveGroup::update(int n, int *indices, double *propensity)
 
 /* ---------------------------------------------------------------------- */
 
-void SolveGroup::update(int n, double *propensity)
+void SolveGroup2::update(int n, double *propensity)
 {
   double pt = propensity[n];
   if (p[n] != pt) {
@@ -139,19 +133,22 @@ void SolveGroup::update(int n, double *propensity)
 
 /* ---------------------------------------------------------------------- */
 
-void SolveGroup::resize(int new_size, double *propensity)
+void SolveGroup2::resize(int new_size, double *propensity)
 {
   init(new_size,propensity);
 }
 
 /* ---------------------------------------------------------------------- */
 
-int SolveGroup::event(double *pdt)
+int SolveGroup2::event(double *pdt)
 {
   int m;
-  if (num_active == 0) {sum = 0.0; return -1;}
+  if (num_active == 0) {
+    sum = 0.0;
+    return -1;
+  }
+
   m = groups->sample(p);
   *pdt = -1.0/sum * log(random->uniform());
   return m;
 }
-

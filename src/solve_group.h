@@ -3,18 +3,18 @@
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
-#ifndef SOLVE_GROUP_H
-#define SOLVE_GROUP_H
+#ifndef SOLVE_GROUP2_H
+#define SOLVE_GROUP2_H
 
 #include "solve.h"
 
 namespace SPPARKS_NS {
 
-class SolveGroup : public Solve {
+class SolveGroup2 : public Solve {
  public:
-  SolveGroup(class SPPARKS *, int, char **);
-  ~SolveGroup();
-  SolveGroup *clone();
+  SolveGroup2(class SPPARKS *, int, char **);
+  ~SolveGroup2();
+  SolveGroup2 *clone();
 
   void input(int, char **) {}
   void init(int, double *);
@@ -26,10 +26,11 @@ class SolveGroup : public Solve {
  private:
   int seed;
   class RandomPark *random;
-  class Groups *groups;
+  class Groups2 *groups;
   int nevents;
-  double *p;
-  double last_size;
+
+  double *p;                     // local copy of propensities
+  double sum;
   int ngroups_in;
   bool ngroups_flag;
   double lo,hi;
