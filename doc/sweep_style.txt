@@ -1,0 +1,74 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style command :h3
+
+[Syntax:]
+
+app_style style args :pre
+
+style = application style name
+args = args :ul
+
+[Examples:]
+
+app_style ising 100 100
+app_style potts 1000 1000 4 :pre
+
+[Description:]
+
+sweep_style lattice2d seed option arg option arg ...
+sweep_style lattice3d seed option arg option arg ...
+
+options and args:
+  strict yes/no = enforce ??
+  mask yes/no = use a mask on each site to skip if possible
+  picklocal yes/no = pick new spin from neighbors or all possible
+  kmc yes/no = run KMC on sub-domain or sweep in ordered fashion
+  delt 1.0 = time associated with one sweep (seconds)
+
+defaults:
+  strict no, mask no, picklocal no, kmc no, delt = 1.0
+
+perform a Metroplis or KMC update of sites owned by a processor
+  by sweeping over lattice sites in a regular fashion
+must use lattice2d or lattice3d that correspods to the app_style (2d or 3d)
+  do we check for this ??
+used when running a lattice-based app (ising, potts, membrane, migration)
+
+if define just a sweep style:
+  domain will be broken into 4 or 8 sectors for 2d or 3d
+  each will be iterated on in turn
+  communication of boundary info will be done between sectors
+if define just a solve style:
+  no sweeping is done
+  entire domain is treated as one set of KMC propensities
+if define both a sweep and solve style:
+  same partitioning into 4 or 8 sectors is done
+  each sector is treated as one set of KMC propensities
+  KMC updates are done until delt is reached
+  then boundary is updated via communication
+  this is an approximate parallel KMC algorithm
+if use sweep style when running on 1 proc, entire domain is partitioned
+  into 4 or 8 sectors
+
+what does each option mean ??
+which options can be used in combination and what do they mean ??
+if KMC option is used, options strict, picklocal, mask are ignored
+for KMC option, it's important to choose delt correctly
+  how to choose correctly ??
+  what happens if too small
+  what happens if too large
+
+[Restrictions:] none
+
+[Related commands:]
+
+"variable"_variable.html, ...
+
+[Default:] none

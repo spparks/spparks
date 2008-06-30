@@ -1,0 +1,59 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>add_reaction command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>add_reaction reactant1 reactant2 rate product1 product2 ... 
+</PRE>
+<UL><LI>reactant1,reactant2 = 0, 1, or 2 reactant species
+<LI>rate = reaction rate (see units below)
+<LI>product1, product2 = 0, 1, or more product species 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>add_reaction A B 1.0e10 C
+add_reaction 1.0 d
+add_reaction b2 1.0e-10 c3 d4 e3 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command defines a chemical reaction for use in the <A HREF = "app_chemistry.html">app_style
+chemistry</A> application.
+</P>
+<P>The first reaction listed above represents an A and B molecule binding
+to form a complex C at a rate of 1.0e10 per molarity per second.
+I.e. A + B -> C.
+</P>
+<P>Each reaction has 0, 1, or 2 reactants.  It also has 0, 1, or more
+products.  The reactants and products are specified by species ID
+strings, as defined by the <A HREF = "add_species.html">add_species</A> command.
+</P>
+<P>The units of the specified rate constant depend on how many reactants
+participate in the reaction:
+</P>
+<UL><LI>0 reactants = rate is molarity/sec
+<LI>1 reactant = rate is 1/sec
+<LI>2 reactants = rate is 1/molarity-sec 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used as part of the <A HREF = "app_chemistry.html">app_style
+chemistry</A> application.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "add_species.html">add_species</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

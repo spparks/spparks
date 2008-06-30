@@ -1,0 +1,79 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style command :h3
+
+[Syntax:]
+
+app_style style args :pre
+
+style = application style name
+args = args :ul
+
+[Examples:]
+
+app_style ising 100 100
+app_style potts 1000 1000 4 :pre
+
+[Description:]
+
+app_style membrane w01 w11 mu seed options ...
+app_style membrane/2d nx ny w01 w11 mu seed
+
+w01 = sovent-protein interaction energy (typically 1.25)
+w11 = sovent-solvent interaction energy (typically 1.0)
+mu = chemical potential to insert a solvent (typically -2.0)
+
+nx,ny = lattice size
+seed = RN seed
+options = options listed with the app_style command (e.g. lattice, site)
+
+run a 3-state membrane model
+also need to define a "sweep" and/or "solve" style
+
+Model:
+
+site = one of 3 states (protein, lipid, solvent)
+event = protein never changes, but other sites flip between lipid <-> solvent
+
+Hamiltonian:
+
+- mu Sum_i x_i - Sum_i Sum_j (w11 a_ij + w01 b_ij)
+
+where Sum_i is over all sites
+      Sum_j is over neighbors of site i
+      mu,w11,w01 = user inputs
+      x_i = 1 if site is solvent, else 0
+      a_ij = 1 if both i,j sites are solvent, else 0
+      b_ij = 1 if one of i,j is solvent and other is protein, else 0
+
+This is a lattice gas GCMC model, isomorphic to a Ising model.  Basically
+the mu term is a penalty for inserting solvent, to prevent the system
+from going to all solvent (which the 2nd term would prefer).
+
+Extra commands supported by this app:
+
+inclusion xc yc r
+  create a permanent circular protein inclusion at loc (xc,yc)
+    of radius r
+
+run 0.5
+  run for time (seconds)
+temperature 2.0
+  set temperature for Boltzmann factor (energy units of Hamiltonian)
+dump lattice/coord 0.25
+  dump snapshot every this often
+  app_style membrane only allows for coord format
+
+[Restrictions:] none
+
+[Related commands:]
+
+"variable"_variable.html, ...
+
+[Default:] none

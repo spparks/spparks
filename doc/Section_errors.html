@@ -1,0 +1,130 @@
+<HTML>
+<CENTER><A HREF = "Section_modify.html">Previous Section</A> - <A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> -
+<A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> - <A HREF = "Section_future.html">Next
+Section</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>9. Errors 
+</H3>
+<P>This section describes the various kinds of errors you can encounter
+when using SPPARKS.
+</P>
+9.1 <A HREF = "#9_1">Common problems</A><BR>
+9.2 <A HREF = "#9_2">Reporting bugs</A><BR>
+9.3 <A HREF = "#9_3">Error & warning messages</A> <BR>
+
+<HR>
+
+<A NAME = "9_1"></A><H4>9.1 Common problems 
+</H4>
+<P>A SPPARKS simulation typically has two stages, setup and run.  Many
+SPPARKS errors are detected at setup time; others may not occur until
+the middle of a run.
+</P>
+<P>SPPARKS tries to flag errors and print informative error messages so
+you can fix the problem.  Of course SPPARKS cannot figure out your
+physics mistakes, like choosing too big a timestep or setting up an
+invalid initial geoemetry.  If you find errors that SPPARKS doesn't
+catch that you think it should flag, please send an email to the
+<A HREF = "http://SPPARKS.sandia.gov/authors.html">developers</A>.
+</P>
+<P>If you get an error message about an invalid command in your input
+script, you can determine what command is causing the problem by
+looking in the log.spparks file or using the <A HREF = "echo.html">echo command</A>
+to see it on the screen.  For example you can run your script as
+</P>
+<PRE>spk_linux -echo screen < in.script 
+</PRE>
+<P>For a given command, SPPARKS expects certain arguments in a specified
+order.  If you mess this up, SPPARKS will often flag the error, but it
+may read a bogus argument and assign a value that is not what you
+wanted.  E.g. if the input parser reads the string "abc" when
+expecting an integer value, it will assign the value of 0 to a
+variable.
+</P>
+<P>Generally, SPPARKS will print a message to the screen and exit
+gracefully when it encounters a fatal error.  Sometimes it will print
+a WARNING and continue on; you can decide if the WARNING is important
+or not.  If SPPARKS crashes or hangs without spitting out an error
+message first then it could be a bug (see <A HREF = "#9_2">this section</A>) or one
+of the following cases:
+</P>
+<P>SPPARKS runs in the available memory each processor can allocate.  All
+large memory allocations in the code are done via C-style malloc's
+which will generate an error message if you run out of memory.
+Smaller chunks of memory are allocated via C++ "new" statements.  If
+you are unlucky you could run out of memory when one of these small
+requests is made, in which case the code will crash, since SPPARKS
+doesn't trap on those errors.
+</P>
+<P>Illegal arithmetic can cause SPPARKS to run slow or crash.  This is
+typically due to invalid physics and numerics that your simulation is
+computing.  If you see wild energy values or NaN values in your
+SPPARKS output, something is wrong with your simulation.
+</P>
+<P>In parallel, one way SPPARKS can hang is due to how different MPI
+implementations handle buffering of messages.  If the code hangs
+without an error message, it may be that you need to specify an MPI
+setting or two (usually via an environment variable) to enable
+buffering or boost the sizes of messages that can be buffered.
+</P>
+<HR>
+
+<A NAME = "9_2"></A><H4>9.2 Reporting bugs 
+</H4>
+<P>If you are confident that you have found a bug in SPPARKS, please send
+an email to the <A HREF = "http://SPPARKS.sandia.gov/authors.html">developers</A>.
+</P>
+<P>First, check the "New features and bug fixes" section of the <A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS
+WWW site</A> to see if the bug has already been reported or fixed.
+</P>
+<P>If not, the most useful thing you can do for us is to isolate the
+problem.  Run it on the smallest problem and fewest number of
+processors and with the simplest input script that reproduces the bug.
+</P>
+<P>In your email, describe the problem and any ideas you have as to what
+is causing it or where in the code the problem might be.  We'll
+request your input script and data files if necessary.
+</P>
+<HR>
+
+<H4><A NAME = "9_3"></A>9.3 Error & warning messages 
+</H4>
+<P>These are two alphabetic lists of the <A HREF = "#error">ERROR</A> and
+<A HREF = "#warn">WARNING</A> messages SPPARKS prints out and the reason why.  If the
+explanation here is not sufficient, the documentation for the
+offending command may help.  Grepping the source files for the text of
+the error message and staring at the source code and comments is also
+not a bad idea!  Note that sometimes the same message can be printed
+from multiple places in the code.
+</P>
+<H4><A NAME = "error"></A>Errors: 
+</H4>
+<DL>
+
+<DT><I>Dihedral problem: %d %d %d %d %d %d</I> 
+
+<DD>Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry. 
+
+
+</DL>
+<H4><A NAME = "warn"></A>Warnings: 
+</H4>
+<DL>
+
+<DT><I>Dihedral problem: %d %d %d %d %d %d</I> 
+
+<DD>Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry. 
+
+
+</DL>
+</HTML>

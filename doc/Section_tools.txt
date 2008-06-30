@@ -1,0 +1,30 @@
+"Previous Section"_Section_perf.html - "SPPARKS WWW Site"_sws -
+"SPPARKS Documentation"_sd - "SPPARKS Commands"_sc - "Next
+Section"_Section_modify.html :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+7. Additional tools :h3
+
+SPPARKS is designed to be a Monte Carlo (MC) kernel for performing
+kinetic MC or Metropolis MC computations.  Additional pre- and
+post-processing steps are often necessary to setup and analyze a
+simulation.  This section describes additional tools that may be
+useful.
+
+Users can extend SPPARKS by writing diagnostic classes that perform
+desired analysis or computations.  See "this
+section"_Section_modify.html for more info.
+
+Our group has written and released a separate toolkit called
+"Pizza.py"_pizza which provides tools which may be useful for setup,
+analysis, plotting, and visualization of SPPARKS simulations.
+Pizza.py is written in "Python"_python and is available for download
+from "the Pizza.py WWW site"_pizza.
+
+:link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
+:link(python,http://www.python.org)

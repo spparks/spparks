@@ -1,0 +1,14 @@
+"Previous Section"_Section_example.html - "SPPARKS WWW Site"_sws -
+"SPPARKS Documentation"_sd - "SPPARKS Commands"_sc - "Next
+Section"_Section_tools.html :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+6. Performance & scalability :h3
+
+Eventually this section will highlight SPPARKS performance in serial
+and parallel on interesting Monte Carlo benchmarks.

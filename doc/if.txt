@@ -1,0 +1,58 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+if command :h3
+
+[Syntax:]
+
+if value1 operator value2 then command1 else command2 :pre
+
+value1 = 1st value
+operator = "<" or "<=" or ">" or ">=" or "==" or "!="
+value2 = 2nd value
+then = required word
+command1 = command to execute if condition is met
+else = optional word
+command2 = command to execute if condition is not met (optional argument) :ul
+
+[Examples:]
+
+if $\{steps\} > 1000 then exit
+if $x <= $y then "print X is smaller = $x" else "print Y is smaller = $y"
+if $\{eng\} > 0.0 then "timestep 0.005"
+if $\{eng\} > $\{eng_previous\} then "jump file1" else "jump file2" :pre
+
+[Description:]
+
+This command provides an in-then-else test capability within an input
+script.  Two values are numerically compared to each other and the
+result is TRUE or FALSE.  Note that as in the examples above, either
+of the values can be variables, as defined by the
+"variable"_variable.html command, so that when they are evaluated when
+substituted for in the if command, a user-defined computation will be
+performed which can depend on the current state of the simulation.
+
+If the result of the if test is TRUE, then command1 is executed.  This
+can be any valid SPPARKS input script command.  If the command is more
+than 1 word, it should be enclosed in double quotes, so that it will
+be treated as a single argument, as in the examples above.
+
+The if command can contain an optional "else" clause.  If it does and
+the result of the if test is FALSE, then command2 is executed.
+
+Note that if either command1 or command2 is a bogus SPPARKS command,
+such as "exit" in the first example, then executing the command will
+cause SPPARKS to halt.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"variable"_variable.html
+
+[Default:] none

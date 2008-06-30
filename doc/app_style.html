@@ -1,0 +1,105 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style style args keyword values keyword values ... 
+</PRE>
+<UL><LI>style = application style name
+<LI>args = args 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style ising 100 100
+app_style potts 1000 1000 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command defines what application SPPARKS will run.
+</P>
+<P>define an application for SPPARKS to run
+see commands for individual styles
+</P>
+<P>styles derived from AppLattice2d and AppLattice3d allow for
+  the following options:
+</P>
+<P>options = (random) or (read <filename>)
+</P>
+<P>styles derived from the generic AppLattice allow for the 
+  the following options:
+</P>
+<P>options = lattice or site
+  lattice style args ...
+    2d styles = sq/4n or sq/8n or tri
+      lattice sq/4n a nx ny
+      lattice sq/8n a nx ny
+      lattice tri a nx ny
+        a = lattice constant
+	nx,ny = number of square or rectangular unit cells
+    3d styles = sc/6n or sc/26n or fcc or bcc or diamond
+      lattice sc/6n a nx ny nz
+      lattice sc/26n a nx ny nz
+      lattice fcc a nx ny nz
+      lattice bcc a nx ny nz
+      lattice diamond a nx ny nz
+        a = lattice constant
+	nx,ny,nz = number of square or rectangular unit cells
+    random styles = random/2d or random/3d
+      lattice random/2d N xbox ybox cutoff
+      lattice random/3d N xbox ybox zbox cutoff
+        N = # of lattice points
+	xbox,ybox,zbox = extent of simulation domain
+	cutoff = distance cutoff for connectivity between sites
+    file style = file
+      lattice file filename
+        filename = file that contains lattice points and connectivity
+	see format below
+  site N M
+    N = # of int quantites to store on each site
+    M = # of double quantites to store on each site
+    if both are 0, then a single int is stored in the variable "lattice"
+    otherwise multiple arrays of ints and doubles are stored
+</P>
+<P>file format for the lattice file style:
+  comment              # 1st line is skipped
+	               # skipped line
+  Ndim dimension       # Ndim = 2 or 3
+  N vertices           # N = global vertices
+  M max connectivity   # M = maximum # of connections for any vertex
+  X1 X2 xlo xhi        # x bounds
+  Y1 Y2 xlo xhi        # y bounds
+  Z1 Z2 zlo zhi        # z bounds (only if dim = 3)
+                       # skipped line
+  Vertices
+                       # skipped line
+  1 x y z	       # ID, x, y, z for each vertex
+  2 x y z              # no z value if dim = 2
+  ...
+  N x y z
+                       # skipped line
+  Edges
+                       # skipped line
+  1 n1 n2 n3 ...       # ID, list of connection IDs for neighbors
+  1 n1 n2 n3 ...       # can be different numbers of connections for each ID
+  ...
+  N n1 n2 n3 ...
+</P>
+<P>option defaults: lattice = none, site 0 0
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

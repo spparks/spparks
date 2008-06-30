@@ -1,0 +1,90 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style command :h3
+
+[Syntax:]
+
+app_style style args :pre
+
+style = application style name
+args = args :ul
+
+[Examples:]
+
+app_style ising 100 100
+app_style potts 1000 1000 4 :pre
+
+[Description:]
+
+app_style potts seed nspins options ...
+app_style potts/variable seed nspins options ...
+
+app_style potts/2d/4n nx ny nspins seed
+app_style potts/2d/8n nx ny nspins seed
+app_style potts/2d/24n nx ny nspins seed
+
+app_style potts/3d/6n nx ny nz nspins seed
+app_style potts/3d/26n nx ny nz nspins seed
+app_style potts/3d/12n nx ny nz nspins seed
+
+nx,ny,nz = lattice size
+nspins = # of possible spins
+seed = RN seed
+options = options listed with the app_style command (e.g. lattice, site)
+
+run a Potts model with different #'s of neighbors in stencil
+style potts is a generic AppLattice that can be used with various lattices
+style potts/variable is a generic AppLattice
+  that can be used with various lattices and also defines one int spin per site
+style potts/... is a specific app for a particular lattice style
+  24n and 12n define special 2-hop stencils
+also need to define a "sweep" and/or "solve" style
+
+Model:
+
+site = integer spin from 1 to Q
+event = flip a spin to a neighboring site value
+
+Hamiltonian:
+
+- Sum_i Sum_j delta_ij
+
+where Sum_i is over all sites
+      Sum_j is over neighbors of site i
+      delta_ij = 1 if spin_i = spin_j, else 0
+
+Rate: Min[1,exp(-E/kT)], where E is the energy change due to the spin flip.
+
+More general Potts model:
+
+The energy is a function of the site spin, neighbor spins, and one or
+more field values (spin, etc).
+
+The neighborhood for exchanges may not be the same as
+the neighborhood used to compute site energies.
+
+A mobility prefactor M(t) may be put in front of the rate factor.
+
+Extra commands supported by these apps:
+
+run 0.5
+  run for time (seconds)
+temperature 2.0
+  set temperature for Boltzmann factor (energy units of Hamiltonian)
+dump lattice/coord 0.25
+  dump snapshot every this often
+  either in lattice format or LAMMPS atom format (coord)
+
+[Restrictions:] none
+
+[Related commands:]
+
+"variable"_variable.html, ...
+
+[Default:] none

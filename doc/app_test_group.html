@@ -1,0 +1,66 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style style args 
+</PRE>
+<UL><LI>style = application style name
+<LI>args = args 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style ising 100 100
+app_style potts 1000 1000 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>app_style test/group
+app_style test/group2
+</P>
+<P>run an app to test group solver performance
+two versions of this app
+  group = Alex's original version
+  group2 = Steve's trimmed down version (used for JCP paper)
+</P>
+<P>also need to define a "solve" style:
+  see "* solve_style" below
+</P>
+<P>Extra commands supported by this app:
+</P>
+<P>event           200  30 1
+  Defines properties of the event table:
+  1. Size of event table
+  2. Max number of dependencies
+  3. Size of propensity adjustment (%)
+  4. <B>optional</B> Low memory switch to generate
+  dependencies randomly on the fly instead
+  of storing the event table.
+  5. Random seed for the low_mem option.
+</P>
+<P>  Examples:
+  event           200  30 1
+  event           200  30 1 lo_mem 384745
+</P>
+<P>run 0.5
+  run for time (seconds)
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "variable.html">variable</A>, ...
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

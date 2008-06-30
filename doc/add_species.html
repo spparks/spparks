@@ -1,0 +1,42 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>add_species command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>add_species name1 name2 ... 
+</PRE>
+<UL><LI>name1,name2 = ID strings for different species 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>add_species kinase
+add_species NFkB kinase2 NFkB-IKK 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command defines the names of one or more chemical species for use
+in the <A HREF = "app_chemistry.html">app_style chemistry</A> application.  Each ID
+string can any sequence of alpha-numeric characters and '-' and '_'.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used as part of the <A HREF = "app_chemistry.html">app_style
+chemistry</A> application.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "add_reaction.html">add_reaction</A>, <A HREF = "count.html">count</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

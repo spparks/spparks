@@ -1,0 +1,48 @@
+"Previous Section"_Section_howto.html - "SPPARKS WWW Site"_sws -
+"SPPARKS Documentation"_sd - "SPPARKS Commands"_sc - "Next
+Section"_Section_perf.html :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+5. Example problems :h3
+
+The SPPARKS distribution includes an examples sub-directory with
+several sample problems.  Each problem is in a sub-directory of its
+own.  Most are small models that can be run quickly, requiring at most
+a couple of minutes to run on a desktop machine.  Each problem has an
+input script (in.*) and produces a log file (log.*) and dump file
+(dump.*) when it runs.  A few sample log file outputs on different
+machines and different numbers of processors are included in the
+directories to compare your answers to.  E.g. a log file like
+log.potts.foo.P means it ran on P processors of machine "foo".
+
+In some cases, the dump files produced by the example runs can be
+animated using the various visuzlization tools, such as the Pizza.py
+toolkit referenced in the "Additional Tools"_Section_tools.html
+section of the SPPARKS documentation.  Animations of some of these
+examples can be viewed on the Movies section of the "SPPARKS WWW
+Site"_sws.
+
+These are the sample problems in the examples sub-directories:
+
+groups: test of group-based KMC solver
+ising: standard Ising model
+membrane: membrane model of pore formation around protein inclusions
+potts: multi-state Potts model for grain growth :tb(s=:)
+
+Here is how you might run and visualize one of the sample problems:
+
+cd examples/potts
+cp ../../src/spk_linux .           # copy SPPARKS executable to this dir
+spk_linux < in.potts               # run the problem :pre
+
+Running the simulation produces the files {dump.potts} and
+{log.spparks}.  You can visualize the dump file as follows:
+
+../../tools/xmovie/xmovie -scale dump.potts :pre
+
+(need to use something other than xmovie here)

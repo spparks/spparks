@@ -1,0 +1,61 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style command :h3
+
+[Syntax:]
+
+app_style style args :pre
+
+style = application style name
+args = args :ul
+
+[Examples:]
+
+app_style ising 100 100
+app_style potts 1000 1000 4 :pre
+
+[Description:]
+
+app_style test/group
+app_style test/group2
+
+run an app to test group solver performance
+two versions of this app
+  group = Alex's original version
+  group2 = Steve's trimmed down version (used for JCP paper)
+
+also need to define a "solve" style:
+  see "* solve_style" below
+
+Extra commands supported by this app:
+
+event           200  30 1
+  Defines properties of the event table:
+  1. Size of event table
+  2. Max number of dependencies
+  3. Size of propensity adjustment (%)
+  4. [optional] Low memory switch to generate
+  dependencies randomly on the fly instead
+  of storing the event table.
+  5. Random seed for the low_mem option.
+  
+  Examples:
+  event           200  30 1
+  event           200  30 1 lo_mem 384745
+
+run 0.5
+  run for time (seconds)
+
+[Restrictions:] none
+
+[Related commands:]
+
+"variable"_variable.html, ...
+
+[Default:] none

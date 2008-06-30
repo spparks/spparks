@@ -1,0 +1,54 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style command :h3
+
+[Syntax:]
+
+app_style style args :pre
+
+style = application style name
+args = args :ul
+
+[Examples:]
+
+app_style ising 100 100
+app_style potts 1000 1000 4 :pre
+
+[Description:]
+
+diag_style style delta arg option arg option ...
+
+Run a diagnostic function called style after every delta time
+units. The option logfreq is available for all diag_styles and
+requires two arguments, just like in the stats command.
+
+The diagnostic functions available are: 
+
+cluster
+cluster3d
+cluster2d
+eprof3d
+energy
+energy2d
+energy3d
+
+These diagnostics are only available for app_styles derived from
+AppLattice, AppLattice2d, AppLattice3d, as indicated by the suffix.
+
+
+The energy diagnostic computes the total energy for all sites and uses
+it for stats output.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"variable"_variable.html, ...
+
+[Default:] none

@@ -1,0 +1,37 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+add_species command :h3
+
+[Syntax:]
+
+add_species name1 name2 ... :pre
+
+name1,name2 = ID strings for different species :ul
+
+[Examples:]
+
+add_species kinase
+add_species NFkB kinase2 NFkB-IKK :pre
+
+[Description:]
+
+This command defines the names of one or more chemical species for use
+in the "app_style chemistry"_app_chemistry.html application.  Each ID
+string can any sequence of alpha-numeric characters and '-' and '_'.
+
+[Restrictions:]
+
+This command can only be used as part of the "app_style
+chemistry"_app_chemistry.html application.
+
+[Related commands:]
+
+"add_reaction"_add_reaction.html, "count"_count.html
+
+[Default:] none

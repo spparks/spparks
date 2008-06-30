@@ -1,0 +1,95 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style style args 
+</PRE>
+<UL><LI>style = application style name
+<LI>args = args 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style ising 100 100
+app_style potts 1000 1000 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>app_style potts seed nspins options ...
+app_style potts/variable seed nspins options ...
+</P>
+<P>app_style potts/2d/4n nx ny nspins seed
+app_style potts/2d/8n nx ny nspins seed
+app_style potts/2d/24n nx ny nspins seed
+</P>
+<P>app_style potts/3d/6n nx ny nz nspins seed
+app_style potts/3d/26n nx ny nz nspins seed
+app_style potts/3d/12n nx ny nz nspins seed
+</P>
+<P>nx,ny,nz = lattice size
+nspins = # of possible spins
+seed = RN seed
+options = options listed with the app_style command (e.g. lattice, site)
+</P>
+<P>run a Potts model with different #'s of neighbors in stencil
+style potts is a generic AppLattice that can be used with various lattices
+style potts/variable is a generic AppLattice
+  that can be used with various lattices and also defines one int spin per site
+style potts/... is a specific app for a particular lattice style
+  24n and 12n define special 2-hop stencils
+also need to define a "sweep" and/or "solve" style
+</P>
+<P>Model:
+</P>
+<P>site = integer spin from 1 to Q
+event = flip a spin to a neighboring site value
+</P>
+<P>Hamiltonian:
+</P>
+<P>- Sum_i Sum_j delta_ij
+</P>
+<P>where Sum_i is over all sites
+      Sum_j is over neighbors of site i
+      delta_ij = 1 if spin_i = spin_j, else 0
+</P>
+<P>Rate: Min<B>1,exp(-E/kT)</B>, where E is the energy change due to the spin flip.
+</P>
+<P>More general Potts model:
+</P>
+<P>The energy is a function of the site spin, neighbor spins, and one or
+more field values (spin, etc).
+</P>
+<P>The neighborhood for exchanges may not be the same as
+the neighborhood used to compute site energies.
+</P>
+<P>A mobility prefactor M(t) may be put in front of the rate factor.
+</P>
+<P>Extra commands supported by these apps:
+</P>
+<P>run 0.5
+  run for time (seconds)
+temperature 2.0
+  set temperature for Boltzmann factor (energy units of Hamiltonian)
+dump lattice/coord 0.25
+  dump snapshot every this often
+  either in lattice format or LAMMPS atom format (coord)
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "variable.html">variable</A>, ...
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

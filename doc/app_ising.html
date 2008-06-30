@@ -1,0 +1,75 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style style args 
+</PRE>
+<UL><LI>style = application style name
+<LI>args = args 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style ising 100 100
+app_style potts 1000 1000 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>app_style ising seed options ...
+app_style ising/2d/4n nx ny seed
+app_style ising/2d/8n nx ny seed
+app_style ising/3d/6n nx ny nz seed
+app_style ising/3d/26n nx ny nz seed
+</P>
+<P>nx,ny,nz = lattice size
+seed = RN seed
+options = options listed with the app_style command (e.g. lattice, site)
+</P>
+<P>run an Ising model with different #'s of neighbors in stencil
+style ising is a generic AppLattice that can be used with various lattices
+style ising/... is a specific app for a particular lattice style
+also need to define a "sweep" and/or "solve" style
+</P>
+<P>Model:
+</P>
+<P>site = spin 0 or 1
+event = spin flip between 0 <-> 1
+</P>
+<P>Hamiltonian:
+</P>
+<P>- Sum_i Sum_j delta_ij
+</P>
+<P>where Sum_i is over all sites
+      Sum_j is over neighbors of site i
+      delta_ij = 1 if spin_i = spin_j, else 0
+</P>
+<P>Extra commands supported by these apps:
+</P>
+<P>run 0.5
+  run for time (seconds)
+temperature 2.0
+  set temperature for Boltzmann factor (energy units of Hamiltonian)
+dump lattice/coord 0.25
+  dump snapshot every this often
+  either in lattice format or LAMMPS atom format (coord)
+  app_style ising only allows for coord format
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "variable.html">variable</A>, ...
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

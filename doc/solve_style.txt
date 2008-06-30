@@ -1,0 +1,66 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style command :h3
+
+[Syntax:]
+
+app_style style args :pre
+
+style = application style name
+args = args :ul
+
+[Examples:]
+
+app_style ising 100 100
+app_style potts 1000 1000 4 :pre
+
+[Description:]
+
+solve_style linear seed
+solve_style tree seed
+solve_style alias seed
+solve_style group lo hi seed
+solve_style group lo hi ngroups seed
+solve_style gppt seed
+
+seed = RN seed
+lo,hi = range of propensities
+ngroups = 0 (or not listed), use logarithmic scaling
+ngroups > 1, use this number of groups
+
+update of sites owned by a processor via a KMC algorithm
+  which chooses events and associated timesteps randomly
+used when running a non lattice app (chemistry, surf, test)
+  can only run on 1 processor
+if used with a lattice app (ising, potts, membrane, migration)
+  and no sweep style is set
+    can only run on 1 processor
+    entire domain is treated via KMC
+if used with a lattice app and a sweep style is set
+  if running on 1 processor, domain is partitioned into sectors
+    KMC is run on each and periodic boundaries are updated after each event
+  if running in parallel, each proc's sub-domain is partitioned into sectors
+    KMC is run on each and boundaries are updated between sectors
+    this is an approximate parallel KMC algorithm
+
+style linear chooses the next event in linear, cost = O(N)
+  update of propensities is O(1)
+style tree chooses the next event from a binary tree, cost = O(NlogN)
+  update of propensities is also O(NlogN)
+style alias does what?
+style group does what?
+style gppt does what?
+
+[Restrictions:] none
+
+[Related commands:]
+
+"variable"_variable.html, ...
+
+[Default:] none

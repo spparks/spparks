@@ -1,0 +1,79 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style style args 
+</PRE>
+<UL><LI>style = application style name
+<LI>args = args 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style ising 100 100
+app_style potts 1000 1000 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>sweep_style lattice2d seed option arg option arg ...
+sweep_style lattice3d seed option arg option arg ...
+</P>
+<P>options and args:
+  strict yes/no = enforce ??
+  mask yes/no = use a mask on each site to skip if possible
+  picklocal yes/no = pick new spin from neighbors or all possible
+  kmc yes/no = run KMC on sub-domain or sweep in ordered fashion
+  delt 1.0 = time associated with one sweep (seconds)
+</P>
+<P>defaults:
+  strict no, mask no, picklocal no, kmc no, delt = 1.0
+</P>
+<P>perform a Metroplis or KMC update of sites owned by a processor
+  by sweeping over lattice sites in a regular fashion
+must use lattice2d or lattice3d that correspods to the app_style (2d or 3d)
+  do we check for this ??
+used when running a lattice-based app (ising, potts, membrane, migration)
+</P>
+<P>if define just a sweep style:
+  domain will be broken into 4 or 8 sectors for 2d or 3d
+  each will be iterated on in turn
+  communication of boundary info will be done between sectors
+if define just a solve style:
+  no sweeping is done
+  entire domain is treated as one set of KMC propensities
+if define both a sweep and solve style:
+  same partitioning into 4 or 8 sectors is done
+  each sector is treated as one set of KMC propensities
+  KMC updates are done until delt is reached
+  then boundary is updated via communication
+  this is an approximate parallel KMC algorithm
+if use sweep style when running on 1 proc, entire domain is partitioned
+  into 4 or 8 sectors
+</P>
+<P>what does each option mean ??
+which options can be used in combination and what do they mean ??
+if KMC option is used, options strict, picklocal, mask are ignored
+for KMC option, it's important to choose delt correctly
+  how to choose correctly ??
+  what happens if too small
+  what happens if too large
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "variable.html">variable</A>, ...
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,50 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+stats command :h3
+
+[Syntax:]
+
+stats delta :pre
+
+delta = time increment (seconds) for printing simulation statistics :ul
+
+[Examples:]
+
+stats 0.1
+stats 2.0 :pre
+
+[Description:]
+
+Print statistics to the screen and log file every so many seconds
+during a simulation.  The quantities printed are obtained from the
+application.  Typically these include a current energy of the system.
+
+ and from any diagnostics defined using the
+"diag_style"_diag_style.html command.  
+
+were created using diag_style commands. Note that if stats is
+called on a timestep when the diagnostic was not called, the
+information provided by the diagnostic may be old.
+
+there is an option called logfreq that requires two arguments,
+the number of repetitions and the boost factor:
+
+This gives t = 0,0.01,0.02,...,0.07,1.0,2.0,....,7.0,10.0,20.0,....
+stats       0.01 logfreq 7 10.0
+
+This gives t = 0,0.01,0.02,0.04,0.08,...
+stats           0.01 logfreq 1 2.0
+
+[Restrictions:] none
+
+[Related commands:] none
+
+[Default:] none
+
+what is the default ??  begin/end ?

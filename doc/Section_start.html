@@ -1,0 +1,413 @@
+<HTML>
+<CENTER><A HREF = "Section_intro.html">Previous Section</A> - <A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> -
+<A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> - <A HREF = "Section_commands.html">Next
+Section</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>2. Getting Started 
+</H3>
+<P>This section describes how to unpack, make, and run SPPARKS.
+</P>
+<P>2.1 <A HREF = "#2_1">What's in the SPPARKS distribution</A>
+2.2 <A HREF = "#2_2">Making SPPARKS</A>
+2.3 <A HREF = "#2_3">Making SPPARKS with optional packages</A>
+2.4 <A HREF = "#2_4">Building SPPARKS as a library</A>
+2.5 <A HREF = "#2_5">Running SPPARKS</A>
+2.6 <A HREF = "#2_6">Command-line options</A>
+</P>
+<HR>
+
+<H4><A NAME = "2_1"></A>2.1 What's in the SPPARKS distribution 
+</H4>
+<P>When you download SPPARKS you will need to unzip and untar the
+downloaded file with the following commands, after placing the tarball
+in an appropriate directory.
+</P>
+<PRE>gunzip spparks*.tar.gz 
+tar xvf spparks*.tar 
+</PRE>
+<P>This will create a spparks directory containing two files and several
+sub-directories:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >README</TD><TD > text file</TD></TR>
+<TR><TD >LICENSE</TD><TD > the GNU General Public License (GPL)</TD></TR>
+<TR><TD >doc</TD><TD > documentation</TD></TR>
+<TR><TD >examples</TD><TD > simple test problems</TD></TR>
+<TR><TD >src</TD><TD > source files 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<H4><A NAME = "2_2"></A>2.2 Making SPPARKS 
+</H4>
+<P><B><I>Read this first:</I></B>
+</P>
+<P>Building SPPARKS can be non-trivial.  You will likely need to edit a
+makefile, there are compiler options, an MPI library can be used, etc.
+Please read this section carefully.  If you are not comfortable with
+makefiles, or building codes on a Unix platform, or running an MPI job
+on your machine, please find a local expert to help you.
+</P>
+<P><B><I>Building a SPPARKS executable:</I></B>
+</P>
+<P>The src directory contains the C++ source and header files for SPPARKS.
+It also contains a top-level Makefile and a MAKE sub-directory with
+low-level Makefile.* files for several machines.  From within the src
+directory, type "make" or "gmake".  You should see a list of available
+choices.  If one of those is the machine and options you want, you can
+type a command like:
+</P>
+<PRE>make linux
+gmake mac 
+</PRE>
+<P>Note that on a multi-processor or multi-core platform you can launch a
+parallel make, by using the "-j" switch with the make command, which
+will typically build SPPARKS more quickly.
+</P>
+<P>If you get no errors and an executable like spk_linux or spk_mac is
+produced, you're done; it's your lucky day.
+</P>
+<P><B><I>Errors that can occur when making SPPARKS:</I></B>
+</P>
+<P>(1) If the make command breaks immediately with errors that indicate
+it can't find files with a "*" in their names, this can be because
+your machine's make doesn't support wildcard expansion in a makefile.
+Try gmake instead of make.  If that doesn't work, try using a -f
+switch with your make command to use Makefile.list which explicitly
+lists all the needed files, e.g.
+</P>
+<PRE>make makelist
+make -f Makefile.list linux
+gmake -f Makefile.list mac 
+</PRE>
+<P>The first "make" command will create a current Makefile.list with all
+the file names in your src dir.  The 2nd "make" command (make or
+gmake) will use it to build SPPARKS.
+</P>
+<P>(2) Other errors typically occur because the low-level Makefile isn't
+setup correctly for your machine.  If your platform is named "foo",
+you need to create a Makefile.foo in the MAKE sub-directory.  Use
+whatever existing file is closest to your platform as a starting
+point.  See the next section for more instructions.
+</P>
+<P><B><I>Editing a new low-level Makefile.foo:</I></B>
+</P>
+<P>These are the issues you need to address when editing a low-level
+Makefile for your machine.  With a couple exceptions, the only portion
+of the file you should need to edit is the "System-specific Settings"
+section.
+</P>
+<P>(1) Change the first line of Makefile.foo to include the word "foo"
+and whatever other options you set.  This is the line you will see if
+you just type "make".
+</P>
+<P>(2) Set the paths and flags for your C++ compiler, including
+optimization flags.  You can use g++, the open-source GNU compiler,
+which is available on all Unix systems.  Vendor compilers often
+produce faster code.  On boxes with Intel CPUs, we suggest using the
+free Intel icc compiler, which you can download from <A HREF = "http://www.intel.com/software/products/noncom">Intel's compiler
+site</A>.
+</P>
+
+
+<P>(3) If you want SPPARKS to run in parallel, you must have an MPI
+library installed on your platform.  If you do not use "mpicc" as your
+compiler/linker, then Makefile.foo needs to specify where the mpi.h
+file (-I switch) and the libmpi.a library (-L switch) is found.  If
+you are installing MPI yourself, we recommend Argonne's MPICH 1.2 or
+2.0 which can be downloaded from the <A HREF = "http://www-unix.mcs.anl.gov/mpi">Argonne MPI
+site</A>.  OpenMPI should also work.  If
+you are running on a big parallel platform, your system people or the
+vendor should have already installed a version of MPI, which will be
+faster than MPICH or OpenMPI, so find out how to build and link with
+it.  If you use MPICH or OpenMPI, you will have to configure and build
+it for your platform.  The MPI configure script should have compiler
+options to enable you to use the same compiler you are using for the
+SPPARKS build, which can avoid problems that may arise when linking
+SPPARKS to the MPI library.
+</P>
+<P>(4) If you just want SPPARKS to run on a single processor, you can use
+the STUBS library in place of MPI, since you don't need an MPI library
+installed on your system.  See the Makefile.serial file for how to
+specify the -I and -L switches.  You will also need to build the STUBS
+library for your platform before making SPPARKS itself.  From the STUBS
+dir, type "make" and it will hopefully create a libmpi.a suitable for
+linking to SPPARKS.  If the build fails, you will need to edit the
+STUBS/Makefile for your platform.
+</P>
+<P>The file STUBS/mpi.cpp has a CPU timer function MPI_Wtime() that calls
+gettimeofday() .  If your system doesn't support gettimeofday() ,
+you'll need to insert code to call another timer.  Note that the
+ANSI-standard function clock() rolls over after an hour or so, and is
+therefore insufficient for timing long SPPARKS simulations.
+</P>
+<P>(5) The DEPFLAGS setting is how the C++ compiler creates a dependency
+file for each source file.  This speeds re-compilation when source
+(*.cpp) or header (*.h) files are edited.  Some compilers do not
+support dependency file creation, or may use a different switch than
+-D.  GNU g++ works with -D.  If your compiler can't create dependency
+files (a long list of errors involving *.d files), then you'll need to
+create a Makefile.foo patterned after Makefile.tflop, which uses
+different rules that do not involve dependency files.
+</P>
+<P>That's it.  Once you have a correct Makefile.foo and you have
+pre-built the MPI library it uses, all you need to do from the src
+directory is type one of these 2 commands:
+</P>
+<PRE>make foo
+gmake foo 
+</PRE>
+<P>You should get the executable spk_foo when the build is complete.
+</P>
+<P><B><I>Additional build tips:</I></B>
+</P>
+<P>(1) Building SPPARKS for multiple platforms.
+</P>
+<P>You can make SPPARKS for multiple platforms from the same src
+directory.  Each target creates its own object sub-directory called
+Obj_name where it stores the system-specific *.o files.
+</P>
+<P>(2) Cleaning up.
+</P>
+<P>Typing "make clean" will delete all *.o object files created when
+SPPARKS is built.
+</P>
+<HR>
+
+<H4><A NAME = "2_3"></A>2.3 Making SPPARKS with optional packages 
+</H4>
+<P>The source code for SPPARKS is structured as a large set of core files
+which are always used, plus optional packages, which are groups of
+files that enable a specific set of features.  You can see the list of
+both standard and user-contributed packages by typing "make package".
+</P>
+<P>There are no packages distributed with the current version of SPPARKS.
+</P>
+<HR>
+
+<P>Any or all packages can be included or excluded when SPPARKS is built.
+You may wish to exclude certain packages if you will never run certain
+kinds of simulations.
+</P>
+<P>By default, SPPARKS includes no packages.
+</P>
+<P>Packages are included or excluded by typing "make yes-name" or "make
+no-name", where "name" is the name of the package.  You can also type
+"make yes-all" or "make no-all" to include/exclude all packages.
+These commands work by simply moving files back and forth between the
+main src directory and sub-directories with the package name, so that
+the files are seen or not seen when SPPARKS is built.  After you have
+included or excluded a package, you must re-build SPPARKS.
+</P>
+<P>Additional make options exist to help manage SPPARKS files that exist
+in both the src directory and in package sub-directories.  You do not
+normally need to use these commands unless you are editing SPPARKS
+files or have downloaded a patch from the SPPARKS WWW site.  Typing
+"make package-update" will overwrite src files with files from the
+package directories if the package has been included.  It should be
+used after a patch is installed, since patches only update the master
+package version of a file.  Typing "make package-overwrite" will
+overwrite files in the package directories with src files.  Typing
+"make package-check" will list differences between src and package
+versions of the same files.
+</P>
+<HR>
+
+<H4><A NAME = "2_4"></A>2.4 Building SPPARKS as a library 
+</H4>
+<P>SPPARKS can be built as a library, which can then be called from
+another application or a scripting language.
+Building SPPARKS as a library is done by typing
+</P>
+<PRE>make makelib
+make -f Makefile.lib foo 
+</PRE>
+<P>where foo is the machine name.  The first "make" command will create a
+current Makefile.lib with all the file names in your src dir.  The 2nd
+"make" command will use it to build SPPARKS as a library.  This
+requires that Makefile.foo have a library target (lib) and
+system-specific settings for ARCHIVE and ARFLAGS.  See Makefile.linux
+for an example.  The build will create the file libspk_foo.a which
+another application can link to.
+</P>
+<P>When used from a C++ program, the library allows one or more SPPARKS
+objects to be instantiated.  All of SPPARKS is wrapped in a SPPARKS_NS
+namespace; you can safely use any of its classes and methods from
+within your application code, as needed.
+</P>
+<P>When used from a C or Fortran program or a scripting language, the
+library has a simple function-style interface, provided in library.cpp
+and library.h.
+</P>
+<P>You can add as many functions as you wish to library.cpp and
+library.h.  In a general sense, those functions can access SPPARKS data
+and return it to the caller or set SPPARKS data values as specified by
+the caller.  These 4 functions are currently included in library.cpp:
+</P>
+<PRE>void spparks_open(int, char **, MPI_Comm, void **ptr);
+void spparks_close(void *ptr);
+int spparks_file(void *ptr, char *);
+int spparks_command(void *ptr, char *); 
+</PRE>
+<P>The SPPARKS_open() function is used to initialize SPPARKS, passing in a
+list of strings as if they were <A HREF = "#2_6">command-line arguments</A> when
+SPPARKS is run from the command line and a MPI communicator for SPPARKS
+to run under.  It returns a ptr to the SPPARKS object that is created,
+and which should be used in subsequent library calls.  Note that
+SPPARKS_open() can be called multiple times to create multiple SPPARKS
+objects.
+</P>
+<P>The SPPARKS_close() function is used to shut down SPPARKS and free all
+its memory.  The SPPARKS_file() and SPPARKS_command() functions are used
+to pass a file or string to SPPARKS as if it were an input file or
+single command read from an input script.
+</P>
+<HR>
+
+<H4><A NAME = "2_5"></A>2.5 Running SPPARKS 
+</H4>
+<P>By default, SPPARKS runs by reading commands from stdin;
+e.g. spk_linux < in.file.  This means you first create an input script
+(e.g. in.file) containing the desired commands.  <A HREF = "Section_commands.html">This
+section</A> describes how input scripts are
+structured and what commands they contain.
+</P>
+<P>You can test SPPARKS on any of the sample inputs provided in the
+examples directory.  Input scripts are named in.* and sample outputs
+are named log.*.name.P where name is a machine and P is the number of
+processors it was run on.
+</P>
+<P>Here is how you might run the Potts model tests on a Linux box, using
+mpirun to launch a parallel job:
+</P>
+<PRE>cd src
+make linux
+cp spk_linux ../examples/lj
+cd ../examples/potts
+mpirun -np 4 spk_linux < in.potts 
+</PRE>
+<P>The screen output from SPPARKS is described in the next section.  As it
+runs, SPPARKS also writes a log.spparks file with the same information.
+</P>
+<P>Note that this sequence of commands copies the SPPARKS executable
+(spk_linux) to the directory with the input files.  This may not be
+necessary, but some versions of MPI reset the working directory to
+where the executable is, rather than leave it as the directory where
+you launch mpirun from (if you launch spk_linux on its own and not
+under mpirun).  If that happens, SPPARKS will look for additional
+input files and write its output files to the executable directory,
+rather than your working directory, which is probably not what you
+want.
+</P>
+<P>If SPPARKS encounters errors in the input script or while running a
+simulation it will print an ERROR message and stop or a WARNING
+message and continue.  See <A HREF = "Section_errors.html">this section</A> for a
+discussion of the various kinds of errors SPPARKS can or can't detect,
+a list of all ERROR and WARNING messages, and what to do about them.
+</P>
+<P>SPPARKS can run a problem on any number of processors, including a
+single processor.  SPPARKS can run as large a problem as will fit in
+the physical memory of one or more processors.  If you run out of
+memory, you must run on more processors or setup a smaller problem.
+</P>
+<HR>
+
+<H4><A NAME = "2_6"></A>2.6 Command-line options 
+</H4>
+<P>At run time, SPPARKS recognizes several optional command-line switches
+which may be used in any order.  For example, spk_ibm might be
+launched as follows:
+</P>
+<PRE>mpirun -np 16 spk_ibm -var f tmp.out -log my.log -screen none < in.alloy 
+</PRE>
+<P>These are the command-line options:
+</P>
+<PRE>-echo style 
+</PRE>
+<P>Set the style of command echoing.  The style can be <I>none</I> or <I>screen</I>
+or <I>log</I> or <I>both</I>.  Depending on the style, each command read from
+the input script will be echoed to the screen and/or logfile.  This
+can be useful to figure out which line of your script is causing an
+input error.  The default value is <I>log</I>.  The echo style can also be
+set by using the <A HREF = "echo.html">echo</A> command in the input script itself.
+</P>
+<PRE>-partition 8x2 4 5 ... 
+</PRE>
+<P>Invoke SPPARKS in multi-partition mode.  When SPPARKS is run on P
+processors and this switch is not used, SPPARKS runs in one partition,
+i.e. all P processors run a single simulation.  If this switch is
+used, the P processors are split into separate partitions and each
+partition runs its own simulation.  The arguments to the switch
+specify the number of processors in each partition.  Arguments of the
+form MxN mean M partitions, each with N processors.  Arguments of the
+form N mean a single partition with N processors.  The sum of
+processors in all partitions must equal P.  Thus the command
+"-partition 8x2 4 5" has 10 partitions and runs on a total of 25
+processors.
+</P>
+<P>The input script specifies what simulation is run on which partition;
+see the <A HREF = "variable.html">variable</A> and <A HREF = "next.html">next</A> commands.  This
+<A HREF = "Section_howto.html#4_4">howto section</A> gives examples of how to use
+these commands in this way.  Simulations running on different
+partitions can also communicate with each other; see the
+<A HREF = "temper.html">temper</A> command.
+</P>
+<PRE>-in file 
+</PRE>
+<P>Specify a file to use as an input script.  This is an optional switch
+when running SPPARKS in one-partition mode.  If it is not specified,
+SPPARKS reads its input script from stdin - e.g. spk_linux < in.run.
+This is a required switch when running SPPARKS in multi-partition
+mode, since multiple processors cannot all read from stdin.
+</P>
+<PRE>-log file 
+</PRE>
+<P>Specify a log file for SPPARKS to write status information to.  In
+one-partition mode, if the switch is not used, SPPARKS writes to the
+file log.spparks.  If this switch is used, SPPARKS writes to the
+specified file.  In multi-partition mode, if the switch is not used, a
+log.SPPARKS file is created with hi-level status information.  Each
+partition also writes to a log.SPPARKS.N file where N is the partition
+ID.  If the switch is specified in multi-partition mode, the hi-level
+logfile is named "file" and each partition also logs information to a
+file.N.  For both one-partition and multi-partition mode, if the
+specified file is "none", then no log files are created.  Using a
+<A HREF = "log.html">log</A> command in the input script will override this setting.
+</P>
+<PRE>-screen file 
+</PRE>
+<P>Specify a file for SPPARKS to write its screen information to.  In
+one-partition mode, if the switch is not used, SPPARKS writes to the
+screen.  If this switch is used, SPPARKS writes to the specified file
+instead and you will see no screen output.  In multi-partition mode,
+if the switch is not used, hi-level status information is written to
+the screen.  Each partition also writes to a screen.N file where N is
+the partition ID.  If the switch is specified in multi-partition mode,
+the hi-level screen dump is named "file" and each partition also
+writes screen information to a file.N.  For both one-partition and
+multi-partition mode, if the specified file is "none", then no screen
+output is performed.
+</P>
+<PRE>-var name value 
+</PRE>
+<P>Specify a variable that will be defined for substitution purposes when
+the input script is read.  "Name" is the variable name which can be a
+single character (referenced as $x in the input script) or a full
+string (referenced as ${abc}).  The value can be any string.  Using
+this command-line option is equivalent to putting the line "variable
+name index value" at the beginning of the input script.  Defining a
+variable as a command-line argument overrides any setting for the same
+variable in the input script, since variables cannot be re-defined.
+See the <A HREF = "variable.html">variable</A> command for more info on defining
+variables and <A HREF = "Section_commands.html#3_2">this section</A> for more info
+on using variables in input scripts.
+</P>
+</HTML>

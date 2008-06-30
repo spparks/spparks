@@ -1,0 +1,54 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+add_reaction command :h3
+
+[Syntax:]
+
+add_reaction reactant1 reactant2 rate product1 product2 ... :pre
+
+reactant1,reactant2 = 0, 1, or 2 reactant species
+rate = reaction rate (see units below)
+product1, product2 = 0, 1, or more product species :ul
+
+[Examples:]
+
+add_reaction A B 1.0e10 C
+add_reaction 1.0 d
+add_reaction b2 1.0e-10 c3 d4 e3 :pre
+
+[Description:]
+
+This command defines a chemical reaction for use in the "app_style
+chemistry"_app_chemistry.html application.
+
+The first reaction listed above represents an A and B molecule binding
+to form a complex C at a rate of 1.0e10 per molarity per second.
+I.e. A + B -> C.
+
+Each reaction has 0, 1, or 2 reactants.  It also has 0, 1, or more
+products.  The reactants and products are specified by species ID
+strings, as defined by the "add_species"_add_species.html command.
+
+The units of the specified rate constant depend on how many reactants
+participate in the reaction:
+
+0 reactants = rate is molarity/sec
+1 reactant = rate is 1/sec
+2 reactants = rate is 1/molarity-sec :ul
+
+[Restrictions:]
+
+This command can only be used as part of the "app_style
+chemistry"_app_chemistry.html application.
+
+[Related commands:]
+
+"add_species"_add_species.html
+
+[Default:] none

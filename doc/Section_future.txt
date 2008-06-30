@@ -1,0 +1,22 @@
+"Previous Section"_Section_errors.html - "SPPARKS WWW Site"_sws -
+"SPPARKS Documentation"_sd - "SPPARKS Commands"_sc - "Next
+Section"_Manual.html :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+10. Future plans :h3
+
+This section lists features we are planning to add to SPPARKS.  You
+can send an email to the
+"developers"_http://SPPARKS.sandia.gov/authors.html if you are
+interested in any of these topics
+
+off-lattice surface growth and diffusion application
+chemical vapor deposition application
+electromigration application (Kristi Harris, UMBC)
+nanoporous aging application (Greg Wagner, Sandia)
+pore migration application (Veena Tikare, Sandia) :ul

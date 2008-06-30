@@ -1,0 +1,41 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+count command :h3
+
+[Syntax:]
+
+count species N :pre
+
+species = ID of chemical species
+N = count of molecules of this species :ul
+
+[Examples:]
+
+count kinase 10000
+count NFkB-IKK 300 :pre
+
+[Description:]
+
+This command sets the molecular count of a chemical species for the
+"app_style chemistry"_app_chemistry.html application.  The species ID
+can be any string defined by the "add_species"_add_species.html
+command.
+
+[Restrictions:]
+
+This command can only be used as part of the "app_style
+chemistry"_app_chemistry.html application.
+
+[Related commands:]
+
+"add_species"_add_species.html, "add_reaction"_add_reaction.html
+
+[Default:]
+
+The count of a defined species is 0 unless set via this command.

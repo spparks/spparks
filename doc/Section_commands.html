@@ -1,0 +1,261 @@
+<HTML>
+<CENTER><A HREF = "Section_start.html">Previous Section</A> - <A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> -
+<A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> - <A HREF = "Section_howto.html">Next
+Section</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>3. Commands 
+</H3>
+<P>This section describes how a SPPARKS input script is formatted and
+what commands are used to define a simulation.
+</P>
+3.1 <A HREF = "#3_1">SPPARKS input script</A><BR>
+3.2 <A HREF = "#3_2">Parsing rules</A><BR>
+3.3 <A HREF = "#3_3">Input script structure</A><BR>
+3.4 <A HREF = "#3_4">Commands listed by category</A><BR>
+3.5 <A HREF = "#3_5">Commands listed alphabetically</A> <BR>
+
+<HR>
+
+<A NAME = "3_1"></A><H4>3.1 SPPARKS input script 
+</H4>
+<P>SPPARKS executes by reading commands from a input script (text file),
+one line at a time.  When the input script ends, SPPARKS exits.  Each
+command causes SPPARKS to take some action.  It may set an internal
+variable, read in a file, or run a simulation.  Most commands have
+default settings, which means you only need to use the command if you
+wish to change the default.
+</P>
+<P>In many cases, the ordering of commands in an input script is not
+important.  However the following rules apply:
+</P>
+<P>(1) SPPARKS does not read your entire input script and then perform a
+simulation with all the settings.  Rather, the input script is read
+one line at a time and each command takes effect when it is read.
+Thus this sequence of commands:
+</P>
+<PRE>count	 ligand 10000 
+run      100 
+run      100 
+</PRE>
+<P>does something different than this sequence:
+</P>
+<PRE>run      100 
+count	 ligand 10000 
+run      100 
+</PRE>
+<P>In the first case, the count of ligand molecules is set to 10000
+before the first simulation and whatever the count becomes will be
+used as input for the second simulation.  In the 2nd case, the default
+count of 0 is used for the 1st simulation and then the count is set to
+10000 molecules before the second simulation.
+</P>
+<P>(2) Some commands are only valid when they follow other commands.  For
+example you cannot set the count of a molecular species until the
+add_species command has been used to define that species.
+</P>
+<P>(3) Sometimes command B will use values that can be set by command A.
+This means command A must precede command B in the input script if it
+is to have the desired effect.
+</P>
+<P>(4) Some commands are only used by a specific application(s).
+</P>
+<P>Many input script errors are detected by SPPARKS and an ERROR or
+WARNING message is printed.  <A HREF = "Section_errors.html">This section</A> gives
+more information on what errors mean.  The documentation for each
+command lists restrictions on how the command can be used.
+</P>
+<HR>
+
+<A NAME = "3_2"></A><H4>3.2 Parsing rules 
+</H4>
+<P>Each non-blank line in the input script is treated as a command.
+SPPARKS commands are case sensitive.  Command names are lower-case, as
+are specified command arguments.  Upper case letters may be used in
+file names or user-chosen ID strings.
+</P>
+<P>Here is how each line in the input script is parsed by SPPARKS:
+</P>
+<P>(1) If the line ends with a "&" character (with no trailing
+whitespace), the command is assumed to continue on the next line.  The
+next line is concatenated to the previous line by removing the "&"
+character and newline.  This allows long commands to be continued
+across two or more lines.
+</P>
+<P>(2) All characters from the first "#" character onward are treated as
+comment and discarded.
+</P>
+<P>(3) The line is searched repeatedly for $ characters which indicate
+variables that are replaced with a text string.  If the $ is followed
+by curly brackets, then the variable name is the text inside the curly
+brackets.  If no curly brackets follow the $, then the variable name
+is the character immediately following the $.  Thus ${myTemp} and $x
+refer to variable names "myTemp" and "x".  See the
+<A HREF = "variable.html">variable</A> command for details of how strings are
+assigned to variables and how they are substituted for in input
+scripts.
+</P>
+<P>(4) The line is broken into "words" separated by whitespace (tabs,
+spaces).  Note that words can thus contain letters, digits,
+underscores, or punctuation characters.
+</P>
+<P>(5) The first word is the command name.  All successive words in the
+line are arguments.
+</P>
+<P>(6) Text with spaces can be enclosed in double quotes so it will be
+treated as a single argument.  See the <A HREF = "dump_modify.html">dump modify</A>
+or <A HREF = "fix_print.html">fix print</A> commands for examples.  A '#' or '$'
+character that in text between double quotes will not be treated as a
+comment or substituted for as a variable.
+</P>
+<HR>
+
+<H4><A NAME = "3_3"></A>3.3 Input script structure 
+</H4>
+<P>This section describes the structure of a typical SPPARKS input
+script.  The "examples" directory in the SPPARKS distribution contains
+sample input scripts; the corresponding problems are discussed in
+<A HREF = "Section_example.html">this section</A>, and some are animated on the
+<A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A>.
+</P>
+<P>A SPPARKS input script typically has 3 parts:
+</P>
+<UL><LI>choice of application, solver, sweeper
+<LI>settings
+<LI>run a simulation 
+</UL>
+<P>The last 2 parts can be repeated as many times as desired.  I.e. run a
+simulation, change some settings, run some more, etc.  Each of the 3
+parts is now described in more detail.  Remember that almost all the
+commands need only be used if a non-default value is desired.
+</P>
+<P>(1) Choice of application, solver, sweeper
+</P>
+<P>Use the <A HREF = "app_style.html">app_style</A>, <A HREF = "solve_style.html">solve_style</A>,
+and "sweep_style_sweep_style" commands to setup the kind of simulation
+you wish to run.  Note that a sweeper is only relevant to applications
+that define a geometric lattice of event sites and only if you wish to
+perform Monte Carlo updates via sweeping.
+</P>
+<P>(2) Settings
+</P>
+<P>Parameters for a simulation can be defined by application-specific
+commands or by generic commands that are common to many kinds of
+applications.  See the doc pages for individual applications for
+information on the former.  Examples of the latter are the
+"stats" and <A HREF = "temperature.txt">temperature</A> commands.
+</P>
+<P>The <A HREF = "diag_style.html">diag_style</A> command can also be used to
+setup various diagnostic computations to perform during a simulation.
+</P>
+<P>(3) Run a simulation
+</P>
+<P>A kinetic or Metropolis Monte Carlo simulation is performed using the
+<A HREF = "run.html">run</A> command.
+</P>
+<HR>
+
+<A NAME = "3_4"></A><H4>3.4 Commands listed by category 
+</H4>
+<P>This section lists all SPPARKS commands, grouped by category.  The
+<A HREF = "#3_5">next section</A> lists the same commands alphabetically.  Note that
+some style options for some commands are part of specific SPPARKS
+packages, which means they cannot be used unless the package was
+included when SPPARKS was built.  Not all packages are included in a
+default SPPARKS build.  These dependencies are listed as Restrictions
+in the command's documentation.
+</P>
+<P>Initialization commands:
+</P>
+<P><A HREF = "app_style.html">app_style</A>, <A HREF = "solve_style.html">solve_style</A>,
+<A HREF = "sweep_style.html">sweep_style</A>
+</P>
+<P>Application-specific commands:
+</P>
+<P><A HREF = "add_reaction.html">add_reaction</A>, <A HREF = "add_species.html">add_species</A>,
+<A HREF = "count.html">count</A>, <A HREF = "inclusion.html">inclusion</A>,
+<A HREF = "temperature.html">temperature</A>, <A HREF = "volume.html">volume</A>
+</P>
+<P>Output commands:
+</P>
+<P><A HREF = "diag_style.html">diag_style</A>, <A HREF = "dump.html">dump</A>, <A HREF = "stats.html">stats</A>
+</P>
+<P>Actions:
+</P>
+<P><A HREF = "run.html">run</A>
+</P>
+<P>Miscellaneous:
+</P>
+<P><A HREF = "clear.html">clear</A>, <A HREF = "echo.html">echo</A>, <A HREF = "if.html">if</A>,
+<A HREF = "include.html">include</A>, <A HREF = "jump.html">jump</A>, <A HREF = "label.html">label</A>,
+<A HREF = "log.html">log</A>, <A HREF = "next.html">next</A>, <A HREF = "print.html">print</A>,
+<A HREF = "shell.html">shell</A>, <A HREF = "variable.html">variable</A>
+</P>
+<HR>
+
+<H4><A NAME = "3_5"></A><A NAME = "comm"></A>3.5 Individual commands 
+</H4>
+<P>This section lists all SPPARKS commands alphabetically, with a separate
+listing below of styles within certain commands.  The <A HREF = "#3_4">previous
+section</A> lists the same commands, grouped by category.  Note that
+some style options for some commands are part of specific SPPARKS
+packages, which means they cannot be used unless the package was
+included when SPPARKS was built.  Not all packages are included in a
+default SPPARKS build.  These dependencies are listed as Restrictions
+in the command's documentation.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "add_reaction.html">add_reaction</A></TD><TD ><A HREF = "add_species.html">add_species</A></TD><TD ><A HREF = "app_style.html">app_style</A></TD><TD ><A HREF = "clear.html">clear</A></TD><TD ><A HREF = "count.html">count</A></TD><TD ><A HREF = "diag_style.html">diag_style</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "dump.html">dump</A></TD><TD ><A HREF = "echo.html">echo</A></TD><TD ><A HREF = "if.html">if</A></TD><TD ><A HREF = "include.html">include</A></TD><TD ><A HREF = "inclusion.html">inclusion</A></TD><TD ><A HREF = "jump.html">jump</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "label.html">label</A></TD><TD ><A HREF = "log.html">log</A></TD><TD ><A HREF = "next.html">next</A></TD><TD ><A HREF = "print.html">print</A></TD><TD ><A HREF = "run.html">run</A></TD><TD ><A HREF = "shell.html">shell</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "solve_style.html">solve_style</A></TD><TD ><A HREF = "stats.html">stats</A></TD><TD ><A HREF = "sweep_style.html">sweep_style</A></TD><TD ><A HREF = "temperature.html">temperature</A></TD><TD ><A HREF = "variable.html">variable</A></TD><TD ><A HREF = "volume.html">volume</A> 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<P>Application styles.  See the <A HREF = "app_stlye.html">app_style</A> command for
+one-line descriptions of each style or click on the style itself for a
+full description:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "app_chemistry.html">chemistry</A></TD><TD ><A HREF = "app_ising.html">ising</A></TD><TD ><A HREF = "app_membrane.html">membrane</A></TD><TD ><A HREF = "app_potts.html">potts</A></TD><TD ><A HREF = "app_test_group.html">test/group</A> 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<P>Solve styles.  See the <A HREF = "solve_style.html">solve_style</A> command for
+one-line descriptions of each style or click on the style itself for a
+full description:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "solve_group.html">group</A></TD><TD ><A HREF = "solve_linear.html">linear</A></TD><TD ><A HREF = "solve_tree.html">tree</A> 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<P>Sweep styles.  See the <A HREF = "sweep_style.html">sweep_style</A> command for
+one-line descriptions of each style or click on the style itself for a
+full description:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "solve_lattice.html">lattice</A></TD><TD ><A HREF = "solve_lattice2d.html">lattice2d</A></TD><TD ><A HREF = "solve_lattice3d.html">lattice3d</A> 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<P>Diagnostic styles.  See the <A HREF = "diag_style.html">diag_style</A> command for
+one-line descriptions of each style or click on the style itself for a
+full description:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "diag_cluster.html">cluster</A></TD><TD ><A HREF = "diag_energy.html">energy</A></TD><TD ><A HREF = "diag_eprof3d.html">eprof3d</A> 
+</TD></TR></TABLE></DIV>
+
+</HTML>

@@ -1,0 +1,84 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style style args 
+</PRE>
+<UL><LI>style = application style name
+<LI>args = args 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style ising 100 100
+app_style potts 1000 1000 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>app_style membrane w01 w11 mu seed options ...
+app_style membrane/2d nx ny w01 w11 mu seed
+</P>
+<P>w01 = sovent-protein interaction energy (typically 1.25)
+w11 = sovent-solvent interaction energy (typically 1.0)
+mu = chemical potential to insert a solvent (typically -2.0)
+</P>
+<P>nx,ny = lattice size
+seed = RN seed
+options = options listed with the app_style command (e.g. lattice, site)
+</P>
+<P>run a 3-state membrane model
+also need to define a "sweep" and/or "solve" style
+</P>
+<P>Model:
+</P>
+<P>site = one of 3 states (protein, lipid, solvent)
+event = protein never changes, but other sites flip between lipid <-> solvent
+</P>
+<P>Hamiltonian:
+</P>
+<P>- mu Sum_i x_i - Sum_i Sum_j (w11 a_ij + w01 b_ij)
+</P>
+<P>where Sum_i is over all sites
+      Sum_j is over neighbors of site i
+      mu,w11,w01 = user inputs
+      x_i = 1 if site is solvent, else 0
+      a_ij = 1 if both i,j sites are solvent, else 0
+      b_ij = 1 if one of i,j is solvent and other is protein, else 0
+</P>
+<P>This is a lattice gas GCMC model, isomorphic to a Ising model.  Basically
+the mu term is a penalty for inserting solvent, to prevent the system
+from going to all solvent (which the 2nd term would prefer).
+</P>
+<P>Extra commands supported by this app:
+</P>
+<P>inclusion xc yc r
+  create a permanent circular protein inclusion at loc (xc,yc)
+    of radius r
+</P>
+<P>run 0.5
+  run for time (seconds)
+temperature 2.0
+  set temperature for Boltzmann factor (energy units of Hamiltonian)
+dump lattice/coord 0.25
+  dump snapshot every this often
+  app_style membrane only allows for coord format
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "variable.html">variable</A>, ...
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

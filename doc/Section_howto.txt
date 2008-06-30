@@ -1,0 +1,198 @@
+"Previous Section"_Section_commands.html - "SPPARKS WWW Site"_sws -
+"SPPARKS Documentation"_sd - "SPPARKS Commands"_sc - "Next
+Section"_Section_example.html :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line 
+
+4. How-to discussions :h3
+
+The following sections describe how to perform various operations in
+SPPARKS.
+
+4.1 "Running multiple simulations from one input script"_#4_1
+4.2 "Coupling LAMMPS to other codes"_#4_2 :all(b)
+
+The example input scripts included in the SPPARKS distribution and
+highlighted in "this section"_Section_example.html also show how to
+setup and run various kinds of problems.
+
+:line 
+
+4.1 Running multiple simulations from one input script :link(4_1),h4
+
+This can be done in several ways.  See the documentation for
+individual commands for more details on how these examples work.
+
+If "multiple simulations" means continue a previous simulation for
+more timesteps, then you simply use the "run"_run.html command
+multiple times.  For example, this script
+
+app_style ising/2d/4n 100 100 12345
+...
+run 1.0
+run 1.0
+run 1.0
+run 1.0
+run 1.0 :pre
+
+would run 5 successive simulations of the same system for a total of
+5.0 seconds of elapsed time.
+
+If you wish to run totally different simulations, one after the other,
+the "clear"_clear.html command can be used in between them to
+re-initialize SPPARKS.  For example, this script
+
+app_style ising/2d/4n 100 100 12345
+...
+run 1.0
+clear
+app_style ising/2d/4n 200 200 12345
+...
+run 1.0 :pre
+
+would run 2 independent simulations, one after the other.
+
+For large numbers of independent simulations, you can use
+"variables"_variable.html and the "next"_next.html and
+"jump"_jump.html commands to loop over the same input script
+multiple times with different settings.  For example, this
+script, named in.runs
+
+variable d index run1 run2 run3 run4 run5 run6 run7 run8
+cd $d
+app_style ising/2d/4n 100 100 12345
+include temperature.txt
+run 1.0
+cd ..
+clear
+next d
+jump in.runs :pre
+
+would run 8 simulations in different directories, using a
+temperature.txt file in each directory with an input command to set
+the temperature.  The same concept could be used to run the same
+system at 8 different sizes, using a size variable and storing the
+output in different log files, for example
+
+variable a loop 8
+variable size index 100 200 400 800 1600 3200 6400 10000
+log log.$\{size\}
+app_style ising/2d/4n $\{size\} $\{size\} 12345
+run 1.0
+next size
+next a
+jump in.runs :pre
+
+All of the above examples work whether you are running on 1 or
+multiple processors, but assumed you are running SPPARKS on a single
+partition of processors.  SPPARKS can be run on multiple partitions
+via the "-partition" command-line switch as described in "this
+section"_Section_start.html#2_6 of the manual.
+
+In the last 2 examples, if SPPARKS were run on 3 partitions, the same
+scripts could be used if the "index" and "loop" variables were
+replaced with {universe}-style variables, as described in the
+"variable"_variable.html command.  Also, the "next size" and "next a"
+commands would need to be replaced with a single "next a size"
+command.  With these modifications, the 8 simulations of each script
+would run on the 3 partitions one after the other until all were
+finished.  Initially, 3 simulations would be started simultaneously,
+one on each partition.  When one finished, that partition would then
+start the 4th simulation, and so forth, until all 8 were completed.
+
+:line 
+
+4.2 Coupling SPPARKS to other codes :link(4_2),h4
+
+SPPARKS is designed to allow it to be coupled to other codes.  For
+example, an atomistic code might relax atom positions and pass those
+positions to SPPARKS.  Or a continuum finite element (FE) simulation
+might use a Monte Carlo relaxation to formulate a boundary condition
+on FE nodal points, compute a FE solution, and return the
+results to the MC calculation.
+
+SPPARKS can be coupled to other codes in at least 3 ways.  Each has
+advantages and disadvantages, which you'll have to think about in the
+context of your application.
+
+(1) Define a new "diag_style"_diag_style.html command that calls the
+other code.  In this scenario, SPPARKS is the driver code.  During its
+timestepping, the diagnostic is invoked, and can make library calls to
+the other code, which has been linked to SPPARKS as a library.  See
+"this section"_Section_modify.html of the documentation for info on
+how to add a new diagnostic to SPPARKS.
+
+(2) Define a new SPPARKS command that calls the other code.  This is
+conceptually similar to method (1), but in this case SPPARKS and the
+other code are on a more equal footing.  Note that now the other code
+is not called during the even loop of a SPPARKS run, but between runs.
+The SPPARKS input script can be used to alternate SPPARKS runs with
+calls to the other code, invoked via the new command.
+
+In this scenario, the other code can be called as a library, as in
+(1), or it could be a stand-alone code, invoked by a system() call
+made by the command (assuming your parallel machine allows one or more
+processors to start up another program).  In the latter case the
+stand-alone code could communicate with SPPARKS thru files that the
+command writes and reads.
+
+See "this section"_Section_modify.html of the documentation for how to
+add a new command to SPPARKS.
+
+(3) Use SPPARKS as a library called by another code.  In this case the
+other code is the driver and calls SPPARKS as needed.  Or a wrapper
+code could link and call both SPPARKS and another code as libraries.
+
+"This section"_Section_start.html#2_4 of the documentation describes
+how to build SPPARKS as a library.  Once this is done, you can
+interface with SPPARKS either via C++, C, or Fortran (or any other
+language that supports a vanilla C-like interface, e.g. a scripting
+language).  For example, from C++ you could create one (or more)
+"instances" of SPPARKS, pass it an input script to process, or execute
+individual commands, all by invoking the correct class methods in
+SPPARKS.  From C or Fortran you can make function calls to do the same
+things.  Library.cpp and library.h contain such a C interface with the
+functions:
+
+void spparks_open(int, char **, MPI_Comm, void **);
+void spparks_close(void *);
+void spparks_file(void *, char *);
+char *spparks_command(void *, char *); :pre
+
+The functions contain C++ code you could write in a C++ application
+that was invoking SPPARKS directly.  Note that SPPARKS classes are
+defined within a SPPARKS namespace (SPPARKS_NS) if you use them
+from another C++ application.
+
+Two of the routines in library.cpp are of particular note.  The
+SPPARKS_open() function initiates SPPARKS and takes an MPI communicator
+as an argument.  It returns a pointer to a SPPARKS "object".  As with
+C++, the SPPARKS_open() function can be called multiple times, to
+create multiple instances of SPPARKS.
+
+SPPARKS will run on the set of processors in the communicator.  This
+means the calling code can run SPPARKS on all or a subset of
+processors.  For example, a wrapper script might decide to alternate
+between SPPARKS and another code, allowing them both to run on all the
+processors.  Or it might allocate half the processors to SPPARKS and
+half to the other code and run both codes simultaneously before
+syncing them up periodically.
+
+Library.cpp contains a SPPARKS_command() function to which the caller
+passes a single SPPARKS command (a string).  Thus the calling code can
+read or generate a series of SPPARKS commands (e.g. an input script)
+one line at a time and pass it thru the library interface to setup a
+problem and then run it.
+
+A few other sample functions are included in library.cpp, but the key
+idea is that you can write any functions you wish to define an
+interface for how your code talks to SPPARKS and add them to
+library.cpp and library.h.  The routines you add can access any SPPARKS
+data.  The examples/couple directory has example C++ and C codes which
+show how a stand-alone code can link SPPARKS as a library, run SPPARKS
+on a subset of processors, grab data from SPPARKS, change it, and put
+it back into SPPARKS.

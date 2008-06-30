@@ -1,0 +1,276 @@
+"Previous Section"_Section_start.html - "SPPARKS WWW Site"_sws -
+"SPPARKS Documentation"_sd - "SPPARKS Commands"_sc - "Next
+Section"_Section_howto.html :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+3. Commands :h3
+
+This section describes how a SPPARKS input script is formatted and
+what commands are used to define a simulation.
+
+3.1 "SPPARKS input script"_#3_1
+3.2 "Parsing rules"_#3_2
+3.3 "Input script structure"_#3_3
+3.4 "Commands listed by category"_#3_4
+3.5 "Commands listed alphabetically"_#3_5 :all(b)
+
+:line
+
+3.1 SPPARKS input script :link(3_1),h4
+
+SPPARKS executes by reading commands from a input script (text file),
+one line at a time.  When the input script ends, SPPARKS exits.  Each
+command causes SPPARKS to take some action.  It may set an internal
+variable, read in a file, or run a simulation.  Most commands have
+default settings, which means you only need to use the command if you
+wish to change the default.
+
+In many cases, the ordering of commands in an input script is not
+important.  However the following rules apply:
+
+(1) SPPARKS does not read your entire input script and then perform a
+simulation with all the settings.  Rather, the input script is read
+one line at a time and each command takes effect when it is read.
+Thus this sequence of commands:
+
+count	 ligand 10000 
+run      100 
+run      100 :pre
+
+does something different than this sequence:
+
+run      100 
+count	 ligand 10000 
+run      100 :pre
+
+In the first case, the count of ligand molecules is set to 10000
+before the first simulation and whatever the count becomes will be
+used as input for the second simulation.  In the 2nd case, the default
+count of 0 is used for the 1st simulation and then the count is set to
+10000 molecules before the second simulation.
+
+(2) Some commands are only valid when they follow other commands.  For
+example you cannot set the count of a molecular species until the
+add_species command has been used to define that species.
+
+(3) Sometimes command B will use values that can be set by command A.
+This means command A must precede command B in the input script if it
+is to have the desired effect.
+
+(4) Some commands are only used by a specific application(s).
+
+Many input script errors are detected by SPPARKS and an ERROR or
+WARNING message is printed.  "This section"_Section_errors.html gives
+more information on what errors mean.  The documentation for each
+command lists restrictions on how the command can be used.
+
+:line
+
+3.2 Parsing rules :link(3_2),h4
+
+Each non-blank line in the input script is treated as a command.
+SPPARKS commands are case sensitive.  Command names are lower-case, as
+are specified command arguments.  Upper case letters may be used in
+file names or user-chosen ID strings.
+
+Here is how each line in the input script is parsed by SPPARKS:
+
+(1) If the line ends with a "&" character (with no trailing
+whitespace), the command is assumed to continue on the next line.  The
+next line is concatenated to the previous line by removing the "&"
+character and newline.  This allows long commands to be continued
+across two or more lines.
+
+(2) All characters from the first "#" character onward are treated as
+comment and discarded.
+
+(3) The line is searched repeatedly for $ characters which indicate
+variables that are replaced with a text string.  If the $ is followed
+by curly brackets, then the variable name is the text inside the curly
+brackets.  If no curly brackets follow the $, then the variable name
+is the character immediately following the $.  Thus $\{myTemp\} and $x
+refer to variable names "myTemp" and "x".  See the
+"variable"_variable.html command for details of how strings are
+assigned to variables and how they are substituted for in input
+scripts.
+
+(4) The line is broken into "words" separated by whitespace (tabs,
+spaces).  Note that words can thus contain letters, digits,
+underscores, or punctuation characters.
+
+(5) The first word is the command name.  All successive words in the
+line are arguments.
+
+(6) Text with spaces can be enclosed in double quotes so it will be
+treated as a single argument.  See the "dump modify"_dump_modify.html
+or "fix print"_fix_print.html commands for examples.  A '#' or '$'
+character that in text between double quotes will not be treated as a
+comment or substituted for as a variable.
+
+:line
+
+3.3 Input script structure :h4,link(3_3)
+
+This section describes the structure of a typical SPPARKS input
+script.  The "examples" directory in the SPPARKS distribution contains
+sample input scripts; the corresponding problems are discussed in
+"this section"_Section_example.html, and some are animated on the
+"SPPARKS WWW Site"_sws.
+
+A SPPARKS input script typically has 3 parts:
+
+choice of application, solver, sweeper
+settings
+run a simulation :ul
+
+The last 2 parts can be repeated as many times as desired.  I.e. run a
+simulation, change some settings, run some more, etc.  Each of the 3
+parts is now described in more detail.  Remember that almost all the
+commands need only be used if a non-default value is desired.
+
+(1) Choice of application, solver, sweeper
+
+Use the "app_style"_app_style.html, "solve_style"_solve_style.html,
+and "sweep_style_sweep_style" commands to setup the kind of simulation
+you wish to run.  Note that a sweeper is only relevant to applications
+that define a geometric lattice of event sites and only if you wish to
+perform Monte Carlo updates via sweeping.
+
+(2) Settings
+
+Parameters for a simulation can be defined by application-specific
+commands or by generic commands that are common to many kinds of
+applications.  See the doc pages for individual applications for
+information on the former.  Examples of the latter are the
+"stats" and "temperature"_temperature.txt commands.
+
+The "diag_style"_diag_style.html command can also be used to
+setup various diagnostic computations to perform during a simulation.
+
+(3) Run a simulation
+
+A kinetic or Metropolis Monte Carlo simulation is performed using the
+"run"_run.html command.
+
+:line
+
+3.4 Commands listed by category :link(3_4),h4
+
+This section lists all SPPARKS commands, grouped by category.  The
+"next section"_#3_5 lists the same commands alphabetically.  Note that
+some style options for some commands are part of specific SPPARKS
+packages, which means they cannot be used unless the package was
+included when SPPARKS was built.  Not all packages are included in a
+default SPPARKS build.  These dependencies are listed as Restrictions
+in the command's documentation.
+
+Initialization commands:
+
+"app_style"_app_style.html, "solve_style"_solve_style.html,
+"sweep_style"_sweep_style.html
+
+Application-specific commands:
+
+"add_reaction"_add_reaction.html, "add_species"_add_species.html,
+"count"_count.html, "inclusion"_inclusion.html,
+"temperature"_temperature.html, "volume"_volume.html
+
+Output commands:
+
+"diag_style"_diag_style.html, "dump"_dump.html, "stats"_stats.html
+
+Actions:
+
+"run"_run.html
+
+Miscellaneous:
+
+"clear"_clear.html, "echo"_echo.html, "if"_if.html,
+"include"_include.html, "jump"_jump.html, "label"_label.html,
+"log"_log.html, "next"_next.html, "print"_print.html,
+"shell"_shell.html, "variable"_variable.html
+
+:line
+
+3.5 Individual commands :h4,link(3_5),link(comm)
+
+This section lists all SPPARKS commands alphabetically, with a separate
+listing below of styles within certain commands.  The "previous
+section"_#3_4 lists the same commands, grouped by category.  Note that
+some style options for some commands are part of specific SPPARKS
+packages, which means they cannot be used unless the package was
+included when SPPARKS was built.  Not all packages are included in a
+default SPPARKS build.  These dependencies are listed as Restrictions
+in the command's documentation.
+
+"add_reaction"_add_reaction.html,
+"add_species"_add_species.html,
+"app_style"_app_style.html,
+"clear"_clear.html,
+"count"_count.html,
+"diag_style"_diag_style.html,
+"dump"_dump.html,
+"echo"_echo.html,
+"if"_if.html,
+"include"_include.html,
+"inclusion"_inclusion.html,
+"jump"_jump.html,
+"label"_label.html,
+"log"_log.html,
+"next"_next.html,
+"print"_print.html,
+"run"_run.html,
+"shell"_shell.html,
+"solve_style"_solve_style.html,
+"stats"_stats.html,
+"sweep_style"_sweep_style.html,
+"temperature"_temperature.html,
+"variable"_variable.html,
+"volume"_volume.html :tb(c=6,ea=c)
+
+:line
+
+Application styles.  See the "app_style"_app_stlye.html command for
+one-line descriptions of each style or click on the style itself for a
+full description:
+
+"chemistry"_app_chemistry.html,
+"ising"_app_ising.html,
+"membrane"_app_membrane.html,
+"potts"_app_potts.html,
+"test/group"_app_test_group.html :tb(c=8,ea=c)
+
+:line
+
+Solve styles.  See the "solve_style"_solve_style.html command for
+one-line descriptions of each style or click on the style itself for a
+full description:
+
+"group"_solve_group.html,
+"linear"_solve_linear.html,
+"tree"_solve_tree.html :tb(c=6,ea=c)
+
+:line
+
+Sweep styles.  See the "sweep_style"_sweep_style.html command for
+one-line descriptions of each style or click on the style itself for a
+full description:
+
+"lattice"_solve_lattice.html,
+"lattice2d"_solve_lattice2d.html,
+"lattice3d"_solve_lattice3d.html :tb(c=6,ea=c)
+
+:line
+
+Diagnostic styles.  See the "diag_style"_diag_style.html command for
+one-line descriptions of each style or click on the style itself for a
+full description:
+
+"cluster"_diag_cluster.html,
+"energy"_diag_energy.html,
+"eprof3d"_diag_eprof3d.html :tb(c=6,ea=c)

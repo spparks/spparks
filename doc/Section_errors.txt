@@ -1,0 +1,125 @@
+"Previous Section"_Section_modify.html - "SPPARKS WWW Site"_sws -
+"SPPARKS Documentation"_sd - "SPPARKS Commands"_sc - "Next
+Section"_Section_future.html :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+9. Errors :h3
+
+This section describes the various kinds of errors you can encounter
+when using SPPARKS.
+
+9.1 "Common problems"_#9_1
+9.2 "Reporting bugs"_#9_2
+9.3 "Error & warning messages"_#9_3 :all(b)
+
+:line
+
+9.1 Common problems :link(9_1),h4
+
+A SPPARKS simulation typically has two stages, setup and run.  Many
+SPPARKS errors are detected at setup time; others may not occur until
+the middle of a run.
+
+SPPARKS tries to flag errors and print informative error messages so
+you can fix the problem.  Of course SPPARKS cannot figure out your
+physics mistakes, like choosing too big a timestep or setting up an
+invalid initial geoemetry.  If you find errors that SPPARKS doesn't
+catch that you think it should flag, please send an email to the
+"developers"_http://SPPARKS.sandia.gov/authors.html.
+
+If you get an error message about an invalid command in your input
+script, you can determine what command is causing the problem by
+looking in the log.spparks file or using the "echo command"_echo.html
+to see it on the screen.  For example you can run your script as
+
+spk_linux -echo screen < in.script :pre
+
+For a given command, SPPARKS expects certain arguments in a specified
+order.  If you mess this up, SPPARKS will often flag the error, but it
+may read a bogus argument and assign a value that is not what you
+wanted.  E.g. if the input parser reads the string "abc" when
+expecting an integer value, it will assign the value of 0 to a
+variable.
+
+Generally, SPPARKS will print a message to the screen and exit
+gracefully when it encounters a fatal error.  Sometimes it will print
+a WARNING and continue on; you can decide if the WARNING is important
+or not.  If SPPARKS crashes or hangs without spitting out an error
+message first then it could be a bug (see "this section"_#9_2) or one
+of the following cases:
+
+SPPARKS runs in the available memory each processor can allocate.  All
+large memory allocations in the code are done via C-style malloc's
+which will generate an error message if you run out of memory.
+Smaller chunks of memory are allocated via C++ "new" statements.  If
+you are unlucky you could run out of memory when one of these small
+requests is made, in which case the code will crash, since SPPARKS
+doesn't trap on those errors.
+
+Illegal arithmetic can cause SPPARKS to run slow or crash.  This is
+typically due to invalid physics and numerics that your simulation is
+computing.  If you see wild energy values or NaN values in your
+SPPARKS output, something is wrong with your simulation.
+
+In parallel, one way SPPARKS can hang is due to how different MPI
+implementations handle buffering of messages.  If the code hangs
+without an error message, it may be that you need to specify an MPI
+setting or two (usually via an environment variable) to enable
+buffering or boost the sizes of messages that can be buffered.
+
+:line
+
+9.2 Reporting bugs :link(9_2),h4
+
+If you are confident that you have found a bug in SPPARKS, please send
+an email to the "developers"_http://SPPARKS.sandia.gov/authors.html.
+
+First, check the "New features and bug fixes" section of the "SPPARKS
+WWW site"_sws to see if the bug has already been reported or fixed.
+
+If not, the most useful thing you can do for us is to isolate the
+problem.  Run it on the smallest problem and fewest number of
+processors and with the simplest input script that reproduces the bug.
+
+In your email, describe the problem and any ideas you have as to what
+is causing it or where in the code the problem might be.  We'll
+request your input script and data files if necessary.
+
+:line
+
+9.3 Error & warning messages :h4,link(9_3)
+
+These are two alphabetic lists of the "ERROR"_#error and
+"WARNING"_#warn messages SPPARKS prints out and the reason why.  If the
+explanation here is not sufficient, the documentation for the
+offending command may help.  Grepping the source files for the text of
+the error message and staring at the source code and comments is also
+not a bad idea!  Note that sometimes the same message can be printed
+from multiple places in the code.
+
+Errors: :h4,link(error)
+
+:dlb
+
+{Dihedral problem: %d %d %d %d %d %d} :dt
+
+Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry. :dd
+
+:dle
+
+Warnings: :h4,link(warn)
+
+:dlb
+
+{Dihedral problem: %d %d %d %d %d %d} :dt
+
+Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry. :dd
+
+:dle

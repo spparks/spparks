@@ -1,0 +1,55 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>stats command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>stats delta 
+</PRE>
+<UL><LI>delta = time increment (seconds) for printing simulation statistics 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>stats 0.1
+stats 2.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Print statistics to the screen and log file every so many seconds
+during a simulation.  The quantities printed are obtained from the
+application.  Typically these include a current energy of the system.
+</P>
+<P> and from any diagnostics defined using the
+<A HREF = "diag_style.html">diag_style</A> command.  
+</P>
+<P>were created using diag_style commands. Note that if stats is
+called on a timestep when the diagnostic was not called, the
+information provided by the diagnostic may be old.
+</P>
+<P>there is an option called logfreq that requires two arguments,
+the number of repetitions and the boost factor:
+</P>
+<P>This gives t = 0,0.01,0.02,...,0.07,1.0,2.0,....,7.0,10.0,20.0,....
+stats       0.01 logfreq 7 10.0
+</P>
+<P>This gives t = 0,0.01,0.02,0.04,0.08,...
+stats           0.01 logfreq 1 2.0
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+<P>what is the default ??  begin/end ?
+</P>
+</HTML>

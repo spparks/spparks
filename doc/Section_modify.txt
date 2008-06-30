@@ -1,0 +1,578 @@
+"Previous Section"_Section_tools.html - "SPPARKS WWW Site"_sws -
+"SPPARKS Documentation"_sd - "SPPARKS Commands"_sc - "Next
+Section"_Section_errors.html :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+8. Modifying & extending SPPARKS :h3
+
+SPPARKS is designed in a modular fashion so as to be easy to modify and
+extend with new functionality.  In fact, about 75% of its source code
+is files added in this fashion.
+
+In this section, changes and additions users can make are listed along
+with minimal instructions.  If you add a new feature to SPPARKS and
+think it will be of interest to general users, we encourage you to
+submit it to the developers for inclusion in the released version of
+SPPARKS.  Information about how to do this is provided
+"below"_#package.
+
+The best way to add a new feature is to find a similar feature in
+SPPARKS and look at the corresponding source and header files to figure
+out what it does.  You will need some knowledge of C++ to be able to
+understand the hi-level structure of SPPARKS and its class
+organization, but functions (class methods) that do actual
+computations are written in vanilla C-style code and operate on simple
+C-style data structures (vectors and arrays).
+
+Most of the new features described in this section require you to
+write a new C++ derived class (except for exceptions described below,
+where you can make small edits to existing files).  Creating a new
+class requires 2 files, a source code file (*.cpp) and a header file
+(*.h).  The derived class must provide certain methods to work as a
+new option.  Depending on how different your new feature is compared
+to existing features, you can either derive from the base class
+itself, or from a derived class that already exists.  Enabling SPPARKS
+to invoke the new class is as simple as adding two lines to the
+style_user.h file, in the same syntax as other SPPARKS classes are
+specified in the style.h file.
+
+The advantage of C++ and its object-orientation is that all the code
+and variables needed to define the new feature are in the 2 files you
+write, and thus shouldn't make the rest of SPPARKS more complex or
+cause side-effect bugs.
+
+Here is a concrete example.  Suppose you write 2 files pair_foo.cpp
+and pair_foo.h that define a new class PairFoo that computes pairwise
+potentials described in the classic 1997 "paper"_#Foo by Foo, et al.
+If you wish to invoke those potentials in a SPPARKS input script with a
+command like
+
+pair_style foo 0.1 3.5 :pre
+
+you put your 2 files in the SPPARKS src directory, add 2 lines to the
+style_user.h file, and re-make the code.
+
+The first line added to style_user.h would be
+
+PairStyle(foo,PairFoo) :pre
+
+in the #ifdef PairClass section, where "foo" is the style keyword in
+the pair_style command, and PairFoo is the class name in your C++
+files.
+
+The 2nd line added to style_user.h would be
+
+#include "pair_foo.h" :pre
+
+in the #ifdef PairInclude section, where pair_foo.h is the name of
+your new include file.
+
+When you re-make SPPARKS, your new pairwise potential becomes part of
+the executable and can be invoked with a pair_style command like the
+example above.  Arguments like 0.1 and 3.5 can be defined and
+processed by your new class.
+
+Here is a list of the new features that can be added in this way,
+along with information about how to submit your features for inclusion
+in the SPPARKS distribution.
+
+"Atom styles"_#atom
+"Bond, angle, dihedral, improper potentials"_#bond
+"Compute styles"_#compute
+"Dump styles"_#dump
+"Dump custom output options"_#dump
+"Fix styles"_#fix which include integrators, \
+     temperature and pressure control, force constraints, \
+     boundary conditions, diagnostic output, etc
+"Input script commands"_#command
+"Kspace computations"_#kspace
+"Minimization solvers"_#min
+"Pairwise potentials"_#pair
+"Region styles"_#region
+"Thermodynamic output options"_#thermo
+"Variable options"_#variable :ul
+
+"Submitting new features to the developers to include in SPPARKS"_#package :ul
+
+As illustrated by the pairwise example, these options are referred to
+in the SPPARKS documentation as the "style" of a particular command.
+
+The instructions below give the header file for the base class that
+these styles are derived from.  Public variables in that file are ones
+used and set by the derived classes which are also used by the base
+class.  Sometimes they are also used by the rest of SPPARKS.  Virtual
+functions in the base class header file which are set = 0 are ones you
+must define in your new derived class to give it the functionality
+SPPARKS expects.  Virtual functions that are not set to 0 are functions
+you can optionally define.
+
+Additionally, new output options can be added directly to the
+thermo.cpp, dump_custom.cpp, and variable.cpp files as explained in
+these sections:
+
+"Dump custom output options"_#dump_custom
+"Thermodynamic output options"_#thermo
+"Variable options"_#variable :ul
+
+:line
+
+Here are additional guidelines for modifying SPPARKS and adding new
+functionality:
+
+Think about whether what you want to do would be better as a pre- or
+post-processing step.  Many computations are more easily and more
+quickly done that way. :ulb,l
+
+Don't do anything within the timestepping of a run that isn't
+parallel.  E.g. don't accumulate a bunch of data on a single processor
+and analyze it.  You run the risk of seriously degrading the parallel
+efficiency. :l
+
+If your new feature reads arguments or writes output, make sure you
+follow the unit conventions discussed by the "units"_units.html
+command. :l
+
+If you add something you think is truly useful and doesn't impact
+SPPARKS performance when it isn't used, send an email to the
+"developers"_http://SPPARKS.sandia.gov/authors.html.  We might be
+interested in adding it to the SPPARKS distribution. :l,ule
+
+:line
+:line
+
+Atom styles :link(atom),h4
+
+Classes that define an atom style are derived from the Atom class.
+The atom style determines what quantities are associated with an atom.
+A new atom style can be created if one of the existing atom styles
+does not define all the arrays you need to store and communicate with
+atoms.
+
+Atom_vec_atomic.cpp is a simple example of an atom style.
+
+Here is a brief description of methods you define in your new derived
+class.  See atom.h for details.
+
+grow: re-allocate atom arrays to longer lengths
+copy: copy info for one atom to another atom's array locations
+pack_comm: store an atom's info in a buffer communicated every timestep
+unpack_comm: retrieve an atom's info from the buffer
+pack_reverse: store an atom's info in a buffer communicating partial forces
+unpack_reverse: retrieve an atom's info from the buffer
+pack_border: store an atom's info in a buffer communicated on neighbor re-builds
+unpack_border: retrieve an atom's info from the buffer
+pack_exchange: store all an atom's info to migrate to another processor
+unpack_exchange: retrieve an atom's info from the buffer
+size_restart: number of restart quantities associated with proc's atoms
+pack_restart: pack atom quantities into a buffer
+unpack_restart: unpack atom quantities from a buffer
+create_atom: create an individual atom of this style
+data_atom: parse an atom line from the data file
+memory_usage: tally memory allocated by atom arrays :tb(s=:)
+
+The constructor of the derived class sets values for several variables
+that you must set when defining a new atom style.  The atom arrays
+themselves are defined in atom.cpp.  Search for the word "customize"
+and you will find locations you will need to modify.
+
+:line
+
+Bond, angle, dihedral, improper potentials :link(bond),h4
+
+Classes that compute molecular interactions are derived from the Bond,
+Angle, Dihedral, and Improper classes.  New styles can be created to
+add new potentials to SPPARKS.
+
+Bond_harmonic.cpp is the simplest example of a bond style.  Ditto for
+the harmonic forms of the angle, dihedral, and improper style
+commands.
+
+Here is a brief description of methods you define in your new derived
+bond class.  See bond.h, angle.h, dihedral.h, and improper.h for
+details.
+
+compute: compute the molecular interactions
+coeff: set coefficients for one bond type
+equilibrium_distance: length of bond, used by SHAKE
+write & read_restart: writes/reads coeffs to restart files
+single: force and energy of a single bond :tb(s=:)
+
+:line
+
+Compute styles :link(compute),h4
+
+Classes that compute scalar and vector quantities like temperature
+and the pressure tensor, as well as classes that compute per-atom
+quantities like kinetic energy and the centro-symmetry parameter
+are derived from the Compute class.  New styles can be created
+to add new calculations to SPPARKS.
+
+Compute_temp.cpp is a simple example of computing a scalar
+temperature.  Compute_ke_atom.cpp is a simple example of computing
+per-atom kinetic energy.
+
+Here is a brief description of methods you define in your new derived
+class.  See compute.h for details.
+
+compute_scalar: compute a scalar quantity
+compute_vector: compute a vector of quantities
+compute_peratom: compute one or more quantities per atom
+pack_comm: pack a buffer with items to communicate
+unpack_comm: unpack the buffer
+pack_reverse: pack a buffer with items to reverse communicate
+unpack_reverse: unpack the buffer
+memory_usage: tally memory usage :tb(s=:)
+
+:line
+
+Dump styles :link(dump),h4
+Dump custom output options :link(dump_custom),h4
+
+Classes that dump per-atom info to files are derived from the Dump
+class.  To dump new quantities or in a new format, a new derived dump
+class can be added, but it is typically simpler to modify the
+DumpCustom class contained in the dump_custom.cpp file.
+
+Dump_atom.cpp is a simple example of a derived dump class.
+
+Here is a brief description of methods you define in your new derived
+class.  See dump.h for details.
+
+write_header: write the header section of a snapshot of atoms
+count: count the number of lines a processor will output
+pack: pack a proc's output data into a buffer
+write_data: write a proc's data to a file :tb(s=:)
+
+See the "dump"_dump.html command and its {custom} style for a list of
+keywords for atom information that can already be dumped by
+DumpCustom.  It includes options to dump per-atom info from Compute
+classes, so adding a new derived Compute class is one way to calculate
+new quantities to dump.
+
+Alternatively, you can add new keywords to the dump custom command.
+Search for the word "customize" in dump_custom.cpp to see the
+half-dozen or so locations where code will need to be added.
+
+:line
+
+Fix styles :link(fix),h4
+
+In SPPARKS, a "fix" is any operation that is computed during
+timestepping that alters some property of the system.  Essentially
+everything that happens during a simulation besides force computation,
+neighbor list construction, and output, is a "fix".  This includes
+time integration (update of coordinates and velocities), force
+constraints or boundary conditions (SHAKE or walls), and diagnostics
+(compute a diffusion coefficient).  New styles can be created to add
+new options to SPPARKS.
+
+Fix_setforce.cpp is a simple example of setting forces on atoms to
+prescribed values.  There are dozens of fix options already in SPPARKS;
+choose one as a template that is similar to what you want to
+implement.
+
+Here is a brief description of methods you can define in your new
+derived class.  See fix.h for details.
+
+setmask: determines when the fix is called during the timestep
+init: initialization before a run
+setup: called immediately before the 1st timestep
+initial_integrate: called at very beginning of each timestep
+pre_exchange: called before atom exchange on re-neighboring steps
+pre_neighbor: called before neighbor list build
+post_force: called after pair & molecular forces are computed
+final_integrate: called at end of each timestep
+end_of_step: called at very end of timestep
+write_restart: dumps fix info to restart file
+restart: uses info from restart file to re-initialize the fix
+grow_arrays: allocate memory for atom-based arrays used by fix
+copy_arrays: copy atom info when an atom migrates to a new processor
+memory_usage: report memory used by fix
+pack_exchange: store atom's data in a buffer
+unpack_exchange: retrieve atom's data from a buffer
+pack_restart: store atom's data for writing to restart file
+unpack_restart: retrieve atom's data from a restart file buffer
+size_restart: size of atom's data
+maxsize_restart: max size of atom's data
+initial_integrate_respa: same as initial_integrate, but for rRESPA
+post_force_respa: same as post_force, but for rRESPA
+final_integrate_respa: same as final_integrate, but for rRESPA
+pack_comm: pack a buffer to communicate a per-atom quantity
+unpack_comm: unpack a buffer to communicate a per-atom quantity
+pack_reverse_comm: pack a buffer to reverse communicate a per-atom quantity
+unpack_reverse_comm: unpack a buffer to reverse communicate a per-atom quantity
+thermo: compute quantities for thermodynamic output :tb(s=:)
+
+Typically, only a small fraction of these methods are defined for a
+particular fix.  Setmask is mandatory, as it determines when the fix
+will be invoked during the timestep.  Fixes that perform time
+integration ({nve}, {nvt}, {npt}) implement initial_integrate and
+final_integrate to perform velocity Verlet updates.  Fixes that
+constrain forces implement post_force.  Fixes that perform diagnostics
+typically implement end_of_step.  For an end_of_step fix, one of your
+fix arguments must be the variable "nevery" which is used to determine
+when to call the fix.  By convention, this is the first argument the
+fix defines (after the ID, group-ID, style).
+
+If the fix needs to store information for each atom that persists from
+timestep to timestep, it can manage that memory and migrate the info
+with the atoms as they move from processors to processor by
+implementing the grow_arrays, copy_arrays, pack_exchange, and
+unpack_exchange methods.  Similarly, the pack_restart and
+unpack_restart methods can be implemented to store information about
+the fix in restart files.  If you wish an integrator or force
+constraint fix to work with rRESPA (see the "run_style"_run_style.html
+command), the initial_integrate, post_force_integrate, and
+final_integrate_respa methods can be implemented.  The thermo method
+enables a fix to contribute values to thermodynamic output, as printed
+quantities and/or to be summed to the potential energy of the system.
+
+:line
+
+Input script commands :link(command),h4
+
+New commands can be added to SPPARKS input scripts by adding new
+classes that have a "command" method and are listed in the Command
+sections of style.h (or style_user.h).  For example, the create_atoms,
+read_data, velocity, and run commands are all implemented in this
+fashion.  When such a command is encountered in the SPPARKS input
+script, SPPARKS simply creates a class with the corresponding name,
+invokes the "command" method of the class, and passes it the arguments
+from the input script.  The command method can perform whatever
+operations it wishes on SPPARKS data structures.
+
+The single method your new class must define is as follows:
+
+command: operations performed by the new command :tb(s=:)
+
+Of course, the new class can define other methods and variables as
+needed.
+
+:line
+
+Kspace computations :link(kspace),h4
+
+Classes that compute long-range Coulombic interactions via K-space
+representations (Ewald, PPPM) are derived from the KSpace class.  New
+styles can be created to add new K-space options to SPPARKS.
+
+Ewald.cpp is an example of computing K-space interactions.
+
+Here is a brief description of methods you define in your new derived
+class.  See kspace.h for details.
+
+init: initialize the calculation before a run
+setup: computation before the 1st timestep of a run
+compute: every-timestep computation
+memory_usage: tally of memory usage :tb(s=:)
+
+:line
+
+Minimization solvers :link(min),h4
+
+Classes that perform energy minimization derived from the Min class.
+New styles can be created to add new minimization algorithms to
+SPPARKS.
+
+Min_cg.cpp is an example of conjugate gradient minimization.
+
+Here is a brief description of methods you define in your new derived
+class.  See min.h for details.
+
+init: initialize the minimization before a run
+run: perform the minimization
+memory_usage: tally of memory usage :tb(s=:)
+
+:line
+
+Pairwise potentials :link(pair),h4
+
+Classes that compute pairwise interactions are derived from the Pair
+class.  In SPPARKS, pairwise calculation include manybody potentials
+such as EAM or Tersoff where particles interact without a static bond
+topology.  New styles can be created to add new pair potentials to
+SPPARKS.
+
+Pair_lj_cut.cpp is a simple example of a Pair class, though it
+includes some optional methods to enable its use with rRESPA.
+
+Here is a brief description of the class methods in pair.h:
+
+compute: workhorse routine that computes pairwise interactions
+settings: reads the input script line with arguments you define
+coeff: set coefficients for one i,j type pair
+init_one: perform initialization for one i,j type pair
+init_style: initialization specific to this pair style
+write & read_restart: write/read i,j pair coeffs to restart files
+write & read_restart_settings: write/read global settings to restart files
+single: force and energy of a single pairwise interaction between 2 atoms
+compute_inner/middle/outer: versions of compute used by rRESPA :tb(s=:)
+
+The inner/middle/outer routines are optional.
+
+:line
+
+Region styles :link(region),h4
+
+Classes that define geometric regions are derived from the Region
+class.  Regions are used elsewhere in SPPARKS to group atoms, delete
+atoms to create a void, insert atoms in a specified region, etc.  New
+styles can be created to add new region shapes to SPPARKS.
+
+Region_sphere.cpp is an example of a spherical region.
+
+Here is a brief description of methods you define in your new derived
+class.  See region.h for details.
+
+match: determine whether a point is in the region :tb(s=:)
+
+:line
+
+Thermodynamic output options :link(thermo),h4
+
+There is one class that computes and prints thermodynamic information
+to the screen and log file; see the file thermo.cpp.
+
+There are several styles defined in thermo.cpp: "one", "multi",
+"granular", etc.  There is also a flexible "custom" style which allows
+the user to explicitly list keywords for quantities to print when
+thermodynamic info is output.  See the
+"thermo_style"_thermo_style.html command for a list of defined
+quantities.
+
+The thermo styles (one, multi, etc) are simply lists of keywords.
+Adding a new style thus only requires defining a new list of keywords.
+Search for the word "customize" with references to "thermo style" in
+thermo.cpp to see the two locations where code will need to be added.
+
+New keywords can also be added to thermo.cpp to compute new quantities
+for output.  Search for the word "customize" with references to
+"keyword" in thermo.cpp to see the several locations where code will
+need to be added.
+
+Note that the "thermo_style custom"_thermo.html command already allows
+for thermo output of quantities calculated by "fixes"_fix.html,
+"computes"_compute.html, and "variables"_variable.html.  Thus, it may
+be simpler to compute what you wish via one of those constructs, than
+by adding a new keyword to the thermo command.
+
+:line
+
+Variable options :link(variable),h4
+
+There is one class that computes and stores "variable"_variable.html
+information in SPPARKS; see the file variable.cpp.  The value
+associated with a variable can be periodically printed to the screen
+via the "print"_print.html, "fix print"_fix_print.html, or
+"thermo_style custom"_thermo_style.html commands.  Variables of style
+"equal" can compute complex equations that involve the following types
+of arguments:
+
+thermo keywords = ke, vol, atoms, ...
+other variables = v_a, v_myvar, ...
+math functions = div(x,y), mult(x,y), add(x,y), ...
+group functions = mass(group), xcm(group,x), ...
+atom values = x[123], y[3], vx[34], ...
+compute values = c_mytemp[0], c_thermo_press[3], ...
+
+Adding keywords for the "thermo_style custom"_thermo_style.html command
+(which can then be accessed by variables) was discussed
+"here"_Section_modify.html#thermo on this page.
+
+Adding a new math function of one or two arguments can be done by
+editing one section of the Variable::evaulate() method.  Search for
+the word "customize" to find the appropriate location.
+
+Adding a new group function can be done by editing one section of the
+Variable::evaulate() method.  Search for the word "customize" to find
+the appropriate location.  You may need to add a new method to the
+Group class as well (see the group.cpp file).
+
+Accessing a new atom-based vector can be done by editing one section
+of the Variable::evaulate() method.  Search for the word "customize"
+to find the appropriate location.
+
+Adding new "compute styles"_compute.html (whose calculated values can
+then be accessed by variables) was discussed
+"here"_Section_modify.html#compute on this page.
+
+:line
+
+Submitting new features to the developers to include in SPPARKS :link(package),h4
+
+We encourage users to submit new features that they add to SPPARKS to
+"the developers"_http://SPPARKS.sandia.gov/authors.html, especially if
+you think they will be useful to other users.  If they are broadly
+useful we may add them as core files to SPPARKS or as part of a
+"standard package"_Section_start.html#2_3.  Else we will add them as a
+user-contributed package.  Examples of user packages are in src
+sub-directories that start with USER.  You can see a list of the both
+standard and user packages by typing "make package" in the SPPARKS src
+directory.
+
+With user packages, all we are really providing (aside from the fame
+and fortune that accompanies having your name in the source code and
+on the "Authors page"_http://SPPARKS.sandia.gov/authors.html of the
+"SPPARKS WWW site"_sws), is a means for you to distribute your work to
+the SPPARKS user community and a mechanism for others to easily try out
+your new feature.  This may help you find bugs or make contact with
+new collaborators.  Note that you're also implicitly agreeing to
+support your code which means answer questions, fix bugs, and maintain
+it if SPPARKS changes.
+
+The previous sections of this doc page describe how to add new
+features of various kinds to SPPARKS.  Packages are simply collections
+of one or more new class files which are invoked as a new "style"
+within a SPPARKS input script.  If designed correctly, these additions
+do not require changes to the main core of SPPARKS; they are simply
+add-on files.  If you think your new feature does requires changes in
+other SPPARKS files, you'll need to "communicate with the
+developers"_http://SPPARKS.sandia.gov/authors.html, since we may or may
+not want to make those changes.
+
+Here is what you need to do to submit a user package for our
+consideration.  Following these steps will save time for both you and
+us.  See existing package files for examples.
+
+Your user package will be a directory with a name like USER-FOO.  In
+addition to your new files, the directory should contain a README,
+Install.csh and style_user_foo.h file.  Send us a tarball of this
+USER-FOO directory.
+
+The README text file should contain your name and contact information
+and a brief description of what your new package does.
+
+The Install.csh and style_user_foo.h files enable SPPARKS to include
+and exclude your package.
+
+Your new source files need to have the SPPARKS copyright, GPL notice,
+and your name at the top.  They need to create a class that is inside
+the SPPARKS namespace.  Other than that, your files can do whatever is
+necessary to implement the new features.  They don't have to be
+written in the same style and syntax as other SPPARKS files, thought
+that would be nice.
+
+Finally, in addition to the USER-FOO tarball, you also need to send us
+a documentation file for each new command or style you are adding to
+SPPARKS.  These are text files which we will convert to HTML.  Use one
+of the *.txt files in the doc dir as a starting point for the new file
+you create, since it should look similar to the doc files for existing
+commands and styles.  The "Restrictions" section of the doc page
+should indicate that your feature is only available if SPPARKS is built
+with the "user-foo" package.  See other user package files for an
+example of how to do this.
+
+Note that the more clear and self-explanatory you make your doc and
+README files, the more likely it is that users will try out your new
+feature.
+
+:line
+:line
+
+:link(Foo)
+[(Foo)] Foo, Morefoo, and Maxfoo, J of Classic Potentials, 75, 345 (1997).
