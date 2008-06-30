@@ -26,7 +26,7 @@ AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) :
 {
   // parse arguments
 
-  if (narg < 5) error->all("Invalid app_style membrane command");
+  if (narg < 5) error->all("Illegal app_style membrane command");
 
   w01 = atof(arg[1]);
   w11 = atof(arg[2]);
@@ -70,7 +70,7 @@ AppMembrane::~AppMembrane()
 void AppMembrane::input_app(char *command, int narg, char **arg)
 {
   if (strcmp(command,"inclusion") == 0) {
-    if (narg != 4) error->all("Invalid inclusion command");
+    if (narg != 4) error->all("Illegal inclusion command");
     double xc = atof(arg[0]);
     double yc = atof(arg[1]);
     double zc = atof(arg[2]);
@@ -84,7 +84,7 @@ void AppMembrane::input_app(char *command, int narg, char **arg)
       rsq = dx*dx + dy*dy + dz*dz;
       if (sqrt(rsq) < r) lattice[i] = PROTEIN;
     }
-  } else error->all("Command not recognized by this application");
+  } else error->all("Unrecognized command");
 }
 
 /* ----------------------------------------------------------------------

@@ -25,7 +25,7 @@ AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) : AppLattice(spk,narg,arg
 {
   // parse arguments
 
-  if (narg < 2) error->all("Invalid app_style ising command");
+  if (narg < 2) error->all("Illegal app_style ising command");
 
   seed = atoi(arg[1]);
   random = new RandomPark(seed);

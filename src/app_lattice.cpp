@@ -1179,7 +1179,6 @@ void AppLattice::init()
 
 void AppLattice::input(char *command, int narg, char **arg)
 {
-  if (narg == 0) error->all("Invalid command");
   if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
   else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
   else if (strcmp(command,"dump") == 0) output->set_dump(narg,arg);
@@ -1190,7 +1189,7 @@ void AppLattice::input(char *command, int narg, char **arg)
 
 void AppLattice::input_app(char *command, int narg, char **arg)
 {
-  error->all("Command not recognized by this application");
+  error->all("Unrecognized command");
 }
 
 /* ----------------------------------------------------------------------

@@ -26,7 +26,7 @@ AppMembrane2d::AppMembrane2d(SPPARKS *spk, int narg, char **arg) :
 {
   // parse arguments
 
-  if (narg != 7) error->all("Invalid app_style membrane/2d command");
+  if (narg != 7) error->all("Illegal app_style membrane/2d command");
 
   nx_global = atoi(arg[1]);
   ny_global = atoi(arg[2]);
@@ -74,7 +74,7 @@ AppMembrane2d::~AppMembrane2d()
 void AppMembrane2d::input_app(char *command, int narg, char **arg)
 {
   if (strcmp(command,"inclusion") == 0) {
-    if (narg != 3) error->all("Invalid inclusion command");
+    if (narg != 3) error->all("Illegal inclusion command");
     int xc = atoi(arg[0]);
     int yc = atoi(arg[1]);
     double r = atof(arg[2]);
@@ -88,7 +88,7 @@ void AppMembrane2d::input_app(char *command, int narg, char **arg)
 	if (sqrt(rsq) < r) lattice[i][j] = PROTEIN;
       }
     }
-  } else error->all("Command not recognized by this application");
+  } else error->all("Unrecognized command");
 }
 
 /* ----------------------------------------------------------------------

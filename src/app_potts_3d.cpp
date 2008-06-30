@@ -27,7 +27,7 @@ AppPotts3d::AppPotts3d(SPPARKS *spk, int& narg, char **arg) :
 
   // parse arguments
 
-  if (narg < 6) error->all("Invalid app_style potts/3d command");
+  if (narg < 6) error->all("Illegal app_style potts/3d command");
 
   nx_global = atoi(arg[1]);
   ny_global = atoi(arg[2]);

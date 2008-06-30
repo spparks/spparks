@@ -24,7 +24,7 @@ AppIsing3d26n::AppIsing3d26n(SPPARKS *spk, int narg, char **arg) :
 {
   // parse arguments
 
-  if (narg != 5) error->all("Invalid app_style ising/3d/26n command");
+  if (narg != 5) error->all("Illegal app_style ising/3d/26n command");
 
   nx_global = atoi(arg[1]);
   ny_global = atoi(arg[2]);

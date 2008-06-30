@@ -24,7 +24,7 @@ AppIsing2d4n::AppIsing2d4n(SPPARKS *spk, int narg, char **arg) :
 {
   // parse arguments
 
-  if (narg != 4) error->all("Invalid app_style ising/2d/4n command");
+  if (narg != 4) error->all("Illegal app_style ising/2d/4n command");
 
   nx_global = atoi(arg[1]);
   ny_global = atoi(arg[2]);

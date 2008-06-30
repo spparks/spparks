@@ -28,11 +28,14 @@ class Variable : protected SysPtr {
   int *num;                // # of values for each variable
   int *index;              // next available value for each variable
   char ***data;            // str value of each variable's values
+  int precedence[7];       // precedence level of math operators
 
   int find(char *);
-  void copy(int, char **, char **);
-  char *evaluate(char *);
   void remove(int);
+  void copy(int, char **, char **);
+  double evaluate(char *);
+  int find_matching_paren(char *, int, char *&);
+  int math_function(char *, char *, double *, int &);
 };
 
 }

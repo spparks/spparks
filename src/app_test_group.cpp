@@ -26,7 +26,7 @@ using namespace SPPARKS_NS;
 AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
   App(spk, narg, arg)
 {
-  if (narg != 1) error->all("Invalid app_style test/group command");
+  if (narg != 1) error->all("Illegal app_style test/group command");
 
   propensity = NULL;
   ndepends = NULL;
@@ -100,10 +100,9 @@ void AppTestGroup::init()
 
 void AppTestGroup::input(char *command, int narg, char **arg)
 {
-  if (narg == 0) error->all("Invalid command");
-  else if (strcmp(command,"event") == 0) set_event(narg,arg);
+  if (strcmp(command,"event") == 0) set_event(narg,arg);
   else if (strcmp(command,"run") == 0) run(narg,arg);
-  else error->all("Invalid command");
+  else error->all("Unknown command");
 }
 
 /* ----------------------------------------------------------------------

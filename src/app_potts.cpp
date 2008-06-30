@@ -25,7 +25,7 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) : AppLattice(spk,narg,arg
 {
   // parse arguments
 
-  if (narg < 3) error->all("Invalid app_style potts command");
+  if (narg < 3) error->all("Illegal app_style potts command");
 
   seed = atoi(arg[1]);
   nspins = atoi(arg[2]);

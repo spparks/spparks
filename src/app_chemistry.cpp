@@ -26,7 +26,7 @@ using namespace SPPARKS_NS;
 
 AppChemistry::AppChemistry(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
 {
-  if (narg != 1) error->all("Invalid app_style chemistry command");
+  if (narg != 1) error->all("Illegal app_style chemistry command");
 
   // default settings
 
@@ -116,14 +116,13 @@ void AppChemistry::init()
 
 void AppChemistry::input(char *command, int narg, char **arg)
 {
-  if (narg == 0) error->all("Invalid command");
   if (strcmp(command,"count") == 0) set_count(narg,arg);
   else if (strcmp(command,"reaction") == 0) add_reaction(narg,arg);
   else if (strcmp(command,"run") == 0) run(narg,arg);
   else if (strcmp(command,"species") == 0) add_species(narg,arg);
   else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
   else if (strcmp(command,"volume") == 0) set_volume(narg,arg);
-  else error->all("Invalid command");
+  else error->all("Unknown command");
 }
 
 /* ----------------------------------------------------------------------

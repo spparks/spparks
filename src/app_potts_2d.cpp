@@ -27,7 +27,7 @@ AppPotts2d::AppPotts2d(SPPARKS *spk, int& narg, char **arg) :
 
   // parse arguments
 
-  if (narg < 5) error->all("Invalid app_style potts/2d command");
+  if (narg < 5) error->all("Illegal app_style potts/2d command");
 
   nx_global = atoi(arg[1]);
   ny_global = atoi(arg[2]);

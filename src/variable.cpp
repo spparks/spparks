@@ -6,6 +6,7 @@
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
+#include "ctype.h"
 #include "unistd.h"
 #include "variable.h"
 #include "universe.h"
@@ -15,8 +16,15 @@
 using namespace SPPARKS_NS;
 
 #define VARDELTA 4
+#define MAXLEVEL 4
 
-enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE};
+#define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
+
+enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP};
+enum{ARG,OP};
+enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
+       SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,
+       CEIL,FLOOR,ROUND,VALUE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -30,6 +38,12 @@ Variable::Variable(SPPARKS *spk) : SysPtr(spk)
   num = NULL;
   index = NULL;
   data = NULL;
+
+  precedence[DONE] = 0;
+  precedence[ADD] = precedence[SUBTRACT] = 1;
+  precedence[MULTIPLY] = precedence[DIVIDE] = 2;
+  precedence[CARAT] = 3;
+  precedence[UNARY] = 4;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,12 +80,9 @@ void Variable::set(int narg, char **arg)
     maxvar += VARDELTA;
     names = (char **)
       memory->srealloc(names,maxvar*sizeof(char *),"var:names");
-    style = (int *) 
-      memory->srealloc(style,maxvar*sizeof(int),"var:style");
-    num = (int *)
-      memory->srealloc(num,maxvar*sizeof(int),"var:num");
-    index = (int *)
-      memory->srealloc(index,maxvar*sizeof(int),"var:index");
+    style = (int *) memory->srealloc(style,maxvar*sizeof(int),"var:style");
+    num = (int *) memory->srealloc(num,maxvar*sizeof(int),"var:num");
+    index = (int *) memory->srealloc(index,maxvar*sizeof(int),"var:index");
     data = (char ***) 
       memory->srealloc(data,maxvar*sizeof(char **),"var:data");
   }
@@ -90,6 +101,7 @@ void Variable::set(int narg, char **arg)
   // num = N, index = 1st value, data = list of NULLS since never used
 
   } else if (strcmp(arg[1],"loop") == 0) {
+    if (narg != 3) error->all("Illegal variable command");
     style[nvar] = LOOP;
     num[nvar] = atoi(arg[2]);
     index[nvar] = 0;
@@ -102,6 +114,7 @@ void Variable::set(int narg, char **arg)
   // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
 
   } else if (strcmp(arg[1],"equal") == 0) {
+    if (narg != 3) error->all("Illegal variable command");
     if (find(arg[0]) >= 0) {
       if (style[find(arg[0])] != EQUAL)
 	error->all("Cannot redefine variable as a different style");
@@ -127,29 +140,41 @@ void Variable::set(int narg, char **arg)
     data[nvar] = new char*[num[nvar]];
     copy(num[nvar],&arg[2],data[nvar]);
 
-  // UNIVERSE
-  // num = listed args, index = partition this proc is in, data = copied args
+  // UNIVERSE and ULOOP
+  // for UNIVERSE: num = listed args, data = copied args
+  // for ULOOP: num = N, data = list of NULLS since never used
+  // index = partition this proc is in
   // universe proc 0 creates lock file
-  // error check that all other universe variables are same length
+  // error check that all other universe/uloop variables are same length
 
-  } else if (strcmp(arg[1],"universe") == 0) {
-    style[nvar] = UNIVERSE;
-    num[nvar] = narg - 2;
+  } else if (strcmp(arg[1],"universe") == 0 || strcmp(arg[1],"uloop") == 0) {
+    if (strcmp(arg[1],"universe") == 0) {
+      style[nvar] = UNIVERSE;
+      num[nvar] = narg - 2;
+      data[nvar] = new char*[num[nvar]];
+      copy(num[nvar],&arg[2],data[nvar]);
+    } else {
+      if (narg != 3) error->all("Illegal variable command");
+      style[nvar] = ULOOP;
+      num[nvar] = atoi(arg[2]);
+      data[nvar] = new char*[num[nvar]];
+      for (int i = 0; i < num[nvar]; i++) data[nvar][i] = NULL;
+    }
+
     if (num[nvar] < universe->nworlds)
-      error->all("Universe variable count < # of partitions");
+      error->all("Universe/uloop variable count < # of partitions");
     index[nvar] = universe->iworld;
-    data[nvar] = new char*[num[nvar]];
-    copy(num[nvar],&arg[2],data[nvar]);
 
     if (universe->me == 0) {
-      FILE *fp = fopen("tmp.spparks.variable","w");
+      FILE *fp = fopen("tmp.lammps.variable","w");
       fprintf(fp,"%d\n",universe->nworlds);
       fclose(fp);
     }
 
     for (int jvar = 0; jvar < nvar; jvar++)
-      if (num[jvar] && style[jvar] == UNIVERSE && num[nvar] != num[jvar])
-	error->all("All universe variables must have same # of values");
+      if (num[jvar] && (style[jvar] == UNIVERSE || style[jvar] == ULOOP) && 
+	  num[nvar] != num[jvar])
+	error->all("All universe/uloop variables must have same # of values");
 
     if (me == 0) {
       if (universe->uscreen)
@@ -164,10 +189,18 @@ void Variable::set(int narg, char **arg)
 
   } else error->all("Illegal variable command");
 
-  // set variable name (after possible EQUAL remove)
+  // set name of variable
+  // must come at end, since EQUAL/ATOM reset may have removed name
+  // name must be all alphanumeric chars or underscores
 
-  names[nvar] = new char[strlen(arg[0]) + 1];
+  int n = strlen(arg[0]) + 1;
+  names[nvar] = new char[n];
   strcpy(names[nvar],arg[0]);
+
+  for (int i = 0; i < n-1; i++)
+    if (!isalnum(names[nvar][i]) && names[nvar][i] != '_')
+      error->all("Variable name must be alphanumeric or underscore characters");
+
   nvar++;
 }
 
@@ -177,31 +210,12 @@ void Variable::set(int narg, char **arg)
 
 void Variable::set(char *name, char *value)
 {
-  int ivar = find(name);
-  if (ivar >= 0) error->all("Command-line variable already exists");
-
-  if (nvar == maxvar) {
-    maxvar += VARDELTA;
-    names = (char **)
-      memory->srealloc(style,maxvar*sizeof(char *),"var:names");
-    style = (int *)
-      memory->srealloc(style,maxvar*sizeof(int),"var:style");
-    num = (int *)
-      memory->srealloc(num,maxvar*sizeof(int),"var:num");
-    index = (int *)
-      memory->srealloc(index,maxvar*sizeof(int),"var:index");
-    data = (char ***) 
-      memory->srealloc(data,maxvar*sizeof(char **),"var:data");
-  }
-
-  names[nvar] = new char[strlen(name) + 1];
-  strcpy(names[nvar],name);
-  style[nvar] = INDEX;
-  num[nvar] = 1;
-  index[nvar] = 0;
-  data[nvar] = new char*[num[nvar]];
-  copy(1,&value,data[nvar]);
-  nvar++;
+  char **newarg = new char*[3];
+  newarg[0] = name;
+  newarg[1] = (char *) "index";
+  newarg[2] = value;
+  set(3,newarg);
+  delete [] newarg;
 }
 
 /* ----------------------------------------------------------------------
@@ -217,11 +231,14 @@ int Variable::next(int narg, char **arg)
   if (narg == 0) error->all("Illegal next command");
 
   // check that variables exist and are all the same style
+  // exception: UNIVERSE and ULOOP variables can be mixed in same next command
 
   for (int iarg = 0; iarg < narg; iarg++) {
     ivar = find(arg[iarg]);
     if (ivar == -1) error->all("Invalid variable in next command");
-    if (style[ivar] != style[find(arg[0])])
+    if (style[ivar] == ULOOP && style[find(arg[0])] == UNIVERSE) continue;
+    else if (style[ivar] == UNIVERSE && style[find(arg[0])] == ULOOP) continue;
+    else if (style[ivar] != style[find(arg[0])])
       error->all("All variables in next command must be same style");
   }
 
@@ -246,7 +263,7 @@ int Variable::next(int narg, char **arg)
       }
     }
 
-  } else if (istyle == UNIVERSE) {
+  } else if (istyle == UNIVERSE || istyle == ULOOP) {
 
     // wait until lock file can be created and owned by proc 0 of this world
     // read next available index and Bcast it within my world
@@ -291,6 +308,7 @@ int Variable::next(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    return ptr to the data text associated with a variable
+   if EQUAL var, evaluates variable and puts result in str
    return NULL if no variable or index is bad, caller must respond
 ------------------------------------------------------------------------- */
 
@@ -301,9 +319,10 @@ char *Variable::retrieve(char *name)
   if (index[ivar] >= num[ivar]) return NULL;
 
   char *str;
-  if (style[ivar] == INDEX) {
+  if (style[ivar] == INDEX || style[ivar] == WORLD || 
+      style[ivar] == UNIVERSE) {
     str = data[ivar][index[ivar]];
-  } else if (style[ivar] == LOOP) {
+  } else if (style[ivar] == LOOP || style[ivar] == ULOOP) {
     char *value = new char[16];
     sprintf(value,"%d",index[ivar]+1);
     int n = strlen(value) + 1;
@@ -313,18 +332,16 @@ char *Variable::retrieve(char *name)
     delete [] value;
     str = data[ivar][0];
   } else if (style[ivar] == EQUAL) {
-    char *value = evaluate(data[ivar][0]);
-    int n = strlen(value) + 1;
+    char result[32];
+    double answer = evaluate(data[ivar][0]);
+    sprintf(result,"%.10g",answer);
+    int n = strlen(result) + 1;
     if (data[ivar][1]) delete [] data[ivar][1];
     data[ivar][1] = new char[n];
-    strcpy(data[ivar][1],value);
-    delete [] value;
+    strcpy(data[ivar][1],result);
     str = data[ivar][1];
-  } else if (style[ivar] == WORLD) {
-    str = data[ivar][index[ivar]];
-  } else if (style[ivar] == UNIVERSE) {
-    str = data[ivar][index[ivar]];
   }
+
   return str;
 }
 
@@ -376,240 +393,304 @@ void Variable::copy(int narg, char **from, char **to)
 }
 
 /* ----------------------------------------------------------------------
-   recursive method to evaluate a string
-   string can be a number: 0.0, -5.45, etc
-   string can be a keyword: lx, ly, lz, vol, etc
-   string can be a vector: x[123], y[3], vx[34], etc
-     value inside brackets must be global ID from 1 to N
-   string can be a function: div(x,y), mult(x,y), add(x,y), etc
-     function args can be combo of  number, keyword, vector, fn(), group, etc
-   see lists of valid keywords, vectors, and functions below
-   when string is evaluated, put result in a newly allocated string
-   return address of result string (will be freed by caller)
+   recursive evaluation of a string str
+   string is a equal-style or atom-style formula containing one or more items:
+     number = 0.0, -5.45, 2.8e-4, ...
+     math operation = (),-x,x+y,x-y,x*y,x/y,x^y,
+                      sqrt(x),exp(x),ln(x),log(x),
+		      sin(x),cos(x),tan(x),asin(x),acos(x),atan(x)
+     variable = v_name
 ------------------------------------------------------------------------- */
 
-char *Variable::evaluate(char *str)
+double Variable::evaluate(char *str)
 {
-  // allocate a new string for the eventual result
+  int op,opprevious;
+  double value1,value2;
+  char onechar;
 
-  char *result = new char[32];
-  double answer;
+  double argstack[MAXLEVEL];
+  int opstack[MAXLEVEL];
+  int nargstack = 0;
+  int nopstack = 0;
 
-  // if string is "function", grab one or two args, evaulate args recursively
+  int i = 0;
+  int expect = ARG;
 
-  if (strchr(str,'(')) {
-    if (str[strlen(str)-1] != ')')
-      error->all("Cannot evaluate variable equal command");
+  while (1) {
+    onechar = str[i];
 
-    char *ptr = strchr(str,'(');
-    int n = ptr - str;
-    char *func = new char[n+1];
-    strncpy(func,str,n);
-    func[n] = '\0';
+    // whitespace: just skip
 
-    char *comma = ++ptr;
-    int level = 0;
-    while (1) {
-      if (*comma == '\0')
-	error->all("Cannot evaluate variable equal command");
-      else if (*comma == ',' && level == 0) break;
-      else if (*comma == ')' && level == 0) break;
-      else if (*comma == '(') level++;
-      else if (*comma == ')') level--;
-      comma++;
-    }
+    if (isspace(onechar)) i++;
 
-    char *arg1,*arg2;
-    n = comma - ptr;
-    arg1 = new char[n+1];
-    strncpy(arg1,ptr,n);
-    arg1[n] = '\0';
+    // ----------------
+    // parentheses: recursively evaluate contents of parens
+    // ----------------
 
-    if (*comma == ',') {
-      ptr = comma + 1;
-      comma = &str[strlen(str)-1];
-      n = comma - ptr;
-      arg2 = new char[n+1];
-      strncpy(arg2,ptr,n);
-      arg2[n] = '\0';
-    } else arg2 = NULL;
+    else if (onechar == '(') {
+      if (expect == OP) error->all("Invalid syntax in variable formula");
+      expect = OP;
+
+      char *contents;
+      i = find_matching_paren(str,i,contents);
+      i++;
+
+      // evaluate contents and push on stack
+
+      argstack[nargstack++] = evaluate(contents);
+
+      delete [] contents;
+
+    // ----------------
+    // number: push value onto stack
+    // ----------------
+
+    } else if (isdigit(onechar) || onechar == '.') {
+      if (expect == OP) error->all("Invalid syntax in variable formula");
+      expect = OP;
+
+      // istop = end of number, including scientific notation
+
+      int istart = i;
+      while (isdigit(str[i]) || str[i] == '.') i++;
+      if (str[i] == 'e' || str[i] == 'E') {
+	i++;
+	if (str[i] == '+' || str[i] == '-') i++;
+	while (isdigit(str[i])) i++;
+      }
+      int istop = i - 1;
+
+      int n = istop - istart + 1;
+      char *number = new char[n+1];
+      strncpy(number,&str[istart],n);
+      number[n] = '\0';
+      argstack[nargstack++] = atof(number);
+
+      delete [] number;
+
+    // ----------------
+    // letter: exp(), v_name
+    // ----------------
+
+    } else if (islower(onechar)) {
+      if (expect == OP) error->all("Invalid syntax in variable formula");
+      expect = OP;
+
+      // istop = end of word
+      // word = all alphanumeric or underscore
+
+      int istart = i;
+      while (isalnum(str[i]) || str[i] == '_') i++;
+      int istop = i-1;
+
+      int n = istop - istart + 1;
+      char *word = new char[n+1];
+      strncpy(word,&str[istart],n);
+      word[n] = '\0';
+
+      // ----------------
+      // variable
+      // ----------------
+
+      if (strncmp(word,"v_",2) == 0) {
+	n = strlen(word) - 2 + 1;
+	char *id = new char[n];
+	strcpy(id,&word[2]);
+
+	int ivar = find(id);
+	if (ivar < 0) error->all("Invalid variable name in variable formula");
+
+	char *var = retrieve(id);
+	if (var == NULL)
+	  error->all("Invalid variable evaluation in variable formula");
+	argstack[nargstack++] = atof(var);
+
+	delete [] id;
+
+      // ----------------
+      // math function
+      // ----------------
+
+      } else {
+
+	// math function
+
+	if (str[i] == '(') {
+	  char *contents;
+	  i = find_matching_paren(str,i,contents);
+	  i++;
+
+	  if (math_function(word,contents,argstack,nargstack));
+	  else error->all("Invalid math function in variable formula");
+
+	  delete [] contents;
+
+	} else error->all("Invalid math function in variable formula");
+      }
+
+      delete [] word;
+
+    // ----------------
+    // math operator, including end-of-string
+    // ----------------
+
+    } else if (strchr("+-*/^\0",onechar)) {
+      if (onechar == '+') op = ADD;
+      else if (onechar == '-') op = SUBTRACT;
+      else if (onechar == '*') op = MULTIPLY;
+      else if (onechar == '/') op = DIVIDE;
+      else if (onechar == '^') op = CARAT;
+      else op = DONE;
+      i++;
+
+      if (op == SUBTRACT && expect == ARG) {
+	opstack[nopstack++] = UNARY;
+	continue;
+      }
+
+      if (expect == ARG) error->all("Invalid syntax in variable formula");
+      expect = ARG;
+
+      // evaluate stack as deep as possible while respecting precedence
+      // before pushing current op onto stack
+
+      while (nopstack && precedence[opstack[nopstack-1]] >= precedence[op]) {
+	opprevious = opstack[--nopstack];
+	value2 = argstack[--nargstack];
+	if (opprevious != UNARY) value1 = argstack[--nargstack];
+
+	if (opprevious == ADD)
+	  argstack[nargstack++] = value1 + value2;
+	else if (opprevious == SUBTRACT)
+	  argstack[nargstack++] = value1 - value2;
+	else if (opprevious == MULTIPLY)
+	  argstack[nargstack++] = value1 * value2;
+	else if (opprevious == DIVIDE) {
+	  if (value2 == 0.0) error->all("Divide by 0 in variable formula");
+	  argstack[nargstack++] = value1 / value2;
+	} else if (opprevious == CARAT) {
+	  if (value2 == 0.0) error->all("Power by 0 in variable formula");
+	  argstack[nargstack++] = pow(value1,value2);
+	} else if (opprevious == UNARY)
+	  argstack[nargstack++] = -value2;
+      }
+
+      // if end-of-string, break out of entire formula evaluation loop
+
+      if (op == DONE) break;
+
+      // push current operation onto stack
+
+      opstack[nopstack++] = op;
+
+    } else error->all("Invalid syntax in variable formula");
+  }
+
+  if (nopstack) error->all("Invalid syntax in variable formula");
+
+  // return remaining arg
+
+  if (nargstack != 1) error->all("Invalid syntax in variable formula");
+  return argstack[0];
+}
+
+/* ----------------------------------------------------------------------
+   find matching parenthesis in str, allocate contents = str between parens
+   i = left paren
+   return loc or right paren
+------------------------------------------------------------------------- */
+
+int Variable::find_matching_paren(char *str, int i,char *&contents)
+{
+  // istop = matching ')' at same level, allowing for nested parens
+
+  int istart = i;
+  int ilevel = 0;
+  while (1) {
+    i++;
+    if (!str[i]) break;
+    if (str[i] == '(') ilevel++;
+    else if (str[i] == ')' && ilevel) ilevel--;
+    else if (str[i] == ')') break;
+  }
+  if (!str[i]) error->all("Invalid syntax in variable formula");
+  int istop = i;
+
+  int n = istop - istart - 1;
+  contents = new char[n+1];
+  strncpy(contents,&str[istart+1],n);
+  contents[n] = '\0';
+
+  return istop;
+}
+
+/* ----------------------------------------------------------------------
+   process a math function in formula
+   push result onto tree or arg stack
+   word = math function
+   contents = str bewteen parentheses
+   return 0 if not a match, 1 if successfully processed
+   customize by adding a math function in 2 places:
+     sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan()
+------------------------------------------------------------------------- */
+
+int Variable::math_function(char *word, char *contents,
+			    double *argstack, int &nargstack)
+{
+  // word not a match to any math function
+
+  if (strcmp(word,"sqrt") && strcmp(word,"exp") && 
+      strcmp(word,"ln") && strcmp(word,"log") &&
+      strcmp(word,"sin") && strcmp(word,"cos") &&
+      strcmp(word,"tan") && strcmp(word,"asin") &&
+      strcmp(word,"acos") && strcmp(word,"atan") &&
+      strcmp(word,"ceil") && strcmp(word,"floor") && strcmp(word,"round"))
+    return 0;
     
-    double value1,value2;
-    char *strarg1 = NULL;
-    char *strarg2 = NULL;
+  double value;
 
-    // customize by adding function to this list and to if statement
-    // math functions: add(x,y),sub(x,y),mult(x,y),div(x,y),
-    //                 neg(x),pow(x,y),exp(x),ln(x),sqrt(x)
+  value = evaluate(contents);
+    
+  if (strcmp(word,"sqrt") == 0) {
+    if (value < 0.0) error->all("Sqrt of negative in variable formula");
+    argstack[nargstack++] = sqrt(value);
 
-    if (strcmp(func,"add") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      strarg2 = evaluate(arg2);
-      value1 = atof(strarg1);
-      value2 = atof(strarg2);
-      answer = value1 + value2;
+  } else if (strcmp(word,"exp") == 0) {
+    argstack[nargstack++] = exp(value);
+  } else if (strcmp(word,"ln") == 0) {
+    if (value <= 0.0) error->all("Log of zero/negative in variable formula");
+    argstack[nargstack++] = log(value);
+  } else if (strcmp(word,"log") == 0) {
+    if (value <= 0.0) error->all("Log of zero/negative in variable formula");
+    argstack[nargstack++] = log10(value);
 
-    } else if (strcmp(func,"sub") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      strarg2 = evaluate(arg2);
-      value1 = atof(strarg1);
-      value2 = atof(strarg2);
-      answer = value1 - value2;
+  } else if (strcmp(word,"sin") == 0) {
+    argstack[nargstack++] = sin(value);
+  } else if (strcmp(word,"cos") == 0) {
+    argstack[nargstack++] = cos(value);
+  } else if (strcmp(word,"tan") == 0) {
+    argstack[nargstack++] = tan(value);
 
-    } else if (strcmp(func,"mult") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      strarg2 = evaluate(arg2);
-      value1 = atof(strarg1);
-      value2 = atof(strarg2);
-      answer = value1 * value2;
+  } else if (strcmp(word,"asin") == 0) {
+    if (value < -1.0 || value > 1.0) 
+      error->all("Arcsin of invalid value in variable formula");
+    argstack[nargstack++] = asin(value);
+  } else if (strcmp(word,"acos") == 0) {
+    if (value < -1.0 || value > 1.0) 
+      error->all("Arccos of invalid value in variable formula");
+    argstack[nargstack++] = acos(value);
+  } else if (strcmp(word,"atan") == 0) {
+    argstack[nargstack++] = atan(value);
 
-    } else if (strcmp(func,"div") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      strarg2 = evaluate(arg2);
-      value1 = atof(strarg1);
-      value2 = atof(strarg2);
-      if (value2 == 0.0)
-	error->all("Cannot evaluate variable equal command");
-      answer = value1 / value2;
+  } else if (strcmp(word,"ceil") == 0) {
+    argstack[nargstack++] = ceil(value);
 
-    } else if (strcmp(func,"neg") == 0) {
-      if (arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      value1 = atof(strarg1);
-      answer = -value1;
+  } else if (strcmp(word,"floor") == 0) {
+    argstack[nargstack++] = floor(value);
 
-    } else if (strcmp(func,"pow") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      strarg2 = evaluate(arg2);
-      value1 = atof(strarg1);
-      value2 = atof(strarg2);
-      if (value2 == 0.0)
-	error->all("Cannot evaluate variable equal command");
-      answer = pow(value1,value2);
+  } else if (strcmp(word,"round") == 0) {
+    argstack[nargstack++] = MYROUND(value);
+  }
 
-    } else if (strcmp(func,"exp") == 0) {
-      if (arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      value1 = atof(strarg1);
-      answer = exp(value1);
-
-    } else if (strcmp(func,"ln") == 0) {
-      if (arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      value1 = atof(strarg1);
-      if (value1 == 0.0)
-	error->all("Cannot evaluate variable equal command");
-      answer = log(value1);
-
-    } else if (strcmp(func,"sqrt") == 0) {
-      if (arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      value1 = atof(strarg1);
-      if (value1 == 0.0)
-	error->all("Cannot evaluate variable equal command");
-      answer = sqrt(value1);
-
-    } else error->all("Cannot evaluate variable equal command");
-
-    delete [] func;
-    delete [] arg1;
-    delete [] strarg1;
-    if (arg2) {
-      delete [] arg2;
-      delete [] strarg2;
-    }
-    sprintf(result,"%g",answer);
-
-  // if string is "vector", find which proc owns particle, grab vector value
-
-  } else if (strchr(str,'[')) {
-    if (str[strlen(str)-1] != ']')
-      error->all("Cannot evaluate variable equal command");
-
-    char *ptr = strchr(str,'[');
-    int n = ptr - str;
-    char *vector = new char[n+1];
-    strncpy(vector,str,n);
-    vector[n] = '\0';
-
-    char *arg;
-    ptr++;
-    char *ptr2 = &str[strlen(str)-1];
-    n = ptr2 - ptr;
-    arg = new char[n+1];
-    strncpy(arg,ptr,n);
-    arg[n] = '\0';
-
-    // int i = atom->map(atoi(arg));
-
-    double mine;
-    /*
-    if (i >= 0 && i < atom->nlocal) {
-
-      // customize by adding vector to this list and to if statement
-      // x,y,z,vx,vy,vz,etc
-
-      if (strcmp(vector,"x") == 0) mine = atom->x[i][0];
-      else if (strcmp(vector,"vz") == 0) mine = atom->v[i][2];
-
-      else error->one("Invalid vector in variable equal command");
-
-    } else mine = 0.0;
-    */
-
-    mine = 0.0;
-    MPI_Allreduce(&mine,&answer,1,MPI_DOUBLE,MPI_SUM,world);
-
-    delete [] vector;
-    delete [] arg;
-
-    sprintf(result,"%g",answer);
-
-  // if string is "keyword", compute it directly
-
-  } else if (str[0] - 'a' >= 0 && str[0] - 'a' < 26) {
-
-    // customize by adding keyword to this list and to if statement
-
-    /*
-    if (domain->box_exist == 0)
-      error->all("Using variable equal keyword before simulation box is defined");
-
-    // process these keywords here, not in thermo
-    // they are allowed anytime after simulation box is defined
-
-    if (strcmp(str,"step") == 0)
-      answer = update->ntimestep;
-    else if (strcmp(str,"atoms") == 0)
-      answer = atom->natoms;
-
-    // process other keywords via thermo
-    // error if 1st run has not yet started
-    // warning if out-of-sync with thermo, since values can be bogus
-
-    else {
-      if (update->first_update == 0)
-	error->all("Using variable equal keyword before initial run");
-      if (update->ntimestep != output->next_thermo && me == 0)
-	error->warning("Using variable equal keyword with non-current thermo");
-      int flag = output->thermo->compute_value(str,&answer);
-      if (flag) error->all("Invalid keyword in variable equal command");
-    }
-    */
-
-    answer = 0.0;
-    sprintf(result,"%g",answer);
-
-  // string is a number, just copy to result
-
-  } else strcpy(result,str);
-
-  // return newly allocated string
-
-  return result;
+  return 1;
 }
