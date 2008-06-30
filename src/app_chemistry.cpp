@@ -79,7 +79,7 @@ AppChemistry::~AppChemistry()
 
 void AppChemistry::init()
 {
-  if (volume == 0.0) error->all("Invalid volume setting");
+  if (volume <= 0.0) error->all("Invalid volume setting");
   if (nreactions == 0)
     error->all("No reactions defined for chemistry app");
 

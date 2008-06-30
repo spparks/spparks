@@ -115,7 +115,8 @@ DiagCluster2d::~DiagCluster2d()
 
 void DiagCluster2d::init(double time)
 {
-  if (app->appclass != App::LATTICE2D) error->all("diag_style incompatible with app_style");
+  if (app->appclass != App::LATTICE2D)
+    error->all("Diag style incompatible with app style");
 
   applattice2d = (AppLattice2d *) app;
   nx_global = applattice2d->nx_global;
@@ -484,7 +485,8 @@ void DiagCluster2d::dump_clusters(double time)
       }
       if (lnum < 5) lnum = 5;
       char filetmp[100];
-      if (99 < lroot+lnum+lsuf) error->one("diag_style cluster3d dump file name too long");
+      if (99 < lroot+lnum+lsuf)
+	error->one("Diag style cluster3d dump file name too long");
       strcpy(filetmp,opendxroot);
       sprintf(filetmp+lroot,"%05d",opendxcount);
       sprintf(filetmp+lroot+lnum,"%s",".dx");
@@ -525,7 +527,7 @@ void DiagCluster2d::dump_clusters(double time)
   maxbuftmp = (nx_global/nx_procs+1)*(ny_global/ny_procs+1)+4;
   nsend = nx_local*ny_local+4;
   if (maxbuftmp < nsend) 
-    error->one("maxbuftmp size too small in DiagCluster2d::dump_clusters()");
+    error->one("Maxbuftmp size too small in DiagCluster2d::dump_clusters()");
   
   buftmp = (int*) memory->smalloc(maxbuftmp*sizeof(int),"diagcluster2d:dump_clusters:buftmp");
 
@@ -667,12 +669,15 @@ void DiagCluster2d::dump_clusters_detailed(double time)
   // set up communication buffer
   // maxbuftmp must equal the maximum number of spins on one domain 
   // plus some extra stuff
-  maxbuftmp = ((nx_global-1)/nx_procs+1+2*delghost)*((ny_global-1)/ny_procs+1+2*delghost)+9;
+
+  maxbuftmp = ((nx_global-1)/nx_procs+1+2*delghost)*
+    ((ny_global-1)/ny_procs+1+2*delghost)+9;
   nsend = (nx_local+2*delghost)*(ny_local+2*delghost)+9;
   if (maxbuftmp < nsend) 
-    error->one("maxbuftmp size too small in DiagCluster2d::dump_clusters()");
+    error->one("Maxbuftmp size too small in DiagCluster2d::dump_clusters()");
   
-  buftmp = (int*) memory->smalloc(maxbuftmp*sizeof(int),"diagcluster2d:dump_clusters:buftmp");
+  buftmp = (int*) memory->smalloc(maxbuftmp*sizeof(int),
+				  "diagcluster2d:dump_clusters:buftmp");
 
   // proc 0 writes interactive dump header
 

@@ -54,7 +54,8 @@ DiagCluster3d::DiagCluster3d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg
 	  if (iarg < narg) {
 	    if (me == 0) {
 	      fpdump = fopen(arg[iarg],"w");
-	      if (!fpdump) error->one("Cannot open diag_style cluster3d dump file");
+	      if (!fpdump)
+		error->one("Cannot open diag_style cluster3d dump file");
 	    }
 	  } else {
 	    error->all("Illegal diag_style cluster3d command");
@@ -514,13 +515,14 @@ void DiagCluster3d::dump_clusters(double time)
       }
       if (lnum < 5) lnum = 5;
       char filetmp[100];
-      if (99 < lroot+lnum+lsuf) error->one("diag_style cluster3d dump file name too long");
+      if (99 < lroot+lnum+lsuf)
+	error->one("Diag style cluster3d dump file name too long");
       strcpy(filetmp,opendxroot);
       sprintf(filetmp+lroot,"%05d",opendxcount);
       sprintf(filetmp+lroot+lnum,"%s",".dx");
       if (me == 0) {
 	fpdump = fopen(filetmp,"w");
-	if (!fpdump) error->one("Cannot open diag_style cluster3d dump file");
+	if (!fpdump) error->one("Cannot open diag style cluster3d dump file");
       }
 
       opendxcount++;
@@ -556,7 +558,7 @@ void DiagCluster3d::dump_clusters(double time)
     (nz_global/nz_procs+1)+6;
   nsend = nx_local*ny_local*nz_local+6;
   if (maxbuftmp < nsend) 
-    error->one("maxbuftmp size too small in DiagCluster3d::dump_clusters()");
+    error->one("Maxbuftmp size too small in DiagCluster3d::dump_clusters()");
   
   buftmp = (int*) memory->smalloc(maxbuftmp*sizeof(int),"diagcluster3d:dump_clusters:buftmp");
 

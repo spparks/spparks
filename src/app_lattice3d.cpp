@@ -642,7 +642,7 @@ void AppLattice3d::procs2lattice()
   nyz_local = ny_local*nz_local;
 
   if (dellocal > delghost) 
-    error->all("dellocal > delghost: This twisted app could be handled, but not yet");
+    error->all("Dellocal > delghost: This twisted app cannot yet be handled");
   if (nx_local < 2*delghost || ny_local < 2*delghost ||
       nz_local < 2*delghost)
     error->one("Lattice per proc is too small");
@@ -761,22 +761,25 @@ void AppLattice3d::read_spins(const char* infile)
 }
 
 /* ----------------------------------------------------------------------
-   This is to prevent clustering for undefined child apps
-   Should eventually replace with pure virtual function
+   this is to prevent clustering for undefined child apps
+   should eventually replace with pure virtual function
 ------------------------------------------------------------------------- */
 
-void AppLattice3d::push_connected_neighbors(int i, int j, int k, int*** cluster_ids, int id, std::stack<int>*)
+void AppLattice3d::push_connected_neighbors(int i, int j, int k,
+					    int*** cluster_ids,
+					    int id, std::stack<int>*)
 {
-  error->all("Connectivity not defined for this AppLattice3d child class");
+  error->all("Connectivity not defined for this AppLattice child class");
 }
 
-
 /* ----------------------------------------------------------------------
-   This is to prevent clustering for undefined child apps
-   Should eventually replace with pure virtual function
+   this is to prevent clustering for undefined child apps
+   should eventually replace with pure virtual function
 ------------------------------------------------------------------------- */
 
-void AppLattice3d::connected_ghosts(int i, int j, int k, int*** cluster_ids, Cluster* clustlist, int idoffset)
+void AppLattice3d::connected_ghosts(int i, int j, int k,
+				    int*** cluster_ids,
+				    Cluster* clustlist, int idoffset)
 {
-  error->all("Connectivity not defined for this AppLattice3d child class");
+  error->all("Connectivity not defined for this AppLattice child class");
 }

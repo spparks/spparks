@@ -273,6 +273,7 @@ void DiagCluster::generate_clusters()
   }
 
   // pack my clusters into buffer
+
   int me_size,m,maxbuf;
   double* dbufclust;
   int tmp,nrecv;
@@ -434,7 +435,8 @@ void DiagCluster::dump_clusters(double time)
 
   maxbuftmp = 0;
   MPI_Allreduce(&nlocal,&maxbuftmp,1,MPI_INT,MPI_MAX,world);
-  dbuftmp = (double*) memory->smalloc(size_one*maxbuftmp*sizeof(double),"diagcluster:dump_clusters:buftmp");
+  dbuftmp = (double*) memory->smalloc(size_one*maxbuftmp*sizeof(double),
+				      "diagcluster:dump_clusters:buftmp");
 
   int m = 0;
 

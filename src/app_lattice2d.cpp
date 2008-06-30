@@ -608,7 +608,7 @@ void AppLattice2d::procs2lattice()
   ny_local = (iprocy+1)*ny_global/ny_procs - ny_offset;
 
   if (dellocal > delghost) 
-    error->all("dellocal > delghost: This twisted app could be handled, but not yet");
+    error->all("Dellocal > delghost: This twisted app cannot yet be handled");
   if (nx_local < 2*delghost || ny_local < 2*delghost)
     error->one("Lattice per proc is too small");
 
@@ -657,12 +657,15 @@ void AppLattice2d::dump_detailed(char* title)
   // set up communication buffer
   // maxbuftmp must equal the maximum number of spins on one domain 
   // plus some extra stuff
-  maxbuftmp = ((nx_global-1)/nx_procs+1+2*delghost)*((ny_global-1)/ny_procs+1+2*delghost)+9;
+
+  maxbuftmp = ((nx_global-1)/nx_procs+1+2*delghost)*
+    ((ny_global-1)/ny_procs+1+2*delghost)+9;
   nsend = (nx_local+2*delghost)*(ny_local+2*delghost)+9;
   if (maxbuftmp < nsend) 
-    error->one("maxbuftmp size too small in AppGrain::dump_detailed()");
+    error->one("Maxbuftmp size too small in AppGrain::dump_detailed()");
   
-  buftmp = (int*) memory->smalloc(maxbuftmp*sizeof(int),"applattice2d:dump_detailed:buftmp");
+  buftmp = (int*) memory->smalloc(maxbuftmp*sizeof(int),
+				  "applattice2d:dump_detailed:buftmp");
 
   // proc 0 writes interactive dump header
 
@@ -937,22 +940,24 @@ void AppLattice2d::read_spins(const char* infile)
 }
 
 /* ----------------------------------------------------------------------
-   This is to prevent clustering for undefined child apps
-   Should eventually replace with pure virtual function
+   this is to prevent clustering for undefined child apps
+   should eventually replace with pure virtual function
 ------------------------------------------------------------------------- */
 
-void AppLattice2d::push_connected_neighbors(int i, int j, int** cluster_ids, int id, std::stack<int>*)
+void AppLattice2d::push_connected_neighbors(int i, int j, int** cluster_ids,
+					    int id, std::stack<int>*)
 {
-  error->all("Connectivity not defined for this AppLattice2d child class");
+  error->all("Connectivity not defined for this AppLattice child class");
 }
 
 
 /* ----------------------------------------------------------------------
-   This is to prevent clustering for undefined child apps
-   Should eventually replace with pure virtual function
+   this is to prevent clustering for undefined child apps
+   should eventually replace with pure virtual function
 ------------------------------------------------------------------------- */
 
-void AppLattice2d::connected_ghosts(int i, int j, int** cluster_ids, Cluster* clustlist, int idoffset)
+void AppLattice2d::connected_ghosts(int i, int j, int** cluster_ids,
+				    Cluster* clustlist, int idoffset)
 {
-  error->all("Connectivity not defined for this AppLattice2d child class");
+  error->all("Connectivity not defined for this AppLattice child class");
 }
