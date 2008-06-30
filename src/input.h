@@ -20,8 +20,8 @@ class Input : protected SysPtr {
   Input(class SPPARKS *, int, char **);
   ~Input();
   void file();                   // process all input
-  void file(char *);             // process an input script
-  char *one(char *);             // process a single command
+  void file(const char *);       // process an input script
+  char *one(const char *);       // process a single command
   void substitute(char *, int);  // substitute for variables in a string
 
  private:
@@ -43,6 +43,7 @@ class Input : protected SysPtr {
 
   void clear();                // individual commands
   void echo();
+  void ifthenelse();
   void include();
   void jump();
   void label();
@@ -55,7 +56,7 @@ class Input : protected SysPtr {
   void run();
   void solve_style();
   void sweep_style();
-  void diag();
+  void diag_style();
 };
 
 }

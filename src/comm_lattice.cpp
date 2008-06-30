@@ -48,7 +48,8 @@ CommLattice::~CommLattice()
 /* ---------------------------------------------------------------------- */
 
 void CommLattice::init(SweepLattice *sweep,
-		       const int delghost_in, const int dellocal_in, int* lattice_in)
+		       const int delghost_in, const int dellocal_in, 
+		       int* lattice_in)
 {
   delghost = delghost_in;
   dellocal = dellocal_in;

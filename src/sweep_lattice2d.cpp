@@ -344,6 +344,7 @@ void SweepLattice2d::do_sweep(double &dt)
   dt = delt;
 
   // adjust KMC threshold time
+
   if (Ladapt) {
     MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_SUM,world);
     if (pmaxall > 0.0) {

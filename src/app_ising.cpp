@@ -21,7 +21,8 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) : AppLattice(spk,narg,arg)
+AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) : 
+  AppLattice(spk,narg,arg)
 {
   // parse arguments
 
@@ -83,9 +84,8 @@ double AppIsing::site_energy(int i)
 
 void AppIsing::site_pick_random(int i, double ran)
 {
-  int iran = (int) (2*ran) + 1;
-  if (iran > 2) iran = 2;
-  lattice[i] = iran;
+  if (ran < 0.5) lattice[i] = 1;
+  else lattice[i] = 2;
 }
 
 /* ----------------------------------------------------------------------
@@ -94,8 +94,8 @@ void AppIsing::site_pick_random(int i, double ran)
 
 void AppIsing::site_pick_local(int i, double ran)
 {
-  int iran = (int) (numneigh[i]*ran) + 1;
-  if (iran > numneigh[i]) iran = numneigh[i];
+  int iran = (int) (numneigh[i]*ran);
+  if (iran >= numneigh[i]) iran = numneigh[i] - 1;
   lattice[i] = lattice[neighbor[i][iran]];
 }
 

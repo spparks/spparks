@@ -390,6 +390,7 @@ void SweepLattice::do_sweep(double &dt)
   dt = delt;
 
   // adjust KMC threshold time
+
   if (Ladapt) {
     MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_SUM,world);
     if (pmaxall > 0.0) {
@@ -523,6 +524,7 @@ void SweepLattice::sweep_sector_kmc(int icolor, int isector)
 
   // update owned propensities for sites which neighbor a sector ghost
   // necessary since sector ghosts may have changed
+  // attribute time to comm, b/c due to spatial decomposition
 
   int nsites = 0;
 
@@ -535,8 +537,6 @@ void SweepLattice::sweep_sector_kmc(int icolor, int isector)
 
   solve->update(nsites,sites,propensity);
 
-  // attribute this chunk of time to Communication,
-  // because it is due to the spatial decomposition
   timer->stamp(TIME_COMM);
 
   // execute events until time threshhold reached
@@ -562,7 +562,8 @@ void SweepLattice::sweep_sector_kmc(int icolor, int isector)
     }
   }
  
-  // Compute deln0, which controls future timesteps
+  // compute deln0, which controls future timesteps
+
   if (Ladapt) {
     int ntmp = applattice->solve->get_num_active();
     if (ntmp > 0) {

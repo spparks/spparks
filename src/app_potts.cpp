@@ -21,7 +21,8 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) : AppLattice(spk,narg,arg)
+AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) : 
+  AppLattice(spk,narg,arg)
 {
   // parse arguments
 
@@ -96,8 +97,8 @@ void AppPotts::site_pick_random(int i, double ran)
 
 void AppPotts::site_pick_local(int i, double ran)
 {
-  int iran = (int) (numneigh[i]*ran) + 1;
-  if (iran > numneigh[i]) iran = numneigh[i];
+  int iran = (int) (numneigh[i]*ran);
+  if (iran >= numneigh[i]) iran = numneigh[i] - 1;
   lattice[i] = lattice[neighbor[i][iran]];
 }
 

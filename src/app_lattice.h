@@ -88,8 +88,8 @@ class AppLattice : public App {
   int *numneigh;               // # of neighbors of each owned site
   int **neighbor;              // list of neighbors of each owned site
                                // neighbor[i][j] =
-                               //   local index of Jth neigh of Ith owned site
-                               //   can index an owned or ghost site
+                               // local index of Jth neigh of Ith owned site
+                               // can point to owned or ghost site
 
   int nbasis;                  // basis atoms for regular lattices
   int ***cmap;                 // connectivity map for regular lattices

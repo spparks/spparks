@@ -31,7 +31,7 @@
 
 using namespace SPPARKS_NS;
 
-#define MAXLINE 1024
+#define MAXLINE 2048
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */
@@ -69,14 +69,14 @@ Input::Input(SPPARKS *spk, int argc, char **argv) : SysPtr(spk)
   while (iarg < argc) {
     if (strcmp(argv[iarg],"-var") == 0) {
       variable->set(argv[iarg+1],argv[iarg+2]);
-      iarg += 2;
+      iarg += 3;
     } else if (strcmp(argv[iarg],"-echo") == 0) {
       narg = 1;
       char **tmp = arg;        // trick echo() into using argv instead of arg
       arg = &argv[iarg+1];
       echo();
       arg = tmp;
-      iarg += 3;
+      iarg += 2;
     } else iarg++;
   }
 }
@@ -104,7 +104,7 @@ Input::~Input()
 
 void Input::file()
 {
-  int n,flag;
+  int n;
 
   while (1) {
     
@@ -181,7 +181,7 @@ void Input::file()
    process all input from filename
 ------------------------------------------------------------------------- */
 
-void Input::file(char *filename)
+void Input::file(const char *filename)
 {
   // error if another nested file still open
   // if single open file is not stdin, close it
@@ -208,7 +208,7 @@ void Input::file(char *filename)
    return command name to caller
 ------------------------------------------------------------------------- */
 
-char *Input::one(char *single)
+char *Input::one(const char *single)
 {
   strcpy(line,single);
 
@@ -247,7 +247,7 @@ char *Input::one(char *single)
    command = first word
    narg = # of args
    arg[] = individual args
-   treat multiple args between double quotes as one arg
+   treat text between double quotes as one arg
 ------------------------------------------------------------------------- */
 
 void Input::parse()
@@ -274,8 +274,9 @@ void Input::parse()
   }
 
   // perform $ variable substitution (print changes)
+  // except if searching for a label since earlier variable may not be defined
 
-  substitute(copy,1);
+  if (!label_active) substitute(copy,1);
 
   // command = 1st arg
 
@@ -290,16 +291,18 @@ void Input::parse()
   while (1) {
     if (narg == maxarg) {
       maxarg += DELTA;
-      arg = (char **)
-	memory->srealloc(arg,maxarg*sizeof(char *),"input:arg");
+      arg = (char **) memory->srealloc(arg,maxarg*sizeof(char *),"input:arg");
     }
     arg[narg] = strtok(NULL," \t\n\r\f");
     if (arg[narg] && arg[narg][0] == '\"') {
       arg[narg] = &arg[narg][1];
-      if (strchr(arg[narg],'\"')) error->all("Quotes in a single arg");
-      arg[narg][strlen(arg[narg])] = ' ';
-      ptr = strtok(NULL,"\"");
-      if (ptr == NULL) error->all("Unbalanced quotes in input line");
+      if (arg[narg][strlen(arg[narg])-1] == '\"')
+	arg[narg][strlen(arg[narg])-1] = '\0';
+      else {
+	arg[narg][strlen(arg[narg])] = ' ';
+	ptr = strtok(arg[narg],"\"");
+	if (ptr == NULL) error->all("Unbalanced quotes in input line");
+      }
     }
     if (arg[narg]) narg++;
     else break;
@@ -340,12 +343,15 @@ void Input::substitute(char *str, int flag)
 	beyond = ptr + strlen(var) + 1;
       }
       value = variable->retrieve(var);
-      if (value == NULL)
-	error->one("Substitution for undefined variable");
+      if (value == NULL) error->one("Substitution for undefined variable");
 
       *ptr = '\0';
       strcpy(work,str);
+      if (strlen(work)+strlen(value) >= MAXLINE)
+	error->one("Input line too long after variable substitution");
       strcat(work,value);
+      if (strlen(work)+strlen(beyond) >= MAXLINE)
+	error->one("Input line too long after variable substitution");
       strcat(work,beyond);
       strcpy(str,work);
       ptr += strlen(value);
@@ -374,6 +380,7 @@ int Input::execute_command()
 
   if (!strcmp(command,"clear")) clear();
   else if (!strcmp(command,"echo")) echo();
+  else if (!strcmp(command,"if")) ifthenelse();
   else if (!strcmp(command,"include")) include();
   else if (!strcmp(command,"jump")) jump();
   else if (!strcmp(command,"label")) label();
@@ -383,7 +390,7 @@ int Input::execute_command()
   else if (!strcmp(command,"variable")) variable_command();
 
   else if (!strcmp(command,"app_style")) app_style();
-  else if (!strcmp(command,"diag_style")) diag();
+  else if (!strcmp(command,"diag_style")) diag_style();
   else if (!strcmp(command,"run")) run();
   else if (!strcmp(command,"solve_style")) solve_style();
   else if (!strcmp(command,"sweep_style")) sweep_style();
@@ -419,10 +426,6 @@ int Input::execute_command()
 /* ---------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   one function for each input command executed here
-------------------------------------------------------------------------- */
-
 /* ---------------------------------------------------------------------- */
 
 void Input::clear()
@@ -451,6 +454,39 @@ void Input::echo()
     echo_screen = 1;
     echo_log = 1;
   } else error->all("Illegal echo command");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::ifthenelse()
+{
+  if (narg != 5 && narg != 7) error->all("Illegal if command");
+
+  int flag = 0;
+  if (strcmp(arg[1],"==") == 0) {
+    if (atof(arg[0]) == atof(arg[2])) flag = 1;
+  } else if (strcmp(arg[1],"!=") == 0) {
+    if (atof(arg[0]) != atof(arg[2])) flag = 1;
+  } else if (strcmp(arg[1],"<") == 0) {
+    if (atof(arg[0]) < atof(arg[2])) flag = 1;
+  } else if (strcmp(arg[1],"<=") == 0) {
+    if (atof(arg[0]) <= atof(arg[2])) flag = 1;
+  } else if (strcmp(arg[1],">") == 0) {
+    if (atof(arg[0]) > atof(arg[2])) flag = 1;
+  } else if (strcmp(arg[1],">=") == 0) {
+    if (atof(arg[0]) >= atof(arg[2])) flag = 1;
+  } else error->all("Illegal if command");
+
+  if (strcmp(arg[3],"then") != 0) error->all("Illegal if command");
+  if (narg == 7 && strcmp(arg[5],"else") != 0) 
+    error->all("Illegal if command");
+
+  char str[128] = "\0";
+  if (flag) strcpy(str,arg[4]);
+  else if (narg == 7) strcpy(str,arg[6]);
+  strcat(str,"\n");
+
+  if (strlen(str) > 1) char *tmp = one(str);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -524,13 +560,10 @@ void Input::log()
     if (logfile) fclose(logfile);
     if (strcmp(arg[0],"none") == 0) logfile = NULL;
     else {
-      char fname[128];
-      if (universe->nworlds == 1) strcpy(fname,arg[0]);
-      else sprintf(fname,"%s.%d",arg[0],universe->iworld);
-      logfile = fopen(fname,"w");
+      logfile = fopen(arg[0],"w");
       if (logfile == NULL) {
 	char str[128];
-	sprintf(str,"Cannot open logfile %s",fname);
+	sprintf(str,"Cannot open logfile %s",arg[0]);
 	error->one(str);
       }
     }
@@ -549,21 +582,16 @@ void Input::next_command()
 
 void Input::print()
 {
-  if (narg < 1) error->all("Illegal print command");
+  if (narg != 1) error->all("Illegal print command");
 
-  char *str = new char[MAXLINE];
-  str[0] = '\0';
-  for (int iarg = 0; iarg < narg; iarg++) {
-    strcat(str,arg[iarg]);
-    strcat(str," ");
-  }
-  
+  // substitute for $ variables (no printing)
+
+  substitute(arg[0],0);
+
   if (me == 0) {
-    if (screen) fprintf(screen,"%s\n",str);
-    if (logfile) fprintf(logfile,"%s\n",str);
+    if (screen) fprintf(screen,"%s\n",arg[0]);
+    if (logfile) fprintf(logfile,"%s\n",arg[0]);
   }
-
-  delete [] str;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -572,6 +600,14 @@ void Input::variable_command()
 {
   variable->set(narg,arg);
 }
+
+/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   one function for each SPPARKS-specific input script command
+------------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */
 
@@ -584,7 +620,7 @@ void Input::app_style()
   solve = NULL;
   sweep = NULL;
 
-  if (strcmp(arg[0],"none") == 0) error->all("Invalid app style");
+  if (strcmp(arg[0],"none") == 0) error->all("Invalid application style");
 
 #define AppClass
 #define AppStyle(key,Class) \
@@ -592,7 +628,7 @@ void Input::app_style()
 #include "style.h"
 #undef AppClass
 
-  else error->all("Invalid app style");
+  else error->all("Invalid application style");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -643,11 +679,11 @@ void Input::sweep_style()
 
 /* ---------------------------------------------------------------------- */
 
-void Input::diag()
+void Input::diag_style()
 {
-  if (narg < 1) error->all("Illegal diag command");
+  if (narg < 1) error->all("Illegal diag_style command");
 
-  if (strcmp(arg[0],"none") == 0) error->all("Invalid diag style");
+  if (strcmp(arg[0],"none") == 0) error->all("Invalid diagnostic style");
 
 #define DiagClass
 #define DiagStyle(key,Class) \
@@ -659,7 +695,5 @@ void Input::diag()
 #include "style.h"
 #undef DiagClass
 
-  else error->all("Invalid diag style");
+  else error->all("Invalid diagnostic style");
 }
-
-
