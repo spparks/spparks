@@ -3,17 +3,17 @@
    contact info, copyright info, etc
 ------------------------------------------------------------------------- */
 
-#ifndef APP_TEST2_GROUP_H
-#define APP_TEST2_GROUP_H
+#ifndef APP_TEST_GROUP_H
+#define APP_TEST_GROUP_H
 
 #include "app.h"
 
 namespace SPPARKS_NS {
 
-class AppTest2Group : public App {
+class AppTestGroup : public App {
  public:
-  AppTest2Group(class SPPARKS *, int, char **);
-  ~AppTest2Group();
+  AppTestGroup(class SPPARKS *, int, char **);
+  ~AppTestGroup();
   void init();
   void input(char *, int, char **);
   void run(int, char **);

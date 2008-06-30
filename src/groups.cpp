@@ -5,7 +5,7 @@
 
 #include "math.h"
 #include "stdlib.h"
-#include "groups2.h"
+#include "groups.h"
 #include "random_park.h"
 #include "memory.h"
 
@@ -13,7 +13,7 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Groups2::Groups2(SPPARKS *spk, double lo_in, double hi_in, int seed_in, 
+Groups::Groups(SPPARKS *spk, double lo_in, double hi_in, int seed_in, 
 		 int ng_flag, int ngr_in) : SysPtr(spk)
 {
   my_group = NULL;
@@ -35,7 +35,7 @@ Groups2::Groups2(SPPARKS *spk, double lo_in, double hi_in, int seed_in,
 
 /* ---------------------------------------------------------------------- */
 
-Groups2::~Groups2()
+Groups::~Groups()
 {
   for (int g = 0; g < ngroups; g++) memory->sfree(group[g]);
   delete [] group;
@@ -47,7 +47,7 @@ Groups2::~Groups2()
    set up the groups data structures
 ------------------------------------------------------------------------- */
 
-void Groups2::partition_init(double *p, int size_in)
+void Groups::partition_init(double *p, int size_in)
 {
   int i;
   range = hi/lo;
@@ -134,7 +134,7 @@ void Groups2::partition_init(double *p, int size_in)
    split distribution into a number of groups by size
 ------------------------------------------------------------------------- */
 
-void Groups2::partition(double *p, double lo, double hi)
+void Groups::partition(double *p, double lo, double hi)
 {
   double range = hi - lo;
   int g = 0;
@@ -183,7 +183,7 @@ void Groups2::partition(double *p, double lo, double hi)
    change value of a single element
 ------------------------------------------------------------------------- */
 
-void Groups2::alter_element(int j, double *p, double p_new)
+void Groups::alter_element(int j, double *p, double p_new)
 {
   double p_old = p[j];
   double diff = p_new - p_old;
@@ -228,7 +228,7 @@ void Groups2::alter_element(int j, double *p, double p_new)
    sample distribution
 ------------------------------------------------------------------------- */
 
-int Groups2::sample(double *p)
+int Groups::sample(double *p)
 {
   int grp;
   int cnt = 0;
@@ -245,7 +245,7 @@ int Groups2::sample(double *p)
    double a group's size
 ------------------------------------------------------------------------- */
 
-void Groups2::grow_group(int g)
+void Groups::grow_group(int g)
 {
   if (group_size[g] == 0) group_size[g] = 1;
   group_size[g] *= 2;
@@ -257,7 +257,7 @@ void Groups2::grow_group(int g)
    sample in-group distribution with rejection
 ------------------------------------------------------------------------- */
 
-int Groups2::sample_with_rejection(int g, double *p)
+int Groups::sample_with_rejection(int g, double *p)
 {
   int group_sample = static_cast<int>(i_group[g]*random->uniform());
   int sample = group[g][group_sample];
@@ -270,7 +270,7 @@ int Groups2::sample_with_rejection(int g, double *p)
    sample group sum distribution with partial sums
 ------------------------------------------------------------------------- */
 
-int Groups2::linear_select_group()
+int Groups::linear_select_group()
 {
   int g;
 
@@ -290,7 +290,7 @@ int Groups2::linear_select_group()
    allocate group arrays
 ------------------------------------------------------------------------- */
 
-void Groups2::allocate_group_space(int s)
+void Groups::allocate_group_space(int s)
 {
   my_group = new int[max_size];
   my_group_i = new int[max_size];
@@ -307,7 +307,7 @@ void Groups2::allocate_group_space(int s)
    clear group arrays
 ------------------------------------------------------------------------- */
 
-void Groups2::release_group_space()
+void Groups::release_group_space()
 {
   if (my_group != NULL) delete [] my_group;
   if (my_group_i != NULL) delete [] my_group_i;

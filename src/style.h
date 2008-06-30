@@ -21,7 +21,6 @@
 #include "app_potts_3d_12n.h"
 #include "app_potts_3d_26n.h"
 #include "app_test_group.h"
-#include "app_test2_group.h"
 #endif
 
 #ifdef AppClass
@@ -42,7 +41,6 @@ AppStyle(potts/3d/6n,AppPotts3d6n)
 AppStyle(potts/3d/12n,AppPotts3d12n)
 AppStyle(potts/3d/26n,AppPotts3d26n)
 AppStyle(test/group,AppTestGroup)
-AppStyle(test2/group,AppTest2Group)
 #endif
 
 #ifdef CommandInclude
@@ -55,14 +53,12 @@ CommandStyle(shell,Shell)
 
 #ifdef SolveInclude
 #include "solve_group.h"
-#include "solve_group2.h"
 #include "solve_linear.h"
 #include "solve_tree.h"
 #endif
 
 #ifdef SolveClass
 SolveStyle(group,SolveGroup)
-SolveStyle(group2,SolveGroup2)
 SolveStyle(linear,SolveLinear)
 SolveStyle(tree,SolveTree)
 #endif

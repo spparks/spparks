@@ -6,7 +6,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "app_test2_group.h"
+#include "app_test_group.h"
 #include "solve.h"
 #include "finish.h"
 #include "timer.h"
@@ -23,10 +23,10 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppTest2Group::AppTest2Group(SPPARKS *spk, int narg, char **arg) :
+AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
   App(spk, narg, arg)
 {
-  if (narg != 1) error->all("Invalid app_style test2/group command");
+  if (narg != 1) error->all("Invalid app_style test/group command");
 
   propensity = NULL;
   ndepends = NULL;
@@ -46,7 +46,7 @@ AppTest2Group::AppTest2Group(SPPARKS *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-AppTest2Group::~AppTest2Group()
+AppTestGroup::~AppTestGroup()
 {
   delete [] propensity;
   delete [] ndepends;
@@ -58,7 +58,7 @@ AppTest2Group::~AppTest2Group()
 
 /* ---------------------------------------------------------------------- */
 
-void AppTest2Group::init()
+void AppTestGroup::init()
 {
   if (nevents == 0)
     error->all("Zero events defined for test app");
@@ -98,7 +98,7 @@ void AppTest2Group::init()
 
 /* ---------------------------------------------------------------------- */
 
-void AppTest2Group::input(char *command, int narg, char **arg)
+void AppTestGroup::input(char *command, int narg, char **arg)
 {
   if (narg == 0) error->all("Invalid command");
   else if (strcmp(command,"event") == 0) set_event(narg,arg);
@@ -110,7 +110,7 @@ void AppTest2Group::input(char *command, int narg, char **arg)
    perform a run
 ------------------------------------------------------------------------- */
 
-void AppTest2Group::run(int narg, char **arg)
+void AppTestGroup::run(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal run command");
   nlimit = atoi(arg[0]);
@@ -138,7 +138,7 @@ void AppTest2Group::run(int narg, char **arg)
    iterate on solver
 ------------------------------------------------------------------------- */
 
-void AppTest2Group::iterate()
+void AppTestGroup::iterate()
 {
   int i,m,n,ievent,rdp,tdep;
   double dt;
@@ -203,7 +203,7 @@ void AppTest2Group::iterate()
    print stats
 ------------------------------------------------------------------------- */
 
-void AppTest2Group::stats(char *strtmp)
+void AppTestGroup::stats(char *strtmp)
 {
   char *strpnt = strtmp;
   
@@ -219,14 +219,14 @@ void AppTest2Group::stats(char *strtmp)
    print stats header
 ------------------------------------------------------------------------- */
 
-void AppTest2Group::stats_header(char *strtmp)
+void AppTestGroup::stats_header(char *strtmp)
 {
   sprintf(strtmp," %20s ","Reaction Counts");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AppTest2Group::set_event(int narg, char **arg)
+void AppTestGroup::set_event(int narg, char **arg)
 {
   if (narg < 3) error->all("Illegal event command");
 
@@ -247,7 +247,7 @@ void AppTest2Group::set_event(int narg, char **arg)
    reaction N depends on M if a reactant of N is a reactant or product of M
 ------------------------------------------------------------------------- */
 
-void AppTest2Group::build_dependency_graph()
+void AppTestGroup::build_dependency_graph()
 {
   ndepends = new int[nevents];
   for (int m = 0; m < nevents; m++) 
@@ -272,7 +272,7 @@ void AppTest2Group::build_dependency_graph()
    compute propensity of a single event
 ------------------------------------------------------------------------- */
 
-double AppTest2Group::compute_propensity(int m)
+double AppTestGroup::compute_propensity(int m)
 {
   double p = propensity[m];
   p += p*tweak*(random->uniform()-0.5);

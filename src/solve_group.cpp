@@ -7,8 +7,8 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "solve_group2.h"
-#include "groups2.h"
+#include "solve_group.h"
+#include "groups.h"
 #include "random_park.h"
 #include "error.h"
 
@@ -19,7 +19,7 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-SolveGroup2::SolveGroup2(SPPARKS *spk, int narg, char **arg) :
+SolveGroup::SolveGroup(SPPARKS *spk, int narg, char **arg) :
   Solve(spk, narg, arg)
 {
   if (narg < 4) error->all("Illegal solve command");
@@ -37,13 +37,13 @@ SolveGroup2::SolveGroup2(SPPARKS *spk, int narg, char **arg) :
   else seed = atoi(arg[3]);
 
   random = new RandomPark(seed);
-  groups = new Groups2(spk,lo,hi,seed,ngroups_flag,ngroups_in);
+  groups = new Groups(spk,lo,hi,seed,ngroups_flag,ngroups_in);
   p = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
-SolveGroup2::~SolveGroup2()
+SolveGroup::~SolveGroup()
 {
   delete random;
   delete groups;
@@ -52,7 +52,7 @@ SolveGroup2::~SolveGroup2()
 
 /* ---------------------------------------------------------------------- */
 
-SolveGroup2 *SolveGroup2::clone()
+SolveGroup *SolveGroup::clone()
 {
   int narg = 5;
   char *arg[5];
@@ -68,7 +68,7 @@ SolveGroup2 *SolveGroup2::clone()
   sprintf(arg[3],"%d",ngroups_in);
   sprintf(arg[4],"%d",seed);
 
-  SolveGroup2 *ptr = new SolveGroup2(spk,narg,arg);
+  SolveGroup *ptr = new SolveGroup(spk,narg,arg);
 
   delete [] arg[1];
   delete [] arg[2];
@@ -79,7 +79,7 @@ SolveGroup2 *SolveGroup2::clone()
 
 /* ---------------------------------------------------------------------- */
 
-void SolveGroup2::init(int n, double *propensity)
+void SolveGroup::init(int n, double *propensity)
 {
   nevents = n;
   num_active = 0;
@@ -100,7 +100,7 @@ void SolveGroup2::init(int n, double *propensity)
 
 /* ---------------------------------------------------------------------- */
 
-void SolveGroup2::update(int n, int *indices, double *propensity)
+void SolveGroup::update(int n, int *indices, double *propensity)
 {
   for (int i = 0; i < n; i++) {
     int j = indices[i];
@@ -118,7 +118,7 @@ void SolveGroup2::update(int n, int *indices, double *propensity)
 
 /* ---------------------------------------------------------------------- */
 
-void SolveGroup2::update(int n, double *propensity)
+void SolveGroup::update(int n, double *propensity)
 {
   double pt = propensity[n];
   if (p[n] != pt) {
@@ -133,14 +133,14 @@ void SolveGroup2::update(int n, double *propensity)
 
 /* ---------------------------------------------------------------------- */
 
-void SolveGroup2::resize(int new_size, double *propensity)
+void SolveGroup::resize(int new_size, double *propensity)
 {
   init(new_size,propensity);
 }
 
 /* ---------------------------------------------------------------------- */
 
-int SolveGroup2::event(double *pdt)
+int SolveGroup::event(double *pdt)
 {
   int m;
   if (num_active == 0) {
