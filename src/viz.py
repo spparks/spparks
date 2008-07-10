@@ -1,6 +1,6 @@
 # viz grain pattern
 
-d = dump("tmp.membrane")
+d = dump("tmp.potts")
 g = gl(d)
-g.arad(0,0.05)
+g.arad(0,0.7)
 v = vcr(g)

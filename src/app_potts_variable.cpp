@@ -28,9 +28,8 @@ AppPottsVariable::AppPottsVariable(SPPARKS *spk, int narg, char **arg) :
 
   if (narg < 3) error->all("Illegal app_style potts/variable command");
 
-  seed = atoi(arg[1]);
-  nspins = atoi(arg[2]);
-
+  nspins = atoi(arg[1]);
+  int seed = atoi(arg[2]);
   random = new RandomPark(seed);
 
   options(narg-3,&arg[3]);
@@ -71,7 +70,6 @@ AppPottsVariable::~AppPottsVariable()
 {
   delete random;
   delete [] sites;
-  delete comm;
 }
 
 /* ----------------------------------------------------------------------
@@ -88,44 +86,64 @@ double AppPottsVariable::site_energy(int i)
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site
+   perform a site event with rejection
+   if site cannot change, set mask
+   if site changes, unset mask of neighbor sites with affected propensity
 ------------------------------------------------------------------------- */
 
-void AppPottsVariable::site_pick_random(int i, double ran)
+void AppPottsVariable::site_event_rejection(int i, RandomPark *random)
 {
-  int iran = (int) (nspins*ran) + 1;
+  int oldstate = spin[i];
+  double einitial = site_energy(i);
+
+  // event = random spin
+
+  int iran = (int) (nspins*random->uniform()) + 1;
   if (iran > nspins) iran = nspins;
   spin[i] = iran;
+  double efinal = site_energy(i);
+
+  // event = random neighbor spin
+
+  //int iran = (int) (numneigh[i]*random->uniform());
+  //if (iran >= numneigh[i]) iran = numneigh[i] - 1;
+  //spin[i] = spin[neighbor[i][iran]];
+
+  // event = random unique neighbor spin
+  // not yet implemented
+
+  // accept or reject via Boltzmann criterion
+
+  if (efinal <= einitial) {
+  } else if (temperature == 0.0) {
+    spin[i] = oldstate;
+  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
+    spin[i] = oldstate;
+  }
+
+  if (Lmask) {
+    if (einitial < 0.5*numneigh[i]) mask[i] = 1;
+    if (spin[i] != oldstate)
+      for (int j = 0; j < numneigh[i]; j++)
+	mask[neighbor[i][j]] = 0;
+  }
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site from neighbor values
-------------------------------------------------------------------------- */
-
-void AppPottsVariable::site_pick_local(int i, double ran)
-{
-  int iran = (int) (numneigh[i]*ran) + 1;
-  if (iran > numneigh[i]) iran = numneigh[i];
-  spin[i] = spin[neighbor[i][iran]];
-}
-
-/* ----------------------------------------------------------------------
-   compute total propensity of owned site
-   based on einitial,efinal for each possible event
+   compute total propensity of owned site summed over possible events
+   propensity for one event is based on einitial,efinal
    if no energy change, propensity = 1
    if downhill energy change, propensity = 1
-   if uphill energy change, propensity set via Boltzmann factor
-   if proc owns full domain, there are no ghosts, so ignore full flag
+   if uphill energy change, propensity = Boltzmann factor
 ------------------------------------------------------------------------- */
 
-double AppPottsVariable::site_propensity(int i, int full)
+double AppPottsVariable::site_propensity(int i)
 {
-  int j,k,value;
-  double efinal;
-
   // possible events = spin flips to neighboring site different than self
 
+  int j,k,value;
   int nevent = 0;
+
   for (j = 0; j < numneigh[i]; j++) {
     value = spin[neighbor[i][j]];
     if (value == spin[i]) continue;
@@ -141,6 +159,7 @@ double AppPottsVariable::site_propensity(int i, int full)
 
   int oldstate = spin[i];
   double einitial = site_energy(i);
+  double efinal;
   double prob = 0.0;
 
   for (k = 0; k < nevent; k++) {
@@ -157,22 +176,21 @@ double AppPottsVariable::site_propensity(int i, int full)
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
-   if proc owns full domain, there are no ghosts, so ignore full flag
-   if proc owns sector, ignore neighbor sites that are ghosts
+   ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppPottsVariable::site_event(int i, int full)
+void AppPottsVariable::site_event(int i, RandomPark *random)
 {
-  int j,k,m,isite,value;
-  double efinal;
-
   // pick one event from total propensity
 
   double threshhold = random->uniform() * propensity[i2site[i]];
 
   // possible events = spin flips to neighboring site different than self
-  // find one event, accumulate its probability
+  // find one event by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
+
+  int j,k,value;
+  double efinal;
 
   double einitial = site_energy(i);
   double prob = 0.0;
@@ -196,29 +214,20 @@ void AppPottsVariable::site_event(int i, int full)
 
   // compute propensity changes for self and neighbor sites
 
+  int m,isite;
+
   int nsites = 0;
   isite = i2site[i];
   sites[nsites++] = isite;
-  propensity[isite] = site_propensity(i,full);
+  propensity[isite] = site_propensity(i);
 
   for (j = 0; j < numneigh[i]; j++) {
     m = neighbor[i][j];
     isite = i2site[m];
     if (isite < 0) continue;
     sites[nsites++] = isite;
-    propensity[isite] = site_propensity(m,full);
+    propensity[isite] = site_propensity(m);
   }
 
   solve->update(nsites,sites,propensity);
-}
-
-/* ----------------------------------------------------------------------
-  clear mask values of site and its neighbors
-  OK to clear ghost site mask values
-------------------------------------------------------------------------- */
-
-void AppPottsVariable::site_clear_mask(char *mask, int i)
-{
-  mask[i] = 0;
-  for (int j = 0; j < numneigh[i]; j++) mask[neighbor[i][j]] = 0;
 }

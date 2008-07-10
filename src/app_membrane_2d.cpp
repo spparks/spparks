@@ -33,18 +33,8 @@ AppMembrane2d::AppMembrane2d(SPPARKS *spk, int narg, char **arg) :
   w01 = atof(arg[3]);
   w11 = atof(arg[4]);
   mu = atof(arg[5]);
-  seed = atoi(arg[6]);
+  int seed = atoi(arg[6]);
   random = new RandomPark(seed);
-
-  // setup interaction energy matrix
-  // w11 = fluid-fluid interaction
-  // w01 = fluid-protein interaction
-
-  interact[LIPID][LIPID] = interact[PROTEIN][PROTEIN] = 0.0;
-  interact[LIPID][FLUID] = interact[FLUID][LIPID] = 0.0;
-  interact[LIPID][PROTEIN] = interact[PROTEIN][LIPID] = 0.0;
-  interact[FLUID][FLUID] = -w11;
-  interact[FLUID][PROTEIN] = interact[PROTEIN][FLUID] = -w01;
 
   // define lattice and partition it across processors
 
@@ -58,6 +48,16 @@ AppMembrane2d::AppMembrane2d(SPPARKS *spk, int narg, char **arg) :
   for (i = 1; i <= nx_local; i++)
     for (j = 1; j <= ny_local; j++)
       lattice[i][j] = LIPID;
+
+  // setup interaction energy matrix
+  // w11 = fluid-fluid interaction
+  // w01 = fluid-protein interaction
+
+  interact[LIPID][LIPID] = interact[PROTEIN][PROTEIN] = 0.0;
+  interact[LIPID][FLUID] = interact[FLUID][LIPID] = 0.0;
+  interact[LIPID][PROTEIN] = interact[PROTEIN][LIPID] = 0.0;
+  interact[FLUID][FLUID] = -w11;
+  interact[FLUID][PROTEIN] = interact[PROTEIN][FLUID] = -w01;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,7 +66,6 @@ AppMembrane2d::~AppMembrane2d()
 {
   delete random;
   memory->destroy_2d_T_array(lattice);
-  delete comm;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -97,64 +96,64 @@ void AppMembrane2d::input_app(char *command, int narg, char **arg)
 
 double AppMembrane2d::site_energy(int i, int j)
 {
-  int isite,jsite;
+  int isite = lattice[i][j];
   double eng = 0.0;
-
-  isite = lattice[i][j];
-
-  for (int m = 0; m < 4; m++) {
-    if (m == 0) jsite = lattice[i-1][j];
-    else if (m == 1) jsite = lattice[i+1][j];
-    else if (m == 2) jsite = lattice[i][j-1];
-    else jsite = lattice[i][j+1];
-
-    eng += interact[isite][jsite];
-  }
-
+  eng += interact[isite][lattice[i-1][j]];
+  eng += interact[isite][lattice[i+1][j]];
+  eng += interact[isite][lattice[i][j-1]];
+  eng += interact[isite][lattice[i][j+1]];
   return eng;
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site
+   perform a site event with rejection
+   if site cannot change, set mask
 ------------------------------------------------------------------------- */
 
-int AppMembrane2d::site_pick_random(int i, int j, double ran)
+void AppMembrane2d::site_event_rejection(int i, int j, RandomPark *random)
 {
-  if (lattice[i][j] == PROTEIN) return PROTEIN;
-  if (ran < 0.5) return LIPID;
-  else return FLUID;
+  int oldstate = lattice[i][j];
+  double einitial = site_energy(i,j);
+
+  // event = PROTEIN never changes, flip between LIPID and FLUID
+
+  if (lattice[i][j] == PROTEIN) {
+    if (Lmask) mask[i][j] = 1;
+    return;
+  }
+
+  if (random->uniform() < 0.5) lattice[i][j] = LIPID;
+  else lattice[i][j] = FLUID;
+  double efinal = site_energy(i,j);
+
+  // accept or reject via Boltzmann criterion
+
+  if (efinal <= einitial) {
+  } else if (temperature == 0.0) {
+    lattice[i][j] = oldstate;
+  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
+    lattice[i][j] = oldstate;
+  }
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site from neighbor values
-------------------------------------------------------------------------- */
-
-int AppMembrane2d::site_pick_local(int i, int j, double ran)
-{
-  if (lattice[i][j] == PROTEIN) return PROTEIN;
-  if (ran < 0.5) return LIPID;
-  else return FLUID;
-}
-
-/* ----------------------------------------------------------------------
-   compute total propensity of owned site
-   based on einitial,efinal for each possible event
+   compute total propensity of owned site summed over possible events
+   propensity for one event based on einitial,efinal
    if no energy change, propensity = 1
    if downhill energy change, propensity = 1
-   if uphill energy change, propensity set via Boltzmann factor
-   if proc owns full domain, update ghost values before computing propensity
+   if uphill energy change, propensity = Boltzmann factor
 ------------------------------------------------------------------------- */
 
-double AppMembrane2d::site_propensity(int i, int j, int full)
+double AppMembrane2d::site_propensity(int i, int j)
 {
-  if (full) site_update_ghosts(i,j);
-
   // only event is a LIPID/FLUID flip
 
   int oldstate = lattice[i][j];
   if (oldstate == PROTEIN) return 0.0;
   int newstate = LIPID;
   if (oldstate == LIPID) newstate = FLUID;
+
+  // compute energy difference between initial and final state
 
   double einitial = site_energy(i,j);
   lattice[i][j] = newstate;
@@ -163,108 +162,71 @@ double AppMembrane2d::site_propensity(int i, int j, int full)
 
   if (oldstate == LIPID) efinal -= mu;
   else if (oldstate == FLUID) efinal += mu;
-  double delta = einitial - efinal;
 
   if (efinal <= einitial) return 1.0;
   else if (temperature == 0.0) return 0.0;
-  else return exp(delta*t_inverse);
+  else return exp((einitial-efinal)*t_inverse);
 }
 
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
-   if proc owns full domain, neighbor sites may be across PBC
-   if proc owns sector, ignore neighbor sites outside sector
+   if proc owns full domain, adjust neighbor sites indices for PBC
+   if proc owns sector, ignore non-updated neighbors (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppMembrane2d::site_event(int i, int j, int full)
+void AppMembrane2d::site_event(int i, int j, int full, RandomPark *random)
 {
-  int ii,jj,isite,flag,sites[5];
-
   // only event is a LIPID/FLUID flip
 
   if (lattice[i][j] == PROTEIN) return;
   if (lattice[i][j] == LIPID) lattice[i][j] = FLUID;
   else lattice[i][j] = LIPID;
 
+  if (full) update_ghost_sites(i,j);
+
   // compute propensity changes for self and neighbor sites
+
+  int ii,jj,isite,sites[5];
 
   int nsites = 0;
 
   ii = i; jj = j;
   isite = ij2site[ii][jj];
   sites[nsites++] = isite;
-  propensity[isite] = site_propensity(ii,jj,full);
+  propensity[isite] = site_propensity(ii,jj);
 
   ii = i-1; jj = j;
-  flag = 1;
   if (full) ijpbc(ii,jj);
-  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
-  if (flag) {
-    isite = ij2site[ii][jj];
+  isite = ij2site[ii][jj];
+  if (isite >= 0) {
     sites[nsites++] = isite;
-    propensity[isite] = site_propensity(ii,jj,full);
+    propensity[isite] = site_propensity(ii,jj);
   }
 
   ii = i+1; jj = j;
-  flag = 1;
   if (full) ijpbc(ii,jj);
-  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
-  if (flag) {
-    isite = ij2site[ii][jj];
+  isite = ij2site[ii][jj];
+  if (isite >= 0) {
     sites[nsites++] = isite;
-    propensity[isite] = site_propensity(ii,jj,full);
+    propensity[isite] = site_propensity(ii,jj);
   }
 
   ii = i; jj = j-1;
-  flag = 1;
   if (full) ijpbc(ii,jj);
-  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
-  if (flag) {
-    isite = ij2site[ii][jj];
+  isite = ij2site[ii][jj];
+  if (isite >= 0) {
     sites[nsites++] = isite;
-    propensity[isite] = site_propensity(ii,jj,full);
+    propensity[isite] = site_propensity(ii,jj);
   }
 
   ii = i; jj = j+1;
-  flag = 1;
   if (full) ijpbc(ii,jj);
-  else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-	   jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
-  if (flag) {
-    isite = ij2site[ii][jj];
+  isite = ij2site[ii][jj];
+  if (isite >= 0) {
     sites[nsites++] = isite;
-    propensity[isite] = site_propensity(ii,jj,full);
+    propensity[isite] = site_propensity(ii,jj);
   }
 
   solve->update(nsites,sites,propensity);
-}
-
-/* ----------------------------------------------------------------------
-   update neighbors of site if neighbors are ghost cells
-   called by site_propensity() when single proc owns entire domain
-------------------------------------------------------------------------- */
-
-void AppMembrane2d::site_update_ghosts(int i, int j)
-{
-  if (i == 1) lattice[i-1][j] = lattice[nx_local][j];
-  if (i == nx_local) lattice[i+1][j] = lattice[1][j];
-  if (j == 1) lattice[i][j-1] = lattice[i][ny_local];
-  if (j == ny_local) lattice[i][j+1] = lattice[i][1];
-}
-
-/* ----------------------------------------------------------------------
-  clear mask values of site and its neighbors
-------------------------------------------------------------------------- */
-
-void AppMembrane2d::site_clear_mask(char **mask, int i, int j)
-{
-  mask[i][j] = 0;
-  mask[i-1][j] = 0;
-  mask[i+1][j] = 0;
-  mask[i][j-1] = 0;
-  mask[i][j+1] = 0;
 }

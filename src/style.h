@@ -6,7 +6,9 @@
 #ifdef AppInclude
 #include "app_chemistry.h"
 #include "app_ising.h"
+#include "app_ising_exchange.h"
 #include "app_ising_2d_4n.h"
+#include "app_ising_2d_4n_exchange.h"
 #include "app_ising_2d_8n.h"
 #include "app_ising_3d_6n.h"
 #include "app_ising_3d_26n.h"
@@ -26,7 +28,9 @@
 #ifdef AppClass
 AppStyle(chemistry,AppChemistry)
 AppStyle(ising,AppIsing)
+AppStyle(ising/exchange,AppIsingExchange)
 AppStyle(ising/2d/4n,AppIsing2d4n)
+AppStyle(ising/2d/4n/exchange,AppIsing2d4nExchange)
 AppStyle(ising/2d/8n,AppIsing2d8n)
 AppStyle(ising/3d/6n,AppIsing3d6n)
 AppStyle(ising/3d/26n,AppIsing3d26n)

@@ -22,7 +22,6 @@ using namespace SPPARKS_NS;
 AppPotts2d::AppPotts2d(SPPARKS *spk, int& narg, char **arg) : 
   AppLattice2d(spk,narg,arg)
 {
-
   spinfile = NULL;
 
   // parse arguments
@@ -32,28 +31,28 @@ AppPotts2d::AppPotts2d(SPPARKS *spk, int& narg, char **arg) :
   nx_global = atoi(arg[1]);
   ny_global = atoi(arg[2]);
   nspins = atoi(arg[3]);
-  seed = atoi(arg[4]);
+  int seed = atoi(arg[4]);
   random = new RandomPark(seed);
   init_style = RANDOM;
 
   // parse optional arguments
+  // leave other arguments for child app
 
   int iarg = 5;
   int jarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"random") == 0) {
       init_style = RANDOM;
-      iarg ++;
+      iarg++;
     } else if (strcmp(arg[iarg],"read") == 0) {
       init_style = READ;
-      iarg ++;
+      iarg++;
       if (iarg >= narg) error->all("Illegal app_style potts/2d command");
       int n = strlen(arg[iarg]) + 1;
       spinfile = new char[n];
       spinfile = strcpy(spinfile,arg[iarg]);
-      iarg ++;
+      iarg++;
     } else {
-      // leave other arguments for child app
       arg[jarg] = arg[iarg];
       iarg++;
       jarg++;
@@ -66,6 +65,7 @@ AppPotts2d::AppPotts2d(SPPARKS *spk, int& narg, char **arg) :
 
 AppPotts2d::~AppPotts2d()
 {
+  delete random;
   delete [] spinfile;
 }
 

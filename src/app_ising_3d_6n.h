@@ -16,12 +16,9 @@ class AppIsing3d6n : public AppLattice3d {
   ~AppIsing3d6n();
 
   double site_energy(int, int, int);
-  int site_pick_random(int, int, int, double);
-  int site_pick_local(int, int, int, double);
-  double site_propensity(int, int, int, int);
-  void site_event(int, int, int, int);
-  void site_update_ghosts(int, int, int);
-  void site_clear_mask(char ***, int, int, int);
+  void site_event_rejection(int, int, int, class RandomPark *);
+  double site_propensity(int, int, int);
+  void site_event(int, int, int, int, class RandomPark *);
 };
 
 }

@@ -44,7 +44,7 @@ class DiagCluster2d : public Diag {
   FILE *fp, *fpdump;
   class AppLattice2d *applattice2d;
 
-  int nx_global,ny_global,nx_procs,ny_procs,delghost;
+  int nx_global,ny_global,nx_procs,ny_procs,delpropensity;
   int nx_local,ny_local,nx_offset,ny_offset,nxlo,nylo,nxhi,nyhi;
 
   enum DumpStyles {STANDARD, OPENDX, DETAILED};

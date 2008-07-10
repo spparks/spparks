@@ -16,12 +16,9 @@ class AppMembrane2d : public AppLattice2d {
   ~AppMembrane2d();
 
   double site_energy(int, int);
-  int site_pick_random(int, int, double);
-  int site_pick_local(int, int, double);
-  double site_propensity(int, int, int);
-  void site_event(int, int, int);
-  void site_update_ghosts(int, int);
-  void site_clear_mask(char **, int, int);
+  void site_event_rejection(int, int, class RandomPark *);
+  double site_propensity(int, int);
+  void site_event(int, int, int, class RandomPark *);
 
  private:
   double w01,w11,mu;

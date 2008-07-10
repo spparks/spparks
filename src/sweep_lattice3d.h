@@ -21,13 +21,12 @@ class SweepLattice3d : public Sweep {
 
  private:
   int seed;
-  bool Lmask,Lpicklocal,Lstrict,Lkmc,Ladapt;
   double delt;
 
   int nx_local,ny_local,nz_local;
   int nx_offset,ny_offset,nz_offset;
-  int ***lattice,***ijk2site;
-  double temperature,t_inverse;
+  int ***lattice;
+  int ***ijk2site;
 
   class AppLattice3d *applattice;       
   class CommLattice3d *comm;
@@ -37,26 +36,29 @@ class SweepLattice3d : public Sweep {
   char ***mask;
   class RandomPark ***ranlat;
 
-  double masklimit;              // App-specific settings
-  int delghost,dellocal;
+  int delpropensity,delevent;            // app-specific settings
+  int numrandom;
   int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
+
+  double pmax,pmaxall,deln0;
 
   int nsector;
   struct {
     int xlo,xhi,ylo,yhi,zlo,zhi; // inclusive start/stop indices in this octant
     int nx,ny,nz;                // size of octant
+    int nborder;                 // # of sites with non-sector site as neighbor
     class Solve *solve;          // KMC solver
-    double *propensity;          // propensities for octant sites
     int **site2ijk;              // map from octant sites to lattice index
+    int ***ijk2site;             // map from lattice index to sector sites
+    int **border;                // lattice index for each border site
     int *sites;                  // list of sites to pass to solver
+    double *propensity;          // propensities for sector sites
   } sector[8];
+
+  // sweep methods
 
   typedef void (SweepLattice3d::*FnPtr)(int, int);  // pointer to sweep method
   FnPtr sweeper;
-
-  double pmax,pmaxall,deln0;
-
-  // sweep methods
 
   void sweep_sector(int, int);
   void sweep_sector_mask(int, int);
@@ -65,7 +67,8 @@ class SweepLattice3d : public Sweep {
   void sweep_sector_mask_strict(int, int);
   void sweep_sector_kmc(int, int);
 
-  void boundary_clear_mask(int, int, int, int, int, int);
+  int find_border_sites(int);
+  void boundary_clear_mask(int);
 };
 
 }

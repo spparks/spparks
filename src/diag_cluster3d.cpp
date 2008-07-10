@@ -111,7 +111,7 @@ void DiagCluster3d::init(double time)
   nx_procs = applattice3d->nx_procs;
   ny_procs = applattice3d->ny_procs;
   nz_procs = applattice3d->nz_procs;
-  delghost = applattice3d->delghost;
+  delpropensity = applattice3d->delpropensity;
   nx_local = applattice3d->nx_local;
   ny_local = applattice3d->ny_local;
   nz_local = applattice3d->nz_local;
@@ -213,42 +213,42 @@ void DiagCluster3d::generate_clusters()
   // Use six slabs, with z-slabs grabbing
   // the xz and yz ghost edges and y-slab grabbing
   // the xy edges
-  for (int k = 1-delghost; k <= 0; k++) {
-    for (int j = 1-delghost; j <= ny_local+delghost; j++) {
-      for (int i = 1-delghost; i <= nx_local+delghost; i++) {
+  for (int k = 1-delpropensity; k <= 0; k++) {
+    for (int j = 1-delpropensity; j <= ny_local+delpropensity; j++) {
+      for (int i = 1-delpropensity; i <= nx_local+delpropensity; i++) {
 	cluster_ids[i][j][k] = -1;
       }
     }
   }
-  for (int k = nz_local+1; k <= nz_local+delghost; k++) {
-    for (int j = 1-delghost; j <= ny_local+delghost; j++) {
-      for (int i = 1-delghost; i <= nx_local+delghost; i++) {
+  for (int k = nz_local+1; k <= nz_local+delpropensity; k++) {
+    for (int j = 1-delpropensity; j <= ny_local+delpropensity; j++) {
+      for (int i = 1-delpropensity; i <= nx_local+delpropensity; i++) {
 	cluster_ids[i][j][k] = -1;
       }
     }
   }
-  for (int j = 1-delghost; j <= 0; j++) {
+  for (int j = 1-delpropensity; j <= 0; j++) {
     for (int k = 1; k <= nz_local; k++) {
-      for (int i = 1-delghost; i <= nx_local+delghost; i++) {
+      for (int i = 1-delpropensity; i <= nx_local+delpropensity; i++) {
 	cluster_ids[i][j][k] = -1;
       }
     }
   }
-  for (int j = ny_local+1; j <= ny_local+delghost; j++) {
+  for (int j = ny_local+1; j <= ny_local+delpropensity; j++) {
     for (int k = 1; k <= nz_local; k++) {
-      for (int i = 1-delghost; i <= nx_local+delghost; i++) {
+      for (int i = 1-delpropensity; i <= nx_local+delpropensity; i++) {
 	cluster_ids[i][j][k] = -1;
       }
     }
   }
-  for (int i = 1-delghost; i <= 0; i++) {
+  for (int i = 1-delpropensity; i <= 0; i++) {
     for (int k = 1; k <= nz_local; k++) {
       for (int j = 1; j <= ny_local; j++) {
 	cluster_ids[i][j][k] = -1;
       }
     }
   }
-  for (int i = nx_local+1; i <= nx_local+delghost; i++) {
+  for (int i = nx_local+1; i <= nx_local+delpropensity; i++) {
     for (int k = 1; k <= nz_local; k++) {
       for (int j = 1; j <= ny_local; j++) {
 	cluster_ids[i][j][k] = -1;

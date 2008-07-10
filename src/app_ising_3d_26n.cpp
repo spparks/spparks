@@ -29,10 +29,8 @@ AppIsing3d26n::AppIsing3d26n(SPPARKS *spk, int narg, char **arg) :
   nx_global = atoi(arg[1]);
   ny_global = atoi(arg[2]);
   nz_global = atoi(arg[3]);
-  seed = atoi(arg[4]);
+  int seed = atoi(arg[4]);
   random = new RandomPark(seed);
-
-  masklimit = 13.0;
 
   // define lattice and partition it across processors
   
@@ -66,7 +64,6 @@ AppIsing3d26n::~AppIsing3d26n()
 {
   delete random;
   memory->destroy_3d_T_array(lattice);
-  delete comm;
 }
 
 /* ----------------------------------------------------------------------
@@ -87,46 +84,67 @@ double AppIsing3d26n::site_energy(int i, int j, int k)
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site
+   perform a site event with rejection
+   if site cannot change, set mask
+   if site changes, unset mask of all neighbor sites with affected propensity
 ------------------------------------------------------------------------- */
 
-int AppIsing3d26n::site_pick_random(int i, int j, int k, double ran)
+void AppIsing3d26n::site_event_rejection(int i, int j, int k,
+					RandomPark *random)
 {
-  int iran = (int) (2*ran) + 1;
-  if (iran > 2) iran = 2;
-  return iran;
+  int oldstate = lattice[i][j][k];
+  double einitial = site_energy(i,j,k);
+
+  // event = random up or down spin
+
+  if (random->uniform() < 0.5) lattice[i][j][k] = 1;
+  else lattice[i][j][k] = 2;
+  double efinal = site_energy(i,j,k);
+
+  // even = random neighbor spin
+
+  //int iran = (int) (26*random->uniform()) + 1;
+  //if (iran > 26) iran = 26;
+  //if (iran > 13) iran++;
+  //int ii = iran % 3;
+  //int jj = (iran/3) % 3;
+  //int kk = iran / 9;
+  //return lattice[i-1+ii][j-1+jj][k-1+kk];
+
+  // event = random unique neighbor spin
+  // not yet implemented
+
+  // accept or reject via Boltzmann criterion
+
+  if (efinal <= einitial) {
+  } else if (temperature == 0.0) {
+    lattice[i][j][k] = oldstate;
+  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
+    lattice[i][j][k] = oldstate;
+  }
+
+  if (Lmask) {
+    if (einitial < 2.0) mask[i][j][k] = 1;
+    if (lattice[i][j][k] != oldstate) {
+      int ii,jj,kk;
+      for (ii = i-1; ii <= i+1; ii++)
+	for (jj = j-1; jj <= j+1; jj++)
+	  for (kk = k-1; kk <= k+1; kk++)
+	    mask[ii][jj][kk] = 0;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site from neighbor values
-------------------------------------------------------------------------- */
-
-int AppIsing3d26n::site_pick_local(int i, int j, int k, double ran)
-{
-  int iran = (int) (26*ran) + 1;
-  if (iran > 26) iran = 26;
-  if (iran > 13) iran++;
-
-  int ii = iran % 3;
-  int jj = (iran/3) % 3;
-  int kk = iran / 9;
-
-  return lattice[i-1+ii][j-1+jj][k-1+kk];
-}
-
-/* ----------------------------------------------------------------------
-   compute total propensity of owned site
-   based on einitial,efinal for each possible event
+   compute total propensity of owned site summed over possible events
+   propensity for one event based on einitial,efinal
    if no energy change, propensity = 1
    if downhill energy change, propensity = 1
-   if uphill energy change, propensity set via Boltzmann factor
-   if proc owns full domain, update ghost values before computing propensity
+   if uphill energy change, propensity = Boltzmann factor
 ------------------------------------------------------------------------- */
 
-double AppIsing3d26n::site_propensity(int i, int j, int k, int full)
+double AppIsing3d26n::site_propensity(int i, int j, int k)
 {
-  if (full) site_update_ghosts(i,j,k);
-
   // only event is a spin flip
 
   int oldstate = lattice[i][j][k];
@@ -148,20 +166,23 @@ double AppIsing3d26n::site_propensity(int i, int j, int k, int full)
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
-   if proc owns full domain, neighbor sites may be across PBC
-   if proc owns sector, ignore neighbor sites outside sector
+   if proc owns full domain, adjust neighbor sites indices for PBC
+   if proc owns sector, ignore non-updated neighbors (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppIsing3d26n::site_event(int i, int j, int k, int full)
+void AppIsing3d26n::site_event(int i, int j, int k, int full,
+			       RandomPark *random)
 {
-  int ii,jj,kk,iloop,jloop,kloop,isite,flag,sites[27];
-
-  // only event is a spin flip
+  // event = spin flip
 
   if (lattice[i][j][k] == 1) lattice[i][j][k] = 2;
   else lattice[i][j][k] = 1;
 
+  if (full) update_ghost_sites(i,j,k);
+
   // compute propensity changes for self and neighbor sites
+
+  int iloop,jloop,kloop,ii,jj,kk,isite,sites[27];
 
   int nsites = 0;
 
@@ -169,71 +190,13 @@ void AppIsing3d26n::site_event(int i, int j, int k, int full)
     for (jloop = j-1; jloop <= j+1; jloop++)
       for (kloop = k-1; kloop <= k+1; kloop++) {
 	ii = iloop; jj = jloop; kk = kloop;
-	flag = 1;
 	if (full) ijkpbc(ii,jj,kk);
-	else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-		 jj < ny_sector_lo || jj > ny_sector_hi ||
-		 kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
-	if (flag) {
-	  isite = ijk2site[ii][jj][kk];
+	isite = ijk2site[ii][jj][kk];
+	if (isite >= 0) {
 	  sites[nsites++] = isite;
-	  propensity[isite] = site_propensity(ii,jj,kk,full);
+	  propensity[isite] = site_propensity(ii,jj,kk);
 	}
       }
-	
+
   solve->update(nsites,sites,propensity);
-}
-
-/* ----------------------------------------------------------------------
-   update neighbors of site if neighbors are ghost cells
-   called by site_propensity() when single proc owns entire domain
-------------------------------------------------------------------------- */
-
-void AppIsing3d26n::site_update_ghosts(int i, int j, int k)
-{
-  int ii,jj,kk;
-
-  if (i == 1) {
-    for (jj = j-1; jj <= j+1; jj++)
-      for (kk = k-1; kk <= k+1; kk++)
-	lattice[i-1][jj][kk] = lattice[nx_local][jj][kk];
-  }
-  if (i == nx_local) {
-    for (jj = j-1; jj <= j+1; jj++)
-      for (kk = k-1; kk <= k+1; kk++)
-	lattice[i+1][jj][kk] = lattice[1][jj][kk];
-  }
-  if (j == 1) {
-    for (ii = i-1; ii <= i+1; ii++)
-      for (kk = k-1; kk <= k+1; kk++)
-	lattice[ii][j-1][kk] = lattice[ii][ny_local][kk];
-  }
-  if (j == ny_local) {
-    for (ii = i-1; ii <= i+1; ii++)
-      for (kk = k-1; kk <= k+1; kk++)
-	lattice[ii][j+1][kk] = lattice[ii][1][kk];
-  }
-  if (k == 1) {
-    for (ii = i-1; ii <= i+1; ii++)
-      for (jj = j-1; jj <= j+1; jj++)
-	lattice[ii][jj][k-1] = lattice[ii][jj][nz_local];
-  }
-  if (k == nz_local) {
-    for (ii = i-1; ii <= i+1; ii++)
-      for (jj = j-1; jj <= j+1; jj++)
-	lattice[ii][jj][k+1] = lattice[ii][jj][1];
-  }
-}
-
-/* ----------------------------------------------------------------------
-  clear mask values of site and its neighbors
-------------------------------------------------------------------------- */
-
-void AppIsing3d26n::site_clear_mask(char ***mask, int i, int j, int k)
-{
-  int ii,jj,kk;
-  for (ii = i-1; ii <= i+1; ii++)
-    for (jj = j-1; jj <= j+1; jj++)
-      for (kk = k-1; kk <= k+1; kk++)
-	mask[ii][jj][kk] = 0;
 }

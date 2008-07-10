@@ -16,11 +16,9 @@ class AppMembrane : public AppLattice {
   ~AppMembrane();
 
   double site_energy(int);
-  void site_pick_random(int, double);
-  void site_pick_local(int, double);
-  double site_propensity(int, int);
-  void site_event(int, int);
-  void site_clear_mask(char *, int);
+  void site_event_rejection(int, class RandomPark *);
+  double site_propensity(int);
+  void site_event(int, class RandomPark *);
 
  private:
   double w01,w11,mu;

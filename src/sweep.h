@@ -13,6 +13,7 @@ namespace SPPARKS_NS {
 class Sweep : protected SysPtr {
  public:
   char *style;
+  bool Lmask,Lstrict,Lkmc,Ladapt;
 
   Sweep(class SPPARKS *, int, char **);
   virtual ~Sweep();

@@ -124,7 +124,7 @@ void DiagCluster::init(double time)
   memory->create_1d_T_array(cluster_ids,0,nlocal+nghost-1,"diagcluster:cluster");
 
   if (!comm) comm = new CommLattice(spk);
-  comm->init(NULL,applattice->delghost,applattice->dellocal,cluster_ids);
+  comm->init(NULL,applattice->delpropensity,applattice->delevent,cluster_ids);
 
   write_header();
   analyze_clusters(time);

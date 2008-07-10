@@ -304,7 +304,8 @@ void CommLattice2d::setup_reverseinfo()
 	  swap->stride = 1;
 	}
 
-	// Exactly opposite to assignments in setup_swapinfo()
+	// exactly opposite to assignments in setup_swapinfo()
+
 	swap->recvix = swapguide[i][ii].sendix;
 	swap->recviy = swapguide[j][jj].sendiy;
 	swap->sendix = swapguide[i][ii].recvix;

@@ -33,7 +33,7 @@ AppPotts3d::AppPotts3d(SPPARKS *spk, int& narg, char **arg) :
   ny_global = atoi(arg[2]);
   nz_global = atoi(arg[3]);
   nspins = atoi(arg[4]);
-  seed = atoi(arg[5]);
+  int seed = atoi(arg[5]);
   random = new RandomPark(seed);
   init_style = RANDOM;
 

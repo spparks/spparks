@@ -18,16 +18,16 @@
 #include "error.h"
 #include "output.h"
 
-
 using namespace SPPARKS_NS;
 
-enum{LATTICE,COORD};
+enum {LATFILE,COORDFILE};
 
 #define MAXLINE 256
 
 /* ---------------------------------------------------------------------- */
 
-AppLattice2d::AppLattice2d(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
+AppLattice2d::AppLattice2d(SPPARKS *spk, int narg, char **arg) : 
+  App(spk,narg,arg)
 {
   appclass = LATTICE2D;
 
@@ -54,14 +54,17 @@ AppLattice2d::AppLattice2d(SPPARKS *spk, int narg, char **arg) : App(spk,narg,ar
 
   // app can override these values in its constructor
 
-  dellocal = 0;
-  delghost = 1;
+  delpropensity = 1;
+  delevent = 0;
+  numrandom = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppLattice2d::~AppLattice2d()
 {
+  delete comm;
+
   delete [] ibufread;
   delete [] ibufdump;
   delete [] dbufdump;
@@ -81,15 +84,6 @@ void AppLattice2d::init()
 {
   int i,j,m;
 
-  // app-specific initialization
-
-  init_app();
-
-  // comm init
-
-  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,
-	     delghost,dellocal);
-
   // error checks
 
   if (sweep && strcmp(sweep->style,"lattice2d") != 0)
@@ -107,9 +101,17 @@ void AppLattice2d::init()
   if (solve && sweep == NULL && nprocs > 1)
     error->all("Cannot use solver in parallel");
 
-  // initialize arrays
-  // propensity only needed if no sweeper
-  // KMC sweeper will allocate own propensity and site2ij arrays
+  // app-specific initialization
+
+  init_app();
+
+  // comm init
+
+  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,
+	     delpropensity,delevent);
+
+  // if no sweeper, initialize 3 arrays: propensity, site2i,i2site
+  // sweeper allocates its own per-sector versions of these
 
   memory->sfree(propensity);
   memory->destroy_2d_T_array(site2ij);
@@ -119,56 +121,52 @@ void AppLattice2d::init()
 
   if (sweep == NULL) {
     propensity = (double*) memory->smalloc(nsites*sizeof(double),
-					   "applattice2d:propensity");
+					   "app2d:propensity");
     memory->create_2d_T_array(site2ij,nsites,2,
-			      "applattice2d:site2ij");
-  } else {
-    propensity = NULL;
-    site2ij = NULL;
-  }
+			      "app2d:site2ij");
+    memory->create_2d_T_array(ij2site,nxlo,nxhi,nylo,nyhi,
+			      "app2d:ij2site");
 
-  memory->create_2d_T_array(ij2site,nx_local+1,ny_local+1,
-			    "applattice2d:ij2site");
-
-  // initialize lattice <-> site mapping arrays
-  // they map proc's entire 2d sub-domain to 1d sites and vice versa
-  // KMC sweeper will overwrite app's ij2site values
-  // KMC sweeper will create sector-specific site2ij values and ignore app's
-
-  for (i = 1 ; i <= nx_local; i++)
-    for (j = 1 ; j <= ny_local; j++)
-      ij2site[i][j] = (i-1)*ny_local + j-1;
-
-  if (site2ij) {
     for (m = 0; m < nsites; m++) {
       i = m / ny_local + 1;
       j = m % ny_local + 1;
       site2ij[m][0] = i;
       site2ij[m][1] = j;
     }
-  }
-	 
-  // initialize sweeper
-  
-  if (sweep) sweep->init();
-
-  // initialize propensities for solver
-  // if KMC sweep, sweeper does its own init of its propensity arrays
-
-  if (propensity) {
-    comm->all(lattice);
 
     for (i = 1 ; i <= nx_local; i++)
       for (j = 1 ; j <= ny_local; j++)
-	propensity[ij2site[i][j]] = site_propensity(i,j,0);
+	ij2site[i][j] = (i-1)*ny_local + j-1;
 
+  } else {
+    propensity = NULL;
+    site2ij = NULL;
+    ij2site = NULL;
+  }
+
+  // initialize sweeper
+  
+  if (sweep) {
+    sweep->init();
+    Lmask = sweep->Lmask;
+    mask = ((SweepLattice2d *) sweep)->mask;
+  }
+
+  // initialize propensities for KMC solver
+  // if KMC sweep, sweeper does its own init of its propensity arrays
+  // comm insures ghost sites are set
+
+  if (sweep == NULL) {
+    comm->all(lattice);
+    for (i = 1 ; i <= nx_local; i++)
+      for (j = 1 ; j <= ny_local; j++)
+	propensity[ij2site[i][j]] = site_propensity(i,j);
     solve->init(nsites,propensity);
   }
 
-  // Initialize output
+  // initialize output
 
   output->init(time);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,16 +195,10 @@ void AppLattice2d::run(int narg, char **arg)
   if (narg != 1) error->all("Illegal run command");
   stoptime = time + atof(arg[0]);
 
-  // init classes used by this app
-  
   init();
   timer->init();
-  
-  // perform the run
 
   iterate();
-
-  // final statistics
   
   Finish finish(spk);
 }
@@ -219,22 +211,17 @@ void AppLattice2d::iterate()
 {
   int i,j,isite;
   double dt;
-
-//   char *fstring1 = "Time = %f ";
-//   int len1 = strlen(fstring1)+32;
-//   char *title1 = new char[len1];
-//   sprintf(title1,fstring1,time);
-//   dump_detailed(title1);
-//   delete [] title1;
     
   if (time >= stoptime) return;
-
   timer->barrier_start(TIME_LOOP);
   
   int done = 0;
-  
   while (!done) {
-    if (propensity) {
+    if (sweep) {
+      sweep->do_sweep(dt);
+      time += dt;
+
+    } else {
       timer->stamp();
       isite = solve->event(&dt);
       timer->stamp(TIME_SOLVE);
@@ -244,33 +231,61 @@ void AppLattice2d::iterate()
 	ntimestep++;
 	i = site2ij[isite][0];
 	j = site2ij[isite][1];
-	site_event(i,j,1);
+	site_event(i,j,1,random);
 	time += dt;
 	timer->stamp(TIME_APP);
       }
-
-    } else {
-      sweep->do_sweep(dt);
-      time += dt;
     }
 
     if (time >= stoptime) done = 1;
 
-    // Do output
-
     output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
-
   }
-  
-//   char *fstring2 = "Time = %f ";
-//   int len2 = strlen(fstring2)+32;
-//   char *title2 = new char[len2];
-//   sprintf(title2,fstring2,time);
-//   dump_detailed(title2);
-//   delete [] title2;
 
   timer->barrier_stop(TIME_LOOP);
+}
+
+/* ----------------------------------------------------------------------
+   update all ghost images of site i,j
+   called when performing serial KMC on entire domain
+------------------------------------------------------------------------- */
+
+void AppLattice2d::update_ghost_sites(int i, int j)
+{
+  // i = 1 line becomes i = nx_local+1 line w/ j ghosts
+  // i = nx_local line becomes i = 0 line w/ j ghosts
+
+  if (i == 1) {
+    lattice[nx_local+1][j] = lattice[i][j];
+    if (j == 1) lattice[nx_local+1][ny_local+1] = lattice[i][j];
+    if (j == ny_local) lattice[nx_local+1][0] = lattice[i][j];
+  }
+  if (i == nx_local) {
+    lattice[0][j] = lattice[i][j];
+    if (j == 1) lattice[0][ny_local+1] = lattice[i][j];
+    if (j == ny_local) lattice[0][0] = lattice[i][j];
+  }
+
+  // j = 1 line becomes j = ny_local+1 line w/out i ghosts
+  // j = ny_local line becomes j = 0 line w/out i ghosts
+
+  if (j == 1) lattice[i][ny_local+1] = lattice[i][j];
+  if (j == ny_local) lattice[i][0] = lattice[i][j];
+}
+
+/* ----------------------------------------------------------------------
+   add i,j value to site list if different than oldstate and existing sites
+------------------------------------------------------------------------- */
+
+void AppLattice2d::add_unique(int oldstate, int &nevent, int *sites,
+			      int i, int j)
+{
+  int value = lattice[i][j];
+  if (value == oldstate) return;
+  for (int m = 0; m < nevent; m++)
+    if (value == sites[m]) return;
+  sites[nevent++] = value;
 }
 
 /* ----------------------------------------------------------------------
@@ -306,7 +321,7 @@ void AppLattice2d::dump_header()
   int mybuf = nx_local*ny_local;
   MPI_Allreduce(&mybuf,&maxdumpbuf,1,MPI_INT,MPI_MAX,world);
 
-  if (dump_style == LATTICE) {
+  if (dump_style == LATFILE) {
     delete [] ibufread;
     ibufdump = new int[2*maxdumpbuf];
   } else {
@@ -314,9 +329,9 @@ void AppLattice2d::dump_header()
     dbufdump = new double[5*maxdumpbuf];
   }
 
-  // no header info in file if style = COORD
+  // no header info in file if style = COORDFILE
 
-  if (dump_style == COORD) return;
+  if (dump_style == COORDFILE) return;
 
   // proc 0 does one-time write of nodes and element connectivity
 
@@ -371,7 +386,7 @@ void AppLattice2d::dump_header()
 
 void AppLattice2d::dump()
 {
-  if (dump_style == LATTICE) dump_lattice();
+  if (dump_style == LATFILE) dump_lattice();
   else dump_coord();
 }
 
@@ -492,7 +507,8 @@ void AppLattice2d::dump_coord()
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(dbufdump,size_one*maxdumpbuf,MPI_DOUBLE,iproc,0,world,&request);
+	MPI_Irecv(dbufdump,size_one*maxdumpbuf,MPI_DOUBLE,iproc,0,
+		  world,&request);
 	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	MPI_Wait(&request,&status);
 	MPI_Get_count(&status,MPI_DOUBLE,&nlines);
@@ -502,8 +518,8 @@ void AppLattice2d::dump_coord()
       m = 0;
       for (int i = 0; i < nlines; i++) {
 	fprintf(fp,"%d %d %g %g %g\n",
-		static_cast<int> (dbufdump[m]),static_cast<int> (dbufdump[m+1]),
-		dbufdump[m+2],dbufdump[m+3],dbufdump[m+4]);
+		static_cast<int> (dbufdump[m]),static_cast<int> 
+		(dbufdump[m+1]),dbufdump[m+2],dbufdump[m+3],dbufdump[m+4]);
 	m += size_one;
       }
     }
@@ -559,8 +575,8 @@ void AppLattice2d::set_dump(int narg, char **arg)
 {
   if (narg != 3) error->all("Illegal dump command");
 
-  if (strcmp(arg[1],"lattice") == 0) dump_style = LATTICE;
-  else if (strcmp(arg[1],"coord") == 0) dump_style = COORD;
+  if (strcmp(arg[1],"lattice") == 0) dump_style = LATFILE;
+  else if (strcmp(arg[1],"coord") == 0) dump_style = COORDFILE;
   else error->all("Illegal dump command");
 
   if (me == 0) {
@@ -607,9 +623,9 @@ void AppLattice2d::procs2lattice()
   ny_offset = iprocy*ny_global/ny_procs;
   ny_local = (iprocy+1)*ny_global/ny_procs - ny_offset;
 
-  if (dellocal > delghost) 
-    error->all("Dellocal > delghost: This twisted app cannot yet be handled");
-  if (nx_local < 2*delghost || ny_local < 2*delghost)
+  if (delevent > delpropensity) 
+    error->all("Delevent > delpropensity");
+  if (nx_local < 2*delpropensity || ny_local < 2*delpropensity)
     error->one("Lattice per proc is too small");
 
   if (iprocy == 0) procsouth = me + ny_procs - 1;
@@ -622,15 +638,10 @@ void AppLattice2d::procs2lattice()
   if (iprocx == nx_procs-1) proceast = me - nprocs + ny_procs;
   else proceast = me + ny_procs;
 
-  nxlo = 1-delghost;
-  nxhi = nx_local+delghost;
-  nylo = 1-delghost;
-  nyhi = ny_local+delghost;
-
-  nx_sector_lo = 1;
-  nx_sector_hi = nx_local;
-  ny_sector_lo = 1;
-  ny_sector_hi = ny_local;
+  nxlo = 1 - delpropensity;
+  nxhi = nx_local + delpropensity;
+  nylo = 1 - delpropensity;
+  nyhi = ny_local + delpropensity;
 }
 
 /* ----------------------------------------------------------------------
@@ -658,14 +669,14 @@ void AppLattice2d::dump_detailed(char* title)
   // maxbuftmp must equal the maximum number of spins on one domain 
   // plus some extra stuff
 
-  maxbuftmp = ((nx_global-1)/nx_procs+1+2*delghost)*
-    ((ny_global-1)/ny_procs+1+2*delghost)+9;
-  nsend = (nx_local+2*delghost)*(ny_local+2*delghost)+9;
+  maxbuftmp = ((nx_global-1)/nx_procs+1+2*delpropensity)*
+    ((ny_global-1)/ny_procs+1+2*delpropensity)+9;
+  nsend = (nx_local+2*delpropensity)*(ny_local+2*delpropensity)+9;
   if (maxbuftmp < nsend) 
     error->one("Maxbuftmp size too small in AppGrain::dump_detailed()");
   
   buftmp = (int*) memory->smalloc(maxbuftmp*sizeof(int),
-				  "applattice2d:dump_detailed:buftmp");
+				  "app2d:dump_detailed:buftmp");
 
   // proc 0 writes interactive dump header
 
@@ -695,8 +706,8 @@ void AppLattice2d::dump_detailed(char* title)
   // pack my lattice values into buffer
   // Need to violate normal ordering in order to simplify output
 
-  for (int j = 1-delghost; j <= ny_local+delghost; j++) {
-    for (int i = 1-delghost; i <= nx_local+delghost; i++) {
+  for (int j = 1-delpropensity; j <= ny_local+delpropensity; j++) {
+    for (int i = 1-delpropensity; i <= nx_local+delpropensity; i++) {
       buftmp[m++] = lattice[i][j];
     }
   }
@@ -732,13 +743,13 @@ void AppLattice2d::dump_detailed(char* title)
 	fprintf(screen,"nxlocal = %d \nnylocal = %d \n",nxtmp,nytmp);
 	fprintf(screen,"nx_offset = %d \nny_offset = %d \n",nxotmp,nyotmp);
 	m = nrecv;
-	for (int j = nytmp+delghost; j >= 1-delghost; j--) {
-	  m-=nxtmp+2*delghost;
-	  for (int i = 1-delghost; i <= nxtmp+delghost; i++) {
+	for (int j = nytmp+delpropensity; j >= 1-delpropensity; j--) {
+	  m-=nxtmp+2*delpropensity;
+	  for (int i = 1-delpropensity; i <= nxtmp+delpropensity; i++) {
 	    fprintf(screen,"%3d",buftmp[m++]);
 	  }
 	  fprintf(screen,"\n");
-	  m-=nxtmp+2*delghost;
+	  m-=nxtmp+2*delpropensity;
 	}
       }
       
@@ -776,12 +787,15 @@ void AppLattice2d::dump_detailed_mask(char* title, char** mask)
   // set up communication buffer
   // maxbuftmp must equal the maximum number of spins on one domain 
   // plus some extra stuff
-  maxbuftmp = ((nx_global-1)/nx_procs+1+2*delghost)*((ny_global-1)/ny_procs+1+2*delghost)+9;
-  nsend = (nx_local+2*delghost)*(ny_local+2*delghost)+9;
+
+  maxbuftmp = ((nx_global-1)/nx_procs+1+2*delpropensity)*
+    ((ny_global-1)/ny_procs+1+2*delpropensity)+9;
+  nsend = (nx_local+2*delpropensity)*(ny_local+2*delpropensity)+9;
   if (maxbuftmp < nsend) 
     error->one("maxbuftmp size too small in AppGrain::dump_detailed_mask()");
   
-  buftmp = (int*) memory->smalloc(maxbuftmp*sizeof(int),"applattice2d:dump_detailed_mask:buftmp");
+  buftmp = (int*) memory->smalloc(maxbuftmp*sizeof(int),
+				  "app2d:dump_detailed_mask:buftmp");
 
   // proc 0 writes interactive dump header
 
@@ -811,8 +825,8 @@ void AppLattice2d::dump_detailed_mask(char* title, char** mask)
   // pack the mask values into buffer
   // Need to violate normal ordering in order to simplify output
 
-  for (int j = 1-delghost; j <= ny_local+delghost; j++) {
-    for (int i = 1-delghost; i <= nx_local+delghost; i++) {
+  for (int j = 1-delpropensity; j <= ny_local+delpropensity; j++) {
+    for (int i = 1-delpropensity; i <= nx_local+delpropensity; i++) {
       buftmp[m++] = mask[i][j];
     }
   }
@@ -848,13 +862,13 @@ void AppLattice2d::dump_detailed_mask(char* title, char** mask)
 	fprintf(screen,"nxlocal = %d \nnylocal = %d \n",nxtmp,nytmp);
 	fprintf(screen,"nx_offset = %d \nny_offset = %d \n",nxotmp,nyotmp);
 	m = nrecv;
-	for (int j = nytmp+delghost; j >= 1-delghost; j--) {
-	  m-=nxtmp+2*delghost;
-	  for (int i = 1-delghost; i <= nxtmp+delghost; i++) {
+	for (int j = nytmp+delpropensity; j >= 1-delpropensity; j--) {
+	  m-=nxtmp+2*delpropensity;
+	  for (int i = 1-delpropensity; i <= nxtmp+delpropensity; i++) {
 	    fprintf(screen,"%3d",buftmp[m++]);
 	  }
 	  fprintf(screen,"\n");
-	  m-=nxtmp+2*delghost;
+	  m-=nxtmp+2*delpropensity;
 	}
       }
       
@@ -936,7 +950,6 @@ void AppLattice2d::read_spins(const char* infile)
   if (me == 0) {
     fclose(fp);
   }
-
 }
 
 /* ----------------------------------------------------------------------

@@ -28,9 +28,8 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
 
   if (narg < 3) error->all("Illegal app_style potts command");
 
-  seed = atoi(arg[1]);
+  int seed = atoi(arg[1]);
   nspins = atoi(arg[2]);
-
   random = new RandomPark(seed);
 
   options(narg-3,&arg[3]);
@@ -64,7 +63,6 @@ AppPotts::~AppPotts()
 {
   delete random;
   delete [] sites;
-  delete comm;
 }
 
 /* ----------------------------------------------------------------------
@@ -81,44 +79,64 @@ double AppPotts::site_energy(int i)
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site
+   perform a site event with rejection
+   if site cannot change, set mask
+   if site changes, unset mask of neighbor sites with affected propensity
 ------------------------------------------------------------------------- */
 
-void AppPotts::site_pick_random(int i, double ran)
+void AppPotts::site_event_rejection(int i, RandomPark *random)
 {
-  int iran = (int) (nspins*ran) + 1;
+  int oldstate = lattice[i];
+  double einitial = site_energy(i);
+
+  // event = random spin
+
+  int iran = (int) (nspins*random->uniform()) + 1;
   if (iran > nspins) iran = nspins;
   lattice[i] = iran;
+  double efinal = site_energy(i);
+
+  // event = random neighbor spin
+
+  //int iran = (int) (numneigh[i]*random->uniform());
+  //if (iran >= numneigh[i]) iran = numneigh[i] - 1;
+  //lattice[i] = lattice[neighbor[i][iran]];
+
+  // event = random unique neighbor spin
+  // not yet implemented
+
+  // accept or reject via Boltzmann criterion
+
+  if (efinal <= einitial) {
+  } else if (temperature == 0.0) {
+    lattice[i] = oldstate;
+  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
+    lattice[i] = oldstate;
+  }
+
+  if (Lmask) {
+    if (einitial < 0.5*numneigh[i]) mask[i] = 1;
+    if (lattice[i] != oldstate)
+      for (int j = 0; j < numneigh[i]; j++)
+	mask[neighbor[i][j]] = 0;
+  }
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site from neighbor values
-------------------------------------------------------------------------- */
-
-void AppPotts::site_pick_local(int i, double ran)
-{
-  int iran = (int) (numneigh[i]*ran);
-  if (iran >= numneigh[i]) iran = numneigh[i] - 1;
-  lattice[i] = lattice[neighbor[i][iran]];
-}
-
-/* ----------------------------------------------------------------------
-   compute total propensity of owned site
-   based on einitial,efinal for each possible event
+   compute total propensity of owned site summed over possible events
+   propensity for one event is based on einitial,efinal
    if no energy change, propensity = 1
    if downhill energy change, propensity = 1
-   if uphill energy change, propensity set via Boltzmann factor
-   if proc owns full domain, there are no ghosts, so ignore full flag
+   if uphill energy change, propensity = Boltzmann factor
 ------------------------------------------------------------------------- */
 
-double AppPotts::site_propensity(int i, int full)
+double AppPotts::site_propensity(int i)
 {
-  int j,k,value;
-  double efinal;
-
   // possible events = spin flips to neighboring site different than self
 
+  int j,k,value;
   int nevent = 0;
+
   for (j = 0; j < numneigh[i]; j++) {
     value = lattice[neighbor[i][j]];
     if (value == lattice[i]) continue;
@@ -134,6 +152,7 @@ double AppPotts::site_propensity(int i, int full)
 
   int oldstate = lattice[i];
   double einitial = site_energy(i);
+  double efinal;
   double prob = 0.0;
 
   for (k = 0; k < nevent; k++) {
@@ -150,68 +169,57 @@ double AppPotts::site_propensity(int i, int full)
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
-   if proc owns full domain, there are no ghosts, so ignore full flag
-   if proc owns sector, ignore neighbor sites that are ghosts
+   ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppPotts::site_event(int i, int full)
+void AppPotts::site_event(int i, RandomPark *random)
 {
-  int j,k,m,isite,value;
-  double efinal;
-
   // pick one event from total propensity
 
   double threshhold = random->uniform() * propensity[i2site[i]];
 
   // possible events = spin flips to neighboring site different than self
-  // find one event, accumulate its probability
+  // find one event by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
 
+  int j,m,value;
+
   double einitial = site_energy(i);
+  double efinal;
   double prob = 0.0;
   int nevent = 0;
 
   for (j = 0; j < numneigh[i]; j++) {
     value = lattice[neighbor[i][j]];
     if (value == lattice[i]) continue;
-    for (k = 0; k < nevent; k++)
-      if (value == sites[k]) break;
-    if (k < nevent) continue;
+    for (m = 0; m < nevent; m++)
+      if (value == sites[m]) break;
+    if (m < nevent) continue;
     sites[nevent++] = value;
 
-    lattice[i] = sites[k];
+    lattice[i] = sites[m];
     efinal = site_energy(i);
     if (efinal <= einitial) prob += 1.0;
     else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
-
     if (prob >= threshhold) break;
   }
 
   // compute propensity changes for self and neighbor sites
 
+  int isite;
+
   int nsites = 0;
   isite = i2site[i];
   sites[nsites++] = isite;
-  propensity[isite] = site_propensity(i,full);
+  propensity[isite] = site_propensity(i);
 
   for (j = 0; j < numneigh[i]; j++) {
     m = neighbor[i][j];
     isite = i2site[m];
     if (isite < 0) continue;
     sites[nsites++] = isite;
-    propensity[isite] = site_propensity(m,full);
+    propensity[isite] = site_propensity(m);
   }
 
   solve->update(nsites,sites,propensity);
-}
-
-/* ----------------------------------------------------------------------
-  clear mask values of site and its neighbors
-  OK to clear ghost site mask values
-------------------------------------------------------------------------- */
-
-void AppPotts::site_clear_mask(char *mask, int i)
-{
-  mask[i] = 0;
-  for (int j = 0; j < numneigh[i]; j++) mask[neighbor[i][j]] = 0;
 }

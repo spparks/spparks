@@ -28,21 +28,16 @@ class AppLattice : public App {
   void run(int, char **);
 
   virtual double site_energy(int) = 0;
-  virtual void site_pick_random(int ,double) = 0;
-  virtual void site_pick_local(int, double) = 0;
-  virtual double site_propensity(int, int) = 0;
-  virtual void site_event(int, int) = 0;
-  virtual void site_clear_mask(char *, int) = 0;
-
-  void site_save(int);
-  void site_restore(int);
+  virtual void site_event_rejection(int, class RandomPark *) = 0;
+  virtual double site_propensity(int) = 0;
+  virtual void site_event(int, class RandomPark *) = 0;
 
   void push_connected_neighbors(int, int*, int, std::stack<int>*);
   void connected_ghosts(int, int*, Cluster*, int);
 
  protected:
   int me,nprocs;
-  int ntimestep,seed;
+  int ntimestep;
   int dump_style;
   double time,stoptime;
   double temperature,t_inverse;
@@ -53,11 +48,16 @@ class AppLattice : public App {
   int dimension;
   int nx,ny,nz;
   int nrandom;
+  int latseed;
   double cutoff;
   char *latfile;
 
-  int delghost,dellocal;
-  int masklimit;
+  int delpropensity;           // # of sites away needed to compute propensity
+  int delevent;                // # of sites away affected by an event
+  int numrandom;               // # of RN used by rejection routine
+
+  bool Lmask;                  // from sweeper
+  char *mask;
 
   double xprd,yprd,zprd;
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // simulation box bounds
@@ -110,8 +110,8 @@ class AppLattice : public App {
   double *dbuf;
   int maxdumpbuf;
 
-  class RandomPark *random;
   class CommLattice *comm;
+  class RandomPark *random;
 
   void virtual input_app(char *, int, char **);
   void virtual init_app() {}

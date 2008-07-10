@@ -391,7 +391,8 @@ void Memory::destroy_3d_int_array(int ***array)
    create a 4d double array 
 ------------------------------------------------------------------------- */
 
-double ****Memory::create_4d_double_array(int n1, int n2, int n3, int n4, const char *name)
+double ****Memory::create_4d_double_array(int n1, int n2, int n3, int n4,
+					  const char *name)
 {
   int i,j,k;
 

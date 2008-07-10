@@ -102,7 +102,6 @@ void DiagEprof3d::init(double time)
   nx_procs = applattice3d->nx_procs;
   ny_procs = applattice3d->ny_procs;
   nz_procs = applattice3d->nz_procs;
-  delghost = applattice3d->delghost;
   nx_local = applattice3d->nx_local;
   ny_local = applattice3d->ny_local;
   nz_local = applattice3d->nz_local;

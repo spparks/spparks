@@ -31,10 +31,19 @@ AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) :
   w01 = atof(arg[1]);
   w11 = atof(arg[2]);
   mu = atof(arg[3]);
-  seed = atoi(arg[4]);
+  int seed = atoi(arg[4]);
   random = new RandomPark(seed);
 
   options(narg-5,&arg[5]);
+
+  // define lattice and partition it across processors
+
+  create_lattice();
+  sites = new int[1 + maxneigh];
+
+  // initialize my portion of lattice to LIPID
+
+  for (int i = 0; i < nlocal; i++) lattice[i] = LIPID;
 
   // setup interaction energy matrix
   // w11 = fluid-fluid interaction
@@ -45,15 +54,6 @@ AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) :
   interact[LIPID][PROTEIN] = interact[PROTEIN][LIPID] = 0.0;
   interact[FLUID][FLUID] = -w11;
   interact[FLUID][PROTEIN] = interact[PROTEIN][FLUID] = -w01;
-
-  // define lattice and partition it across processors
-
-  create_lattice();
-  sites = new int[1 + maxneigh];
-
-  // initialize my sites to LIPID
-
-  for (int i = 0; i < nlocal; i++) lattice[i] = LIPID;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,7 +62,6 @@ AppMembrane::~AppMembrane()
 {
   delete random;
   delete [] sites;
-  delete comm;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,37 +100,45 @@ double AppMembrane::site_energy(int i)
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site
+   perform a site event with rejection
+   if site cannot change, set mask
 ------------------------------------------------------------------------- */
 
-void AppMembrane::site_pick_random(int i, double ran)
+void AppMembrane::site_event_rejection(int i, RandomPark *random)
 {
-  if (lattice[i] == PROTEIN) return;
-  if (ran < 0.5) lattice[i] = LIPID;
+  int oldstate = lattice[i];
+  double einitial = site_energy(i);
+
+  // event = PROTEIN never changes, flip between LIPID and FLUID
+
+  if (lattice[i] == PROTEIN) {
+    if (Lmask) mask[i] = 1;
+    return;
+  }
+
+  if (random->uniform() < 0.5) lattice[i] = LIPID;
   else lattice[i] = FLUID;
+  double efinal = site_energy(i);
+
+  // accept or reject via Boltzmann criterion
+
+  if (efinal <= einitial) {
+  } else if (temperature == 0.0) {
+    lattice[i] = oldstate;
+  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
+    lattice[i] = oldstate;
+  }
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site from neighbor values
-------------------------------------------------------------------------- */
-
-void AppMembrane::site_pick_local(int i, double ran)
-{
-  if (lattice[i] == PROTEIN) return;
-  if (ran < 0.5) lattice[i] = LIPID;
-  else lattice[i] = FLUID;
-}
-
-/* ----------------------------------------------------------------------
-   compute total propensity of owned site
-   based on einitial,efinal for each possible event
+   compute total propensity of owned site summed over possible events
+   propensity for one event is based on einitial,efinal
    if no energy change, propensity = 1
    if downhill energy change, propensity = 1
-   if uphill energy change, propensity set via Boltzmann factor
-   if proc owns full domain, there are no ghosts, so ignore full flag
+   if uphill energy change, propensity = Boltzmann factor
 ------------------------------------------------------------------------- */
 
-double AppMembrane::site_propensity(int i, int full)
+double AppMembrane::site_propensity(int i)
 {
   // only event is a LIPID/FLUID flip
 
@@ -140,6 +147,8 @@ double AppMembrane::site_propensity(int i, int full)
   int newstate = LIPID;
   if (oldstate == LIPID) newstate = FLUID;
 
+  // compute energy difference between initial and final state
+
   double einitial = site_energy(i);
   lattice[i] = newstate;
   double efinal = site_energy(i);
@@ -147,24 +156,20 @@ double AppMembrane::site_propensity(int i, int full)
 
   if (oldstate == LIPID) efinal -= mu;
   else if (oldstate == FLUID) efinal += mu;
-  double delta = einitial - efinal;
 
   if (efinal <= einitial) return 1.0;
   else if (temperature == 0.0) return 0.0;
-  else return exp(delta*t_inverse);
+  else return exp((einitial-efinal)*t_inverse);
 }
 
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
-   if proc owns full domain, there are no ghosts, so ignore full flag
-   if proc owns sector, ignore neighbor sites that are ghosts
+   ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppMembrane::site_event(int i, int full)
+void AppMembrane::site_event(int i, RandomPark *random)
 {
-  int j,m,isite;
-
   // only event is a LIPID/FLUID flip
 
   if (lattice[i] == PROTEIN) return;
@@ -173,29 +178,20 @@ void AppMembrane::site_event(int i, int full)
 
   // compute propensity changes for self and neighbor sites
 
+  int j,m,isite;
+
   int nsites = 0;
   isite = i2site[i];
   sites[nsites++] = isite;
-  propensity[isite] = site_propensity(i,full);
+  propensity[isite] = site_propensity(i);
 
   for (j = 0; j < numneigh[i]; j++) {
     m = neighbor[i][j];
     isite = i2site[m];
     if (isite < 0) continue;
     sites[nsites++] = isite;
-    propensity[isite] = site_propensity(m,full);
+    propensity[isite] = site_propensity(m);
   }
 
   solve->update(nsites,sites,propensity);
-}
-
-/* ----------------------------------------------------------------------
-  clear mask values of site and its neighbors
-  OK to clear ghost site mask values
-------------------------------------------------------------------------- */
-
-void AppMembrane::site_clear_mask(char *mask, int i)
-{
-  mask[i] = 0;
-  for (int j = 0; j < numneigh[i]; j++) mask[neighbor[i][j]] = 0;
 }

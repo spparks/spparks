@@ -358,7 +358,7 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
 }
 
 /* ----------------------------------------------------------------------
-   communicate ghost values via Swap instructions
+   free a Swap object
 ------------------------------------------------------------------------- */
 
 void CommLattice::free_swap(Swap *swap)
@@ -411,9 +411,8 @@ void CommLattice::perform_swap_lattice(Swap *swap)
   for (i = 0; i < swap->nsend; i++) {
     index = swap->sindex[i];
     buf = swap->sibuf;
-    for (j = 0; j < swap->scount[i]; j++) {
+    for (j = 0; j < swap->scount[i]; j++)
       buf[j] = lattice[index[j]];
-    }
     MPI_Send(buf,swap->scount[i],MPI_INT,swap->sproc[i],0,world);
   }
 
@@ -426,9 +425,8 @@ void CommLattice::perform_swap_lattice(Swap *swap)
   for (i = 0; i < swap->nrecv; i++) {
     index = swap->rindex[i];
     buf = swap->ribuf[i];
-    for (j = 0; j < swap->rcount[i]; j++) {
+    for (j = 0; j < swap->rcount[i]; j++)
       lattice[index[j]] = buf[j];
-    }
   }
 }
 

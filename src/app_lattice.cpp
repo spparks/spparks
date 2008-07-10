@@ -65,14 +65,17 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
 
   // app can override these values in its constructor
 
-  dellocal = 0;
-  delghost = 1;
+  delpropensity = 1;
+  delevent = 0;
+  numrandom = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppLattice::~AppLattice()
 {
+  delete comm;
+
   delete [] dbuf;
   memory->sfree(propensity);
   memory->sfree(site2i);
@@ -147,22 +150,24 @@ void AppLattice::options(int narg, char **arg)
 	nz = atoi(arg[iarg+5]);
 	iarg += 6;
       } else if (latstyle == RANDOM_2D) {
-	if (iarg+6 > narg) error->all("Illegal app_style command");
+	if (iarg+7 > narg) error->all("Illegal app_style command");
 	dimension = 2;
 	nrandom = atoi(arg[iarg+2]);
 	xprd = atof(arg[iarg+3]);
 	yprd = atof(arg[iarg+4]);
 	cutoff = atof(arg[iarg+5]);
-	iarg += 6;
+	latseed = atoi(arg[iarg+6]);
+	iarg += 7;
       } else if (latstyle == RANDOM_3D) {
-	if (iarg+7 > narg) error->all("Illegal app_style command");
+	if (iarg+8 > narg) error->all("Illegal app_style command");
 	dimension = 3;
 	nrandom = atoi(arg[iarg+2]);
 	xprd = atof(arg[iarg+3]);
 	yprd = atof(arg[iarg+4]);
 	zprd = atof(arg[iarg+4]);
 	cutoff = atof(arg[iarg+6]);
-	iarg += 7;
+	latseed = atoi(arg[iarg+7]);
+	iarg += 8;
       } else if (latstyle == FILENAME) {
 	if (iarg+3 > narg) error->all("Illegal app_style command");
 	int n = strlen(arg[2]) + 1;
@@ -221,6 +226,7 @@ void AppLattice::create_lattice()
 	memory->smalloc((nlocal+nghost)*sizeof(double),"app:darray");
   }
 
+  /*
   // DEBUG: connectivity check on distance
 
   printf("Nglobal,Nlocal,Nghost = %d %d %d\n",nglobal,nlocal,nghost);
@@ -229,6 +235,7 @@ void AppLattice::create_lattice()
   int all;
   MPI_Allreduce(&sum,&all,1,MPI_INT,MPI_SUM,world);
   printf("Total/Ave neighbor connections %d %g\n",all,(double)all/nglobal);
+  */
 
   /*
   for (int i = 0; i < nlocal; i++) {
@@ -463,21 +470,21 @@ void AppLattice::random_lattice()
   if (dimension == 2) procs2lattice_2d();
   else if (dimension == 3) procs2lattice_3d();
 
-  nglobal = nrandom;
-
   // generate random sites
   // 1st pass = count sites I own in my sub-domain
   // 2nd pass = generate xyz coords and store them with site ID
-  // save and restore seed between passes
+  // use new RNG twice so generate same points
 
   double x,y,z;
-  int seed = random->seed;
+  RandomPark *latrandom = new RandomPark(latseed);
 
+  nglobal = nrandom;
   nlocal = 0;
+
   for (n = 0; n < nglobal; n++) {
-    x = xprd * random->uniform();
-    y = yprd * random->uniform();
-    if (dimension == 3) z = zprd * random->uniform();
+    x = xprd * latrandom->uniform();
+    y = yprd * latrandom->uniform();
+    if (dimension == 3) z = zprd * latrandom->uniform();
     else z = 0.0;
     if (x < subxlo || x >= subxhi || 
 	y < subylo || y >= subyhi || 
@@ -485,16 +492,18 @@ void AppLattice::random_lattice()
     nlocal++;
   }
 
-  random->seed = seed;
+  delete latrandom;
+  latrandom = new RandomPark(latseed);
 
   id = (int *) memory->smalloc(nlocal*sizeof(int),"app:id");
   memory->create_2d_T_array(xyz,nlocal,3,"app:xyz");
 
   nlocal = 0;
+
   for (n = 0; n < nglobal; n++) {
-    x = xprd * random->uniform();
-    y = yprd * random->uniform();
-    if (dimension == 3) z = zprd * random->uniform();
+    x = xprd * latrandom->uniform();
+    y = yprd * latrandom->uniform();
+    if (dimension == 3) z = zprd * latrandom->uniform();
     else z = 0.0;
 
     if (x < subxlo || x >= subxhi || 
@@ -507,6 +516,8 @@ void AppLattice::random_lattice()
     xyz[nlocal][2] = z;
     nlocal++;
   }
+
+  delete latrandom;
 
   // create and initialize other site arrays
 
@@ -782,7 +793,8 @@ void AppLattice::ghosts_from_connectivity()
 
   // reallocate site arrays so can append ghost info
 
-  id = (int *) memory->srealloc(id,(nlocal+nghost)*sizeof(int),"app:id");
+  id = (int *) memory->srealloc(id,(nlocal+nghost)*sizeof(int),
+				"app:id");
   owner = (int *) memory->srealloc(owner,(nlocal+nghost)*sizeof(int),
 				   "app:owner");
   index = (int *) memory->srealloc(index,(nlocal+nghost)*sizeof(int),
@@ -1007,9 +1019,12 @@ void AppLattice::ghosts_within_cutoff()
 
   // reallocate site arrays so can append ghost info
 
-  id = (int *) memory->srealloc(id,(nlocal+nghost)*sizeof(int),"app:id");
-  owner = (int *) memory->srealloc(owner,(nlocal+nghost)*sizeof(int),"app:id");
-  index = (int *) memory->srealloc(index,(nlocal+nghost)*sizeof(int),"app:id");
+  id = (int *) memory->srealloc(id,(nlocal+nghost)*sizeof(int),
+				"app:id");
+  owner = (int *) memory->srealloc(owner,(nlocal+nghost)*sizeof(int),
+				   "app:id");
+  index = (int *) memory->srealloc(index,(nlocal+nghost)*sizeof(int),
+				   "app:id");
   memory->grow_2d_T_array(xyz,nlocal+nghost,3,"app:xyz");
 
   // allocate arrays to store lattice connectivity
@@ -1099,14 +1114,6 @@ void AppLattice::init()
 {
   int i,j,m;
 
-  // app-specific initialization
-
-  init_app();
-
-  // comm init
-  
-  comm->init(NULL,delghost,dellocal,NULL);
-
   // error checks
 
   if (sweep && strcmp(sweep->style,"lattice") != 0)
@@ -1124,9 +1131,16 @@ void AppLattice::init()
   if (solve && sweep == NULL && nprocs > 1)
     error->all("Cannot use solver in parallel");
 
-  // initialize arrays
-  // propensity only needed if no sweeper
-  // KMC sweeper will allocate own propensity and site2i arrays
+  // app-specific initialization
+
+  init_app();
+
+  // initialize comm
+  
+  comm->init(NULL,delpropensity,delevent,NULL);
+
+  // if no sweeper, initialize 3 arrays: propensity, site2i,i2site
+  // sweeper allocates its own per-sector versions of these
 
   memory->sfree(propensity);
   memory->sfree(site2i);
@@ -1136,43 +1150,41 @@ void AppLattice::init()
 
   if (sweep == NULL) {
     propensity = (double*) memory->smalloc(nsites*sizeof(double),
-					   "applattice:propensity");
-    site2i = (int *) memory->smalloc(nsites*sizeof(int),"applattice:site2i");
+					   "app:propensity");
+    site2i = (int *) memory->smalloc(nsites*sizeof(int),"app:site2i");
+    i2site = (int *) memory->smalloc(nsites*sizeof(int),"app:i2site");
+
+    for (i = 0; i < nsites; i++) site2i[i] = i;
+    for (i = 0 ; i < nlocal; i++) i2site[i] = i;
+
   } else {
     propensity = NULL;
     site2i = NULL;
+    i2site = NULL;
   }
-
-  i2site = (int *) memory->smalloc(nsites*sizeof(int),"applattice:i2site");
-
-  // initialize lattice <-> site mapping arrays
-  // they map proc's entire 1d sub-domain to 1d sites and vice versa
-  // KMC sweeper will create sector-specific i2site values and ignore app's
-  // KMC sweeper will create sector-specific site2i values and ignore app's
-
-  for (i = 0 ; i < nlocal; i++) i2site[i] = i;
-  if (site2i) for (i = 0; i < nsites; i++) site2i[i] = i;
 
   // initialize sweeper
   
-  if (sweep) sweep->init();
+  if (sweep) {
+    sweep->init();
+    Lmask = sweep->Lmask;
+    mask = ((SweepLattice *) sweep)->mask;
+  }
 
   // initialize propensities for solver
   // if KMC sweep, sweeper does its own init of its propensity arrays
+  // comm insures ghost sites are set
 
-  if (propensity) {
+  if (!sweep) {
     comm->all();
-
     for (i = 0 ; i < nlocal; i++)
-      propensity[i] = site_propensity(i,0);
-
+      propensity[i2site[i]] = site_propensity(i);
     solve->init(nlocal,propensity);
   }
 
-  // Initialize output
+  // initialize output
 
   output->init(time);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1201,16 +1213,10 @@ void AppLattice::run(int narg, char **arg)
   if (narg != 1) error->all("Illegal run command");
   stoptime = time + atof(arg[0]);
 
-  // init classes used by this app
-  
   init();
   timer->init();
-  
-  // perform the run
 
   iterate();
-
-  // final statistics
   
   Finish finish(spk);
 }
@@ -1231,8 +1237,11 @@ void AppLattice::iterate()
   int done = 0;
   
   while (!done) {
+    if (sweep) {
+      sweep->do_sweep(dt);
+      time += dt;
 
-    if (propensity) {
+    } else {
       timer->stamp();
       isite = solve->event(&dt);
       timer->stamp(TIME_SOLVE);
@@ -1241,23 +1250,16 @@ void AppLattice::iterate()
       else {
 	ntimestep++;
 	i = site2i[isite];
-	site_event(i,1);
+	site_event(i,random);
 	time += dt;
 	timer->stamp(TIME_APP);
       }
-
-    } else {
-      sweep->do_sweep(dt);
-      time += dt;
     }
 
     if (time >= stoptime) done = 1;
 
-    // Do output
-
     output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
-
   }
   
   timer->barrier_stop(TIME_LOOP);
@@ -1753,37 +1755,14 @@ void AppLattice::offsets()
 }
 
 /* ----------------------------------------------------------------------
-   save the state of a site
-   only called for sites with general data, not for default lattice
- ------------------------------------------------------------------------- */
-
-void AppLattice::site_save(int i)
-{
-  int m;
-  for (m = 0; m < ninteger; m++) onesite.ivalue[m] = iarray[m][i];
-  for (m = 0; m < ndouble; m++) onesite.dvalue[m] = darray[m][i];
-}
-
-/* ----------------------------------------------------------------------
-   restore the state of a site
-   only called for sites with general data, not for default lattice
- ------------------------------------------------------------------------- */
-
-void AppLattice::site_restore(int i)
-{
-  int m;
-  for (m = 0; m < ninteger; m++) iarray[m][i] = onesite.ivalue[m];
-  for (m = 0; m < ndouble; m++) darray[m][i] = onesite.dvalue[m];
-}
-
-/* ----------------------------------------------------------------------
    push connected neighbors of this site onto stack
      and assign current id
    ghost neighbors are masked by id = -1
    previously burned sites are masked by id > 0
  ------------------------------------------------------------------------- */
 
-void AppLattice::push_connected_neighbors(int i, int* cluster_ids, int id, std::stack<int>* cluststack)
+void AppLattice::push_connected_neighbors(int i, int* cluster_ids, int id,
+					  std::stack<int>* cluststack)
 {
   int ii;
   int isite = lattice[i];
@@ -1798,10 +1777,11 @@ void AppLattice::push_connected_neighbors(int i, int* cluster_ids, int id, std::
 }
 
 /* ----------------------------------------------------------------------
-   Add cluster id of connected ghost sites to neighbor list of cluster
+   add cluster id of connected ghost sites to neighbor list of cluster
  ------------------------------------------------------------------------- */
 
-void AppLattice::connected_ghosts(int i, int* cluster_ids, Cluster* clustlist, int idoffset)
+void AppLattice::connected_ghosts(int i, int* cluster_ids, 
+				  Cluster* clustlist, int idoffset)
 {
   int iclust;
   int ii;

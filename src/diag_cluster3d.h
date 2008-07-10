@@ -45,7 +45,7 @@ class DiagCluster3d : public Diag {
   FILE *fp, *fpdump;
   class AppLattice3d *applattice3d;
 
-  int nx_global,ny_global,nz_global,nx_procs,ny_procs,nz_procs,delghost;
+  int nx_global,ny_global,nz_global,nx_procs,ny_procs,nz_procs,delpropensity;
   int nx_local,ny_local,nz_local,nx_offset,ny_offset,nz_offset;
   int nxlo,nylo,nzlo,nxhi,nyhi,nzhi;
 

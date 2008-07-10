@@ -20,13 +20,14 @@
 
 using namespace SPPARKS_NS;
 
-enum DumpStyles {LATTICE,COORD};
+enum {LATFILE,COORDFILE};
 
 #define MAXLINE 256
 
 /* ---------------------------------------------------------------------- */
 
-AppLattice3d::AppLattice3d(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
+AppLattice3d::AppLattice3d(SPPARKS *spk, int narg, char **arg) : 
+  App(spk,narg,arg)
 {
   appclass = LATTICE3D;
 
@@ -53,14 +54,16 @@ AppLattice3d::AppLattice3d(SPPARKS *spk, int narg, char **arg) : App(spk,narg,ar
 
   // app can override these values in its constructor
 
-  dellocal = 0;
-  delghost = 1;
+  delpropensity = 1;
+  delevent = 0;
+  numrandom = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppLattice3d::~AppLattice3d()
 {
+  delete comm;
 
   delete [] ibufread;
   delete [] ibufdump;
@@ -69,11 +72,9 @@ AppLattice3d::~AppLattice3d()
   memory->destroy_2d_T_array(site2ijk);
   memory->destroy_3d_T_array(ijk2site);
 
-  if (me == 0) {
-    if (fp) {
-      fclose(fp);
-      fp = NULL;
-    }
+  if (fp) {
+    fclose(fp);
+    fp = NULL;
   }
 }
 
@@ -82,16 +83,6 @@ AppLattice3d::~AppLattice3d()
 void AppLattice3d::init()
 {
   int i,j,k,m;
-
-  // app-specific initialization
-
-  init_app();
-
-  // comm init
-
-  comm->init(nx_local,ny_local,nz_local,
-	     procwest,proceast,procsouth,procnorth,procdown,procup,
-	     delghost,dellocal);
 
   // error checks
 
@@ -110,9 +101,18 @@ void AppLattice3d::init()
   if (solve && sweep == NULL && nprocs > 1)
     error->all("Cannot use solver in parallel");
 
-  // initialize arrays
-  // propensity only needed if no sweeper
-  // KMC sweeper will allocate own propensity and site2ijk arrays
+  // app-specific initialization
+
+  init_app();
+
+  // comm init
+
+  comm->init(nx_local,ny_local,nz_local,
+	     procwest,proceast,procsouth,procnorth,procdown,procup,
+	     delpropensity,delevent);
+
+  // if no sweeper, initialize 3 arrays: propensity, site2i,i2site
+  // sweeper allocates its own per-sector versions of these
 
   memory->sfree(propensity);
   memory->destroy_2d_T_array(site2ijk);
@@ -122,28 +122,12 @@ void AppLattice3d::init()
 
   if (sweep == NULL) {
     propensity = (double*) memory->smalloc(nsites*sizeof(double),
-					   "applattice3d:propensity");
+					   "app3d:propensity");
     memory->create_2d_T_array(site2ijk,nsites,3,
-			      "applattice3d:site2ijk");
-  } else {
-    propensity = NULL;
-    site2ijk = NULL;
-  }
+			      "app3d:site2ijk");
+    memory->create_3d_T_array(ijk2site,nx_local+1,ny_local+1,nz_local+1,
+			      "app3d:ijk2site");
 
-  memory->create_3d_T_array(ijk2site,nx_local+1,ny_local+1,nz_local+1,
-			    "applattice3d:ijk2site");
-
-  // initialize lattice <-> site mapping arrays
-  // they map proc's entire 3d sub-domain to 1d sites and vice versa
-  // KMC sweeper will overwrite app's ijk2site values
-  // KMC sweeper will create sector-specific site2ijk values and ignore app's
-
-  for (i = 1 ; i <= nx_local; i++)
-    for (j = 1 ; j <= ny_local; j++)
-      for (k = 1 ; k <= nz_local; k++)
-	ijk2site[i][j][k] = (i-1)*ny_local*nz_local + (j-1)*nz_local + k-1;
-
-  if (site2ijk) {
     for (m = 0; m < nsites; m++) {
       i = m / ny_local/nz_local + 1;
       j = (m / nz_local) % ny_local + 1;
@@ -152,30 +136,42 @@ void AppLattice3d::init()
       site2ijk[m][1] = j;
       site2ijk[m][2] = k;
     }
-  }
-	 
-  // initialize sweeper
-  
-  if (sweep) sweep->init();
-
-  // initialize propensities for solver
-  // if KMC sweep, sweeper does its own init of its propensity arrays
-
-  if (propensity) {
-    comm->all(lattice);
 
     for (i = 1 ; i <= nx_local; i++)
       for (j = 1 ; j <= ny_local; j++)
 	for (k = 1 ; k <= nz_local; k++)
-	  propensity[ijk2site[i][j][k]] = site_propensity(i,j,k,0);
+	  ijk2site[i][j][k] = (i-1)*ny_local*nz_local + (j-1)*nz_local + k-1;
 
+  } else {
+    propensity = NULL;
+    site2ijk = NULL;
+    ijk2site = NULL;
+  }
+
+  // initialize sweeper
+  
+  if (sweep) {
+    sweep->init();
+    Lmask = sweep->Lmask;
+    mask = ((SweepLattice3d *) sweep)->mask;
+  }
+
+  // initialize propensities for KMC solver
+  // if KMC sweep, sweeper does its own init of its propensity arrays
+  // comm insures ghost sites are set
+
+  if (sweep == NULL) {
+    comm->all(lattice);
+    for (i = 1 ; i <= nx_local; i++)
+      for (j = 1 ; j <= ny_local; j++)
+	for (k = 1 ; k <= nz_local; k++)
+	  propensity[ijk2site[i][j][k]] = site_propensity(i,j,k);
     solve->init(nsites,propensity);
   }
 
-  // Initialize output
+  // initialize output
 
   output->init(time);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -204,16 +200,10 @@ void AppLattice3d::run(int narg, char **arg)
   if (narg != 1) error->all("Illegal run command");
   stoptime = time + atof(arg[0]);
 
-  // init classes used by this app
-  
   init();
   timer->init();
-  
-  // perform the run
 
   iterate();
-
-  // final statistics
   
   Finish finish(spk);
 }
@@ -232,8 +222,11 @@ void AppLattice3d::iterate()
   
   int done = 0;
   while (!done) {
+    if (sweep) {
+      sweep->do_sweep(dt);
+      time += dt;
 
-    if (propensity) {
+    } else {
       timer->stamp();
       isite = solve->event(&dt);
       timer->stamp(TIME_SOLVE);
@@ -244,26 +237,99 @@ void AppLattice3d::iterate()
 	i = site2ijk[isite][0];
 	j = site2ijk[isite][1];
 	k = site2ijk[isite][2];
-	site_event(i,j,k,1);
+	site_event(i,j,k,1,random);
 	time += dt;
 	timer->stamp(TIME_APP);
       }
-
-    } else {
-      sweep->do_sweep(dt);
-      time += dt;
     }
 
     if (time >= stoptime) done = 1;
 
-    // Do output
-
     output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
-
   }
   
   timer->barrier_stop(TIME_LOOP);
+}
+
+
+/* ----------------------------------------------------------------------
+   update all ghost images of site i,j,k
+   called when performing serial KMC on entire domain
+------------------------------------------------------------------------- */
+
+void AppLattice3d::update_ghost_sites(int i, int j, int k)
+{
+  int ijk = lattice[i][j][k];
+
+  // i = 1 plane becomes i = nx_local+1 plane w/ j,k ghosts
+  // i = nx_local plane becomes i = 0 plane w/ j,k ghosts
+
+  if (i == 1) {
+    lattice[nx_local+1][j][k] = ijk;
+    if (j == 1) {
+      lattice[nx_local+1][ny_local+1][k] = ijk;
+      if (k == 1) lattice[nx_local+1][ny_local+1][nz_local+1] = ijk;
+      if (k == nz_local) lattice[nx_local+1][ny_local+1][0] = ijk;
+    }
+    if (j == ny_local) {
+      lattice[nx_local+1][0][k] = ijk;
+      if (k == 1) lattice[nx_local+1][0][nz_local+1] = ijk;
+      if (k == nz_local) lattice[nx_local+1][0][0] = ijk;
+    }
+    if (k == 1) lattice[nx_local+1][j][nz_local+1] = ijk;
+    if (k == nz_local) lattice[nx_local+1][j][0] = ijk;
+  }
+
+  if (i == nx_local) {
+    lattice[0][j][k] = ijk;
+    if (j == 1) {
+      lattice[0][ny_local+1][k] = ijk;
+      if (k == 1) lattice[0][ny_local+1][nz_local+1] = ijk;
+      if (k == nz_local) lattice[0][ny_local+1][0] = ijk;
+    }
+    if (j == ny_local) {
+      lattice[0][0][k] = ijk;
+      if (k == 1) lattice[0][0][nz_local+1] = ijk;
+      if (k == nz_local) lattice[0][0][0] = ijk;
+    }
+    if (k == 1) lattice[0][j][nz_local+1] = ijk;
+    if (k == nz_local) lattice[0][j][0] = ijk;
+  }
+
+  // j = 1 plane becomes j = ny_local+1 plane w/out i ghosts, w/ k ghosts
+  // j = ny_local plane becomes j = 0 plane w/out i ghosts, w/ k ghosts
+
+  if (j == 1) {
+    lattice[i][ny_local+1][k] = ijk;
+    if (k == 1) lattice[i][ny_local+1][nz_local+1] = ijk;
+    if (k == nz_local) lattice[i][ny_local+1][0] = ijk;
+  }
+  if (j == ny_local) {
+    lattice[i][0][k] = ijk;
+    if (k == 1) lattice[i][0][nz_local+1] = ijk;
+    if (k == nz_local) lattice[i][0][0] = ijk;
+  }
+
+  // k = 1 plane becomes k = nz_local+1 plane w/out i,j ghosts
+  // k = nz_local plane becomes k = 0 plane w/out i,j ghosts
+
+  if (k == 1) lattice[i][j][nz_local+1] = ijk;
+  if (k == ny_local) lattice[i][j][0] = ijk;
+}
+
+/* ----------------------------------------------------------------------
+   add i,j,k value to site list if different than oldstate and existing sites
+------------------------------------------------------------------------- */
+
+void AppLattice3d::add_unique(int oldstate, int &nevent, int *sites,
+			      int i, int j, int k)
+{
+  int value = lattice[i][j][k];
+  if (value == oldstate) return;
+  for (int m = 0; m < nevent; m++)
+    if (value == sites[m]) return;
+  sites[nevent++] = value;
 }
 
 /* ----------------------------------------------------------------------
@@ -299,7 +365,7 @@ void AppLattice3d::dump_header()
   int mybuf = nx_local*ny_local*nz_local;
   MPI_Allreduce(&mybuf,&maxdumpbuf,1,MPI_INT,MPI_MAX,world);
 
-  if (dump_style == LATTICE) {
+  if (dump_style == LATFILE) {
     delete [] ibufdump;
     ibufdump = new int[2*maxdumpbuf];
   } else {
@@ -307,9 +373,9 @@ void AppLattice3d::dump_header()
     dbufdump = new double[5*maxdumpbuf];
   }
 
-  // no header info in file if style = COORD
+  // no header info in file if style = COORDFILE
 
-  if (dump_style == COORD) return;
+  if (dump_style == COORDFILE) return;
 
   // proc 0 does one-time write of nodes and element connectivity
 
@@ -371,7 +437,7 @@ void AppLattice3d::dump_header()
 
 void AppLattice3d::dump()
 {
-  if (dump_style == LATTICE) dump_lattice();
+  if (dump_style == LATFILE) dump_lattice();
   else dump_coord();
 }
 
@@ -494,7 +560,8 @@ void AppLattice3d::dump_coord()
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(dbufdump,size_one*maxdumpbuf,MPI_DOUBLE,iproc,0,world,&request);
+	MPI_Irecv(dbufdump,size_one*maxdumpbuf,MPI_DOUBLE,iproc,0,world,
+		  &request);
 	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
 	MPI_Wait(&request,&status);
 	MPI_Get_count(&status,MPI_DOUBLE,&nlines);
@@ -504,7 +571,8 @@ void AppLattice3d::dump_coord()
       m = 0;
       for (int i = 0; i < nlines; i++) {
 	fprintf(fp,"%d %d %g %g %g\n",
-		static_cast<int> (dbufdump[m]),static_cast<int> (dbufdump[m+1]),
+		static_cast<int> (dbufdump[m]),
+		static_cast<int> (dbufdump[m+1]),
 		dbufdump[m+2],dbufdump[m+3],dbufdump[m+4]);
 	m += size_one;
       }
@@ -576,8 +644,8 @@ void AppLattice3d::set_dump(int narg, char **arg)
 {
   if (narg != 3) error->all("Illegal dump command");
 
-  if (strcmp(arg[1],"lattice") == 0) dump_style = LATTICE;
-  else if (strcmp(arg[1],"coord") == 0) dump_style = COORD;
+  if (strcmp(arg[1],"lattice") == 0) dump_style = LATFILE;
+  else if (strcmp(arg[1],"coord") == 0) dump_style = COORDFILE;
   else error->all("Illegal dump command");
 
   if (me == 0) {
@@ -639,12 +707,10 @@ void AppLattice3d::procs2lattice()
   nz_offset = iprocz*nz_global/nz_procs;
   nz_local = (iprocz+1)*nz_global/nz_procs - nz_offset;
 
-  nyz_local = ny_local*nz_local;
-
-  if (dellocal > delghost) 
-    error->all("Dellocal > delghost: This twisted app cannot yet be handled");
-  if (nx_local < 2*delghost || ny_local < 2*delghost ||
-      nz_local < 2*delghost)
+  if (delevent > delpropensity) 
+    error->all("Delevent > delpropensity");
+  if (nx_local < 2*delpropensity || ny_local < 2*delpropensity ||
+      nz_local < 2*delpropensity)
     error->one("Lattice per proc is too small");
 
   if (iprocz == 0) procdown = me + nz_procs - 1;
@@ -662,19 +728,12 @@ void AppLattice3d::procs2lattice()
   if (iprocx == nx_procs-1) proceast = me - nprocs + nyz_procs;
   else proceast = me + nyz_procs;
 
-  nxlo = 1-delghost;
-  nxhi = nx_local+delghost;
-  nylo = 1-delghost;
-  nyhi = ny_local+delghost;
-  nzlo = 1-delghost;
-  nzhi = nz_local+delghost;
-
-  nx_sector_lo = 1;
-  nx_sector_hi = nx_local;
-  ny_sector_lo = 1;
-  ny_sector_hi = ny_local;
-  nz_sector_lo = 1;
-  nz_sector_hi = nz_local;
+  nxlo = 1-delpropensity;
+  nxhi = nx_local+delpropensity;
+  nylo = 1-delpropensity;
+  nyhi = ny_local+delpropensity;
+  nzlo = 1-delpropensity;
+  nzhi = nz_local+delpropensity;
 }
 
 /* ----------------------------------------------------------------------
@@ -757,7 +816,6 @@ void AppLattice3d::read_spins(const char* infile)
   if (me == 0) {
     fclose(fpspins);
   }
-
 }
 
 /* ----------------------------------------------------------------------

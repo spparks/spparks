@@ -27,17 +27,14 @@ class AppLattice2d : public App {
   void run(int, char **);
 
   virtual double site_energy(int, int) = 0;
-  virtual int site_pick_random(int, int, double) = 0;
-  virtual int site_pick_local(int, int, double) = 0;
-  virtual double site_propensity(int, int, int) = 0;
-  virtual void site_event(int, int, int) = 0;
-  virtual void site_update_ghosts(int, int) = 0;
-  virtual void site_clear_mask(char **, int, int) = 0;
+  virtual void site_event_rejection(int, int, class RandomPark *) = 0;
+  virtual double site_propensity(int, int) = 0;
+  virtual void site_event(int, int, int, class RandomPark *) = 0;
 
  protected:
   enum InitStyles {RANDOM,READ};
   int me,nprocs;
-  int ntimestep,seed;
+  int ntimestep;
   int dump_style;
   int init_style;
   double time,stoptime;
@@ -48,8 +45,6 @@ class AppLattice2d : public App {
   int nx_local,ny_local;             // local lattice (1 to nlocal)
                                      // does not include ghost sites
   int nx_offset,ny_offset;           // global indices of my (1,1) site
-  int nx_sector_lo,nx_sector_hi;     // bounds of current sector
-  int ny_sector_lo,ny_sector_hi;     // as set by sweeper
 
   int nxlo,nxhi,nylo,nyhi;           // upper/lower limits for local lattice
                                      // w/ ghost layer of thickness = delghost
@@ -64,25 +59,28 @@ class AppLattice2d : public App {
   int procwest,proceast;       // my neighbor procs
   int procsouth,procnorth;
 
-  double masklimit;            // app-specific, used by sweeper
+  int delpropensity;           // # of sites away needed to compute propensity
+  int delevent;                // # of sites away affected by an event
+  int numrandom;               // # of RN used by rejection routine
 
-  int delghost,dellocal;       // app-specific thickness of 
-                               // ghost and local layers needed for comm
-                               // delghost affects upper and lower
-                               // limits for local lattice
+  bool Lmask;                  // from sweeper
+  char **mask;
 
   FILE *fp;
   int *ibufdump, *ibufread;
   double *dbufdump;
   int maxdumpbuf;
 
-  class RandomPark *random;
   class CommLattice2d *comm;
+  class RandomPark *random;
 
   void virtual input_app(char *, int, char **);
   void virtual init_app() {}
 
   void iterate();
+  void update_ghost_sites(int, int);
+  void add_unique(int, int &, int *, int, int);
+
   void stats(char *);
   void stats_header(char *);
   void dump_header();
@@ -103,12 +101,12 @@ class AppLattice2d : public App {
 
   void read_spins(const char*);
 
-  virtual void push_connected_neighbors(int, int , int**, int, std::stack<int>*);
+  virtual void push_connected_neighbors(int, int , int**, int,
+					std::stack<int>*);
   virtual void connected_ghosts(int, int, int**, Cluster*, int);
-
 };
 
-// remap i,j indices via PBC if needed
+// remap i,j indices via global PBC
 
 inline void AppLattice2d::ijpbc(int &i, int &j)
 {

@@ -123,7 +123,7 @@ void DiagCluster2d::init(double time)
   ny_global = applattice2d->ny_global;
   nx_procs = applattice2d->nx_procs;
   ny_procs = applattice2d->ny_procs;
-  delghost = applattice2d->delghost;
+  delpropensity = applattice2d->delpropensity;
   nx_local = applattice2d->nx_local;
   ny_local = applattice2d->ny_local;
   nx_offset = applattice2d->nx_offset;
@@ -223,23 +223,23 @@ void DiagCluster2d::generate_clusters()
 
   // Set ghost site ids to -1
   // Use four equal sized rectangles arranged in a ring
-  for (int j = 1-delghost; j <= ny_local; j++) {
-    for (int i = 1-delghost; i <= 0; i++) {
+  for (int j = 1-delpropensity; j <= ny_local; j++) {
+    for (int i = 1-delpropensity; i <= 0; i++) {
       cluster_ids[i][j] = -1;
     }
   }
-  for (int j = ny_local+1; j <= ny_local+delghost; j++) {
-    for (int i = 1-delghost; i <= nx_local; i++) {
+  for (int j = ny_local+1; j <= ny_local+delpropensity; j++) {
+    for (int i = 1-delpropensity; i <= nx_local; i++) {
       cluster_ids[i][j] = -1;
     }
   }
-  for (int j = 1; j <= ny_local+delghost; j++) {
-    for (int i = nx_local+1; i <= nx_local+delghost; i++) {
+  for (int j = 1; j <= ny_local+delpropensity; j++) {
+    for (int i = nx_local+1; i <= nx_local+delpropensity; i++) {
       cluster_ids[i][j] = -1;
     }
   }
-  for (int j = 1-delghost; j <= 0; j++) {
-    for (int i = 1; i <= nx_local+delghost; i++) {
+  for (int j = 1-delpropensity; j <= 0; j++) {
+    for (int i = 1; i <= nx_local+delpropensity; i++) {
       cluster_ids[i][j] = -1;
     }
   }
@@ -670,9 +670,9 @@ void DiagCluster2d::dump_clusters_detailed(double time)
   // maxbuftmp must equal the maximum number of spins on one domain 
   // plus some extra stuff
 
-  maxbuftmp = ((nx_global-1)/nx_procs+1+2*delghost)*
-    ((ny_global-1)/ny_procs+1+2*delghost)+9;
-  nsend = (nx_local+2*delghost)*(ny_local+2*delghost)+9;
+  maxbuftmp = ((nx_global-1)/nx_procs+1+2*delpropensity)*
+    ((ny_global-1)/ny_procs+1+2*delpropensity)+9;
+  nsend = (nx_local+2*delpropensity)*(ny_local+2*delpropensity)+9;
   if (maxbuftmp < nsend) 
     error->one("Maxbuftmp size too small in DiagCluster2d::dump_clusters()");
   
@@ -705,8 +705,8 @@ void DiagCluster2d::dump_clusters_detailed(double time)
   // pack my lattice values into buffer
   // Need to violate normal ordering in order to simplify output
 
-  for (int j = 1-delghost; j <= ny_local+delghost; j++) {
-    for (int i = 1-delghost; i <= nx_local+delghost; i++) {
+  for (int j = 1-delpropensity; j <= ny_local+delpropensity; j++) {
+    for (int i = 1-delpropensity; i <= nx_local+delpropensity; i++) {
       buftmp[m++] = cluster_ids[i][j];
     }
   }
@@ -741,15 +741,15 @@ void DiagCluster2d::dump_clusters_detailed(double time)
       fprintf(fpdump,"nxlocal = %d \nnylocal = %d \n",nxtmp,nytmp);
       fprintf(fpdump,"nx_offset = %d \nny_offset = %d \n",nxotmp,nyotmp);
       m = nrecv;
-      for (int j = nytmp+delghost; j >= 1-delghost; j--) {
-	m-=nxtmp+2*delghost;
-	for (int i = 1-delghost; i <= nxtmp+delghost; i++) {
+      for (int j = nytmp+delpropensity; j >= 1-delpropensity; j--) {
+	m-=nxtmp+2*delpropensity;
+	for (int i = 1-delpropensity; i <= nxtmp+delpropensity; i++) {
 	  // work out the correct global id of this site
 	  id = clustlist[buftmp[m++]-1].global_id;
 	  fprintf(fpdump,"%3d",id);
 	}
 	fprintf(fpdump,"\n");
-	m-=nxtmp+2*delghost;
+	m-=nxtmp+2*delpropensity;
       }
     }
     

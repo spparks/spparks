@@ -28,10 +28,8 @@ AppIsing2d8n::AppIsing2d8n(SPPARKS *spk, int narg, char **arg) :
 
   nx_global = atoi(arg[1]);
   ny_global = atoi(arg[2]);
-  seed = atoi(arg[3]);
+  int seed = atoi(arg[3]);
   random = new RandomPark(seed);
-
-  masklimit = 4.0;
 
   // define lattice and partition it across processors
   
@@ -61,7 +59,6 @@ AppIsing2d8n::~AppIsing2d8n()
 {
   delete random;
   memory->destroy_2d_T_array(lattice);
-  delete comm;
 }
 
 /* ----------------------------------------------------------------------
@@ -84,49 +81,72 @@ double AppIsing2d8n::site_energy(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site
+   perform a site event with rejection
+   if site cannot change, set mask
+   if site changes, unset mask of all neighbor sites with affected propensity
 ------------------------------------------------------------------------- */
 
-int AppIsing2d8n::site_pick_random(int i, int j, double ran)
+void AppIsing2d8n::site_event_rejection(int i, int j, RandomPark *random)
 {
-  int iran = (int) (2*ran) + 1;
-  if (iran > 2) iran = 2;
-  return iran;
+  int oldstate = lattice[i][j];
+  double einitial = site_energy(i,j);
+
+  // event = random up or down spin
+
+  if (random->uniform() < 0.5) lattice[i][j] = 1;
+  else lattice[i][j] = 2;
+  double efinal = site_energy(i,j);
+
+  // event = random neighbor spin
+
+  //int iran = (int) (8.0*random->uniform());
+  //if (iran == 0) return lattice[i-1][j-1];
+  //else if (iran == 1) return lattice[i-1][j];
+  //else if (iran == 2) return lattice[i-1][j+1];
+  //else if (iran == 3) return lattice[i][j-1];
+  //else if (iran == 4) return lattice[i][j+1];
+  //else if (iran == 5) return lattice[i+1][j-1];
+  //else if (iran == 6) return lattice[i+1][j];
+  //else return lattice[i+1][j+1];
+
+  // event = random unique neighbor spin
+  // not yet implemented
+
+  // accept or reject via Boltzmann criterion
+
+  if (efinal <= einitial) {
+  } else if (temperature == 0.0) {
+    lattice[i][j] = oldstate;
+  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
+    lattice[i][j] = oldstate;
+  }
+
+  if (Lmask) {
+    if (einitial < 4.0) mask[i][j] = 1;
+    if (lattice[i][j] != oldstate) {
+      mask[i-1][j-1] = 0;
+      mask[i-1][j] = 0;
+      mask[i-1][j+1] = 0;
+      mask[i][j-1] = 0;
+      mask[i][j+1] = 0;
+      mask[i+1][j-1] = 0;
+      mask[i+1][j] = 0;
+      mask[i+1][j+1] = 0;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site from neighbor values
-------------------------------------------------------------------------- */
-
-int AppIsing2d8n::site_pick_local(int i, int j, double ran)
-{
-  int iran = (int) (8*ran) + 1;
-  if (iran > 8) iran = 8;
-
-  if (iran == 1) return lattice[i-1][j-1];
-  else if (iran == 2) return lattice[i-1][j];
-  else if (iran == 3) return lattice[i-1][j+1];
-  else if (iran == 4) return lattice[i][j-1];
-  else if (iran == 5) return lattice[i][j+1];
-  else if (iran == 6) return lattice[i+1][j-1];
-  else if (iran == 7) return lattice[i+1][j];
-  else return lattice[i+1][j+1];
-}
-
-/* ----------------------------------------------------------------------
-   compute total propensity of owned site
-   based on einitial,efinal for each possible event
+   compute total propensity of owned site summed over possible events
+   propensity for one event based on einitial,efinal
    if no energy change, propensity = 1
    if downhill energy change, propensity = 1
-   if uphill energy change, propensity set via Boltzmann factor
-   if proc owns full domain, update ghost values before computing propensity
+   if uphill energy change, propensity = Boltzmann factor
 ------------------------------------------------------------------------- */
 
-double AppIsing2d8n::site_propensity(int i, int j, int full)
+double AppIsing2d8n::site_propensity(int i, int j)
 {
-  if (full) site_update_ghosts(i,j);
-
-  // only event is a spin flip
+  // event = spin flip
 
   int oldstate = lattice[i][j];
   int newstate = 1;
@@ -147,82 +167,35 @@ double AppIsing2d8n::site_propensity(int i, int j, int full)
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
-   if proc owns full domain, neighbor sites may be across PBC
-   if proc owns sector, ignore neighbor sites outside sector
+   if proc owns full domain, adjust neighbor sites indices for PBC
+   if proc owns sector, ignore non-updated neighbors (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppIsing2d8n::site_event(int i, int j, int full)
+void AppIsing2d8n::site_event(int i, int j, int full, RandomPark *random)
 {
-  int ii,jj,iloop,jloop,isite,flag,sites[9];
-
-  // only event is a spin flip
+  // event = spin flip
 
   if (lattice[i][j] == 1) lattice[i][j] = 2;
   else lattice[i][j] = 1;
 
+  if (full) update_ghost_sites(i,j);
+
   // compute propensity changes for self and neighbor sites
+
+  int iloop,jloop,ii,jj,isite,sites[9];
 
   int nsites = 0;
 
   for (iloop = i-1; iloop <= i+1; iloop++)
     for (jloop = j-1; jloop <= j+1; jloop++) {
       ii = iloop; jj = jloop;
-      flag = 1;
       if (full) ijpbc(ii,jj);
-      else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-	       jj < ny_sector_lo || jj > ny_sector_hi) flag = 0;
-      if (flag) {
-	isite = ij2site[ii][jj];
+      isite = ij2site[ii][jj];
+      if (isite >= 0) {
 	sites[nsites++] = isite;
-	propensity[isite] = site_propensity(ii,jj,full);
+	propensity[isite] = site_propensity(ii,jj);
       }
     }
 
   solve->update(nsites,sites,propensity);
-}
-
-/* ----------------------------------------------------------------------
-   update neighbors of site if neighbors are ghost cells
-   called by site_propensity() when single proc owns entire domain
-------------------------------------------------------------------------- */
-
-void AppIsing2d8n::site_update_ghosts(int i, int j)
-{
-  if (i == 1) {
-    lattice[i-1][j-1] = lattice[nx_local][j-1];
-    lattice[i-1][j] = lattice[nx_local][j];
-    lattice[i-1][j+1] = lattice[nx_local][j+1];
-  }
-  if (i == nx_local) {
-    lattice[i+1][j-1] = lattice[1][j-1];
-    lattice[i+1][j] = lattice[1][j];
-    lattice[i+1][j+1] = lattice[1][j+1];
-  }
-  if (j == 1) {
-    lattice[i-1][j-1] = lattice[i-1][ny_local];
-    lattice[i][j-1] = lattice[i][ny_local];
-    lattice[i+1][j-1] = lattice[i+1][ny_local];
-  }
-  if (j == ny_local) {
-    lattice[i-1][j+1] = lattice[i-1][1];
-    lattice[i][j+1] = lattice[i][1];
-    lattice[i+1][j+1] = lattice[i+1][1];
-  }
-}
-
-/* ----------------------------------------------------------------------
-  clear mask values of site and its neighbors
-------------------------------------------------------------------------- */
-
-void AppIsing2d8n::site_clear_mask(char **mask, int i, int j)
-{
-  mask[i-1][j-1] = 0;
-  mask[i-1][j] = 0;
-  mask[i-1][j+1] = 0;
-  mask[i][j-1] = 0;
-  mask[i][j] = 0;
-  mask[i][j+1] = 0;
-  mask[i+1][j-1] = 0;
-  mask[i+1][j] = 0;
-  mask[i+1][j+1] = 0;
 }

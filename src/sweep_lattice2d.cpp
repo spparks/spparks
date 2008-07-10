@@ -19,6 +19,8 @@
 
 using namespace SPPARKS_NS;
 
+#define DELTA 100
+
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
@@ -36,11 +38,11 @@ SweepLattice2d::SweepLattice2d(SPPARKS *spk, int narg, char **arg) :
   Lmask = false;
   mask = NULL;
   Lstrict = false;
-  Lpicklocal = false;
   Lkmc = false;
   Ladapt = false;
   ranlat = NULL;
   delt = 1.0;
+  deln0 = 0.0;
 
   int iarg = 2;
   while (iarg < narg) {
@@ -56,21 +58,11 @@ SweepLattice2d::SweepLattice2d(SPPARKS *spk, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"no") == 0) Lmask = false;
       else error->all("Illegal sweep_style command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"picklocal") == 0) {
-      if (iarg+2 > narg) error->all("Illegal sweep_style command");
-      if (strcmp(arg[iarg+1],"yes") == 0) Lpicklocal = true;
-      else if (strcmp(arg[iarg+1],"no") == 0) Lpicklocal = false;
-      else error->all("Illegal sweep_style command");
-      iarg += 2;
     } else if (strcmp(arg[iarg],"kmc") == 0) {
       if (iarg+2 > narg) error->all("Illegal sweep_style command");
       if (strcmp(arg[iarg+1],"yes") == 0) Lkmc = true;
       else if (strcmp(arg[iarg+1],"no") == 0) Lkmc = false;
       else error->all("Illegal sweep_style command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"delt") == 0) {
-      if (iarg+2 > narg) error->all("Illegal sweep_style command");
-      delt = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"adapt") == 0) {
       if (iarg+2 > narg) error->all("Illegal sweep_style command");
@@ -78,31 +70,31 @@ SweepLattice2d::SweepLattice2d(SPPARKS *spk, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"no") == 0) Ladapt = false;
       else error->all("Illegal sweep_style command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"delt") == 0) {
+      if (iarg+2 > narg) error->all("Illegal sweep_style command");
+      delt = atof(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"deln") == 0) {
+      if (iarg+2 > narg) error->all("Illegal sweep_style command");
+      Ladapt = true;
+      deln0 = atof(arg[iarg+1]);
+      iarg += 2;
     } else error->all("Illegal sweep_style command");
   }
 
   // set sweep method function ptr
 
-  if (Lkmc) {
-    if (Lmask || Lpicklocal)
-      error->all("Combination of sweep flags is unsupported");
-    sweeper = &SweepLattice2d::sweep_sector_kmc;
-  } else if (Lstrict) {
-    if (Lmask) {
-      if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sweeper = &SweepLattice2d::sweep_sector_mask_strict;
-    } else {
-      if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sweeper = &SweepLattice2d::sweep_sector_strict;
-    }
-  } else {
-    if (Lmask) {
-      if (Lpicklocal) sweeper = &SweepLattice2d::sweep_sector_mask_picklocal;
-      else sweeper = &SweepLattice2d::sweep_sector_mask;
-    } else {
-      if (Lpicklocal) error->all("Combination of sweep flags is unsupported");
-      else sweeper = &SweepLattice2d::sweep_sector;
-    }
+  if (Lkmc && (Lmask || Lstrict))
+      error->all("Invalid combination of sweep flags");
+  if (Ladapt && !Lkmc)
+      error->all("Invalid combination of sweep flags");
+
+  if (Lkmc) sweeper = &SweepLattice2d::sweep_sector_kmc;
+  else {
+    if (!Lmask && !Lstrict) sweeper = &SweepLattice2d::sweep_sector;
+    if (Lmask && !Lstrict) sweeper = &SweepLattice2d::sweep_sector_mask;
+    if (!Lmask && Lstrict) sweeper = &SweepLattice2d::sweep_sector_strict;
+    if (Lmask && Lstrict) sweeper = &SweepLattice2d::sweep_sector_mask_strict;
   }
 
   // initializations
@@ -110,9 +102,11 @@ SweepLattice2d::SweepLattice2d(SPPARKS *spk, int narg, char **arg) :
   nsector = 4;
   for (int i = 0; i < nsector; i++) {
     sector[i].solve = NULL;
-    sector[i].propensity = NULL;
     sector[i].site2ij = NULL;
+    sector[i].ij2site = NULL;
+    sector[i].propensity = NULL;
     sector[i].sites = NULL;
+    sector[i].border = NULL;
   }
 
   // communicator needed between sweep sectors
@@ -132,9 +126,11 @@ SweepLattice2d::~SweepLattice2d()
 
   for (int isector = 0; isector < nsector; isector++) {
     delete sector[isector].solve;
-    memory->sfree(sector[isector].propensity);
     memory->destroy_2d_T_array(sector[isector].site2ij);
+    memory->destroy_2d_T_array(sector[isector].ij2site);
+    memory->sfree(sector[isector].propensity);
     memory->sfree(sector[isector].sites);
+    memory->destroy_2d_T_array(sector[isector].border);
   }
 }
 
@@ -142,10 +138,18 @@ SweepLattice2d::~SweepLattice2d()
 
 void SweepLattice2d::init()
 {
+  int i,j,m;
+
   applattice = (AppLattice2d *) app;
 
+  // error check
+
+  if (Lmask && applattice->temperature > 0.0)
+    error->all("Cannot mask sweeping with non-zero temperature");
+
+  // get application params
+
   lattice = applattice->lattice;
-  ij2site = applattice->ij2site;
 
   nx_local = applattice->nx_local;
   ny_local = applattice->ny_local;
@@ -159,34 +163,37 @@ void SweepLattice2d::init()
   int procsouth = applattice->procsouth;
   int procnorth = applattice->procnorth;
 
-  temperature = applattice->temperature;
-  if (temperature != 0.0) t_inverse = 1.0/temperature;
-
   // app-specific settings
 
-  masklimit = applattice->masklimit;
-  delghost = applattice->delghost;
-  dellocal = applattice->dellocal;
+  delpropensity = applattice->delpropensity;
+  delevent = applattice->delevent;
+  numrandom = applattice->numrandom;
+
   nxlo = applattice->nxlo;
   nxhi = applattice->nxhi;
   nylo = applattice->nylo;
   nyhi = applattice->nyhi;
 
-  delcol = delghost+1;
+  delcol = delpropensity + 1;
   if (Lstrict) ncolor = delcol*delcol;
   else ncolor = 1;
 
   // setup sectors
+  // partition sites by i,j values
 
-  for (int i = 0; i < 4; i++) {
-    delete sector[i].solve;
-    memory->sfree(sector[i].propensity);
-    memory->destroy_2d_T_array(sector[i].site2ij);
-    memory->sfree(sector[i].sites);
-    sector[i].solve = NULL;
-    sector[i].propensity = NULL;
-    sector[i].site2ij = NULL;
-    sector[i].sites = NULL;
+  for (int isector = 0; isector < 4; isector++) {
+    delete sector[isector].solve;
+    memory->destroy_2d_T_array(sector[isector].site2ij);
+    memory->destroy_2d_T_array(sector[isector].ij2site);
+    memory->sfree(sector[isector].propensity);
+    memory->sfree(sector[isector].sites);
+    memory->destroy_2d_T_array(sector[i].border);
+    sector[isector].solve = NULL;
+    sector[isector].propensity = NULL;
+    sector[isector].site2ij = NULL;
+    sector[isector].ij2site = NULL;
+    sector[isector].sites = NULL;
+    sector[isector].border = NULL;
   }
 
   int nx_half = nx_local/2 + 1;
@@ -220,44 +227,89 @@ void SweepLattice2d::init()
   sector[3].nx = sector[3].xhi - sector[3].xlo + 1;
   sector[3].ny = sector[3].yhi - sector[3].ylo + 1;
 
-  // init communication for ghost sites
+  // setup site2ij for each sector
 
-  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,
-	     delghost,dellocal);
+  for (int isector = 0; isector < nsector; isector++) {
+    int nsites = sector[isector].nx * sector[isector].ny;
+    memory->create_2d_T_array(sector[isector].site2ij,nsites,2,
+			      "sweep2d:site2ij");
+    for (m = 0; m < nsites; m++) {
+      i = m / sector[isector].ny + 1;
+      j = m % sector[isector].ny +  1;
+      sector[isector].site2ij[m][0] = i + sector[isector].xlo - 1;
+      sector[isector].site2ij[m][1] = j + sector[isector].ylo - 1;
+    }
+  }
 
-  // setup mask array
-  // owned and ghost values referenced in app::site_clear_mask()
+  // setup ij2site for each sector
+  // 0 to nsite-1 for owned points in sector, else -1
+
+  if (Lkmc) {
+    for (int isector = 0; isector < nsector; isector++) {
+      memory->create_2d_T_array(sector[isector].ij2site,nxlo,nxhi,nylo,nyhi,
+				"sweep2d:ij2site");
+      for (i = 1-delpropensity; i <= nx_local+delpropensity; i++) 
+	for (j = 1-delpropensity; j <= ny_local+delpropensity; j++)
+	  sector[isector].ij2site[i][j] = -1;
+      int nsites = sector[isector].nx * sector[isector].ny;
+      for (m = 0; m < nsites; m++) {
+	i = sector[isector].site2ij[m][0];
+	j = sector[isector].site2ij[m][1];
+	sector[isector].ij2site[i][j] = m;
+      }
+    }
+  }
+
+  // setup mask array for owned and ghost values
+  // ghost values written to in app::site_event_rejection
 
   if (Lmask && mask == NULL) {
-    memory->create_2d_T_array(mask,nxlo,nxhi,nylo,nyhi,
-			      "sweeplattice2d:mask");
-    for (int i = 1; i <= nx_local; i++) 
-      for (int j = 1; j <= ny_local; j++) 
+    memory->create_2d_T_array(mask,nxlo,nxhi,nylo,nyhi,"sweep2d:mask");
+    for (i = 1; i <= nx_local; i++) 
+      for (j = 1; j <= ny_local; j++)
 	mask[i][j] = 0;
+  }
+
+  // setup border array used by masking and KMC solver
+  // nborder = # of sites in sector influenced by site outside sector
+  // border = list of these sites, stored as lattice indices
+
+  if (Lmask || Lkmc) {
+    for (int isector = 0; isector < nsector; isector++)
+      sector[isector].nborder = find_border_sites(isector);
+  }
+
+  // allocate sites array used by KMC solver for border sites
+
+  if (Lkmc) {
+    for (int isector = 0; isector < nsector; isector++)
+      sector[isector].sites =
+	(int *) memory->smalloc(sector[isector].nborder*sizeof(int),
+				"sweep2d:sites");
   }
 
   // setup one RNG per site
   // only owned values referenced in strict() methods
 
   if (Lstrict && ranlat == NULL) {
-    memory->create_2d_T_array(ranlat,1,nx_local,1,ny_local,
-			      "sweeplattice2d:ranlat");
+    memory->create_2d_T_array(ranlat,1,nx_local,1,ny_local,"sweep2d:ranlat");
     int isite;
-    for (int i = 1; i <= nx_local; i++)
-      for (int j = 1; j <= ny_local; j++) {
+    for (i = 1; i <= nx_local; i++)
+      for (j = 1; j <= ny_local; j++) {
 	isite = (i+nx_offset)*ny_global + j + ny_offset;
 	ranlat[i][j].init(seed+isite);
       }
   }
 
+  // init communication for ghost sites
+
+  comm->init(nx_local,ny_local,procwest,proceast,procsouth,procnorth,
+	     delpropensity,delevent);
+
   // setup KMC solver and propensity arrays for each sector
-  // reset app's ij2site values in app to reflect sector mapping
-  // create site2ij values for each sector
-  // propensity init requires ghost cell info for entire sub-domain
+  // propensity init requires all ghost cell info via comm->all()
 
   if (Lkmc) {
-    int i,j,m;
-
     comm->all(lattice);
 
     for (int isector = 0; isector < nsector; isector++) {
@@ -265,50 +317,35 @@ void SweepLattice2d::init()
 
       int nsites = sector[isector].nx * sector[isector].ny;
       sector[isector].propensity = 
-	(double*) memory->smalloc(nsites*sizeof(double),"sweep:propensity");
-      memory->create_2d_T_array(sector[isector].site2ij,nsites,2,
-				"sweep:site2ij");
-
-      for (i = sector[isector].xlo; i <= sector[isector].xhi; i++)
-	for (j = sector[isector].ylo; j <= sector[isector].yhi; j++)
-	  ij2site[i][j] = 
-	    (i-sector[isector].xlo)*sector[isector].ny + j-sector[isector].ylo;
-
-      int nborder = 2*sector[isector].nx + 2*sector[isector].ny;
-      sector[isector].sites =
-	(int*) memory->smalloc(nborder*sizeof(int),"sweep:sites");
-
+	(double*) memory->smalloc(nsites*sizeof(double),"sweep2d:propensity");
       for (m = 0; m < nsites; m++) {
-	i = m / sector[isector].ny + 1;
-	j = m % sector[isector].ny +  1;
-	sector[isector].site2ij[m][0] = i + sector[isector].xlo - 1;
-	sector[isector].site2ij[m][1] = j + sector[isector].ylo - 1;
+	i = sector[isector].site2ij[m][0];
+	j = sector[isector].site2ij[m][1];
+	sector[isector].propensity[m] = applattice->site_propensity(i,j);
       }
-
-      for (i = sector[isector].xlo; i <= sector[isector].xhi; i++)
-	for (j = sector[isector].ylo; j <= sector[isector].yhi; j++)
-	  sector[isector].propensity[ij2site[i][j]] = 
-	    applattice->site_propensity(i,j,0);
 
       sector[isector].solve->init(nsites,sector[isector].propensity);
     }
+  }
 
-    // Compute deln0, which controls future timesteps
-    if (Ladapt) {
-      pmax = 0.0;
-      int ntmp ;
-      double ptmp;
-      for (int isector = 0; isector < nsector; isector++) {
-	ntmp = sector[isector].solve->get_num_active();
-	if (ntmp > 0) {
-	  ptmp = sector[isector].solve->get_total_propensity();
-	  ptmp /= ntmp;
-	  pmax = MAX(ptmp,pmax);
-	}
+  // compute deln0, if not already specified
+  // controls future timesteps
+
+  if (Lkmc && Ladapt) {
+    pmax = 0.0;
+    int ntmp ;
+    double ptmp;
+    for (int isector = 0; isector < nsector; isector++) {
+      ntmp = sector[isector].solve->get_num_active();
+      if (ntmp > 0) {
+	ptmp = sector[isector].solve->get_total_propensity();
+	ptmp /= ntmp;
+	pmax = MAX(ptmp,pmax);
       }
-      MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
-      deln0 = pmaxall*delt;
     }
+    MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
+    if (deln0 <= 0.0) deln0 = pmaxall*delt;
+    else if (pmaxall > 0.0) delt = deln0/pmaxall;
   }
 }
 
@@ -319,13 +356,8 @@ void SweepLattice2d::init()
 
 void SweepLattice2d::do_sweep(double &dt)
 {
-  if (Ladapt) {
-    pmax = 0.0;
-  } 
-
-  if (!Lkmc) {
-    applattice->ntimestep++;
-  } 
+  if (Ladapt) pmax = 0.0;
+  if (!Lkmc) applattice->ntimestep++;
 
   for (int icolor = 0; icolor < ncolor; icolor++)
     for (int isector = 0; isector < nsector; isector++) {
@@ -334,7 +366,6 @@ void SweepLattice2d::do_sweep(double &dt)
       timer->stamp(TIME_COMM);
 
       (this->*sweeper)(icolor,isector);
-
       timer->stamp(TIME_SOLVE);
 
       comm->reverse_sector(lattice,isector);
@@ -347,135 +378,61 @@ void SweepLattice2d::do_sweep(double &dt)
 
   if (Ladapt) {
     MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_SUM,world);
-    if (pmaxall > 0.0) {
-      delt = deln0/pmaxall;
-    }
+    if (pmaxall > 0.0) delt = deln0/pmaxall;
   }
 }
 
 /* ----------------------------------------------------------------------
    sweep over one sector of sites
-   application picks a new state for the site
-   compute energy change due to state change
-   no energy change = accept
-   downhill energy change = accept
-   uphill energy change = accept/reject via Boltzmann factor
+   perform events with rejection
  ------------------------------------------------------------------------- */
    
 void SweepLattice2d::sweep_sector(int icolor, int isector)
 {
-  int i,j,oldstate,newstate;
-  double einitial,efinal;
-
+  int i,j;
+  
   int xlo = sector[isector].xlo;
   int xhi = sector[isector].xhi;
   int ylo = sector[isector].ylo;
   int yhi = sector[isector].yhi;
-
+  
   for (i = xlo; i <= xhi; i++)
-    for (j = ylo; j <= yhi; j++) {
-      oldstate = lattice[i][j];
-      einitial = applattice->site_energy(i,j);
-
-      newstate = applattice->site_pick_random(i,j,random->uniform());
-      lattice[i][j] = newstate;
-      efinal = applattice->site_energy(i,j);
-
-      if (efinal <= einitial) continue;
-      else if (temperature == 0.0) lattice[i][j] = oldstate;
-      else if (random->uniform() > exp((einitial-efinal)*t_inverse))
-	lattice[i][j] = oldstate;
-    }
+    for (j = ylo; j <= yhi; j++)
+      applattice->site_event_rejection(i,j,random);
 }
 
 /* ----------------------------------------------------------------------
-   sweep over one sector of sites
-   skip sites that can't change via mask
+   sweep over one sector of sites with masking
+   perform events with rejection
+   update mask values
  ------------------------------------------------------------------------- */
    
 void SweepLattice2d::sweep_sector_mask(int icolor, int isector)
 {
-  int i,j,oldstate,newstate;
-  double einitial,efinal;
-
+  int i,j;
+  
   int xlo = sector[isector].xlo;
   int xhi = sector[isector].xhi;
   int ylo = sector[isector].ylo;
   int yhi = sector[isector].yhi;
-
-  boundary_clear_mask(xlo,xhi,ylo,yhi);
+  
+  boundary_clear_mask(isector);
   
   for (i = xlo; i <= xhi; i++)
     for (j = ylo; j <= yhi; j++) {
       if (mask[i][j]) continue;
-
-      oldstate = lattice[i][j];
-      einitial = applattice->site_energy(i,j);
-      if (einitial < masklimit) {
-	mask[i][j] = 1;
-	continue;
-      }
-
-      newstate = applattice->site_pick_random(i,j,random->uniform());
-      lattice[i][j] = newstate;
-      efinal = applattice->site_energy(i,j);
-
-      if (efinal <= einitial) {
-	applattice->site_clear_mask(mask,i,j);
-	continue;
-      } else if (temperature == 0.0) lattice[i][j] = oldstate;
-      else if (random->uniform() > exp((einitial-efinal)*t_inverse))
-	lattice[i][j] = oldstate;
-      else applattice->site_clear_mask(mask,i,j);
+      applattice->site_event_rejection(i,j,random);
     }
 }
 
-/* ---------------------------------------------------------------------- */
-
-void SweepLattice2d::sweep_sector_mask_picklocal(int icolor, int isector)
-{
-  int i,j,oldstate,newstate;
-  double einitial,efinal;
-
-  int xlo = sector[isector].xlo;
-  int xhi = sector[isector].xhi;
-  int ylo = sector[isector].ylo;
-  int yhi = sector[isector].yhi;
-
-  boundary_clear_mask(xlo,xhi,ylo,yhi);
-  
-  for (i = xlo; i <= xhi; i++)
-    for (j = ylo; j <= yhi; j++) {
-      if (mask[i][j]) continue;
-
-      oldstate = lattice[i][j];
-      einitial = applattice->site_energy(i,j);
-      if (einitial < masklimit) {
-	mask[i][j] = 1;
-	continue;
-      }
-
-      newstate = applattice->site_pick_local(i,j,random->uniform());
-      lattice[i][j] = newstate;
-      efinal = applattice->site_energy(i,j);
-
-      if (efinal <= einitial) {
-	applattice->site_clear_mask(mask,i,j);
-	continue;
-      } else if (temperature == 0.0) lattice[i][j] = oldstate;
-      else if (random->uniform() > exp((einitial-efinal)*t_inverse))
-	lattice[i][j] = oldstate;
-      else applattice->site_clear_mask(mask,i,j);
-    }
-}
-
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   sweep over one sector of sites of one color
+   perform events with rejection
+ ------------------------------------------------------------------------- */
    
 void SweepLattice2d::sweep_sector_strict(int icolor, int isector)
 {
-  int i,j,i0,j0,oldstate,newstate;
-  double einitial,efinal;
-  double xtmp1,xtmp2;
+  int i,j,i0,j0;
 
   int xlo = sector[isector].xlo;
   int xhi = sector[isector].xhi;
@@ -489,43 +446,26 @@ void SweepLattice2d::sweep_sector_strict(int icolor, int isector)
   j0 = (j0 < 0) ? j0+delcol : j0;
 
   for (i = xlo+i0; i <= xhi; i += delcol)
-    for (j = ylo+j0; j <= yhi; j += delcol) {
-
-      // call RNG even if skipping via mask
-      // insures same answer no matter where proc boundaries are
-
-      xtmp1 = ranlat[i][j].uniform();
-      xtmp2 = ranlat[i][j].uniform();
-
-      oldstate = lattice[i][j];
-      einitial = applattice->site_energy(i,j);
-
-      newstate = applattice->site_pick_random(i,j,xtmp1);
-      lattice[i][j] = newstate;
-      efinal = applattice->site_energy(i,j);
-
-      if (efinal <= einitial) continue;
-
-      else if (temperature == 0.0) lattice[i][j] = oldstate;
-      else if (xtmp2 > exp((einitial-efinal)*t_inverse))
-	lattice[i][j] = oldstate;
-    }
+    for (j = ylo+j0; j <= yhi; j += delcol)
+      applattice->site_event_rejection(i,j,&ranlat[i][j]);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   sweep over one sector of sites of one color with masking
+   perform events with rejection
+   update mask values
+ ------------------------------------------------------------------------- */
    
 void SweepLattice2d::sweep_sector_mask_strict(int icolor, int isector)
 {
-  int i,j,i0,j0,oldstate,newstate;
-  double einitial,efinal;
-  double xtmp1,xtmp2;
+  int i,j,m,i0,j0;
 
   int xlo = sector[isector].xlo;
   int xhi = sector[isector].xhi;
   int ylo = sector[isector].ylo;
   int yhi = sector[isector].yhi;
 
-  boundary_clear_mask(xlo,xhi,ylo,yhi);
+  boundary_clear_mask(isector);
   
   i0 = icolor/delcol  - (nx_offset + xlo-1) % delcol;
   i0 = (i0 < 0) ? i0+delcol : i0;
@@ -533,35 +473,13 @@ void SweepLattice2d::sweep_sector_mask_strict(int icolor, int isector)
   j0 = icolor%delcol  - (ny_offset + ylo-1) % delcol;
   j0 = (j0 < 0) ? j0+delcol : j0;
 
-  for (i = xlo+i0; i <= xhi; i+=delcol)
-    for (j = ylo+j0; j <= yhi; j+=delcol) {
-
-  // call RNG even if skipping via mask
-  // insures same answer no matter where proc boundaries are
-
-      xtmp1 = ranlat[i][j].uniform();
-      xtmp2 = ranlat[i][j].uniform();
-
-      if (mask[i][j]) continue;
-
-      oldstate = lattice[i][j];
-      einitial = applattice->site_energy(i,j);
-      if (einitial < masklimit) {
-	mask[i][j] = 1;
+  for (i = xlo+i0; i <= xhi; i += delcol)
+    for (j = ylo+j0; j <= yhi; j += delcol) {
+      if (mask[i][j]) {
+	for (m = 0; m < numrandom; m++) ranlat[i][j].uniform();
 	continue;
       }
-
-      newstate = applattice->site_pick_random(i,j,xtmp1);
-      lattice[i][j] = newstate;
-      efinal = applattice->site_energy(i,j);
-
-      if (efinal <= einitial) {
-	applattice->site_clear_mask(mask,i,j);
-	continue;
-      } else if (temperature == 0.0) lattice[i][j] = oldstate;
-      else if (xtmp2 > exp((einitial-efinal)*t_inverse))
-	lattice[i][j] = oldstate;
-      else applattice->site_clear_mask(mask,i,j);
+      applattice->site_event_rejection(i,j,&ranlat[i][j]);
     }
 }
 
@@ -574,8 +492,6 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
   double dt,time;
   int done,isite,i,j;
 
-  timer->stamp();
-
   // extract sector specific info from quad struct
 
   int xlo = sector[isector].xlo;
@@ -583,59 +499,40 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
   int ylo = sector[isector].ylo;
   int yhi = sector[isector].yhi;
 
+  int **border = sector[isector].border;
+  int nborder = sector[isector].nborder;
+
   Solve *solve = sector[isector].solve;
   double *propensity = sector[isector].propensity;
   int **site2ij = sector[isector].site2ij;
+  int **ij2site = sector[isector].ij2site;
   int *sites = sector[isector].sites;
 
   // temporarily reset values in applattice
-  // sector bounds, solver, propensity array
-
-  applattice->nx_sector_lo = xlo;
-  applattice->nx_sector_hi = xhi;
-  applattice->ny_sector_lo = ylo;
-  applattice->ny_sector_hi = yhi;
+  // solver, propensity, ij2site array
 
   Solve *hold_solve = applattice->solve;
   applattice->solve = solve;
-  double *hold_propensity = applattice->propensity;
   applattice->propensity = propensity;
+  applattice->ij2site = ij2site;
 
-  // update owned propensities on all 4 sector edges
-  // necessary since sector ghosts may have changed
+  // update propensities for sites which neighbor a site outside sector
+  // necessary since outside sites may have changed
+  // attribute this chunk of time to comm, b/c due to decomposition
+
+  timer->stamp();
 
   int nsites = 0;
 
-  j = ylo;
-  for (i = xlo; i <= xhi; i++) {
+  for (int m = 0; m < nborder; m++) {
+    i = border[m][0];
+    j = border[m][1];
     isite = ij2site[i][j];
     sites[nsites++] = isite;
-    propensity[isite] = applattice->site_propensity(i,j,0);
+    propensity[isite] = applattice->site_propensity(i,j);
   }
-  j = yhi;
-  for (i = xlo; i <= xhi; i++) {
-    isite = ij2site[i][j];
-    sites[nsites++] = isite;
-    propensity[isite] = applattice->site_propensity(i,j,0);
-  }
-
-  i = xlo;
-  for (j = ylo; j <= yhi; j++) {
-    isite = ij2site[i][j];
-    sites[nsites++] = isite;
-    propensity[isite] = applattice->site_propensity(i,j,0);
-  }
-  i = xhi;
-  for (j = ylo; j <= yhi; j++) {
-    isite = ij2site[i][j];
-    sites[nsites++] = isite;
-    propensity[isite] = applattice->site_propensity(i,j,0);
-  }
-
+    
   solve->update(nsites,sites,propensity);
-
-  // attribute this chunk of time to Communication,
-  // because it is due to the spatial decomposition
   timer->stamp(TIME_COMM);
 
   // execute events until time threshhold reached
@@ -650,19 +547,20 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
     if (isite < 0) done = 1;
     else {
       time += dt;	
-      if (time >= delt) {
-    	done = 1;
-      } else {
+      if (time >= delt) done = 1;
+      else {
 	i = site2ij[isite][0];
 	j = site2ij[isite][1];
-	applattice->site_event(i,j,0);
+	applattice->site_event(i,j,0,random);
 	applattice->ntimestep++;
       }
       timer->stamp(TIME_APP);
     }
   }
  
-  // Compute deln0, which controls future timesteps
+  // compute maximum sector propensity per site
+  // controls future timesteps
+
   if (Ladapt) {
     int ntmp = applattice->solve->get_num_active();
     if (ntmp > 0) {
@@ -675,50 +573,65 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
   // restore applattice values
 
   applattice->solve = hold_solve;
-  applattice->propensity = hold_propensity;
+  applattice->propensity = NULL;
+  applattice->ij2site = NULL;
 }
 
 /* ----------------------------------------------------------------------
-   unset all masks on boundary
-   may be out of date, due to state change on neighboring processor
-   could reverse comm mask values, but that might be slower
+   create list of border sites for a sector
+   border site = site in sector with a neighbor outside the sector
+   neighbor can be another owned site (outside sector) or a ghost
+   border = lattice indices of the sites
  ------------------------------------------------------------------------- */
 
-void SweepLattice2d::boundary_clear_mask(int xlo, int xhi, int ylo, int yhi)
+int SweepLattice2d::find_border_sites(int isector)
 {
+  int **border = NULL;
+  int nborder = 0;
+  int nmax = 0;
+
+  // loop over all sites in sector
+  // only add those within delta of boundary to border
+
   int i,j;
 
-  if (delghost == 1) {
-    if (ylo == 1) {
-      for (i = xlo; i <= xhi; i++)
-	mask[i][1] = 0;
-    } else if (yhi == ny_local)
-      for (i = xlo; i <= xhi; i++)
-	mask[i][ny_local] = 0;
-    
-    if (xlo == 1) {
-      for (j = ylo; j <= yhi; j++)
-	mask[1][j] = 0;
-    } else if (xhi == nx_local)
-      for (j = ylo; j <= yhi; j++)
-	mask[nx_local][j] = 0;
-  } else {
-    if (ylo == 1) {
-      for (i = xlo; i <= xhi; i++)
-	for (j = ylo; j < ylo+delghost; j++)
-	  mask[i][j] = 0;
-    } else if (yhi == ny_local)
-      for (i = xlo; i <= xhi; i++)
-	for (j = yhi; j > yhi-delghost; j--)
-	  mask[i][j] = 0;
-    
-    if (xlo == 1) {
-      for (i = xlo; i < xlo+delghost; i++)
-	for (j = ylo; j <= yhi; j++)
-	  mask[i][j] = 0;
-    } else if (xhi == nx_local)
-      for (i = xhi; i > xhi-delghost; i--)
-	for (j = ylo; j <= yhi; j++)
-	  mask[i][j] = 0;
-  }
+  int xlo = sector[isector].xlo;
+  int xhi = sector[isector].xhi;
+  int ylo = sector[isector].ylo;
+  int yhi = sector[isector].yhi;
+
+  int delta = delpropensity + delevent;
+
+  for (i = xlo; i <= xhi; i++)
+    for (j = ylo; j <= yhi; j++) {
+      if (i-xlo >= delta && xhi-i >= delta && 
+	  j-ylo >= delta && yhi-j >= delta) continue;
+
+      if (nborder == nmax) {
+	nmax += DELTA;
+	memory->grow_2d_T_array(border,nmax,2,"sweep2d:border");
+      }
+      border[nborder][0] = i;
+      border[nborder][1] = j;
+      nborder++;
+    }
+
+  sector[isector].border = border;
+  return nborder;
+}
+
+/* ----------------------------------------------------------------------
+   unset all mask values of owned sites in isector whose propensity
+     could change due to events on sites one neighbor outside the sector
+   border list stores indices of these sites
+   their mask value may be out of date, due to state change in other sectors
+ ------------------------------------------------------------------------- */
+
+void SweepLattice2d::boundary_clear_mask(int isector)
+{
+  int **border = sector[isector].border;
+  int nborder = sector[isector].nborder;
+
+  for (int m = 0; m < nborder; m++)
+    mask[border[m][0]][border[m][1]] = 0;
 }

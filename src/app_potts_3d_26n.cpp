@@ -22,7 +22,6 @@ using namespace SPPARKS_NS;
 AppPotts3d26n::AppPotts3d26n(SPPARKS *spk, int narg, char **arg) : 
   AppPotts3d(spk,narg,arg)
 {
-
   // parse any remaining arguments
 
   int iarg = 0;
@@ -33,8 +32,6 @@ AppPotts3d26n::AppPotts3d26n(SPPARKS *spk, int narg, char **arg) :
       error->all("Illegal app_style potts/3d/26n command");
     }
   }
-
-  masklimit = 13.0;
 
   // define lattice and partition it across processors
   
@@ -47,6 +44,7 @@ AppPotts3d26n::AppPotts3d26n(SPPARKS *spk, int narg, char **arg) :
   if (init_style == RANDOM) {
   // each site = one of nspins
   // loop over global list so assignment is independent of # of procs
+
     int i,j,k,ii,jj,kk,isite;
     for (i = 1; i <= nx_global; i++) {
       ii = i - nx_offset;
@@ -59,23 +57,17 @@ AppPotts3d26n::AppPotts3d26n(SPPARKS *spk, int narg, char **arg) :
 	      kk >= 1 && kk <= nz_local) {
 	    lattice[ii][jj][kk] = isite;
 	  }
-
 	}
       } 
     }
-  } else if (init_style == READ) {
-  // read from file
-    read_spins(spinfile);
-  }
-
+  } else if (init_style == READ) read_spins(spinfile);
 }
+
 /* ---------------------------------------------------------------------- */
 
 AppPotts3d26n::~AppPotts3d26n()
 {
-  delete random;
   memory->destroy_3d_T_array(lattice);
-  delete comm;
 }
 
 /* ----------------------------------------------------------------------
@@ -96,102 +88,90 @@ double AppPotts3d26n::site_energy(int i, int j, int k)
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site
+   perform a site event with rejection
+   if site cannot change, set mask
+   if site changes, unset mask of all neighbor sites with affected propensity
 ------------------------------------------------------------------------- */
 
-int AppPotts3d26n::site_pick_random(int i, int j, int k, double ran)
+void AppPotts3d26n::site_event_rejection(int i, int j, int k,
+					RandomPark *random)
 {
-  int iran = (int) (nspins*ran) + 1;
+  int oldstate = lattice[i][j][k];
+  double einitial = site_energy(i,j,k);
+
+  // event = random spin
+
+  int iran = (int) (nspins*random->uniform()) + 1;
   if (iran > nspins) iran = nspins;
-  return iran;
-}
+  lattice[i][j][k] = iran;
+  double efinal = site_energy(i,j,k);
 
-/* ----------------------------------------------------------------------
-   randomly pick new state for site from neighbor values
-------------------------------------------------------------------------- */
+  // event = random neighbor spin
 
-int AppPotts3d26n::site_pick_local(int i, int j, int k, double ran)
-{
-  int iran = (int) (26*ran) + 1;
-  if (iran > 26) iran = 26;
-  if (iran > 13) iran++;
+  //int iran = (int) (26.0*random->uniform()) + 1;
+  //if (iran > 26) iran = 26;
+  //if (iran > 13) iran++;
+  //int ii = iran % 3;
+  //int jj = (iran/3) % 3;
+  //int kk = iran / 9;
+  //return lattice[i-1+ii][j-1+jj][k-1+kk];
 
-  int ii = iran % 3;
-  int jj = (iran/3) % 3;
-  int kk = iran / 9;
+  // event = random unique neighbor spin
+  // not yet implemented
 
-  return lattice[i-1+ii][j-1+jj][k-1+kk];
-}
+  // accept or reject via Boltzmann criterion
 
-/* ----------------------------------------------------------------------
-   add this neighbor spin to set of possible new spins
-------------------------------------------------------------------------- */
+  if (efinal <= einitial) {
+  } else if (temperature == 0.0) {
+    lattice[i][j][k] = oldstate;
+  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
+    lattice[i][j][k] = oldstate;
+  }
 
-void AppPotts3d26n::survey_neighbor(const int& ik, const int& jk, int& ns, int spins[], int nspins[]) const {
-  int *spnt = spins;
-  bool Lfound;
-
-  Lfound = false;
-  while (spnt < spins+ns) {
-    if (jk == *spnt++) {
-      Lfound = true;
-      break;
+  if (Lmask) {
+    if (einitial < 3.0) mask[i][j][k] = 1;
+    if (lattice[i][j][k] != oldstate) {
+      int ii,jj,kk;
+      for (ii = i-1; ii <= i+1; ii++)
+	for (jj = j-1; jj <= j+1; jj++)
+	  for (kk = k-1; kk <= k+1; kk++)
+	    mask[ii][jj][kk] = 0;
     }
   }
-
-  if (Lfound) {
-    // If found, increment counter 
-    nspins[spnt-spins-1]++;
-  } else {
-    // If not found, create new survey entry
-    spins[ns] = jk;
-    nspins[ns] = 1;
-    ns++;
-  }
-
 }
 
 /* ----------------------------------------------------------------------
-   compute total propensity of owned site
-   based on einitial,efinal for each possible event
+   compute total propensity of owned site summed over possible events
+   propensity for one event is based on einitial,efinal
    if no energy change, propensity = 1
    if downhill energy change, propensity = 1
-   if uphill energy change, propensity set via Boltzmann factor
-   if proc owns full domain, update ghost values before computing propensity
+   if uphill energy change, propensity = Boltzmann factor
 ------------------------------------------------------------------------- */
 
-double AppPotts3d26n::site_propensity(int i, int j, int k, int full)
+double AppPotts3d26n::site_propensity(int i, int j, int k)
 {
-  if (full) site_update_ghosts(i,j,k);
+  // possible events = spin flips to neighboring site different than self
 
-  // loop over possible events
-  // only consider spin flips to neighboring site values different from self
-
+  int sites[27];
   int oldstate = lattice[i][j][k];
-  int ii,jj,kk,newstate;
+  int nevent = 0;
+
+  int ii,jj,kk;
+  for (ii = i-1; ii <= i+1; ii++)
+    for (jj = j-1; jj <= j+1; jj++)
+      for (kk = k-1; kk <= k+1; kk++)
+	add_unique(oldstate,nevent,sites,ii,jj,kk);
+
+  // for each possible flip:
+  // compute energy difference between initial and final state
+  // sum to prob for all events on this site
+
   double einitial = site_energy(i,j,k);
   double efinal;
   double prob = 0.0;
 
-  // Data for each possible new spin
-  // nspins no longer used, as it is recalculated by site_energy(),
-  // which is somewhat wasteful, but more general.
-
-  int ns, spins[26],nspins[26],ik,jk;
-  ns = 0;
-
-  for (ii = i-1; ii <= i+1; ii++)
-    for (jj = j-1; jj <= j+1; jj++)
-      for (kk = k-1; kk <= k+1; kk++) {
-	newstate = lattice[ii][jj][kk];
-	if (newstate == oldstate) continue;
-	survey_neighbor(oldstate,newstate,ns,spins,nspins);
-      }
-
-  // Use survey to compute overall propensity
-  
-  for (int is=0;is<ns;is++) {
-    lattice[i][j][k] = spins[is];
+  for (int m = 0; m < nevent; m++) {
+    lattice[i][j][k] = sites[m];
     efinal = site_energy(i,j,k);
     if (efinal <= einitial) prob += 1.0;
     else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
@@ -204,126 +184,64 @@ double AppPotts3d26n::site_propensity(int i, int j, int k, int full)
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
-   if proc owns full domain, neighbor sites may be across PBC
-   if proc owns sector, ignore neighbor sites outside sector
+   if proc owns full domain, adjust neighbor sites indices for PBC
+   if proc owns sector, ignore non-updated neighbors (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppPotts3d26n::site_event(int i, int j, int k, int full)
+void AppPotts3d26n::site_event(int i, int j, int k,
+			      int full, RandomPark *random)
 {
-  int ii,jj,kk,iloop,jloop,kloop,isite,flag,sites[27];
-
-  // pick one event from total propensity and set spin to that value
+  // pick one event from total propensity
 
   double threshhold = random->uniform() * propensity[ijk2site[i][j][k]];
 
+  // possible events = spin flips to neighboring site different than self
+  // find one event by accumulating its probability
+  // compare prob to threshhold, break when reach it to select event
+
+  int sites[27];
   int oldstate = lattice[i][j][k];
-  int newstate;
+  int nevent = 0;
+
+  int ii,jj,kk;
+  for (ii = i-1; ii <= i+1; ii++)
+    for (jj = j-1; jj <= j+1; jj++)
+      for (kk = k-1; kk <= k+1; kk++)
+	add_unique(oldstate,nevent,sites,ii,jj,kk);
+
   double einitial = site_energy(i,j,k);
   double efinal;
   double prob = 0.0;
 
-  // Data for each possible new spin
-  // nspins no longer used, as it is recalculated by site_energy(),
-  // which is somewhat wasteful, but more general.
-
-  int ns, spins[26],nspins[26];
-  ns = 0;
-
-  for (ii = i-1; ii <= i+1; ii++)
-    for (jj = j-1; jj <= j+1; jj++)
-      for (kk = k-1; kk <= k+1; kk++) {
-	newstate = lattice[ii][jj][kk];
-	if (newstate == oldstate) continue;
-	survey_neighbor(oldstate,newstate,ns,spins,nspins);
-      }
-
-  // Use survey to pick new spin
-  
-  for (int is=0;is<ns;is++) {
-    lattice[i][j][k] = spins[is];
+  for (int m = 0; m < nevent; m++) {
+    lattice[i][j][k] = sites[m];
     efinal = site_energy(i,j,k);
     if (efinal <= einitial) prob += 1.0;
     else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
-    if (prob >= threshhold) goto done;
+    if (prob >= threshhold) break;
   }
 
- done:
+  if (full) update_ghost_sites(i,j,k);
 
   // compute propensity changes for self and neighbor sites
 
+  int iloop,jloop,kloop,isite;
+
   int nsites = 0;
 
-  for (iloop = i-1; iloop <= i+1; iloop++)
-    for (jloop = j-1; jloop <= j+1; jloop++)
-      for (kloop = k-1; kloop <= k+1; kloop++) {
+  for (iloop = i-2; iloop <= i+2; iloop++)
+    for (jloop = j-2; jloop <= j+2; jloop++)
+      for (kloop = k-2; kloop <= k+2; kloop++) {
 	ii = iloop; jj = jloop; kk = kloop;
-	flag = 1;
 	if (full) ijkpbc(ii,jj,kk);
-	else if (ii < nx_sector_lo || ii > nx_sector_hi || 
-		 jj < ny_sector_lo || jj > ny_sector_hi ||
-		 kk < nz_sector_lo || kk > nz_sector_hi) flag = 0;
-	if (flag) {
-	  isite = ijk2site[ii][jj][kk];
+	isite = ijk2site[ii][jj][kk];
+	if (isite >= 0) {
 	  sites[nsites++] = isite;
-	  propensity[isite] = site_propensity(ii,jj,kk,full);
+	  propensity[isite] = site_propensity(ii,jj,kk);
 	}
       }
-	
+
   solve->update(nsites,sites,propensity);
-}
-
-/* ----------------------------------------------------------------------
-   update neighbors of site if neighbors are ghost cells
-   called by site_propensity() when single proc owns entire domain
-------------------------------------------------------------------------- */
-
-void AppPotts3d26n::site_update_ghosts(int i, int j, int k)
-{
-  int ii,jj,kk;
-
-  if (i == 1) {
-    for (jj = j-1; jj <= j+1; jj++)
-      for (kk = k-1; kk <= k+1; kk++)
-	lattice[i-1][jj][kk] = lattice[nx_local][jj][kk];
-  }
-  if (i == nx_local) {
-    for (jj = j-1; jj <= j+1; jj++)
-      for (kk = k-1; kk <= k+1; kk++)
-	lattice[i+1][jj][kk] = lattice[1][jj][kk];
-  }
-  if (j == 1) {
-    for (ii = i-1; ii <= i+1; ii++)
-      for (kk = k-1; kk <= k+1; kk++)
-	lattice[ii][j-1][kk] = lattice[ii][ny_local][kk];
-  }
-  if (j == ny_local) {
-    for (ii = i-1; ii <= i+1; ii++)
-      for (kk = k-1; kk <= k+1; kk++)
-	lattice[ii][j+1][kk] = lattice[ii][1][kk];
-  }
-  if (k == 1) {
-    for (ii = i-1; ii <= i+1; ii++)
-      for (jj = j-1; jj <= j+1; jj++)
-	lattice[ii][jj][k-1] = lattice[ii][jj][nz_local];
-  }
-  if (k == nz_local) {
-    for (ii = i-1; ii <= i+1; ii++)
-      for (jj = j-1; jj <= j+1; jj++)
-	lattice[ii][jj][k+1] = lattice[ii][jj][1];
-  }
-}
-
-/* ----------------------------------------------------------------------
-  clear mask values of site and its neighbors
-------------------------------------------------------------------------- */
-
-void AppPotts3d26n::site_clear_mask(char ***mask, int i, int j, int k)
-{
-  int ii,jj,kk;
-  for (ii = i-1; ii <= i+1; ii++)
-    for (jj = j-1; jj <= j+1; jj++)
-      for (kk = k-1; kk <= k+1; kk++)
-	mask[ii][jj][kk] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -333,7 +251,9 @@ void AppPotts3d26n::site_clear_mask(char ***mask, int i, int j, int k)
    previously burned sites are masked by id > 0
  ------------------------------------------------------------------------- */
 
-void AppPotts3d26n::push_connected_neighbors(int i, int j, int k, int*** cluster_ids, int id, std::stack<int>* cluststack)
+void AppPotts3d26n::push_connected_neighbors(int i, int j, int k, 
+					     int*** cluster_ids, int id, 
+					     std::stack<int>* cluststack)
 {
   int iii,jjj,kkk;
 
@@ -357,7 +277,9 @@ void AppPotts3d26n::push_connected_neighbors(int i, int j, int k, int*** cluster
    Add cluster id of connected ghost sites to neighbor list of cluster
  ------------------------------------------------------------------------- */
 
-void AppPotts3d26n::connected_ghosts(int i, int j, int k, int*** cluster_ids, Cluster* clustlist, int idoffset)
+void AppPotts3d26n::connected_ghosts(int i, int j, int k, 
+				     int*** cluster_ids, Cluster* clustlist, 
+				     int idoffset)
 {
   int iclust;
 

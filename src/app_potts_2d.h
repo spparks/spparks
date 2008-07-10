@@ -17,7 +17,7 @@ class AppPotts2d : public AppLattice2d {
 
  protected:
   int nspins;
-  char * spinfile;
+  char *spinfile;
 };
 
 }

@@ -28,7 +28,7 @@ AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) :
 
   if (narg < 2) error->all("Illegal app_style ising command");
 
-  seed = atoi(arg[1]);
+  int seed = atoi(arg[1]);
   random = new RandomPark(seed);
 
   options(narg-2,&arg[2]);
@@ -62,7 +62,6 @@ AppIsing::~AppIsing()
 {
   delete random;
   delete [] sites;
-  delete comm;
 }
 
 /* ----------------------------------------------------------------------
@@ -79,38 +78,59 @@ double AppIsing::site_energy(int i)
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site
+   perform a site event with rejection
+   if site cannot change, set mask
+   if site changes, unset mask of neighbor sites with affected propensity
 ------------------------------------------------------------------------- */
 
-void AppIsing::site_pick_random(int i, double ran)
+void AppIsing::site_event_rejection(int i, RandomPark *random)
 {
-  if (ran < 0.5) lattice[i] = 1;
+  int oldstate = lattice[i];
+  double einitial = site_energy(i);
+
+  // event = random up or down spin
+
+  if (random->uniform() < 0.5) lattice[i] = 1;
   else lattice[i] = 2;
+  double efinal = site_energy(i);
+
+  // event = random neighbor spin
+
+  //int iran = (int) (numneigh[i]*random->uniform());
+  //if (iran >= numneigh[i]) iran = numneigh[i] - 1;
+  //lattice[i] = lattice[neighbor[i][iran]];
+
+  // event = random unique neighbor spin
+  // not yet implemented
+
+  // accept or reject via Boltzmann criterion
+
+  if (efinal <= einitial) {
+  } else if (temperature == 0.0) {
+    lattice[i] = oldstate;
+  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
+    lattice[i] = oldstate;
+  }
+
+  if (Lmask) {
+    if (einitial < 0.5*numneigh[i]) mask[i] = 1;
+    if (lattice[i] != oldstate)
+      for (int j = 0; j < numneigh[i]; j++)
+	mask[neighbor[i][j]] = 0;
+  }
 }
 
 /* ----------------------------------------------------------------------
-   randomly pick new state for site from neighbor values
-------------------------------------------------------------------------- */
-
-void AppIsing::site_pick_local(int i, double ran)
-{
-  int iran = (int) (numneigh[i]*ran);
-  if (iran >= numneigh[i]) iran = numneigh[i] - 1;
-  lattice[i] = lattice[neighbor[i][iran]];
-}
-
-/* ----------------------------------------------------------------------
-   compute total propensity of owned site
-   based on einitial,efinal for each possible event
+   compute total propensity of owned site summed over possible events
+   propensity for one event is based on einitial,efinal
    if no energy change, propensity = 1
    if downhill energy change, propensity = 1
-   if uphill energy change, propensity set via Boltzmann factor
-   if proc owns full domain, there are no ghosts, so ignore full flag
+   if uphill energy change, propensity = Boltzmann factor
 ------------------------------------------------------------------------- */
 
-double AppIsing::site_propensity(int i, int full)
+double AppIsing::site_propensity(int i)
 {
-  // only event is a spin flip
+  // event = spin flip
 
   int oldstate = lattice[i];
   int newstate = 1;
@@ -131,44 +151,32 @@ double AppIsing::site_propensity(int i, int full)
 /* ----------------------------------------------------------------------
    choose and perform an event for site
    update propensities of all affected sites
-   if proc owns full domain, there are no ghosts, so ignore full flag
-   if proc owns sector, ignore neighbor sites that are ghosts
+   ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppIsing::site_event(int i, int full)
+void AppIsing::site_event(int i, RandomPark *random)
 {
-  int j,m,isite;
-
-  // only event is a spin flip
+  // event = spin flip
 
   if (lattice[i] == 1) lattice[i] = 2;
   else lattice[i] = 1;
 
   // compute propensity changes for self and neighbor sites
 
+  int j,m,isite;
+
   int nsites = 0;
   isite = i2site[i];
   sites[nsites++] = isite;
-  propensity[isite] = site_propensity(i,full);
+  propensity[isite] = site_propensity(i);
 
   for (j = 0; j < numneigh[i]; j++) {
     m = neighbor[i][j];
     isite = i2site[m];
     if (isite < 0) continue;
     sites[nsites++] = isite;
-    propensity[isite] = site_propensity(m,full);
+    propensity[isite] = site_propensity(m);
   }
 
   solve->update(nsites,sites,propensity);
-}
-
-/* ----------------------------------------------------------------------
-  clear mask values of site and its neighbors
-  OK to clear ghost site mask values
-------------------------------------------------------------------------- */
-
-void AppIsing::site_clear_mask(char *mask, int i)
-{
-  mask[i] = 0;
-  for (int j = 0; j < numneigh[i]; j++) mask[neighbor[i][j]] = 0;
 }
