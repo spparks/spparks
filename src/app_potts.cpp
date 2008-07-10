@@ -28,8 +28,8 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
 
   if (narg < 3) error->all("Illegal app_style potts command");
 
-  int seed = atoi(arg[1]);
-  nspins = atoi(arg[2]);
+  nspins = atoi(arg[1]);
+  int seed = atoi(arg[2]);
   random = new RandomPark(seed);
 
   options(narg-3,&arg[3]);

@@ -187,7 +187,7 @@ void SweepLattice2d::init()
     memory->destroy_2d_T_array(sector[isector].ij2site);
     memory->sfree(sector[isector].propensity);
     memory->sfree(sector[isector].sites);
-    memory->destroy_2d_T_array(sector[i].border);
+    memory->destroy_2d_T_array(sector[isector].border);
     sector[isector].solve = NULL;
     sector[isector].propensity = NULL;
     sector[isector].site2ij = NULL;
