@@ -109,21 +109,376 @@ from multiple places in the code.
 </H4>
 <DL>
 
-<DT><I>Dihedral problem: %d %d %d %d %d %d</I> 
+<DT><I>All universe/uloop variables must have same # of values</I> 
 
-<DD>Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry. 
+<DD>Self-explanatory. 
+
+<DT><I>All variables in next command must be same style</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Another input script is already being processed</I> 
+
+<DD>Cannot attempt to open a 2nd input script, when the original file is
+still being processed. 
+
+<DT><I>Arccos of invalid value in variable formula</I> 
+
+<DD>Argument of arccos() must be between -1 and 1. 
+
+<DT><I>Arcsin of invalid value in variable formula</I> 
+
+<DD>Argument of arcsin() must be between -1 and 1. 
+
+<DT><I>Bad connectivity result</I> 
+
+<DD>Internal SPPARKS error.  Should not occur. 
+
+<DT><I>Cannot open diag_style cluster dump file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open diag_style cluster output file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open diag_style cluster2d dump file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open diag_style cluster2d output file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open diag_style cluster3d dump file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open diag_style cluster3d output file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open diag_style energy output file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open diag_style energy2d output file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open diag_style energy3d output file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open diag_style eprof3d output file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open dump file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open file %s</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open input script %s</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open log.spparks</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open logfile %s</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open logfile</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open screen file</I> 
+
+<DD>The screen file specified as a command-line argument cannot be
+opened.  Check that the directory you are running in allows for files
+to be created. 
+
+<DT><I>Cannot open universe log file</I> 
+
+<DD>For a multi-partition run, the master log file cannot be opened.
+Check that the directory you are running in allows for files to be
+created. 
+
+<DT><I>Cannot open universe screen file</I> 
+
+<DD>For a multi-partition run, the master screen file cannot be opened.
+Check that the directory you are running in allows for files to be
+created. 
+
+<DT><I>Cannot redefine variable as a different style</I> 
+
+<DD>An equal-style variable can be re-defined but only if it was
+originally an equal-style variable. 
+
+<DT><I>Cannot use solver in parallel</I> 
+
+<DD>A KMC solver cannot be used in parallel without a sweep style
+being defined. 
+
+<DT><I>Cannot use solver with non-KMC sweeper</I> 
+
+<DD>Can only use a KMC solver with a sweep style that invokes the KMC
+option. 
+
+<DT><I>Combination of sweep flags is unsupported</I> 
+
+<DD>This particular combination of sweeping flags is not yet supported. 
+
+<DT><I>Command used before app_style set</I> 
+
+<DD>A command is assumed to be application-specific, but is used
+before the app_style command defines the application. 
+
+<DT><I>Connectivity not defined for this AppLattice child class</I> 
+
+<DD>Cannot use a diagnostic that requires connectivity for an application
+derived from AppLattice2d or AppLattice3d. 
+
+<DT><I>Divide by 0 in variable formula</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Failed to allocate %ld bytes for array %s</I> 
+
+<DD>Your SPPARKS simulation has run out of memory.  You need to run a
+smaller simulation or on more processors. 
+
+<DT><I>Failed to reallocate %ld bytes for array %s</I> 
+
+<DD>Your SPPARKS simulation has run out of memory.  You need to run a
+smaller simulation or on more processors. 
+
+<DT><I>Ghost connection was not found</I> 
+
+<DD>Internal SPPARKS error.  Should not occur. 
+
+<DT><I>Ghost site was not found</I> 
+
+<DD>Internal SPPARKS error.  Should not occur. 
+
+<DT><I>Illegal ... command</I> 
+
+<DD>Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line. 
+
+<DT><I>Input line too long: %s</I> 
+
+<DD>This is a hard (very large) limit defined in the input.cpp file. 
+
+<DT><I>Invalid app style</I> 
+
+<DD>Application style is not recognized. 
+
+<DT><I>Invalid command-line argument</I> 
+
+<DD>One or more command-line arguments is invalid.  Check the syntax of
+the command you are using to launch SPPARKS. 
+
+<DT><I>Invalid diag style</I> 
+
+<DD>Diagnostic style is not recognized. 
+
+<DT><I>Invalid math function in variable formula</I> 
+
+<DD>The math function is not recognized. 
+
+<DT><I>Invalid site specification in app_style potts/variable</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Invalid solve style</I> 
+
+<DD>Solver style is not recognized. 
+
+<DT><I>Invalid sweep style</I> 
+
+<DD>Sweeper style is not recognized. 
+
+<DT><I>Invalid syntax in variable formula</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid variable evaluation in variable formula</I> 
+
+<DD>A variable used in a formula could not be evaluated. 
+
+<DT><I>Invalid variable in next command</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid variable name in variable formula</I> 
+
+<DD>Variable name is not recognized. 
+
+<DT><I>Invalid variable name</I> 
+
+<DD>Variable name used in an input script line is invalid. 
+
+<DT><I>Invalid variable style with next command</I> 
+
+<DD>Variable styles <I>equal</I> and <I>world</I> cannot be used in a next
+command. 
+
+<DT><I>Invalid volume setting</I> 
+
+<DD>Volume must be set to value > 0. 
+
+<DT><I>Label wasn't found in input script</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Lattice app needs a solver or sweeper</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Lattice per proc is too small</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Log of zero/negative in variable formula</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Mismatch in counting for dbufclust</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Mismatched sweeper with app lattice</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>More than 1st neighbor comm not yet supported by AppLattice</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Must define solver with KMC sweeper</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Must use -in switch with multiple partitions</I> 
+
+<DD>A multi-partition simulation cannot read the input script from stdin.
+The -in command-line option must be used to specify a file. 
+
+<DT><I>No reactions defined for chemistry app</I> 
+
+<DD>Use the add_reaction command to specify one or more reactions. 
+
+<DT><I>No solver class defined</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Power by 0 in variable formula</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Processor partitions are inconsistent</I> 
+
+<DD>The total number of processors in all partitions must match the number
+of processors LAMMPS is running on. 
+
+<DT><I>Random lattice has no connectivity</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Reaction ID %s already exists</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Reaction cannot have more than MAX_PRODUCT products</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Reaction has no numeric rate</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Reaction must have 0,1,2 reactants</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Reverse comm not yet supported by AppLattice</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Species ID %s already exists</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Species ID %s does not exist</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Sqrt of negative in variable formula</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Unbalanced quotes in input line</I> 
+
+<DD>No matching end double quote was found following a leading double
+quote. 
+
+<DT><I>Unexpected end of lattice file</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Unexpected end of lattice spin file</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Unexpected value in spin file</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>Universe/uloop variable count < # of partitions</I> 
+
+<DD>A universe or uloop style variable must specify a number of values >= to the
+number of processor partitions. 
+
+<DT><I>Unknown command: %s</I> 
+
+<DD>The command is not known to SPPARKS.  Check the input script. 
+
+<DT><I>Unknown species in reaction command</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Unrecognized command</I> 
+
+<DD>The command is assumed to be application specific, but is not
+known to SPPARKS.  Check the input script. 
+
+<DT><I>Variable name must be alphanumeric or underscore characters</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Vertices read from file incorrectly</I> 
+
+<DD>** ADD TEXT 
+
+<DT><I>World variable count doesn't match # of partitions</I> 
+
+<DD>A world-style variable must specify a number of values equal to the
+number of processor partitions. 
 
 
 </DL>
 <H4><A NAME = "warn"></A>Warnings: 
 </H4>
 <DL>
-
-<DT><I>Dihedral problem: %d %d %d %d %d %d</I> 
-
-<DD>Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry. 
 
 
 </DL>

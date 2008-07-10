@@ -106,20 +106,375 @@ Errors: :h4,link(error)
 
 :dlb
 
-{Dihedral problem: %d %d %d %d %d %d} :dt
+{All universe/uloop variables must have same # of values} :dt
 
-Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry. :dd
+Self-explanatory. :dd
+
+{All variables in next command must be same style} :dt
+
+Self-explanatory. :dd
+
+{Another input script is already being processed} :dt
+
+Cannot attempt to open a 2nd input script, when the original file is
+still being processed. :dd
+
+{Arccos of invalid value in variable formula} :dt
+
+Argument of arccos() must be between -1 and 1. :dd
+
+{Arcsin of invalid value in variable formula} :dt
+
+Argument of arcsin() must be between -1 and 1. :dd
+
+{Bad connectivity result} :dt
+
+Internal SPPARKS error.  Should not occur. :dd
+
+{Cannot open diag_style cluster dump file} :dt
+
+Self-explanatory. :dd
+
+{Cannot open diag_style cluster output file} :dt
+
+Self-explanatory. :dd
+
+{Cannot open diag_style cluster2d dump file} :dt
+
+Self-explanatory. :dd
+
+{Cannot open diag_style cluster2d output file} :dt
+
+Self-explanatory. :dd
+
+{Cannot open diag_style cluster3d dump file} :dt
+
+Self-explanatory. :dd
+
+{Cannot open diag_style cluster3d output file} :dt
+
+Self-explanatory. :dd
+
+{Cannot open diag_style energy output file} :dt
+
+Self-explanatory. :dd
+
+{Cannot open diag_style energy2d output file} :dt
+
+Self-explanatory. :dd
+
+{Cannot open diag_style energy3d output file} :dt
+
+Self-explanatory. :dd
+
+{Cannot open diag_style eprof3d output file} :dt
+
+Self-explanatory. :dd
+
+{Cannot open dump file} :dt
+
+Self-explanatory. :dd
+
+{Cannot open file %s} :dt
+
+Self-explanatory. :dd
+
+{Cannot open input script %s} :dt
+
+Self-explanatory. :dd
+
+{Cannot open log.spparks} :dt
+
+Self-explanatory. :dd
+
+{Cannot open logfile %s} :dt
+
+Self-explanatory. :dd
+
+{Cannot open logfile} :dt
+
+Self-explanatory. :dd
+
+{Cannot open screen file} :dt
+
+The screen file specified as a command-line argument cannot be
+opened.  Check that the directory you are running in allows for files
+to be created. :dd
+
+{Cannot open universe log file} :dt
+
+For a multi-partition run, the master log file cannot be opened.
+Check that the directory you are running in allows for files to be
+created. :dd
+
+{Cannot open universe screen file} :dt
+
+For a multi-partition run, the master screen file cannot be opened.
+Check that the directory you are running in allows for files to be
+created. :dd
+
+{Cannot redefine variable as a different style} :dt
+
+An equal-style variable can be re-defined but only if it was
+originally an equal-style variable. :dd
+
+{Cannot use solver in parallel} :dt
+
+A KMC solver cannot be used in parallel without a sweep style
+being defined. :dd
+
+{Cannot use solver with non-KMC sweeper} :dt
+
+Can only use a KMC solver with a sweep style that invokes the KMC
+option. :dd
+
+{Combination of sweep flags is unsupported} :dt
+
+This particular combination of sweeping flags is not yet supported. :dd
+
+{Command used before app_style set} :dt
+
+A command is assumed to be application-specific, but is used
+before the app_style command defines the application. :dd
+
+{Connectivity not defined for this AppLattice child class} :dt
+
+Cannot use a diagnostic that requires connectivity for an application
+derived from AppLattice2d or AppLattice3d. :dd
+
+{Divide by 0 in variable formula} :dt
+
+Self-explanatory. :dd
+
+{Failed to allocate %ld bytes for array %s} :dt
+
+Your SPPARKS simulation has run out of memory.  You need to run a
+smaller simulation or on more processors. :dd
+
+{Failed to reallocate %ld bytes for array %s} :dt
+
+Your SPPARKS simulation has run out of memory.  You need to run a
+smaller simulation or on more processors. :dd
+
+{Ghost connection was not found} :dt
+
+Internal SPPARKS error.  Should not occur. :dd
+
+{Ghost site was not found} :dt
+
+Internal SPPARKS error.  Should not occur. :dd
+
+{Illegal ... command} :dt
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line. :dd
+
+{Input line too long: %s} :dt
+
+This is a hard (very large) limit defined in the input.cpp file. :dd
+
+{Invalid app style} :dt
+
+Application style is not recognized. :dd
+
+{Invalid command-line argument} :dt
+
+One or more command-line arguments is invalid.  Check the syntax of
+the command you are using to launch SPPARKS. :dd
+
+{Invalid diag style} :dt
+
+Diagnostic style is not recognized. :dd
+
+{Invalid math function in variable formula} :dt
+
+The math function is not recognized. :dd
+
+{Invalid site specification in app_style potts/variable} :dt
+
+** ADD TEXT :dd
+
+{Invalid solve style} :dt
+
+Solver style is not recognized. :dd
+
+{Invalid sweep style} :dt
+
+Sweeper style is not recognized. :dd
+
+{Invalid syntax in variable formula} :dt
+
+Self-explanatory. :dd
+
+{Invalid variable evaluation in variable formula} :dt
+
+A variable used in a formula could not be evaluated. :dd
+
+{Invalid variable in next command} :dt
+
+Self-explanatory. :dd
+
+{Invalid variable name in variable formula} :dt
+
+Variable name is not recognized. :dd
+
+{Invalid variable name} :dt
+
+Variable name used in an input script line is invalid. :dd
+
+{Invalid variable style with next command} :dt
+
+Variable styles {equal} and {world} cannot be used in a next
+command. :dd
+
+{Invalid volume setting} :dt
+
+Volume must be set to value > 0. :dd
+
+{Label wasn't found in input script} :dt
+
+Self-explanatory. :dd
+
+{Lattice app needs a solver or sweeper} :dt
+
+** ADD TEXT :dd
+
+{Lattice per proc is too small} :dt
+
+** ADD TEXT :dd
+
+{Log of zero/negative in variable formula} :dt
+
+Self-explanatory. :dd
+
+{Mismatch in counting for dbufclust} :dt
+
+** ADD TEXT :dd
+
+{Mismatched sweeper with app lattice} :dt
+
+** ADD TEXT :dd
+
+{More than 1st neighbor comm not yet supported by AppLattice} :dt
+
+** ADD TEXT :dd
+
+{Must define solver with KMC sweeper} :dt
+
+** ADD TEXT :dd
+
+{Must use -in switch with multiple partitions} :dt
+
+A multi-partition simulation cannot read the input script from stdin.
+The -in command-line option must be used to specify a file. :dd
+
+{No reactions defined for chemistry app} :dt
+
+Use the add_reaction command to specify one or more reactions. :dd
+
+{No solver class defined} :dt
+
+** ADD TEXT :dd
+
+{Power by 0 in variable formula} :dt
+
+Self-explanatory. :dd
+
+{Processor partitions are inconsistent} :dt
+
+The total number of processors in all partitions must match the number
+of processors LAMMPS is running on. :dd
+
+{Random lattice has no connectivity} :dt
+
+** ADD TEXT :dd
+
+{Reaction ID %s already exists} :dt
+
+** ADD TEXT :dd
+
+{Reaction cannot have more than MAX_PRODUCT products} :dt
+
+** ADD TEXT :dd
+
+{Reaction has no numeric rate} :dt
+
+** ADD TEXT :dd
+
+{Reaction must have 0,1,2 reactants} :dt
+
+** ADD TEXT :dd
+
+{Reverse comm not yet supported by AppLattice} :dt
+
+** ADD TEXT :dd
+
+{Species ID %s already exists} :dt
+
+** ADD TEXT :dd
+
+{Species ID %s does not exist} :dt
+
+** ADD TEXT :dd
+
+{Sqrt of negative in variable formula} :dt
+
+Self-explanatory. :dd
+
+{Unbalanced quotes in input line} :dt
+
+No matching end double quote was found following a leading double
+quote. :dd
+
+{Unexpected end of lattice file} :dt
+
+** ADD TEXT :dd
+
+{Unexpected end of lattice spin file} :dt
+
+** ADD TEXT :dd
+
+{Unexpected value in spin file} :dt
+
+** ADD TEXT :dd
+
+{Universe/uloop variable count < # of partitions} :dt
+
+A universe or uloop style variable must specify a number of values >= to the
+number of processor partitions. :dd
+
+{Unknown command: %s} :dt
+
+The command is not known to SPPARKS.  Check the input script. :dd
+
+{Unknown species in reaction command} :dt
+
+Self-explanatory. :dd
+
+{Unrecognized command} :dt
+
+The command is assumed to be application specific, but is not
+known to SPPARKS.  Check the input script. :dd
+
+{Variable name must be alphanumeric or underscore characters} :dt
+
+Self-explanatory. :dd
+
+{Vertices read from file incorrectly} :dt
+
+** ADD TEXT :dd
+
+{World variable count doesn't match # of partitions} :dt
+
+A world-style variable must specify a number of values equal to the
+number of processor partitions. :dd
 
 :dle
 
 Warnings: :h4,link(warn)
 
 :dlb
-
-{Dihedral problem: %d %d %d %d %d %d} :dt
-
-Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry. :dd
 
 :dle

@@ -6,61 +6,79 @@
 
 :line
 
-app_style command :h3
+solve_style command :h3
 
 [Syntax:]
 
-app_style style args :pre
+solve_style style args :pre
 
-style = application style name
-args = args :ul
+style = {linear} or {tree} or {group}
+{linear} args = seed
+  seed = random number seed (positive integer)
+{tree} args = seed
+  seed = random number seed (positive integer)
+{group} args = lo hi (ngroups) seed 
+  lo,hi = range of propensities
+  ngroups = # of groups to use (optional parameter)
+  seed = random number seed (positive integer)
 
 [Examples:]
 
-app_style ising 100 100
-app_style potts 1000 1000 4 :pre
+solve_style linear seed
+solve_style tree seed
+solve_style group lo hi seed
+solve_style group lo hi ngroups seed :pre
 
 [Description:]
 
-solve_style linear seed
-solve_style tree seed
-solve_style alias seed
-solve_style group lo hi seed
-solve_style group lo hi ngroups seed
-solve_style gppt seed
+Choose a kinetic Monte Carlo (KMC) solver to use in your
+"application"_app_style.html.  If no "sweeper"_sweep_style.html is
+used then a solver is required.  If a sweeper with the KMC option is
+used, then a solver is also required.
 
-seed = RN seed
-lo,hi = range of propensities
-ngroups = 0 (or not listed), use logarithmic scaling
-ngroups > 1, use this number of groups
+A KMC solver picks events for your application to perform from a list
+of events and their associated probabilities.  It does this using the
+standard "Gillespie"_#Gillespie or "BKL"_#BKL algorithm which also
+computes a timestep for the chosen event to occur at.  The only
+difference between the various solver styles are their speed and
+scalability as a function of the number of events they choose from.
+The linear solver may be suitable for simulations with few events; the
+tree or group solver should be used for larger simulations.
 
-update of sites owned by a processor via a KMC algorithm
-  which chooses events and associated timesteps randomly
-used when running a non lattice app (chemistry, surf, test)
-  can only run on 1 processor
-if used with a lattice app (ising, potts, membrane, migration)
-  and no sweep style is set
-    can only run on 1 processor
-    entire domain is treated via KMC
-if used with a lattice app and a sweep style is set
-  if running on 1 processor, domain is partitioned into sectors
-    KMC is run on each and periodic boundaries are updated after each event
-  if running in parallel, each proc's sub-domain is partitioned into sectors
-    KMC is run on each and boundaries are updated between sectors
-    this is an approximate parallel KMC algorithm
+The {linear} style chooses an event by scanning the list of events in
+a linear fashion.  Hence the cost to pick an event scales as O(N),
+where N is the number of events to choose from.
 
-style linear chooses the next event in linear, cost = O(N)
-  update of propensities is O(1)
-style tree chooses the next event from a binary tree, cost = O(NlogN)
-  update of propensities is also O(NlogN)
-style alias does what?
-style group does what?
-style gppt does what?
+The {tree} style chooses an event by creating a binary tree of
+probabilities and their sums, as in the "Gibson/Bruck"_#Gibson
+implementation of the Gillespie algorithm.  It's cost to pick an
+event scales as O(logN).
+
+The {group} style chooses an event using the composition and rejection
+(CR) algorithm described originally in "Devries"_#Devries and
+described concisely in "Slepoy"_#Slepoy.  It's cost to pick an event
+scales as O(1) as it is a constant time algorithm.  It requires that
+you bound the lo and hi probabilities for any event.  By default, if
+no {ngroups} arg is listed or it is specified as 0, then the number of
+groups between lo and hi, then the group boundaries cascade in powers
+of 2 from lo to hi.  I.e. the first group is from lo to 2*lo, the
+second group is from 2*lo to 4*lo, etc.  Note that for hi/lo = 1.0e6,
+there would be about 20 groups.
 
 [Restrictions:] none
 
 [Related commands:]
 
-"variable"_variable.html, ...
+"app_style"_app_style.html, "sweep_style"_sweep_style.html
 
 [Default:] none
+
+:line
+
+Gillespie
+
+BKL
+
+Devries
+
+Slepoy

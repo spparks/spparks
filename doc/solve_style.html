@@ -9,63 +9,81 @@
 
 <HR>
 
-<H3>app_style command 
+<H3>solve_style command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style args 
+<PRE>solve_style style args 
 </PRE>
-<UL><LI>style = application style name
-<LI>args = args 
-</UL>
+<P>style = <I>linear</I> or <I>tree</I> or <I>group</I>
+<I>linear</I> args = seed
+  seed = random number seed (positive integer)
+<I>tree</I> args = seed
+  seed = random number seed (positive integer)
+<I>group</I> args = lo hi (ngroups) seed 
+  lo,hi = range of propensities
+  ngroups = # of groups to use (optional parameter)
+  seed = random number seed (positive integer)
+</P>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 100 100
-app_style potts 1000 1000 4 
+<PRE>solve_style linear seed
+solve_style tree seed
+solve_style group lo hi seed
+solve_style group lo hi ngroups seed 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>solve_style linear seed
-solve_style tree seed
-solve_style alias seed
-solve_style group lo hi seed
-solve_style group lo hi ngroups seed
-solve_style gppt seed
+<P>Choose a kinetic Monte Carlo (KMC) solver to use in your
+<A HREF = "app_style.html">application</A>.  If no <A HREF = "sweep_style.html">sweeper</A> is
+used then a solver is required.  If a sweeper with the KMC option is
+used, then a solver is also required.
 </P>
-<P>seed = RN seed
-lo,hi = range of propensities
-ngroups = 0 (or not listed), use logarithmic scaling
-ngroups > 1, use this number of groups
+<P>A KMC solver picks events for your application to perform from a list
+of events and their associated probabilities.  It does this using the
+standard <A HREF = "#Gillespie">Gillespie</A> or <A HREF = "#BKL">BKL</A> algorithm which also
+computes a timestep for the chosen event to occur at.  The only
+difference between the various solver styles are their speed and
+scalability as a function of the number of events they choose from.
+The linear solver may be suitable for simulations with few events; the
+tree or group solver should be used for larger simulations.
 </P>
-<P>update of sites owned by a processor via a KMC algorithm
-  which chooses events and associated timesteps randomly
-used when running a non lattice app (chemistry, surf, test)
-  can only run on 1 processor
-if used with a lattice app (ising, potts, membrane, migration)
-  and no sweep style is set
-    can only run on 1 processor
-    entire domain is treated via KMC
-if used with a lattice app and a sweep style is set
-  if running on 1 processor, domain is partitioned into sectors
-    KMC is run on each and periodic boundaries are updated after each event
-  if running in parallel, each proc's sub-domain is partitioned into sectors
-    KMC is run on each and boundaries are updated between sectors
-    this is an approximate parallel KMC algorithm
+<P>The <I>linear</I> style chooses an event by scanning the list of events in
+a linear fashion.  Hence the cost to pick an event scales as O(N),
+where N is the number of events to choose from.
 </P>
-<P>style linear chooses the next event in linear, cost = O(N)
-  update of propensities is O(1)
-style tree chooses the next event from a binary tree, cost = O(NlogN)
-  update of propensities is also O(NlogN)
-style alias does what?
-style group does what?
-style gppt does what?
+<P>The <I>tree</I> style chooses an event by creating a binary tree of
+probabilities and their sums, as in the <A HREF = "#Gibson">Gibson/Bruck</A>
+implementation of the Gillespie algorithm.  It's cost to pick an
+event scales as O(logN).
+</P>
+<P>The <I>group</I> style chooses an event using the composition and rejection
+(CR) algorithm described originally in <A HREF = "#Devries">Devries</A> and
+described concisely in <A HREF = "#Slepoy">Slepoy</A>.  It's cost to pick an event
+scales as O(1) as it is a constant time algorithm.  It requires that
+you bound the lo and hi probabilities for any event.  By default, if
+no <I>ngroups</I> arg is listed or it is specified as 0, then the number of
+groups between lo and hi, then the group boundaries cascade in powers
+of 2 from lo to hi.  I.e. the first group is from lo to 2*lo, the
+second group is from 2*lo to 4*lo, etc.  Note that for hi/lo = 1.0e6,
+there would be about 20 groups.
 </P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "variable.html">variable</A>, ...
+<P><A HREF = "app_style.html">app_style</A>, <A HREF = "sweep_style.html">sweep_style</A>
 </P>
 <P><B>Default:</B> none
+</P>
+<HR>
+
+<P>Gillespie
+</P>
+<P>BKL
+</P>
+<P>Devries
+</P>
+<P>Slepoy
 </P>
 </HTML>
