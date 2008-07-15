@@ -163,14 +163,14 @@ void AppIsing::site_event(int i, RandomPark *random)
 
   // compute propensity changes for self and neighbor sites
 
-  int j,m,isite;
+  int m;
 
   int nsites = 0;
-  isite = i2site[i];
+  int isite = i2site[i];
   sites[nsites++] = isite;
   propensity[isite] = site_propensity(i);
 
-  for (j = 0; j < numneigh[i]; j++) {
+  for (int j = 0; j < numneigh[i]; j++) {
     m = neighbor[i][j];
     isite = i2site[m];
     if (isite < 0) continue;

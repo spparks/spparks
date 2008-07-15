@@ -94,7 +94,7 @@ class AppLattice : public App {
   int nbasis;                  // basis atoms for regular lattices
   int ***cmap;                 // connectivity map for regular lattices
 
-  struct Ghost {
+  struct Site {
     int id,proc,index;
     double x,y,z;
   };
@@ -122,8 +122,9 @@ class AppLattice : public App {
   void structured_lattice();
   void random_lattice();
   void file_lattice();
+
   void ghosts_from_connectivity();
-  void ghosts_within_cutoff();
+  void connectivity_within_cutoff();
 
   void iterate();
   void stats(char *);

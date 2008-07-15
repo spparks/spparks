@@ -206,10 +206,8 @@ void AppPotts::site_event(int i, RandomPark *random)
 
   // compute propensity changes for self and neighbor sites
 
-  int isite;
-
   int nsites = 0;
-  isite = i2site[i];
+  int isite = i2site[i];
   sites[nsites++] = isite;
   propensity[isite] = site_propensity(i);
 

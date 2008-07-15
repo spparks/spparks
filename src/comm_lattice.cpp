@@ -194,23 +194,23 @@ CommLattice::Swap *CommLattice::create_swap_sector(int nsites, int *site2i)
   int *numneigh = applattice->numneigh;
   int **neighbor = applattice->neighbor;
 
-  // flag sites with 0 that are not in sector
-  // flag sites with 1 that are in sector
+  // flag sites with -1 that are not in sector
+  // flag sites with 0 that are in sector
 
   int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"comm:flag");
-  for (i = 0; i < ntotal; i++) flag[i] = 0;
-  for (m = 0; m < nsites; m++) flag[site2i[m]] = 1;
+  for (i = 0; i < ntotal; i++) flag[i] = -1;
+  for (m = 0; m < nsites; m++) flag[site2i[m]] = 0;
 
-  // flag ghost sites with 1
-  // that have owned sector neighbor up to delpropensity away
+  // flag ghost sites this sector needs with positive integer
+  // they have owned sector neighbor up to delpropensity away
   // assumes ghost sites up to delpropensity-1 have a neighbor list
 
   for (int ilayer = 0; ilayer < applattice->delpropensity; ilayer++) {
     for (i = 0; i < ntotal; i++) {
-      if (flag[i] == 0) continue;
+      if (flag[i] != ilayer) continue;
       for (j = 0; j < numneigh[i]; j++) {
 	if (neighbor[i][j] < nlocal) continue;
-	flag[neighbor[i][j]] = 1;
+	flag[neighbor[i][j]] = ilayer+1;
       }
     }
   }
@@ -222,12 +222,14 @@ CommLattice::Swap *CommLattice::create_swap_sector(int nsites, int *site2i)
   int nsite = 0;
 
   for (i = nlocal; i < ntotal; i++) {
-    if (flag[i] == 0) continue;
+    if (flag[i] <= 0) continue;
     buf[nsite].id_global = id[i];
     buf[nsite].index_local = i;
     buf[nsite].proc = -1;
     nsite++;
   }
+
+  memory->sfree(flag);
 
   // grow buf to size of max sites on any proc
 
@@ -267,23 +269,23 @@ CommLattice::Swap *CommLattice::create_swap_sector_reverse(int nsites,
   int *numneigh = applattice->numneigh;
   int **neighbor = applattice->neighbor;
 
-  // flag sites with 0 that are not in sector
-  // flag sites with 1 that are in sector
+  // flag sites with -1 that are not in sector
+  // flag sites with 0 that are in sector
 
   int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"comm:flag");
-  for (i = 0; i < ntotal; i++) flag[i] = 0;
-  for (m = 0; m < nsites; m++) flag[site2i[m]] = 1;
+  for (i = 0; i < ntotal; i++) flag[i] = -1;
+  for (m = 0; m < nsites; m++) flag[site2i[m]] = 0;
 
-  // flag ghost sites with 1
+  // flag ghost sites with positive 
   // that have owned sector neighbor up to delevent away
   // assumes ghost sites up to delevent-1 have a neighbor list
 
   for (int ilayer = 0; ilayer < applattice->delevent; ilayer++) {
     for (i = 0; i < ntotal; i++) {
-      if (flag[i] == 0) continue;
+      if (flag[i] != ilayer) continue;
       for (j = 0; j < numneigh[i]; j++) {
 	if (neighbor[i][j] < nlocal) continue;
-	flag[neighbor[i][j]] = 1;
+	flag[neighbor[i][j]] = ilayer+1;
       }
     }
   }
@@ -295,12 +297,14 @@ CommLattice::Swap *CommLattice::create_swap_sector_reverse(int nsites,
   int nsite = 0;
 
   for (i = nlocal; i < ntotal; i++) {
-    if (flag[i] == 0) continue;
+    if (flag[i] <= 0) continue;
     buf[nsite].id_global = id[i];
     buf[nsite].index_local = i;
     buf[nsite].proc = owner[i];
     nsite++;
   }
+
+  memory->sfree(flag);
 
   // grow buf to size of max sites on any proc
 
@@ -437,7 +441,7 @@ void CommLattice::create_send_from_recv(int nsite, int maxsite,
 
   // clean up
 
-  delete [] bufcopy;
+  memory->sfree(bufcopy);
 
   // fill in swap data structure
 
@@ -641,7 +645,7 @@ void CommLattice::create_recv_from_send(int nsite, int maxsite,
 
   // clean up
 
-  delete [] bufcopy;
+  memory->sfree(bufcopy);
 
   // fill in swap data struct
 

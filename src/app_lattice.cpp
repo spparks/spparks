@@ -203,14 +203,14 @@ void AppLattice::create_lattice()
       latstyle == SC_6N || latstyle == SC_26N || 
       latstyle == FCC || latstyle == BCC || latstyle == DIAMOND) {
     structured_lattice();
-    ghosts_from_connectivity();
   } else if (latstyle == RANDOM_2D || latstyle == RANDOM_3D) {
     random_lattice();
-    ghosts_within_cutoff();
+    connectivity_within_cutoff();
   } else if (latstyle == FILENAME) {
     file_lattice();
-    ghosts_from_connectivity();
   }
+
+  ghosts_from_connectivity();
 
   if (sitecustom == 0)
     lattice =
@@ -703,149 +703,17 @@ void AppLattice::file_lattice()
 }
 
 /* ----------------------------------------------------------------------
-   global connectivity for each owned site is known
-   convert to local indices and add ghost sites
+   inferred connectivity from geometric neighbors within cutoff distance
  ------------------------------------------------------------------------- */
 
-void AppLattice::ghosts_from_connectivity()
-{
-  int i,j,k,m,size;
-
-  // put all owned sites in a map
-  // key = global ID, value = local index
-
-  std::map<int,int>::iterator loc;
-  std::map<int,int> hash;
-  for (i = 0; i < nlocal; i++)
-    hash.insert(std::pair<int,int> (id[i],i));
-
-  // for all neighbors of owned sites:
-  // check if I own neighbor or it's already in ghost list
-  // if neither, add it to ghost list and to map
-
-  int maxghost = 0;
-  Ghost *buf = NULL;
-  nghost = 0;
-
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < numneigh[i]; j++) {
-      m = neighbor[i][j];
-      if (hash.find(m) == hash.end()) {
-	if (nghost == maxghost) {
-	  maxghost += DELTA;
-	  buf = (Ghost *) 
-	    memory->srealloc(buf,maxghost*sizeof(Ghost),"app:buf");
-	}
-	buf[nghost].id = m;
-	buf[nghost].proc = -1;
-	hash.insert(std::pair<int,int> (m,nlocal+nghost));
-	nghost++;
-      }
-    }
-  }
-
-  // setup ring of procs
-
-  int next = me + 1;
-  int prev = me -1; 
-  if (next == nprocs) next = 0;
-  if (prev < 0) prev = nprocs - 1;
-
-  // maxghost = max ghosts on any proc
-
-  int maxsize;
-  MPI_Allreduce(&nghost,&maxsize,1,MPI_INT,MPI_MAX,world);
-
-  buf = (Ghost *) memory->srealloc(buf,maxsize*sizeof(Ghost),"app:buf");
-  Ghost *bufcopy = (Ghost *) 
-    memory->smalloc(maxsize*sizeof(Ghost),"app:bufcopy");
-
-  // cycle ghost list around ring of procs back to self
-  // when receive it, fill in info for any sites I own
-  // info = me as owning proc, my local index, xyz coords
-
-  MPI_Request request;
-  MPI_Status status;
-
-  size = nghost;
-
-  for (int loop = 0; loop < nprocs; loop++) {
-    if (me != next) {
-      MPI_Irecv(bufcopy,maxsize*sizeof(Ghost),MPI_CHAR,prev,0,world,&request);
-      MPI_Send(buf,size*sizeof(Ghost),MPI_CHAR,next,0,world);
-      MPI_Wait(&request,&status);
-      MPI_Get_count(&status,MPI_CHAR,&size);
-      size /= sizeof(Ghost);
-      memcpy(buf,bufcopy,size*sizeof(Ghost));
-    }
-    for (i = 0; i < size; i++) {
-      if (buf[i].proc >= 0) continue;
-      loc = hash.find(buf[i].id);
-      if (loc != hash.end() && loc->second < nlocal) {
-	buf[i].proc = me;
-	buf[i].index = loc->second;
-	buf[i].x = xyz[loc->second][0];
-	buf[i].y = xyz[loc->second][1];
-	buf[i].z = xyz[loc->second][2];
-      }
-    }
-  }
-
-  // reallocate site arrays so can append ghost info
-
-  id = (int *) memory->srealloc(id,(nlocal+nghost)*sizeof(int),
-				"app:id");
-  owner = (int *) memory->srealloc(owner,(nlocal+nghost)*sizeof(int),
-				   "app:owner");
-  index = (int *) memory->srealloc(index,(nlocal+nghost)*sizeof(int),
-				   "app:index");
-  memory->grow_2d_T_array(xyz,nlocal+nghost,3,"app:xyz");
-  
-  // original ghost list came back to me around ring
-  // extract info for my ghost sites
-  // error if any site is not filled in
-
-  for (i = 0; i < nghost; i++) {
-    if (buf[i].proc == -1) error->one("Ghost site was not found");
-    j = nlocal + i;
-    id[j] = buf[i].id;
-    owner[j] = buf[i].proc;
-    index[j] = buf[i].index;
-    xyz[j][0] = buf[i].x;
-    xyz[j][1] = buf[i].y;
-    xyz[j][2] = buf[i].z;
-  }
-
-  // convert all my neighbor connections to local indices
-
-  for (i = 0; i < nlocal; i++)
-    for (j = 0; j < numneigh[i]; j++) {
-      m = neighbor[i][j];
-      loc = hash.find(m);
-      if (loc == hash.end()) error->one("Ghost connection was not found");
-      neighbor[i][j] = loc->second;
-    }
-
-  // clean up
-
-  memory->sfree(buf);
-  memory->sfree(bufcopy);
-}
-
-/* ----------------------------------------------------------------------
-   global connectivity for each owned site is not known
-   inferred from cutoff distance
-   need to find neighbors, create local connectivity and identify ghost sites
- ------------------------------------------------------------------------- */
-
-void AppLattice::ghosts_within_cutoff()
+void AppLattice::connectivity_within_cutoff()
 {
   int i,j;
 
-  // put all owned sites within cutoff of sub-box face into buf
+  // put all owned sites within cutoff of subdomain face into buf
 
   int maxbuf = 0;
-  Ghost *bufsend = NULL;
+  Site *bufsend = NULL;
   int nsend = 0;
 
   for (i = 0; i < nlocal; i++) {
@@ -854,12 +722,11 @@ void AppLattice::ghosts_within_cutoff()
 	xyz[i][2] - subzlo <= cutoff || subzhi - xyz[i][2] <= cutoff) {
       if (nsend == maxbuf) {
 	maxbuf += DELTA;
-	bufsend = (Ghost *) 
-	  memory->srealloc(bufsend,maxbuf*sizeof(Ghost),"app:bufsend");
+	bufsend = (Site *) 
+	  memory->srealloc(bufsend,maxbuf*sizeof(Site),"app:bufsend");
       }
       bufsend[nsend].id = id[i];
       bufsend[nsend].proc = me;
-      bufsend[nsend].index = i;
       bufsend[nsend].x = xyz[i][0];
       bufsend[nsend].y = xyz[i][1];
       bufsend[nsend].z = xyz[i][2];
@@ -879,10 +746,10 @@ void AppLattice::ghosts_within_cutoff()
   int maxsize;
   MPI_Allreduce(&nsend,&maxsize,1,MPI_INT,MPI_MAX,world);
 
-  bufsend = (Ghost *) 
-    memory->srealloc(bufsend,maxsize*sizeof(Ghost),"app:bufsend");
-  Ghost *bufcopy = (Ghost *) 
-    memory->smalloc(maxsize*sizeof(Ghost),"app:bufcopy");
+  bufsend = (Site *) 
+    memory->srealloc(bufsend,maxsize*sizeof(Site),"app:bufsend");
+  Site *bufcopy = (Site *) 
+    memory->smalloc(maxsize*sizeof(Site),"app:bufcopy");
 
   // cycle send list around ring of procs back to self
   // when receive it, extract any sites within cutoff of my sub-box
@@ -896,7 +763,7 @@ void AppLattice::ghosts_within_cutoff()
   MPI_Status status;
 
   maxbuf = 0;
-  Ghost *bufrecv = NULL;
+  Site *bufrecv = NULL;
   int nrecv = 0;
 
   int flag;
@@ -905,12 +772,12 @@ void AppLattice::ghosts_within_cutoff()
 
   for (int loop = 0; loop < nprocs-1; loop++) {
     if (me != next) {
-      MPI_Irecv(bufcopy,maxsize*sizeof(Ghost),MPI_CHAR,prev,0,world,&request);
-      MPI_Send(bufsend,size*sizeof(Ghost),MPI_CHAR,next,0,world);
+      MPI_Irecv(bufcopy,maxsize*sizeof(Site),MPI_CHAR,prev,0,world,&request);
+      MPI_Send(bufsend,size*sizeof(Site),MPI_CHAR,next,0,world);
       MPI_Wait(&request,&status);
       MPI_Get_count(&status,MPI_CHAR,&size);
-      size /= sizeof(Ghost);
-      memcpy(bufsend,bufcopy,size*sizeof(Ghost));
+      size /= sizeof(Site);
+      memcpy(bufsend,bufcopy,size*sizeof(Site));
     }
     for (i = 0; i < size; i++) {
       coord = bufsend[i].x;
@@ -942,12 +809,11 @@ void AppLattice::ghosts_within_cutoff()
 
       if (nrecv == maxbuf) {
 	maxbuf += DELTA;
-	bufrecv = (Ghost *) memory->srealloc(bufrecv,maxbuf*sizeof(Ghost),
+	bufrecv = (Site *) memory->srealloc(bufrecv,maxbuf*sizeof(Site),
 					     "app:bufrecv");
       }
       bufrecv[nrecv].id = bufsend[i].id;
       bufrecv[nrecv].proc = bufsend[i].proc;
-      bufrecv[nrecv].index = bufsend[i].index;
       bufrecv[nrecv].x = bufsend[i].x;
       bufrecv[nrecv].y = bufsend[i].y;
       bufrecv[nrecv].z = bufsend[i].z;
@@ -956,16 +822,13 @@ void AppLattice::ghosts_within_cutoff()
   }
 
   // count max neighbors thru expensive N^2 loop
-  // NOTE: would be faster to bin my owned + ghost sites
-  // loop over owned sites and received sites (possible ghosts)
-  // each time a received site is within cutoff, it becomes a ghost site
-  // increment ghost count if ghost ID not in hash
+  // 1st loop over owned sites
+  // 2nd loop over owned sites and received sites
+  // NOTE: would be faster to bin owned + received sites
+  // each time a neighbor is found within cutoff with PBC, increment numneigh
 
   numneigh = (int *) memory->smalloc(nlocal*sizeof(int),"app:numneigh");
   for (i = 0; i < nlocal; i++) numneigh[i] = 0;
-
-  nghost = 0;
-  std::map<int,int> hash;
 
   double dx,dy,dz,rsq;
   double cutsq = cutoff*cutoff;
@@ -1007,27 +870,11 @@ void AppLattice::ghosts_within_cutoff()
       }
 
       rsq = dx*dx + dy*dy + dz*dz;
-      if (rsq < cutsq) {
-	numneigh[i]++;
-	if (hash.find(bufrecv[j].id) == hash.end()) {
-	  hash.insert(std::pair<int,int> (bufrecv[j].id,0));
-	  nghost++;
-	}
-      }
+      if (rsq < cutsq) numneigh[i]++;
     }
   }
 
-  // reallocate site arrays so can append ghost info
-
-  id = (int *) memory->srealloc(id,(nlocal+nghost)*sizeof(int),
-				"app:id");
-  owner = (int *) memory->srealloc(owner,(nlocal+nghost)*sizeof(int),
-				   "app:id");
-  index = (int *) memory->srealloc(index,(nlocal+nghost)*sizeof(int),
-				   "app:id");
-  memory->grow_2d_T_array(xyz,nlocal+nghost,3,"app:xyz");
-
-  // allocate arrays to store lattice connectivity
+  // allocate neighbor array to store connectivity
 
   int tmp = 0;
   for (i = 0; i < nlocal; i++) tmp = MAX(tmp,numneigh[i]);
@@ -1036,16 +883,13 @@ void AppLattice::ghosts_within_cutoff()
 
   memory->create_2d_T_array(neighbor,nlocal,maxneigh,"app:neighbor");
 
-  // generate site connectivity thru expensive N^2 loop
-  // NOTE: would be faster to bin my owned + ghost sites
-  // loop over owned sites and received sites (possible ghosts)
-  // each time a received site is within cutoff, it becomes a ghost site
-  // increment ghost count if ghost ID not in hash
+  // generate neighbor connectivity thru same expensive N^2 loop
+  // 1st loop over owned sites
+  // 2nd loop over owned sites and received sites
+  // NOTE: would be faster to bin owned + received sites
+  // each time a neighbor is found within cutoff with PBC, increment numneigh
 
   for (i = 0; i < nlocal; i++) numneigh[i] = 0;
-
-  nghost = 0;
-  hash.clear();
 
   for (i = 0; i < nlocal; i++) {
     for (j = i+1; j < nlocal; j++) {
@@ -1084,20 +928,7 @@ void AppLattice::ghosts_within_cutoff()
       }
 
       rsq = dx*dx + dy*dy + dz*dz;
-      if (rsq < cutsq) {
-	neighbor[i][numneigh[i]++] = j;
-	if (hash.find(bufrecv[j].id) == hash.end()) {
-	  hash.insert(std::pair<int,int> (bufrecv[j].id,0));
-
-	  id[nlocal+nghost] = bufrecv[j].id;
-	  owner[nlocal+nghost] = bufrecv[j].proc;
-	  index[nlocal+nghost] = bufrecv[j].index;
-	  xyz[nlocal+nghost][0] = bufrecv[j].x;
-	  xyz[nlocal+nghost][1] = bufrecv[j].y;
-	  xyz[nlocal+nghost][2] = bufrecv[j].z;
-	  nghost++;
-	}
-      }
+      if (rsq < cutsq) neighbor[i][numneigh[i]++] = j;
     }
   }
 
@@ -1106,6 +937,181 @@ void AppLattice::ghosts_within_cutoff()
   memory->sfree(bufsend);
   memory->sfree(bufcopy);
   memory->sfree(bufrecv);
+}
+
+/* ----------------------------------------------------------------------
+   create ghosts sites around local sub-domain
+   global neighbor IDs of each owned site are known
+   add ghost sites for delpropensity layers
+   convert neighbor IDs to local indices
+ ------------------------------------------------------------------------- */
+
+void AppLattice::ghosts_from_connectivity()
+{
+  int i,j,k,m,idrecv,proc;
+  std::map<int,int>::iterator loc;
+  std::map<int,int> hash;
+
+  // nchunk = size of one site datum circulated in message
+
+  int nchunk = 7 + maxneigh;
+
+  // setup ring of procs
+
+  int next = me + 1;
+  int prev = me -1; 
+  if (next == nprocs) next = 0;
+  if (prev < 0) prev = nprocs - 1;
+
+  // loop over delpropensity layers to build up layers of ghosts
+
+  int npreviousghost;
+  nghost = 0;
+
+  for (int ilayer = 0; ilayer < delpropensity; ilayer++) {
+
+    // put all sites (owned + current ghosts) in hash
+    // key = global ID, value = local index
+
+    hash.clear();
+    for (i = 0; i < nlocal+nghost; i++)
+      hash.insert(std::pair<int,int> (id[i],i));
+
+    // make a list of sites I need
+    // loop over neighbors of owned + current ghost sites
+    // check if site is already an owned or ghost site or already in list
+    // if not, add it to new site list and to hash
+
+    double *buf = NULL;
+    int nbuf = 0;
+    int maxbuf = 0;
+    int nsite = 0;
+
+    for (i = 0; i < nlocal+nghost; i++) {
+      for (j = 0; j < numneigh[i]; j++) {
+	m = neighbor[i][j];
+	if (hash.find(m) == hash.end()) {
+	  if (nbuf + nchunk >= maxbuf) {
+	    maxbuf += DELTA;
+	    buf = (double *) 
+	      memory->srealloc(buf,maxbuf*sizeof(double),"app:buf");
+	  }
+	  buf[nbuf] = m;
+	  buf[nbuf+1] = -1;
+	  nbuf += nchunk;
+	  hash.insert(std::pair<int,int> (m,nlocal+nghost+nsite));
+	  nsite++;
+	}
+      }
+    }
+
+    // maxsize = max buf size on any proc
+
+    int maxsize;
+    MPI_Allreduce(&nbuf,&maxsize,1,MPI_INT,MPI_MAX,world);
+
+    buf = (double *) memory->srealloc(buf,maxsize*sizeof(double),"app:buf");
+    double *bufcopy = (double *) 
+      memory->smalloc(maxsize*sizeof(double),"app:bufcopy");
+
+    // cycle site list around ring of procs back to self
+    // when receive it, fill in info for any sites I own
+    // info = proc, local index, xyz, numneigh, list of global neighbor IDs
+    
+    MPI_Request request;
+    MPI_Status status;
+    
+    int size = nbuf;
+
+    for (int loop = 0; loop < nprocs; loop++) {
+      if (me != next) {
+	MPI_Irecv(bufcopy,maxsize,MPI_DOUBLE,prev,0,world,&request);
+	MPI_Send(buf,size,MPI_DOUBLE,next,0,world);
+	MPI_Wait(&request,&status);
+	MPI_Get_count(&status,MPI_DOUBLE,&size);
+	nsite = size / nchunk;
+	memcpy(buf,bufcopy,size*sizeof(double));
+      }
+      for (int i = 0; i < nsite; i++) {
+	m = i * nchunk;
+	idrecv = static_cast<int> (buf[m++]);
+	proc = static_cast<int> (buf[m++]);
+	if (proc >= 0) continue;
+	loc = hash.find(idrecv);
+	if (loc == hash.end() || loc->second >= nlocal) continue;
+
+	j = loc->second;
+	buf[m-1] = me;
+	buf[m++] = j;
+	buf[m++] = xyz[j][0];
+	buf[m++] = xyz[j][1];
+	buf[m++] = xyz[j][2];
+	if (ilayer != delpropensity-1) {
+	  buf[m++] = numneigh[j];
+	  for (k = 0; k < numneigh[j]; k++)
+	    buf[m++] = neighbor[j][k];
+	}
+      }
+    }
+
+    // reallocate site arrays so can append next layer of ghosts
+
+    npreviousghost = nghost;
+    nghost += nsite;
+
+    id = (int *) memory->srealloc(id,(nlocal+nghost)*sizeof(int),
+				  "app:id");
+    owner = (int *) memory->srealloc(owner,(nlocal+nghost)*sizeof(int),
+				     "app:owner");
+    index = (int *) memory->srealloc(index,(nlocal+nghost)*sizeof(int),
+				     "app:index");
+    memory->grow_2d_T_array(xyz,nlocal+nghost,3,"app:xyz");
+
+    if (ilayer != delpropensity-1) {
+      numneigh = (int *) memory->srealloc(numneigh,(nlocal+nghost)*sizeof(int),
+					  "app:numneigh");
+      memory->grow_2d_T_array(neighbor,nlocal+nghost,maxneigh,"app:neighbor");
+    }
+
+    // original site list came back to me around ring
+    // extract info for my new layer of ghost sites
+    // error if any site is not filled in
+
+    for (i = 0; i < nsite; i++) {
+      m = i * nchunk;
+      idrecv = static_cast<int> (buf[m++]);
+      proc = static_cast<int> (buf[m++]);
+      if (proc < 0) error->one("Ghost site was not found");
+
+      j = nlocal + npreviousghost + i;
+      id[j] = idrecv;
+      owner[j] = proc;
+      index[j] = static_cast<int> (buf[m++]);
+      xyz[j][0] = buf[m++];
+      xyz[j][1] = buf[m++];
+      xyz[j][2] = buf[m++];
+      if (ilayer != delpropensity-1) {
+	numneigh[j] = static_cast<int> (buf[m++]);
+	for (k = 0; k < numneigh[j]; k++)
+	  neighbor[j][k] = static_cast<int> (buf[m++]);
+      }
+    }
+
+    // clean up
+
+    memory->sfree(buf);
+    memory->sfree(bufcopy);
+  }
+
+  // convert all my neighbor connections to local indices
+
+  for (i = 0; i < nlocal+npreviousghost; i++)
+    for (j = 0; j < numneigh[i]; j++) {
+      m = neighbor[i][j];
+      loc = hash.find(m);
+      if (loc == hash.end()) error->one("Ghost connection was not found");
+      neighbor[i][j] = loc->second;
+    }
 }
 
 /* ---------------------------------------------------------------------- */
