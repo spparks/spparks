@@ -15,14 +15,14 @@ class CommLattice : protected SysPtr {
  public:
   CommLattice(class SPPARKS *);
   ~CommLattice();
-  void init(class SweepLattice *, const int, const int, int *);
+  void init(class SweepLattice *, int, int, int *);
   void all();
   void sector(int);
-  void reverse_sector(int) {}
+  void reverse_sector(int);
 
  private:
   int me,nprocs;
-  int delghost,dellocal; // thickness of ghost and local communication layers 
+  int delghost,delreverse;
 
   struct Swap {
     int nsend,nrecv;               // number of messages to send/recv
@@ -42,13 +42,16 @@ class CommLattice : protected SysPtr {
     MPI_Status *status;
   };
 
+  struct Site {
+    int id_global;
+    int index_local;
+    int proc;
+  };
+
   Swap *allswap;
   Swap **sectorswap;
+  Swap **reverseswap;
   int nsector;
-
-  struct Ghost {
-    int id_global,index_local,proc;
-  };
 
   int sitecustom;
   int ninteger,ndouble;
@@ -56,8 +59,16 @@ class CommLattice : protected SysPtr {
   int **iarray;
   double **darray;
 
-  Swap *create_swap(int, int *, int, int *, int *, int **);
+  Swap *create_swap_all();
+  Swap *create_swap_sector(int, int *);
+  Swap *create_swap_sector_reverse(int, int *);
   void free_swap(Swap *);
+
+  void create_send_from_list(int, Site *, Swap *);
+  void create_send_from_recv(int, int, Site *, Swap *);
+  void create_recv_from_send(int, int, Site *, Swap *);
+  void create_recv_from_list(int, Site *, Swap *);
+
   void perform_swap_lattice(Swap *);
   void perform_swap_int(Swap *);
   void perform_swap_double(Swap *);

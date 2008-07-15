@@ -33,6 +33,7 @@ CommLattice::CommLattice(SPPARKS *spk) : SysPtr(spk)
 
   allswap = NULL;
   sectorswap = NULL;
+  reverseswap = NULL;
   nsector = 0;
 }
 
@@ -43,61 +44,57 @@ CommLattice::~CommLattice()
   if (allswap) free_swap(allswap);
   for (int i = 0; i < nsector; i++) free_swap(sectorswap[i]);
   delete [] sectorswap;
+  if (reverseswap) {
+    for (int i = 0; i < nsector; i++) free_swap(reverseswap[i]);
+    delete [] reverseswap;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void CommLattice::init(SweepLattice *sweep,
-		       const int delghost_in, const int dellocal_in, 
-		       int* lattice_in)
+void CommLattice::init(SweepLattice *sweep, int delpropensity, int delevent,
+		       int *array) 
 {
-  delghost = delghost_in;
-  dellocal = dellocal_in;
-
-  if (delghost > 1)
-    error->all("More than 1st neighbor comm not yet supported by AppLattice");
-  if (dellocal)
-    error->all("Reverse comm not yet supported by AppLattice");
+  delghost = delpropensity;
+  delreverse = delevent;
 
   AppLattice *applattice = (AppLattice *) app;
+
+  sitecustom = applattice->sitecustom;
   ninteger = applattice->ninteger;
   ndouble = applattice->ndouble;
-  if (lattice_in) {
-    lattice = lattice_in;
-    sitecustom = applattice->sitecustom;
-  } else {
-    lattice = applattice->lattice;
-    sitecustom = 0;
-  }
 
+  if (array) lattice = array;
+  else lattice = applattice->lattice;
   iarray = applattice->iarray;
   darray = applattice->darray;
-
-  int dimension = applattice->dimension;
-  int nlocal = applattice->nlocal;
-  int *id = applattice->id;
-  int *numneigh = applattice->numneigh;
-  int **neighbor = applattice->neighbor;
 
   if (allswap) free_swap(allswap);
   for (int i = 0; i < nsector; i++) free_swap(sectorswap[i]);
   delete [] sectorswap;
 
-  allswap = create_swap(nlocal,NULL,nlocal,id,numneigh,neighbor);
+  allswap = create_swap_all();
 
   if (sweep) {
-    if (dimension == 2) nsector = 4;
+    if (applattice->dimension == 2) nsector = 4;
     else nsector = 8;
     sectorswap = new Swap*[nsector];
     for (int i = 0; i < nsector; i++)
-      sectorswap[i] = create_swap(sweep->sector[i].nlocal,
-				  sweep->sector[i].site2i,
-				  nlocal,id,numneigh,neighbor);
+      sectorswap[i] = create_swap_sector(sweep->sector[i].nlocal,
+					 sweep->sector[i].site2i);
+  }
+  if (delreverse && sweep) {
+    if (applattice->dimension == 2) nsector = 4;
+    else nsector = 8;
+    reverseswap = new Swap*[nsector];
+    for (int i = 0; i < nsector; i++)
+      reverseswap[i] = create_swap_sector_reverse(sweep->sector[i].nlocal,
+						  sweep->sector[i].site2i);
   }
 }
 
 /* ----------------------------------------------------------------------
-   communicate ghost values for one sector
+   acquire ghost values for one sector
 ------------------------------------------------------------------------- */
 
 void CommLattice::sector(const int isector)
@@ -106,6 +103,19 @@ void CommLattice::sector(const int isector)
   else if (ninteger && !ndouble) perform_swap_int(sectorswap[isector]);
   else if (ndouble && !ninteger) perform_swap_double(sectorswap[isector]);
   else perform_swap_general(sectorswap[isector]);
+}
+
+/* ----------------------------------------------------------------------
+   reverse communicate changed border values for one sector
+------------------------------------------------------------------------- */
+
+void CommLattice::reverse_sector(const int isector)
+{
+  if (delreverse == 0) return;
+  if (sitecustom == 0) perform_swap_lattice(reverseswap[isector]);
+  else if (ninteger && !ndouble) perform_swap_int(reverseswap[isector]);
+  else if (ndouble && !ninteger) perform_swap_double(reverseswap[isector]);
+  else perform_swap_general(reverseswap[isector]);
 }
 
 /* ----------------------------------------------------------------------
@@ -122,51 +132,219 @@ void CommLattice::all()
 
 /* ----------------------------------------------------------------------
    create a Swap communication pattern
+   acquire ghost sites for my entire subdomain
 ------------------------------------------------------------------------- */
 
-CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
-					    int nlocal, int *id,
-					    int *numneigh, int **neighbor)
+CommLattice::Swap *CommLattice::create_swap_all()
 {
-  int i,j,k,m,size,original_proc,isend,irecv;
+  int i;
+
+  AppLattice *applattice = (AppLattice *) app;
+  int nlocal = applattice->nlocal;
+  int ntotal = nlocal + applattice->nghost;
+
+  int *id = applattice->id;
+
+  // buf = list of global IDs I need to receive
+
+  Site *buf = (Site *) memory->smalloc(applattice->nghost*sizeof(Site),
+				       "comm:buf");
+  int nsite = 0;
+
+  for (i = nlocal; i < ntotal; i++) {
+    buf[nsite].id_global = id[i];
+    buf[nsite].index_local = i;
+    buf[nsite].proc = -1;
+    nsite++;
+  }
+
+  // grow buf to size of max ghosts on any proc
+
+  int maxsite;
+  MPI_Allreduce(&nsite,&maxsite,1,MPI_INT,MPI_MAX,world);
+
+  buf = (Site *) memory->srealloc(buf,maxsite*sizeof(Site),"comm:buf");
+
+  // create swap based on list of recvs
 
   Swap *swap = new Swap;
 
-  // loop over all neighbors of sites in site2i list
-  // if site2i is NULL, then nsites = nlocal and loop over all owned sites
-  // if I don't own neighbor and not already in ghost list,
-  // add it to ghost list and to map
+  create_send_from_recv(nsite,maxsite,buf,swap);
+  create_recv_from_list(nsite,buf,swap);
 
-  std::map<int,int>::iterator loc;
-  std::map<int,int> hash;
-  Ghost *buf = NULL;
-  int maxghost = 0;
-  int nghost = 0;
+  memory->sfree(buf);
 
-  for (m = 0; m < nsites; m++) {
-    if (site2i) i = site2i[m];
-    else i = m;
-    for (j = 0; j < numneigh[i]; j++) {
-      k = neighbor[i][j];
-      if (k < nlocal) continue;
-      if (hash.find(k) == hash.end()) {
-	if (nghost == maxghost) {
-	  maxghost += DELTA;
-	  buf = (Ghost *) 
-	    memory->srealloc(buf,maxghost*sizeof(Ghost),"comm:buf");
-	}
-	buf[nghost].id_global = id[k];
-	buf[nghost].index_local = k;
-	buf[nghost].proc = -1;
-	hash.insert(std::pair<int,int> (k,0));
-	nghost++;
+  return swap;
+}
+
+/* ----------------------------------------------------------------------
+   create a Swap communication pattern
+   acquire ghost sites for a single sector of my subdomain
+------------------------------------------------------------------------- */
+
+CommLattice::Swap *CommLattice::create_swap_sector(int nsites, int *site2i)
+{
+  int i,j,m;
+
+  AppLattice *applattice = (AppLattice *) app;
+  int nlocal = applattice->nlocal;
+  int ntotal = nlocal + applattice->nghost;
+
+  int *id = applattice->id;
+  int *numneigh = applattice->numneigh;
+  int **neighbor = applattice->neighbor;
+
+  // flag sites with 0 that are not in sector
+  // flag sites with 1 that are in sector
+
+  int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"comm:flag");
+  for (i = 0; i < ntotal; i++) flag[i] = 0;
+  for (m = 0; m < nsites; m++) flag[site2i[m]] = 1;
+
+  // flag ghost sites with 1
+  // that have owned sector neighbor up to delpropensity away
+  // assumes ghost sites up to delpropensity-1 have a neighbor list
+
+  for (int ilayer = 0; ilayer < applattice->delpropensity; ilayer++) {
+    for (i = 0; i < ntotal; i++) {
+      if (flag[i] == 0) continue;
+      for (j = 0; j < numneigh[i]; j++) {
+	if (neighbor[i][j] < nlocal) continue;
+	flag[neighbor[i][j]] = 1;
       }
     }
   }
 
-  // clear hash and put my entire list of owned lattice IDs in it
+  // buf = list of global IDs I need to receive
 
-  hash.clear();
+  Site *buf = (Site *) memory->smalloc(applattice->nghost*sizeof(Site),
+				       "comm:buf");
+  int nsite = 0;
+
+  for (i = nlocal; i < ntotal; i++) {
+    if (flag[i] == 0) continue;
+    buf[nsite].id_global = id[i];
+    buf[nsite].index_local = i;
+    buf[nsite].proc = -1;
+    nsite++;
+  }
+
+  // grow buf to size of max sites on any proc
+
+  int maxsite;
+  MPI_Allreduce(&nsite,&maxsite,1,MPI_INT,MPI_MAX,world);
+
+  buf = (Site *) memory->srealloc(buf,maxsite*sizeof(Site),"comm:buf");
+
+  // create swap based on list of recvs
+
+  Swap *swap = new Swap;
+
+  create_send_from_recv(nsite,maxsite,buf,swap);
+  create_recv_from_list(nsite,buf,swap);
+
+  memory->sfree(buf);
+
+  return swap;
+}
+
+/* ----------------------------------------------------------------------
+   create a Swap communication pattern
+   reverse comm of a single sector
+------------------------------------------------------------------------- */
+
+CommLattice::Swap *CommLattice::create_swap_sector_reverse(int nsites,
+							   int *site2i)
+{
+  int i,j,m;
+
+  AppLattice *applattice = (AppLattice *) app;
+  int nlocal = applattice->nlocal;
+  int ntotal = nlocal + applattice->nghost;
+
+  int *id = applattice->id;
+  int *owner = applattice->owner;
+  int *numneigh = applattice->numneigh;
+  int **neighbor = applattice->neighbor;
+
+  // flag sites with 0 that are not in sector
+  // flag sites with 1 that are in sector
+
+  int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"comm:flag");
+  for (i = 0; i < ntotal; i++) flag[i] = 0;
+  for (m = 0; m < nsites; m++) flag[site2i[m]] = 1;
+
+  // flag ghost sites with 1
+  // that have owned sector neighbor up to delevent away
+  // assumes ghost sites up to delevent-1 have a neighbor list
+
+  for (int ilayer = 0; ilayer < applattice->delevent; ilayer++) {
+    for (i = 0; i < ntotal; i++) {
+      if (flag[i] == 0) continue;
+      for (j = 0; j < numneigh[i]; j++) {
+	if (neighbor[i][j] < nlocal) continue;
+	flag[neighbor[i][j]] = 1;
+      }
+    }
+  }
+
+  // buf = list of global IDs I will send
+
+  Site *buf = (Site *) memory->smalloc(applattice->nghost*sizeof(Site),
+				       "comm:buf");
+  int nsite = 0;
+
+  for (i = nlocal; i < ntotal; i++) {
+    if (flag[i] == 0) continue;
+    buf[nsite].id_global = id[i];
+    buf[nsite].index_local = i;
+    buf[nsite].proc = owner[i];
+    nsite++;
+  }
+
+  // grow buf to size of max sites on any proc
+
+  int maxsite;
+  MPI_Allreduce(&nsite,&maxsite,1,MPI_INT,MPI_MAX,world);
+
+  buf = (Site *) memory->srealloc(buf,maxsite*sizeof(Site),"comm:buf");
+
+  // create swap based on list of sends
+
+  Swap *swap = new Swap;
+
+  create_send_from_list(nsite,buf,swap);
+  create_recv_from_send(nsite,maxsite,buf,swap);
+
+  memory->sfree(buf);
+
+  return swap;
+}
+
+/* ----------------------------------------------------------------------
+   create send portion of a Swap communication pattern
+   start with list of sites I need to recv
+   circulate list to all procs
+   when comes back to me, will also be flagged with who I recv sites from
+------------------------------------------------------------------------- */
+
+void CommLattice::create_send_from_recv(int nsite, int maxsite,
+					Site *buf, Swap *swap)
+{
+  int i,isend;
+
+  AppLattice *applattice = (AppLattice *) app;
+  int nlocal = applattice->nlocal;
+  int *id = applattice->id;
+
+  Site *bufcopy = (Site *) 
+    memory->smalloc(maxsite*sizeof(Site),"comm:bufcopy");
+
+  // put my entire list of owned site IDs in a hash
+
+  std::map<int,int>::iterator loc;
+  std::map<int,int> hash;
+
   for (i = 0; i < nlocal; i++)
     hash.insert(std::pair<int,int> (id[i],i));
 
@@ -176,15 +354,6 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
   int prev = me -1; 
   if (next == nprocs) next = 0;
   if (prev < 0) prev = nprocs - 1;
-
-  // maxghost = max ghosts on any proc
-
-  int maxsize;
-  MPI_Allreduce(&nghost,&maxsize,1,MPI_INT,MPI_MAX,world);
-
-  buf = (Ghost *) memory->srealloc(buf,maxsize*sizeof(Ghost),"comm:buf");
-  Ghost *bufcopy = (Ghost *) 
-    memory->smalloc(maxsize*sizeof(Ghost),"comm:bufcopy");
 
   // allocate send lists
 
@@ -198,63 +367,200 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
     sindex[i] = NULL;
   }
 
-  // cycle ghost list around ring of procs back to self
-  // when receive it, fill in proc field for sites I own
-  // also add this object to my send lists
+  // cycle request list around ring of procs back to self
+  // when receive it, add sites I own to my send lists, also fill in proc field
   // original_proc = proc to send info to during swap
 
   MPI_Request request;
   MPI_Status status;
 
-  size = nghost;
-  original_proc = me;
+  int size = nsite;
+  int original_proc = me;
 
   for (int loop = 0; loop < nprocs; loop++) {
     original_proc--;
     if (original_proc < 0) original_proc = nprocs-1;
 
     if (me != next) {
-      MPI_Irecv(bufcopy,maxsize*sizeof(Ghost),MPI_CHAR,prev,0,world,&request);
-      MPI_Send(buf,size*sizeof(Ghost),MPI_CHAR,next,0,world);
+      MPI_Irecv(bufcopy,maxsite*sizeof(Site),MPI_CHAR,prev,0,world,&request);
+      MPI_Send(buf,size*sizeof(Site),MPI_CHAR,next,0,world);
       MPI_Wait(&request,&status);
       MPI_Get_count(&status,MPI_CHAR,&size);
-      size /= sizeof(Ghost);
-      memcpy(buf,bufcopy,size*sizeof(Ghost));
+      size /= sizeof(Site);
+      memcpy(buf,bufcopy,size*sizeof(Site));
     }
+
     for (i = 0; i < size; i++) {
       if (buf[i].proc >= 0) continue;
       loc = hash.find(buf[i].id_global);
-      if (loc != hash.end()) {
-	buf[i].proc = me;
+      if (loc == hash.end()) continue;
+      buf[i].proc = me;
 
-	// if original_proc not last one in sproc[], add proc to send list
+      // if original_proc not last one in sproc[], add proc to send list
 
-	if (nsend == 0 || sproc[nsend-1] != original_proc) {
-	  sproc[nsend] = original_proc;
-	  scount[nsend] = 0;
-	  sindex[nsend] = NULL;
-	  nsend++;
-	}
-
-	// add index to send list going to a particular proc
-	// grow sindex array if necessary
-
-	isend = nsend - 1;
-	if (scount[isend] == smax[isend]) {
-	  smax[isend] += DELTA;
-	  sindex[isend] =
-	    (int *) memory->srealloc(sindex[isend],smax[isend]*sizeof(int),
-				     "comm:sindex");
-	}
-	sindex[isend][scount[isend]] = loc->second;
-	scount[isend]++;
+      if (nsend == 0 || sproc[nsend-1] != original_proc) {
+	sproc[nsend] = original_proc;
+	scount[nsend] = 0;
+	sindex[nsend] = NULL;
+	nsend++;
       }
+
+      // add index to send list going to a particular proc
+      // grow sindex array if necessary
+
+      isend = nsend - 1;
+      if (scount[isend] == smax[isend]) {
+	smax[isend] += DELTA;
+	sindex[isend] =
+	  (int *) memory->srealloc(sindex[isend],smax[isend]*sizeof(int),
+				   "comm:sindex");
+      }
+      sindex[isend][scount[isend]] = loc->second;
+      scount[isend]++;
     }
   }
 
-  // clear hash
+  // allocate sbuf
+  // sizes depend on number of ints and doubles stored per site
 
-  hash.clear();
+  int max = 0;
+  for (i = 0; i < nsend; i++) max = MAX(max,scount[i]);
+
+  int *sibuf = NULL;
+  double *sdbuf = NULL;
+  if (max) {
+    if (sitecustom == 0) sibuf = new int[max];
+    else if (ninteger && !ndouble) sibuf = new int[ninteger*max];
+    else if (ndouble && !ninteger) sdbuf = new double[ndouble*max];
+    else sdbuf = new double[(ninteger+ndouble)*max];
+  }
+
+  // clean up
+
+  delete [] bufcopy;
+
+  // fill in swap data structure
+
+  swap->nsend = nsend;
+  swap->sproc = sproc;
+  swap->scount = scount;
+  swap->smax = smax;
+  swap->sindex = sindex;
+  swap->sibuf = sibuf;
+  swap->sdbuf = sdbuf;
+}
+
+/* ----------------------------------------------------------------------
+   create send portion of a Swap communication pattern
+   create from list of sites I send and procs who own them
+------------------------------------------------------------------------- */
+
+void CommLattice::create_send_from_list(int nsite, Site *buf, Swap *swap)
+{
+  int i,isend;
+  std::map<int,int>::iterator loc;
+  std::map<int,int> hash;
+
+  // allocate send lists
+
+  int nsend = 0;
+  int *sproc = new int[nprocs];
+  int *scount = new int[nprocs];
+  int *smax = new int[nprocs];
+  int **sindex = new int*[nprocs];
+  for (int i = 0; i < nprocs; i++) {
+    smax[i] = 0;
+    sindex[i] = NULL;
+  }
+
+  // extract info for send lists
+
+  for (i = 0; i < nsite; i++) {
+
+    // if sending proc not in sproc[], add proc to send list and to hash
+    // isend = location of this proc in send lists
+
+    loc = hash.find(buf[i].proc);
+    if (loc == hash.end()) {
+      sproc[nsend] = buf[i].proc;
+      scount[nsend] = 0;
+      sindex[nsend] = NULL;
+      hash.insert(std::pair<int,int> (buf[i].proc,nsend));
+      isend = nsend;
+      nsend++;
+    } else isend = loc->second;
+    
+    // add index to send list going to a particular proc
+    // grow rindex array if necessary
+
+    if (scount[isend] == smax[isend]) {
+      smax[isend] += DELTA;
+      sindex[isend] =
+	(int *) memory->srealloc(sindex[isend],smax[isend]*sizeof(int),
+				 "comm:sindex");
+    }
+    sindex[isend][scount[isend]] = buf[i].index_local;
+    scount[isend]++;
+  }
+
+  // allocate sbuf
+  // sizes depend on number of ints and doubles stored per site
+
+  int max = 0;
+  for (i = 0; i < nsend; i++) max = MAX(max,scount[i]);
+
+  int *sibuf = NULL;
+  double *sdbuf = NULL;
+  if (max) {
+    if (sitecustom == 0) sibuf = new int[max];
+    else if (ninteger && !ndouble) sibuf = new int[ninteger*max];
+    else if (ndouble && !ninteger) sdbuf = new double[ndouble*max];
+    else sdbuf = new double[(ninteger+ndouble)*max];
+  }
+
+  // fill in swap data structure
+
+  swap->nsend = nsend;
+  swap->sproc = sproc;
+  swap->scount = scount;
+  swap->smax = smax;
+  swap->sindex = sindex;
+  swap->sibuf = sibuf;
+  swap->sdbuf = sdbuf;
+}
+
+/* ----------------------------------------------------------------------
+   create recv portion of a Swap communication pattern
+   start with list of sites I will send
+   circulate list to all procs
+------------------------------------------------------------------------- */
+
+void CommLattice::create_recv_from_send(int nsite, int maxsite,
+					Site *buf, Swap *swap)
+{
+  int i,irecv;
+
+  AppLattice *applattice = (AppLattice *) app;
+  int nlocal = applattice->nlocal;
+  int *id = applattice->id;
+
+  Site *bufcopy = (Site *) 
+    memory->smalloc(maxsite*sizeof(Site),"comm:bufcopy");
+
+  // put my entire list of owned site IDs in a hash
+
+  std::map<int,int>::iterator loc;
+  std::map<int,int> hash;
+
+  for (i = 0; i < nlocal; i++)
+    hash.insert(std::pair<int,int> (id[i],i));
+
+  // setup ring of procs
+
+  int next = me + 1;
+  int prev = me -1; 
+  if (next == nprocs) next = 0;
+  if (prev < 0) prev = nprocs - 1;
 
   // allocate recv lists
 
@@ -272,53 +578,59 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
     rdbuf[i] = NULL;
   }
 
-  // original ghost list came back to me around ring
-  // extract info for recv lists
-  // error if any site is not filled in
+  // cycle send list around ring of procs back to self
+  // when receive it, add sites I own to my recv lists
+  // original_proc = proc to recv info from during swap
 
-  for (i = 0; i < nghost; i++) {
-    if (buf[i].proc == -1) error->one("Ghost site was not found");
+  MPI_Request request;
+  MPI_Status status;
 
-    // if sending proc not in rproc[], add proc to recv list and to hash
-    // irecv = location of this proc in recv lists
+  int size = nsite;
+  int original_proc = me;
 
-    loc = hash.find(buf[i].proc);
-    if (loc == hash.end()) {
-      rproc[nrecv] = buf[i].proc;
-      rcount[nrecv] = 0;
-      rindex[nrecv] = NULL;
-      hash.insert(std::pair<int,int> (buf[i].proc,nrecv));
-      irecv = nrecv;
-      nrecv++;
-    } else irecv = loc->second;
-    
-    // add index to send list going to a particular proc
-    // grow rindex array if necessary
+  for (int loop = 0; loop < nprocs; loop++) {
+    original_proc--;
+    if (original_proc < 0) original_proc = nprocs-1;
 
-    if (rcount[irecv] == rmax[irecv]) {
-      rmax[irecv] += DELTA;
-      rindex[irecv] =
-	(int *) memory->srealloc(rindex[irecv],rmax[irecv]*sizeof(int),
-				 "comm:rindex");
+    if (me != next) {
+      MPI_Irecv(bufcopy,maxsite*sizeof(Site),MPI_CHAR,prev,0,world,&request);
+      MPI_Send(buf,size*sizeof(Site),MPI_CHAR,next,0,world);
+      MPI_Wait(&request,&status);
+      MPI_Get_count(&status,MPI_CHAR,&size);
+      size /= sizeof(Site);
+      memcpy(buf,bufcopy,size*sizeof(Site));
     }
-    rindex[irecv][rcount[irecv]] = buf[i].index_local;
-    rcount[irecv]++;
+
+    for (i = 0; i < size; i++) {
+      loc = hash.find(buf[i].id_global);
+      if (loc == hash.end()) continue;
+
+      // if original_proc not last one in rproc[], add proc to recv list
+
+      if (nrecv == 0 || rproc[nrecv-1] != original_proc) {
+	rproc[nrecv] = original_proc;
+	rcount[nrecv] = 0;
+	rindex[nrecv] = NULL;
+	nrecv++;
+      }
+
+      // add index to recv list from a particular proc
+      // grow rindex array if necessary
+      
+      irecv = nrecv - 1;
+      if (rcount[irecv] == rmax[irecv]) {
+	rmax[irecv] += DELTA;
+	rindex[irecv] =
+	  (int *) memory->srealloc(rindex[irecv],rmax[irecv]*sizeof(int),
+				   "comm:rindex");
+      }
+      rindex[irecv][rcount[irecv]] = loc->second;
+      rcount[irecv]++;
+    }
   }
 
-  // allocate sbuf and rbuf[i] directly for ints and doubles
-  // sizes depend on number of quantities stored per site
-
-  int max = 0;
-  for (i = 0; i < nsend; i++) max = MAX(max,scount[i]);
-
-  int *sibuf = NULL;
-  double *sdbuf = NULL;
-  if (max) {
-    if (sitecustom == 0) sibuf = new int[max];
-    else if (ninteger && !ndouble) sibuf = new int[ninteger*max];
-    else if (ndouble && !ninteger) sdbuf = new double[ndouble*max];
-    else sdbuf = new double[(ninteger+ndouble)*max];
-  }
+  // allocate rbuf[i]
+  // sizes depend on number of ints and doubles stored per site
 
   for (i = 0; i < nrecv; i++) {
     if (sitecustom == 0) ribuf[i] = new int[rcount[i]];
@@ -327,18 +639,13 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
     else rdbuf[i] = new double[(ninteger+ndouble)*rcount[i]];
   }
 
+  // clean up
+
+  delete [] bufcopy;
+
   // fill in swap data struct
 
-  swap->nsend = nsend;
   swap->nrecv = nrecv;
-
-  swap->sproc = sproc;
-  swap->scount = scount;
-  swap->smax = smax;
-  swap->sindex = sindex;
-  swap->sibuf = sibuf;
-  swap->sdbuf = sdbuf;
-
   swap->rproc = rproc;
   swap->rcount = rcount;
   swap->rmax = rmax;
@@ -353,8 +660,95 @@ CommLattice::Swap *CommLattice::create_swap(int nsites, int *site2i,
     swap->request = NULL;
     swap->status = NULL;
   }
+}
 
-  return swap;
+/* ----------------------------------------------------------------------
+   create recv portion of a Swap communication pattern
+   create from list of sites I need to recv and procs who will send them
+   no communication required
+------------------------------------------------------------------------- */
+
+void CommLattice::create_recv_from_list(int nsite, Site *buf, Swap *swap)
+{
+  int i,irecv;
+  std::map<int,int>::iterator loc;
+  std::map<int,int> hash;
+
+  // allocate recv lists
+
+  int nrecv = 0;
+  int *rproc = new int[nprocs];
+  int *rcount = new int[nprocs];
+  int *rmax = new int[nprocs];
+  int **rindex = new int*[nprocs];
+  int **ribuf = new int*[nprocs];
+  double **rdbuf = new double*[nprocs];
+  for (int i = 0; i < nprocs; i++) {
+    rmax[i] = 0;
+    rindex[i] = NULL;
+    ribuf[i] = NULL;
+    rdbuf[i] = NULL;
+  }
+
+  // extract info for recv lists
+  // error if any site is not filled in
+
+  for (i = 0; i < nsite; i++) {
+    if (buf[i].proc == -1) error->one("site site was not found");
+
+    // if sending proc not in rproc[], add proc to recv list and to hash
+    // irecv = location of this proc in recv lists
+
+    loc = hash.find(buf[i].proc);
+    if (loc == hash.end()) {
+      rproc[nrecv] = buf[i].proc;
+      rcount[nrecv] = 0;
+      rindex[nrecv] = NULL;
+      hash.insert(std::pair<int,int> (buf[i].proc,nrecv));
+      irecv = nrecv;
+      nrecv++;
+    } else irecv = loc->second;
+    
+    // add index to recv list from a particular proc
+    // grow rindex array if necessary
+
+    if (rcount[irecv] == rmax[irecv]) {
+      rmax[irecv] += DELTA;
+      rindex[irecv] =
+	(int *) memory->srealloc(rindex[irecv],rmax[irecv]*sizeof(int),
+				 "comm:rindex");
+    }
+    rindex[irecv][rcount[irecv]] = buf[i].index_local;
+    rcount[irecv]++;
+  }
+
+  // allocate rbuf[i]
+  // sizes depend on number of ints and doubles stored per site
+
+  for (i = 0; i < nrecv; i++) {
+    if (sitecustom == 0) ribuf[i] = new int[rcount[i]];
+    else if (ninteger && !ndouble) ribuf[i] = new int[ninteger*rcount[i]];
+    else if (ndouble && !ninteger) rdbuf[i] = new double[ndouble*rcount[i]];
+    else rdbuf[i] = new double[(ninteger+ndouble)*rcount[i]];
+  }
+
+  // fill in swap data struct
+
+  swap->nrecv = nrecv;
+  swap->rproc = rproc;
+  swap->rcount = rcount;
+  swap->rmax = rmax;
+  swap->rindex = rindex;
+  swap->ribuf = ribuf;
+  swap->rdbuf = rdbuf;
+
+  if (swap->nrecv) {
+    swap->request = new MPI_Request[swap->nrecv];
+    swap->status = new MPI_Status[swap->nrecv];
+  } else {
+    swap->request = NULL;
+    swap->status = NULL;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -388,7 +782,7 @@ void CommLattice::free_swap(Swap *swap)
 }
 
 /* ----------------------------------------------------------------------
-   communicate ghost values via Swap instructions
+   communicate site values via Swap instructions
    use lattice array as source/destination
 ------------------------------------------------------------------------- */
 

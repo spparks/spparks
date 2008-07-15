@@ -1324,15 +1324,29 @@ void AppLattice::dump()
 
   // pack my lattice coords into buffer
 
-  double x,y,z;
   int m = 0;
-  for (int i = 0; i < nlocal; i++) {
-    dbuf[m++] = id[i];
-    dbuf[m++] = lattice[i];
-    dbuf[m++] = xyz[i][0];
-    dbuf[m++] = xyz[i][1];
-    dbuf[m++] = xyz[i][2];
+
+  if (sitecustom == 0) {
+    double x,y,z;
+    for (int i = 0; i < nlocal; i++) {
+      dbuf[m++] = id[i];
+      dbuf[m++] = lattice[i];
+      dbuf[m++] = xyz[i][0];
+      dbuf[m++] = xyz[i][1];
+      dbuf[m++] = xyz[i][2];
+    }
+
+  } else {
+    double x,y,z;
+    for (int i = 0; i < nlocal; i++) {
+      dbuf[m++] = id[i];
+      dbuf[m++] = iarray[0][i];
+      dbuf[m++] = xyz[i][0];
+      dbuf[m++] = xyz[i][1];
+      dbuf[m++] = xyz[i][2];
+    }
   }
+
   int me_size = m;
 
   // proc 0 pings each proc, receives it's data, writes to file

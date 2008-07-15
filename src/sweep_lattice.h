@@ -62,7 +62,7 @@ class SweepLattice : public Sweep {
   void sweep_sector_mask_strict(int, int);
   void sweep_sector_kmc(int, int);
 
-  int find_border_sites(int, int *, int **);
+  int find_border_sites(int, int, int, int *, int **);
   void boundary_clear_mask(int);
 };
 

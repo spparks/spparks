@@ -17,8 +17,6 @@
 #include "memory.h"
 #include "error.h"
 
-#include <map>
-
 using namespace SPPARKS_NS;
 
 #define DELTA 100
@@ -243,7 +241,9 @@ void SweepLattice::init()
 
   if (Lmask || Lkmc) {
     for (int isector = 0; isector < nsector; isector++)
-      sector[isector].nborder = find_border_sites(isector,numneigh,neighbor);
+      sector[isector].nborder = 
+	find_border_sites(isector,ntotal,delpropensity+delevent,
+			  numneigh,neighbor);
   }
 
   // allocate sites array used by KMC solver for border sites
@@ -492,44 +492,58 @@ void SweepLattice::sweep_sector_kmc(int icolor, int isector)
 
 /* ----------------------------------------------------------------------
    create list of border sites for a sector
-   border site = site in sector with a neighbor outside the sector
+   border site = site in sector with a Nlayer neighbor outside the sector
+   nlayer = 2 means 1st or 2nd neighbor is outside sector
    neighbor can be another owned site (outside sector) or a ghost
    border = lattice index of the sites
  ------------------------------------------------------------------------- */
 
-int SweepLattice::find_border_sites(int isector,
+int SweepLattice::find_border_sites(int isector, int ntotal, int nlayer,
 				    int *numneigh, int **neighbor)
 {
+  int i,j,m;
+
   int nsites = sector[isector].nlocal;
   int *site2i = sector[isector].site2i;
 
-  int *border = NULL;
+  // flag sites with -1 that are not in sector
+  // flag sites with 0 that are in sector
+
+  int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"sweep:flag");
+  for (i = 0; i < ntotal; i++) flag[i] = -1;
+  for (m = 0; m < nsites; m++) flag[site2i[m]] = 0;
+
+  // flag sector sites with -1 that have non-sector neighbor up to nlayer away
+
+  for (int ilayer = 0; ilayer < nlayer; ilayer++) {
+    for (m = 0; m < nsites; m++) {
+      i = site2i[m];
+      if (flag[i]) continue;
+      for (j = 0; j < numneigh[i]; j++)
+	if (flag[neighbor[i][j]] < 0) break;
+      if (j < numneigh[i]) flag[i] = 1;
+    }
+    for (m = 0; m < nsites; m++) {
+      i = site2i[m];
+      if (flag[i] > 0) flag[i] = -1;
+    }
+  }
+
+  // nborder = # of border sites
+  // allocate border and fill with site indices
+
   int nborder = 0;
-  int nmax = 0;
-
-  // put lattice index of each site into hash
-
-  int i,j,m;
-
-  std::map<int,int>::iterator loc;
-  std::map<int,int> hash;
-  for (int m = 0; m < nsites; m++)
-    hash.insert(std::pair<int,int> (site2i[m],0));
-  
-  // add site to border if has neighbor not in hash
-
   for (m = 0; m < nsites; m++) {
     i = site2i[m];
-    for (j = 0; j < numneigh[i]; j++)
-      if (hash.find(neighbor[i][j]) == hash.end()) break;
-    if (j == numneigh[i]) continue;
-    
-    if (nborder == nmax) {
-      nmax += DELTA;
-      border = (int *) memory->srealloc(border,nmax*sizeof(int),
-					"sweep:border");
-    }
-    border[nborder++] = i;
+    if (flag[i] < 0) nborder++;
+  }
+
+  int *border = (int *) memory->smalloc(nborder*sizeof(int),"sweep:border");
+
+  nborder = 0;
+  for (m = 0; m < nsites; m++) {
+    i = site2i[m];
+    if (flag[i] < 0) border[nborder++] = i;
   }
 
   sector[isector].border = border;
