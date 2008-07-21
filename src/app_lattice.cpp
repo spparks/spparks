@@ -908,8 +908,8 @@ void AppLattice::connectivity_within_cutoff()
 
       rsq = dx*dx + dy*dy + dz*dz;
       if (rsq < cutsq) {
-	neighbor[i][numneigh[i]++] = j;
-	neighbor[j][numneigh[j]++] = i;
+	neighbor[i][numneigh[i]++] = id[j];
+	neighbor[j][numneigh[j]++] = id[i];
       }
     }
 
@@ -928,7 +928,7 @@ void AppLattice::connectivity_within_cutoff()
       }
 
       rsq = dx*dx + dy*dy + dz*dz;
-      if (rsq < cutsq) neighbor[i][numneigh[i]++] = j;
+      if (rsq < cutsq) neighbor[i][numneigh[i]++] = bufrecv[j].id;
     }
   }
 
@@ -1081,6 +1081,7 @@ void AppLattice::ghosts_from_connectivity()
       m = i * nchunk;
       idrecv = static_cast<int> (buf[m++]);
       proc = static_cast<int> (buf[m++]);
+      printf("AAA %d %d %d\n",me,idrecv,proc);
       if (proc < 0) error->one("Ghost site was not found");
 
       j = nlocal + npreviousghost + i;

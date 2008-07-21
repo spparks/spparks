@@ -24,7 +24,8 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppChemistry::AppChemistry(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
+AppChemistry::AppChemistry(SPPARKS *spk, int narg, char **arg) : 
+  App(spk,narg,arg)
 {
   if (narg != 1) error->all("Illegal app_style chemistry command");
 
