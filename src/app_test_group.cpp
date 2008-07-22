@@ -21,12 +21,45 @@ using namespace SPPARKS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#define EPSILON 1.0e-10
+
 /* ---------------------------------------------------------------------- */
 
 AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
   App(spk, narg, arg)
 {
-  if (narg != 1) error->all("Illegal app_style test/group command");
+  if (narg < 7) error->all("Illegal app_style test/group command");
+
+  nevents = atoi(arg[1]);
+  ndep = atoi(arg[2]);
+  pmax = atof(arg[3]);
+  pmin = atof(arg[4]);
+  tweak = atof(arg[5]);
+  seed = atoi(arg[6]);
+
+  if (nevents == 0) error->all("Invalid event count for app_style test/group");
+  if (pmin <= 0.0 || pmin >= pmax) 
+    error->all("Invalid probability bounds for app_style test/group");
+  if (tweak >= 100.0)
+    error->all("Invalid probability delta for app_style test/group");
+ 
+  pmax -= EPSILON*pmax;
+  tweak = 2.0*tweak / 100.0;
+
+  // optional args
+
+  dep_graph = true;
+
+  int iarg = 7;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"lomem") == 0) {
+      if (iarg+2 > narg) error->all("Illegal app_style command");
+      if (strcmp(arg[iarg+1],"yes") == 0) dep_graph = false;
+      else if (strcmp(arg[iarg+1],"no") == 0) dep_graph = true;
+      else error->all("Illegal app_style command");
+      iarg += 2;
+    } else error->all("Illegal app_style command");
+  }
 
   propensity = NULL;
   ndepends = NULL;
@@ -34,13 +67,10 @@ AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
   ran_dep = NULL;
   count = NULL;
 
-  nevents = 0;
-  dep_graph_flag = true;
   time = 0.0;
 
   // classes needed by this app
 
-  int seed = 123124;
   random = new RandomPark(seed);
 }
 
@@ -60,14 +90,11 @@ AppTestGroup::~AppTestGroup()
 
 void AppTestGroup::init()
 {
-  if (nevents == 0)
-    error->all("Zero events defined for test app");
-
   delete [] ndepends;
   memory->destroy_2d_int_array(depends);
   delete [] ran_dep;
 
-  if (dep_graph_flag) build_dependency_graph();
+  if (dep_graph) build_dependency_graph();
   else ran_dep = new int[ndep];
 
   // compute initial propensity for each event
@@ -76,10 +103,14 @@ void AppTestGroup::init()
   delete [] propensity;
   propensity = new double[nevents];
 
-  psum = 0;
+  double interval = log(pmax/pmin) / log(2.0);
+  psum = 0.0;
+
   for (int m = 0; m < nevents; m++) {
-    double tp = pow(2.0,-random->uniform()*20);
-    propensity[m] = MAX(tp,1.0e-6);
+    double p = pmax * pow(2.0,-random->uniform()*interval);
+    p = MIN(p,pmax);
+    p = MAX(p,pmin);
+    propensity[m] = p;
     psum += propensity[m];
   }
 
@@ -100,8 +131,7 @@ void AppTestGroup::init()
 
 void AppTestGroup::input(char *command, int narg, char **arg)
 {
-  if (strcmp(command,"event") == 0) set_event(narg,arg);
-  else if (strcmp(command,"run") == 0) run(narg,arg);
+  if (strcmp(command,"run") == 0) run(narg,arg);
   else error->all("Unknown command");
 }
 
@@ -162,7 +192,7 @@ void AppTestGroup::iterate()
     propensity[ievent] = compute_propensity(ievent);
     solve->update(ievent,propensity);
 
-    if (dep_graph_flag) {
+    if (dep_graph) {
       for (m = 0; m < ndepends[ievent]; m++)
 	propensity[depends[ievent][m]] = 
 	  compute_propensity(depends[ievent][m]);
@@ -171,7 +201,7 @@ void AppTestGroup::iterate()
     } else {
       n = static_cast<int>(ndep*random->uniform()) + 1;
       for (m = 0; m < n; m++) {
-	i = static_cast<int>(nevents*random->uniform());
+	i = static_cast<int> (nevents*random->uniform());
         ran_dep[m] = i;
 	propensity[i] = compute_propensity(i);
       }
@@ -223,24 +253,6 @@ void AppTestGroup::stats_header(char *strtmp)
   sprintf(strtmp," %20s ","Reaction Counts");
 }
 
-/* ---------------------------------------------------------------------- */
-
-void AppTestGroup::set_event(int narg, char **arg)
-{
-  if (narg < 3) error->all("Illegal event command");
-
-  if (narg > 4)
-    if (strcmp(arg[3],"lo_mem")==0) {
-      dep_graph_flag = false;
-      random->init(atoi(arg[4]));
-    } else error->all("Illegal event command");
-
-  nevents = atoi(arg[0]);
-  ndep = atoi(arg[1]);
-  tweak = atof(arg[2]);
-  if (tweak > 0) tweak /= 100.0;
-}
-
 /* ----------------------------------------------------------------------
    build random dependency graph for entire set of reactions
    reaction N depends on M if a reactant of N is a reactant or product of M
@@ -250,7 +262,7 @@ void AppTestGroup::build_dependency_graph()
 {
   ndepends = new int[nevents];
   for (int m = 0; m < nevents; m++) 
-    ndepends[m] = static_cast<int>(ndep*random->uniform()) + 1;
+    ndepends[m] = static_cast<int> (ndep*random->uniform()) + 1;
 
   int nmax = 1;
   for (int m = 0; m < nevents; m++)
@@ -263,7 +275,7 @@ void AppTestGroup::build_dependency_graph()
     for (int e = 0; e < ndepends[m]; e++) {
       depends[m][e] = m;
       while (depends[m][e] == m)
-	depends[m][e] = static_cast<int>(nevents*random->uniform());
+	depends[m][e] = static_cast<int> (nevents*random->uniform());
     }
 }
 
@@ -276,7 +288,7 @@ double AppTestGroup::compute_propensity(int m)
   double p = propensity[m];
   p += p*tweak*(random->uniform()-0.5);
   
-  if (p > 1.0) p = 0.99999;
-  else if (p < 1.0e-6) p = 1.0e-6;
+  p = MIN(p,pmax);
+  p = MAX(p,pmin);
   return p;
 }

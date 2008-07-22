@@ -44,7 +44,7 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
       } else {
 	error->all("Illegal diag_style cluster command");
       } 
-    } else if (strcmp(arg[iarg],"dump_style") == 0) {
+    } else if (strcmp(arg[iarg],"dump") == 0) {
       iarg++;
       if (iarg < narg) {
 	if (strcmp(arg[iarg],"standard") == 0) {

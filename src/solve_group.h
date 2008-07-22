@@ -31,9 +31,8 @@ class SolveGroup : public Solve {
 
   double *p;                     // local copy of propensities
   double sum;
-  int ngroups_in;
-  bool ngroups_flag;
   double lo,hi;
+  int ngroups;
 };
 
 }

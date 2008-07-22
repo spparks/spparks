@@ -190,7 +190,7 @@ void Variable::set(int narg, char **arg)
   } else error->all("Illegal variable command");
 
   // set name of variable
-  // must come at end, since EQUAL/ATOM reset may have removed name
+  // must come at end, since EQUAL reset may have removed name
   // name must be all alphanumeric chars or underscores
 
   int n = strlen(arg[0]) + 1;
@@ -394,7 +394,7 @@ void Variable::copy(int narg, char **from, char **to)
 
 /* ----------------------------------------------------------------------
    recursive evaluation of a string str
-   string is a equal-style or atom-style formula containing one or more items:
+   string is a equal-style formula containing one or more items:
      number = 0.0, -5.45, 2.8e-4, ...
      math operation = (),-x,x+y,x-y,x*y,x/y,x^y,
                       sqrt(x),exp(x),ln(x),log(x),
@@ -630,8 +630,9 @@ int Variable::find_matching_paren(char *str, int i,char *&contents)
    word = math function
    contents = str bewteen parentheses
    return 0 if not a match, 1 if successfully processed
-   customize by adding a math function in 2 places:
+   customize by adding a math function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan()
+     ceil(),floor(),round()
 ------------------------------------------------------------------------- */
 
 int Variable::math_function(char *word, char *contents,

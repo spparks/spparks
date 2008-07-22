@@ -79,7 +79,7 @@ void Output::set_stats(int narg, char **arg)
   stats_delta = atof(arg[0]);
   int iarg = 1;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"logfreq") == 0) {
+    if (strcmp(arg[iarg],"log") == 0) {
       stats_ilogfreq = 1;
       iarg++;
       if (iarg+1 < narg) {

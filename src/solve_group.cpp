@@ -24,20 +24,26 @@ SolveGroup::SolveGroup(SPPARKS *spk, int narg, char **arg) :
 {
   if (narg < 4) error->all("Illegal solve command");
   
-  lo = atof(arg[1]);
-  hi = atof(arg[2]);
+  hi = atof(arg[1]);
+  lo = atof(arg[2]);
+  seed = atoi(arg[3]);
 
-  ngroups_in = 0;
-  ngroups_flag = false;
-  if (narg == 5) {
-    ngroups_in = atoi(arg[3]);
-    if (ngroups_in) ngroups_flag = true;
-    seed = atoi(arg[4]);
+  if (lo <= 0.0 || lo >= hi)
+    error->all("Invalid probability bounds for solve_style group");
+
+  ngroups = 0;
+
+  int iarg = 4;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"ngroup") == 0) {
+      if (iarg+2 > narg) error->all("Illegal solve_style group command");
+      ngroups = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else error->all("Illegal solve_style group command");
   }
-  else seed = atoi(arg[3]);
 
   random = new RandomPark(seed);
-  groups = new Groups(spk,lo,hi,seed,ngroups_flag,ngroups_in);
+  groups = new Groups(spk,hi,lo,seed,ngroups);
   p = NULL;
 }
 
@@ -54,26 +60,27 @@ SolveGroup::~SolveGroup()
 
 SolveGroup *SolveGroup::clone()
 {
-  int narg = 5;
-  char *arg[5];
+  int narg = 6;
+  char *arg[6];
 
   arg[0] = style;
   arg[1] = new char[16];
   arg[2] = new char[16];
   arg[3] = new char[16];
-  arg[4] = new char[16];
+  arg[4] = "ngroup";
+  arg[5] = new char[16];
 
-  sprintf(arg[1],"%g",lo);
-  sprintf(arg[2],"%g",hi);
-  sprintf(arg[3],"%d",ngroups_in);
-  sprintf(arg[4],"%d",seed);
+  sprintf(arg[1],"%g",hi);
+  sprintf(arg[2],"%g",lo);
+  sprintf(arg[3],"%d",seed);
+  sprintf(arg[5],"%d",ngroups);
 
   SolveGroup *ptr = new SolveGroup(spk,narg,arg);
 
   delete [] arg[1];
   delete [] arg[2];
   delete [] arg[3];
-  delete [] arg[4];
+  delete [] arg[5];
   return ptr;
 }
 

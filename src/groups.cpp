@@ -13,8 +13,8 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Groups::Groups(SPPARKS *spk, double lo_in, double hi_in, int seed_in, 
-		 int ng_flag, int ngr_in) : SysPtr(spk)
+Groups::Groups(SPPARKS *spk, double hi_in, double lo_in, int seed_in, 
+		 int ng_in) : SysPtr(spk)
 {
   my_group = NULL;
   my_group_i = NULL;
@@ -27,10 +27,12 @@ Groups::Groups(SPPARKS *spk, double lo_in, double hi_in, int seed_in,
   nempty = 0;
 
   random = new RandomPark(seed_in);
+
   hi = hi_in;
   lo = lo_in;
-  ngroups_flag = ng_flag;
-  ngroups = ngr_in;
+  ngroups = ng_in;
+  if (ngroups == 0) ngroups_flag = 0;
+  else ngroups_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -44,19 +46,18 @@ Groups::~Groups()
 }
 
 /* ----------------------------------------------------------------------
-   set up the groups data structures
+   setup the group data structures
 ------------------------------------------------------------------------- */
 
 void Groups::partition_init(double *p, int size_in)
 {
   int i;
-  range = hi/lo;
 
   max_size = size = size_in;
 
+  range = hi/lo;
   overlg2 = 1.0/log(2.0);
 
-  if (!ngroups_flag) ngroups = 0;
   psum = 0.0;
 
   release_group_space();
@@ -76,17 +77,14 @@ void Groups::partition_init(double *p, int size_in)
   // set group upper bounds and initialize empty/full vector
 
   double frac;
-  if (ngroups_flag)
-    frac = hi/static_cast<double>(ngroups);
-  else
-    frac = hi;
+  if (ngroups_flag) frac = hi/ngroups;
+  else frac = hi;
 
-  for (g = 0; g < ngroups; g++){
+  for (g = 0; g < ngroups; g++) {
     group_size[g] = 0;
     empty_groups[g]=0;
-    if (ngroups_flag)
-      group_hi[g] = (g+1)*frac;
-    else{
+    if (ngroups_flag) group_hi[g] = (g+1)*frac;
+    else {
       group_hi[g] = frac;
       frac /= 2.0;
     }
@@ -96,22 +94,21 @@ void Groups::partition_init(double *p, int size_in)
 
   int gr;
   for (i = 0; i < size; i++) {
-    if (ngroups_flag) gr = static_cast<int>(p[i]/frac);
-    else if (p[i] > 1.0e-20) gr = -static_cast<int>(log(p[i]/hi)*overlg2);
+    if (ngroups_flag) gr = static_cast<int> (p[i]/frac);
+    else if (p[i] > 1.0e-20) gr = -static_cast<int> (log(p[i]/hi)*overlg2);
     else gr = ngroups - 1;
     if (gr > ngroups-1) gr = ngroups - 1;
 
-    group_size[gr] ++;
-    empty_groups[gr]=0;
+    group_size[gr]++;
+    empty_groups[gr] = 0;
     psum += p[i];
   }
   
   // set initial group size and allocate group storage
 
   for (g = 0; g < ngroups; g++) {
-    if (ngroups_flag) m = static_cast<int>
-      (1.5*static_cast<double>(size)/static_cast<double>(ngroups));
-    else m = static_cast<int>(static_cast<double>(size)/pow(2.0,g));
+    if (ngroups_flag) m = static_cast<int> (1.5*size/ngroups);
+    else m = static_cast<int> (size/pow(2.0,g));
     if (group_size[g] > m) m = group_size[g];
     group[g] = (int *) memory->smalloc(m*sizeof(int),"group:group");
     group_size[g] = m;
@@ -127,7 +124,7 @@ void Groups::partition_init(double *p, int size_in)
 
   // partition the initial distribution
 
-  partition(p, lo, hi);
+  partition(p,lo,hi);
 }
 
 /* ----------------------------------------------------------------------
@@ -143,9 +140,9 @@ void Groups::partition(double *p, double lo, double hi)
   // equal fragments
 
   if (ngroups_flag) {
-    frac = hi/static_cast<double>(ngroups);
-    for(int j=0;j<size;j++){
-      g = static_cast<int>(p[j]/frac);
+    frac = hi/ngroups;
+    for (int j = 0; j < size; j++) {
+      g = static_cast<int> (p[j]/frac);
       group[g][i_group[g]] = j;
       my_group[j] = g;
       my_group_i[j] = i_group[g];
@@ -157,7 +154,7 @@ void Groups::partition(double *p, double lo, double hi)
 
   } else {
     frac = hi;
-    for(int j=0;j<size;j++){
+    for (int j = 0; j < size; j++) {
       if (p[j] > 1.0e-20) {
 	tst = frexp(p[j]/hi,&g);
 	g = -g;
@@ -168,14 +165,13 @@ void Groups::partition(double *p, double lo, double hi)
       my_group_i[j] = i_group[g];
       i_group[g]++;
       group_sum[g] += p[j];
-      
     }
   }
 
   for (int g = 0; g < ngroups; g++) 
-    if(i_group[g]>0) {
+    if (i_group[g] > 0) {
       empty_groups[g] = 1;
-      nempty ++;
+      nempty++;
     }
 }
 
@@ -193,7 +189,7 @@ void Groups::alter_element(int j, double *p, double p_new)
 
   int new_group,old_group;
 
-  if (ngroups_flag) new_group = static_cast<int>(p_new/frac);
+  if (ngroups_flag) new_group = static_cast<int> (p_new/frac);
   else {
     if (p_new > lo) {
       double tmp = frexp(p[j]/hi,&new_group); 

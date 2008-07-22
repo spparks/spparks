@@ -12,7 +12,7 @@ namespace SPPARKS_NS {
 
 class Groups : protected SysPtr {
  public:
-  Groups(class SPPARKS *, double, double, int, int, int);
+  Groups(class SPPARKS *, double, double, int, int);
   ~Groups();
 
   void partition_init(double *,int);
