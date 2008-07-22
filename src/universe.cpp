@@ -25,7 +25,7 @@ using namespace SPPARKS_NS;
 
 Universe::Universe(SPPARKS *spk, MPI_Comm communicator) : Pointers(spk)
 {
-  version = (char *) "20 Jul 2008";
+  version = (char *) "23 Jul 2008";
 
   uworld = communicator;
   MPI_Comm_rank(uworld,&me);
