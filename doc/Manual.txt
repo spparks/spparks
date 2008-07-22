@@ -31,10 +31,10 @@ open-source code, distributed freely under the terms of the GNU Public
 License (GPL).
 
 The developers of SPPARKS are "Steve Plimpton"_sjp, Aidan Thompson,
-and Alex Slepoy, Steve and Aidan can be contacted at sjplimp,athomps
-at sandia.gov.  The "SPPARKS WWW Site"_sws at
-http://www.cs.sandia.gov/~sjplimp/spparks.html has more information
-about the code and its uses.
+and Alex Slepoy.  They can be contacted at sjplimp@sandia.gov,
+athomps@sandia.gov, and alexander.slepoy@nnsa.doe.gov.  The "SPPARKS
+WWW Site"_sws at http://www.cs.sandia.gov/~sjplimp/spparks.html has
+more information about the code and its uses.
 
 :link(sjp,http://www.cs.sandia.gov/~sjplimp)
 
@@ -63,7 +63,7 @@ it gives quick access to documentation for all SPPARKS commands.
   2.3 "Making SPPARKS with optional packages"_2_3 :b
   2.4 "Building SPPARKS as a library"_2_4 :b
   2.5 "Running SPPARKS"_2_5 :b
-  2.6 "Command-line options"_2_6 :b
+  2.6 "Command-line options"_2_6 :ule,b
 "Commands"_Section_commands.html :l
   3.1 "SPPARKS input script"_3_1 :ulb,b
   3.2 "Parsing rules"_3_2 :b

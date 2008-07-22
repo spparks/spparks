@@ -9,58 +9,99 @@
 
 <HR>
 
-<H3>app_style command 
+<H3>app_style test/group command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style args 
+<PRE>app_style test/group N Nmax pmax pmin delta seed keyword value 
 </PRE>
-<UL><LI>style = application style name
-<LI>args = args 
+<UL><LI>test/group = application style name 
+
+<LI>N = # of events to choose from 
+
+<LI>Mmax = max number of dependencies for each event 
+
+<LI>pmax = max probability 
+
+<LI>pmin = min probability 
+
+<LI>delta = percentage adjustment factor for dependent probabilities 
+
+<LI>seed = random number seed (positive integer) 
+zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>lomem</I> 
+
+<PRE>  <I>lomem</I> value = <I>yes</I> or <I>no</I> 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 100 100
-app_style potts 1000 1000 4 
+<PRE>app_style test/group 10000 30 1.0 1.0e-6 5 49289
+app_style test/group 10000 30 1.0 1.0e-9 10 5982893 lomem yes 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>app_style test/group
-app_style test/group2
+<P>This application creates and evolves an artificial network of coupled
+events to test the performance and scalability of various kinetic
+Monte Carlo <A HREF = "solve_style.html">solvers</A>.  See the paper by
+<A HREF = "#Slepoy">(Slepoy)</A> for additional details on how it has been used.
 </P>
-<P>run an app to test group solver performance
-two versions of this app
-  group = Alex's original version
-  group2 = Steve's trimmed down version (used for JCP paper)
+<P>The set of coupled events can be thought of as a reaction network with
+N different chemical rate equations or events to choose from.  Each
+equation is coupled to M randomly chosen other equations, where M is a
+uniform random number from 1 to Mmax.  In a chemical reaction sense it
+is as if an executed reaction creates M product molecules, each of
+which is a reactant in another reaction, affecting its probability of
+occurrence.
 </P>
-<P>also need to define a "solve" style:
-  see "* solve_style" below
+<P>Initially, the maximum and minimum probability for each event is an
+exponentially distributed random value between <I>pmax</I> and <I>pmin</I>.  If
+<A HREF = "solve_style.html">solve_style group</A> is used, these values should be
+the same as the <I>pmax</I> and <I>pmin</I> used as parameters in that command.
+Pmin must be greater than 0.0.
 </P>
-<P>Extra commands supported by this app:
+<P>As events are executed, the artificial network updates the
+probabilities of dependent reactions directly by adjusting their
+probability by a uniform random number betwee -delta and +delta.
+Since delta is specified as a percentatge, this means pold * (1 -
+delta/100) <= pnew <= pold * (1 + delta/100).  Delta must be less than
+100.
 </P>
-<P>event           200  30 1
-  Defines properties of the event table:
-  1. Size of event table
-  2. Max number of dependencies
-  3. Size of propensity adjustment (%)
-  4. <B>optional</B> Low memory switch to generate
-  dependencies randomly on the fly instead
-  of storing the event table.
-  5. Random seed for the low_mem option.
+<P>If the <I>lomem</I> keyword is set to <I>no</I>, then the random connectivity of
+the network is generated beforehand and stored.  This is faster when
+events are executed but limits the size of problem that will fit in
+memory.  If <I>lomem</I> is set to <I>yes</I>, then the connectivity is
+generated on the fly, as each event is executed.
 </P>
-<P>  Examples:
-  event           200  30 1
-  event           200  30 1 lo_mem 384745
+<P>This application can only be evolved using a kinetic Monte Carlo (KMC)
+algorithm.  You must thus define a KMC solver to be used with the
+application via the <A HREF = "solve_style.html">solve_style</A> command
 </P>
-<P>run 0.5
-  run for time (seconds)
+<P>There are no additional commands defined by this application.
+</P>
+<P>When the <A HREF = "run.html">run</A> command is used with this application it sets
+the number of events to perform, not the time for the run.  E.g.
+</P>
+<PRE>run 10000 
+</PRE>
+<P>means to perform 10000 events, not to run for 10000 seconds.
 </P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "variable.html">variable</A>, ...
+<P><A HREF = "solve_style.html">solve_style group</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The default value is lomem = no.
+</P>
+<HR>
+
+<A NAME = "Slepoy"></A>
+
+<P><B>(Slepoy)</B> Slepoy, Thompson, Plimpton, J Chem Phys, 128, 205101 (2008).
 </P>
 </HTML>

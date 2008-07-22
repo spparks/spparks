@@ -9,29 +9,35 @@
 
 <HR>
 
-<H3>app_style command 
+<H3>inclusion command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style args 
+<PRE>inclusion x y z r 
 </PRE>
-<UL><LI>style = application style name
-<LI>args = args 
+<UL><LI>x,y,z = position of center of protein inclusion
+<LI>r = radius of the protein 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 100 100
-app_style potts 1000 1000 4 
+<PRE>inclusion 10 12 0.0 2.0
+inclusion 10 12 5.4 5.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command ...
+<P>This command defines protein sites on a lattice for use in the
+<A HREF = "app_membrane.html">app_style membrane</A> application.
+</P>
+<P>Think of the protein as a sphere (or circle) centered at <I>x,y,z</I> and
+with a radius of <I>r</I>.  All lattice sites within the sphere (or circle)
+will be flagged as protein (as opposed to lipid or solvent).  For
+lattices with a 2d geometry, the z value should be speficied as 0.0.
 </P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "variable.html">variable</A>, ...
+<P><A HREF = "app_membrane.html">app_style membrane</A>
 </P>
 <P><B>Default:</B> none
 </P>

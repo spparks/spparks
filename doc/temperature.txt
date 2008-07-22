@@ -6,28 +6,35 @@
 
 :line
 
-app_style command :h3
+temperature command :h3
 
 [Syntax:]
 
-app_style style args :pre
+temperature T :pre
 
-style = application style name
-args = args :ul
+T = value of temperature used in Boltzmann factor (energy units) :ul
 
 [Examples:]
 
-app_style ising 100 100
-app_style potts 1000 1000 4 :pre
+temperature 2.0 :pre
 
 [Description:]
 
-This command ...
+This command sets the temperature as used in various applications.
+The typical usage would be as part of a Boltzmann factor that alters
+the propabilities of event acceptance and rejection.
+
+The units of the specfied temperature should be consistent with how
+the application defines energy.  E.g. if used in a Boltzmann factor
+where a kT factor scales the energy of a Hamiltonian defined by the
+application, then this command is really defining kT and the specified
+value should have the units of energy as computed by the Hamiltonian.
 
 [Restrictions:] none
 
-[Related commands:]
+[Related commands:] none
 
-"variable"_variable.html, ...
+[Default:]
 
-[Default:] none
+The default temperature is 0.0.
+

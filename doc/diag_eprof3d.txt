@@ -6,36 +6,52 @@
 
 :line
 
-app_style command :h3
+diag_style eprof3d command :h3
 
 [Syntax:]
 
-app_style style args :pre
+diag_style eprof3d delta keyword value keyword value ... :pre
 
-style = application style name
-args = args :ul
+eprof3d = style name of this diagnostic :ulb,l
+delta = time increment between evaluations of the diagnostic (seconds) :l
+zero or more keyword/value pairs may be appended :l
+keyword = {axis} or {filename} or {boundary} :l
+  {axis} value = {x} or {y} or {z}
+    x,y,z = which axis to measure energy profile with respect to
+  {filename} value = name
+    name = name of file to write results to
+  {boundary} value = none :pre
+see the "diag_style"_diag_style.html command for additional keywords that can be appended to any diagnostic command :l,ule
 
 [Examples:]
 
-app_style ising 100 100
-app_style potts 1000 1000 4 :pre
+diag_style eprof3d 0.1 axis x filename eprof3d.dat
+diag_style eprof3d 0.1 filename eprof3d.dat boundary :pre
 
 [Description:]
 
-diag_style	eprof3d 0.1 axis x filename eprof3d.dat
+The eprof3d diagnostic computes an energy profile of all lattice sites
+in the system with respect to their distance from sector boundaries.
 
-If the boundary option is provided, the average energy is provided as
-a function of distance from the nearest sector boundary.  In this
-case, the overall average energy and the average energy immediately to
-the left and right of the sector boundary is used for stats output.
+The {axis} keyword specifices which axis to measure from.
 
-diag_style	eprof3d 0.1 filename eprof3d.dat boundary
+The {filename} keyword allows a file to be specified which output
+is written to.
 
+If the {boundary} keyword is used, the average energy is provided as a
+function of distance from the nearest sector boundary.  In this case,
+the overall average energy and the average energy immediately to the
+left and right of the sector boundary is used for stats output.
 
-[Restrictions:] none
+[Restrictions:]
+
+As described by the "app_style"_app_style.html command, on-lattice
+applications use one of 3 styles of lattice: general, 2d, or 3d.  For
+this diagnostic only applications on 3d lattices are currently
+supported.
 
 [Related commands:]
 
-"variable"_variable.html, ...
+"diag_style"_diag_style.html
 
 [Default:] none

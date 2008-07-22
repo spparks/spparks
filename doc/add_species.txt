@@ -22,9 +22,10 @@ add_species NFkB kinase2 NFkB-IKK :pre
 [Description:]
 
 This command defines the names of one or more chemical species for use
-in the "app_style chemistry"_app_chemistry.html application.  Each ID
-string can any sequence of non-whitespace characters (alphanumeric,
-dash, underscore, etc).
+in the "app_style chemistry"_app_chemistry.html application.
+
+Each ID string can be any sequence of non-whitespace characters
+(alphanumeric, dash, underscore, etc).
 
 [Restrictions:]
 
@@ -33,6 +34,7 @@ chemistry"_app_chemistry.html application.
 
 [Related commands:]
 
+"app_style chemistry"_app_chemistry.html,
 "add_reaction"_add_reaction.html, "count"_count.html
 
 [Default:] none

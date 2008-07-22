@@ -6,29 +6,39 @@
 
 :line
 
-app_style command :h3
+diag_style energy command :h3
+diag_style energy2d command :h3
+diag_style energy3d command :h3
 
 [Syntax:]
 
-app_style style args :pre
+diag_style style delta keyword value keyword value ... :pre
 
-style = application style name
-args = args :ul
+style = {energy} or {energy2d} or {energy3d}
+delta = time increment between evaluations of the diagnostic (seconds)
+see the "diag_style"_diag_style.html command for additional keywords that can be appended to any diagnostic command :ul
 
 [Examples:]
 
-app_style ising 100 100
-app_style potts 1000 1000 4 :pre
+diag_style energy 0.5
+diag_style energy2d 0.5
+diag_style energy3d 0.5 :pre
 
 [Description:]
 
-The energy diagnostic computes the total energy for all sites and uses
-it for stats output.
+The energy diagnostic computes the total energy of all lattice sites
+in the system.
 
-[Restrictions:] none
+[Restrictions:]
+
+As described by the "app_style"_app_style.html command, on-lattice
+applications use one of 3 styles of lattice: general, 2d, or 3d.  For
+this diagnostic you must use a style that matches the application's
+lattice.  The {energy} style is for general lattices, the {energy2d}
+and {energy3d} styles are for 2d and 3d lattices.
 
 [Related commands:]
 
-"variable"_variable.html, ...
+"diag_style"_diag_style.html
 
 [Default:] none

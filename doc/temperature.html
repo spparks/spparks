@@ -9,30 +9,36 @@
 
 <HR>
 
-<H3>app_style command 
+<H3>temperature command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style args 
+<PRE>temperature T 
 </PRE>
-<UL><LI>style = application style name
-<LI>args = args 
+<UL><LI>T = value of temperature used in Boltzmann factor (energy units) 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 100 100
-app_style potts 1000 1000 4 
+<PRE>temperature 2.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command ...
+<P>This command sets the temperature as used in various applications.
+The typical usage would be as part of a Boltzmann factor that alters
+the propabilities of event acceptance and rejection.
+</P>
+<P>The units of the specfied temperature should be consistent with how
+the application defines energy.  E.g. if used in a Boltzmann factor
+where a kT factor scales the energy of a Hamiltonian defined by the
+application, then this command is really defining kT and the specified
+value should have the units of energy as computed by the Hamiltonian.
 </P>
 <P><B>Restrictions:</B> none
 </P>
-<P><B>Related commands:</B>
+<P><B>Related commands:</B> none
 </P>
-<P><A HREF = "variable.html">variable</A>, ...
+<P><B>Default:</B>
 </P>
-<P><B>Default:</B> none
+<P>The default temperature is 0.0.
 </P>
 </HTML>

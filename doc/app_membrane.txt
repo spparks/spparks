@@ -6,74 +6,99 @@
 
 :line
 
-app_style command :h3
+app_style membrane command :h3
+app_style membrane/2d command :h3
 
 [Syntax:]
 
 app_style style args :pre
 
-style = application style name
-args = args :ul
+style = {membrane} or {membrane/2d} :ulb,l
+args = list of arguments for a particular style :l
+  {membrane} args = w01 w11 mu seed 
+    w01 = sovent-protein interaction energy (typically 1.25)
+    w11 = sovent-solvent interaction energy (typically 1.0)
+    mu = chemical potential to insert a solvent (typically -2.0)
+    seed = random number seed (positive integer)
+  {membrane/2d} args = Nx Ny w01 w11 mu seed
+    Nx,Ny = size of 2d square lattice with 4 neighbors per site
+    w01,w11,mu,seed = same as above :pre   
+see the "app_style"_app_style.html command for additional keywords that can be appended to the {membrane} style :l,ule
 
 [Examples:]
 
-app_style ising 100 100
-app_style potts 1000 1000 4 :pre
+app_style membrane 1.25 1.0 -3.0 12345 lattice tri 1.0 100 50
+app_style membrane/2d 100 100 1.25 1.0 -3.0 12345 :pre
 
 [Description:]
 
-app_style membrane w01 w11 mu seed options ...
-app_style membrane/2d nx ny w01 w11 mu seed
+These applications evolve a membrane model, where each lattice site is
+in one of 3 states: lipid, water, or protein.  Sites flip their state
+as the model evolves.  See the paper of "(Sarkisov)"_#Sarkisov for a
+description of the model and its applications to porous media.  Here
+it is used to model the state of a lipid membrane around embedded
+proteins, such as one enclosing a biological cell.
 
-w01 = sovent-protein interaction energy (typically 1.25)
-w11 = sovent-solvent interaction energy (typically 1.0)
-mu = chemical potential to insert a solvent (typically -2.0)
+In the model, protein sites are defined by the
+"inclusion"_inclusion.html command and never change.  The remaining
+sites are initially lipid and can flip between solvent and lipid as
+the model evolves.  Typically, water will coat the surface of the
+proteins and create a pore in between multiple proteins if they are
+close enough together.
 
-nx,ny = lattice size
-seed = RN seed
-options = options listed with the app_style command (e.g. lattice, site)
+The Hamiltonian represeting the energy of site I is as follows:
 
-run a 3-state membrane model
-also need to define a "sweep" and/or "solve" style
+H = - mu x_i - Sum_j (w11 a_ij + w01 b_ij) :pre
 
-Model:
+where Sum_j is a sum over all the neighbor sites of site I, x_i = 1 if
+site I is solvent and 0 otherwise, a_ij = 1 if both the I,J sites are
+solvent and 0 otherwise, b_ij = 1 if one of the I,J sites is solvent
+and the other is protein and 0 otherwise.  Mu and w11 and w01 are user
+inputs.  As discussed in the paper, this is essentially a lattice gas
+grand-canonical Monte Carlo model, which is isomorphic to an Ising
+model.  The mu term is a penalty for inserting solvent which prevents
+the system from becoming all solvent, which the 2nd term would prefer.
 
-site = one of 3 states (protein, lipid, solvent)
-event = protein never changes, but other sites flip between lipid <-> solvent
+These membrane models can be run in one of 2 modes, either as a
+general lattice application or as a 2d square lattice application with
+4 neighbors per site.  See the "app_style"_app_style.html commmand for
+further discussion.  When running as a general lattice application,
+the lattice is specified by the appended {lattice} keword with its
+associated values, as discussed on the doc page for the
+"app_style"_app_style.html command.
 
-Hamiltonian:
+As explained on "this page"_app_style.html, these applications can be
+evolved by either a kinetic Monte Carlo (KMC) or Metropolis
+rejection-based algorithm.  You must thus define a sweeping method
+and/or KMC solver to be used with the application via the
+"sweep_style"_sweep_style.html and "solve_style"_solve_style.html
+commands.
 
-- mu Sum_i x_i - Sum_i Sum_j (w11 a_ij + w01 b_ij)
+For solution by a KMC algorithm, a site event is a spin flip from a
+lipid to fluid state or vice versa.  The probability of the event is
+min\[1,exp(-dE/kT)\], where dE = Efinal - Einitial using the
+Hamiltonian defined above for the energy of the site, and T is the
+temperature of the system defined by the
+"temperature"_temperature.html command (which includes the Boltzmann
+constant k implicitly).
 
-where Sum_i is over all sites
-      Sum_j is over neighbors of site i
-      mu,w11,w01 = user inputs
-      x_i = 1 if site is solvent, else 0
-      a_ij = 1 if both i,j sites are solvent, else 0
-      b_ij = 1 if one of i,j is solvent and other is protein, else 0
+For solution by a Metropolis algorithm, the site is set randomly to
+fluid or lipid, unless it is a protein site in which case it is
+skipped altogether.  The energy change dE = Efinal - Einitial is
+calculated, as is a uniform random number R between 0 and 1.  The new
+state is accepted if R < min\[1,exp(-dE/kT)\], else it is rejected.
 
-This is a lattice gas GCMC model, isomorphic to a Ising model.  Basically
-the mu term is a penalty for inserting solvent, to prevent the system
-from going to all solvent (which the 2nd term would prefer).
+The following additional command is defined by these applications:
 
-Extra commands supported by this app:
-
-inclusion xc yc r
-  create a permanent circular protein inclusion at loc (xc,yc)
-    of radius r
-
-run 0.5
-  run for time (seconds)
-temperature 2.0
-  set temperature for Boltzmann factor (energy units of Hamiltonian)
-dump lattice/coord 0.25
-  dump snapshot every this often
-  app_style membrane only allows for coord format
+"inclusion"_inclusion.html : specify which sites are proteins :tb(s=:)
 
 [Restrictions:] none
 
-[Related commands:]
-
-"variable"_variable.html, ...
+[Related commands:] none
 
 [Default:] none
+
+:line
+
+:link(Sarkisov)
+[(Sarkisov)] Sarkisov and Monson, Phys Rev E, 65, 011202 (2001).

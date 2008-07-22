@@ -9,29 +9,33 @@
 
 <HR>
 
-<H3>app_style command 
+<H3>run command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style args 
+<PRE>run delta 
 </PRE>
-<UL><LI>style = application style name
-<LI>args = args 
+<UL><LI>delta = run simulation for this amount of time (seconds) 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 100 100
-app_style potts 1000 1000 4 
+<PRE>run 100.0
+run 10000.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command ...
+<P>This command runs a Monte Carlo application for the specified number
+of seconds of simulation time.  If multiple run commands are used,
+the simulation is continued, possibly with new settings which were
+specified between the successive run commands.
+</P>
+<P>The <A HREF = "app_style.html">application</A> defines Monte Carlo events and
+probabilities which determine the amount of physical time associated
+with each event.
 </P>
 <P><B>Restrictions:</B> none
 </P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "variable.html">variable</A>, ...
+<P><B>Related commands:</B> none
 </P>
 <P><B>Default:</B> none
 </P>

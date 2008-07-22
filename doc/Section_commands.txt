@@ -136,10 +136,10 @@ commands need only be used if a non-default value is desired.
 (1) Choice of application, solver, sweeper
 
 Use the "app_style"_app_style.html, "solve_style"_solve_style.html,
-and "sweep_style_sweep_style" commands to setup the kind of simulation
-you wish to run.  Note that a sweeper is only relevant to applications
-that define a geometric lattice of event sites and only if you wish to
-perform Monte Carlo updates via sweeping.
+and "sweep_style"_sweep_style.html commands to setup the kind of
+simulation you wish to run.  Note that a sweeper is only relevant to
+applications that define a geometric lattice of event sites and only
+if you wish to perform Monte Carlo updates via sweeping.
 
 (2) Settings
 
@@ -147,7 +147,7 @@ Parameters for a simulation can be defined by application-specific
 commands or by generic commands that are common to many kinds of
 applications.  See the doc pages for individual applications for
 information on the former.  Examples of the latter are the
-"stats" and "temperature"_temperature.txt commands.
+"stats"_stats.html and "temperature"_temperature.html commands.
 
 The "diag_style"_diag_style.html command can also be used to
 setup various diagnostic computations to perform during a simulation.
@@ -163,11 +163,12 @@ A kinetic or Metropolis Monte Carlo simulation is performed using the
 
 This section lists all SPPARKS commands, grouped by category.  The
 "next section"_#3_5 lists the same commands alphabetically.  Note that
-some style options for some commands are part of specific SPPARKS
-packages, which means they cannot be used unless the package was
-included when SPPARKS was built.  Not all packages are included in a
-default SPPARKS build.  These dependencies are listed as Restrictions
-in the command's documentation.
+some commands are only usable with certain applications.  Also, some
+style options for some commands are part of specific SPPARKS packages,
+which means they cannot be used unless the package was included when
+SPPARKS was built.  Not all packages are included in a default SPPARKS
+build.  These dependencies are listed as Restrictions in the command's
+documentation.
 
 Initialization commands:
 
@@ -199,14 +200,15 @@ Miscellaneous:
 
 3.5 Individual commands :h4,link(3_5),link(comm)
 
-This section lists all SPPARKS commands alphabetically, with a separate
-listing below of styles within certain commands.  The "previous
-section"_#3_4 lists the same commands, grouped by category.  Note that
-some style options for some commands are part of specific SPPARKS
-packages, which means they cannot be used unless the package was
-included when SPPARKS was built.  Not all packages are included in a
-default SPPARKS build.  These dependencies are listed as Restrictions
-in the command's documentation.
+This section lists all SPPARKS commands alphabetically, with a
+separate listing below of styles within certain commands.  The
+"previous section"_#3_4 lists the same commands, grouped by category.
+Note that some commands are only usable with certain applications.
+Also, some style options for some commands are part of specific
+SPPARKS packages, which means they cannot be used unless the package
+was included when SPPARKS was built.  Not all packages are included in
+a default SPPARKS build.  These dependencies are listed as
+Restrictions in the command's documentation.
 
 "add_reaction"_add_reaction.html,
 "add_species"_add_species.html,

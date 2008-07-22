@@ -9,29 +9,44 @@
 
 <HR>
 
-<H3>app_style command 
+<H3>dump command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style args 
+<PRE>dump delta style filename 
 </PRE>
-<UL><LI>style = application style name
-<LI>args = args 
+<UL><LI>delta = time increment between dumps (seconds)
+<LI>style = <I>lattice</I> or <I>coord</I>
+<LI>filename = name of file to dump snapshots to 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 100 100
-app_style potts 1000 1000 4 
+<PRE>dump 0.25 lattice tmp.dump
+dump 5.0 coord snap.ising 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command ...
+<P>Dump snapshots of the state of the system to a file every so many
+seconds during a simulation.  The quantities printed are obtained from
+the application.  Typically these are the values of the various sites
+in the simulation.
 </P>
+<P>Two styles of dump file are supported, though not every application
+supports both.  The <I>lattice</I> style simply outputs a list of site IDs
+and values (e.g. spin).  The <I>coord</I> style outputs a LAMMPS-compatible
+dump file where each site has a type (e.g. spin value) and an x,y,z
+coordinate.  The latter can be visualized with various tools in the
+<A HREF = "http://lammps.sandia.gov">LAMMPS package</A> and the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py package</A>.
+</P>
+
+
+
+
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "variable.html">variable</A>, ...
+<P><A HREF = "stats.html">stats</A>
 </P>
 <P><B>Default:</B> none
 </P>

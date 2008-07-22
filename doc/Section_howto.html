@@ -17,7 +17,7 @@ Section</A>
 SPPARKS.
 </P>
 4.1 <A HREF = "#4_1">Running multiple simulations from one input script</A><BR>
-4.2 <A HREF = "#4_2">Coupling LAMMPS to other codes</A> <BR>
+4.2 <A HREF = "#4_2">Coupling SPPARKS to other codes</A> <BR>
 
 <P>The example input scripts included in the SPPARKS distribution and
 highlighted in <A HREF = "Section_example.html">this section</A> also show how to
@@ -66,11 +66,11 @@ multiple times with different settings.  For example, this
 script, named in.runs
 </P>
 <PRE>variable d index run1 run2 run3 run4 run5 run6 run7 run8
-cd $d
+shell cd $d
 app_style ising/2d/4n 100 100 12345
 include temperature.txt
 run 1.0
-cd ..
+shell cd ..
 clear
 next d
 jump in.runs 

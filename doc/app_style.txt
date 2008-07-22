@@ -1,4 +1,4 @@
-"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+-"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
 
 :link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
 :link(sd,Manual.html)
@@ -12,91 +12,221 @@ app_style command :h3
 
 app_style style args keyword values keyword values ... :pre
 
-style = application style name
-args = args :ul
+style = {ising} or {potts} or {membrane} or {chemistry} or {test/group} :ulb,l
+  (see application doc page for additional variants) :pre
+args = arguments specific to an application :l
+  (see application doc page for details) :pre
+zero or more keyword/value pairs may be appended :l
+keyword = {lattice} or {site} :l
+  {lattice} values = type params
+    type = {sq/4n} or {sq/8n} or {tri} or {sc/6n} or {sc/26n} or {fcc} or {bcc} or {diamond} or {random/2d} or {random/3d} or {file}
+      {sq/4n} params = a nx ny = 2d square lattice with 4 neighbors per site
+      {sq/8n} params = a nx ny = 2d square lattice with 8 neighbors per site
+      {tri} params = a nx ny = 2d triangular lattice with 6 neighborrs per site
+        a = lattice constant
+        nx,ny = number of unit cells in each dimension
+      {sc/6n} params = a nx ny nz = 3d cubic lattice with 6 neighbors per site
+      {sc/26n} params = a nx ny nz = 3d cubic lattice with 26 neighbors per site
+      {fcc} params = a nx ny nz = 3d fcc lattice with 12 neighbors per site
+      {bcc} params = a nx ny nz = 3d bcc lattice with 8 neighbors per site
+      {diamond} params = a nx ny nz = 3d diamond lattice with 4 neighbors per site
+        a = lattice constant
+        nx,ny,nz = number of unit cells in each dimension
+      {random/2d} param = N xbox ybox cutoff = lattice of random 2d points
+        N = # of lattice points
+	xbox,ybox = simulation extent in x,y
+        cutoff = distance cutoff for neighbor connectivity between sites 
+	seed = random number seed (positive integer)
+      {random/3d} param = N xbox ybox zbox cutoff = lattice of random 3d points
+        N = # of lattice points
+	xbox,ybox,zbox = simulation extent in x,y,z
+        cutoff = distance cutoff for neighbor connectivity between sites 
+	seed = random number seed (positive integer)
+      {file} param = filename = read lattice and connectivity from file
+        filename = name of file (see file format below)
+  {site} values = Nint Ndouble
+    Nint = # of integer quantites to store per site
+    Ndouble = # of double quantites to store per site :pre
+:ule
 
 [Examples:]
 
-app_style ising 100 100
-app_style potts 1000 1000 4 :pre
+app_style ising ... lattice sq/4n 1.0 100 100
+app_style ising/exchange ... lattice fcc 1.0 100 100 100
+app_style ising/2d/4n ...
+app_style ising/2d/4n/exchange ...
+app_style ising/2d/8n ...
+app_style ising/3d/6n ... 
+app_style ising/3d/26n ... :pre
+
+app_style potts ... lattice file tmp.latttice
+app_style potts/variable ... lattice random/2d 1000 10.0 10.0 3.0 49893
+app_style potts/2d/4n ...
+app_style potts/2d/8n ...
+app_style potts/2d/24n ...
+app_style potts/3d/6n ...
+app_style potts/3d/12n ...
+app_style potts/3d/26n ... :pre
+
+app_style membrane ... lattice tri 1.0 100 50
+app_style membrane/2d ... :pre
+
+app_style chemistry ... :pre
+
+app_style test/group ... :pre
 
 [Description:]
 
-This command defines what application SPPARKS will run.
+This command defines what model or application SPPARKS will run.
+There are 2 basic kinds of applications: on-lattice and off-lattice.
+For lattice-based simulations, there are 3 variants: those on a 2d
+square lattice, on a 3d cubic lattice, and on a general lattice which
+can be either 2d or 3d and of various kinds.  The reason for these
+variants is that we are still experimenting with the best way to write
+lattice appications in SPPARKS.  Eventually, we will probably support
+only the general lattice option, so it is probably best to develop new
+on-lattice MC applications for that style.
 
+Here is the list of on-lattice applications SPPARKS currently
+includes.  Each of these applications has 2d, 3d, and general lattice
+variants as illustrated above.  See the doc for each application for
+details:
 
-define an application for SPPARKS to run
-see commands for individual styles
+"ising"_app_ising.html = Ising model
+"membrane"_app_membrane.html = membrane model of lipid,water,protein
+"potts"_app_potts.html = multi-state Potts model for grain growth :ul
 
-styles derived from AppLattice2d and AppLattice3d allow for
-  the following options:
- 
-options = (random) or (read <filename>)
+Here is the list of off-lattice applications SPPARKS currently
+includes:
 
-styles derived from the generic AppLattice allow for the 
-  the following options:
+"chemistry"_app_chemistry.html = biochemical reaction networks
+"test/group"_app_test_group.html = artificial chemical networks that test "solve_style"_solve_style.html :ul
 
-options = lattice or site
-  lattice style args ...
-    2d styles = sq/4n or sq/8n or tri
-      lattice sq/4n a nx ny
-      lattice sq/8n a nx ny
-      lattice tri a nx ny
-        a = lattice constant
-	nx,ny = number of square or rectangular unit cells
-    3d styles = sc/6n or sc/26n or fcc or bcc or diamond
-      lattice sc/6n a nx ny nz
-      lattice sc/26n a nx ny nz
-      lattice fcc a nx ny nz
-      lattice bcc a nx ny nz
-      lattice diamond a nx ny nz
-        a = lattice constant
-	nx,ny,nz = number of square or rectangular unit cells
-    random styles = random/2d or random/3d
-      lattice random/2d N xbox ybox cutoff
-      lattice random/3d N xbox ybox zbox cutoff
-        N = # of lattice points
-	xbox,ybox,zbox = extent of simulation domain
-	cutoff = distance cutoff for connectivity between sites
-	seed = RN seed
-    file style = file
-      lattice file filename
-        filename = file that contains lattice points and connectivity
-	see format below
-  site N M
-    N = # of int quantites to store on each site
-    M = # of double quantites to store on each site
-    if both are 0, then a single int is stored in the variable "lattice"
-    otherwise multiple arrays of ints and doubles are stored
+Depending on the application, the model it represents can be evolved
+in one or two ways.
 
-file format for the lattice file style:
-  comment              # 1st line is skipped
-	               # skipped line
-  Ndim dimension       # Ndim = 2 or 3
-  N vertices           # N = global vertices
-  M max connectivity   # M = maximum # of connections for any vertex
-  X1 X2 xlo xhi        # x bounds
-  Y1 Y2 xlo xhi        # y bounds
-  Z1 Z2 zlo zhi        # z bounds (only if dim = 3)
-                       # skipped line
-  Vertices
-                       # skipped line
-  1 x y z	       # ID, x, y, z for each vertex
-  2 x y z              # no z value if dim = 2
-  ...
-  N x y z
-                       # skipped line
-  Edges
-                       # skipped line
-  1 n1 n2 n3 ...       # ID, list of connection IDs for neighbors
-  1 n1 n2 n3 ...       # can be different numbers of connections for each ID
-  ...
-  N n1 n2 n3 ...
+The first method is to use a kinetic Monte Carlo (KMC) solver,
+specified by the "solve_style"_solve_style.html command.  If the
+application supports parallel KMC evolution, then the "sweep_style kmc
+yes" command is also used in conjunction with a KMC solver.  In this
+scenario the application defines a list of "events" and associated
+probabilities, the solver chooses the next event, and the application
+updates the system accordingly.  For off-lattice applications the
+definition of an "event" is arbitrary.  For on-lattice application
+zero or more possible events are typically defined for each lattice
+site.
 
-option defaults: lattice = none, site 0 0
+The second method, which is supported by many of the on-lattice
+applications, is to sweep over the lattice and use a rejection-based
+Metropolis algorithm to accept or reject events occuring on each site.
+The style of sweeping is specified by the
+"sweep_style"_sweep_style.html command.  No
+"solve_style"_solve_style.html command is specified in this scenario.
+
+For both methods (KMC and Metropolis) the rules for how events are
+chosen and accepted or rejected are discussed in the doc pages for the
+individual applications.
+
+:line
+
+For 2d and 3d lattice applications, the kind of lattice used and its
+size are determined by the application style and its arguments.  E.g.
+
+app_style ising/2d/4n 100 100 12345 :pre
+
+means a 2d square lattice of size 100x100 with 4 neighbors per
+lattice.  The only lattice types supported in this mode are 2d square
+and 3d cubic, though the neighbor stencil can be of various kinds
+(e.g. 4 or 8 neighbors in 2d).  See the doc pages for individual
+applications for details.
+
+For general lattice applications, the kind of lattice used and its
+size are independent of the application and must be specified by the
+{lattice} keyword and its values.  E.g.
+
+app_style ising 12345 lattice sq/4n 100 100 :pre
+
+means exactly the same thing as the 2d lattice example above, namely a
+2d square lattice of size 100x100 with 4 neighbors per lattice site.
+A variety of lattice types and neighbor stencils are given as options
+with the {lattice} keyword as described above.
+
+The {sq} and {sc} lattice types are 2d square and 3d cubic lattices
+The total number of lattice sites is one per unit cell, i.e. the
+product of {nx}, {ny}, and {nz}.  The {fcc}, {bcc}, and {diamond}
+lattice types are 3d and generate multiple lattice sites per unit
+cell: 4 per fcc unit cell, 2 per bcc unit cell, and 8 per diamond unit
+cell.
+
+The connectivity of these lattice types is as follows:
+
+sq/4n = 2d square lattice with 4 neighbors per site (nearest neighbors)
+sq/8n = 2d square lattice with 4 neighbors per site (1st and 2nd nearest neighbors)
+tri = 2d triangular lattice with 6 neighbors per site (nearest neighbors)
+sc/6n = 3d cubic lattice with 6 neighbors per site (nearest neighbors)
+sc/26n = 3d cubic lattice with 26 neighbors per site (1st,2nd,3rd nearest neighbors)
+fcc = 3d fcc lattice with 12 neighbors per site (nearest neighbors)
+bcc = 3d fcc lattice with 8 neighbors per site (nearest neighbors)
+diamond = 3d fcc lattice with 4 neighbors per site (nearest neighbors) :ul
+
+The {random/2d} and {random/3d} lattice options generate a lattice of
+random points within a 2d or 3d box of specified size
+(0-xbox,0-ybox,0-zbox), generated by a random number generator using
+the specified {seed}.  The {cutoff} criterion is used to assign
+lattice neighbors to each site.
+
+The {file} lattice option reads in a lattice and neighbor connectivity
+from the specified {filename}.  The format of this file is as follows
+where the comments (#) are not included in the file, and "vertex" is a
+lattice site, and an "edge" is a neighbor connection from one site to
+another.  Typically neighbors should be geometrically close, but that
+is not required.  Note that a connection between two sites is listed
+twice, once as edge IJ, and once as edge JI.
+
+comment              # 1st line is skipped
+                     # skipped line
+Ndim dimension       # Ndim = 2 or 3
+N vertices           # N = number of vertices
+M max connectivity   # M = maximum number of edges for any vertex
+X1 X2 xlo xhi        # X1,X2 = x bounds of box that encloses lattice
+Y1 Y2 xlo xhi        # y bounds
+Z1 Z2 zlo zhi        # z bounds (only if Ndim = 3)
+                     # skipped line
+Vertices
+                     # skipped line
+1 x y z	             # ID, x, y, z for each vertex
+2 x y z              # no z value if dim = 2
+...
+N x y z              # N lines in this section
+                     # skipped line
+Edges
+                     # skipped line
+1 n1 n2 n3 ...       # ID, list of IDs for neighbor connections
+1 n1 n2 n3 ...       # can be different number of connections (up to M) for each vertex
+...
+N n1 n2 n3 ...       # N lines in this section :pre
+
+:line
+
+For 2d and 3d lattice applications, there is always one integer
+stored per lattice site, which your application can access and update.
+
+For general lattice applications, the {site} keyword can be used.  By
+default each lattice site stores a single integer value.  By
+specifying {site}, multiple integer and or double values can be stored
+on each site and accessed/updated by your application.  For example,
+an integer flag could be stored for the type of lattice site and one
+or more doubles could store the state of the site.  If {site 0 0} is
+specified, then the default of a single integer per site is used.
+
+:line
 
 [Restrictions:] none
 
 [Related commands:] none
 
-[Default:] none
+[Default:]
+
+There is no default for the {lattice} keyword.  It must be specified
+for on-lattice applications of the general lattice style.  The default
+value for site is 0 0.

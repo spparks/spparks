@@ -9,30 +9,42 @@
 
 <HR>
 
-<H3>app_style command 
+<H3>diag_style energy command 
+</H3>
+<H3>diag_style energy2d command 
+</H3>
+<H3>diag_style energy3d command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style args 
+<PRE>diag_style style delta keyword value keyword value ... 
 </PRE>
-<UL><LI>style = application style name
-<LI>args = args 
+<UL><LI>style = <I>energy</I> or <I>energy2d</I> or <I>energy3d</I>
+<LI>delta = time increment between evaluations of the diagnostic (seconds)
+<LI>see the <A HREF = "diag_style.html">diag_style</A> command for additional keywords that can be appended to any diagnostic command 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 100 100
-app_style potts 1000 1000 4 
+<PRE>diag_style energy 0.5
+diag_style energy2d 0.5
+diag_style energy3d 0.5 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The energy diagnostic computes the total energy for all sites and uses
-it for stats output.
+<P>The energy diagnostic computes the total energy of all lattice sites
+in the system.
 </P>
-<P><B>Restrictions:</B> none
+<P><B>Restrictions:</B>
+</P>
+<P>As described by the <A HREF = "app_style.html">app_style</A> command, on-lattice
+applications use one of 3 styles of lattice: general, 2d, or 3d.  For
+this diagnostic you must use a style that matches the application's
+lattice.  The <I>energy</I> style is for general lattices, the <I>energy2d</I>
+and <I>energy3d</I> styles are for 2d and 3d lattices.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "variable.html">variable</A>, ...
+<P><A HREF = "diag_style.html">diag_style</A>
 </P>
 <P><B>Default:</B> none
 </P>

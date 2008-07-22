@@ -6,56 +6,87 @@
 
 :line
 
-app_style command :h3
+app_style test/group command :h3
 
 [Syntax:]
 
-app_style style args :pre
+app_style test/group N Nmax pmax pmin delta seed keyword value :pre
 
-style = application style name
-args = args :ul
+test/group = application style name :ulb,l
+N = # of events to choose from :l
+Mmax = max number of dependencies for each event :l
+pmax = max probability :l
+pmin = min probability :l
+delta = percentage adjustment factor for dependent probabilities :l
+seed = random number seed (positive integer) 
+zero or more keyword/value pairs may be appended :l
+keyword = {lomem} :l
+  {lomem} value = {yes} or {no} :pre
+:ule
 
 [Examples:]
 
-app_style ising 100 100
-app_style potts 1000 1000 4 :pre
+app_style test/group 10000 30 1.0 1.0e-6 5 49289
+app_style test/group 10000 30 1.0 1.0e-9 10 5982893 lomem yes :pre
 
 [Description:]
 
-app_style test/group
-app_style test/group2
+This application creates and evolves an artificial network of coupled
+events to test the performance and scalability of various kinetic
+Monte Carlo "solvers"_solve_style.html.  See the paper by
+"(Slepoy)"_#Slepoy for additional details on how it has been used.
 
-run an app to test group solver performance
-two versions of this app
-  group = Alex's original version
-  group2 = Steve's trimmed down version (used for JCP paper)
+The set of coupled events can be thought of as a reaction network with
+N different chemical rate equations or events to choose from.  Each
+equation is coupled to M randomly chosen other equations, where M is a
+uniform random number from 1 to Mmax.  In a chemical reaction sense it
+is as if an executed reaction creates M product molecules, each of
+which is a reactant in another reaction, affecting its probability of
+occurrence.
 
-also need to define a "solve" style:
-  see "* solve_style" below
+Initially, the maximum and minimum probability for each event is an
+exponentially distributed random value between {pmax} and {pmin}.  If
+"solve_style group"_solve_style.html is used, these values should be
+the same as the {pmax} and {pmin} used as parameters in that command.
+Pmin must be greater than 0.0.
 
-Extra commands supported by this app:
+As events are executed, the artificial network updates the
+probabilities of dependent reactions directly by adjusting their
+probability by a uniform random number betwee -delta and +delta.
+Since delta is specified as a percentatge, this means pold * (1 -
+delta/100) <= pnew <= pold * (1 + delta/100).  Delta must be less than
+100.
 
-event           200  30 1
-  Defines properties of the event table:
-  1. Size of event table
-  2. Max number of dependencies
-  3. Size of propensity adjustment (%)
-  4. [optional] Low memory switch to generate
-  dependencies randomly on the fly instead
-  of storing the event table.
-  5. Random seed for the low_mem option.
-  
-  Examples:
-  event           200  30 1
-  event           200  30 1 lo_mem 384745
+If the {lomem} keyword is set to {no}, then the random connectivity of
+the network is generated beforehand and stored.  This is faster when
+events are executed but limits the size of problem that will fit in
+memory.  If {lomem} is set to {yes}, then the connectivity is
+generated on the fly, as each event is executed.
 
-run 0.5
-  run for time (seconds)
+This application can only be evolved using a kinetic Monte Carlo (KMC)
+algorithm.  You must thus define a KMC solver to be used with the
+application via the "solve_style"_solve_style.html command
+
+There are no additional commands defined by this application.
+
+When the "run"_run.html command is used with this application it sets
+the number of events to perform, not the time for the run.  E.g.
+
+run 10000 :pre
+
+means to perform 10000 events, not to run for 10000 seconds.
 
 [Restrictions:] none
 
 [Related commands:]
 
-"variable"_variable.html, ...
+"solve_style group"_solve_style.html
 
-[Default:] none
+[Default:]
+
+The default value is lomem = no.
+
+:line
+
+:link(Slepoy)
+[(Slepoy)] Slepoy, Thompson, Plimpton, J Chem Phys, 128, 205101 (2008).

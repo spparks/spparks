@@ -28,9 +28,8 @@ the middle of a run.
 SPPARKS tries to flag errors and print informative error messages so
 you can fix the problem.  Of course SPPARKS cannot figure out your
 physics mistakes, like choosing too big a timestep or setting up an
-invalid initial geoemetry.  If you find errors that SPPARKS doesn't
-catch that you think it should flag, please send an email to the
-"developers"_http://SPPARKS.sandia.gov/authors.html.
+invalid lattice.  If you find errors that SPPARKS doesn't catch that
+you think it should flag, please send an email to the developers.
 
 If you get an error message about an invalid command in your input
 script, you can determine what command is causing the problem by
@@ -77,7 +76,7 @@ buffering or boost the sizes of messages that can be buffered.
 9.2 Reporting bugs :link(9_2),h4
 
 If you are confident that you have found a bug in SPPARKS, please send
-an email to the "developers"_http://SPPARKS.sandia.gov/authors.html.
+an email to the developers.
 
 First, check the "New features and bug fixes" section of the "SPPARKS
 WWW site"_sws to see if the bug has already been reported or fixed.

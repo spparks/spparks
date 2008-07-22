@@ -14,7 +14,7 @@ The following sections describe how to perform various operations in
 SPPARKS.
 
 4.1 "Running multiple simulations from one input script"_#4_1
-4.2 "Coupling LAMMPS to other codes"_#4_2 :all(b)
+4.2 "Coupling SPPARKS to other codes"_#4_2 :all(b)
 
 The example input scripts included in the SPPARKS distribution and
 highlighted in "this section"_Section_example.html also show how to
@@ -63,11 +63,11 @@ multiple times with different settings.  For example, this
 script, named in.runs
 
 variable d index run1 run2 run3 run4 run5 run6 run7 run8
-cd $d
+shell cd $d
 app_style ising/2d/4n 100 100 12345
 include temperature.txt
 run 1.0
-cd ..
+shell cd ..
 clear
 next d
 jump in.runs :pre

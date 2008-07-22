@@ -59,9 +59,9 @@ distributed- or shared-memory machines.
 SPPARKS is a freely-available open-source code.  See the "SPPARKS WWW
 Site"_sws for download information.  It is distributed under the terms
 of the "GNU Public License"_gnu, which means you can use or modify the
-code however you wish with restrictions on how you distribute it
-further.  See "this section"_#1_4 for a brief discussion of the
-open-source philosophy.
+code however you wish.  The only restrictions imposed by the GPL are
+on how you distribute the code further.  See "this section"_#1_4 for a
+brief discussion of the open-source philosophy.
 
 :link(gnu,http://www.gnu.org/copyleft/gpl.html)
 
@@ -73,10 +73,11 @@ These are the applications currently available in SPPARKS:
 
 Ising model
 Potts model
-Membrane evolution model
-Reaction network model :ul
+Membrane model
+Biochemcial reaction network model :ul
 
-These are the KMC solvers currently available in SPPARKS:
+These are the KMC solvers currently available in SPPARKS and their
+scaling properties:
 
 linear, O(N)
 tree, O(logN)
@@ -84,7 +85,7 @@ group, O(1) :ul
 
 Pre- and post-processing: :h4
 
-Our group has also written and released a separate toolkit called
+Our group has written and released a separate toolkit called
 "Pizza.py"_pizza which provides tools which can be used to setup,
 analyze, plot, and visualize data for SPPARKS simulations.  Pizza.py
 is written in "Python"_python and is available for download from "the

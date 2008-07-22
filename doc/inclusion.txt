@@ -6,28 +6,34 @@
 
 :line
 
-app_style command :h3
+inclusion command :h3
 
 [Syntax:]
 
-app_style style args :pre
+inclusion x y z r :pre
 
-style = application style name
-args = args :ul
+x,y,z = position of center of protein inclusion
+r = radius of the protein :ul
 
 [Examples:]
 
-app_style ising 100 100
-app_style potts 1000 1000 4 :pre
+inclusion 10 12 0.0 2.0
+inclusion 10 12 5.4 5.0 :pre
 
 [Description:]
 
-This command ...
+This command defines protein sites on a lattice for use in the
+"app_style membrane"_app_membrane.html application.
+
+Think of the protein as a sphere (or circle) centered at {x,y,z} and
+with a radius of {r}.  All lattice sites within the sphere (or circle)
+will be flagged as protein (as opposed to lipid or solvent).  For
+lattices with a 2d geometry, the z value should be speficied as 0.0.
 
 [Restrictions:] none
 
 [Related commands:]
 
-"variable"_variable.html, ...
+"app_style membrane"_app_membrane.html
 
 [Default:] none

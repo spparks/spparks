@@ -9,45 +9,84 @@
 
 <HR>
 
+<H3>diag_style cluster command 
+</H3>
+<H3>diag_style cluster2d command 
+</H3>
+<H3>diag_style cluster3d command 
+</H3>
 <H3>app_style command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style args 
+<PRE>diag_style style delta keyword value keyword value ... 
 </PRE>
-<UL><LI>style = application style name
-<LI>args = args 
+<UL><LI>style = <I>cluster</I> or <I>cluster2d</I> or <I>cluster3d</I> 
+
+<LI>delta = time increment between evaluations of the diagnostic (seconds) 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>filename</I> or <I>dump</I> 
+
+<PRE>  <I>filename</I> value = name
+    name = name of file to write clustering results to
+  <I>dump</I> value = style filename
+    style = <I>standard</I> or <I>opendx</I>
+    filename = file to write viz data to 
+</PRE>
+<LI>see the <A HREF = "diag_style.html">diag_style</A> command for additional keywords that can be appended to any diagnostic command 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 100 100
-app_style potts 1000 1000 4 
+<PRE>diag_style cluster 0.5
+diag_style cluster2d 0.5
+diag_style cluster3d 0.5
+diag_style cluster3d 1.0 filename cluster3d.a.0.1.dat dump opendx cluster3d.a.0.1.dump 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Cluster analysis is available for 3D, 2D, general lattice apps, if the
-push_connected_neighbors() and connected_ghosts() functions have been
-defined. If not, SPPARKS will exit with a helpful error
-message. Clustering uses an application-defined site-site connectivity
-(e.g. sites are adjacent and have same spin value) to identify the set
-of connected clusters. It prints the number of sites in each cluster
-to a file specified by the filename option.  The number of clusters is
-used for stats output. If a dump_style option is given, then the
-cluster id for each site is printed out. The cluster ids are arbitrary
-integers such that two sites have the same id if and only if they
-belong to the same cluster. The standard dump_style generates
-LAMMPS-like output with two columns: site index and cluster id. The
-opendx dump_style generates a file that can be read by the OpenDX
-script called aniso0.net to visualize the clusters in 3D. OpenDX can
-also be used to visualize 2D lattices.
+<P>The cluster diagnostic computes a clustering analysis on all lattice
+sites in the system, identifying geometric groupings of identical spin
+values, e.g. a grain in a grain growth model.
 </P>
-<P>diag_style      cluster3d 1.0 filename cluster3d.a.0.1.dat dump_style opendx cluster3d.a.0.1.dump
+<P>Clustering uses an a connectivity definition provided by the
+application (e.g. sites are adjacent and have same spin value) to
+identify the set of connected clusters.
 </P>
-<P><B>Restrictions:</B> none
+<P>The <I>filename</I> keyword allows a file to be specified which statistical
+output is written to.
+</P>
+<P>The <I>dump</I> keyword then the cluster ID for each site is printed out in
+snapshot format which can be used for visualization purposes.  The
+cluster IDs are arbitrary integers such that two sites have the same
+ID if and only if they belong to the same cluster.  The <I>standard</I>
+setting generates LAMMPS-style output with two columns: site index and
+cluster ID.  It can be visualized with various tools in the <A HREF = "http://lammps.sandia.gov">LAMMPS
+package</A> and the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py package</A>.  The <I>opendx</I>
+setting generates a file that can be read by the OpenDX script called
+aniso0.net to visualize the clusters in 3D.  OpenDX can also be used
+to visualize 2D lattices of site values.
+</P>
+
+
+
+
+<P><B>Restrictions:</B>
+</P>
+<P>Applications need to provide push_connected_neighbors() and
+connected_ghosts() functions which are called by this diagnostic.  If
+they are not defined, SPPARKS will print an error message.
+</P>
+<P>As described by the <A HREF = "app_style.html">app_style</A> command, on-lattice
+applications use one of 3 styles of lattice: general, 2d, or 3d.  For
+this diagnostic you must use a style that matches the application's
+lattice.  The <I>cluster</I> style is for general lattices, the <I>cluster2d</I>
+and <I>cluster3d</I> styles are for 2d and 3d lattices.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "variable.html">variable</A>, ...
+<P><A HREF = "diag_style.html">diag_style</A>
 </P>
 <P><B>Default:</B> none
 </P>

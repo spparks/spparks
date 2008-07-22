@@ -27,10 +27,6 @@ add_reaction b2 1.0e-10 c3 d4 e3 :pre
 This command defines a chemical reaction for use in the "app_style
 chemistry"_app_chemistry.html application.
 
-The first reaction listed above represents an A and B molecule binding
-to form a complex C at a rate of 1.0e10 per molarity per second.
-I.e. A + B -> C.
-
 Each reaction has 0, 1, or 2 reactants.  It also has 0, 1, or more
 products.  The reactants and products are specified by species ID
 strings, as defined by the "add_species"_add_species.html command.
@@ -42,6 +38,10 @@ participate in the reaction:
 1 reactant = rate is 1/sec
 2 reactants = rate is 1/molarity-sec :ul
 
+Thus the first reaction listed above represents an A and B molecule
+binding to form a complex C at a rate of 1.0e10 per molarity per
+second.  I.e. A + B -> C.
+
 [Restrictions:]
 
 This command can only be used as part of the "app_style
@@ -49,6 +49,7 @@ chemistry"_app_chemistry.html application.
 
 [Related commands:]
 
+"app_style chemistry"_app_chemistry.html,
 "add_species"_add_species.html
 
 [Default:] none

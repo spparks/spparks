@@ -17,7 +17,7 @@ This section describes how to unpack, make, and run SPPARKS.
 2.3 "Making SPPARKS with optional packages"_#2_3
 2.4 "Building SPPARKS as a library"_#2_4
 2.5 "Running SPPARKS"_#2_5
-2.6 "Command-line options"_#2_6
+2.6 "Command-line options"_#2_6 :all(b)
 
 :line
 
@@ -36,7 +36,7 @@ sub-directories:
 README: text file
 LICENSE: the GNU General Public License (GPL)
 doc: documentation
-examples: simple test problems
+examples: test problems
 src: source files :tb(s=:)
 
 :line
@@ -184,9 +184,8 @@ which are always used, plus optional packages, which are groups of
 files that enable a specific set of features.  You can see the list of
 both standard and user-contributed packages by typing "make package".
 
-There are no packages distributed with the current version of SPPARKS.
-
-:line
+Note: this sub-section is a placeholder.  There are no packages
+distributed with the current version of SPPARKS.
 
 Any or all packages can be included or excluded when SPPARKS is built.
 You may wish to exclude certain packages if you will never run certain

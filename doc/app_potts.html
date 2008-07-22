@@ -9,86 +9,125 @@
 
 <HR>
 
-<H3>app_style command 
+<H3>app_style potts command 
+</H3>
+<H3>app_style potts/variable command 
+</H3>
+<H3>app_style potts/2d/4n command 
+</H3>
+<H3>app_style potts/2d/8n command 
+</H3>
+<H3>app_style potts/2d/24n command 
+</H3>
+<H3>app_style potts/3d/6n command 
+</H3>
+<H3>app_style potts/3d/12n command 
+</H3>
+<H3>app_style potts/3d/26n command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style args 
+<PRE>app_style style args keyword values ... 
 </PRE>
-<UL><LI>style = application style name
-<LI>args = args 
+<UL><LI>style = <I>potts</I> or <I>potts/variable</I> or <I>potts/2d/4n</I> or <I>potts/2d/8n</I> or <I>potts/2d/24n</I> or <I>potts/3d/6n</I> or <I>potts/3d/12n</I> or <I>potts/3d/26n</I> 
+
+<LI>args = list of arguments for a particular style 
+
+<PRE>  <I>potts</I> arg = Q seed 
+  <I>potts/variable</I> arg = Q seed 
+    Q = number of spin states
+    seed = random number seed (positive integer)
+  <I>potts/2d/4n</I> args = Nx Ny Q seed
+  <I>potts/2d/8n</I> args = Nx Ny Q seed
+  <I>potts/2d/24n</I> args = Nx Ny Q seed
+  <I>potts/3d/6n</I> args = Nx Ny Nz Q seed
+  <I>potts/3d/12n</I> args = Nx Ny Nz Q seed
+  <I>potts/3d/26n</I> args = Nx Ny Nz Q seed
+    Nx,Ny = size of 2d lattice size
+    Nx,Ny,Nz = size of 3d lattice size
+    Q = number of spin states
+    seed = random number seed (positive integer) 
+</PRE>
+<LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended to the <I>potts</I> and <I>potts/variable</I> styles 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 100 100
-app_style potts 1000 1000 4 
+<PRE>app_style potts 20 18874 lattice sq/4n 1.0 50 50
+app_style potts/variable 20 18874 lattice sq/4n 1.0 50 50 site 1 1
+app_style potts/2d/4n 50 50 20 18874
+app_style potts/2d/8n 100 100 20 48783
+app_style potts/2d/24n 100 100 20 48783
+app_style potts/3d/6n 100 100 100 100 887287
+app_style potts/3d/12n 100 100 100 100 887287
+app_style potts/3d/26n 50 50 100 1000 487827 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>app_style potts seed nspins options ...
-app_style potts/variable seed nspins options ...
+<P>These applications evolve a Q-state Ising model, where each lattice
+site has a spin value from 1 to Q.  Sites flip their spin as the model
+evolves.
 </P>
-<P>app_style potts/2d/4n nx ny nspins seed
-app_style potts/2d/8n nx ny nspins seed
-app_style potts/2d/24n nx ny nspins seed
+<P>The Hamiltonian representing the energy of site I is as follows:
 </P>
-<P>app_style potts/3d/6n nx ny nz nspins seed
-app_style potts/3d/26n nx ny nz nspins seed
-app_style potts/3d/12n nx ny nz nspins seed
+<PRE>H = - Sum_j delta_ij 
+</PRE>
+<P>where Sum_j is a sum over all the neighbor sites of site I and delta_ij
+is 1 if the spin of sites I and J are the same and 0 otherwise.
 </P>
-<P>nx,ny,nz = lattice size
-nspins = # of possible spins
-seed = RN seed
-options = options listed with the app_style command (e.g. lattice, site)
+<P>These Potts models can be run in one of several modes, either as a
+general lattice application or as a 2d square lattice application or
+as a 3d square lattice application.  See the
+<A HREF = "app_style.html">app_style</A> commmand for further discussion.  When
+running as a general lattice application, the lattice is specified by
+the appended <I>lattice</I> keword with its associated values, as discussed
+on the doc page for the <A HREF = "app_style.html">app_style</A> command.  When run
+as a 2d or 3d lattice application the style name also determines how
+many neighbors per site are defined:
 </P>
-<P>run a Potts model with different #'s of neighbors in stencil
-style potts is a generic AppLattice that can be used with various lattices
-style potts/variable is a generic AppLattice
-  that can be used with various lattices and also defines one int spin per site
-style potts/... is a specific app for a particular lattice style
-  24n and 12n define special 2-hop stencils
-also need to define a "sweep" and/or "solve" style
+<UL><LI>2d/4n = 2d square lattice with 4 neighbors per site (nearest neighbors)
+<LI>2d/8n = 2d square lattice with 8 neighbors per site (1st and 2nd nearest neighbors)
+<LI>2d/24n = 2d square lattice with 24 neighbors per site (5x5 stencil surrounding each site)
+<LI>3d/6n = 3d cubic lattice with 6 neighbors per site (nearest neighbors)
+<LI>3d/12n = 3d cubic lattice with 12 neighbors per site (2 neighbors in each of 6 directions)
+<LI>3d/26n = 3d cubic lattice with 26 neighbors per site (1st,2nd,3rd nearest neighbors) 
+</UL>
+<P>All the Potts applications perform Glauber dynamics, meaning they flip
+the spin on a single site.  The <I>potts/variable</I> application is
+identical to the <I>potts</I> application except that the <I>site</I> keyword
+(described with the <A HREF = "app_style.html">app_style</A> command) can be used to
+define multiple quantities per site, instead of just a single spin
+value.
 </P>
-<P>Model:
+<P>As explained on <A HREF = "app_style.html">this page</A>, these applications can be
+evolved by either a kinetic Monte Carlo (KMC) or Metropolis
+rejection-based algorithm.  You must thus define a sweeping method
+and/or KMC solver to be used with the application via the
+<A HREF = "sweep_style.html">sweep_style</A> and <A HREF = "solve_style.html">solve_style</A>
+commands.
 </P>
-<P>site = integer spin from 1 to Q
-event = flip a spin to a neighboring site value
+<P>For solution by a KMC algorithm, a site event is a spin flip to a spin
+value of a neighbor site different than itself.  For example, let a
+site have 12 neighbors and those 12 spins have 4 different values, one
+of which is the same as the central site.  There will then be 3 events
+defined for the central site.  The probability of each event is
+min[1,exp(-dE/kT)], where dE = Efinal - Einitial using the
+Hamiltonian defined above for the energy of the site, and T is the
+temperature of the system defined by the
+<A HREF = "temperature.html">temperature</A> command (which includes the Boltzmann
+constant k implicitly).
 </P>
-<P>Hamiltonian:
+<P>For solution by a Metropolis algorithm, the spin is set to a random
+value between 1 and Q, dE = Efinal - Einitial is calculated, as is a
+uniform random number R between 0 and 1.  The new state is accepted if
+R < min[1,exp(-dE/kT)], else it is rejected.
 </P>
-<P>- Sum_i Sum_j delta_ij
-</P>
-<P>where Sum_i is over all sites
-      Sum_j is over neighbors of site i
-      delta_ij = 1 if spin_i = spin_j, else 0
-</P>
-<P>Rate: Min<B>1,exp(-E/kT)</B>, where E is the energy change due to the spin flip.
-</P>
-<P>More general Potts model:
-</P>
-<P>The energy is a function of the site spin, neighbor spins, and one or
-more field values (spin, etc).
-</P>
-<P>The neighborhood for exchanges may not be the same as
-the neighborhood used to compute site energies.
-</P>
-<P>A mobility prefactor M(t) may be put in front of the rate factor.
-</P>
-<P>Extra commands supported by these apps:
-</P>
-<P>run 0.5
-  run for time (seconds)
-temperature 2.0
-  set temperature for Boltzmann factor (energy units of Hamiltonian)
-dump lattice/coord 0.25
-  dump snapshot every this often
-  either in lattice format or LAMMPS atom format (coord)
+<P>There are no additional commands defined by these applications.
 </P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "variable.html">variable</A>, ...
+<P><A HREF = "app_ising.html">app_style ising</A>
 </P>
 <P><B>Default:</B> none
 </P>

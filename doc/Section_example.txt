@@ -41,8 +41,4 @@ cp ../../src/spk_linux .           # copy SPPARKS executable to this dir
 spk_linux < in.potts               # run the problem :pre
 
 Running the simulation produces the files {dump.potts} and
-{log.spparks}.  You can visualize the dump file as follows:
-
-../../tools/xmovie/xmovie -scale dump.potts :pre
-
-(need to use something other than xmovie here)
+{log.spparks}.

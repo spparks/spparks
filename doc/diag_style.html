@@ -9,49 +9,87 @@
 
 <HR>
 
-<H3>app_style command 
+<H3>diag_style command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style args 
+<PRE>diag_style style delta keyword value keyword value ... 
 </PRE>
-<UL><LI>style = application style name
-<LI>args = args 
+<UL><LI>style = <I>cluster</I> or <I>cluster2d</I> or <I>cluster3d</I> or <I>eprof3d</I> or <I>energy</I> or <I>energy2d</I> or <I>energy3d</I> 
+
+<LI>delta = time increment between evaluations of the diagnostic (seconds) 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>log</I> 
+
+<PRE>  <I>log</I> values = N factor
+    N = number of repetitions per interval
+    factor = scale factor between interval 
+</PRE>
+<LI>see doc pages for individual diagnostic commands for additional keywords that can be appended 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 100 100
-app_style potts 1000 1000 4 
+<PRE>diag_style cluster 1.0 
+diag_style eprof3d 10.0
+diag_style energy2d 0.01 log 7 10.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>diag_style style delta arg option arg option ...
+<P>This command invokes a diagnostic calculation every <I>delta</I> seconds
+during a simulation.  Currently, diagnostics can only be defined for
+on-lattice applications.  See the <A HREF = "app_style.html">app_style</A> command
+for an overview of such applications.
 </P>
-<P>Run a diagnostic function called style after every delta time
-units. The option logfreq is available for all diag_styles and
-requires two arguments, just like in the stats command.
+<P>As described by the <A HREF = "app_style.html">app_style</A> command, on-lattice
+applications use one of 3 styles of lattice: general, 2d, or 3d.  For
+several of the diagnostic styles, you must use a style that matches
+the application's lattice.
 </P>
-<P>The diagnostic functions available are: 
+<P>The diagnostics currently available are:
 </P>
-<P>cluster
-cluster3d
-cluster2d
-eprof3d
-energy
-energy2d
-energy3d
+<UL><LI><A HREF = "diag_cluster.html">cluster</A> = grain size statistics for general lattices
+<LI><A HREF = "diag_cluster.html">cluster2d</A> = grain size statistics for 2d lattices
+<LI><A HREF = "diag_cluster.html">cluster3d</A> = grain size statistics for 3d lattices
+<LI><A HREF = "diag_eprof.html">eprof3d</A> = site energy as function of distance from sector boundary for 3d lattices
+<LI><A HREF = "diag_energy.html">energy</A> = compute energy of entire system for general lattices
+<LI><A HREF = "diag_energy.html">energy2d</A> = compute energy of entire system for 2d lattices
+<LI><A HREF = "diag_energy.html">energy3d</A> = compute energy of entire system for 3d lattiecs 
+</UL>
+<HR>
+
+<P>How to output the info - via stats? to a file?
 </P>
-<P>These diagnostics are only available for app_styles derived from
-AppLattice, AppLattice2d, AppLattice3d, as indicated by the suffix.
+<P>Using the <I>log</I> keyword will produce statistical output at varying
+intervals during the course of a simulation.  There will be <I>N</I>
+outputs per interval where the size of each interval scales up by
+<I>factor</I> each time.  <I>Delta</I> is the time between outputs in the first
+(smallest) interval.
 </P>
-<P>The energy diagnostic computes the total energy for all sites and uses
-it for stats output.
+<P>For example, this command
 </P>
+<PRE>diag_style energy 0.01 log 7 10.0 
+</PRE>
+<P>will perform its computation at these times:
+</P>
+<PRE>t = 0, 0.01, 0.02, ..., 0.07, 1.0, 2.0, ...., 7.0, 10.0, 20.0, .... 
+</PRE>
+<P>This command
+</P>
+<PRE>diag_style energy 0.01 log 1 2.0 
+</PRE>
+<P>will perform its computation at these times:
+</P>
+<PRE>t = 0, 0.01, 0.02, 0.04, 0.08, ... 
+</PRE>
+<HR>
+
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "variable.html">variable</A>, ...
+<P><A HREF = "stats.html">stats</A>
 </P>
 <P><B>Default:</B> none
 </P>

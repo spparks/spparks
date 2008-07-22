@@ -9,36 +9,58 @@
 
 <HR>
 
-<H3>app_style command 
+<H3>diag_style eprof3d command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style args 
+<PRE>diag_style eprof3d delta keyword value keyword value ... 
 </PRE>
-<UL><LI>style = application style name
-<LI>args = args 
+<UL><LI>eprof3d = style name of this diagnostic 
+
+<LI>delta = time increment between evaluations of the diagnostic (seconds) 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>axis</I> or <I>filename</I> or <I>boundary</I> 
+
+<PRE>  <I>axis</I> value = <I>x</I> or <I>y</I> or <I>z</I>
+    x,y,z = which axis to measure energy profile with respect to
+  <I>filename</I> value = name
+    name = name of file to write results to
+  <I>boundary</I> value = none 
+</PRE>
+<LI>see the <A HREF = "diag_style.html">diag_style</A> command for additional keywords that can be appended to any diagnostic command 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 100 100
-app_style potts 1000 1000 4 
+<PRE>diag_style eprof3d 0.1 axis x filename eprof3d.dat
+diag_style eprof3d 0.1 filename eprof3d.dat boundary 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>diag_style	eprof3d 0.1 axis x filename eprof3d.dat
+<P>The eprof3d diagnostic computes an energy profile of all lattice sites
+in the system with respect to their distance from sector boundaries.
 </P>
-<P>If the boundary option is provided, the average energy is provided as
-a function of distance from the nearest sector boundary.  In this
-case, the overall average energy and the average energy immediately to
-the left and right of the sector boundary is used for stats output.
+<P>The <I>axis</I> keyword specifices which axis to measure from.
 </P>
-<P>diag_style	eprof3d 0.1 filename eprof3d.dat boundary
+<P>The <I>filename</I> keyword allows a file to be specified which output
+is written to.
 </P>
-<P><B>Restrictions:</B> none
+<P>If the <I>boundary</I> keyword is used, the average energy is provided as a
+function of distance from the nearest sector boundary.  In this case,
+the overall average energy and the average energy immediately to the
+left and right of the sector boundary is used for stats output.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>As described by the <A HREF = "app_style.html">app_style</A> command, on-lattice
+applications use one of 3 styles of lattice: general, 2d, or 3d.  For
+this diagnostic only applications on 3d lattices are currently
+supported.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "variable.html">variable</A>, ...
+<P><A HREF = "diag_style.html">diag_style</A>
 </P>
 <P><B>Default:</B> none
 </P>

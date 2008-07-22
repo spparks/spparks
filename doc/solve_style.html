@@ -13,24 +13,33 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>solve_style style args 
+<PRE>solve_style style args keyword value ... 
 </PRE>
-<P>style = <I>linear</I> or <I>tree</I> or <I>group</I>
-<I>linear</I> args = seed
-  seed = random number seed (positive integer)
-<I>tree</I> args = seed
-  seed = random number seed (positive integer)
-<I>group</I> args = lo hi (ngroups) seed 
-  lo,hi = range of propensities
-  ngroups = # of groups to use (optional parameter)
-  seed = random number seed (positive integer)
-</P>
+<UL><LI>style = <I>linear</I> or <I>tree</I> or <I>group</I> 
+
+<PRE>  <I>linear</I> arg = seed
+    seed = random number seed (positive integer)
+  <I>tree</I> arg = seed
+    seed = random number seed (positive integer)
+  <I>group</I> args = hi lo seed 
+    hi,lo = range of allowed probabilities
+    seed = random number seed (positive integer) 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>ngroup</I> 
+
+<PRE>  <I>ngroup</I> value = N
+    N = # of groups to use 
+</PRE>
+
+</UL>
 <P><B>Examples:</B>
 </P>
-<PRE>solve_style linear seed
-solve_style tree seed
-solve_style group lo hi seed
-solve_style group lo hi ngroups seed 
+<PRE>solve_style linear 394893
+solve_style tree 1995893
+solve_style group 1.0 1.0e-6 6998729
+solve_style group 100.0 1.0 59983 ngroup 10 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -42,33 +51,45 @@ used, then a solver is also required.
 <P>A KMC solver picks events for your application to perform from a list
 of events and their associated probabilities.  It does this using the
 standard <A HREF = "#Gillespie">Gillespie</A> or <A HREF = "#BKL">BKL</A> algorithm which also
-computes a timestep for the chosen event to occur at.  The only
-difference between the various solver styles are their speed and
-scalability as a function of the number of events they choose from.
-The linear solver may be suitable for simulations with few events; the
-tree or group solver should be used for larger simulations.
+computes a timestep during which the chosen event occus.  The only
+difference between the various solver styles is the algorithm they use
+to select events which affects their speed and scalability as a
+function of the number of events they choose from.  The <I>linear</I>
+solver may be suitable for simulations with few events; the <I>tree</I> or
+<I>group</I> solver should be used for larger simulations.
 </P>
 <P>The <I>linear</I> style chooses an event by scanning the list of events in
 a linear fashion.  Hence the cost to pick an event scales as O(N),
-where N is the number of events to choose from.
+where N is the number of events.
 </P>
 <P>The <I>tree</I> style chooses an event by creating a binary tree of
 probabilities and their sums, as in the <A HREF = "#Gibson">Gibson/Bruck</A>
-implementation of the Gillespie algorithm.  It's cost to pick an
-event scales as O(logN).
+implementation of the Gillespie direct method algorithm.  Its cost to
+pick an event scales as O(logN).
 </P>
 <P>The <I>group</I> style chooses an event using the composition and rejection
-(CR) algorithm described originally in <A HREF = "#Devries">Devries</A> and
-described concisely in <A HREF = "#Slepoy">Slepoy</A>.  It's cost to pick an event
-scales as O(1) as it is a constant time algorithm.  It requires that
-you bound the lo and hi probabilities for any event.  By default, if
-no <I>ngroups</I> arg is listed or it is specified as 0, then the number of
-groups between lo and hi, then the group boundaries cascade in powers
-of 2 from lo to hi.  I.e. the first group is from lo to 2*lo, the
-second group is from 2*lo to 4*lo, etc.  Note that for hi/lo = 1.0e6,
-there would be about 20 groups.
+(CR) algorithm described originally in <A HREF = "#Devroye">Devroye</A> and
+discussed in <A HREF = "#Slepoy">Slepoy</A>.  Its cost to pick an event scales as
+O(1) as it is a constant time algorithm.  It requires that you bound
+the <I>hi</I> and <I>lo</I> probabilities for any event that will be registered
+with the solver.  Note that on-lattice applications typically register
+the total probability of all a site's events with the KMC solver.  The
+value of <I>lo</I> must be > 0.0 and <I>lo</I> cannot be >= <I>hi</I>.
 </P>
-<P><B>Restrictions:</B> none
+<P>By default, the <I>group</I> style will create groups whose boundaries
+cascade upward in powers of 2 from <I>lo</I> to <I>hi</I>.  I.e. the first group
+is from lo to 2*lo, the second group is from 2*lo to 4*lo, etc.  Note
+that for hi/lo = 1.0e6, there would thus be about 20 groups.
+</P>
+<P>If the <I>ngroup</I> keyword is used, then it specifies the number of
+groups to use between <I>lo</I> and <I>hi</I> and they will be equal in extent.
+E.g. for <I>ngroup</I> = 3, the first group is from lo to lo + (hi-lo)/3,
+the second group is from lo + 2*(hi-lo)/3, and the third group is from
+lo + 2*(hi-lo)/3 to hi.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>ngroup</I> keyword can only be used with style <I>group</I>.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -78,12 +99,28 @@ there would be about 20 groups.
 </P>
 <HR>
 
-<P>Gillespie
+<A NAME = "Gillepsie"></A>
+
+<P><B>(Gillepsie)</B> Gillespie, J Chem Phys, 22, 403-434 (1976);
+Gillespie, J Phys Chem, 81, 2340-2361 (1977).
 </P>
-<P>BKL
+<A NAME = "BKL"></A>
+
+<P><B>(BKL)</B> Bortz, Kalos, Lebowitz, J Comp Phys, 17, 10 (1975).
 </P>
-<P>Devries
+<A NAME = "Gibson"></A>
+
+<P><B>(Gibson)</B> Gibson and Bruck, J Phys Chem, 104, 1876 (2000).
 </P>
-<P>Slepoy
+<A NAME = "Devroye"></A>
+
+<P><B>(Devroye)</B> Devroye, <A HREF = "http://cg.scs.carleton.ca/~luc/rnbookindex.html">Non-Uniform Random Variate Generation</A>,
+Springer-Verlag, New York (1986).
+</P>
+
+
+<A NAME = "Slepoy"></A>
+
+<P><B>(Slepoy)</B> Slepoy, Thompson, Plimpton, J Chem Phys, 128, 205101 (2008).
 </P>
 </HTML>

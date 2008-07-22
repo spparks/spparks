@@ -62,9 +62,9 @@ distributed- or shared-memory machines.
 <P>SPPARKS is a freely-available open-source code.  See the <A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW
 Site</A> for download information.  It is distributed under the terms
 of the <A HREF = "http://www.gnu.org/copyleft/gpl.html">GNU Public License</A>, which means you can use or modify the
-code however you wish with restrictions on how you distribute it
-further.  See <A HREF = "#1_4">this section</A> for a brief discussion of the
-open-source philosophy.
+code however you wish.  The only restrictions imposed by the GPL are
+on how you distribute the code further.  See <A HREF = "#1_4">this section</A> for a
+brief discussion of the open-source philosophy.
 </P>
 
 
@@ -76,10 +76,11 @@ open-source philosophy.
 </P>
 <UL><LI>Ising model
 <LI>Potts model
-<LI>Membrane evolution model
-<LI>Reaction network model 
+<LI>Membrane model
+<LI>Biochemcial reaction network model 
 </UL>
-<P>These are the KMC solvers currently available in SPPARKS:
+<P>These are the KMC solvers currently available in SPPARKS and their
+scaling properties:
 </P>
 <UL><LI>linear, O(N)
 <LI>tree, O(logN)
@@ -87,7 +88,7 @@ open-source philosophy.
 </UL>
 <H4>Pre- and post-processing: 
 </H4>
-<P>Our group has also written and released a separate toolkit called
+<P>Our group has written and released a separate toolkit called
 <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py</A> which provides tools which can be used to setup,
 analyze, plot, and visualize data for SPPARKS simulations.  Pizza.py
 is written in <A HREF = "http://www.python.org">Python</A> and is available for download from <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">the

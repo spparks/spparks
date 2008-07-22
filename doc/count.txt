@@ -22,10 +22,11 @@ count NFkB-IKK 300 :pre
 
 [Description:]
 
-This command sets the molecular count of a chemical species for the
-"app_style chemistry"_app_chemistry.html application.  The species ID
-can be any string defined by the "add_species"_add_species.html
-command.
+This command sets the molecular count of a chemical species for use in
+the "app_style chemistry"_app_chemistry.html application.
+
+The species ID can be any string defined by the
+"add_species"_add_species.html command.
 
 [Restrictions:]
 
@@ -34,6 +35,7 @@ chemistry"_app_chemistry.html application.
 
 [Related commands:]
 
+"app_style chemistry"_app_chemistry.html,
 "add_species"_add_species.html, "add_reaction"_add_reaction.html
 
 [Default:]

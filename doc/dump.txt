@@ -6,28 +6,42 @@
 
 :line
 
-app_style command :h3
+dump command :h3
 
 [Syntax:]
 
-app_style style args :pre
+dump delta style filename :pre
 
-style = application style name
-args = args :ul
+delta = time increment between dumps (seconds)
+style = {lattice} or {coord}
+filename = name of file to dump snapshots to :ul
 
 [Examples:]
 
-app_style ising 100 100
-app_style potts 1000 1000 4 :pre
+dump 0.25 lattice tmp.dump
+dump 5.0 coord snap.ising :pre
 
 [Description:]
 
-This command ...
+Dump snapshots of the state of the system to a file every so many
+seconds during a simulation.  The quantities printed are obtained from
+the application.  Typically these are the values of the various sites
+in the simulation.
+
+Two styles of dump file are supported, though not every application
+supports both.  The {lattice} style simply outputs a list of site IDs
+and values (e.g. spin).  The {coord} style outputs a LAMMPS-compatible
+dump file where each site has a type (e.g. spin value) and an x,y,z
+coordinate.  The latter can be visualized with various tools in the
+"LAMMPS package"_lammps and the "Pizza.py package"_pizza.
+
+:link(lammps,http://lammps.sandia.gov)
+:link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
 
 [Restrictions:] none
 
 [Related commands:]
 
-"variable"_variable.html, ...
+"stats"_stats.html
 
 [Default:] none

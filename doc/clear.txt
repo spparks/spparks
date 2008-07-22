@@ -20,11 +20,11 @@ clear
 
 [Description:]
 
-This command deletes all atoms, restores all settings to their default
+This command deletes all data, restores all settings to their default
 values, and frees all memory allocated by SPPARKS.  Once a clear
-command has been executed, it is as if SPPARKS were starting over, with
-only the exceptions noted below.  This command enables multiple jobs
-to be run sequentially from one input script.
+command has been executed, it is as if SPPARKS were starting over,
+with only the exceptions noted below.  This command enables multiple
+jobs to be run sequentially from one input script.
 
 These settings are not affected by a clear command: the working
 directory ("shell"_shell.html command), log file status
@@ -36,4 +36,3 @@ input script variables ("variable"_variable.html command).
 [Related commands:] none
 
 [Default:] none
-

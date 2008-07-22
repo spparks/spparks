@@ -20,16 +20,19 @@ volume 1.0e-10 :pre
 
 [Description:]
 
-This command sets the volume of the system used by the "app_style
-chemistry"_app_chemistry.html application for performing chemical
-reactions.  For example, if a Gillespie-style simulation is performed
-for a biological cell, it would be the volume of the cell.
+This command sets the volume of the system for use in the "app_style
+chemistry"_app_chemistry.html application.
+
+For example, it could be the volume of a biological cell within which
+biochemical reactions are taking place.
 
 [Restrictions:]
 
 This command can only be used as part of the "app_style
 chemistry"_app_chemistry.html application.
 
-[Related commands:] none
+[Related commands:]
+
+"app_style chemistry"_app_chemistry.html
 
 [Default:] none

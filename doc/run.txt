@@ -6,28 +6,32 @@
 
 :line
 
-app_style command :h3
+run command :h3
 
 [Syntax:]
 
-app_style style args :pre
+run delta :pre
 
-style = application style name
-args = args :ul
+delta = run simulation for this amount of time (seconds) :ul
 
 [Examples:]
 
-app_style ising 100 100
-app_style potts 1000 1000 4 :pre
+run 100.0
+run 10000.0 :pre
 
 [Description:]
 
-This command ...
+This command runs a Monte Carlo application for the specified number
+of seconds of simulation time.  If multiple run commands are used,
+the simulation is continued, possibly with new settings which were
+specified between the successive run commands.
+
+The "application"_app_style.html defines Monte Carlo events and
+probabilities which determine the amount of physical time associated
+with each event.
 
 [Restrictions:] none
 
-[Related commands:]
-
-"variable"_variable.html, ...
+[Related commands:] none
 
 [Default:] none

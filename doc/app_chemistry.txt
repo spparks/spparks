@@ -20,19 +20,21 @@ app_style chemistry :pre
 
 [Description:]
 
-This Monte Carlo application evolves a set of coupled chemical
-reactions stochastically, producing a time trace of species
-concentrations.  Individual molecules are assumed to interact in a
-well-mixed fashion within a reaction volume.  The interaction rules
-are those of the Stochastic Simulation Algorithm (SSA) of
-"Gillespie"_#Gillespie.  A prototypical example is to use this model
-to simulate the execution of a protein signaling network in a
-biological cell.
+This application evolves a set of coupled chemical reactions
+stochastically, producing a time trace of species concentrations.
+Chemical species are treated as counts of individual molecules
+reacting within a reaction volume in a well-mixed fashion.  Individual
+reactions are chosen via the direct method variant of the Stochastic
+Simulation Algorithm (SSA) of "(Gillespie)"_#Gillespie.
 
-You must also define a "solve_style"_solve_style.html to use this
-application.
+A prototypical example is to use this model to simulate the execution
+of a protein signaling network in a biological cell.
 
-The following additional commands are defined by this application:x
+This application can only be evolved using a kinetic Monte Carlo (KMC)
+algorithm.  You must thus define a KMC solver to be used with the
+application via the "solve_style"_solve_style.html command
+
+The following additional commands are defined by this application:
 
 "add_reaction"_add_reaction.html : define a chemical reaction
 "add_species"_add_species.html : define a chemical species
@@ -48,4 +50,5 @@ The following additional commands are defined by this application:x
 :line
 
 :link(Gillepsie)
-Gillepsie
+[(Gillepsie)] Gillespie, J Chem Phys, 22, 403-434 (1976);
+Gillespie, J Phys Chem, 81, 2340-2361 (1977).
