@@ -133,6 +133,15 @@ still being processed.
 
 <DD>Internal SPPARKS error.  Should not occur. 
 
+<DT><I>Cannot mask sweeping with non-zero temperature</I> 
+
+<DD>A finite temperature implies random spin flips can occur.  Thus
+a site cannot be masked out with 100% certainty. 
+
+<DT><I>Cannot open diag style cluster3d dump file</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Cannot open diag_style cluster dump file</I> 
 
 <DD>Self-explanatory. 
@@ -230,10 +239,6 @@ being defined.
 <DD>Can only use a KMC solver with a sweep style that invokes the KMC
 option. 
 
-<DT><I>Combination of sweep flags is unsupported</I> 
-
-<DD>This particular combination of sweeping flags is not yet supported. 
-
 <DT><I>Command used before app_style set</I> 
 
 <DD>A command is assumed to be application-specific, but is used
@@ -243,6 +248,19 @@ before the app_style command defines the application.
 
 <DD>Cannot use a diagnostic that requires connectivity for an application
 derived from AppLattice2d or AppLattice3d. 
+
+<DT><I>Delevent > delpropensity</I> 
+
+<DD>Such an application does not make sense. 
+
+<DT><I>Diag style cluster3d dump file name too long</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Diag style incompatible with app style</I> 
+
+<DD>The lattice styles of the diagnostic and the on-lattice application
+must match. 
 
 <DT><I>Divide by 0 in variable formula</I> 
 
@@ -273,38 +291,46 @@ documentation for the command.  You can use -echo screen as a
 command-line option when running SPPARKS to see the offending
 line. 
 
+<DT><I>Input line too long after variable substitution</I> 
+
+<DD>This is a hard (very large) limit defined in the input.cpp file. 
+
 <DT><I>Input line too long: %s</I> 
 
 <DD>This is a hard (very large) limit defined in the input.cpp file. 
 
-<DT><I>Invalid app style</I> 
+<DT><I>Invalid combination of sweep flags</I> 
 
-<DD>Application style is not recognized. 
+<DD>Self-explanatory. 
 
 <DT><I>Invalid command-line argument</I> 
 
 <DD>One or more command-line arguments is invalid.  Check the syntax of
 the command you are using to launch SPPARKS. 
 
-<DT><I>Invalid diag style</I> 
+<DT><I>Invalid event count for app_style test/group</I> 
 
-<DD>Diagnostic style is not recognized. 
+<DD>Number of events must be > 0. 
 
 <DT><I>Invalid math function in variable formula</I> 
 
 <DD>The math function is not recognized. 
 
+<DT><I>Invalid probability bounds for app_style test/group</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid probability bounds for solve_style group</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid probability delta for app_style test/group</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Invalid site specification in app_style potts/variable</I> 
 
-<DD>** ADD TEXT 
-
-<DT><I>Invalid solve style</I> 
-
-<DD>Solver style is not recognized. 
-
-<DT><I>Invalid sweep style</I> 
-
-<DD>Sweeper style is not recognized. 
+<DD>Self-explanatory. 
 
 <DT><I>Invalid syntax in variable formula</I> 
 
@@ -341,31 +367,49 @@ command.
 
 <DT><I>Lattice app needs a solver or sweeper</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
 <DT><I>Lattice per proc is too small</I> 
 
-<DD>** ADD TEXT 
+<DD>The section of lattice stored by a processor must be large enough to
+be split into sectors and not overlap too far into other processor's
+sub-domains. 
 
 <DT><I>Log of zero/negative in variable formula</I> 
 
 <DD>Self-explanatory. 
 
+<DT><I>Maxbuftmp size too small in AppGrain::dump_detailed()</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Maxbuftmp size too small in AppGrain::dump_detailed_mask()</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Maxbuftmp size too small in DiagCluster2d::dump_clusters()</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Maxbuftmp size too small in DiagCluster3d::dump_clusters()</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Maxbuftmp size too small in DiagEprof3d::write_prof()</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Mismatch in counting for dbufclust</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
 <DT><I>Mismatched sweeper with app lattice</I> 
 
-<DD>** ADD TEXT 
-
-<DT><I>More than 1st neighbor comm not yet supported by AppLattice</I> 
-
-<DD>** ADD TEXT 
+<DD>The lattice styles must match between the sweeper and application. 
 
 <DT><I>Must define solver with KMC sweeper</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
 <DT><I>Must use -in switch with multiple partitions</I> 
 
@@ -378,7 +422,7 @@ The -in command-line option must be used to specify a file.
 
 <DT><I>No solver class defined</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
 <DT><I>Power by 0 in variable formula</I> 
 
@@ -391,39 +435,48 @@ of processors LAMMPS is running on.
 
 <DT><I>Random lattice has no connectivity</I> 
 
-<DD>** ADD TEXT 
+<DD>The cutoff distance is likely too short. 
 
 <DT><I>Reaction ID %s already exists</I> 
 
-<DD>** ADD TEXT 
+<DD>Cannot re-define a reaction. 
 
 <DT><I>Reaction cannot have more than MAX_PRODUCT products</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
 <DT><I>Reaction has no numeric rate</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
 <DT><I>Reaction must have 0,1,2 reactants</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
-<DT><I>Reverse comm not yet supported by AppLattice</I> 
+<DT><I>Site-site interaction was not found</I> 
 
-<DD>** ADD TEXT 
+<DD>Internal SPPARKS error.  Should not occur. 
 
 <DT><I>Species ID %s already exists</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
 <DT><I>Species ID %s does not exist</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
-<DT><I>Sqrt of negative in variable formula</I> 
+<DD><I>Sqrt of negative in variable formula</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Substitution for undefined variable</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Sweep option not yet supported</I> 
+
+<DD>Not all sweep options are currently supported with all lattice
+styles. 
 
 <DT><I>Unbalanced quotes in input line</I> 
 
@@ -432,15 +485,15 @@ quote.
 
 <DT><I>Unexpected end of lattice file</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
 <DT><I>Unexpected end of lattice spin file</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
 <DT><I>Unexpected value in spin file</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
 <DT><I>Universe/uloop variable count < # of partitions</I> 
 
@@ -466,7 +519,7 @@ known to SPPARKS.  Check the input script.
 
 <DT><I>Vertices read from file incorrectly</I> 
 
-<DD>** ADD TEXT 
+<DD>Self-explanatory. 
 
 <DT><I>World variable count doesn't match # of partitions</I> 
 

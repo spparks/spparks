@@ -130,6 +130,15 @@ Argument of arcsin() must be between -1 and 1. :dd
 
 Internal SPPARKS error.  Should not occur. :dd
 
+{Cannot mask sweeping with non-zero temperature} :dt
+
+A finite temperature implies random spin flips can occur.  Thus
+a site cannot be masked out with 100% certainty. :dd
+
+{Cannot open diag style cluster3d dump file} :dt
+
+Self-explanatory. :dd
+
 {Cannot open diag_style cluster dump file} :dt
 
 Self-explanatory. :dd
@@ -227,10 +236,6 @@ being defined. :dd
 Can only use a KMC solver with a sweep style that invokes the KMC
 option. :dd
 
-{Combination of sweep flags is unsupported} :dt
-
-This particular combination of sweeping flags is not yet supported. :dd
-
 {Command used before app_style set} :dt
 
 A command is assumed to be application-specific, but is used
@@ -240,6 +245,19 @@ before the app_style command defines the application. :dd
 
 Cannot use a diagnostic that requires connectivity for an application
 derived from AppLattice2d or AppLattice3d. :dd
+
+{Delevent > delpropensity} :dt
+
+Such an application does not make sense. :dd
+
+{Diag style cluster3d dump file name too long} :dt
+
+Self-explanatory. :dd
+
+{Diag style incompatible with app style} :dt
+
+The lattice styles of the diagnostic and the on-lattice application
+must match. :dd
 
 {Divide by 0 in variable formula} :dt
 
@@ -270,38 +288,46 @@ documentation for the command.  You can use -echo screen as a
 command-line option when running SPPARKS to see the offending
 line. :dd
 
+{Input line too long after variable substitution} :dt
+
+This is a hard (very large) limit defined in the input.cpp file. :dd
+
 {Input line too long: %s} :dt
 
 This is a hard (very large) limit defined in the input.cpp file. :dd
 
-{Invalid app style} :dt
+{Invalid combination of sweep flags} :dt
 
-Application style is not recognized. :dd
+Self-explanatory. :dd
 
 {Invalid command-line argument} :dt
 
 One or more command-line arguments is invalid.  Check the syntax of
 the command you are using to launch SPPARKS. :dd
 
-{Invalid diag style} :dt
+{Invalid event count for app_style test/group} :dt
 
-Diagnostic style is not recognized. :dd
+Number of events must be > 0. :dd
 
 {Invalid math function in variable formula} :dt
 
 The math function is not recognized. :dd
 
+{Invalid probability bounds for app_style test/group} :dt
+
+Self-explanatory. :dd
+
+{Invalid probability bounds for solve_style group} :dt
+
+Self-explanatory. :dd
+
+{Invalid probability delta for app_style test/group} :dt
+
+Self-explanatory. :dd
+
 {Invalid site specification in app_style potts/variable} :dt
 
-** ADD TEXT :dd
-
-{Invalid solve style} :dt
-
-Solver style is not recognized. :dd
-
-{Invalid sweep style} :dt
-
-Sweeper style is not recognized. :dd
+Self-explanatory. :dd
 
 {Invalid syntax in variable formula} :dt
 
@@ -338,31 +364,49 @@ Self-explanatory. :dd
 
 {Lattice app needs a solver or sweeper} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
 {Lattice per proc is too small} :dt
 
-** ADD TEXT :dd
+The section of lattice stored by a processor must be large enough to
+be split into sectors and not overlap too far into other processor's
+sub-domains. :dd
 
 {Log of zero/negative in variable formula} :dt
 
 Self-explanatory. :dd
 
+{Maxbuftmp size too small in AppGrain::dump_detailed()} :dt
+
+Self-explanatory. :dd
+
+{Maxbuftmp size too small in AppGrain::dump_detailed_mask()} :dt
+
+Self-explanatory. :dd
+
+{Maxbuftmp size too small in DiagCluster2d::dump_clusters()} :dt
+
+Self-explanatory. :dd
+
+{Maxbuftmp size too small in DiagCluster3d::dump_clusters()} :dt
+
+Self-explanatory. :dd
+
+{Maxbuftmp size too small in DiagEprof3d::write_prof()} :dt
+
+Self-explanatory. :dd
+
 {Mismatch in counting for dbufclust} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
 {Mismatched sweeper with app lattice} :dt
 
-** ADD TEXT :dd
-
-{More than 1st neighbor comm not yet supported by AppLattice} :dt
-
-** ADD TEXT :dd
+The lattice styles must match between the sweeper and application. :dd
 
 {Must define solver with KMC sweeper} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
 {Must use -in switch with multiple partitions} :dt
 
@@ -375,7 +419,7 @@ Use the add_reaction command to specify one or more reactions. :dd
 
 {No solver class defined} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
 {Power by 0 in variable formula} :dt
 
@@ -388,39 +432,48 @@ of processors LAMMPS is running on. :dd
 
 {Random lattice has no connectivity} :dt
 
-** ADD TEXT :dd
+The cutoff distance is likely too short. :dd
 
 {Reaction ID %s already exists} :dt
 
-** ADD TEXT :dd
+Cannot re-define a reaction. :dd
 
 {Reaction cannot have more than MAX_PRODUCT products} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
 {Reaction has no numeric rate} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
 {Reaction must have 0,1,2 reactants} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
-{Reverse comm not yet supported by AppLattice} :dt
+{Site-site interaction was not found} :dt
 
-** ADD TEXT :dd
+Internal SPPARKS error.  Should not occur. :dd
 
 {Species ID %s already exists} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
 {Species ID %s does not exist} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
-{Sqrt of negative in variable formula} :dt
+{Sqrt of negative in variable formula} :dd
 
 Self-explanatory. :dd
+
+{Substitution for undefined variable} :dt
+
+Self-explanatory. :dd
+
+{Sweep option not yet supported} :dt
+
+Not all sweep options are currently supported with all lattice
+styles. :dd
 
 {Unbalanced quotes in input line} :dt
 
@@ -429,15 +482,15 @@ quote. :dd
 
 {Unexpected end of lattice file} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
 {Unexpected end of lattice spin file} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
 {Unexpected value in spin file} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
 {Universe/uloop variable count < # of partitions} :dt
 
@@ -463,7 +516,7 @@ Self-explanatory. :dd
 
 {Vertices read from file incorrectly} :dt
 
-** ADD TEXT :dd
+Self-explanatory. :dd
 
 {World variable count doesn't match # of partitions} :dt
 

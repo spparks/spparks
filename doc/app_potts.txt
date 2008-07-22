@@ -20,7 +20,6 @@ app_style potts/3d/26n command :h3
 app_style style args keyword values ... :pre
 
 style = {potts} or {potts/variable} or {potts/2d/4n} or {potts/2d/8n} or {potts/2d/24n} or {potts/3d/6n} or {potts/3d/12n} or {potts/3d/26n} :ulb,l
-args = list of arguments for a particular style :l
   {potts} arg = Q seed 
   {potts/variable} arg = Q seed 
     Q = number of spin states

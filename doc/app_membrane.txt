@@ -14,7 +14,6 @@ app_style membrane/2d command :h3
 app_style style args :pre
 
 style = {membrane} or {membrane/2d} :ulb,l
-args = list of arguments for a particular style :l
   {membrane} args = w01 w11 mu seed 
     w01 = sovent-protein interaction energy (typically 1.25)
     w11 = sovent-solvent interaction energy (typically 1.0)

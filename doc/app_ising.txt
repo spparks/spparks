@@ -19,7 +19,6 @@ app_style ising/3d/26n command :h3
 app_style style args keyword values ... :pre
 
 style = {ising} or {ising/exchange} or {ising/2d/4n} or {ising/2d/4n/exchange} or {ising/2d/8n} or {ising/3d/6n} or {ising/3d/26n} :ulb,l
-args = list of arguments for a particular style :l
   {ising} arg = seed 
   {ising/exchange} arg = seed 
     seed = random number seed (positive integer)
