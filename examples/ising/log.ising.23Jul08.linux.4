@@ -1,0 +1,47 @@
+SPPARKS (23 Jul 2008)
+# SPPARKS Ising tests on generic lattice
+
+app_style	 ising 12345 lattice sq/4n 1.0 50 50
+#app_style	 ising 12345 lattice sq/8n 1.0 50 50
+#app_style	 ising 12345 lattice tri 1.0 50 50
+#app_style	 ising 12345 lattice sc/6n 1.0 20 20 20
+#app_style	 ising 12345 lattice sc/26n 1.0 20 20 20
+#app_style	 ising 12345 lattice fcc 1.0 20 20 20
+#app_style	 ising 12345 lattice bcc 1.0 20 20 20
+#app_style	 ising 12345 lattice diamond 1.0 20 20 20
+#app_style	 ising 12345 lattice random/2d 2500 10 10 1.0 56789
+#app_style	 ising 12345 lattice random/3d 8000 10 10 10 1.0 56789
+
+sweep_style      lattice 12345
+#sweep_style      lattice 12345 mask yes
+#sweep_style      lattice 12345 kmc yes
+#solve_style      tree 12345
+
+diag_style       energy 10.0 
+
+temperature	 0.0
+
+stats            10.0
+dump             10.0 coord dump.ising
+
+run              100.0
+       Step       Time     Energy
+          0          0       4980
+         40         10       1052
+         80         20        676
+        120         30        544
+        160         40        444
+        200         50        368
+        240         60        332
+        280         70        296
+        320         80        252
+        360         90        196
+        400        100        188
+Loop time of 0.0624776 on 4 procs
+
+Solve time (%) = 0.00290275 (4.64606)
+Update time (%) = 0 (0)
+Comm  time (%) = 0.0206555 (33.0606)
+Outpt time (%) = 0.038781 (62.0718)
+App   time (%) = 0 (0)
+Other time (%) = 0.000138402 (0.221523)

@@ -1,0 +1,28 @@
+# SPPARKS Potts tests on generic lattice
+
+#app_style	 potts 20 12345 lattice sq/4n 1.0 50 50
+#app_style	 potts 20 12345 lattice sq/8n 1.0 50 50
+#app_style	 potts 20 12345 lattice tri 1.0 50 50
+app_style	 potts 20 12345 lattice sc/6n 1.0 20 20 20
+#app_style	 potts 20 12345 lattice sc/26n 1.0 20 20 20
+#app_style	 potts 20 12345 lattice fcc 1.0 20 20 20
+#app_style	 potts 20 12345 lattice bcc 1.0 20 20 20
+#app_style	 potts 20 12345 lattice diamond 1.0 20 20 20
+#app_style	 potts 20 12345 lattice random/2d 2500 10 10 1.0 56789
+#app_style	 potts 20 12345 lattice random/3d 8000 10 10 10 1.0 56789
+
+#app_style	 potts/variable 20 12345 lattice sq/4n 1.0 50 50 site 1 0
+
+sweep_style      lattice 12345
+#sweep_style      lattice 12345 mask yes
+#sweep_style      lattice 12345 kmc yes
+#solve_style      tree 12345
+
+diag_style       energy 10.0 
+
+temperature	 0.0
+
+stats            10.0
+dump             10.0 coord dump.potts
+
+run              300.0
