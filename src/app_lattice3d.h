@@ -1,6 +1,14 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
-   contact info, copyright info, etc
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
 #ifndef APP_LATTICE3D_H
@@ -26,6 +34,8 @@ class AppLattice3d : public App {
   void init();
   void input(char *, int, char **);
   void run(int, char **);
+
+  // pure virtual functions, must be defined in child class
 
   virtual double site_energy(int, int, int) = 0;
   virtual void site_event_rejection(int, int, int, class RandomPark *) = 0;
@@ -89,9 +99,9 @@ class AppLattice3d : public App {
   void dump();
   void dump_lattice();
   void dump_coord();
-  virtual void box_bounds(double *, double *, double *,
-			  double *, double *, double *);
-  virtual void xyz(int, int, int, double *, double *, double *);
+  void box_bounds(double *, double *, double *,
+		  double *, double *, double *);
+  void xyz(int, int, int, double *, double *, double *);
 
   void set_stats(int, char **);
   void set_dump(int, char **);

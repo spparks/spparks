@@ -1,6 +1,14 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
-   contact info, copyright info, etc
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -54,7 +62,8 @@ DiagEnergy3d::~DiagEnergy3d()
 
 void DiagEnergy3d::init(double time)
 {
-  if (app->appclass != App::LATTICE3D) error->all("diag_style incompatible with app_style");
+  if (app->appclass != App::LATTICE3D)
+    error->all("Diag style incompatible with app style");
 
   applattice3d = (AppLattice3d *) app;
   nx_local = applattice3d->nx_local;

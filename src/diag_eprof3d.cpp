@@ -1,6 +1,14 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
-   contact info, copyright info, etc
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -93,7 +101,8 @@ void DiagEprof3d::init(double time)
 {
   int ntmp;
 
-  if (app->appclass != App::LATTICE3D) error->all("diag_style incompatible with app_style");
+  if (app->appclass != App::LATTICE3D)
+    error->all("Diag style incompatible with app style");
 
   applattice3d = (AppLattice3d *) app;
   nx_global = applattice3d->nx_global;
@@ -204,7 +213,7 @@ void DiagEprof3d::write_prof(double time)
     (nz_global/nz_procs+1)+6;
   nsend = nx_local*ny_local*nz_local+6;
   if (maxbuftmp < nsend) 
-    error->one("maxbuftmp size too small in DiagEprof3d::write_prof()");
+    error->one("Maxbuftmp size too small in DiagEprof3d::write_prof()");
   
   buftmp = (double*) memory->smalloc(maxbuftmp*sizeof(double),"diageprof3d:write_prof:buftmp");
 

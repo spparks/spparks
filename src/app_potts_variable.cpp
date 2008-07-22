@@ -1,7 +1,15 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
-   contact info, copyright info, etc
- ------------------------------------------------------------------------- */
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
+------------------------------------------------------------------------- */
 
 #include "math.h"
 #include "mpi.h"
@@ -26,7 +34,7 @@ AppPottsVariable::AppPottsVariable(SPPARKS *spk, int narg, char **arg) :
 {
   // parse arguments
 
-  if (narg < 3) error->all("Illegal app_style potts/variable command");
+  if (narg < 3) error->all("Illegal app_style command");
 
   nspins = atoi(arg[1]);
   int seed = atoi(arg[2]);

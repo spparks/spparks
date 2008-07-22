@@ -1,7 +1,15 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
-   contact info, copyright info, etc
- ------------------------------------------------------------------------- */
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
+------------------------------------------------------------------------- */
 
 #include "math.h"
 #include "mpi.h"
@@ -792,7 +800,7 @@ void AppLattice2d::dump_detailed_mask(char* title, char** mask)
     ((ny_global-1)/ny_procs+1+2*delpropensity)+9;
   nsend = (nx_local+2*delpropensity)*(ny_local+2*delpropensity)+9;
   if (maxbuftmp < nsend) 
-    error->one("maxbuftmp size too small in AppGrain::dump_detailed_mask()");
+    error->one("Maxbuftmp size too small in AppGrain::dump_detailed_mask()");
   
   buftmp = (int*) memory->smalloc(maxbuftmp*sizeof(int),
 				  "app2d:dump_detailed_mask:buftmp");

@@ -1,6 +1,14 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
-   contact info, copyright info, etc
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
 #include "stdio.h"
@@ -28,7 +36,7 @@ using namespace SPPARKS_NS;
 AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
   App(spk, narg, arg)
 {
-  if (narg < 7) error->all("Illegal app_style test/group command");
+  if (narg < 7) error->all("Illegal app_style command");
 
   nevents = atoi(arg[1]);
   ndep = atoi(arg[2]);
@@ -132,7 +140,7 @@ void AppTestGroup::init()
 void AppTestGroup::input(char *command, int narg, char **arg)
 {
   if (strcmp(command,"run") == 0) run(narg,arg);
-  else error->all("Unknown command");
+  else error->all("Unrecognized command");
 }
 
 /* ----------------------------------------------------------------------

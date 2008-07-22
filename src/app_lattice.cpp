@@ -1,7 +1,15 @@
 /* ----------------------------------------------------------------------
-   SPPARKS - Stochastic Parallel PARticle Kinetic ulator
-   contact info, copyright info, etc
- ------------------------------------------------------------------------- */
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
+------------------------------------------------------------------------- */
 
 #include "math.h"
 #include "mpi.h"
@@ -1081,7 +1089,6 @@ void AppLattice::ghosts_from_connectivity()
       m = i * nchunk;
       idrecv = static_cast<int> (buf[m++]);
       proc = static_cast<int> (buf[m++]);
-      printf("AAA %d %d %d\n",me,idrecv,proc);
       if (proc < 0) error->one("Ghost site was not found");
 
       j = nlocal + npreviousghost + i;

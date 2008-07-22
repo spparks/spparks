@@ -1,20 +1,24 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
-   contact info, copyright info, etc
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
 #ifndef SOLVE_H
 #define SOLVE_H
 
-#include "sysptr.h"
+#include "pointers.h"
 
 namespace SPPARKS_NS {
 
-class Solve : protected SysPtr {
- protected:
-  double sum;
-  int num_active;
-
+class Solve : protected Pointers {
  public:
   char *style;
 
@@ -28,12 +32,15 @@ class Solve : protected SysPtr {
 
   virtual Solve *clone() = 0;
 
-  virtual void input(int, char **) = 0;
   virtual void init(int, double *) = 0;
   virtual void update(int, int *, double *) = 0;
   virtual void update(int, double *) = 0;
   virtual void resize(int, double *) = 0;
   virtual int event(double *) = 0;
+
+ protected:
+  double sum;
+  int num_active;
 };
 
 }

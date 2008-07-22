@@ -1,6 +1,14 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
-   contact info, copyright info, etc
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
 #include "stdio.h"
@@ -26,7 +34,7 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-CommLattice::CommLattice(SPPARKS *spk) : SysPtr(spk)
+CommLattice::CommLattice(SPPARKS *spk) : Pointers(spk)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -698,7 +706,7 @@ void CommLattice::create_recv_from_list(int nsite, Site *buf, Swap *swap)
   // error if any site is not filled in
 
   for (i = 0; i < nsite; i++) {
-    if (buf[i].proc == -1) error->one("site site was not found");
+    if (buf[i].proc == -1) error->one("Site-site interaction was not found");
 
     // if sending proc not in rproc[], add proc to recv list and to hash
     // irecv = location of this proc in recv lists

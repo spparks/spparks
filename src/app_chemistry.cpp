@@ -1,6 +1,14 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
-   contact info, copyright info, etc
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
 #include "stdio.h"
@@ -27,7 +35,7 @@ using namespace SPPARKS_NS;
 AppChemistry::AppChemistry(SPPARKS *spk, int narg, char **arg) : 
   App(spk,narg,arg)
 {
-  if (narg != 1) error->all("Illegal app_style chemistry command");
+  if (narg != 1) error->all("Illegal app_style command");
 
   // default settings
 
@@ -123,7 +131,7 @@ void AppChemistry::input(char *command, int narg, char **arg)
   else if (strcmp(command,"species") == 0) add_species(narg,arg);
   else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
   else if (strcmp(command,"volume") == 0) set_volume(narg,arg);
-  else error->all("Unknown command");
+  else error->all("Unrecognized command");
 }
 
 /* ----------------------------------------------------------------------

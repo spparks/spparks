@@ -1,6 +1,14 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
-   contact info, copyright info, etc
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -36,7 +44,7 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Input::Input(SPPARKS *spk, int argc, char **argv) : SysPtr(spk)
+Input::Input(SPPARKS *spk, int argc, char **argv) : Pointers(spk)
 {
   MPI_Comm_rank(world,&me);
 
@@ -620,7 +628,7 @@ void Input::app_style()
   solve = NULL;
   sweep = NULL;
 
-  if (strcmp(arg[0],"none") == 0) error->all("Invalid application style");
+  if (strcmp(arg[0],"none") == 0) error->all("Illegal app_style command");
 
 #define AppClass
 #define AppStyle(key,Class) \
@@ -628,7 +636,7 @@ void Input::app_style()
 #include "style.h"
 #undef AppClass
 
-  else error->all("Invalid application style");
+  else error->all("Illegal app_style command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -643,7 +651,7 @@ void Input::run()
 
 void Input::solve_style()
 {
-  if (narg < 1) error->all("Illegal solve command");
+  if (narg < 1) error->all("Illegal solve_style command");
   delete solve;
 
   if (strcmp(arg[0],"none") == 0) solve = NULL;
@@ -654,14 +662,14 @@ void Input::solve_style()
 #include "style.h"
 #undef SolveClass
 
-  else error->all("Invalid solve style");
+  else error->all("Illegal solve_style command");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Input::sweep_style()
 {
-  if (narg < 1) error->all("Illegal sweep command");
+  if (narg < 1) error->all("Illegal sweep_style command");
   delete sweep;
 
   if (strcmp(arg[0],"none") == 0) sweep = NULL;
@@ -674,7 +682,7 @@ void Input::sweep_style()
 #include "style.h"
 #undef SweepClass
 
-  else error->all("Invalid sweep style");
+  else error->all("Illegal sweep_style command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -683,7 +691,7 @@ void Input::diag_style()
 {
   if (narg < 1) error->all("Illegal diag_style command");
 
-  if (strcmp(arg[0],"none") == 0) error->all("Invalid diagnostic style");
+  if (strcmp(arg[0],"none") == 0) error->all("Illegal diag_style command");
 
 #define DiagClass
 #define DiagStyle(key,Class) \
@@ -695,5 +703,5 @@ void Input::diag_style()
 #include "style.h"
 #undef DiagClass
 
-  else error->all("Invalid diagnostic style");
+  else error->all("Illegal diag_style command");
 }
