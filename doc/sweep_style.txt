@@ -155,4 +155,4 @@ delt = 1.0, and deln = 0.0.
 :line
 
 :link(Amar)
-[(Amar)] Slepoy, Thompson, Plimpton, J Chem Phys, 128, 205101 (2008).
+[(Amar)] Shin and Amar, Phys Rev B, 71, 125432-1-125432-13 (2005).
