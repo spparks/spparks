@@ -26,8 +26,8 @@ keyword = {mask} or {strict} or {kmc} or {delt} or {adapt}
     yes/no = adapt timestep as the simulation proceeds to preserve accuracy
   {delt} value = dt
     dt = time associated with one sweep (seconds)
-  {deln} value = dt
-    dt = time associated with one sweep (seconds) :pre
+  {deln} value = factor
+    factor = unitless scale factor for time of one sweep scaled by propensity :pre
 :ule
 
 [Examples:]
@@ -129,16 +129,17 @@ If the {adapt} keyword is {yes}, then {delt} is adjusted as
 the simulation proceeds. This is done by holding deln fixed, 
 where deln is defined by the equation:
 
-deln = delt*pmax 
+deln = delt*pmax :pre
 
-and pmax is the maximum propensity per site for one sector.
-In calculating pmax, we compare all sectors on all processor subdomains,
-and sites with zero propensity are excluded. 
-The value of deln can be calculated from {delt}, or
-it can be specified directly using the {deln} keyword.
-As with delt, larger values of deln may result in errors at
-sector boundaries, but small values require more communication.
-For high accuracy, deln ~ 1 should be adequate.
+and pmax is the maximum propensity per site for one sector.  In
+calculating pmax, we compare all sectors on all processor subdomains,
+and sites with zero propensity are excluded.  The value of deln can be
+calculated from {delt}, or it can be specified directly using the
+{deln} keyword.  If {deln} is specified as 0 (the default), then deln
+is computed from the initial state of the system.  As with delt,
+larger values of deln may result in errors at sector boundaries, but
+small values require more communication.  For high accuracy, deln ~ 1
+should be adequate.
 
 [Restrictions:] none
 

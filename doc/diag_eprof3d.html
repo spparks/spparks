@@ -38,10 +38,11 @@ diag_style eprof3d 0.1 filename eprof3d.dat boundary
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The eprof3d diagnostic computes an energy profile of all lattice sites
-in the system with respect to their distance from sector boundaries.
+<P>The eprof3d diagnostic computes a one-dimensional 
+average energy profile for all the lattice sites in the system.
 </P>
-<P>The <I>axis</I> keyword specifices which axis to measure from.
+<P>The <I>axis</I> keyword specifices which axis to use as the profile
+coordinate.
 </P>
 <P>The <I>filename</I> keyword allows a file to be specified which output
 is written to.
@@ -49,7 +50,12 @@ is written to.
 <P>If the <I>boundary</I> keyword is used, the average energy is provided as a
 function of distance from the nearest sector boundary.  In this case,
 the overall average energy and the average energy immediately to the
-left and right of the sector boundary is used for stats output.
+left and right of the sector boundary is printed as stats output 
+via the <A HREF = "stats.html">stats</A> command. Also, in this case, 
+the <I>axis</I> keyword has no effect.
+</P>
+<P>If the <I>boundary</I> keyword is not used, then only the overall average
+energy is printed as stats output via the <A HREF = "stats.html">stats</A> command.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -61,6 +67,7 @@ supported.
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "diag_style.html">diag_style</A>
+<A HREF = "stats.html">stats</A>
 </P>
 <P><B>Default:</B> none
 </P>

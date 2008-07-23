@@ -46,8 +46,8 @@ left and right of the sector boundary is printed as stats output
 via the "stats"_stats.html command. Also, in this case, 
 the {axis} keyword has no effect.
 
-If the {boundary keyword} is not used, then only the overall average
-energy is printed as stats output via the "stats"_stats.html command. 
+If the {boundary} keyword is not used, then only the overall average
+energy is printed as stats output via the "stats"_stats.html command.
 
 [Restrictions:]
 
