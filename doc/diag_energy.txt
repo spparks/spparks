@@ -27,7 +27,8 @@ diag_style energy3d 0.5 :pre
 [Description:]
 
 The energy diagnostic computes the total energy of all lattice sites
-in the system.
+in the system. The energy is printed as stats output via the "stats"_stats.html
+command.
 
 [Restrictions:]
 
@@ -40,5 +41,6 @@ and {energy3d} styles are for 2d and 3d lattices.
 [Related commands:]
 
 "diag_style"_diag_style.html
+"stats"_stats.html
 
 [Default:] none

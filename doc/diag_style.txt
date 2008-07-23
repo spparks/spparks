@@ -51,8 +51,12 @@ The diagnostics currently available are:
 
 :line
 
-How to output the info - via stats? to a file?
-
+All diagnostics provide generate or more values that are appended to 
+other statistical output and printed to the screen and log file via 
+the "stats"_stats.html command. We call this stats output. In addition,
+diagnostic may optionally write more extensive output to dedicated
+files that are specified using diagnostic-specific keywords.
+ 
 Using the {log} keyword will produce statistical output at varying
 intervals during the course of a simulation.  There will be {N}
 outputs per interval where the size of each interval scales up by

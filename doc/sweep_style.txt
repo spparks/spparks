@@ -92,7 +92,7 @@ elapses in the simulation per sweep.
 if the {mask} keyword is {yes}, the sweep ordering is the same, but
 sites can be masked if no event is possible to save computational
 time.  For example, in a grain growth model, sites in the interior of
-a grain may never channge.  It is up to the application to provide
+a grain may never change.  It is up to the application to provide
 criteria for when a lattice site mask is set or unset.  Masking can
 not be invoked when the "temperature"_temperature.html is non-zero.
 
@@ -126,7 +126,19 @@ simulation will perform few events per sector and spend too much time
 communicating.
 
 If the {adapt} keyword is {yes}, then {delt} is adjusted as
-the simulation proceeds.  
+the simulation proceeds. This is done by holding deln fixed, 
+where deln is defined by the equation:
+
+deln = delt*pmax 
+
+and pmax is the maximum propensity per site for one sector.
+In calculating pmax, we compare all sectors on all processor subdomains,
+and sites with zero propensity are excluded. 
+The value of deln can be calculated from {delt}, or
+it can be specified directly using the {deln} keyword.
+As with delt, larger values of deln may result in errors at
+sector boundaries, but small values require more communication.
+For high accuracy, deln ~ 1 should be adequate.
 
 [Restrictions:] none
 

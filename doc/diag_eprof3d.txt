@@ -30,10 +30,11 @@ diag_style eprof3d 0.1 filename eprof3d.dat boundary :pre
 
 [Description:]
 
-The eprof3d diagnostic computes an energy profile of all lattice sites
-in the system with respect to their distance from sector boundaries.
+The eprof3d diagnostic computes a one-dimensional 
+average energy profile for all the lattice sites in the system.
 
-The {axis} keyword specifices which axis to measure from.
+The {axis} keyword specifices which axis to use as the profile
+coordinate.
 
 The {filename} keyword allows a file to be specified which output
 is written to.
@@ -41,7 +42,12 @@ is written to.
 If the {boundary} keyword is used, the average energy is provided as a
 function of distance from the nearest sector boundary.  In this case,
 the overall average energy and the average energy immediately to the
-left and right of the sector boundary is used for stats output.
+left and right of the sector boundary is printed as stats output 
+via the "stats"_stats.html command. Also, in this case, 
+the {axis} keyword has no effect.
+
+If the {boundary keyword} is not used, then only the overall average
+energy is printed as stats output via the "stats"_stats.html command. 
 
 [Restrictions:]
 
@@ -53,5 +59,7 @@ supported.
 [Related commands:]
 
 "diag_style"_diag_style.html
+"stats"_stats.html
 
 [Default:] none
+
