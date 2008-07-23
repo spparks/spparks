@@ -1,0 +1,51 @@
+SPPARKS example problems
+
+Each of these sub-directories contains a sample problem you can run
+with SPPARKS.  They should all run quickly in a few seconds on a
+desktop machine.  Each problem has an input script (in.*) and produces
+a log file (log.*).  Some produce dump files (dump.*) when they run.
+
+Some of the input files have various options commented out.  But
+uncommenting them, you can experiment with different lattices and
+sweepers and solvers.
+
+A few sample log file outputs on different machines and different
+numbers of processors are included in the directories to compare your
+answers to.  E.g. a log file like log.potts.date.foo.P means it ran on
+P processors of machine "foo" with the dated version of SPPARKS.  Note
+that these problems should get statistically similar answers when run
+on different machines or different numbers of processors, but not
+identical answers to those in the log of dump files included here.
+
+These are the sample problems in the various sub-directories:
+
+chemistry:  simple A + B <-> C reaction model
+groups:     test of tree and group KMC solvers on a reaction network
+ising:      2d Ising model
+membrane:   2d membrane model of lipid, fluid, protein states
+potts:      3d Potts model
+
+Here is how you might run and visualize one of the sample problems:
+
+cd ising
+cp ../../src/spk_linux .           # copy SPPARKS executable to this dir
+spk_linux < in.ising               # run the problem
+
+Running the simulation produces the files dump.ising and log.spparks.
+
+The dump files produced by the example runs can be animated using the
+xmovie tool distributed with the LAMMPS molecular dynamics package:
+lammps.sandia.gov.  Or with other molecular dynamics visualizers.
+
+You can visualize the dump file with the xmovie as follows:
+
+xmovie -scale dump.ising
+
+Our group has written and released a separate toolkit called Pizza.py
+which provides tools which may be useful for setup, analysis,
+plotting, and visualization of SPPARKS simulations.  Pizza.py is
+written in Python and is available for download from the Pizza.py WWW
+site at www.cs.sandia.gov/~sjplimp/pizza.html.
+
+Animated versions of the dump files produced by these examples can be
+viewed on the SPPARKS WWW site.
