@@ -50,6 +50,7 @@ SweepLattice::SweepLattice(SPPARKS *spk, int narg, char **arg) :
   Ladapt = false;
   ranlat = NULL;
   delt = 1.0;
+  deln0 = 0.0;
 
   int iarg = 2;
   while (iarg < narg) {
@@ -80,6 +81,11 @@ SweepLattice::SweepLattice(SPPARKS *spk, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"yes") == 0) Ladapt = true;
       else if (strcmp(arg[iarg+1],"no") == 0) Ladapt = false;
       else error->all("Illegal sweep_style command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"deln") == 0) {
+      if (iarg+2 > narg) error->all("Illegal sweep_style command");
+      Ladapt = true;
+      deln0 = atof(arg[iarg+1]);
       iarg += 2;
     } else error->all("Illegal sweep_style command");
   }
@@ -311,7 +317,8 @@ void SweepLattice::init()
       }
     }
     MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
-    deln0 = pmaxall*delt;
+    if (deln0 <= 0.0) deln0 = pmaxall*delt;
+    else if (pmaxall > 0.0) delt = deln0/pmaxall;
   }
 }
 
@@ -344,9 +351,7 @@ void SweepLattice::do_sweep(double &dt)
 
   if (Ladapt) {
     MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_SUM,world);
-    if (pmaxall > 0.0) {
-      delt = deln0/pmaxall;
-    }
+    if (pmaxall > 0.0) delt = deln0/pmaxall;
   }
 }
 
@@ -480,7 +485,8 @@ void SweepLattice::sweep_sector_kmc(int icolor, int isector)
     }
   }
  
-  // compute deln0, which controls future timesteps
+  // compute maximum sector propensity per site
+  // controls future timesteps
 
   if (Ladapt) {
     int ntmp = applattice->solve->get_num_active();
