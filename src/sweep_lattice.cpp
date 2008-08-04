@@ -506,8 +506,7 @@ void SweepLattice::sweep_sector_kmc(int icolor, int isector)
 
 /* ----------------------------------------------------------------------
    create list of border sites for a sector
-   border site = site in sector with a Nlayer neighbor outside the sector
-   nlayer = 2 means 1st or 2nd neighbor is outside sector
+   border site = site in sector with a 1 to Nlayer neighbor outside the sector
    neighbor can be another owned site (outside sector) or a ghost
    border = lattice index of the sites
  ------------------------------------------------------------------------- */
