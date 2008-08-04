@@ -502,11 +502,6 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
 
   // extract sector specific info from quad struct
 
-  int xlo = sector[isector].xlo;
-  int xhi = sector[isector].xhi;
-  int ylo = sector[isector].ylo;
-  int yhi = sector[isector].yhi;
-
   int **border = sector[isector].border;
   int nborder = sector[isector].nborder;
 

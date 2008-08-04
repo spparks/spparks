@@ -147,7 +147,7 @@ SweepLattice::~SweepLattice()
 
 void SweepLattice::init()
 {
-  int i,j,k,m;
+  int i,m;
 
   applattice = (AppLattice *) app;
 

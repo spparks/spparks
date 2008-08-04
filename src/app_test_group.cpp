@@ -177,7 +177,7 @@ void AppTestGroup::run(int narg, char **arg)
 
 void AppTestGroup::iterate()
 {
-  int i,m,n,ievent,rdp,tdep;
+  int i,m,n,ievent;
   double dt;
 
   ntimestep = 0;

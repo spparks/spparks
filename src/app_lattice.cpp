@@ -454,7 +454,7 @@ void AppLattice::structured_lattice()
 
 void AppLattice::random_lattice()
 {
-  int i,j,n;
+  int i,n;
 
   if (latstyle == RANDOM_2D) {
     boxxlo = boxylo = 0.0;
@@ -1126,7 +1126,7 @@ void AppLattice::ghosts_from_connectivity()
 
 void AppLattice::init()
 {
-  int i,j,m;
+  int i;
 
   // error checks
 
@@ -1341,7 +1341,6 @@ void AppLattice::dump()
   int m = 0;
 
   if (sitecustom == 0) {
-    double x,y,z;
     for (int i = 0; i < nlocal; i++) {
       dbuf[m++] = id[i];
       dbuf[m++] = lattice[i];
@@ -1351,7 +1350,6 @@ void AppLattice::dump()
     }
 
   } else {
-    double x,y,z;
     for (int i = 0; i < nlocal; i++) {
       dbuf[m++] = id[i];
       dbuf[m++] = iarray[0][i];
@@ -1442,7 +1440,7 @@ void AppLattice::set_dump(int narg, char **arg)
 
 void AppLattice::procs2lattice_2d()
 {
-  int ipx,ipy,nremain;
+  int ipx,ipy;
   double boxx,boxy,surf;
   double bestsurf = 2.0 * (xprd * yprd);
   

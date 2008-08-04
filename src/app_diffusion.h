@@ -11,17 +11,17 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef APP_ISING_EXCHANGE_H
-#define APP_ISING_EXCHANGE_H
+#ifndef APP_DIFFUSION_H
+#define APP_DIFFUSION_H
 
 #include "app_lattice.h"
 
 namespace SPPARKS_NS {
 
-class AppIsingExchange : public AppLattice {
+class AppDiffusion : public AppLattice {
  public:
-  AppIsingExchange(class SPPARKS *, int, char **);
-  ~AppIsingExchange();
+  AppDiffusion(class SPPARKS *, int, char **);
+  ~AppDiffusion();
 
   double site_energy(int);
   void site_event_rejection(int, class RandomPark *);

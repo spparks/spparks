@@ -1211,7 +1211,6 @@ void CommLattice3d::reverse_sector_onelayer(int*** lattice, const int isector) {
   MPI_Request request;
   MPI_Status status;
   SwapInfo* swap;
-  int ir,is,jr,js,kr,ks;
 
   // Each swap direction is a little different
   // Need to code each swap explicitly

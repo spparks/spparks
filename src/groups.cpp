@@ -141,9 +141,7 @@ void Groups::partition_init(double *p, int size_in)
 
 void Groups::partition(double *p, double lo, double hi)
 {
-  double range = hi - lo;
   int g = 0;
-  double tst;
 
   // equal fragments
 
@@ -164,7 +162,7 @@ void Groups::partition(double *p, double lo, double hi)
     frac = hi;
     for (int j = 0; j < size; j++) {
       if (p[j] > 1.0e-20) {
-	tst = frexp(p[j]/hi,&g);
+	frexp(p[j]/hi,&g);
 	g = -g;
       } else g = ngroups - 1;
       if (g > ngroups-1) g = ngroups - 1; 
@@ -235,7 +233,6 @@ void Groups::alter_element(int j, double *p, double p_new)
 int Groups::sample(double *p)
 {
   int grp;
-  int cnt = 0;
 
   int r = -1;
   while (r < 0) {

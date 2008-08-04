@@ -24,9 +24,7 @@ using namespace SPPARKS_NS;
 
 Finish::Finish (SPPARKS *spk) : Pointers(spk)
 {
-  int i;
-  int histo[10];
-  double time,tmp,ave,max,min;
+  double time,tmp;
 
   int me,nprocs;
   MPI_Comm_rank(world,&me);

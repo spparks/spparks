@@ -594,13 +594,6 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
 
   // extract sector specific info from octant struct
 
-  int xlo = sector[isector].xlo;
-  int xhi = sector[isector].xhi;
-  int ylo = sector[isector].ylo;
-  int yhi = sector[isector].yhi;
-  int zlo = sector[isector].zlo;
-  int zhi = sector[isector].zhi;
-
   int **border = sector[isector].border;
   int nborder = sector[isector].nborder;
 

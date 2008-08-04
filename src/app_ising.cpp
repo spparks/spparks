@@ -56,7 +56,7 @@ AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) :
     hash.insert(std::pair<int,int> (id[i],i));
   std::map<int,int>::iterator loc;
 
-  int ilocal,isite;
+  int isite;
   for (int iglobal = 1; iglobal <= nglobal; iglobal++) {
     isite = random->irandom(2);
     loc = hash.find(iglobal);

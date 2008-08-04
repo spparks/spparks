@@ -15,7 +15,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_ising_exchange.h"
+#include "app_diffusion.h"
 #include "comm_lattice.h"
 #include "solve.h"
 #include "random_park.h"
@@ -29,7 +29,7 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppIsingExchange::AppIsingExchange(SPPARKS *spk, int narg, char **arg) : 
+AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
   delevent = 1;
@@ -37,12 +37,13 @@ AppIsingExchange::AppIsingExchange(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  if (narg < 2) error->all("Illegal app_style command");
+  if (narg < 3) error->all("Illegal app_style command");
 
-  int seed = atoi(arg[1]);
+  double fraction = atof(arg[1]);
+  int seed = atoi(arg[2]);
   random = new RandomPark(seed);
 
-  options(narg-2,&arg[2]);
+  options(narg-3,&arg[3]);
 
   // define lattice and partition it across processors
 
@@ -50,7 +51,7 @@ AppIsingExchange::AppIsingExchange(SPPARKS *spk, int narg, char **arg) :
   sites = new int[1 + maxneigh];
 
   // initialize my portion of lattice
-  // each site = one of 2 spins
+  // each site = 0 or 1 with fraction of spins = 1
   // loop over global list so assignment is independent of # of procs
   // use map to see if I own global site
 
@@ -59,9 +60,10 @@ AppIsingExchange::AppIsingExchange(SPPARKS *spk, int narg, char **arg) :
     hash.insert(std::pair<int,int> (id[i],i));
   std::map<int,int>::iterator loc;
 
-  int ilocal,isite;
+  int isite;
   for (int iglobal = 1; iglobal <= nglobal; iglobal++) {
-    isite = random->irandom(2);
+    if (random->uniform() < fraction) isite = 2;
+    else isite = 1;
     loc = hash.find(iglobal);
     if (loc != hash.end()) lattice[loc->second] = isite;
   }
@@ -69,7 +71,7 @@ AppIsingExchange::AppIsingExchange(SPPARKS *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-AppIsingExchange::~AppIsingExchange()
+AppDiffusion::~AppDiffusion()
 {
   delete random;
   delete [] sites;
@@ -79,7 +81,7 @@ AppIsingExchange::~AppIsingExchange()
    compute energy of site
 ------------------------------------------------------------------------- */
 
-double AppIsingExchange::site_energy(int i)
+double AppDiffusion::site_energy(int i)
 {
   int isite = lattice[i];
   int eng = 0;
@@ -92,7 +94,7 @@ double AppIsingExchange::site_energy(int i)
    perform a site event with rejection
 ------------------------------------------------------------------------- */
 
-void AppIsingExchange::site_event_rejection(int i, RandomPark *random)
+void AppDiffusion::site_event_rejection(int i, RandomPark *random)
 {
   // event = exchange with random neighbor
 
@@ -130,7 +132,7 @@ void AppIsingExchange::site_event_rejection(int i, RandomPark *random)
    if proc owns full domain, there are no ghosts, so ignore full flag
 ------------------------------------------------------------------------- */
 
-double AppIsingExchange::site_propensity(int i)
+double AppDiffusion::site_propensity(int i)
 {
   // possible events = exchange with neighboring site different than self
 
@@ -164,7 +166,7 @@ double AppIsingExchange::site_propensity(int i)
    if proc owns sector, ignore neighbor sites that are ghosts
 ------------------------------------------------------------------------- */
 
-void AppIsingExchange::site_event(int i, class RandomPark *random)
+void AppDiffusion::site_event(int i, class RandomPark *random)
 {
   // pick one event from total propensity
 
