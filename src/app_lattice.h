@@ -109,11 +109,6 @@ class AppLattice : public App {
     double x,y,z;
   };
 
-  struct {                     // storage for a single site with general data
-    int *ivalue;
-    double *dvalue;
-  } onesite;
-
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
 
   FILE *fp;
