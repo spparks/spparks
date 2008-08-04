@@ -812,8 +812,6 @@ void CommLattice::perform_swap_lattice(Swap *swap)
 
   // pack data to send to each proc and send it
 
-  AppLattice *applattice = (AppLattice *) app;
-
   for (i = 0; i < swap->nsend; i++) {
     index = swap->sindex[i];
     buf = swap->sibuf;
