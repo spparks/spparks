@@ -35,7 +35,7 @@ AppPotts3d26n::AppPotts3d26n(SPPARKS *spk, int narg, char **arg) :
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"sample_argument") == 0) {
-      iarg ++;
+      iarg++;
     } else {
       error->all("Illegal app_style command");
     }
@@ -237,9 +237,9 @@ void AppPotts3d26n::site_event(int i, int j, int k,
 
   int nsites = 0;
 
-  for (iloop = i-2; iloop <= i+2; iloop++)
-    for (jloop = j-2; jloop <= j+2; jloop++)
-      for (kloop = k-2; kloop <= k+2; kloop++) {
+  for (iloop = i-1; iloop <= i+1; iloop++)
+    for (jloop = j-1; jloop <= j+1; jloop++)
+      for (kloop = k-1; kloop <= k+1; kloop++) {
 	ii = iloop; jj = jloop; kk = kloop;
 	if (full) ijkpbc(ii,jj,kk);
 	isite = ijk2site[ii][jj][kk];
