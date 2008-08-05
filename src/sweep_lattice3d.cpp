@@ -622,7 +622,7 @@ void SweepLattice3d::sweep_sector_kmc(int icolor, int isector)
   for (int m = 0; m < nborder; m++) {
     i = border[m][0];
     j = border[m][1];
-    j = border[m][2];
+    k = border[m][2];
     isite = ijk2site[i][j][k];
     sites[nsites++] = isite;
     propensity[isite] = applattice->site_propensity(i,j,k);
@@ -710,7 +710,7 @@ int SweepLattice3d::find_border_sites(int isector)
 
 	if (nborder == nmax) {
 	  nmax += DELTA;
-	  memory->grow_2d_T_array(border,nmax,2,"sweep3d:border");
+	  memory->grow_2d_T_array(border,nmax,3,"sweep3d:border");
 	}
 	border[nborder][0] = i;
 	border[nborder][1] = j;

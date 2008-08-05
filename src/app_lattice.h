@@ -94,9 +94,11 @@ class AppLattice : public App {
   int *i2site;                 // mapping of owned lattice to site index
   int *site2i;                 // mapping of owned sites to lattice index
 
-  int maxneigh;                // max neighbors of any site
-  int *numneigh;               // # of neighbors of each owned site
-  int **neighbor;              // list of neighbors of each owned site
+                               // neigh info for owned sites
+                               // and ghost sites up to delpropensity-1 layers
+  int maxneigh;                // max neighbors of any site in entire system
+  int *numneigh;               // # of neighbors of each site
+  int **neighbor;              // list of neighbors of each site
                                // neighbor[i][j] =
                                // local index of Jth neigh of Ith owned site
                                // can point to owned or ghost site

@@ -226,40 +226,6 @@ void AppLattice::create_lattice()
       darray[i] = (double *)
 	memory->smalloc((nlocal+nghost)*sizeof(double),"app:darray");
   }
-
-  /*
-  // DEBUG: connectivity check on distance
-
-  printf("Nglobal,Nlocal,Nghost = %d %d %d\n",nglobal,nlocal,nghost);
-  int sum = 0;
-  for (int i = 0; i < nlocal; i++) sum += numneigh[i];
-  int all;
-  MPI_Allreduce(&sum,&all,1,MPI_INT,MPI_SUM,world);
-  printf("Total/Ave neighbor connections %d %g\n",all,(double)all/nglobal);
-  */
-
-  /*
-  for (int i = 0; i < nlocal; i++) {
-    printf("Neighs of site %d = %d\n",id[i],numneigh[i]);
-    for (int j = 0; j < numneigh[i]; j++) {
-      if (neighbor[i][j] < 0 || neighbor[i][j] >= nlocal+nghost) {
-	printf("INDICES: %d %d: %d %d %d\n",i,j,nlocal,nghost,nlocal+nghost);
-	error->one("Bad neighbor index");
-      }
-      double dx = xyz[i][0] - xyz[neighbor[i][j]][0];
-      double dy = xyz[i][1] - xyz[neighbor[i][j]][1];
-      double dz = xyz[i][2] - xyz[neighbor[i][j]][2];
-      if (dx > 0.5*xprd) dx -= xprd;
-      if (dx < -0.5*xprd) dx += xprd;
-      if (dy > 0.5*yprd) dy -= yprd;
-      if (dy < -0.5*yprd) dy += yprd;
-      if (dz > 0.5*zprd) dz -= zprd;
-      if (dz < -0.5*zprd) dz += zprd;
-      double r = sqrt(dx*dx + dy*dy + dz*dz);
-      printf("  DIST %d %d: %g\n",id[i],id[neighbor[i][j]],r);
-    }
-  }
-  */
 }
 
 /* ----------------------------------------------------------------------
@@ -942,9 +908,11 @@ void AppLattice::connectivity_within_cutoff()
 
 /* ----------------------------------------------------------------------
    create ghosts sites around local sub-domain
-   global neighbor IDs of each owned site are known
+   numneigh and global neighbor IDs of each owned site are known as input
    add ghost sites for delpropensity layers
-   convert neighbor IDs to local indices
+   form neigh list for each layer of ghost sites one layer at a time
+   when done, delpropensity-1 layers have a numneigh and neigh list
+   convert neighbor IDs from global indices to local indices
  ------------------------------------------------------------------------- */
 
 void AppLattice::ghosts_from_connectivity()
