@@ -22,6 +22,7 @@ class AppDiffusion : public AppLattice {
  public:
   AppDiffusion(class SPPARKS *, int, char **);
   ~AppDiffusion();
+  void init_app();
 
   double site_energy(int);
   void site_event_rejection(int, class RandomPark *);
@@ -30,6 +31,7 @@ class AppDiffusion : public AppLattice {
 
  private:
   int *sites;
+  int *check;
 };
 
 }

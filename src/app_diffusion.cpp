@@ -46,10 +46,11 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
   options(narg-3,&arg[3]);
 
   // define lattice and partition it across processors
-  // sites must be large enough for 2 sites and their 2nd nearest neighbors
+  // sites must be large enough for 2 sites and their 1st/2nd nearest neighbors
 
   create_lattice();
-  sites = new int[2 + 2*maxneigh*maxneigh];
+  sites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
+  check = NULL;
 
   // initialize my portion of lattice
   // each site = 0 or 1 with fraction of spins = 1
@@ -76,6 +77,16 @@ AppDiffusion::~AppDiffusion()
 {
   delete random;
   delete [] sites;
+  delete [] check;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppDiffusion::init_app()
+{
+  delete [] check;
+  check = new int[nlocal];
+  for (int i = 0; i < nlocal; i++) check[i] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -135,6 +146,8 @@ void AppDiffusion::site_event_rejection(int i, RandomPark *random)
 
 double AppDiffusion::site_propensity(int i)
 {
+  int j;
+
   // possible events = exchange with neighboring site different than self
 
   int mystate = lattice[i];
@@ -143,7 +156,8 @@ double AppDiffusion::site_propensity(int i)
   double einitial,efinal;
   double prob = 0.0;
 
-  for (int j = 0; j < numneigh[i]; j++) {
+  for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
+    j = neighbor[i][ineigh];
     neighstate = lattice[j];
     if (neighstate != mystate) {
       einitial = site_energy(i) + site_energy(j);
@@ -169,7 +183,7 @@ double AppDiffusion::site_propensity(int i)
 
 void AppDiffusion::site_event(int i, class RandomPark *random)
 {
-  int j,k,kk,m,mm;
+  int j,jj,k,kk,m,mm;
 
   // pick one event from total propensity
 
@@ -185,7 +199,8 @@ void AppDiffusion::site_event(int i, class RandomPark *random)
   double einitial,efinal;
   double prob = 0.0;
 
-  for (j = 0; j < numneigh[i]; j++) {
+  for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
+    j = neighbor[i][ineigh];
     neighstate = lattice[j];
     if (neighstate != mystate) {
       einitial = site_energy(i) + site_energy(j);
@@ -202,47 +217,64 @@ void AppDiffusion::site_event(int i, class RandomPark *random)
 
   // compute propensity changes for self and swap site
   // 2nd neighbors of I,J could change their propensity
+  // use check[] to avoid resetting propensity of same site
+  // NOTE: should I loop over 2nd neighbors even if site itself is skipped?
+  //   not if skipped b/c already seen, but maybe if out of sector
 
   int nsites = 0;
   int isite = i2site[i];
   sites[nsites++] = isite;
   propensity[isite] = site_propensity(i);
+  check[isite] = 1;
+
+  isite = i2site[j];
+  if (isite >= 0) {
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(j);
+    check[isite] = 1;
+  }
 
   for (k = 0; k < numneigh[i]; k++) {
     m = neighbor[i][k];
     isite = i2site[m];
     if (isite < 0) continue;
-    sites[nsites++] = isite;
-    propensity[isite] = site_propensity(m);
+    if (check[isite] == 0) {
+      sites[nsites++] = isite;
+      propensity[isite] = site_propensity(m);
+      check[isite] = 1;
+    }
     for (kk = 0; kk < numneigh[m]; kk++) {
       mm = neighbor[m][kk];
       isite = i2site[mm];
-      if (isite < 0) continue;
+      if (isite < 0 || check[isite]) continue;
       sites[nsites++] = isite;
       propensity[isite] = site_propensity(mm);
+      check[isite] = 1;
     }
-  }
-
-  isite = i2site[j];
-  if (isite >= 0) {
-    sites[nsites++] = isite;
-    propensity[isite] = site_propensity(i);
   }
 
   for (k = 0; k < numneigh[j]; k++) {
     m = neighbor[j][k];
     isite = i2site[m];
     if (isite < 0) continue;
-    sites[nsites++] = isite;
-    propensity[isite] = site_propensity(m);
+    if (check[isite] == 0) {
+      sites[nsites++] = isite;
+      propensity[isite] = site_propensity(m);
+      check[isite] = 1;
+    }
     for (kk = 0; kk < numneigh[m]; kk++) {
       mm = neighbor[m][kk];
       isite = i2site[mm];
-      if (isite < 0) continue;
+      if (isite < 0 || check[isite]) continue;
       sites[nsites++] = isite;
       propensity[isite] = site_propensity(mm);
+      check[isite] = 1;
     }
   }
 
   solve->update(nsites,sites,propensity);
+
+  // clear check array
+
+  for (m = 0; m < nsites; m++) check[sites[m]] = 0;
 }

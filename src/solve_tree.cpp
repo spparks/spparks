@@ -81,8 +81,8 @@ void SolveTree::init(int n, double *propensity)
   while (neat < nevents) {neat *=2; m++;}
 
   // create tree of length ntotal
+  // use 64bit math, so we can handle ntotal = 2^31-1
 
-  // Use 64bit math, so we can handle ntotal = 2^31-1
   ntotal = 2LL*neat - 1;
   tree = new double[ntotal];
   offset = neat - 1;
@@ -145,11 +145,11 @@ void SolveTree::sum_tree()
     tree[parent] = tree[child1] + tree[child2];
   }
 
-  // Update total propensity
+  // update total propensity
 
   sum = tree[0];
 
-  // Update number of active events
+  // update number of active events
 
   num_active = 0;
   for (int i = offset; i < ntotal; i++) 
@@ -165,13 +165,14 @@ void SolveTree::set(int i, double value)
 {
   int parent,sibling;
 
-  // Update number of active events
+  // update number of active events
+
   if (tree[offset+i] > 0.0) num_active--;
   if (value > 0.0) num_active++;
 
   tree[offset+i] = value;
 
-  // i walks tree from leaf to root, summing children at each step
+  // I walks tree from leaf to root, summing children at each step
   // left child is odd index, right child is even index
 
   i += offset;
@@ -183,9 +184,9 @@ void SolveTree::set(int i, double value)
     i = parent;
   }
 
-  // Update total propensity
-  sum = tree[0];
+  // update total propensity
 
+  sum = tree[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -197,7 +198,7 @@ int SolveTree::find(double value)
 {
   int i,leftchild;
 
-  // i walks tree from root to appropriate leaf
+  // I walks tree from root to appropriate leaf
   // value is modified when right branch of tree is traversed
 
   i = 0;
@@ -220,4 +221,3 @@ void SolveTree::free_arrays()
 {
   delete [] tree;
 }
-
