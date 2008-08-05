@@ -53,7 +53,7 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
   check = NULL;
 
   // initialize my portion of lattice
-  // each site = 0 or 1 with fraction of spins = 1
+  // each site = 1 (vacancy) or 2 (occupied) with fraction occupied
   // loop over global list so assignment is independent of # of procs
   // use map to see if I own global site
 
