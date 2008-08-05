@@ -178,7 +178,7 @@ double AppPore::site_propensity(int i)
   // possible events = OCCUPIED site exchanges with adjacent VACANT site
 
   int mystate = lattice[i];
-  //if (mystate == VACANT) return 0.0;
+  if (mystate == VACANT) return 0.0;
 
   int neighstate;
   double einitial,efinal;
@@ -187,7 +187,7 @@ double AppPore::site_propensity(int i)
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
     j = neighbor[i][ineigh];
     neighstate = lattice[j];
-    if (neighstate != mystate) {
+    if (neighstate == VACANT) {
       einitial = site_energy(i) + site_energy(j);
       lattice[i] = neighstate;
       lattice[j] = mystate;
@@ -230,7 +230,7 @@ void AppPore::site_event(int i, class RandomPark *random)
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
     j = neighbor[i][ineigh];
     neighstate = lattice[j];
-    if (neighstate != mystate) {
+    if (neighstate == VACANT) {
       einitial = site_energy(i) + site_energy(j);
       lattice[i] = neighstate;
       lattice[j] = mystate;
