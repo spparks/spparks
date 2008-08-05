@@ -46,9 +46,10 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
   options(narg-3,&arg[3]);
 
   // define lattice and partition it across processors
+  // sites must be large enough for 2 sites and their 2nd nearest neighbors
 
   create_lattice();
-  sites = new int[1 + maxneigh];
+  sites = new int[2 + 2*maxneigh*maxneigh];
 
   // initialize my portion of lattice
   // each site = 0 or 1 with fraction of spins = 1
@@ -168,6 +169,8 @@ double AppDiffusion::site_propensity(int i)
 
 void AppDiffusion::site_event(int i, class RandomPark *random)
 {
+  int j,k,kk,m,mm;
+
   // pick one event from total propensity
 
   double threshhold = random->uniform() * propensity[i2site[i]];
@@ -182,7 +185,7 @@ void AppDiffusion::site_event(int i, class RandomPark *random)
   double einitial,efinal;
   double prob = 0.0;
 
-  for (int j = 0; j < numneigh[i]; j++) {
+  for (j = 0; j < numneigh[i]; j++) {
     neighstate = lattice[j];
     if (neighstate != mystate) {
       einitial = site_energy(i) + site_energy(j);
@@ -197,21 +200,48 @@ void AppDiffusion::site_event(int i, class RandomPark *random)
     }
   }
 
-  // compute propensity changes for self and neighbor sites
-
-  int m;
+  // compute propensity changes for self and swap site
+  // 2nd neighbors of I,J could change their propensity
 
   int nsites = 0;
   int isite = i2site[i];
   sites[nsites++] = isite;
   propensity[isite] = site_propensity(i);
 
-  for (int j = 0; j < numneigh[i]; j++) {
-    m = neighbor[i][j];
+  for (k = 0; k < numneigh[i]; k++) {
+    m = neighbor[i][k];
     isite = i2site[m];
     if (isite < 0) continue;
     sites[nsites++] = isite;
     propensity[isite] = site_propensity(m);
+    for (kk = 0; kk < numneigh[m]; kk++) {
+      mm = neighbor[m][kk];
+      isite = i2site[mm];
+      if (isite < 0) continue;
+      sites[nsites++] = isite;
+      propensity[isite] = site_propensity(mm);
+    }
+  }
+
+  isite = i2site[j];
+  if (isite >= 0) {
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(i);
+  }
+
+  for (k = 0; k < numneigh[j]; k++) {
+    m = neighbor[j][k];
+    isite = i2site[m];
+    if (isite < 0) continue;
+    sites[nsites++] = isite;
+    propensity[isite] = site_propensity(m);
+    for (kk = 0; kk < numneigh[m]; kk++) {
+      mm = neighbor[m][kk];
+      isite = i2site[mm];
+      if (isite < 0) continue;
+      sites[nsites++] = isite;
+      propensity[isite] = site_propensity(mm);
+    }
   }
 
   solve->update(nsites,sites,propensity);
