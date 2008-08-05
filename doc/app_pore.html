@@ -9,29 +9,31 @@
 
 <HR>
 
-<H3>app_style diffusion command 
+<H3>app_style pore command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style diffusion fraction seed keyword values ... 
+<PRE>app_style pore xc yc zc diameter thickness seed keyword values ... 
 </PRE>
-<UL><LI>diffusion = application style name
-<LI>fraction = fraction of sites to occupy initially
+<UL><LI>pore = application style name
+<LI>xc,yc,zc = coordinates of center point of pore
+<LI>diameter = xy diameter of cylindrical pore aligned along z axis
+<LI>thickness = thickness of thin film which the pore spans
 <LI>seed = random number seed (positive integer)
 <LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style diffusion 0.2 18874 lattice tri 1.0 50 50 
+<PRE>app_style pore 10 10 10 4 10 18874 lattice fcc 1.0 20 20 20 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This application performs diffusive hops on a lattice that is
-partially occupied and partially unoccupied (vacant sites).  Thus it
-can be used to model surface diffusion on a 2d lattice or bulk
-diffusion on a 3d lattice.  It is equivalent to a 2-state Ising model
-performing Kawasaki dynamics, where each lattice site has a spin of 1
-or 2.  Neighboring sites exchange their spins as the model evolves.
+<P>This application sets up a cylindrical pore in a thin-film membrane
+and then performs diffusive hops for atoms on the surface of the thin
+film and exposed pore surface.  The pore is aligned with the z-axis
+and the thin film is periodic in the x and y dimensions.  The lattice
+is initialized with each site as occupied or vacant.  Atoms on occupied
+sites can hop into neighboring vacant sites as the model evolves.
 </P>
 <P>The Hamiltonian representing the energy of site I is as follows:
 </P>
@@ -41,6 +43,9 @@ or 2.  Neighboring sites exchange their spins as the model evolves.
 delta_ij is 1 if the spin of sites I and J are the same and 0
 otherwise.
 </P>
+<P>This needs to be amended for energy as a function of coordination,
+with ecoord command.
+</P>
 <P>These is a general lattice application; see the
 <A HREF = "app_style.html">app_style</A> commmand for further discussion.  The
 lattice must be specified by the appended <I>lattice</I> keword with its
@@ -48,7 +53,8 @@ associated values, as discussed on the doc page for the
 <A HREF = "app_style.html">app_style</A> command.
 </P>
 <P>This application performs Kawasaki dynamics, meaning the spins on two
-neighboring sites are swapped.
+neighboring sites are swapped or equivalently an atom hops from an
+occupied site to a vacancy site.
 </P>
 <P>As explained on <A HREF = "app_style.html">this page</A>, these applications can be
 evolved by either a kinetic Monte Carlo (KMC) or Metropolis
@@ -68,13 +74,17 @@ opposite state and dE = Efinal - Einitial is calculated, as is a
 uniform random number R between 0 and 1.  The flip is accepted if R <
 min[1,exp(-dE/kT)], else it is rejected.
 </P>
-<P>There are no additional commands defined by this application.
+<P>The following additional command is defined by this application:
 </P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "ecoord.html">ecoord</A> </TD><TD > energy as a function of coordination 
+</TD></TR></TABLE></DIV>
+
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "app_ising.html">app_style ising</A>
+<P><A HREF = "app_ising.html">app_style diffusion</A>
 </P>
 <P><B>Default:</B> none
 </P>
