@@ -7,7 +7,6 @@
 :line
 
 app_style ising command :h3
-app_style ising/exchange command :h3
 app_style ising/2d/4n command :h3
 app_style ising/2d/4n/exchange command :h3
 app_style ising/2d/8n command :h3
@@ -18,9 +17,8 @@ app_style ising/3d/26n command :h3
 
 app_style style args keyword values ... :pre
 
-style = {ising} or {ising/exchange} or {ising/2d/4n} or {ising/2d/4n/exchange} or {ising/2d/8n} or {ising/3d/6n} or {ising/3d/26n} :ulb,l
+style = {ising} or {ising/2d/4n} or {ising/2d/4n/exchange} or {ising/2d/8n} or {ising/3d/6n} or {ising/3d/26n} :ulb,l
   {ising} arg = seed 
-  {ising/exchange} arg = seed 
     seed = random number seed (positive integer)
   {ising/2d/4n} args = Nx Ny seed
   {ising/2d/4n/exchange} args = Nx Ny seed
@@ -35,7 +33,6 @@ see the "app_style"_app_style.html command for additional keywords that can be a
 [Examples:]
 
 app_style ising 18874 lattice sq/4n 1.0 50 50
-app_style ising/exchange 18874 lattice tri 1.0 50 50
 app_style ising/2d/4n 50 50 18874
 app_style ising/2d/4n/exchange 50 50 18874
 app_style ising/2d/8n 100 100 48783

@@ -12,7 +12,7 @@ app_style command :h3
 
 app_style style args keyword values keyword values ... :pre
 
-style = {ising} or {potts} or {membrane} or {chemistry} or {test/group} :ulb,l
+style = {diffusion} or {ising} or {potts} or {membrane} or {chemistry} or {test/group} :ulb,l
   (see application doc page for additional variants) :pre
 args = arguments specific to an application :l
   (see application doc page for details) :pre
@@ -51,8 +51,9 @@ keyword = {lattice} or {site} :l
 
 [Examples:]
 
+app_style diffusion ... lattice fcc 1.0 100 100 100
+
 app_style ising ... lattice sq/4n 1.0 100 100
-app_style ising/exchange ... lattice fcc 1.0 100 100 100
 app_style ising/2d/4n ...
 app_style ising/2d/4n/exchange ...
 app_style ising/2d/8n ...
@@ -92,6 +93,7 @@ includes.  Each of these applications has 2d, 3d, and general lattice
 variants as illustrated above.  See the doc for each application for
 details:
 
+"diffusion"_app_diffusion.html = vacancy exchange diffusion model
 "ising"_app_ising.html = Ising model
 "membrane"_app_membrane.html = membrane model of lipid,water,protein
 "potts"_app_potts.html = multi-state Potts model for grain growth :ul

@@ -1,0 +1,79 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style diffusion command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style diffusion fraction seed keyword values ... 
+</PRE>
+<UL><LI>diffusion = application style name
+<LI>fraction = fraction of sites to occupy initially
+<LI>seed = random number seed (positive integer)
+<LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style diffusion 0.2 18874 lattice tri 1.0 50 50 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This application performs diffusive hops on a lattice that is
+partially occupied and partially unoccupied (vacant sites).  Thus it
+can be used to model surface diffusion on a 2d lattice or bulk
+diffusion on a 3d lattice.  It is equivalent to a 2-state Ising model
+performing Kawasaki dynamics, where each lattice site has a spin of 1
+or 2.  Neighboring sites exchange their spins as the model evolves.
+</P>
+<P>The Hamiltonian representing the energy of site I is as follows:
+</P>
+<PRE>H = - Sum_j delta_ij 
+</PRE>
+<P>where Sum_j is a sum over all the neighbor sites of site I and
+delta_ij is 1 if the spin of sites I and J are the same and 0
+otherwise.
+</P>
+<P>The lattice used by the model is specified by the appended <I>lattice</I>
+keword with its associated values, as discussed on the doc page for
+the <A HREF = "app_style.html">app_style</A> command.
+</P>
+<P>This application performs Kawasaki dynamics, meaning the spins on two
+neighboring sites are swapped.
+</P>
+<P>As explained on <A HREF = "app_style.html">this page</A>, these applications can be
+evolved by either a kinetic Monte Carlo (KMC) or Metropolis
+rejection-based algorithm.  You must thus define a sweeping method
+and/or KMC solver to be used with the application via the
+<A HREF = "sweep_style.html">sweep_style</A> and <A HREF = "solve_style.html">solve_style</A>
+commands.
+</P>
+<P>For solution by a KMC algorithm, the possible events a site can
+perform are swaps with any neighbor site with a spin different than
+itself.  The probability of each such event is min[1,exp(-dE/kT)],
+where dE = Efinal - Einitial and E is the sum of the energy for the
+site and its neighbor.
+</P>
+<P>For solution by a Metropolis algorithm, the spin is flipped to its
+opposite state and dE = Efinal - Einitial is calculated, as is a
+uniform random number R between 0 and 1.  The flip is accepted if R <
+min[1,exp(-dE/kT)], else it is rejected.
+</P>
+<P>There are no additional commands defined by this application.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_ising.html">app_style ising</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

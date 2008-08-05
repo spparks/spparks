@@ -11,8 +11,6 @@
 
 <H3>app_style ising command 
 </H3>
-<H3>app_style ising/exchange command 
-</H3>
 <H3>app_style ising/2d/4n command 
 </H3>
 <H3>app_style ising/2d/4n/exchange command 
@@ -27,10 +25,9 @@
 </P>
 <PRE>app_style style args keyword values ... 
 </PRE>
-<UL><LI>style = <I>ising</I> or <I>ising/exchange</I> or <I>ising/2d/4n</I> or <I>ising/2d/4n/exchange</I> or <I>ising/2d/8n</I> or <I>ising/3d/6n</I> or <I>ising/3d/26n</I> 
+<UL><LI>style = <I>ising</I> or <I>ising/2d/4n</I> or <I>ising/2d/4n/exchange</I> or <I>ising/2d/8n</I> or <I>ising/3d/6n</I> or <I>ising/3d/26n</I> 
 
 <PRE>  <I>ising</I> arg = seed 
-  <I>ising/exchange</I> arg = seed 
     seed = random number seed (positive integer)
   <I>ising/2d/4n</I> args = Nx Ny seed
   <I>ising/2d/4n/exchange</I> args = Nx Ny seed
@@ -46,7 +43,6 @@
 <P><B>Examples:</B>
 </P>
 <PRE>app_style ising 18874 lattice sq/4n 1.0 50 50
-app_style ising/exchange 18874 lattice tri 1.0 50 50
 app_style ising/2d/4n 50 50 18874
 app_style ising/2d/4n/exchange 50 50 18874
 app_style ising/2d/8n 100 100 48783
