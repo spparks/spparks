@@ -27,7 +27,7 @@ class Output : protected Pointers {
   void init(double);
   void set_stats(int, char **);
   void set_dump(int, char **);
-  void stats();
+  void stats(int);
   void stats_header();
   void dump_header();
   void compute(double, int);

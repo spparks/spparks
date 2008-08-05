@@ -76,7 +76,7 @@ void Output::init(double time)
   // print stats header and initial stats
   
   stats_header();
-  stats();
+  stats(0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -131,7 +131,7 @@ void Output::compute(double time, int done)
     diaglist[i]->compute(time,done);
   }
 
-  if ((stats_delta > 0.0 && time >= stats_time) || done) stats();
+  if ((stats_delta > 0.0 && time >= stats_time) || done) stats(1);
 
   if ((stats_delta > 0.0 && time >= stats_time)) {
     if (stats_ilogfreq == 0) {
@@ -170,10 +170,18 @@ void Output::add_diag(Diag *diag)
    print stats
 ------------------------------------------------------------------------- */
 
-void Output::stats()
+void Output::stats(int init_flag)
 {
   char str[2048] = {'\0'};
   char *strpnt = str;
+
+  if (init_flag) {
+    sprintf(strpnt," %8.3g ",timer->elapsed(TIME_LOOP));
+    strpnt += strlen(strpnt);
+  } else {
+    sprintf(strpnt," %8.3g ",0.0);
+    strpnt += strlen(strpnt);
+  }
 
   app->stats(strpnt);
   strpnt += strlen(strpnt);
@@ -199,6 +207,9 @@ void Output::stats_header()
 {
   char str[1024] = {'\0'};
   char *strpnt = str;
+
+  sprintf(strpnt," CPU Time ");
+  strpnt += strlen(strpnt);
 
   app->stats_header(strpnt);
   strpnt += strlen(strpnt);
