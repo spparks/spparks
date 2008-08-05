@@ -25,6 +25,8 @@
 
 using namespace SPPARKS_NS;
 
+enum{ZERO,VACANT,OCCUPIED};
+
 /* ---------------------------------------------------------------------- */
 
 AppPore::AppPore(SPPARKS *spk, int narg, char **arg) : 
@@ -54,6 +56,9 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
   sites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
   check = NULL;
 
+  ecoord = new double[maxneigh+1];
+  for (int i = 0; i <= maxneigh; i++) ecoord[i] = 0.0;
+
   // initialize my portion of lattice
   // each site = 1 (vacancy) or 2 (occupied)
   // pore geometry defines occupied vs unoccupied
@@ -64,10 +69,11 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
     x = xyz[i][0];
     y = xyz[i][1];
     z = xyz[i][2];
-    if (z > zc + 0.5*thickness || z < zc - 0.5*thickness) isite = 1;
-    else isite = 2;
-    if (isite == 2) {
-      if ((x-xc)*(x-xc) + (y-yc)*(y-yc) < 0.25*diameter*diameter) isite = 1;
+    if (z > zc + 0.5*thickness || z < zc - 0.5*thickness) isite = VACANT;
+    else isite = OCCUPIED;
+    if (isite == OCCUPIED) {
+      if ((x-xc)*(x-xc) + (y-yc)*(y-yc) < 0.25*diameter*diameter)
+	isite = VACANT;
     }
     lattice[i] = isite;
   }
@@ -80,6 +86,7 @@ AppPore::~AppPore()
   delete random;
   delete [] sites;
   delete [] check;
+  delete [] ecoord;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,6 +96,19 @@ void AppPore::init_app()
   delete [] check;
   check = new int[nlocal];
   for (int i = 0; i < nlocal; i++) check[i] = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppPore::input_app(char *command, int narg, char **arg)
+{
+  if (strcmp(command,"ecoord") == 0) {
+    if (narg != 2) error->all("Illegal ecoord command");
+    int index = atoi(arg[0]);
+    double value = atof(arg[1]);
+    if (index < 0 || index > maxneigh) error->all("Illegal ecoord command");
+    ecoord[index] = value;
+  } else error->all("Unrecognized command");
 }
 
 /* ----------------------------------------------------------------------
@@ -102,6 +122,11 @@ double AppPore::site_energy(int i)
   for (int j = 0; j < numneigh[i]; j++)
     if (isite != lattice[neighbor[i][j]]) eng++;
   return (double) eng;
+
+  //  int n = 0;
+  // for (int j = 0; j < numneigh[i]; j++)
+  // if (lattice[neighbor[i][j]] == OCCUPIED) n++;
+  //return ecoord[n];
 }
 
 /* ----------------------------------------------------------------------
@@ -150,9 +175,10 @@ double AppPore::site_propensity(int i)
 {
   int j;
 
-  // possible events = exchange with neighboring site different than self
+  // possible events = OCCUPIED site exchanges with adjacent VACANT site
 
   int mystate = lattice[i];
+  //if (mystate == VACANT) return 0.0;
 
   int neighstate;
   double einitial,efinal;
@@ -191,7 +217,7 @@ void AppPore::site_event(int i, class RandomPark *random)
 
   double threshhold = random->uniform() * propensity[i2site[i]];
 
-  // possible events = exchange with neighboring site different than self
+  // possible events = OCCUPIED site exchanges with adjacent VACANT site
   // find one event by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
 

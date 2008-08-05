@@ -32,6 +32,9 @@ class AppPore : public AppLattice {
  private:
   int *sites;
   int *check;
+  double *ecoord;
+
+  void input_app(char *, int, char **);
 };
 
 }
