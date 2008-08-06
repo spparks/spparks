@@ -507,7 +507,7 @@ void AppLattice2d::dump_coord()
       n = (ny_offset+j-1)*nx_global + (nx_offset+i-1);
       dbufdump[m++] = n + 1;
       dbufdump[m++] = lattice[i][j];
-      xy(i-1+nx_offset,j-1+ny_offset,&x,&y);
+      xy(i,j,&x,&y);
       dbufdump[m++] = x;
       dbufdump[m++] = y;
       dbufdump[m++] = 0.0;
@@ -560,15 +560,14 @@ void AppLattice2d::box_bounds(double *xlo, double *xhi,
 }
 
 /* ----------------------------------------------------------------------
-   lattice coords defaults to i,j,k
+   convert local i,j to x,y
 ------------------------------------------------------------------------- */
 
 void AppLattice2d::xy(int i, int j, double *x, double *y)
 {
-  *x = i;
-  *y = j;
+  *x = i-1 + nx_offset;
+  *y = j-1 + ny_offset;
 }
-
 
 /* ---------------------------------------------------------------------- */
 
