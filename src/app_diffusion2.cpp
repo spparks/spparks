@@ -15,7 +15,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_pore.h"
+#include "app_diffusion2.h"
 #include "comm_lattice.h"
 #include "solve.h"
 #include "random_park.h"
@@ -23,13 +23,13 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS_NS;
+#include <map>
 
-enum{ZERO,VACANT,OCCUPIED};
+using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppPore::AppPore(SPPARKS *spk, int narg, char **arg) : 
+AppDiffusion2::AppDiffusion2(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
   delevent = 1;
@@ -37,17 +37,13 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  if (narg < 7) error->all("Illegal app_style command");
+  if (narg < 3) error->all("Illegal app_style command");
 
-  double xc = atof(arg[1]);
-  double yc = atof(arg[2]);
-  double zc = atof(arg[3]);
-  double diameter = atof(arg[4]);
-  double thickness = atof(arg[5]);
-  int seed = atoi(arg[6]);
+  double fraction = atof(arg[1]);
+  int seed = atoi(arg[2]);
   random = new RandomPark(seed);
 
-  options(narg-7,&arg[7]);
+  options(narg-3,&arg[3]);
 
   // define lattice and partition it across processors
   // sites must be large enough for 2 sites and their 1st/2nd nearest neighbors
@@ -56,77 +52,54 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
   sites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
   check = NULL;
 
-  ecoord = new double[maxneigh+1];
-  for (int i = 0; i <= maxneigh; i++) ecoord[i] = 0.0;
-
   // initialize my portion of lattice
-  // each site = 1 (vacancy) or 2 (occupied)
-  // pore geometry defines occupied vs unoccupied
+  // each site = 1 (vacancy) or 2 (occupied) with fraction occupied
+  // loop over global list so assignment is independent of # of procs
+  // use map to see if I own global site
 
-  double x,y,z;
+  std::map<int,int> hash;
+  for (int i = 0; i < nlocal; i++)
+    hash.insert(std::pair<int,int> (id[i],i));
+  std::map<int,int>::iterator loc;
+
   int isite;
-  for (int i = 0; i < nlocal; i++) {
-    x = xyz[i][0];
-    y = xyz[i][1];
-    z = xyz[i][2];
-    if (z > zc + 0.5*thickness || z < zc - 0.5*thickness) isite = VACANT;
-    else isite = OCCUPIED;
-    if (isite == OCCUPIED) {
-      if ((x-xc)*(x-xc) + (y-yc)*(y-yc) < 0.25*diameter*diameter)
-	isite = VACANT;
-    }
-    lattice[i] = isite;
+  for (int iglobal = 1; iglobal <= nglobal; iglobal++) {
+    if (random->uniform() < fraction) isite = 2;
+    else isite = 1;
+    loc = hash.find(iglobal);
+    if (loc != hash.end()) lattice[loc->second] = isite;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-AppPore::~AppPore()
+AppDiffusion2::~AppDiffusion2()
 {
   delete random;
   delete [] sites;
   delete [] check;
-  delete [] ecoord;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AppPore::init_app()
+void AppDiffusion2::init_app()
 {
   delete [] check;
   check = new int[nlocal];
   for (int i = 0; i < nlocal; i++) check[i] = 0;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void AppPore::input_app(char *command, int narg, char **arg)
-{
-  if (strcmp(command,"ecoord") == 0) {
-    if (narg != 2) error->all("Illegal ecoord command");
-    int index = atoi(arg[0]);
-    double value = atof(arg[1]);
-    if (index < 0 || index > maxneigh) error->all("Illegal ecoord command");
-    ecoord[index] = value;
-  } else error->all("Unrecognized command");
-}
-
 /* ----------------------------------------------------------------------
    compute energy of site
 ------------------------------------------------------------------------- */
 
-double AppPore::site_energy(int i)
+double AppDiffusion2::site_energy(int i)
 {
   int isite = lattice[i];
   int eng = 0;
   for (int j = 0; j < numneigh[i]; j++)
     if (isite != lattice[neighbor[i][j]]) eng++;
   return (double) eng;
-
-  //  int n = 0;
-  // for (int j = 0; j < numneigh[i]; j++)
-  // if (lattice[neighbor[i][j]] == OCCUPIED) n++;
-  //return ecoord[n];
 }
 
 /* ----------------------------------------------------------------------
@@ -134,7 +107,7 @@ double AppPore::site_energy(int i)
    if site cannot change, set mask
 ------------------------------------------------------------------------- */
 
-void AppPore::site_event_rejection(int i, RandomPark *random)
+void AppDiffusion2::site_event_rejection(int i, RandomPark *random)
 {
   // event = exchange with random neighbor
 
@@ -168,14 +141,13 @@ void AppPore::site_event_rejection(int i, RandomPark *random)
    propensity for one event is based on einitial,efinal
 ------------------------------------------------------------------------- */
 
-double AppPore::site_propensity(int i)
+double AppDiffusion2::site_propensity(int i)
 {
   int j;
 
-  // possible events = OCCUPIED site exchanges with adjacent VACANT site
+  // possible events = exchange with neighboring site different than self
 
   int mystate = lattice[i];
-  if (mystate == VACANT) return 0.0;
 
   int neighstate;
   double einitial,efinal;
@@ -184,7 +156,7 @@ double AppPore::site_propensity(int i)
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
     j = neighbor[i][ineigh];
     neighstate = lattice[j];
-    if (neighstate == VACANT) {
+    if (neighstate != mystate) {
       einitial = site_energy(i) + site_energy(j);
       lattice[i] = neighstate;
       lattice[j] = mystate;
@@ -205,7 +177,7 @@ double AppPore::site_propensity(int i)
    ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppPore::site_event(int i, class RandomPark *random)
+void AppDiffusion2::site_event(int i, class RandomPark *random)
 {
   int j,jj,k,kk,m,mm;
 
@@ -213,7 +185,7 @@ void AppPore::site_event(int i, class RandomPark *random)
 
   double threshhold = random->uniform() * propensity[i2site[i]];
 
-  // possible events = OCCUPIED site exchanges with adjacent VACANT site
+  // possible events = exchange with neighboring site different than self
   // find one event by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
 
@@ -226,7 +198,7 @@ void AppPore::site_event(int i, class RandomPark *random)
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
     j = neighbor[i][ineigh];
     neighstate = lattice[j];
-    if (neighstate == VACANT) {
+    if (neighstate != mystate) {
       einitial = site_energy(i) + site_energy(j);
       lattice[i] = neighstate;
       lattice[j] = mystate;
