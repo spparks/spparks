@@ -341,6 +341,9 @@ void AppLattice2d::dump_header()
 
   if (dump_style == COORDFILE) return;
 
+  int ntimestepall;
+  MPI_Reduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,0,world);
+
   // proc 0 does one-time write of nodes and element connectivity
 
   if (me) return;
@@ -348,7 +351,7 @@ void AppLattice2d::dump_header()
   // number nodes: fast in x, slow in y
 
   fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,"%d\n",ntimestep);
+  fprintf(fp,"%d\n",ntimestepall);
   fprintf(fp,"ITEM: NUMBER OF NODES\n");
   fprintf(fp,"%d\n",(nx_global+1)*(ny_global+1));
   fprintf(fp,"ITEM: BOX BOUNDS\n");
@@ -369,7 +372,7 @@ void AppLattice2d::dump_header()
   // v1,v2,v3,v4 = 4 corner pts of grid cell in counter-clockwise dir
 
   fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,"%d\n",ntimestep);
+  fprintf(fp,"%d\n",ntimestepall);
   fprintf(fp,"ITEM: NUMBER OF SQUARES\n");
   fprintf(fp,"%d\n",nx_global*ny_global);
   fprintf(fp,"ITEM: SQUARES\n");
@@ -406,11 +409,14 @@ void AppLattice2d::dump_lattice()
 {
   int size_one = 2;
 
+  int ntimestepall;
+  MPI_Reduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,0,world);
+
   // proc 0 writes timestep header
 
   if (me == 0) {
     fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,"%d\n",ntimestep);
+    fprintf(fp,"%d\n",ntimestepall);
     fprintf(fp,"ITEM: NUMBER OF ELEMENT VALUES\n");
     fprintf(fp,"%d\n",nx_global*ny_global);
     fprintf(fp,"ITEM: ELEMENT VALUES\n");
@@ -469,11 +475,14 @@ void AppLattice2d::dump_coord()
 {
   int size_one = 5;
 
+  int ntimestepall;
+  MPI_Reduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,0,world);
+
   // proc 0 writes timestep header
 
   if (me == 0) {
     fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,"%d\n",ntimestep);
+    fprintf(fp,"%d\n",ntimestepall);
     fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
     fprintf(fp,"%d\n",nx_global*ny_global);
 

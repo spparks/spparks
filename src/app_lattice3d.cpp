@@ -385,6 +385,9 @@ void AppLattice3d::dump_header()
 
   if (dump_style == COORDFILE) return;
 
+  int ntimestepall;
+  MPI_Reduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,0,world);
+
   // proc 0 does one-time write of nodes and element connectivity
 
   if (me) return;
@@ -392,7 +395,7 @@ void AppLattice3d::dump_header()
   // number nodes: fast in x, middle in y, slow in z
 
   fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,"%d\n",ntimestep);
+  fprintf(fp,"%d\n",ntimestepall);
   fprintf(fp,"ITEM: NUMBER OF NODES\n");
   fprintf(fp,"%d\n",(nx_global+1)*(ny_global+1)*(nz_global+1));
   fprintf(fp,"ITEM: BOX BOUNDS\n");
@@ -414,7 +417,7 @@ void AppLattice3d::dump_header()
   // v1-4 are lower plane in counter-clockwise dir, v5-8 are upper plane
 
   fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,"%d\n",ntimestep);
+  fprintf(fp,"%d\n",ntimestepall);
   fprintf(fp,"ITEM: NUMBER OF CUBES\n");
   fprintf(fp,"%d\n",nx_global*ny_global*nz_global);
   fprintf(fp,"ITEM: CUBES\n");
@@ -457,11 +460,14 @@ void AppLattice3d::dump_lattice()
 {
   int size_one = 2;
 
+  int ntimestepall;
+  MPI_Reduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,0,world);
+
   // proc 0 writes timestep header
 
   if (me == 0) {
     fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,"%d\n",ntimestep);
+    fprintf(fp,"%d\n",ntimestepall);
     fprintf(fp,"ITEM: NUMBER OF ELEMENT VALUES\n");
     fprintf(fp,"%d\n",nx_global*ny_global*nz_global);
     fprintf(fp,"ITEM: ELEMENT VALUES\n");
@@ -520,11 +526,14 @@ void AppLattice3d::dump_coord()
 {
   int size_one = 5;
 
+  int ntimestepall;
+  MPI_Reduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,0,world);
+
   // proc 0 writes timestep header
 
   if (me == 0) {
     fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,"%d\n",ntimestep);
+    fprintf(fp,"%d\n",ntimestepall);
     fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
     fprintf(fp,"%d\n",nx_global*ny_global*nz_global);
 
@@ -615,8 +624,6 @@ void AppLattice3d::xyz(int i, int j, int k, double *x, double *y, double *z)
   *x = i-1 + nx_offset;
   *y = j-1 + ny_offset;
   *z = k-1 + nz_offset;
-  *y = j;
-  *z = k;
 }
 
 /* ---------------------------------------------------------------------- */
