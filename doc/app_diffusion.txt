@@ -45,7 +45,8 @@ associated values, as discussed on the doc page for the
 "app_style"_app_style.html command.
 
 This application performs Kawasaki dynamics, meaning the spins on two
-neighboring sites are swapped.
+neighboring sites are swapped or equivalently an atom hops from an
+occupied site to a vacancy site.
 
 As explained on "this page"_app_style.html, these applications can be
 evolved by either a kinetic Monte Carlo (KMC) or Metropolis
