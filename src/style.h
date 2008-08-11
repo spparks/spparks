@@ -14,7 +14,6 @@
 #ifdef AppInclude
 #include "app_chemistry.h"
 #include "app_diffusion.h"
-#include "app_diffusion2.h"
 #include "app_ising.h"
 #include "app_ising_2d_4n.h"
 #include "app_ising_2d_4n_exchange.h"
@@ -38,7 +37,6 @@
 #ifdef AppClass
 AppStyle(chemistry,AppChemistry)
 AppStyle(diffusion,AppDiffusion)
-AppStyle(diffusion2,AppDiffusion2)
 AppStyle(ising,AppIsing)
 AppStyle(ising/2d/4n,AppIsing2d4n)
 AppStyle(ising/2d/4n/exchange,AppIsing2d4nExchange)

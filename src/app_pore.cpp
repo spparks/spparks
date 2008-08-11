@@ -26,6 +26,7 @@
 using namespace SPPARKS_NS;
 
 enum{ZERO,VACANT,OCCUPIED};
+#define DELTAEVENT 100000
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,6 +56,13 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
   create_lattice();
   sites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
   check = NULL;
+
+  // event list
+
+  events = NULL;
+  firstevent = NULL;
+
+  // energy as a function of coordination
 
   ecoord = new double[maxneigh+1];
   for (int i = 0; i <= maxneigh; i++) ecoord[i] = 0.0;
@@ -86,6 +94,8 @@ AppPore::~AppPore()
   delete random;
   delete [] sites;
   delete [] check;
+  memory->sfree(events);
+  memory->sfree(firstevent);
   delete [] ecoord;
 }
 
@@ -96,6 +106,14 @@ void AppPore::init_app()
   delete [] check;
   check = new int[nlocal];
   for (int i = 0; i < nlocal; i++) check[i] = 0;
+
+  memory->sfree(events);
+  memory->sfree(firstevent);
+
+  events = NULL;
+  nevents = maxevent = 0;
+  firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
+  for (int i = 0; i < nlocal; i++) firstevent[i] = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -174,12 +192,14 @@ double AppPore::site_propensity(int i)
 
   // possible events = OCCUPIED site exchanges with adjacent VACANT site
 
+  clear_events(i);
+
   int mystate = lattice[i];
   if (mystate == VACANT) return 0.0;
 
   int neighstate;
-  double einitial,efinal;
-  double prob = 0.0;
+  double proball = 0.0;
+  double einitial,efinal,probone;
 
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
     j = neighbor[i][ineigh];
@@ -189,14 +209,18 @@ double AppPore::site_propensity(int i)
       lattice[i] = neighstate;
       lattice[j] = mystate;
       efinal = site_energy(i) + site_energy(j);
-      if (efinal <= einitial) prob += 1.0;
-      else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
+      if (efinal <= einitial) probone = 1.0;
+      else if (temperature > 0.0) probone = exp((einitial-efinal)*t_inverse);
+      if (probone > 0.0) {
+	add_event(i,j,probone);
+	proball += probone;
+      }
       lattice[i] = mystate;
       lattice[j] = neighstate;
     }
   }
 
-  return prob;
+  return proball;
 }
 
 /* ----------------------------------------------------------------------
@@ -209,35 +233,23 @@ void AppPore::site_event(int i, class RandomPark *random)
 {
   int j,jj,k,kk,m,mm;
 
-  // pick one event from total propensity
+  // pick one event from total propensity for this site
+  // compare prob to threshhold, break when reach it to select event
+  // perform event
 
   double threshhold = random->uniform() * propensity[i2site[i]];
 
-  // possible events = OCCUPIED site exchanges with adjacent VACANT site
-  // find one event by accumulating its probability
-  // compare prob to threshhold, break when reach it to select event
-
-  int mystate = lattice[i];
-
-  int neighstate;
-  double einitial,efinal;
-  double prob = 0.0;
-
-  for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
-    j = neighbor[i][ineigh];
-    neighstate = lattice[j];
-    if (neighstate == VACANT) {
-      einitial = site_energy(i) + site_energy(j);
-      lattice[i] = neighstate;
-      lattice[j] = mystate;
-      efinal = site_energy(i) + site_energy(j);
-      if (efinal <= einitial) prob += 1.0;
-      else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
-      if (prob >= threshhold) break;
-      lattice[i] = mystate;
-      lattice[j] = neighstate;
-    }
+  double proball = 0.0;
+  int ievent = firstevent[i];
+  while (1) {
+    proball += events[ievent].propensity;
+    if (proball >= threshhold) break;
+    ievent = events[ievent].next;
   }
+
+  j = events[ievent].partner;
+  lattice[i] = VACANT;
+  lattice[j] = OCCUPIED;
 
   // compute propensity changes for self and swap site
   // 2nd neighbors of I,J could change their propensity
@@ -301,4 +313,49 @@ void AppPore::site_event(int i, class RandomPark *random)
   // clear check array
 
   for (m = 0; m < nsites; m++) check[sites[m]] = 0;
+}
+
+/* ----------------------------------------------------------------------
+   clear all events out of list for site I
+   add cleared events to free list
+------------------------------------------------------------------------- */
+
+void AppPore::clear_events(int i)
+{
+  int next;
+  int index = firstevent[i];
+  while (index >= 0) {
+    next = events[index].next;
+    events[index].next = freeevent;
+    freeevent = index;
+    nevents--;
+    index = next;
+  }
+  firstevent[i] = -1;
+}
+
+/* ----------------------------------------------------------------------
+   add an event to list for site I
+   event = exchange with site J with probability = propensity
+------------------------------------------------------------------------- */
+
+void AppPore::add_event(int i, int partner, double propensity)
+{
+  // grow event list and setup free list
+
+  if (nevents == maxevent) {
+    maxevent += DELTAEVENT;
+    events = 
+      (Event *) memory->srealloc(events,maxevent*sizeof(Event),"app:events");
+    for (int m = nevents; m < maxevent; m++) events[m].next = m+1;
+    freeevent = nevents;
+  }
+
+  int next = events[freeevent].next;
+  events[freeevent].partner = partner;
+  events[freeevent].next = firstevent[i];
+  events[freeevent].propensity = propensity;
+  firstevent[i] = freeevent;
+  freeevent = next;
+  nevents++;
 }

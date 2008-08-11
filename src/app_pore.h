@@ -35,6 +35,21 @@ class AppPore : public AppLattice {
   double *ecoord;
 
   void input_app(char *, int, char **);
+
+  struct Event {           // one event for an owned site
+    int partner;           // local ID of exchange partner
+    int next;              // index of next event for this site
+    double propensity;     // propensity of this event
+  };
+
+  Event *events;           // list of events for all owned sites
+  int nevents;             // # of events for all owned sites
+  int maxevent;            // max # of events list can hold
+  int *firstevent;         // index of 1st event for each owned site
+  int freeevent;           // index of 1st unused event in list
+
+  void clear_events(int);
+  void add_event(int, int, double);
 };
 
 }
