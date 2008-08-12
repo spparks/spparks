@@ -46,6 +46,7 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
   
   create_lattice();
   sites = new int[1 + maxneigh];
+  sites2 = new int[1 + maxneigh];
 
   // initialize my portion of lattice
   // each site = one of nspins
@@ -71,6 +72,7 @@ AppPotts::~AppPotts()
 {
   delete random;
   delete [] sites;
+  delete [] sites2;
 }
 
 /* ----------------------------------------------------------------------
@@ -190,6 +192,7 @@ void AppPotts::site_event(int i, RandomPark *random)
   // find one event by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
 
+  int oldstate = lattice[i];
   int j,m,value;
 
   double einitial = site_energy(i);
@@ -199,7 +202,7 @@ void AppPotts::site_event(int i, RandomPark *random)
 
   for (j = 0; j < numneigh[i]; j++) {
     value = lattice[neighbor[i][j]];
-    if (value == lattice[i]) continue;
+    if (value == oldstate) continue;
     for (m = 0; m < nevent; m++)
       if (value == sites[m]) break;
     if (m < nevent) continue;
@@ -216,16 +219,16 @@ void AppPotts::site_event(int i, RandomPark *random)
 
   int nsites = 0;
   int isite = i2site[i];
-  sites[nsites++] = isite;
+  sites2[nsites++] = isite;
   propensity[isite] = site_propensity(i);
 
   for (j = 0; j < numneigh[i]; j++) {
     m = neighbor[i][j];
     isite = i2site[m];
     if (isite < 0) continue;
-    sites[nsites++] = isite;
+    sites2[nsites++] = isite;
     propensity[isite] = site_propensity(m);
   }
 
-  solve->update(nsites,sites,propensity);
+  solve->update(nsites,sites2,propensity);
 }

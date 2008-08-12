@@ -238,7 +238,7 @@ void AppLattice3d::iterate()
       timer->stamp();
       isite = solve->event(&dt);
       timer->stamp(TIME_SOLVE);
-      
+
       if (isite < 0) done = 1;
       else {
 	ntimestep++;

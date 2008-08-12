@@ -305,6 +305,4 @@ void AppPotts3d26n::connected_ghosts(int i, int j, int k,
       }
     }
   }
-
 }
-
