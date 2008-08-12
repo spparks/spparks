@@ -46,7 +46,7 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
   
   create_lattice();
   sites = new int[1 + maxneigh];
-  sites2 = new int[1 + maxneigh];
+  unique = new int[1 + maxneigh];
 
   // initialize my portion of lattice
   // each site = one of nspins
@@ -72,7 +72,7 @@ AppPotts::~AppPotts()
 {
   delete random;
   delete [] sites;
-  delete [] sites2;
+  delete [] unique;
 }
 
 /* ----------------------------------------------------------------------
@@ -144,16 +144,16 @@ double AppPotts::site_propensity(int i)
 {
   // possible events = spin flips to neighboring site different than self
 
-  int j,k,value;
+  int j,m,value;
   int nevent = 0;
 
   for (j = 0; j < numneigh[i]; j++) {
     value = lattice[neighbor[i][j]];
     if (value == lattice[i]) continue;
-    for (k = 0; k < nevent; k++)
-      if (value == sites[k]) break;
-    if (k < nevent) continue;
-    sites[nevent++] = value;
+    for (m = 0; m < nevent; m++)
+      if (value == unique[m]) break;
+    if (m < nevent) continue;
+    unique[nevent++] = value;
   }
 
   // for each possible flip:
@@ -165,8 +165,8 @@ double AppPotts::site_propensity(int i)
   double efinal;
   double prob = 0.0;
 
-  for (k = 0; k < nevent; k++) {
-    lattice[i] = sites[k];
+  for (m = 0; m < nevent; m++) {
+    lattice[i] = unique[m];
     efinal = site_energy(i);
     if (efinal <= einitial) prob += 1.0;
     else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
@@ -192,11 +192,11 @@ void AppPotts::site_event(int i, RandomPark *random)
   // find one event by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
 
-  int oldstate = lattice[i];
   int j,m,value;
-
-  double einitial = site_energy(i);
   double efinal;
+
+  int oldstate = lattice[i];
+  double einitial = site_energy(i);
   double prob = 0.0;
   int nevent = 0;
 
@@ -204,11 +204,11 @@ void AppPotts::site_event(int i, RandomPark *random)
     value = lattice[neighbor[i][j]];
     if (value == oldstate) continue;
     for (m = 0; m < nevent; m++)
-      if (value == sites[m]) break;
+      if (value == unique[m]) break;
     if (m < nevent) continue;
-    sites[nevent++] = value;
+    unique[nevent++] = value;
 
-    lattice[i] = sites[m];
+    lattice[i] = value;
     efinal = site_energy(i);
     if (efinal <= einitial) prob += 1.0;
     else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
@@ -219,16 +219,16 @@ void AppPotts::site_event(int i, RandomPark *random)
 
   int nsites = 0;
   int isite = i2site[i];
-  sites2[nsites++] = isite;
+  sites[nsites++] = isite;
   propensity[isite] = site_propensity(i);
 
   for (j = 0; j < numneigh[i]; j++) {
     m = neighbor[i][j];
     isite = i2site[m];
     if (isite < 0) continue;
-    sites2[nsites++] = isite;
+    sites[nsites++] = isite;
     propensity[isite] = site_propensity(m);
   }
 
-  solve->update(nsites,sites2,propensity);
+  solve->update(nsites,sites,propensity);
 }

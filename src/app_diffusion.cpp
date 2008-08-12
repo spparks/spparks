@@ -147,10 +147,10 @@ double AppDiffusion::site_propensity(int i)
 
   // possible events = exchange with neighboring site different than self
 
-  int mystate = lattice[i];
-
   int neighstate;
   double einitial,efinal;
+
+  int mystate = lattice[i];
   double prob = 0.0;
 
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
@@ -189,10 +189,10 @@ void AppDiffusion::site_event(int i, class RandomPark *random)
   // find one event by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
 
-  int mystate = lattice[i];
-
   int neighstate;
   double einitial,efinal;
+
+  int mystate = lattice[i];
   double prob = 0.0;
 
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {

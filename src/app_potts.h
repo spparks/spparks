@@ -30,7 +30,7 @@ class AppPotts : public AppLattice {
 
  private:
   int nspins;
-  int *sites,*sites2;
+  int *sites,*unique;
 };
 
 }
