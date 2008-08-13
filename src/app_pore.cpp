@@ -141,10 +141,12 @@ double AppPore::site_energy(int i)
     if (isite != lattice[neighbor[i][j]]) eng++;
   return (double) eng;
 
-  //  int n = 0;
-  // for (int j = 0; j < numneigh[i]; j++)
-  // if (lattice[neighbor[i][j]] == OCCUPIED) n++;
-  //return ecoord[n];
+  /*
+  int n = 0;
+  for (int j = 0; j < numneigh[i]; j++)
+    if (lattice[neighbor[i][j]] == OCCUPIED) n++;
+  return ecoord[n];
+  */
 }
 
 /* ----------------------------------------------------------------------
