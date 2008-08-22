@@ -36,6 +36,7 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
   fp = NULL;
   fpdump = NULL;
   clustlist = NULL;
+  opendxroot = NULL;
   ncluster = 0;
   idump = 0;
   dump_style = STANDARD;
@@ -67,19 +68,18 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
 	  } else {
 	    error->all("Illegal diag_style cluster command");
 	  }
-	  // OpenDX not yet supported
-// 	} else if (strcmp(arg[iarg],"opendx") == 0) {
-// 	  idump = 1;
-// 	  dump_style = OPENDX;
-// 	  iarg++;
-// 	  if (iarg < narg) {
-// 	    int n = strlen(arg[iarg]) + 1;
-// 	    opendxroot = new char[n];
-// 	    strcpy(opendxroot,arg[iarg]);
-// 	    opendxcount = 0;
-// 	  } else {
-// 	    error->all("Illegal diag_style cluster command");
-// 	  }
+	} else if (strcmp(arg[iarg],"opendx") == 0) {
+	  idump = 1;
+	  dump_style = OPENDX;
+	  iarg++;
+	  if (iarg < narg) {
+	    int n = strlen(arg[iarg]) + 1;
+	    opendxroot = new char[n];
+	    strcpy(opendxroot,arg[iarg]);
+	    opendxcount = 0;
+	  } else {
+	    error->all("Illegal diag_style cluster command");
+	  }
 	} else if (strcmp(arg[iarg],"none") == 0) {
 	  idump = 0;
 	} else {
@@ -89,7 +89,7 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
 	error->all("Illegal diag_style cluster command");
       }
     } else {
-      //      error->all("Illegal diag_style cluster command");
+//       error->all("Illegal diag_style cluster command");
     }
     iarg++;
   }
@@ -102,6 +102,7 @@ DiagCluster::~DiagCluster()
   delete comm;
   memory->destroy_1d_T_array(cluster_ids,0);
   free_clustlist();
+  delete [] opendxroot;
   if (me == 0 ) {
     if (fp) fclose(fp);
     if (fpdump) fclose(fpdump);
@@ -133,6 +134,22 @@ void DiagCluster::init(double time)
 
   if (!comm) comm = new CommLattice(spk);
   comm->init(NULL,1,0,cluster_ids);
+
+  if (dump_style == OPENDX) {
+    if (applattice->latstyle == AppLattice::SC_6N || 
+	applattice->latstyle == AppLattice::SC_26N) {
+      nx_global = applattice->nx;
+      ny_global = applattice->ny;
+      nz_global = applattice->nz;
+    } else if (applattice->latstyle == AppLattice::SQ_4N || 
+	applattice->latstyle == AppLattice::SQ_8N) {
+      nx_global = applattice->nx;
+      ny_global = applattice->ny;
+      nz_global = 1;
+    } else {
+      error->all("Diag dump_style incompatible with latstyle");
+    }
+  }
 
   write_header();
   analyze_clusters(time);
@@ -201,7 +218,7 @@ void DiagCluster::generate_clusters()
   //   push(n)
   //   while (stack not empty) {
   //     i = pop()
-  //     loop over m neighbor pixels of i:
+  //     loop m over neighbor pixels of i:
   //       if (spin[m] == spin[n] and not outside domain) push(m)
   //   }
 
@@ -212,6 +229,25 @@ void DiagCluster::generate_clusters()
   // int pop()
   //   return stack[nstack--]
   //   area++
+
+  // Assign unique global id to each cluster
+
+  // use MPI_Scan to find id_offset
+  // loop i over all clusters {
+  //    clustlist[i].id += id_offset
+  // loop n over all owned sites {
+  //    id[n] += id_offset
+
+  // communicate(owned boundary site ids)
+
+  // loop n over all owned boundary sites {
+  //     loop m over neighbor pixels of i:
+  //       if (spin[m] == spin[n] and m outside domain)
+  //          clustlist[id[n]-id_offset].addneigh(id[m])
+
+  // At this point, the problem is reduced to the simpler problem of 
+  // clustering the clusters. This can be done by the root process.
+
 
   // Update ghost spins
     applattice->comm->all();
@@ -423,7 +459,11 @@ void DiagCluster::dump_clusters(double time)
   int nsend,nrecv;
   double* dbuftmp;
   int maxbuftmp;
-  int cid;
+  int cid, isite;
+  int nsites = nx_global*ny_global*nz_global;
+  int* datadx;
+  int* randomkeys;
+  RandomPark *randomtmp;
 
   if (me == 0) {
     if (dump_style == STANDARD) {
@@ -436,6 +476,50 @@ void DiagCluster::dump_clusters(double time)
       fprintf(fpdump,"%g %g\n",boxylo,boxyhi);
       fprintf(fpdump,"%g %g\n",boxzlo,boxzhi);
       fprintf(fpdump,"ITEM: ATOMS\n");
+    } else if (dump_style == OPENDX) {
+      int lroot = strlen(opendxroot);
+      int lnum;
+      int lsuf = 3;
+      if (opendxcount == 0) {
+	lnum = 1;
+      } else {
+	lnum = int(log(opendxcount)/log(10))+1;
+      }
+      if (lnum < 5) lnum = 5;
+      char filetmp[100];
+      if (99 < lroot+lnum+lsuf)
+	error->one("Diag style cluster3d dump file name too long");
+      strcpy(filetmp,opendxroot);
+      sprintf(filetmp+lroot,"%05d",opendxcount);
+      sprintf(filetmp+lroot+lnum,"%s",".dx");
+      if (me == 0) {
+	fpdump = fopen(filetmp,"w");
+	if (!fpdump) error->one("Cannot open diag style cluster3d dump file");
+      }
+
+      opendxcount++;
+
+      fprintf(fpdump,"# Cluster ID dump file for OpenDX\n");
+      fprintf(fpdump,"# Time = %g\n",time);
+      fprintf(fpdump,"# Create regular grid.\n");
+      fprintf(fpdump,"object 1 class gridpositions counts %d %d %d\n",
+	      nx_global+1,ny_global+1,nz_global+1);
+      fprintf(fpdump,"origin  0 0 0 \n");
+      fprintf(fpdump,"delta   1 0 0 \n");
+      fprintf(fpdump,"delta   0 1 0 \n");
+      fprintf(fpdump,"delta   0 0 1 \n");
+      fprintf(fpdump,"\n# Create connections.\n");
+      fprintf(fpdump,"object 2 class gridconnections counts %d %d %d\n",
+	      nx_global+1,ny_global+1,nz_global+1);
+      fprintf(fpdump,"\n# Feed data.\n");
+      fprintf(fpdump,"object 3 class array type int rank 0 items %d data follows\n#data goes here\n",
+	      nx_global*ny_global*nz_global);
+      datadx = (int *) memory->smalloc(nsites*sizeof(int),"diagcluster3d:datadx");
+      randomkeys = (int *) memory->smalloc(ncluster*sizeof(int),"diagcluster3d:randomkeys");
+      randomtmp = new RandomPark(12345);
+      for (int i = 0; i < ncluster; i++) {
+	randomkeys[i] = randomtmp->irandom(nsites);
+      }
     }
   }
 
@@ -488,6 +572,13 @@ void DiagCluster::dump_clusters(double time)
 		  dbuftmp[m+2],dbuftmp[m+3],dbuftmp[m+4]);
 	  m += size_one;
 	}
+      } else if (dump_style == OPENDX) {
+	for (int i = 0; i < nrecv; i++) {
+	  isite = static_cast<int>(dbuftmp[m]);
+	  cid = clustlist[static_cast<int>(dbuftmp[m+1])].global_id;
+	  datadx[isite-1] = cid;
+	  m += size_one;
+	}
       }
     }
     
@@ -498,6 +589,35 @@ void DiagCluster::dump_clusters(double time)
 
   memory->sfree(dbuftmp);
 
+  if (me == 0) {
+    if (dump_style == STANDARD) {
+      //
+    } else if (dump_style == OPENDX) {
+      isite = 0;
+      while (isite < nsites) {
+	for (int i = 0; i < 20; i++) {
+	  fprintf(fpdump,"%d ",datadx[isite++]);
+	  if (isite == nsites) break;
+	}
+	fprintf(fpdump,"\n");
+      }
+      fprintf(fpdump,"attribute \"dep\" string \"connections\"\n");
+      fprintf(fpdump,"\n# Create a field.\n");
+      fprintf(fpdump,"object \"9 grain microstructure\" class field\n");
+      fprintf(fpdump,"component \"positions\" value 1\n");
+      fprintf(fpdump,"component \"connections\" value 2\n");
+      fprintf(fpdump,"component \"data\" value 3\n");
+      fprintf(fpdump,"\nend\n");
+
+      fclose(fpdump);
+      fpdump = NULL;
+
+      memory->sfree(datadx);
+      memory->sfree(randomkeys);
+      delete randomtmp;
+
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

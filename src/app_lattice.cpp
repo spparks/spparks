@@ -30,9 +30,6 @@
 
 using namespace SPPARKS_NS;
 
-enum{NONE,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
-       RANDOM_2D,RANDOM_3D,FILENAME};
-
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 

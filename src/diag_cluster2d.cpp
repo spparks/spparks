@@ -99,7 +99,7 @@ DiagCluster2d::DiagCluster2d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg
 	error->all("Illegal diag_style cluster2d command");
       }
     } else {
-      //      error->all("Illegal diag_style cluster2d command");
+      // error->all("Illegal diag_style cluster2d command");
     }
     iarg++;
   }

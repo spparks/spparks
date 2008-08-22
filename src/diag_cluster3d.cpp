@@ -208,7 +208,7 @@ void DiagCluster3d::generate_clusters()
   //   push(n)
   //   while (stack not empty) {
   //     i = pop()
-  //     loop over m neighbor pixels of i:
+  //     loop m over neighbor pixels of i:
   //       if (spin[m] == spin[n] and not outside domain) push(m)
   //   }
 
@@ -219,6 +219,24 @@ void DiagCluster3d::generate_clusters()
   // int pop()
   //   return stack[nstack--]
   //   area++
+
+  // Assign unique global id to each cluster
+
+  // use MPI_Scan to find id_offset
+  // loop i over all clusters {
+  //    clustlist[i].id += id_offset
+  // loop n over all owned sites {
+  //    id[n] += id_offset
+
+  // communicate(owned boundary site ids)
+
+  // loop n over all owned boundary sites {
+  //     loop m over neighbor pixels of i:
+  //       if (spin[m] == spin[n] and m outside domain)
+  //          clustlist[id[n]-id_offset].addneigh(id[m])
+
+  // At this point, the problem is reduced to the simpler problem of 
+  // clustering the clusters. This can be done by the root process.
 
   // Set ghost site ids to -1
   // Use six slabs, with z-slabs grabbing
