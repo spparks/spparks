@@ -27,6 +27,7 @@ help:
 	@echo 'make clean-all           delete all object files'
 	@echo 'make clean-machine       delete object files for one machine'
 	@echo 'make tar                 spk_src.tar.gz of src dir and packages'
+	@echo 'make tar-full            spk_full.tgz of repository trunk'
 	@echo 'make makelib             update Makefile.lib for library build'
 	@echo 'make makelist            update Makefile.list used by old makes'
 	@echo ''
@@ -97,7 +98,7 @@ tar:
 
 # Create a tarball of the latest repository copy
 
-tar_full:
+tar-full:
 	@mkdir tmp_tardir; cd tmp_tardir; \
 	svn export svn+ssh://development.sandia.gov/usr/local/svn/spparks; \
 	tar -zcvf ../spk_full.tgz spparks/trunk; \
