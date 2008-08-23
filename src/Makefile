@@ -85,7 +85,7 @@ clean-all:
 clean-%:
 	rm -rf Obj_$(@:clean-%=%)
 
-# Create a tarball of src dir and packages
+# Create a tarball of working copy of src dir and packages
 
 tar:
 	@cd STUBS; make clean
@@ -94,6 +94,14 @@ tar:
 	  $(patsubst %,src/%,$(PACKAGEUC)) --exclude=*/.svn
 	@cd STUBS; make
 	@echo "Created $(ROOT)_src.tar.gz"
+
+# Create a tarball of the latest repository copy
+
+tar_full:
+	@mkdir tmp_tardir; cd tmp_tardir; \
+	svn export svn+ssh://development.sandia.gov/usr/local/svn/spparks; \
+	tar -zcvf ../spk_full.tgz spparks/trunk; \
+	cd ..; rm -rf tmp_tardir
 
 # Update Makefile.lib and Makefile.list
 
