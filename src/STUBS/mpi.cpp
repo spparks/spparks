@@ -167,6 +167,24 @@ void MPI_Allreduce(void *sendbuf, void *recvbuf, int count,
     mpi_copy_byte(sendbuf,recvbuf,count);
 }
 
+/* copy values from data1 to data2  */
+
+void MPI_Reduce(void *sendbuf, void *recvbuf, int count,
+		MPI_Datatype datatype, MPI_Op op, 
+		int root, MPI_Comm comm)
+{
+  if (datatype == MPI_INT)
+    mpi_copy_int(sendbuf,recvbuf,count);
+  else if (datatype == MPI_FLOAT)
+    mpi_copy_float(sendbuf,recvbuf,count);
+  else if (datatype == MPI_DOUBLE)
+    mpi_copy_double(sendbuf,recvbuf,count);
+  else if (datatype == MPI_CHAR)
+    mpi_copy_char(sendbuf,recvbuf,count);
+  else if (datatype == MPI_BYTE)
+    mpi_copy_byte(sendbuf,recvbuf,count);
+}
+
 void MPI_Scan(void *sendbuf, void *recvbuf, int count,
 	      MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {

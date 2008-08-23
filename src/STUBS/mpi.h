@@ -77,6 +77,9 @@ void MPI_Bcast(void *buf, int count, MPI_Datatype datatype,
 	       int root, MPI_Comm comm);
 void MPI_Allreduce(void *sendbuf, void *recvbuf, int count,
 		   MPI_Datatype datatype, MPI_Op op, MPI_Comm comm);
+void MPI_Reduce(void *sendbuf, void *recvbuf, int count,
+		MPI_Datatype datatype, MPI_Op op, 
+		int root, MPI_Comm comm);
 void MPI_Scan(void *sendbuf, void *recvbuf, int count,
 	      MPI_Datatype datatype, MPI_Op op, MPI_Comm comm);
 void MPI_Allgather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
