@@ -26,7 +26,7 @@ inclusion	40 54 0 6
 
 stats           100.0
 diag_style     energy 100.0 
-diag_style     cluster 100.0  filename membrane.cluster.dat dump_style standard membrane.cluster.dump
+diag_style     cluster 100.0  filename membrane.cluster.dat dump standard membrane.cluster.dump
 
 dump            100.0 coord tmp.membrane
 

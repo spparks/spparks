@@ -24,7 +24,7 @@
 # Run potts/2d/8n with sweeping, parallel kmc and serial kmc
 
 app_style	potts/2d/8n 100 100 100 12345
-sweep_style     lattice2d 12345 strict no mask yes delt 1.0e-2
+sweep_style     lattice2d 12345 strict no mask no delt 1.0e-2
 temperature	0.2
 stats           0.01
 diag_style	energy2d 0.01 
@@ -58,7 +58,7 @@ clear
 # Run potts/2d/4n with sweeping, parallel kmc and serial kmc
 
 app_style	potts/2d/4n 100 100 100 12345
-sweep_style     lattice2d 12345 strict no mask yes delt 1.0e-2
+sweep_style     lattice2d 12345 strict no mask no delt 1.0e-2
 temperature	0.2
 stats           0.01
 diag_style	energy2d 0.01 
@@ -126,7 +126,7 @@ clear
 # Run potts/3d/26n with sweeping, parallel kmc and serial kmc
 
 app_style	potts/3d/26n 16 16 16 100 12345
-sweep_style     lattice3d 12345 strict no mask yes delt 1.0e-2
+sweep_style     lattice3d 12345 strict no mask no delt 1.0e-2
 temperature	0.2
 stats           0.01
 diag_style	energy3d 0.01 
@@ -159,7 +159,7 @@ clear
 # Run potts/3d/6n with sweeping, parallel kmc and serial kmc
 
 app_style	potts/3d/6n 32 32 32 100 12345
-sweep_style     lattice3d 12345 strict no mask yes delt 1.0e-2
+sweep_style     lattice3d 12345 strict no mask no delt 1.0e-2
 temperature	0.2
 stats           0.01
 diag_style	energy3d 0.01 
@@ -193,7 +193,7 @@ clear
 # Run potts/3d/12n with sweeping, parallel kmc and serial kmc
 
 app_style	potts/3d/12n 32 32 32 100 12345
-sweep_style     lattice3d 12345 strict no mask yes delt 1.0e-2
+sweep_style     lattice3d 12345 strict no mask no delt 1.0e-2
 temperature	0.2
 stats           0.01
 diag_style	energy3d 0.01 
