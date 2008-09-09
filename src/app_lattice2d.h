@@ -45,7 +45,6 @@ class AppLattice2d : public App {
   enum InitStyles {RANDOM,READ};
   int me,nprocs;
   int ntimestep;
-  int dump_style;
   int init_style;
   double time,stoptime;
   double temperature,t_inverse;
@@ -77,9 +76,15 @@ class AppLattice2d : public App {
   char **mask;
 
   FILE *fp;
+  FILE *fpdump;
   int *ibufdump, *ibufread;
   double *dbufdump;
   int maxdumpbuf;
+
+  enum DumpStyles {COORD,OPENDX,LATFILE};
+  int dump_style;
+  char* opendxroot;
+  int opendxcount;
 
   class CommLattice2d *comm;
   class RandomPark *random;
@@ -95,8 +100,9 @@ class AppLattice2d : public App {
   void stats_header(char *);
   void dump_header();
   void dump();
-  void dump_lattice();
   void dump_coord();
+  void dump_opendx();
+  void dump_lattice();
   void box_bounds(double *, double *, double *, double *);
   void xy(int, int, double *, double *);
   void dump_detailed(char*);

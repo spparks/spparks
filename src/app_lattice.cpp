@@ -53,6 +53,9 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   maxdumpbuf = 0;
   dbuf = NULL;
   fp = NULL;
+  fpdump = NULL;
+  opendxroot = NULL;
+  dump_style = COORD;
   propensity = NULL;
   site2i = NULL;
   i2site = NULL;
@@ -100,9 +103,9 @@ AppLattice::~AppLattice()
   memory->sfree(numneigh);
   memory->destroy_2d_T_array(neighbor);
 
-  if (fp) {
-    fclose(fp);
-    fp = NULL;
+  if (fpdump) {
+    fclose(fpdump);
+    fpdump = NULL;
   }
 }
 
@@ -1154,6 +1157,16 @@ void AppLattice::init()
     solve->init(nlocal,propensity);
   }
 
+  if (dump_style == OPENDX) {
+    if (latstyle == SC_6N || 
+	latstyle == SC_26N) {
+    } else if (latstyle == SQ_4N || 
+	       latstyle == SQ_8N) {
+    } else {
+      error->all("App_lattice dump_style incompatible with latstyle");
+    }
+  }
+
   // initialize output
 
   output->init(time);
@@ -1278,20 +1291,61 @@ void AppLattice::dump_header()
 
 void AppLattice::dump()
 {
+  int nsites = nx*ny*nz;
+  int* datadx;
   int size_one = 5;
 
   // proc 0 writes timestep header
 
   if (me == 0) {
-    fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,"%d\n",ntimestep);
-    fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-    fprintf(fp,"%d\n",nglobal);
-    fprintf(fp,"ITEM: BOX BOUNDS\n");
-    fprintf(fp,"%g %g\n",boxxlo,boxxhi);
-    fprintf(fp,"%g %g\n",boxylo,boxyhi);
-    fprintf(fp,"%g %g\n",boxzlo,boxzhi);
-    fprintf(fp,"ITEM: ATOMS\n");
+    if (dump_style == COORD) {
+      fprintf(fpdump,"ITEM: TIMESTEP\n");
+      fprintf(fpdump,"%d\n",ntimestep);
+      fprintf(fpdump,"ITEM: NUMBER OF ATOMS\n");
+      fprintf(fpdump,"%d\n",nglobal);
+      fprintf(fpdump,"ITEM: BOX BOUNDS\n");
+      fprintf(fpdump,"%g %g\n",boxxlo,boxxhi);
+      fprintf(fpdump,"%g %g\n",boxylo,boxyhi);
+      fprintf(fpdump,"%g %g\n",boxzlo,boxzhi);
+      fprintf(fpdump,"ITEM: ATOMS\n");
+    } else if (dump_style == OPENDX) {
+      int lroot = strlen(opendxroot);
+      int lnum;
+      int lsuf = 3;
+      if (opendxcount == 0) {
+	lnum = 1;
+      } else {
+	lnum = int(log(opendxcount)/log(10))+1;
+      }
+      if (lnum < 5) lnum = 5;
+      char filetmp[100];
+      if (99 < lroot+lnum+lsuf)
+	error->one("app_lattice dump file name too long");
+      strcpy(filetmp,opendxroot);
+      sprintf(filetmp+lroot,"%05d",opendxcount);
+      sprintf(filetmp+lroot+lnum,"%s",".dx");
+      fpdump = fopen(filetmp,"w");
+      if (!fpdump) error->one("Cannot open app_lattice dump file");
+      
+      opendxcount++;
+      
+      fprintf(fpdump,"# app_lattice dump file for OpenDX\n");
+      fprintf(fpdump,"# Time = %g\n",time);
+      fprintf(fpdump,"# Create regular grid.\n");
+      fprintf(fpdump,"object 1 class gridpositions counts %d %d %d\n",
+	      nx+1,ny+1,nz+1);
+      fprintf(fpdump,"origin  0 0 0 \n");
+      fprintf(fpdump,"delta   1 0 0 \n");
+      fprintf(fpdump,"delta   0 1 0 \n");
+      fprintf(fpdump,"delta   0 0 1 \n");
+      fprintf(fpdump,"\n# Create connections.\n");
+      fprintf(fpdump,"object 2 class gridconnections counts %d %d %d\n",
+	      nx+1,ny+1,nz+1);
+      fprintf(fpdump,"\n# Feed data.\n");
+      fprintf(fpdump,"object 3 class array type int rank 0 items %d data follows\n#data goes here\n",
+	      nx*ny*nz);
+      datadx = (int *) memory->smalloc(nsites*sizeof(int),"diagcluster:datadx");
+    }
   }
 
   // pack my lattice coords into buffer
@@ -1325,7 +1379,8 @@ void AppLattice::dump()
   int tmp,nlines;
   MPI_Status status;
   MPI_Request request;
-  
+  int isite;
+
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
@@ -1336,17 +1391,53 @@ void AppLattice::dump()
 	nlines /= size_one;
       } else nlines = me_size/size_one;
       
-      m = 0;
-      for (int i = 0; i < nlines; i++) {
-	fprintf(fp,"%d %d %g %g %g\n",
-		static_cast<int> (dbuf[m]),static_cast<int> (dbuf[m+1]),
-		dbuf[m+2],dbuf[m+3],dbuf[m+4]);
-	m += size_one;
+      if (dump_style == COORD) {
+	m = 0;
+	for (int i = 0; i < nlines; i++) {
+	  fprintf(fpdump,"%d %d %g %g %g\n",
+		  static_cast<int> (dbuf[m]),static_cast<int> (dbuf[m+1]),
+		  dbuf[m+2],dbuf[m+3],dbuf[m+4]);
+	  m += size_one;
+	}
+      } else  if (dump_style == OPENDX) {
+	m = 0;
+	for (int i = 0; i < nlines; i++) {
+	  isite = static_cast<int>(dbuf[m]);
+	  datadx[isite-1] = dbuf[m+1];
+	  m += size_one;
+	}
       }
     }
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
     MPI_Rsend(dbuf,me_size,MPI_DOUBLE,0,0,world);
+  }
+
+  if (me == 0) {
+    if (dump_style == COORD) {
+      //
+    } else if (dump_style == OPENDX) {
+      isite = 0;
+      while (isite < nsites) {
+	for (int i = 0; i < 20; i++) {
+	  fprintf(fpdump,"%d ",datadx[isite++]);
+	  if (isite == nsites) break;
+	}
+	fprintf(fpdump,"\n");
+      }
+      fprintf(fpdump,"attribute \"dep\" string \"connections\"\n");
+      fprintf(fpdump,"\n# Create a field.\n");
+      fprintf(fpdump,"object \"9 grain microstructure\" class field\n");
+      fprintf(fpdump,"component \"positions\" value 1\n");
+      fprintf(fpdump,"component \"connections\" value 2\n");
+      fprintf(fpdump,"component \"data\" value 3\n");
+      fprintf(fpdump,"\nend\n");
+      
+      fclose(fpdump);
+      fpdump = NULL;
+      
+      memory->sfree(datadx);
+    }
   }
 }
 
@@ -1383,12 +1474,19 @@ void AppLattice::set_dump(int narg, char **arg)
 {
   if (narg != 3) error->all("Illegal dump command");
 
-  if (strcmp(arg[1],"coord") != 0) error->all("Illegal dump command");
-
-  if (me == 0) {
-    if (fp) fclose(fp);
-    fp = fopen(arg[2],"w");
-    if (!fp) error->one("Cannot open dump file");
+  if (strcmp(arg[1],"coord") == 0) {
+    if (me == 0) {
+      dump_style = COORD;
+      if (fpdump) fclose(fpdump);
+      fpdump = fopen(arg[2],"w");
+      if (!fpdump) error->one("Cannot open dump file");
+    }
+  } else if (strcmp(arg[1],"opendx") == 0) {
+    dump_style = OPENDX;
+    int n = strlen(arg[2]) + 1;
+    opendxroot = new char[n];
+    strcpy(opendxroot,arg[2]);
+    opendxcount = 0;
   }
 }
 

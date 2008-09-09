@@ -46,7 +46,6 @@ class AppLattice3d : public App {
   enum InitStyles {RANDOM,READ};
   int me,nprocs;
   int ntimestep,seed;
-  int dump_style;
   int init_style;
   double time,stoptime;
   double temperature,t_inverse;
@@ -79,9 +78,16 @@ class AppLattice3d : public App {
   char ***mask;
 
   FILE *fp;
+  FILE *fpdump;
   int *ibufdump, *ibufread;
   double *dbufdump;
   int maxdumpbuf;
+
+  enum DumpStyles {COORD,OPENDX,LATFILE};
+
+  int dump_style;
+  char* opendxroot;
+  int opendxcount;
 
   class RandomPark *random;
   class CommLattice3d *comm;
@@ -99,6 +105,7 @@ class AppLattice3d : public App {
   void dump();
   void dump_lattice();
   void dump_coord();
+  void dump_opendx();
   void box_bounds(double *, double *, double *,
 		  double *, double *, double *);
   void xyz(int, int, int, double *, double *, double *);

@@ -51,7 +51,6 @@ class AppLattice : public App {
  protected:
   int me,nprocs;
   int ntimestep;
-  int dump_style;
   double time,stoptime;
   double temperature,t_inverse;
   int nsweep;
@@ -117,8 +116,14 @@ class AppLattice : public App {
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
 
   FILE *fp;
+  FILE *fpdump;
   double *dbuf;
   int maxdumpbuf;
+
+  enum DumpStyles {COORD,OPENDX};
+  int dump_style;
+  char* opendxroot;
+  int opendxcount;
 
   class CommLattice *comm;
   class RandomPark *random;

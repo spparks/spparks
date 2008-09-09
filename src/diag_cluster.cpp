@@ -488,13 +488,13 @@ void DiagCluster::dump_clusters(double time)
       if (lnum < 5) lnum = 5;
       char filetmp[100];
       if (99 < lroot+lnum+lsuf)
-	error->one("Diag style cluster3d dump file name too long");
+	error->one("Diag style cluster dump file name too long");
       strcpy(filetmp,opendxroot);
       sprintf(filetmp+lroot,"%05d",opendxcount);
       sprintf(filetmp+lroot+lnum,"%s",".dx");
       if (me == 0) {
 	fpdump = fopen(filetmp,"w");
-	if (!fpdump) error->one("Cannot open diag style cluster3d dump file");
+	if (!fpdump) error->one("Cannot open diag style cluster dump file");
       }
 
       opendxcount++;
@@ -514,8 +514,8 @@ void DiagCluster::dump_clusters(double time)
       fprintf(fpdump,"\n# Feed data.\n");
       fprintf(fpdump,"object 3 class array type int rank 0 items %d data follows\n#data goes here\n",
 	      nx_global*ny_global*nz_global);
-      datadx = (int *) memory->smalloc(nsites*sizeof(int),"diagcluster3d:datadx");
-      randomkeys = (int *) memory->smalloc(ncluster*sizeof(int),"diagcluster3d:randomkeys");
+      datadx = (int *) memory->smalloc(nsites*sizeof(int),"diagcluster:datadx");
+      randomkeys = (int *) memory->smalloc(ncluster*sizeof(int),"diagcluster:randomkeys");
       randomtmp = new RandomPark(12345);
       for (int i = 0; i < ncluster; i++) {
 	randomkeys[i] = randomtmp->irandom(nsites);
