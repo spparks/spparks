@@ -1672,7 +1672,7 @@ void AppLattice::offsets()
     cmap[0][3][0] =  0; cmap[0][3][1] =  1; cmap[0][3][2] =  0;
     cmap[0][4][0] =  0; cmap[0][4][1] =  0; cmap[0][4][2] =  -1;
     cmap[0][5][0] =  0; cmap[0][5][1] =  0; cmap[0][5][2] =   1;
-    for (int m = 0; m < nbasis; m++) cmap[0][m][3] = 0;
+    for (int m = 0; m < maxneigh; m++) cmap[0][m][3] = 0;
  
   } else if (latstyle == SC_26N) {
     int m = 0;
