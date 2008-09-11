@@ -50,7 +50,7 @@ AppPottsVariable::AppPottsVariable(SPPARKS *spk, int narg, char **arg) :
 
   // assign variable names
 
-  if (ninteger != 1 || ndouble != 0.0)
+  if (ninteger != 1 || ndouble != 0)
     error->all("Invalid site specification in app_style potts/variable");
 
   spin = iarray[0];
