@@ -351,7 +351,7 @@ void Input::substitute(char *str, int flag)
 	beyond = ptr + strlen(var) + 1;
       }
       value = variable->retrieve(var);
-      if (value == NULL) error->one("Substitution for undefined variable");
+      if (value == NULL) error->one("Substitution for illegal variable");
 
       *ptr = '\0';
       strcpy(work,str);
