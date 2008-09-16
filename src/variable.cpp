@@ -250,7 +250,7 @@ int Variable::next(int narg, char **arg)
       error->all("All variables in next command must be same style");
   }
 
-  // check for invalid styles EQUAL or WORLD
+  // invalid styles EQUAL or WORLD
 
   int istyle = style[find(arg[0])];
   if (istyle == EQUAL || istyle == WORLD)
