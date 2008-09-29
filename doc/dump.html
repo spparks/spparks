@@ -31,12 +31,14 @@ seconds during a simulation.  The quantities printed are obtained from
 the application.  Typically these are the values of the various sites
 in the simulation.
 </P>
-<P>Two styles of dump file are supported, though not every application
+<P>Three styles of dump file are supported, though not every application
 supports both.  The <I>lattice</I> style simply outputs a list of site IDs
 and values (e.g. spin).  The <I>coord</I> style outputs a LAMMPS-compatible
 dump file where each site has a type (e.g. spin value) and an x,y,z
-coordinate.  The latter can be visualized with various tools in the
-<A HREF = "http://lammps.sandia.gov">LAMMPS package</A> and the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py package</A>.
+coordinate.  The <I>coord</I> style output can be visualized with various 
+tools in the <A HREF = "http://lammps.sandia.gov">LAMMPS package</A> and the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py package</A>.
+The <I>opendx</I> style generates a sequentially-numbered set of files that
+can be visualized using the OpenDX package.
 </P>
 
 
