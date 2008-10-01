@@ -135,7 +135,7 @@ SweepLattice2d::~SweepLattice2d()
   for (int isector = 0; isector < nsector; isector++) {
     delete sector[isector].solve;
     memory->destroy_2d_T_array(sector[isector].site2ij);
-    memory->destroy_2d_T_array(sector[isector].ij2site);
+    memory->destroy_2d_T_array(sector[isector].ij2site,nxlo,nylo);
     memory->sfree(sector[isector].propensity);
     memory->sfree(sector[isector].sites);
     memory->destroy_2d_T_array(sector[isector].border);
@@ -189,7 +189,7 @@ void SweepLattice2d::init()
   // setup sectors
   // partition sites by i,j values
 
-  for (int isector = 0; isector < 4; isector++) {
+  for (int isector = 0; isector < nsector; isector++) {
     delete sector[isector].solve;
     memory->destroy_2d_T_array(sector[isector].site2ij);
     memory->destroy_2d_T_array(sector[isector].ij2site);
