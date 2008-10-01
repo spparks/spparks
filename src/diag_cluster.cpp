@@ -160,9 +160,13 @@ void DiagCluster::init(double time)
 
 /* ---------------------------------------------------------------------- */
 
-void DiagCluster::compute(double time, int done)
+void DiagCluster::compute(double time, int iflag, int done)
 {
-  if (check_time(time, done)) {
+  if (diag_delta > 0.0) {
+    iflag = check_time(time, done);
+  }
+
+  if (iflag) {
     applattice->comm->all();
     analyze_clusters(time);
   }
@@ -638,11 +642,13 @@ void DiagCluster::free_clustlist()
 /* ---------------------------------------------------------------------- */
 
 void DiagCluster::stats(char *strtmp) {
+  if (stats_flag == 0) return;
   sprintf(strtmp," %10d",ncluster_reduced);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DiagCluster::stats_header(char *strtmp) {
+  if (stats_flag == 0) return;
   sprintf(strtmp," %10s","Nclust");
 }

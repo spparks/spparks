@@ -26,7 +26,7 @@ class DiagEnergy : public Diag {
   virtual ~DiagEnergy();
 
   void init(double);
-  void compute(double, int);
+  void compute(double, int, int);
   void stats(char *);
   void stats_header(char *);
 

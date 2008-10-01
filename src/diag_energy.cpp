@@ -83,12 +83,15 @@ void DiagEnergy::init(double time)
 
 /* ---------------------------------------------------------------------- */
 
-void DiagEnergy::compute(double time, int done)
+void DiagEnergy::compute(double time, int iflag, int done)
 {
   double etmp;
 
-  if (check_time(time, done))  {
+  if (stats_flag == 0) {
+    iflag = check_time(time, done);
+  }
 
+  if (iflag) {
     applattice->comm->all();
 
     etmp = 0.0;
@@ -105,11 +108,13 @@ void DiagEnergy::compute(double time, int done)
 /* ---------------------------------------------------------------------- */
 
 void DiagEnergy::stats(char *strtmp) {
+  if (stats_flag == 0) return;
   sprintf(strtmp," %10g",energy);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DiagEnergy::stats_header(char *strtmp) {
+  if (stats_flag == 0) return;
   sprintf(strtmp," %10s","Energy");
 }

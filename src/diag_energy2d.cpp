@@ -85,11 +85,15 @@ void DiagEnergy2d::init(double time)
 
 /* ---------------------------------------------------------------------- */
 
-void DiagEnergy2d::compute(double time, int done)
+void DiagEnergy2d::compute(double time, int iflag, int done)
 {
   double etmp;
 
-  if (check_time(time, done))  {
+  if (diag_delta > 0.0) {
+    iflag = check_time(time, done);
+  }
+
+  if (iflag) {
 
     applattice2d->comm->all(applattice2d->lattice);
 
@@ -106,11 +110,13 @@ void DiagEnergy2d::compute(double time, int done)
 /* ---------------------------------------------------------------------- */
 
 void DiagEnergy2d::stats(char *strtmp) {
+  if (stats_flag == 0) return;
   sprintf(strtmp," %10g",energy);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DiagEnergy2d::stats_header(char *strtmp) {
+  if (stats_flag == 0) return;
   sprintf(strtmp," %10s","Energy");
 }

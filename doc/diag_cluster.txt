@@ -14,10 +14,9 @@ app_style command :h3
 
 [Syntax:]
 
-diag_style style delta keyword value keyword value ... :pre
+diag_style style keyword value keyword value ... :pre
 
 style = {cluster} or {cluster2d} or {cluster3d} :ulb,l
-delta = time increment between evaluations of the diagnostic (seconds) :l
 zero or more keyword/value pairs may be appended :l
 keyword = {filename} or {dump} :l
   {filename} value = name
@@ -29,10 +28,10 @@ see the "diag_style"_diag_style.html command for additional keywords that can be
 
 [Examples:]
 
-diag_style cluster 0.5
-diag_style cluster2d 0.5
-diag_style cluster3d 0.5
-diag_style cluster3d 1.0 filename cluster3d.a.0.1.dat dump opendx cluster3d.a.0.1.dump :pre
+diag_style cluster
+diag_style cluster2d
+diag_style cluster3d
+diag_style cluster3d stats no delt 1.0 filename cluster3d.a.0.1.dat dump opendx cluster3d.a.0.1.dump :pre
 
 [Description:]
 

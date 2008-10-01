@@ -153,9 +153,13 @@ void DiagCluster2d::init(double time)
 
 /* ---------------------------------------------------------------------- */
 
-void DiagCluster2d::compute(double time, int done)
+void DiagCluster2d::compute(double time, int iflag, int done)
 {
-  if (check_time(time, done)) {
+  if (diag_delta > 0.0) {
+    iflag = check_time(time, done);
+  }
+
+  if (iflag) {
     applattice2d->comm->all(applattice2d->lattice);
     analyze_clusters(time);
   }
@@ -772,11 +776,13 @@ void DiagCluster2d::dump_clusters_detailed(double time)
 /* ---------------------------------------------------------------------- */
 
 void DiagCluster2d::stats(char *strtmp) {
+  if (stats_flag == 0) return;
   sprintf(strtmp," %10d",ncluster_reduced);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DiagCluster2d::stats_header(char *strtmp) {
+  if (stats_flag == 0) return;
   sprintf(strtmp," %10s","Nclust");
 }

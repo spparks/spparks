@@ -29,7 +29,7 @@ class DiagCluster : public Diag {
   virtual ~DiagCluster();
 
   void init(double);
-  void compute(double, int);
+  void compute(double, int, int);
   void stats(char *);
   void stats_header(char *);
 

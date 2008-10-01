@@ -45,7 +45,7 @@ solve_style      tree 12345
 temperature	0.2
 
 stats           10.0
-diag_style	energy2d 10.0 
+diag_style	energy2d
 dump            100.0 coord tmp.ising
 
 run             100.0

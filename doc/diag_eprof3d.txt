@@ -10,10 +10,9 @@ diag_style eprof3d command :h3
 
 [Syntax:]
 
-diag_style eprof3d delta keyword value keyword value ... :pre
+diag_style eprof3d keyword value keyword value ... :pre
 
 eprof3d = style name of this diagnostic :ulb,l
-delta = time increment between evaluations of the diagnostic (seconds) :l
 zero or more keyword/value pairs may be appended :l
 keyword = {axis} or {filename} or {boundary} :l
   {axis} value = {x} or {y} or {z}
@@ -25,8 +24,8 @@ see the "diag_style"_diag_style.html command for additional keywords that can be
 
 [Examples:]
 
-diag_style eprof3d 0.1 axis x filename eprof3d.dat
-diag_style eprof3d 0.1 filename eprof3d.dat boundary :pre
+diag_style eprof3d stats no delt 0.1 axis x filename eprof3d.dat
+diag_style eprof3d filename eprof3d.dat boundary :pre
 
 [Description:]
 

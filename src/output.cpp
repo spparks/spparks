@@ -120,20 +120,26 @@ void Output::set_dump(int narg, char **arg)
 
 void Output::compute(double time, int done)
 {
+  int iflag;
+
   if ((dump_delta > 0.0 && time >= dump_time) || done) {
     if (dump_delta > 0.0) app->dump();
     dump_time += dump_delta;
   }
 
+  // Check is stats output required
+  iflag = 0;
+  if ((stats_delta > 0.0 && time >= stats_time) ) iflag = 1;
+
   // Perform all diagnostics
 
   for (int i = 0; i < ndiags; i++) {
-    diaglist[i]->compute(time,done);
+    diaglist[i]->compute(time,iflag,done);
   }
 
-  if ((stats_delta > 0.0 && time >= stats_time) || done) stats(1);
+  if (iflag || done) stats(1);
 
-  if ((stats_delta > 0.0 && time >= stats_time)) {
+  if (iflag) {
     if (stats_ilogfreq == 0) {
       // Ensure that new stats_time exceeds time
       while (time >= stats_time) {

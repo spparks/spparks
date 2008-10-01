@@ -35,7 +35,7 @@ class Diag : protected Pointers {
   // pure virtual functions, must be defined in child class
   
   virtual void init(double) = 0;
-  virtual void compute(double, int) = 0;
+  virtual void compute(double, int, int) = 0;
 
  protected:
   char *style;
@@ -43,6 +43,7 @@ class Diag : protected Pointers {
 
   double diag_time,diag_delta,diag_scale,diag_t0;
   int diag_nrepeat,diag_irepeat,diag_ilogfreq;
+  int stats_flag;
 
 };
 

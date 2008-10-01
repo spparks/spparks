@@ -27,7 +27,7 @@ app_style	potts/2d/8n 100 100 100 12345
 sweep_style     lattice2d 12345 strict no mask no delt 1.0e-2
 temperature	0.2
 stats           0.01
-diag_style	energy2d 0.01 
+diag_style	energy2d
 
 run		0.1
 
@@ -38,7 +38,7 @@ sweep_style     lattice2d 12345 kmc yes delt 1.0e-2
 solve_style     tree 12345
 temperature	0.2
 stats           0.01
-diag_style	energy2d 0.01 
+diag_style	energy2d
 
 run		0.1
 
@@ -49,7 +49,7 @@ clear
 #solve_style    tree 12345
 #temperature	0.2
 #stats           0.01
-#diag_style	energy2d 0.01 
+#diag_style	energy2d
 #
 #run		0.1
 #
@@ -61,7 +61,7 @@ app_style	potts/2d/4n 100 100 100 12345
 sweep_style     lattice2d 12345 strict no mask no delt 1.0e-2
 temperature	0.2
 stats           0.01
-diag_style	energy2d 0.01 
+diag_style	energy2d
 
 run		0.1
 
@@ -72,7 +72,7 @@ sweep_style     lattice2d 12345 kmc yes delt 1.0e-2
 solve_style     tree 12345
 temperature	0.2
 stats           0.01
-diag_style	energy2d 0.01 
+diag_style	energy2d
 
 run		0.1
 
@@ -83,7 +83,7 @@ clear
 #solve_style    tree 12345
 #temperature	0.2
 #stats           0.01
-#diag_style	energy2d 0.01 
+#diag_style	energy2d
 #
 #run		0.1
 #
@@ -95,7 +95,7 @@ app_style	potts/2d/24n 100 100 100 12345
 sweep_style     lattice2d 12345 strict yes mask no delt 1.0e-2
 temperature	0.2
 stats           0.01
-diag_style	energy2d 0.01 
+diag_style	energy2d
 
 run		0.1
 
@@ -106,7 +106,7 @@ sweep_style     lattice2d 12345 kmc yes delt 1.0e-2
 solve_style     tree 12345
 temperature	0.2
 stats           0.01
-diag_style	energy2d 0.01 
+diag_style	energy2d
 
 run		0.1
 
@@ -117,7 +117,7 @@ clear
 #solve_style     tree 12345
 #temperature	0.2
 #stats           0.01
-#diag_style	energy2d 0.01 
+#diag_style	energy2d
 #
 #run		0.1
 #
@@ -129,7 +129,7 @@ app_style	potts/3d/26n 16 16 16 100 12345
 sweep_style     lattice3d 12345 strict no mask no delt 1.0e-2
 temperature	0.2
 stats           0.01
-diag_style	energy3d 0.01 
+diag_style	energy3d
 run		0.1
 
 clear
@@ -139,7 +139,7 @@ sweep_style     lattice3d 12345 kmc yes delt 1.0e-2
 solve_style     tree 12345
 temperature	0.2
 stats           0.01
-diag_style	energy3d 0.01 
+diag_style	energy3d
 
 run		0.1
 
@@ -150,7 +150,7 @@ clear
 #solve_style     tree 12345
 #temperature	0.2
 #stats           0.01
-#diag_style	energy3d 0.01 
+#diag_style	energy3d
 #
 #run		0.1
 #
@@ -162,7 +162,7 @@ app_style	potts/3d/6n 32 32 32 100 12345
 sweep_style     lattice3d 12345 strict no mask no delt 1.0e-2
 temperature	0.2
 stats           0.01
-diag_style	energy3d 0.01 
+diag_style	energy3d
 
 run		0.1
 
@@ -173,7 +173,7 @@ sweep_style     lattice3d 12345 kmc yes delt 1.0e-2
 solve_style     tree 12345
 temperature	0.2
 stats           0.01
-diag_style	energy3d 0.01 
+diag_style	energy3d
 
 run		0.1
 
@@ -184,7 +184,7 @@ clear
 #solve_style     tree 12345
 #temperature	0.2
 #stats           0.01
-#diag_style	energy3d 0.01 
+#diag_style	energy3d
 #
 #run		0.1
 #
@@ -196,7 +196,7 @@ app_style	potts/3d/12n 32 32 32 100 12345
 sweep_style     lattice3d 12345 strict no mask no delt 1.0e-2
 temperature	0.2
 stats           0.01
-diag_style	energy3d 0.01 
+diag_style	energy3d
 
 run		0.1
 
@@ -207,7 +207,7 @@ sweep_style     lattice3d 12345 kmc yes delt 1.0e-2
 solve_style     tree 12345
 temperature	0.2
 stats           0.01
-diag_style	energy3d 0.01 
+diag_style	energy3d
 
 run		0.1
 
@@ -218,7 +218,7 @@ clear
 #solve_style     tree 12345
 #temperature	0.2
 #stats           0.01
-#diag_style	energy3d 0.01 
+#diag_style	energy3d
 #
 #run		0.1
 #
@@ -232,7 +232,7 @@ solve_style     tree 12345
 temperature     1.0
 
 stats           0.1
-diag_style	energy3d 0.1 
+diag_style	energy3d
 dump            1 lattice tmp.grain
 
 run             1

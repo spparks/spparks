@@ -12,17 +12,16 @@ diag_style energy3d command :h3
 
 [Syntax:]
 
-diag_style style delta keyword value keyword value ... :pre
+diag_style style keyword value keyword value ... :pre
 
 style = {energy} or {energy2d} or {energy3d}
-delta = time increment between evaluations of the diagnostic (seconds)
 see the "diag_style"_diag_style.html command for additional keywords that can be appended to any diagnostic command :ul
 
 [Examples:]
 
-diag_style energy 0.5
-diag_style energy2d 0.5
-diag_style energy3d 0.5 :pre
+diag_style energy
+diag_style energy2d
+diag_style energy3d :pre
 
 [Description:]
 

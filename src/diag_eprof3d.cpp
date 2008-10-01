@@ -161,9 +161,13 @@ void DiagEprof3d::init(double time)
 
 /* ---------------------------------------------------------------------- */
 
-void DiagEprof3d::compute(double time, int done)
+void DiagEprof3d::compute(double time, int iflag, int done)
 {
-  if (check_time(time, done)) write_prof(time);
+  if (diag_delta > 0.0) {
+    iflag = check_time(time, done);
+  }
+
+  if (iflag) write_prof(time);
 }
 
 /* ----------------------------------------------------------------------
@@ -397,6 +401,7 @@ void DiagEprof3d::write_prof(double time)
 /* ---------------------------------------------------------------------- */
 
 void DiagEprof3d::stats(char *strtmp) {
+  if (stats_flag == 0) return;
   if (iboundary == 0) {
     sprintf(strtmp," %10g",eav);
   } else {
@@ -407,6 +412,7 @@ void DiagEprof3d::stats(char *strtmp) {
 /* ---------------------------------------------------------------------- */
 
 void DiagEprof3d::stats_header(char *strtmp) {
+  if (stats_flag == 0) return;
   if (iboundary == 0) {
     sprintf(strtmp," %10s","Eav");
   } else {
