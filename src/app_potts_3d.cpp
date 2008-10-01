@@ -76,5 +76,6 @@ AppPotts3d::AppPotts3d(SPPARKS *spk, int& narg, char **arg) :
 AppPotts3d::~AppPotts3d()
 {
   delete [] spinfile;
+  delete random;
 }
 
