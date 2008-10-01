@@ -559,6 +559,8 @@ int SweepLattice::find_border_sites(int isector, int ntotal, int nlayer,
     if (flag[i] < 0) border[nborder++] = i;
   }
 
+  memory->sfree(flag);
+
   sector[isector].border = border;
   return nborder;
 }
