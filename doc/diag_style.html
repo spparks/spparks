@@ -13,36 +13,36 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>diag_style style delta keyword value keyword value ... 
+<PRE>diag_style style keyword value keyword value ... 
 </PRE>
 <UL><LI>style = <I>cluster</I> or <I>cluster2d</I> or <I>cluster3d</I> or <I>eprof3d</I> or <I>energy</I> or <I>energy2d</I> or <I>energy3d</I> 
 
-<LI>delta = time increment between evaluations of the diagnostic (seconds) 
-
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>log</I> 
-
-<PRE>  <I>log</I> values = N factor
+<PRE>keyword = <I>delt</I> or <I>log</I> or <I>stats</I>
+  <I>delt</I> values = delta
+    delta = time increment between evaluations of the diagnostic (seconds)
+  <I>log</I> values = N factor
     N = number of repetitions per interval
-    factor = scale factor between interval 
+    factor = scale factor between interval
+  <I>stats</I> values = <I>yes</I> or <I>no</I>
+    yes/no = provide output to stats line 
 </PRE>
 <LI>see doc pages for individual diagnostic commands for additional keywords that can be appended 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>diag_style cluster 1.0 
-diag_style eprof3d 10.0
-diag_style energy2d 0.01 log 7 10.0 
+<PRE>diag_style cluster stats no delt 1.0 
+diag_style eprof3d stats no delt 0.01 log 7 10.0
+diag_style energy2d 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command invokes a diagnostic calculation every <I>delta</I> seconds
-during a simulation.  Currently, diagnostics can only be defined for
+<P>This command invokes a diagnostic calculation.
+Currently, diagnostics can only be defined for
 on-lattice applications.  See the <A HREF = "app_style.html">app_style</A> command
 for an overview of such applications.
-</P>
-<P>As described by the <A HREF = "app_style.html">app_style</A> command, on-lattice
+As described by the <A HREF = "app_style.html">app_style</A> command, on-lattice
 applications use one of 3 styles of lattice: general, 2d, or 3d.  For
 several of the diagnostic styles, you must use a style that matches
 the application's lattice.
@@ -59,13 +59,19 @@ the application's lattice.
 </UL>
 <HR>
 
-<P>All diagnostics provide generate or more values that are appended to 
+<P>All diagnostics may provide one or more values that are appended to 
 other statistical output and printed to the screen and log file via 
 the <A HREF = "stats.html">stats</A> command. We call this stats output. In addition,
 diagnostic may optionally write more extensive output to dedicated
 files that are specified using diagnostic-specific keywords.
 </P>
-<P>Using the <I>log</I> keyword will produce statistical output at varying
+<P>The <I>stats</I> keyword controls whether or not the diagnostic appends
+values to the statistical output. If stats is set to yes, then
+the <I>delt</I> and <I>log</I> keywords may not be used, as the output interval
+is controlled by the <I>stats</I> command. 
+If stats is set to no, then the <I>delt</I> keyword specificies <I>Delta</I>, the
+interval of time between each diagnostic calculation. 
+Using the <I>log</I> keyword will cause the diagnostic to run at varying
 intervals during the course of a simulation.  There will be <I>N</I>
 outputs per interval where the size of each interval scales up by
 <I>factor</I> each time.  <I>Delta</I> is the time between outputs in the first
@@ -73,7 +79,7 @@ outputs per interval where the size of each interval scales up by
 </P>
 <P>For example, this command
 </P>
-<PRE>diag_style energy 0.01 log 7 10.0 
+<PRE>diag_style eprof3d stats no delt 0.01 log 7 10.0 
 </PRE>
 <P>will perform its computation at these times:
 </P>
@@ -81,7 +87,7 @@ outputs per interval where the size of each interval scales up by
 </PRE>
 <P>This command
 </P>
-<PRE>diag_style energy 0.01 log 1 2.0 
+<PRE>diag_style enegy eprof3d stats no delt 0.01 log 1 2.0 
 </PRE>
 <P>will perform its computation at these times:
 </P>
@@ -95,6 +101,6 @@ outputs per interval where the size of each interval scales up by
 </P>
 <P><A HREF = "stats.html">stats</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B> stats=yes
 </P>
 </HTML>

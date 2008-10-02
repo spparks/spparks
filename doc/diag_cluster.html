@@ -19,11 +19,9 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>diag_style style delta keyword value keyword value ... 
+<PRE>diag_style style keyword value keyword value ... 
 </PRE>
 <UL><LI>style = <I>cluster</I> or <I>cluster2d</I> or <I>cluster3d</I> 
-
-<LI>delta = time increment between evaluations of the diagnostic (seconds) 
 
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -39,10 +37,10 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>diag_style cluster 0.5
-diag_style cluster2d 0.5
-diag_style cluster3d 0.5
-diag_style cluster3d 1.0 filename cluster3d.a.0.1.dat dump opendx cluster3d.a.0.1.dump 
+<PRE>diag_style cluster
+diag_style cluster2d
+diag_style cluster3d
+diag_style cluster3d stats no delt 1.0 filename cluster3d.a.0.1.dat dump opendx cluster3d.a.0.1.dump 
 </PRE>
 <P><B>Description:</B>
 </P>

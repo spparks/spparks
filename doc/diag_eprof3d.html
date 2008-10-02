@@ -13,11 +13,9 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>diag_style eprof3d delta keyword value keyword value ... 
+<PRE>diag_style eprof3d keyword value keyword value ... 
 </PRE>
 <UL><LI>eprof3d = style name of this diagnostic 
-
-<LI>delta = time increment between evaluations of the diagnostic (seconds) 
 
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -33,8 +31,8 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>diag_style eprof3d 0.1 axis x filename eprof3d.dat
-diag_style eprof3d 0.1 filename eprof3d.dat boundary 
+<PRE>diag_style eprof3d stats no delt 0.1 axis x filename eprof3d.dat
+diag_style eprof3d filename eprof3d.dat boundary 
 </PRE>
 <P><B>Description:</B>
 </P>
