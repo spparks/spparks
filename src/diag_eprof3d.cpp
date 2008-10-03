@@ -43,7 +43,7 @@ DiagEprof3d::DiagEprof3d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
   eb1 = 0.0;
   eb2 = 0.0;
 
-  int iarg = 2;
+  int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"filename") == 0) {
       iarg++;
@@ -196,17 +196,17 @@ void DiagEprof3d::write_prof(double time)
 
   if (me == 0) {
     if (prof_style == STANDARD) {
-      fprintf(fp,"ITEM: TIME\n");
-      fprintf(fp,"%g\n",time);
-      fprintf(fp,"ITEM: NDATA\n");
-      fprintf(fp,"%d\n",nx_global);
-      fprintf(fp,"ITEM: INDEX ENERGY/SITE\n");
-      
+      if (fp) {
+	fprintf(fp,"ITEM: TIME\n");
+	fprintf(fp,"%g\n",time);
+	fprintf(fp,"ITEM: NDATA\n");
+	fprintf(fp,"%d\n",nx_global);
+	fprintf(fp,"ITEM: INDEX ENERGY/SITE\n");
+      }
       for (int iprof = 0; iprof < ndata; iprof++) {
 	prof[iprof] = 0.0;
 	count[iprof] = 0.0;
       }
-
     }
   }
 
@@ -384,15 +384,19 @@ void DiagEprof3d::write_prof(double time)
 	} else {
 	  etmp = 0.0;
 	}
-	fprintf(fp,"%d %g %g \n",ii,etmp,count[iiprof]);
+	if (fp) {
+	  fprintf(fp,"%d %g %g \n",ii,etmp,count[iiprof]);
+	}
       }
       eav /= nx_global*ny_global*nz_global;
-      iprof = nbound-1;
-      if (count[iprof] > 0) eb1 = prof[iprof]/count[iprof];
-      else eb1 = 0.0;
-      iprof = nbound+1;
-      if (count[iprof] > 0) eb2 = prof[iprof]/count[iprof];
-      else eb2 = 0.0;
+      if (iboundary == 1) {
+	iprof = nbound-1;
+	if (count[iprof] > 0) eb1 = prof[iprof]/count[iprof];
+	else eb1 = 0.0;
+	iprof = nbound+1;
+	if (count[iprof] > 0) eb2 = prof[iprof]/count[iprof];
+	else eb2 = 0.0;
+      }
     }
   }
 

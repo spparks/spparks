@@ -41,7 +41,7 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
   idump = 0;
   dump_style = STANDARD;
 
-  int iarg = 2;
+  int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"filename") == 0) {
       iarg++;
