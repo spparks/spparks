@@ -167,7 +167,7 @@ void AppLattice::options(int narg, char **arg)
 	nrandom = atoi(arg[iarg+2]);
 	xprd = atof(arg[iarg+3]);
 	yprd = atof(arg[iarg+4]);
-	zprd = atof(arg[iarg+4]);
+	zprd = atof(arg[iarg+5]);
 	cutoff = atof(arg[iarg+6]);
 	latseed = atoi(arg[iarg+7]);
 	iarg += 8;
@@ -1498,7 +1498,7 @@ void AppLattice::procs2lattice_2d()
 {
   int ipx,ipy;
   double boxx,boxy,surf;
-  double bestsurf = 2.0 * (xprd * yprd);
+  double bestsurf = 2.0 * (xprd+yprd);
   
   // loop thru all possible factorizations of nprocs
   // surf = perimeter of a proc sub-domain
