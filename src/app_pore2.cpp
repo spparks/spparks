@@ -15,7 +15,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_pore.h"
+#include "app_pore2.h"
 #include "comm_lattice.h"
 #include "solve.h"
 #include "random_park.h"
@@ -30,11 +30,13 @@ enum{ZERO,VACANT,OCCUPIED};
 
 /* ---------------------------------------------------------------------- */
 
-AppPore::AppPore(SPPARKS *spk, int narg, char **arg) : 
+AppPore2::AppPore2(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
   delevent = 1;
-  delpropensity = 2;
+  delpropensity = 3;
+
+  kboltz = 8.617e-5;
 
   // parse arguments
 
@@ -51,10 +53,11 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
   options(narg-7,&arg[7]);
 
   // define lattice and partition it across processors
-  // sites must be large enough for 2 sites and their 1st/2nd nearest neighbors
+  // sites must be large enough for 2 sites and their 1,2,3 nearest neighbors
 
   create_lattice();
-  sites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
+  int nmax = 1 + maxneigh + maxneigh*maxneigh + maxneigh*maxneigh*maxneigh;
+  sites = new int[2*nmax];
   check = NULL;
 
   // event list
@@ -89,7 +92,7 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-AppPore::~AppPore()
+AppPore2::~AppPore2()
 {
   delete random;
   delete [] sites;
@@ -101,11 +104,13 @@ AppPore::~AppPore()
 
 /* ---------------------------------------------------------------------- */
 
-void AppPore::init_app()
+void AppPore2::init_app()
 {
+  // check used to temporarily label owned and ghost sites
+
   delete [] check;
-  check = new int[nlocal];
-  for (int i = 0; i < nlocal; i++) check[i] = 0;
+  check = new int[nlocal+nghost];
+  for (int i = 0; i < nlocal+nghost; i++) check[i] = 0;
 
   memory->sfree(events);
   memory->sfree(firstevent);
@@ -118,14 +123,17 @@ void AppPore::init_app()
 
 /* ---------------------------------------------------------------------- */
 
-void AppPore::input_app(char *command, int narg, char **arg)
+void AppPore2::input_app(char *command, int narg, char **arg)
 {
+  // assume energy is in eV, temperature will be in K
+  // scale by Boltzmann constant
+
   if (strcmp(command,"ecoord") == 0) {
     if (narg != 2) error->all("Illegal ecoord command");
     int index = atoi(arg[0]);
     double value = atof(arg[1]);
     if (index < 0 || index > maxneigh) error->all("Illegal ecoord command");
-    ecoord[index] = value;
+    ecoord[index] = value / kboltz;
   } else error->all("Unrecognized command");
 }
 
@@ -133,13 +141,18 @@ void AppPore::input_app(char *command, int narg, char **arg)
    compute energy of site
 ------------------------------------------------------------------------- */
 
-double AppPore::site_energy(int i)
+double AppPore2::site_energy(int i)
 {
+  // energy a linear function of coordination number
+
   int isite = lattice[i];
   int eng = 0;
   for (int j = 0; j < numneigh[i]; j++)
     if (isite != lattice[neighbor[i][j]]) eng++;
   return (double) eng;
+
+  // energy a non-linear function of coordination number
+  // from read-in tabulated values
 
   /*
   int n = 0;
@@ -154,7 +167,7 @@ double AppPore::site_energy(int i)
    if site cannot change, set mask
 ------------------------------------------------------------------------- */
 
-void AppPore::site_event_rejection(int i, RandomPark *random)
+void AppPore2::site_event_rejection(int i, RandomPark *random)
 {
   // event = exchange with random neighbor
 
@@ -188,30 +201,80 @@ void AppPore::site_event_rejection(int i, RandomPark *random)
    propensity for one event is based on einitial,efinal
 ------------------------------------------------------------------------- */
 
-double AppPore::site_propensity(int i)
+double AppPore2::site_propensity(int i)
 {
-  int j;
+  int j,k,m,nsites;
 
   // possible events = OCCUPIED site exchanges with adjacent VACANT site
 
   clear_events(i);
 
-  int mystate = lattice[i];
-  if (mystate == VACANT) return 0.0;
+  if (lattice[i] == VACANT) return 0.0;
 
-  int neighstate;
   double proball = 0.0;
   double einitial,efinal,probone;
 
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
     j = neighbor[i][ineigh];
-    neighstate = lattice[j];
-    if (neighstate == VACANT) {
-      einitial = site_energy(i) + site_energy(j);
+    if (lattice[j] == VACANT) {
 
-      lattice[i] = neighstate;
-      lattice[j] = mystate;
+      // old energy for i,j and their neighbors
+      // use check[] to avoid recomputing energy of same site
+
+      einitial = site_energy(i) + site_energy(j);
+      nsites = 0;
+      sites[nsites++] = i;
+      sites[nsites++] = j;
+      check[i] = check[j] = 1;
+
+      for (k = 0; k < numneigh[i]; k++) {
+	m = neighbor[i][k];
+	if (check[m]) continue;
+	if (lattice[m] == OCCUPIED) einitial += site_energy(m);
+	sites[nsites++] = m;
+	check[m] = 1;
+      }
+      for (k = 0; k < numneigh[j]; k++) {
+	m = neighbor[j][k];
+	if (check[m]) continue;
+	if (lattice[m] == OCCUPIED) einitial += site_energy(m);
+	sites[nsites++] = m;
+	check[m] = 1;
+      }
+
+      for (m = 0; m < nsites; m++) check[sites[m]] = 0;
+
+      // diffusive hop
+
+      lattice[i] = VACANT;
+      lattice[j] = OCCUPIED;
+
+      // new energy for i,j and their neighbors
+
       efinal = site_energy(i) + site_energy(j);
+      nsites = 0;
+      sites[nsites++] = i;
+      sites[nsites++] = j;
+      check[i] = check[j] = 1;
+
+      for (k = 0; k < numneigh[i]; k++) {
+	m = neighbor[i][k];
+	if (check[m]) continue;
+	if (lattice[m] == OCCUPIED) efinal += site_energy(m);
+	sites[nsites++] = m;
+	check[m] = 1;
+      }
+      for (k = 0; k < numneigh[j]; k++) {
+	m = neighbor[j][k];
+	if (check[m]) continue;
+	if (lattice[m] == OCCUPIED) efinal += site_energy(m);
+	sites[nsites++] = m;
+	check[m] = 1;
+      }
+
+      for (m = 0; m < nsites; m++) check[sites[m]] = 0;
+
+      // compute propensity
 
       if (efinal <= einitial) probone = 1.0;
       else if (temperature > 0.0) probone = exp((einitial-efinal)*t_inverse);
@@ -220,8 +283,10 @@ double AppPore::site_propensity(int i)
 	proball += probone;
       }
 
-      lattice[i] = mystate;
-      lattice[j] = neighstate;
+      // undo the hop
+
+      lattice[i] = OCCUPIED;
+      lattice[j] = VACANT;
     }
   }
 
@@ -234,9 +299,9 @@ double AppPore::site_propensity(int i)
    ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppPore::site_event(int i, class RandomPark *random)
+void AppPore2::site_event(int i, class RandomPark *random)
 {
-  int j,jj,k,kk,m,mm;
+  int j,jj,k,kk,kkk,m,mm,mmm,isite;
 
   // pick one event from total propensity for this site
   // compare prob to threshhold, break when reach it to select event
@@ -256,30 +321,26 @@ void AppPore::site_event(int i, class RandomPark *random)
   lattice[i] = VACANT;
   lattice[j] = OCCUPIED;
 
-  // compute propensity changes for self and swap site
-  // 2nd neighbors of I,J could change their propensity
+  // compute propensity changes for self and swap site and their 1,2,3 neighs
   // use check[] to avoid resetting propensity of same site
-  // NOTE: should I loop over 2nd neighbors even if site itself is skipped?
-  //   not if skipped b/c already seen, but maybe if out of sector
 
-  int nsites = 0;
-  int isite = i2site[i];
-  sites[nsites++] = isite;
+  isite = i2site[i];
   propensity[isite] = site_propensity(i);
+  int nsites = 0;
+  sites[nsites++] = isite;
   check[isite] = 1;
 
   isite = i2site[j];
   if (isite >= 0) {
-    sites[nsites++] = isite;
     propensity[isite] = site_propensity(j);
+    sites[nsites++] = isite;
     check[isite] = 1;
   }
 
   for (k = 0; k < numneigh[i]; k++) {
     m = neighbor[i][k];
     isite = i2site[m];
-    if (isite < 0) continue;
-    if (check[isite] == 0) {
+    if (isite >= 0 && check[isite] == 0) {
       sites[nsites++] = isite;
       propensity[isite] = site_propensity(m);
       check[isite] = 1;
@@ -287,18 +348,27 @@ void AppPore::site_event(int i, class RandomPark *random)
     for (kk = 0; kk < numneigh[m]; kk++) {
       mm = neighbor[m][kk];
       isite = i2site[mm];
-      if (isite < 0 || check[isite]) continue;
-      sites[nsites++] = isite;
-      propensity[isite] = site_propensity(mm);
-      check[isite] = 1;
+      if (isite >= 0 && check[isite] == 0) {
+	sites[nsites++] = isite;
+	propensity[isite] = site_propensity(mm);
+	check[isite] = 1;
+      }
+      for (kkk = 0; kkk < numneigh[mm]; kkk++) {
+	mmm = neighbor[mm][kkk];
+	isite = i2site[mmm];
+	if (isite >= 0 && check[isite] == 0) {
+	  sites[nsites++] = isite;
+	  propensity[isite] = site_propensity(mmm);
+	  check[isite] = 1;
+	}
+      }
     }
   }
 
   for (k = 0; k < numneigh[j]; k++) {
     m = neighbor[j][k];
     isite = i2site[m];
-    if (isite < 0) continue;
-    if (check[isite] == 0) {
+    if (isite >= 0 && check[isite] == 0) {
       sites[nsites++] = isite;
       propensity[isite] = site_propensity(m);
       check[isite] = 1;
@@ -306,10 +376,20 @@ void AppPore::site_event(int i, class RandomPark *random)
     for (kk = 0; kk < numneigh[m]; kk++) {
       mm = neighbor[m][kk];
       isite = i2site[mm];
-      if (isite < 0 || check[isite]) continue;
-      sites[nsites++] = isite;
-      propensity[isite] = site_propensity(mm);
-      check[isite] = 1;
+      if (isite >= 0 && check[isite] == 0) {
+	sites[nsites++] = isite;
+	propensity[isite] = site_propensity(mm);
+	check[isite] = 1;
+      }
+      for (kkk = 0; kkk < numneigh[mm]; kkk++) {
+	mmm = neighbor[mm][kkk];
+	isite = i2site[mmm];
+	if (isite >= 0 && check[isite] == 0) {
+	  sites[nsites++] = isite;
+	  propensity[isite] = site_propensity(mmm);
+	  check[isite] = 1;
+	}
+      }
     }
   }
 
@@ -325,7 +405,7 @@ void AppPore::site_event(int i, class RandomPark *random)
    add cleared events to free list
 ------------------------------------------------------------------------- */
 
-void AppPore::clear_events(int i)
+void AppPore2::clear_events(int i)
 {
   int next;
   int index = firstevent[i];
@@ -344,7 +424,7 @@ void AppPore::clear_events(int i)
    event = exchange with site J with probability = propensity
 ------------------------------------------------------------------------- */
 
-void AppPore::add_event(int i, int partner, double propensity)
+void AppPore2::add_event(int i, int partner, double propensity)
 {
   // grow event list and setup free list
 
