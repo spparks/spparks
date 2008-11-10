@@ -339,7 +339,7 @@ void SweepLattice2d::init()
     }
   }
 
-  // If adapatice kmc specified
+  // If adaptive kmc specified
   // compute deln0, which controls future timesteps
   // If deln0 arleady specified, compute delt
 
@@ -388,7 +388,7 @@ void SweepLattice2d::do_sweep(double &dt)
 
   // adjust KMC threshold time
 
-  if (Ladapt) {
+  if (Lkmc && Ladapt) {
     MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_SUM,world);
     if (pmaxall > 0.0) delt = deln0/pmaxall;
   }
@@ -542,6 +542,24 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
   solve->update(nsites,sites,propensity);
   timer->stamp(TIME_COMM);
 
+  // compute maximum sector propensity per site
+  // controls future timesteps. We do this at start of sweep
+  // for the simple reason that a sector propensity can drop to
+  // zero during a sweep, but it can never increase from zero.
+  // Hence we avoid the problem of all the sectors reporting
+  // zero propensity. a more correct way to handle this would be to do
+  // a full propensity update when all the sectors have been swept,
+  // but that would increase the cost substantially.
+  
+  if (Ladapt) {
+    int ntmp = applattice->solve->get_num_active();
+    if (ntmp > 0) {
+      double ptmp = applattice->solve->get_total_propensity();
+      ptmp /= ntmp;
+      pmax = MAX(ptmp,pmax);
+    }
+  }
+
   // execute events until time threshhold reached
 
   done = 0;
@@ -565,18 +583,6 @@ void SweepLattice2d::sweep_sector_kmc(int icolor, int isector)
     }
   }
  
-  // compute maximum sector propensity per site
-  // controls future timesteps
-
-  if (Ladapt) {
-    int ntmp = applattice->solve->get_num_active();
-    if (ntmp > 0) {
-      double ptmp = applattice->solve->get_total_propensity();
-      ptmp /= ntmp;
-      pmax = MAX(ptmp,pmax);
-    }
-  }
-
   // restore applattice values
 
   applattice->solve = hold_solve;
