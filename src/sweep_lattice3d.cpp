@@ -50,7 +50,7 @@ SweepLattice3d::SweepLattice3d(SPPARKS *spk, int narg, char **arg) :
   Ladapt = false;
   ranlat = NULL;
   delt = 1.0;
-  deln0 = 0.0;
+  deln0 = 1.0;
 
   int iarg = 2;
   while (iarg < narg) {
@@ -82,11 +82,14 @@ SweepLattice3d::SweepLattice3d(SPPARKS *spk, int narg, char **arg) :
       if (iarg+2 > narg) error->all("Illegal sweep_style command");
       delt = atof(arg[iarg+1]);
       iarg += 2;
+      // This value indicates that delt is specified, not deln
+      deln0 = 0.0;
     } else if (strcmp(arg[iarg],"deln") == 0) {
       if (iarg+2 > narg) error->all("Illegal sweep_style command");
       Ladapt = true;
       deln0 = atof(arg[iarg+1]);
       iarg += 2;
+      if (deln0 <= 0.0) error->all("Illegal sweep_style command");
     } else error->all("Illegal sweep_style command");
   }
 
@@ -410,8 +413,9 @@ void SweepLattice3d::init()
     }
   }
 
-  // compute deln0, if not already specified
-  // controls future timesteps
+  // If adapatice kmc specified
+  // compute deln0, which controls future timesteps
+  // If deln0 arleady specified, compute delt
 
   if (Lkmc && Ladapt) {
     pmax = 0.0;
