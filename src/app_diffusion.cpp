@@ -211,11 +211,8 @@ void AppDiffusion::site_event(int i, class RandomPark *random)
     }
   }
 
-  // compute propensity changes for self and swap site
-  // 2nd neighbors of I,J could change their propensity
+  // compute propensity changes for self and swap site and their 1,2 neighs
   // use check[] to avoid resetting propensity of same site
-  // NOTE: should I loop over 2nd neighbors even if site itself is skipped?
-  //   not if skipped b/c already seen, but maybe if out of sector
 
   int nsites = 0;
   int isite = i2site[i];
