@@ -755,7 +755,7 @@ void AppLattice2d::set_dump(int narg, char **arg)
 
 void AppLattice2d::procs2lattice()
 {
-  int ipx,ipy,nremain;
+  int ipx,ipy;
   double boxx,boxy,surf;
   double bestsurf = 2 * (nx_global + ny_global);
   
