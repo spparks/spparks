@@ -198,6 +198,8 @@ void Output::set_dump(int narg, char **arg)
     } else if (strcmp(word,"lattice") == 0) {
       pack_choice[i] = &Output::pack_lattice;
       vtype[i] = INT;
+      if (app->appclass == LATTICE && applattice->lattice == NULL)
+	error->all("Dumping lattice but application does not support it");
     } else if (strcmp(word,"x") == 0) {
       pack_choice[i] = &Output::pack_x;
       vtype[i] = DOUBLE;

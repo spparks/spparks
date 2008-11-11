@@ -139,8 +139,7 @@ void AppTestGroup::init()
 
 void AppTestGroup::input(char *command, int narg, char **arg)
 {
-  if (strcmp(command,"run") == 0) run(narg,arg);
-  else error->all("Unrecognized command");
+  error->all("Unrecognized command");
 }
 
 /* ----------------------------------------------------------------------
