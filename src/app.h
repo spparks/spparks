@@ -27,22 +27,18 @@ class App : protected Pointers {
   App(class SPPARKS *, int, char **);
   virtual ~App();
   
-  // virtual functions with empty definitions
-  // may be overridden in child class
-
-  virtual void stats(char *strtmp) {strtmp[0] = '\0';};
-  virtual void stats_header(char *strtmp) {strtmp[0] = '\0';};
-
-  virtual void dump_header(){};
-  virtual void dump(){};
-  virtual void set_stats(int, char **){};
-  virtual void set_dump(int, char **){};
-
   // pure virtual functions, must be defined in child class
   
   virtual void input(char *, int, char **) = 0;
   virtual void init() = 0;
   virtual void run(int, char **) = 0;
+
+  // virtual functions with empty definitions
+  // may be overridden in child class
+
+  virtual void stats(char *strtmp) {strtmp[0] = '\0';};
+  virtual void stats_header(char *strtmp) {strtmp[0] = '\0';};
+  virtual void set_stats(int, char **) {};
 };
 
 }

@@ -23,6 +23,7 @@
 namespace SPPARKS_NS {
 
 class AppLattice : public App {
+  friend class Output;
   friend class SweepLattice;
   friend class CommLattice;
   friend class DiagEnergy;
@@ -116,14 +117,7 @@ class AppLattice : public App {
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
 
   FILE *fp;
-  FILE *fpdump;
   double *dbuf;
-  int maxdumpbuf;
-
-  enum DumpStyles {COORD,OPENDX};
-  int dump_style;
-  char* opendxroot;
-  int opendxcount;
 
   class CommLattice *comm;
   class RandomPark *random;
@@ -144,11 +138,8 @@ class AppLattice : public App {
   void iterate();
   void stats(char *);
   void stats_header(char *);
-  void dump_header();
-  void dump();
 
   void set_stats(int, char **);
-  void set_dump(int, char **);
   void set_temperature(int, char **);
 
   void procs2lattice_2d();

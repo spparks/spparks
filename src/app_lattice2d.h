@@ -23,6 +23,7 @@
 namespace SPPARKS_NS {
 
 class AppLattice2d : public App {
+  friend class Output;
   friend class SweepLattice2d;
   friend class DiagCluster2d;
   friend class DiagEnergy2d;
@@ -64,6 +65,11 @@ class AppLattice2d : public App {
   int **ij2site;               // mapping of owned lattice to site index
   int **site2ij;               // mapping of owned sites to lattice indices
 
+  int nglobal,nlocal;
+  double boxxlo,boxxhi,boxylo,boxyhi;
+  int *id;
+  double **xyz;
+
   int nx_procs,ny_procs;       // procs in each dim of lattice partition
   int procwest,proceast;       // my neighbor procs
   int procsouth,procnorth;
@@ -76,15 +82,7 @@ class AppLattice2d : public App {
   char **mask;
 
   FILE *fp;
-  FILE *fpdump;
-  int *ibufdump, *ibufread;
-  double *dbufdump;
-  int maxdumpbuf;
-
-  enum DumpStyles {COORD,OPENDX,LATFILE};
-  int dump_style;
-  char* opendxroot;
-  int opendxcount;
+  int *ibufread;
 
   class CommLattice2d *comm;
   class RandomPark *random;
@@ -98,24 +96,13 @@ class AppLattice2d : public App {
 
   void stats(char *);
   void stats_header(char *);
-  void dump_header();
-  void dump();
-  void dump_coord();
-  void dump_opendx();
-  void dump_lattice();
-  void box_bounds(double *, double *, double *, double *);
-  void xy(int, int, double *, double *);
   void dump_detailed(char*);
   void dump_detailed_mask(char*,char**);
-
   void set_stats(int, char **);
-  void set_dump(int, char **);
   void set_temperature(int, char **);
 
   void procs2lattice();
   void ijpbc(int &, int &);
-
-  void read_spins(const char*);
 
   virtual void push_connected_neighbors(int, int , int**, int,
 					std::stack<int>*);

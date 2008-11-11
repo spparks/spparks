@@ -23,6 +23,7 @@
 namespace SPPARKS_NS {
 
 class AppLattice3d : public App {
+  friend class Output;
   friend class SweepLattice3d;
   friend class DiagCluster3d;
   friend class DiagEprof3d;
@@ -52,7 +53,7 @@ class AppLattice3d : public App {
   int nsweep;
 
   int nx_global,ny_global,nz_global;     // global lattice (0 to nglobal-1)
-  int nx_local,ny_local,nz_local ;       // local lattice (1 to nlocal)
+  int nx_local,ny_local,nz_local;        // local lattice (1 to nlocal)
                                          // does not include ghost sites
   int nx_offset,ny_offset,nz_offset;     // global indices of my (1,1) site
 
@@ -64,6 +65,11 @@ class AppLattice3d : public App {
   double *propensity;             // probability for each owned site
   int ***ijk2site;                // mapping of owned lattice to site index
   int **site2ijk;                 // mapping of owned sites to lattice indices
+
+  int nglobal,nlocal;
+  double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;
+  int *id;
+  double **xyz;
 
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
   int procwest,proceast;            // my neighbor procs
@@ -78,16 +84,7 @@ class AppLattice3d : public App {
   char ***mask;
 
   FILE *fp;
-  FILE *fpdump;
-  int *ibufdump, *ibufread;
-  double *dbufdump;
-  int maxdumpbuf;
-
-  enum DumpStyles {COORD,OPENDX,LATFILE};
-
-  int dump_style;
-  char* opendxroot;
-  int opendxcount;
+  int *ibufread;
 
   class RandomPark *random;
   class CommLattice3d *comm;
@@ -101,23 +98,11 @@ class AppLattice3d : public App {
 
   void stats(char *);
   void stats_header(char *);
-  void dump_header();
-  void dump();
-  void dump_lattice();
-  void dump_coord();
-  void dump_opendx();
-  void box_bounds(double *, double *, double *,
-		  double *, double *, double *);
-  void xyz(int, int, int, double *, double *, double *);
-
   void set_stats(int, char **);
-  void set_dump(int, char **);
   void set_temperature(int, char **);
 
   void procs2lattice();
   void ijkpbc(int &, int &, int &);
-
-  void read_spins(const char*);
 
   virtual void push_connected_neighbors(int, int, int, int***, int,
 					std::stack<int>*);

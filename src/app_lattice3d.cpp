@@ -45,17 +45,13 @@ AppLattice3d::AppLattice3d(SPPARKS *spk, int narg, char **arg) :
   ntimestep = 0;
   time = 0.0;
   temperature = 0.0;
-  maxdumpbuf = 0;
   ibufread = NULL;
-  ibufdump = NULL;
-  dbufdump = NULL;
   fp = NULL;
-  fpdump = NULL;
-  opendxroot = NULL;
-  dump_style = COORD;
   propensity = NULL;
   site2ijk = NULL;
   ijk2site = NULL;
+  id = NULL;
+  xyz = NULL;
 
   // setup communicator for ghost sites
 
@@ -75,16 +71,11 @@ AppLattice3d::~AppLattice3d()
   delete comm;
 
   delete [] ibufread;
-  delete [] ibufdump;
-  delete [] dbufdump;
   memory->sfree(propensity);
   memory->destroy_2d_T_array(site2ijk);
   memory->destroy_3d_T_array(ijk2site);
-
-  if (fpdump) {
-    fclose(fpdump);
-    fpdump = NULL;
-  }
+  memory->sfree(id);
+  memory->destroy_2d_T_array(xyz);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -361,407 +352,6 @@ void AppLattice3d::stats_header(char *strtmp)
   sprintf(strtmp," %10s %10s","Step","Time");
 }
 
-/* ----------------------------------------------------------------------
-   proc 0 writes element connectivity
-   one-time info for viz purposes
-------------------------------------------------------------------------- */
-
-void AppLattice3d::dump_header()
-{
-  // setup comm buf for dumping snapshots
-
-  maxdumpbuf = 0;
-  int mybuf = nx_local*ny_local*nz_local;
-  MPI_Allreduce(&mybuf,&maxdumpbuf,1,MPI_INT,MPI_MAX,world);
-
-  if (dump_style == COORD) {
-    delete [] dbufdump;
-    dbufdump = new double[5*maxdumpbuf];
-  } else if (dump_style == OPENDX) {
-    delete [] ibufdump;
-    ibufdump = new int[2*maxdumpbuf];
-  } else if (dump_style == LATFILE) {
-    delete [] ibufdump;
-    ibufdump = new int[2*maxdumpbuf];
-  }
-
-  // no header info in file if style = COORD
-
-  if (dump_style == COORD) return;
-  if (dump_style == OPENDX) return;
-
-  if (dump_style == LATFILE) {
-    int ntimestepall;
-    MPI_Reduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,0,world);
-
-    // proc 0 does one-time write of nodes and element connectivity
-    
-    if (me) return;
-    
-    // number nodes: fast in x, middle in y, slow in z
-    
-    fprintf(fpdump,"ITEM: TIMESTEP\n");
-    fprintf(fpdump,"%d\n",ntimestepall);
-    fprintf(fpdump,"ITEM: NUMBER OF NODES\n");
-    fprintf(fpdump,"%d\n",(nx_global+1)*(ny_global+1)*(nz_global+1));
-    fprintf(fpdump,"ITEM: BOX BOUNDS\n");
-    fprintf(fpdump,"%g %g\n",0.0,(double) nx_global);
-    fprintf(fpdump,"%g %g\n",0.0,(double) ny_global);
-    fprintf(fpdump,"%g %g\n",0.0,(double) nz_global);
-    fprintf(fpdump,"ITEM: NODES\n");
-    
-    int i,j,k;
-    int m = 0;
-    for (k = 0; k <= nz_global; k++)
-      for (j = 0; j <= ny_global; j++)
-	for (i = 0; i <= nx_global; i++) {
-	  m++;
-	  fprintf(fpdump,"%d %d %d %d %d\n",m,1,i,j,k);
-	}
-    
-    // v1,v2,v3,v4,v5,v6,v7,v8 = 8 corner pts of grid cell
-    // v1-4 are lower plane in counter-clockwise dir, v5-8 are upper plane
-    
-    fprintf(fpdump,"ITEM: TIMESTEP\n");
-    fprintf(fpdump,"%d\n",ntimestepall);
-    fprintf(fpdump,"ITEM: NUMBER OF CUBES\n");
-    fprintf(fpdump,"%d\n",nx_global*ny_global*nz_global);
-    fprintf(fpdump,"ITEM: CUBES\n");
-    
-    int v1,v2,v3,v4,v5,v6,v7,v8;
-    m = 0;
-    for (k = 0; k < nz_global; k++)
-      for (j = 0; j < ny_global; j++)
-	for (i = 0; i < nx_global; i++) {
-	  v1 = k*(ny_global+1)*(nx_global+1) + j*(nx_global+1) + i + 1;
-	  v2 = k*(ny_global+1)*(nx_global+1) + j*(nx_global+1) + i+1 + 1;
-	  v3 = k*(ny_global+1)*(nx_global+1) + (j+1)*(nx_global+1) + i+1 + 1;
-	  v4 = k*(ny_global+1)*(nx_global+1) + (j+1)*(nx_global+1) + i + 1;
-	  v5 = (k+1)*(ny_global+1)*(nx_global+1) + j*(nx_global+1) + i + 1;
-	  v6 = (k+1)*(ny_global+1)*(nx_global+1) + j*(nx_global+1) + i+1 + 1;
-	  v7 = (k+1)*(ny_global+1)*(nx_global+1) + (j+1)*(nx_global+1) + i+1 + 1;
-	  v8 = (k+1)*(ny_global+1)*(nx_global+1) + (j+1)*(nx_global+1) + i + 1;
-	  m++;
-	  fprintf(fpdump,"%d %d %d %d %d %d %d %d %d %d\n",
-		  m,1,v1,v2,v3,v4,v5,v6,v7,v8);
-	}
-  }
-}
-
-/* ----------------------------------------------------------------------
-   dump a snapshot of lattice values
-   either as lattice sites or as atom coords
-------------------------------------------------------------------------- */
-
-void AppLattice3d::dump()
-{
-  if (dump_style == COORD) {
-    dump_coord();
-  } else if (dump_style == OPENDX) {
-    dump_opendx();
-  } else if (dump_style == LATFILE) {
-    dump_lattice();
-  }
-}
-
-/* ----------------------------------------------------------------------
-   dump a snapshot of lattice coords values, one ATOM per site
-   app can provide the coords
-------------------------------------------------------------------------- */
-
-void AppLattice3d::dump_coord()
-{
-  int size_one = 5;
-
-  int ntimestepall;
-  MPI_Reduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,0,world);
-
-  // proc 0 writes timestep header
-
-  if (me == 0) {
-    fprintf(fpdump,"ITEM: TIMESTEP\n");
-    fprintf(fpdump,"%d\n",ntimestepall);
-    fprintf(fpdump,"ITEM: NUMBER OF ATOMS\n");
-    fprintf(fpdump,"%d\n",nx_global*ny_global*nz_global);
-
-    double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;
-    box_bounds(&boxxlo,&boxxhi,&boxylo,&boxyhi,&boxzlo,&boxzhi);
-
-    fprintf(fpdump,"ITEM: BOX BOUNDS\n");
-    fprintf(fpdump,"%g %g\n",boxxlo,boxxhi);
-    fprintf(fpdump,"%g %g\n",boxylo,boxyhi);
-    fprintf(fpdump,"%g %g\n",boxzlo,boxzhi);
-    fprintf(fpdump,"ITEM: ATOMS\n");
-  }
-
-  // pack my lattice coords into buffer
-  // n = global grid cell (0:Nglobal-1)
-
-  double x,y,z;
-  int n;
-  int m = 0;
-  for (int i = 1; i <= nx_local; i++)
-    for (int j = 1; j <= ny_local; j++)
-      for (int k = 1; k <= nz_local; k++) {
-	n = (nz_offset+k-1)*ny_global*nx_global + 
-	  (ny_offset+j-1)*nx_global + (nx_offset+i-1);
-	dbufdump[m++] = n + 1;
-	dbufdump[m++] = lattice[i][j][k];
-	xyz(i,j,k,&x,&y,&z);
-	dbufdump[m++] = x;
-	dbufdump[m++] = y;
-	dbufdump[m++] = z;
-      }
-  int me_size = m;
-
-  // proc 0 pings each proc, receives it's data, writes to file
-  // all other procs wait for ping, send their data to proc 0
-
-  int tmp,nlines;
-  MPI_Status status;
-  MPI_Request request;
-  
-  if (me == 0) {
-    for (int iproc = 0; iproc < nprocs; iproc++) {
-      if (iproc) {
-	MPI_Irecv(dbufdump,size_one*maxdumpbuf,MPI_DOUBLE,iproc,0,world,
-		  &request);
-	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-	MPI_Wait(&request,&status);
-	MPI_Get_count(&status,MPI_DOUBLE,&nlines);
-	nlines /= size_one;
-      } else nlines = me_size/size_one;
-      
-      m = 0;
-      for (int i = 0; i < nlines; i++) {
-	fprintf(fpdump,"%d %d %g %g %g\n",
-		static_cast<int> (dbufdump[m]),
-		static_cast<int> (dbufdump[m+1]),
-		dbufdump[m+2],dbufdump[m+3],dbufdump[m+4]);
-	m += size_one;
-      }
-    }
-  } else {
-    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(dbufdump,me_size,MPI_DOUBLE,0,0,world);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   dump a snapshot of lattice values, readable by OpenDX
-------------------------------------------------------------------------- */
-
-void AppLattice3d::dump_opendx()
-{
-  int nsites = nx_global*ny_global*nz_global;
-  int* datadx;
-  int size_one = 2;
-
-  int ntimestepall;
-  MPI_Reduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,0,world);
-
-  // proc 0 writes timestep header
-
-  if (me == 0) {
-    int lroot = strlen(opendxroot);
-    int lnum;
-    int lsuf = 3;
-    if (opendxcount == 0) {
-      lnum = 1;
-    } else {
-      lnum = int(log(opendxcount)/log(10))+1;
-    }
-    if (lnum < 5) lnum = 5;
-    char filetmp[100];
-    if (99 < lroot+lnum+lsuf)
-      error->one("app_lattice dump file name too long");
-    strcpy(filetmp,opendxroot);
-    sprintf(filetmp+lroot,"%05d",opendxcount);
-    sprintf(filetmp+lroot+lnum,"%s",".dx");
-    fpdump = fopen(filetmp,"w");
-    if (!fpdump) error->one("Cannot open app_lattice dump file");
-  
-    opendxcount++;
-    
-    fprintf(fpdump,"# app_lattice dump file for OpenDX\n");
-    fprintf(fpdump,"# Time = %g\n",time);
-    fprintf(fpdump,"# Create regular grid.\n");
-    fprintf(fpdump,"object 1 class gridpositions counts %d %d %d\n",
-	    nx_global+1,ny_global+1,nz_global+1);
-    fprintf(fpdump,"origin  0 0 0 \n");
-    fprintf(fpdump,"delta   1 0 0 \n");
-    fprintf(fpdump,"delta   0 1 0 \n");
-    fprintf(fpdump,"delta   0 0 1 \n");
-    fprintf(fpdump,"\n# Create connections.\n");
-    fprintf(fpdump,"object 2 class gridconnections counts %d %d %d\n",
-	    nx_global+1,ny_global+1,nz_global+1);
-    fprintf(fpdump,"\n# Feed data.\n");
-    fprintf(fpdump,"object 3 class array type int rank 0 items %d data follows\n#data goes here\n",
-	    nsites);
-    datadx = (int *) memory->smalloc(nsites*sizeof(int),"diagcluster:datadx");
-  }
-
-  // pack my lattice values into buffer
-  // n = global grid cell (0:Nglobal-1)
-
-  int n;
-  int m = 0;
-  for (int i = 1; i <= nx_local; i++)
-    for (int j = 1; j <= ny_local; j++)
-      for (int k = 1; k <= nz_local; k++) {
-	n = (nz_offset+k-1)*ny_global*nx_global + 
-	  (ny_offset+j-1)*nx_global + (nx_offset+i-1);
-	ibufdump[m++] = n + 1;
-	ibufdump[m++] = lattice[i][j][k];
-      }
-  int me_size = m;
-
-  // proc 0 pings each proc, receives it's data, writes to file
-  // all other procs wait for ping, send their data to proc 0
-
-  int tmp,nlines;
-  MPI_Status status;
-  MPI_Request request;
-  int isite;
-  
-  if (me == 0) {
-    for (int iproc = 0; iproc < nprocs; iproc++) {
-      if (iproc) {
-	MPI_Irecv(ibufdump,size_one*maxdumpbuf,MPI_INT,iproc,0,world,&request);
-	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-	MPI_Wait(&request,&status);
-	MPI_Get_count(&status,MPI_INT,&nlines);
-	nlines /= size_one;
-      } else nlines = me_size/size_one;
-      
-      m = 0;
-      for (int i = 0; i < nlines; i++) {
-	isite = ibufdump[m];
-	datadx[isite-1] = ibufdump[m+1];
-	m += size_one;
-      }
-    }
-  } else {
-    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(ibufdump,me_size,MPI_INT,0,0,world);
-  }
-
-  if (me == 0) {
-    isite = 0;
-    while (isite < nsites) {
-      for (int i = 0; i < 20; i++) {
-	fprintf(fpdump,"%d ",datadx[isite++]);
-	if (isite == nsites) break;
-      }
-      fprintf(fpdump,"\n");
-    }
-    fprintf(fpdump,"attribute \"dep\" string \"connections\"\n");
-    fprintf(fpdump,"\n# Create a field.\n");
-    fprintf(fpdump,"object \"9 grain microstructure\" class field\n");
-    fprintf(fpdump,"component \"positions\" value 1\n");
-    fprintf(fpdump,"component \"connections\" value 2\n");
-    fprintf(fpdump,"component \"data\" value 3\n");
-    fprintf(fpdump,"\nend\n");
-    
-    fclose(fpdump);
-    fpdump = NULL;
-    
-    memory->sfree(datadx);
-  }
-
-}
-
-/* ----------------------------------------------------------------------
-   dump a snapshot of lattice values, one ELEMENT per site
-------------------------------------------------------------------------- */
-
-void AppLattice3d::dump_lattice()
-{
-  int size_one = 2;
-
-  int ntimestepall;
-  MPI_Reduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,0,world);
-
-  // proc 0 writes timestep header
-
-  if (me == 0) {
-    fprintf(fpdump,"ITEM: TIMESTEP\n");
-    fprintf(fpdump,"%d\n",ntimestepall);
-    fprintf(fpdump,"ITEM: NUMBER OF ELEMENT VALUES\n");
-    fprintf(fpdump,"%d\n",nx_global*ny_global*nz_global);
-    fprintf(fpdump,"ITEM: ELEMENT VALUES\n");
-  }
-
-  // pack my lattice values into buffer
-  // n = global grid cell (0:Nglobal-1)
-
-  int n;
-  int m = 0;
-  for (int i = 1; i <= nx_local; i++)
-    for (int j = 1; j <= ny_local; j++)
-      for (int k = 1; k <= nz_local; k++) {
-	n = (nz_offset+k-1)*ny_global*nx_global + 
-	  (ny_offset+j-1)*nx_global + (nx_offset+i-1);
-	ibufdump[m++] = n + 1;
-	ibufdump[m++] = lattice[i][j][k];
-      }
-  int me_size = m;
-
-  // proc 0 pings each proc, receives it's data, writes to file
-  // all other procs wait for ping, send their data to proc 0
-
-  int tmp,nlines;
-  MPI_Status status;
-  MPI_Request request;
-  
-  if (me == 0) {
-    for (int iproc = 0; iproc < nprocs; iproc++) {
-      if (iproc) {
-	MPI_Irecv(ibufdump,size_one*maxdumpbuf,MPI_INT,iproc,0,world,&request);
-	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-	MPI_Wait(&request,&status);
-	MPI_Get_count(&status,MPI_INT,&nlines);
-	nlines /= size_one;
-      } else nlines = me_size/size_one;
-      
-      m = 0;
-      for (int i = 0; i < nlines; i++) {
-	fprintf(fpdump,"%d %d\n",ibufdump[m],ibufdump[m+1]);
-	m += size_one;
-      }
-    }
-  } else {
-    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(ibufdump,me_size,MPI_INT,0,0,world);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   box bounds defaults to lattice size
-------------------------------------------------------------------------- */
-
-void AppLattice3d::box_bounds(double *xlo, double *xhi, double *ylo,
-			      double *yhi, double *zlo, double *zhi)
-{
-  *xlo = 0.0;
-  *ylo = 0.0;
-  *zlo = 0.0;
-  *xhi = nx_global;
-  *yhi = ny_global;
-  *zhi = nz_global;
-}
-
-/* ----------------------------------------------------------------------
-   convert local i,j,k to x,y,z
-------------------------------------------------------------------------- */
-
-void AppLattice3d::xyz(int i, int j, int k, double *x, double *y, double *z)
-{
-  *x = i-1 + nx_offset;
-  *y = j-1 + ny_offset;
-  *z = k-1 + nz_offset;
-}
-
 /* ---------------------------------------------------------------------- */
 
 void AppLattice3d::set_temperature(int narg, char **arg)
@@ -775,52 +365,12 @@ void AppLattice3d::set_temperature(int narg, char **arg)
 
 void AppLattice3d::set_stats(int narg, char **arg)
 {
-  int iarg = 1;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"your_option_here") == 0) {
-      iarg++;
-      if (iarg < narg) {
-	int itmp = atoi(arg[iarg]);
-      } else {
-	error->all("Illegal stats command");
-      }
-    }
-    iarg++;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AppLattice3d::set_dump(int narg, char **arg)
-{
-  if (narg != 3) error->all("Illegal dump command");
-
-  if (strcmp(arg[1],"coord") == 0) {
-    dump_style = COORD;
-    if (me == 0) {
-      if (fpdump) fclose(fpdump);
-      fpdump = fopen(arg[2],"w");
-      if (!fpdump) error->one("Cannot open dump file");
-    }
-  } else if (strcmp(arg[1],"opendx") == 0) {
-    dump_style = OPENDX;
-    int n = strlen(arg[2]) + 1;
-    opendxroot = new char[n];
-    strcpy(opendxroot,arg[2]);
-    opendxcount = 0;
-  } else if (strcmp(arg[1],"lattice") == 0) {
-    dump_style = LATFILE;
-    if (me == 0) {
-      if (fpdump) fclose(fpdump);
-      fpdump = fopen(arg[2],"w");
-      if (!fpdump) error->one("Cannot open dump file");
-    }
-  } else error->all("Illegal dump command");
-
+  if (narg != 1) error->all("Illegal stats command");
 }
 
 /* ----------------------------------------------------------------------
    assign nprocs to 3d global lattice so as to minimize surf area per proc
+   setup id and xyz arrays
 ------------------------------------------------------------------------- */
 
 void AppLattice3d::procs2lattice()
@@ -898,88 +448,28 @@ void AppLattice3d::procs2lattice()
   nyhi = ny_local+delpropensity;
   nzlo = 1-delpropensity;
   nzhi = nz_local+delpropensity;
-}
 
-/* ----------------------------------------------------------------------
-   read lattice spin values from file
-   unique grain identifier and spin values (agg3d pic file)
-   the grain identifier is ignored, only the spin value is stored.
- ------------------------------------------------------------------------- */
+  nglobal = nx_global * ny_global * nz_global;
+  nlocal = nx_local * ny_local * nz_local;
+  boxxlo = boxylo = boxzlo = 0.0;
+  boxxhi = nx_global;
+  boxyhi = ny_global;
+  boxzhi = nz_global;
+  id = (int *) memory->smalloc(nlocal*sizeof(int),"app3d:id");
+  memory->create_2d_T_array(xyz,nlocal,3,"app3d:xyz");
 
-void AppLattice3d::read_spins(const char* infile)
-{
-  char line[MAXLINE];
-  char *eof;
-  int i,j,k,ii,jj,kk,isite,nbuf,nglobal,ndata,maxbuf,ierr;
-  int* ipnt;
-  int i1,i2;
-  FILE* fpspins;
-
-  // open file
-
-  if (me == 0) {
-    fpspins = fopen(infile,"r");
-    if (fpspins == NULL) {
-      char str[128];
-      sprintf(str,"Cannot open file %s",infile);
-      error->one(str);
-    }
-  }
-
-  nglobal = nx_global*ny_global*nz_global;
-  ndata = 1;
-  maxbuf = 1000;
-  delete [] ibufread;
-  ibufread = new int[ndata*maxbuf];
-  isite = 0;
-  while (isite < nglobal) {
-    nbuf = 0;
-    ipnt = ibufread;
-    while (nbuf < maxbuf && isite < nglobal) {
-      if (me == 0) {
-	eof = fgets(line,MAXLINE,fpspins);
-	if (eof == NULL) error->one("Unexpected end of lattice spin file");
-	while (line[0]=='#') {
-	  eof = fgets(line,MAXLINE,fpspins);
-	  if (eof == NULL) error->one("Unexpected end of lattice spin file");
-	}
-
-	// Ignore first field if two fields present
-	ierr = sscanf(line,"%d %d",&i1,&i2);
-	if (ierr == 1) {
-	  *ipnt = i1;
-	} else if (ierr == 2) {
-	  *ipnt = i2;
-	} else {
-	  error->one("Unexpected value in spin file");
-	}
+  int i,j,k;
+  int m = 0;
+  for (k = 0; k < nz_local; k++)
+    for (j = 0; j < ny_local; j++)
+      for (i = 0; i < nx_local; i++) {
+	id[m] = (k+nz_offset)*nx_global*ny_offset + 
+	  (j+ny_offset)*nx_global + i+nx_offset + 1;
+	xyz[m][0] = i+nx_offset;
+	xyz[m][1] = j+ny_offset;
+	xyz[m][2] = k+nz_offset;
+	m++;
       }
-      ipnt+=ndata;
-      nbuf++;
-      isite++;
-    }
-    MPI_Bcast(ibufread,ndata*nbuf,MPI_INT,0,world);
-
-    ipnt = ibufread;
-    for (int m = isite-nbuf; m < isite; m++) {
-      // This file format breaks the SPParKS rule 
-      // In agg3d, the innermost loop is on the first coordinate
-      i = m % nx_global + 1;
-      j = (m / nx_global) % ny_global + 1;
-      k = m / ny_global/nx_global + 1;
-      ii = i - nx_offset;
-      jj = j - ny_offset;
-      kk = k - nz_offset;
-      if (ii >= 1 && ii <= nx_local && jj >= 1 && jj <= ny_local &&
-	  kk >= 1 && kk <= nz_local)
-	lattice[ii][jj][kk] = ipnt[0];
-      ipnt+=ndata;
-    }
-  }
-
-  if (me == 0) {
-    fclose(fpspins);
-  }
 }
 
 /* ----------------------------------------------------------------------

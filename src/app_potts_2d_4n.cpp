@@ -28,18 +28,17 @@ using namespace SPPARKS_NS;
 /* ---------------------------------------------------------------------- */
 
 AppPotts2d4n::AppPotts2d4n(SPPARKS *spk, int narg, char **arg) : 
-  AppPotts2d(spk,narg,arg)
+  AppLattice2d(spk,narg,arg)
 {
-  // parse any remaining arguments
+  // parse arguments
 
-  int iarg = 0;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"sample_argument") == 0) {
-      iarg++;
-    } else {
-      error->all("Illegal app_style command");
-    }
-  }
+  if (narg != 5) error->all("Illegal app_style command");
+
+  nx_global = atoi(arg[1]);
+  ny_global = atoi(arg[2]);
+  nspins = atoi(arg[3]);
+  int seed = atoi(arg[4]);
+  random = new RandomPark(seed);
 
   // define lattice and partition it across processors
   
@@ -51,25 +50,24 @@ AppPotts2d4n::AppPotts2d4n(SPPARKS *spk, int narg, char **arg) :
   // each site = one of nspins
   // loop over global list so assignment is independent of # of procs
 
-  if (init_style == RANDOM) {
-    int i,j,ii,jj,isite;
-    for (i = 1; i <= nx_global; i++) {
-      ii = i - nx_offset;
-      for (j = 1; j <= ny_global; j++) {
-	jj = j - ny_offset;
-	isite = random->irandom(nspins);
-	if (ii >= 1 && ii <= nx_local && jj >= 1 && jj <= ny_local) {
-	  lattice[ii][jj] = isite;
-	}
-      } 
-    }
-  } else if (init_style == READ) read_spins(spinfile);
+  int i,j,ii,jj,isite;
+  for (i = 1; i <= nx_global; i++) {
+    ii = i - nx_offset;
+    for (j = 1; j <= ny_global; j++) {
+      jj = j - ny_offset;
+      isite = random->irandom(nspins);
+      if (ii >= 1 && ii <= nx_local && jj >= 1 && jj <= ny_local) {
+	lattice[ii][jj] = isite;
+      }
+    } 
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppPotts2d4n::~AppPotts2d4n()
 {
+  delete random;
   memory->destroy_2d_T_array(lattice);
 }
 
