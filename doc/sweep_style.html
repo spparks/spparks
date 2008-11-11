@@ -21,7 +21,7 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<PRE>keyword = <I>mask</I> or <I>strict</I> or <I>kmc</I> or <I>delt</I> or <I>adapt</I>
+keyword = <I>mask</I> or <I>strict</I> or <I>kmc</I> or <I>delt</I> or <I>adapt</I>
   <I>mask</I> value = <I>yes</I> or <I>no</I>
     yes/no = mask out sites than cannot change
   <I>strict</I> value = <I>yes</I> or <I>no</I>
@@ -33,8 +33,7 @@
   <I>delt</I> value = dt
     dt = time associated with one sweep (seconds)
   <I>deln</I> value = factor
-    factor = unitless scale factor for time of one sweep scaled by propensity 
-</PRE>
+    factor = dimensionless factor equal to delt times site propensity:pre
 
 </UL>
 <P><B>Examples:</B>
@@ -140,9 +139,8 @@ where deln is defined by the equation:
 </PRE>
 <P>and pmax is the maximum propensity per site for one sector.  In
 calculating pmax, we compare all sectors on all processor subdomains,
-and sites with zero propensity are excluded.  The value of deln can be
-calculated from <I>delt</I>, or it can be specified directly using the
-<I>deln</I> keyword.  If <I>deln</I> is specified as 0 (the default), then deln
+and sites with zero propensity are excluded.  By default, deln=1.0.
+If <I>deln</I> is specified then <I>adapt</I>=yes. If <I>delt</I> is specified, then deln
 is computed from the initial state of the system.  As with delt,
 larger values of deln may result in errors at sector boundaries, but
 small values require more communication.  For high accuracy, deln ~ 1
@@ -156,8 +154,8 @@ should be adequate.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are mask = no, strict = no, kmc = no, adapt = no,
-delt = 1.0, and deln = 0.0.
+<P>The option defaults are mask = no, strict = no, delt = 1.0, kmc = no, adapt = yes,
+and deln = 1.0.
 </P>
 <HR>
 
