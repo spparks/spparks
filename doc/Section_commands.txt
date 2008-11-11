@@ -242,8 +242,10 @@ one-line descriptions of each style or click on the style itself for a
 full description:
 
 "chemistry"_app_chemistry.html,
+"diffusion"_app_diffusion.html,
 "ising"_app_ising.html,
 "membrane"_app_membrane.html,
+"pore"_app_pore.html,
 "potts"_app_potts.html,
 "test/group"_app_test_group.html :tb(c=8,ea=c)
 

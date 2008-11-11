@@ -105,7 +105,13 @@ Einitial is calculated, as is a uniform random number R between 0 and
 1.  The flip is accepted if R < min\[1,exp(-dE/kT)\], else it is
 rejected.
 
-There are no additional commands defined by these applications.
+:line
+
+The following additional commands are defined by these applications:
+
+"dump"_dump.html : output of lattice snapshots
+"stats"_stats.html : output of system info
+"temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
 
 [Restrictions:] none
 

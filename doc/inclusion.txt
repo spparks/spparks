@@ -22,8 +22,8 @@ inclusion 10 12 5.4 5.0 :pre
 
 [Description:]
 
-This command defines protein sites on a lattice for use in the
-"app_style membrane"_app_membrane.html application.
+This command defines protein sites on a lattice and can only be used
+by "app_style membrane"_app_membrane.html application.
 
 Think of the protein as a sphere (or circle) centered at {x,y,z} and
 with a radius of {r}.  All lattice sites within the sphere (or circle)

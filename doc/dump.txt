@@ -10,32 +10,44 @@ dump command :h3
 
 [Syntax:]
 
-dump delta style filename :pre
+dump delta filename keyword1 keyword2 ... :pre
 
 delta = time increment between dumps (seconds)
-style = {lattice} or {coord}
-filename = name of file to dump snapshots to :ul
+filename = name of file to dump snapshots to
+keyword = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} :ul
 
 [Examples:]
 
-dump 0.25 lattice tmp.dump
-dump 5.0 coord snap.ising :pre
+dump 0.25 tmp.dump
+dump 5.0 snap.ising id lattice energy :pre
 
 [Description:]
 
-Dump snapshots of the state of the system to a file every so many
+Dump snapshots of the state of the lattice to a file every so many
 seconds during a simulation.  The quantities printed are obtained from
-the application.  Typically these are the values of the various sites
-in the simulation.
+the application.  Only lattice-based applications support dumps since
+what is output is one line per lattice site.
 
-Three styles of dump file are supported, though not every application
-supports both.  The {lattice} style simply outputs a list of site IDs
-and values (e.g. spin).  The {coord} style outputs a LAMMPS-compatible
-dump file where each site has a type (e.g. spin value) and an x,y,z
-coordinate.  The {coord} style output can be visualized with various 
-tools in the "LAMMPS package"_lammps and the "Pizza.py package"_pizza.
-The {opendx} style generates a sequentially-numbered set of files that
-can be visualized using the OpenDX package.
+By default (if no keywords are listed), the output values for each
+site are the "id lattice x y z".  This is in the format of a "LAMMPS
+dump file"_lammps which can thus be read-in by the "Pizza.py
+toolkit"_pizza, converted to other formats, or used for visualization.
+
+If keywords are listed then only those quantities will be printed for
+each lattice site.
+
+The {id} is a unique integer ID for each site.  The {lattice} value is
+typically the integer state of the lattice, e.g. the spin value.  The
+{x}, {y}, {z} values are the coordinates assigned to the lattice site.
+The {energy} value is what is computed by the energy() function in the
+application.  Likewise for the {propensity} value which can be thought
+of as the relative probablity for that site to perform a KMC event.
+Note that if you are doing Metropolis MC and not kinetic MC, no
+propensity is defined.
+
+When running in parallel, the order of sites as printed to the dump
+file will be in chunks by processor, not ordered by ID.  The order
+will be the same in every snapshot.
 
 :link(lammps,http://lammps.sandia.gov)
 :link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)

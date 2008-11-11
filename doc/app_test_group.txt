@@ -67,14 +67,16 @@ This application can only be evolved using a kinetic Monte Carlo (KMC)
 algorithm.  You must thus define a KMC solver to be used with the
 application via the "solve_style"_solve_style.html command
 
-There are no additional commands defined by this application.
-
 When the "run"_run.html command is used with this application it sets
 the number of events to perform, not the time for the run.  E.g.
 
 run 10000 :pre
 
 means to perform 10000 events, not to run for 10000 seconds.
+
+:line
+
+There are no additional commands defined by this application.
 
 [Restrictions:] none
 
