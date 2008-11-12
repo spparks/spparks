@@ -1,0 +1,11 @@
+SPPARKS pre- and post-processing tools
+
+This directory contains stand-alone tools for creating SPPARKS
+input files and massaging SPPARKS output data.
+
+See the comments at the top of the tool file for instructions on their
+usage.
+
+These are the included tools:
+
+dump2input.py          Pizza.py script for converting SPPARKS output to input
