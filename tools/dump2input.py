@@ -2,11 +2,11 @@
 # assumes dump file is in LAMMPS dump format
 # input file is used by lattice apps with "input" keyword in app_style
 
-# Syntax: pizza.py -f dump2init.py dumpfile N inputfile
+# Syntax: pizza.py -f dump2input.py dumpfile N inputfile
 # N = timestamp of snapshot to be converted
 
 if len(argv) != 4:
-  raise StandardError, "Syntax: pizza.py -f dump2init.py dumpfile N inputfile"
+  raise StandardError, "Syntax: pizza.py -f dump2input.py dumpfile N inputfile"
 
 dumpfile = argv[1]
 ntime = int(argv[2])
