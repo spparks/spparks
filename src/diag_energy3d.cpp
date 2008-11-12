@@ -94,7 +94,7 @@ void DiagEnergy3d::compute(double time, int iflag, int done)
     iflag = check_time(time, done);
   }
 
-  if (iflag) {
+  if (iflag || done) {
 
     applattice3d->comm->all(applattice3d->lattice);
 

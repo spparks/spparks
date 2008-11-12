@@ -163,11 +163,11 @@ void DiagEprof3d::init(double time)
 
 void DiagEprof3d::compute(double time, int iflag, int done)
 {
-  if (diag_delta > 0.0) {
+  if (stats_flag == 0) {
     iflag = check_time(time, done);
   }
 
-  if (iflag) write_prof(time);
+  if (iflag || done) write_prof(time);
 }
 
 /* ----------------------------------------------------------------------

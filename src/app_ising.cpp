@@ -51,16 +51,20 @@ AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) :
   // loop over global list so assignment is independent of # of procs
   // use map to see if I own global site
 
-  std::map<int,int> hash;
-  for (int i = 0; i < nlocal; i++)
-    hash.insert(std::pair<int,int> (id[i],i));
-  std::map<int,int>::iterator loc;
+  if (infile) read_file();
 
-  int isite;
-  for (int iglobal = 1; iglobal <= nglobal; iglobal++) {
-    isite = random->irandom(2);
-    loc = hash.find(iglobal);
-    if (loc != hash.end()) lattice[loc->second] = isite;
+  else {
+    std::map<int,int> hash;
+    for (int i = 0; i < nlocal; i++)
+      hash.insert(std::pair<int,int> (id[i],i));
+    std::map<int,int>::iterator loc;
+    
+    int isite;
+    for (int iglobal = 1; iglobal <= nglobal; iglobal++) {
+      isite = random->irandom(2);
+      loc = hash.find(iglobal);
+      if (loc != hash.end()) lattice[loc->second] = isite;
+    }
   }
 }
 

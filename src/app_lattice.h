@@ -64,6 +64,7 @@ class AppLattice : public App {
   int latseed;
   double cutoff;
   char *latfile;
+  char *infile;
 
   int delpropensity;           // # of sites away needed to compute propensity
   int delevent;                // # of sites away affected by an event
@@ -116,7 +117,6 @@ class AppLattice : public App {
 
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
 
-  FILE *fp;
   double *dbuf;
 
   class CommLattice *comm;
@@ -127,10 +127,10 @@ class AppLattice : public App {
 
   void options(int, char **);
   void create_lattice();
-
   void structured_lattice();
   void random_lattice();
   void file_lattice();
+  void read_file();
 
   void ghosts_from_connectivity();
   void connectivity_within_cutoff();

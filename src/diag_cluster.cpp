@@ -166,7 +166,7 @@ void DiagCluster::compute(double time, int iflag, int done)
     iflag = check_time(time, done);
   }
 
-  if (iflag) {
+  if (iflag || done) {
     applattice->comm->all();
     analyze_clusters(time);
   }

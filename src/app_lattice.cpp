@@ -35,6 +35,7 @@ using namespace SPPARKS_NS;
 
 #define DELTA 100
 #define MAXLINE 256
+#define CHUNK 16
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,7 +52,6 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   time = 0.0;
   temperature = 0.0;
   dbuf = NULL;
-  fp = NULL;
   propensity = NULL;
   site2i = NULL;
   i2site = NULL;
@@ -90,6 +90,7 @@ AppLattice::~AppLattice()
   delete [] darray;
 
   delete [] latfile;
+  delete [] infile;
 
   memory->sfree(id);
   memory->sfree(owner);
@@ -109,6 +110,7 @@ void AppLattice::options(int narg, char **arg)
   latstyle = NONE;
   latfile = NULL;
   sitecustom = 0;
+  infile = NULL;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -164,9 +166,9 @@ void AppLattice::options(int narg, char **arg)
 	iarg += 8;
       } else if (latstyle == FILENAME) {
 	if (iarg+3 > narg) error->all("Illegal app_style command");
-	int n = strlen(arg[2]) + 1;
+	int n = strlen(arg[iarg+2]) + 1;
 	latfile = new char[n];
-	latfile = strcpy(latfile,arg[2]);
+	latfile = strcpy(latfile,arg[iarg+2]);
 	iarg += 3;
       }
 
@@ -177,6 +179,13 @@ void AppLattice::options(int narg, char **arg)
       if (ninteger == 0 && ndouble == 0) sitecustom = 0;
       else sitecustom = 1;
       iarg += 3;
+
+    } else if (strcmp(arg[iarg],"input") == 0) {
+      if (iarg+2 > narg) error->all("Illegal app_style command");
+      int n = strlen(arg[iarg+1]) + 1;
+      infile = new char[n];
+      strcpy(infile,arg[iarg+1]);
+      iarg += 2;
 
     } else error->all("Illegal app_style command ");
   }
@@ -495,6 +504,7 @@ void AppLattice::random_lattice()
 
 void AppLattice::file_lattice()
 {
+  FILE *fp;
   char line[MAXLINE];
   char *eof;
 
@@ -649,6 +659,8 @@ void AppLattice::file_lattice()
     for (j = 0; j < n; j++) neighbor[m][j] = neigh[j];
   }
 
+  if (me == 0) fclose(fp);
+
   // create and initialize other site arrays
 
   owner = (int *) memory->smalloc(nlocal*sizeof(int),"app:owner");
@@ -658,6 +670,107 @@ void AppLattice::file_lattice()
     owner[i] = me;
     index[i] = i;
   }
+}
+
+/* ----------------------------------------------------------------------
+   initialize lattice values from a file
+ ------------------------------------------------------------------------- */
+
+void AppLattice::read_file()
+{
+  int i,j,k,m,n;
+  int nglobal_file,nvalues;
+  FILE *fp;
+  char line[MAXLINE];
+  char *eof;
+
+  // read header of file
+
+  if (me == 0) {
+    fp = fopen(infile,"r");
+    if (fp == NULL) {
+      char str[128];
+      sprintf(str,"Cannot open file %s",infile);
+      error->one(str);
+    }
+  }
+
+  if (me == 0) {
+    eof = fgets(line,MAXLINE,fp);
+    eof = fgets(line,MAXLINE,fp);
+    sscanf(line,"%d %d",&nglobal_file,&nvalues);
+    eof = fgets(line,MAXLINE,fp);
+  }
+
+  MPI_Bcast(&nglobal_file,1,MPI_INT,0,world);
+  MPI_Bcast(&nvalues,1,MPI_INT,0,world);
+
+  if (nglobal_file != nglobal)
+    error->all("Lattice init file has incorrect number of sites");
+  if (ninteger == 0 && ndouble == 0 && nvalues != 1)
+    error->all("Lattice init file has incorrect number of values/site");
+  else if (nvalues != ninteger + ndouble)
+    error->all("Lattice init file has incorrect number of values/site");
+
+  // put all my site IDs into a hash table so can look them up
+
+  std::map<int,int> hash;
+  for (int i = 0; i < nlocal; i++)
+    hash.insert(std::pair<int,int> (id[i],i));
+
+  // read file in chunks of lines, bcast to other procs
+  // tokenize each line into values
+  // if I own site ID via hash table lookup, store its values
+
+  int nchunk,idsite;
+  int nread = 0;
+  char *buffer = new char[CHUNK*MAXLINE];
+  char *next,*bufptr;
+  char **values = new char*[nvalues];
+  std::map<int,int>::iterator loc;
+
+  while (nread < nglobal) {
+    if (nglobal-nread > CHUNK) nchunk = CHUNK;
+    else nchunk = nglobal - nread;
+    if (me == 0) {
+      m = 0;
+      for (i = 0; i < nchunk; i++) {
+	eof = fgets(&buffer[m],MAXLINE,fp);
+	if (eof == NULL) error->one("Unexpected end of lattice init file");
+	m += strlen(&buffer[m]);
+      }
+      buffer[m++] = '\n';
+    }
+    MPI_Bcast(&m,1,MPI_INT,0,world);
+    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
+
+    bufptr = buffer;
+    for (i = 0; i < nchunk; i++) {
+      next = strchr(bufptr,'\n');
+      values[0] = strtok(bufptr," \t\n\r\f");
+      for (j = 1; j < nvalues; j++)
+	values[j] = strtok(NULL," \t\n\r\f");
+      idsite = atoi(values[0]);
+      loc = hash.find(idsite);
+      if (loc != hash.end()) {
+	m = loc->second;
+	if (ninteger == 0 && ndouble == 0) lattice[m] = atoi(values[1]);
+	else {
+	  n = 1;
+	  for (k = 0; k < ninteger; k++) iarray[k][m] = atoi(values[n++]);
+	  for (k = 0; k < ndouble; k++) darray[k][m] = atof(values[n++]);
+	}
+      }
+      bufptr = next + 1;
+    }
+
+    nread += nchunk;
+  }
+
+  delete [] values;
+  delete [] buffer;
+
+  if (me == 0) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

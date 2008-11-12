@@ -71,19 +71,23 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
   // each site = 1 (vacancy) or 2 (occupied)
   // pore geometry defines occupied vs unoccupied
 
-  double x,y,z;
-  int isite;
-  for (int i = 0; i < nlocal; i++) {
-    x = xyz[i][0];
-    y = xyz[i][1];
-    z = xyz[i][2];
-    if (z > zc + 0.5*thickness || z < zc - 0.5*thickness) isite = VACANT;
-    else isite = OCCUPIED;
-    if (isite == OCCUPIED) {
-      if ((x-xc)*(x-xc) + (y-yc)*(y-yc) < 0.25*diameter*diameter)
-	isite = VACANT;
+  if (infile) read_file();
+
+  else {
+    double x,y,z;
+    int isite;
+    for (int i = 0; i < nlocal; i++) {
+      x = xyz[i][0];
+      y = xyz[i][1];
+      z = xyz[i][2];
+      if (z > zc + 0.5*thickness || z < zc - 0.5*thickness) isite = VACANT;
+      else isite = OCCUPIED;
+      if (isite == OCCUPIED) {
+	if ((x-xc)*(x-xc) + (y-yc)*(y-yc) < 0.25*diameter*diameter)
+	  isite = VACANT;
+      }
+      lattice[i] = isite;
     }
-    lattice[i] = isite;
   }
 }
 

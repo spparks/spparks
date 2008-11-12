@@ -49,10 +49,6 @@ AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) :
   create_lattice();
   sites = new int[1 + maxneigh];
 
-  // initialize my portion of lattice to LIPID
-
-  for (int i = 0; i < nlocal; i++) lattice[i] = LIPID;
-
   // setup interaction energy matrix
   // w11 = fluid-fluid interaction
   // w01 = fluid-protein interaction
@@ -62,6 +58,14 @@ AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) :
   interact[LIPID][PROTEIN] = interact[PROTEIN][LIPID] = 0.0;
   interact[FLUID][FLUID] = -w11;
   interact[FLUID][PROTEIN] = interact[PROTEIN][FLUID] = -w01;
+
+  // initialize my portion of lattice to LIPID
+
+  if (infile) read_file();
+
+  else {
+    for (int i = 0; i < nlocal; i++) lattice[i] = LIPID;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

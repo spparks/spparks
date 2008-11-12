@@ -47,7 +47,7 @@ SweepLattice2d::SweepLattice2d(SPPARKS *spk, int narg, char **arg) :
   mask = NULL;
   Lstrict = false;
   Lkmc = false;
-  Ladapt = false;
+  Ladapt = true;
   ranlat = NULL;
   delt = 1.0;
   deln0 = 0.0;
@@ -86,7 +86,6 @@ SweepLattice2d::SweepLattice2d(SPPARKS *spk, int narg, char **arg) :
       deln0 = 0.0;
     } else if (strcmp(arg[iarg],"deln") == 0) {
       if (iarg+2 > narg) error->all("Illegal sweep_style command");
-      Ladapt = true;
       deln0 = atof(arg[iarg+1]);
       iarg += 2;
       if (deln0 <= 0.0) error->all("Illegal sweep_style command");

@@ -91,18 +91,15 @@ void DiagEnergy::compute(double time, int iflag, int done)
     iflag = check_time(time, done);
   }
 
-  if (iflag) {
+  if (iflag || done) {
     applattice->comm->all();
 
     etmp = 0.0;
     for (int i = 0; i < nlocal; i++) 
       etmp += applattice->site_energy(i);
-
     
     MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,world);
-
   }
-  
 }
 
 /* ---------------------------------------------------------------------- */

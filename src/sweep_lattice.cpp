@@ -86,7 +86,6 @@ SweepLattice::SweepLattice(SPPARKS *spk, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"deln") == 0) {
       if (iarg+2 > narg) error->all("Illegal sweep_style command");
-      Ladapt = true;
       deln0 = atof(arg[iarg+1]);
       iarg += 2;
       if (deln0 <= 0.0) error->all("Illegal sweep_style command");

@@ -329,7 +329,8 @@ void Output::compute(double time, int done)
 
   if (iflag) {
     if (stats_ilogfreq == 0) {
-      while (time >= stats_time) stats_time += stats_delta;
+      //while (time >= stats_time) stats_time += stats_delta;
+      stats_time += stats_delta;
     } else if (stats_ilogfreq == 1) {
       while (time >= stats_time) {
 	stats_time += stats_delta;

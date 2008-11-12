@@ -93,7 +93,7 @@ void DiagEnergy2d::compute(double time, int iflag, int done)
     iflag = check_time(time, done);
   }
 
-  if (iflag) {
+  if (iflag || done) {
 
     applattice2d->comm->all(applattice2d->lattice);
 
