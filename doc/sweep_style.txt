@@ -15,7 +15,7 @@ sweep_style style seed keyword value keyword value ... :pre
 style = {lattice} or {lattice2d} or {lattice3d} :ulb,l
 seed = random number seed (positive integer) :l
 zero or more keyword/value pairs may be appended :l
-keyword = {mask} or {strict} or {kmc} or {delt} or {adapt}
+keyword = {mask} or {strict} or {kmc} or {delt} or {adapt} :l
   {mask} value = {yes} or {no}
     yes/no = mask out sites than cannot change
   {strict} value = {yes} or {no}
@@ -27,7 +27,7 @@ keyword = {mask} or {strict} or {kmc} or {delt} or {adapt}
   {delt} value = dt
     dt = time associated with one sweep (seconds)
   {deln} value = factor
-    factor = dimensionless factor equal to delt times site propensity:pre
+    factor = dimensionless factor equal to delt times site propensity :pre
 :ule
 
 [Examples:]
