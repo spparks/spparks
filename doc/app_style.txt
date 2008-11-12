@@ -46,7 +46,9 @@ keyword = {lattice} or {site} :l
         filename = name of file (see file format below)
   {site} values = Nint Ndouble
     Nint = # of integer quantites to store per site
-    Ndouble = # of double quantites to store per site :pre
+    Ndouble = # of double quantites to store per site
+  {input} value = infile
+    infile = filename for file containing initial state of all lattice sites :pre
 :ule
 
 [Examples:]
@@ -54,6 +56,7 @@ keyword = {lattice} or {site} :l
 app_style diffusion ... lattice fcc 1.0 100 100 100 :pre
 
 app_style ising ... lattice sq/4n 1.0 100 100
+app_style ising ... lattice sq/4n 1.0 100 100 input restart.state
 app_style ising/2d/4n ...
 app_style ising/2d/4n/exchange ...
 app_style ising/2d/8n ...
@@ -223,6 +226,39 @@ on each site and accessed/updated by your application.  For example,
 an integer flag could be stored for the type of lattice site and one
 or more doubles could store the state of the site.  If {site 0 0} is
 specified, then the default of a single integer per site is used.
+
+:line
+
+For general lattice applications, you can initialize the values stored
+on each lattice site explicitly by using the {input} keyword.  This
+can be useful for restarting a simulation from the dump file generated
+by a previous simulation.  See the "dump2input.py" script in the tools
+directory for a way to convert a dump file to the input format
+described below.
+
+Normally, if the {input} keyword is not used, the application will
+initialize the lattice in some random manner.
+
+The file specified with the {input} keyword should have the following
+format.  As before, the comments (#) need not be included in the file.
+
+comment              # 1st line is skipped
+Nsite nvalue         # Nsite = total # of lattice sites, nvalue = values/site
+                     # skipped line
+1 value1 value2 ...
+2 value1 value2 ...
+...
+Nsites value1 value2 ...   # Nsite lines :pre
+
+In the body of the file, there is one line per lattice site.  These
+lines can be in any order.  The first field on the line is the ID of
+the site, which should be an integer from 1 to Nsite.  There should be
+"nvalue" remaining fields on each line.  These values are assigned to
+that site.  How many values there should be (nvalue) depends on the
+application.  For those with a single integer value (Nint = Ndouble =
+0, nvalue = 1), just list that value.  If the {site} keyword is used
+(Nint and/or Ndouble != 0, nvalue = Nint+Ndouble), then list the
+integer value(s) first, followed by the double value(s).
 
 :line
 
