@@ -429,9 +429,12 @@ void Output::dump()
   else if (app->appclass == LATTICE2D) ntimestep = applattice2d->ntimestep;
   else if (app->appclass == LATTICE3D) ntimestep = applattice3d->ntimestep;
 
+  int ntimestepall;
+  MPI_Allreduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,world);
+
   if (me == 0) {
     fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,"%d\n",ntimestep);
+    fprintf(fp,"%d\n",ntimestepall);
     fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
     fprintf(fp,"%d\n",nglobal);
     fprintf(fp,"ITEM: BOX BOUNDS\n");

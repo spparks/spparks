@@ -35,7 +35,7 @@ using namespace SPPARKS_NS;
 
 #define DELTA 100
 #define MAXLINE 256
-#define CHUNK 16
+#define CHUNK 1024
 
 /* ---------------------------------------------------------------------- */
 
