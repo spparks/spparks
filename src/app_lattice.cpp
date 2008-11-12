@@ -707,10 +707,15 @@ void AppLattice::read_file()
 
   if (nglobal_file != nglobal)
     error->all("Lattice init file has incorrect number of sites");
-  if (ninteger == 0 && ndouble == 0 && nvalues != 1)
+  if (ninteger == 0 && ndouble == 0) {
+    if (nvalues != 1)
+      error->all("Lattice init file has incorrect number of values/site");
+  } else if (nvalues != ninteger + ndouble)
     error->all("Lattice init file has incorrect number of values/site");
-  else if (nvalues != ninteger + ndouble)
-    error->all("Lattice init file has incorrect number of values/site");
+
+  // increment nvalues to include ID
+
+  nvalues++;
 
   // put all my site IDs into a hash table so can look them up
 
