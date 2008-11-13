@@ -1,6 +1,7 @@
 # viz grain pattern
 
-d = dump("tmp.pore")
+d = dump("tmp.pore2")
+d.map(1,"id",2,"type",3,"x",4,"y",5,"z")
 d.aselect.test("$type == 2")
 g = gl(d)
 g.acol(2,"blue")

@@ -11,17 +11,17 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef APP_PORE2_H
-#define APP_PORE2_H
+#ifndef APP_DIFFUSION_TABLE_H
+#define APP_DIFFUSION_TABLE_H
 
 #include "app_lattice.h"
 
 namespace SPPARKS_NS {
 
-class AppPore2 : public AppLattice {
+class AppDiffusionTable : public AppLattice {
  public:
-  AppPore2(class SPPARKS *, int, char **);
-  ~AppPore2();
+  AppDiffusionTable(class SPPARKS *, int, char **);
+  virtual ~AppDiffusionTable();
   void init_app();
 
   double site_energy(int);
@@ -29,13 +29,9 @@ class AppPore2 : public AppLattice {
   double site_propensity(int);
   void site_event(int, class RandomPark *);
 
- private:
-  int *sites;
-  int *check;
-  double *ecoord;
-  double kboltz;
-
-  void input_app(char *, int, char **);
+ protected:
+  int *esites;
+  int *echeck;
 
   struct Event {           // one event for an owned site
     int partner;           // local ID of exchange partner

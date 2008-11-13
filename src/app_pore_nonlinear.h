@@ -11,16 +11,16 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef APP_PORE_H
-#define APP_PORE_H
+#ifndef APP_PORE_NONLINEAR_H
+#define APP_PORE_NONLINEAR_H
 
-#include "app_diffusion_table.h"
+#include "app_diffusion_nonlinear.h"
 
 namespace SPPARKS_NS {
 
-class AppPore : public AppDiffusionTable {
+class AppPoreNonLinear : public AppDiffusionNonLinear {
  public:
-  AppPore(class SPPARKS *, int, char **);
+  AppPoreNonLinear(class SPPARKS *, int, char **);
 };
 
 }

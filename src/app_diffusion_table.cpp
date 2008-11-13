@@ -15,7 +15,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_diffusion.h"
+#include "app_diffusion_table.h"
 #include "comm_lattice.h"
 #include "solve.h"
 #include "random_park.h"
@@ -27,14 +27,19 @@
 using namespace SPPARKS_NS;
 
 enum{ZERO,VACANT,OCCUPIED};
+#define DELTAEVENT 100000
 
 /* ---------------------------------------------------------------------- */
 
-AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) : 
+AppDiffusionTable::AppDiffusionTable(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
   delevent = 1;
   delpropensity = 2;
+
+  // allow derived classes to invoke their own constructor
+
+  if (strcmp(style,"diffusion/table") != 0) return;
 
   // parse arguments
 
@@ -52,6 +57,11 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
   create_lattice();
   esites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
   echeck = NULL;
+
+  // event list
+
+  events = NULL;
+  firstevent = NULL;
 
   // initialize my portion of lattice
   // each site = VACANT or OCCUPIED with fraction OCCUPIED
@@ -78,27 +88,37 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-AppDiffusion::~AppDiffusion()
+AppDiffusionTable::~AppDiffusionTable()
 {
   delete random;
   delete [] esites;
   delete [] echeck;
+  memory->sfree(events);
+  memory->sfree(firstevent);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AppDiffusion::init_app()
+void AppDiffusionTable::init_app()
 {
   delete [] echeck;
   echeck = new int[nlocal];
   for (int i = 0; i < nlocal; i++) echeck[i] = 0;
+
+  memory->sfree(events);
+  memory->sfree(firstevent);
+
+  events = NULL;
+  nevents = maxevent = 0;
+  firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
+  for (int i = 0; i < nlocal; i++) firstevent[i] = -1;
 }
 
 /* ----------------------------------------------------------------------
    compute energy of site
 ------------------------------------------------------------------------- */
 
-double AppDiffusion::site_energy(int i)
+double AppDiffusionTable::site_energy(int i)
 {
   int isite = lattice[i];
   int eng = 0;
@@ -112,7 +132,7 @@ double AppDiffusion::site_energy(int i)
    if site cannot change, set mask
 ------------------------------------------------------------------------- */
 
-void AppDiffusion::site_event_rejection(int i, RandomPark *random)
+void AppDiffusionTable::site_event_rejection(int i, RandomPark *random)
 {
   // event = exchange with random neighbor
 
@@ -146,16 +166,18 @@ void AppDiffusion::site_event_rejection(int i, RandomPark *random)
    propensity for one event is based on einitial,efinal
 ------------------------------------------------------------------------- */
 
-double AppDiffusion::site_propensity(int i)
+double AppDiffusionTable::site_propensity(int i)
 {
   int j;
 
   // possible events = OCCUPIED site exchanges with adjacent VACANT site
 
+  clear_events(i);
+
   if (lattice[i] == VACANT) return 0.0;
 
-  double einitial,efinal;
-  double prob = 0.0;
+  double einitial,efinal,probone;
+  double proball = 0.0;
 
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
     j = neighbor[i][ineigh];
@@ -166,15 +188,21 @@ double AppDiffusion::site_propensity(int i)
       lattice[j] = OCCUPIED;
       efinal = site_energy(i) + site_energy(j);
 
-      if (efinal <= einitial) prob += 1.0;
-      else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
+      if (efinal <= einitial) probone = 1.0;
+      else if (temperature > 0.0) probone = exp((einitial-efinal)*t_inverse);
+      else probone = 0.0;
+
+      if (probone > 0.0) {
+	add_event(i,j,probone);
+	proball += probone;
+      }
 
       lattice[i] = OCCUPIED;
       lattice[j] = VACANT;
     }
   }
 
-  return prob;
+  return proball;
 }
 
 /* ----------------------------------------------------------------------
@@ -183,7 +211,7 @@ double AppDiffusion::site_propensity(int i)
    ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppDiffusion::site_event(int i, class RandomPark *random)
+void AppDiffusionTable::site_event(int i, class RandomPark *random)
 {
   int j,jj,k,kk,m,mm;
 
@@ -192,23 +220,18 @@ void AppDiffusion::site_event(int i, class RandomPark *random)
   // perform event
 
   double threshhold = random->uniform() * propensity[i2site[i]];
-  double prob = 0.0;
-  double einitial,efinal;
+  double proball = 0.0;
 
-  for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
-    j = neighbor[i][ineigh];
-    if (lattice[j] == VACANT) {
-      einitial = site_energy(i) + site_energy(j);
-      lattice[i] = VACANT;
-      lattice[j] = OCCUPIED;
-      efinal = site_energy(i) + site_energy(j);
-      if (efinal <= einitial) prob += 1.0;
-      else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
-      if (prob >= threshhold) break;
-      lattice[i] = OCCUPIED;
-      lattice[j] = VACANT;
-    }
+  int ievent = firstevent[i];
+  while (1) {
+    proball += events[ievent].propensity;
+    if (proball >= threshhold) break;
+    ievent = events[ievent].next;
   }
+
+  j = events[ievent].partner;
+  lattice[i] = VACANT;
+  lattice[j] = OCCUPIED;
 
   // compute propensity changes for self and swap site and their 1,2 neighs
   // use echeck[] to avoid resetting propensity of same site
@@ -270,4 +293,49 @@ void AppDiffusion::site_event(int i, class RandomPark *random)
   // clear echeck array
 
   for (m = 0; m < nsites; m++) echeck[esites[m]] = 0;
+}
+
+/* ----------------------------------------------------------------------
+   clear all events out of list for site I
+   add cleared events to free list
+------------------------------------------------------------------------- */
+
+void AppDiffusionTable::clear_events(int i)
+{
+  int next;
+  int index = firstevent[i];
+  while (index >= 0) {
+    next = events[index].next;
+    events[index].next = freeevent;
+    freeevent = index;
+    nevents--;
+    index = next;
+  }
+  firstevent[i] = -1;
+}
+
+/* ----------------------------------------------------------------------
+   add an event to list for site I
+   event = exchange with site J with probability = propensity
+------------------------------------------------------------------------- */
+
+void AppDiffusionTable::add_event(int i, int partner, double propensity)
+{
+  // grow event list and setup free list
+
+  if (nevents == maxevent) {
+    maxevent += DELTAEVENT;
+    events = 
+      (Event *) memory->srealloc(events,maxevent*sizeof(Event),"app:events");
+    for (int m = nevents; m < maxevent; m++) events[m].next = m+1;
+    freeevent = nevents;
+  }
+
+  int next = events[freeevent].next;
+  events[freeevent].partner = partner;
+  events[freeevent].next = firstevent[i];
+  events[freeevent].propensity = propensity;
+  firstevent[i] = freeevent;
+  freeevent = next;
+  nevents++;
 }

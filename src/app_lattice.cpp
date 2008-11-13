@@ -21,6 +21,7 @@
 #include "solve.h"
 #include "random_park.h"
 #include "finish.h"
+#include "cluster.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"

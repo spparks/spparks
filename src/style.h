@@ -14,6 +14,8 @@
 #ifdef AppInclude
 #include "app_chemistry.h"
 #include "app_diffusion.h"
+#include "app_diffusion_table.h"
+#include "app_diffusion_nonlinear.h"
 #include "app_ising.h"
 #include "app_ising_2d_4n.h"
 #include "app_ising_2d_4n_exchange.h"
@@ -23,7 +25,7 @@
 #include "app_membrane.h"
 #include "app_membrane_2d.h"
 #include "app_pore.h"
-#include "app_pore2.h"
+#include "app_pore_nonlinear.h"
 #include "app_potts.h"
 #include "app_potts_variable.h"
 #include "app_potts_2d_4n.h"
@@ -38,6 +40,8 @@
 #ifdef AppClass
 AppStyle(chemistry,AppChemistry)
 AppStyle(diffusion,AppDiffusion)
+AppStyle(diffusion/table,AppDiffusionTable)
+AppStyle(diffusion/nonlinear,AppDiffusionNonLinear)
 AppStyle(ising,AppIsing)
 AppStyle(ising/2d/4n,AppIsing2d4n)
 AppStyle(ising/2d/4n/exchange,AppIsing2d4nExchange)
@@ -47,7 +51,7 @@ AppStyle(ising/3d/26n,AppIsing3d26n)
 AppStyle(membrane,AppMembrane)
 AppStyle(membrane/2d,AppMembrane2d)
 AppStyle(pore,AppPore)
-AppStyle(pore2,AppPore2)
+AppStyle(pore/nonlinear,AppPoreNonLinear)
 AppStyle(potts,AppPotts)
 AppStyle(potts/variable,AppPottsVariable)
 AppStyle(potts/2d/4n,AppPotts2d4n)

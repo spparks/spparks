@@ -15,13 +15,14 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_pore2.h"
+#include "app_diffusion_nonlinear.h"
 #include "comm_lattice.h"
 #include "solve.h"
 #include "random_park.h"
-#include "timer.h"
 #include "memory.h"
 #include "error.h"
+
+#include <map>
 
 using namespace SPPARKS_NS;
 
@@ -30,35 +31,35 @@ enum{ZERO,VACANT,OCCUPIED};
 
 /* ---------------------------------------------------------------------- */
 
-AppPore2::AppPore2(SPPARKS *spk, int narg, char **arg) : 
+AppDiffusionNonLinear::
+AppDiffusionNonLinear(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
   delevent = 1;
   delpropensity = 3;
 
-  kboltz = 8.617e-5;
+  // allow derived classes to invoke their own constructor
+
+  if (strcmp(style,"diffusion/nonlinear") != 0) return;
 
   // parse arguments
 
-  if (narg < 7) error->all("Illegal app_style command");
+  if (narg < 3) error->all("Illegal app_style command");
 
-  double xc = atof(arg[1]);
-  double yc = atof(arg[2]);
-  double zc = atof(arg[3]);
-  double diameter = atof(arg[4]);
-  double thickness = atof(arg[5]);
-  int seed = atoi(arg[6]);
+  double fraction = atof(arg[1]);
+  int seed = atoi(arg[2]);
   random = new RandomPark(seed);
 
-  options(narg-7,&arg[7]);
+  options(narg-3,&arg[3]);
 
   // define lattice and partition it across processors
   // sites must be large enough for 2 sites and their 1,2,3 nearest neighbors
 
   create_lattice();
   int nmax = 1 + maxneigh + maxneigh*maxneigh + maxneigh*maxneigh*maxneigh;
-  sites = new int[2*nmax];
-  check = NULL;
+  esites = new int[2*nmax];
+  psites = new int[2*nmax];
+  echeck = pcheck = NULL;
 
   // event list
 
@@ -71,32 +72,37 @@ AppPore2::AppPore2(SPPARKS *spk, int narg, char **arg) :
   for (int i = 0; i <= maxneigh; i++) ecoord[i] = 0.0;
 
   // initialize my portion of lattice
-  // each site = 1 (vacancy) or 2 (occupied)
-  // pore geometry defines occupied vs unoccupied
+  // each site = VACANT or OCCUPIED with fraction OCCUPIED
+  // loop over global list so assignment is independent of # of procs
+  // use map to see if I own global site
 
-  double x,y,z;
-  int isite;
-  for (int i = 0; i < nlocal; i++) {
-    x = xyz[i][0];
-    y = xyz[i][1];
-    z = xyz[i][2];
-    if (z > zc + 0.5*thickness || z < zc - 0.5*thickness) isite = VACANT;
-    else isite = OCCUPIED;
-    if (isite == OCCUPIED) {
-      if ((x-xc)*(x-xc) + (y-yc)*(y-yc) < 0.25*diameter*diameter)
-	isite = VACANT;
+  if (infile) read_file();
+
+  else {
+    std::map<int,int> hash;
+    for (int i = 0; i < nlocal; i++)
+      hash.insert(std::pair<int,int> (id[i],i));
+    std::map<int,int>::iterator loc;
+    
+    int isite;
+    for (int iglobal = 1; iglobal <= nglobal; iglobal++) {
+      if (random->uniform() < fraction) isite = OCCUPIED;
+      else isite = VACANT;
+      loc = hash.find(iglobal);
+      if (loc != hash.end()) lattice[loc->second] = isite;
     }
-    lattice[i] = isite;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-AppPore2::~AppPore2()
+AppDiffusionNonLinear::~AppDiffusionNonLinear()
 {
   delete random;
-  delete [] sites;
-  delete [] check;
+  delete [] esites;
+  delete [] psites;
+  delete [] echeck;
+  delete [] pcheck;
   memory->sfree(events);
   memory->sfree(firstevent);
   delete [] ecoord;
@@ -104,13 +110,13 @@ AppPore2::~AppPore2()
 
 /* ---------------------------------------------------------------------- */
 
-void AppPore2::init_app()
+void AppDiffusionNonLinear::init_app()
 {
-  // check used to temporarily label owned and ghost sites
-
-  delete [] check;
-  check = new int[nlocal+nghost];
-  for (int i = 0; i < nlocal+nghost; i++) check[i] = 0;
+  delete [] echeck;
+  echeck = new int[nlocal+nghost];
+  delete [] pcheck;
+  pcheck = new int[nlocal+nghost];
+  for (int i = 0; i < nlocal+nghost; i++) echeck[i] = pcheck[i] = 0;
 
   memory->sfree(events);
   memory->sfree(firstevent);
@@ -123,17 +129,14 @@ void AppPore2::init_app()
 
 /* ---------------------------------------------------------------------- */
 
-void AppPore2::input_app(char *command, int narg, char **arg)
+void AppDiffusionNonLinear::input_app(char *command, int narg, char **arg)
 {
-  // assume energy is in eV, temperature will be in K
-  // scale by Boltzmann constant
-
   if (strcmp(command,"ecoord") == 0) {
     if (narg != 2) error->all("Illegal ecoord command");
     int index = atoi(arg[0]);
     double value = atof(arg[1]);
     if (index < 0 || index > maxneigh) error->all("Illegal ecoord command");
-    ecoord[index] = value / kboltz;
+    ecoord[index] = value;
   } else error->all("Unrecognized command");
 }
 
@@ -141,25 +144,18 @@ void AppPore2::input_app(char *command, int narg, char **arg)
    compute energy of site
 ------------------------------------------------------------------------- */
 
-double AppPore2::site_energy(int i)
+double AppDiffusionNonLinear::site_energy(int i)
 {
-  // energy a linear function of coordination number
+  // energy only non-zero for OCCUPIED sites
+  // energy is a non-linear function of coordination number
+  // computed from user-specified tabulated values
 
-  int isite = lattice[i];
-  int eng = 0;
-  for (int j = 0; j < numneigh[i]; j++)
-    if (isite != lattice[neighbor[i][j]]) eng++;
-  return (double) eng;
+  if (lattice[i] == VACANT) return 0.0;
 
-  // energy a non-linear function of coordination number
-  // from read-in tabulated values
-
-  /*
   int n = 0;
   for (int j = 0; j < numneigh[i]; j++)
     if (lattice[neighbor[i][j]] == OCCUPIED) n++;
   return ecoord[n];
-  */
 }
 
 /* ----------------------------------------------------------------------
@@ -167,7 +163,7 @@ double AppPore2::site_energy(int i)
    if site cannot change, set mask
 ------------------------------------------------------------------------- */
 
-void AppPore2::site_event_rejection(int i, RandomPark *random)
+void AppDiffusionNonLinear::site_event_rejection(int i, RandomPark *random)
 {
   // event = exchange with random neighbor
 
@@ -201,7 +197,7 @@ void AppPore2::site_event_rejection(int i, RandomPark *random)
    propensity for one event is based on einitial,efinal
 ------------------------------------------------------------------------- */
 
-double AppPore2::site_propensity(int i)
+double AppDiffusionNonLinear::site_propensity(int i)
 {
   int j,k,m,nsites;
 
@@ -211,73 +207,76 @@ double AppPore2::site_propensity(int i)
 
   if (lattice[i] == VACANT) return 0.0;
 
-  double proball = 0.0;
   double einitial,efinal,probone;
+  double proball = 0.0;
 
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
     j = neighbor[i][ineigh];
     if (lattice[j] == VACANT) {
 
-      // old energy for i,j and their neighbors
-      // use check[] to avoid recomputing energy of same site
+      // einitial = i,j and their neighbors
+      // use pcheck[] to avoid recomputing energy of same site
 
       einitial = site_energy(i) + site_energy(j);
       nsites = 0;
-      sites[nsites++] = i;
-      sites[nsites++] = j;
-      check[i] = check[j] = 1;
+      psites[nsites++] = i;
+      psites[nsites++] = j;
+      pcheck[i] = pcheck[j] = 1;
 
       for (k = 0; k < numneigh[i]; k++) {
 	m = neighbor[i][k];
-	if (check[m]) continue;
-	if (lattice[m] == OCCUPIED) einitial += site_energy(m);
-	sites[nsites++] = m;
-	check[m] = 1;
+	if (pcheck[m]) continue;
+	einitial += site_energy(m);
+	psites[nsites++] = m;
+	pcheck[m] = 1;
       }
       for (k = 0; k < numneigh[j]; k++) {
 	m = neighbor[j][k];
-	if (check[m]) continue;
-	if (lattice[m] == OCCUPIED) einitial += site_energy(m);
-	sites[nsites++] = m;
-	check[m] = 1;
+	if (pcheck[m]) continue;
+	einitial += site_energy(m);
+	psites[nsites++] = m;
+	pcheck[m] = 1;
       }
 
-      for (m = 0; m < nsites; m++) check[sites[m]] = 0;
+      for (m = 0; m < nsites; m++) pcheck[psites[m]] = 0;
 
       // diffusive hop
 
       lattice[i] = VACANT;
       lattice[j] = OCCUPIED;
 
-      // new energy for i,j and their neighbors
+      // efinal = i,j and their neighbors
+      // use pcheck[] to avoid recomputing energy of same site
 
       efinal = site_energy(i) + site_energy(j);
       nsites = 0;
-      sites[nsites++] = i;
-      sites[nsites++] = j;
-      check[i] = check[j] = 1;
+      psites[nsites++] = i;
+      psites[nsites++] = j;
+      pcheck[i] = pcheck[j] = 1;
 
       for (k = 0; k < numneigh[i]; k++) {
 	m = neighbor[i][k];
-	if (check[m]) continue;
-	if (lattice[m] == OCCUPIED) efinal += site_energy(m);
-	sites[nsites++] = m;
-	check[m] = 1;
+	if (pcheck[m]) continue;
+	efinal += site_energy(m);
+	psites[nsites++] = m;
+	pcheck[m] = 1;
       }
       for (k = 0; k < numneigh[j]; k++) {
 	m = neighbor[j][k];
-	if (check[m]) continue;
-	if (lattice[m] == OCCUPIED) efinal += site_energy(m);
-	sites[nsites++] = m;
-	check[m] = 1;
+	if (pcheck[m]) continue;
+	efinal += site_energy(m);
+	psites[nsites++] = m;
+	pcheck[m] = 1;
       }
 
-      for (m = 0; m < nsites; m++) check[sites[m]] = 0;
+      for (m = 0; m < nsites; m++) pcheck[psites[m]] = 0;
 
       // compute propensity
 
       if (efinal <= einitial) probone = 1.0;
       else if (temperature > 0.0) probone = exp((einitial-efinal)*t_inverse);
+      else probone = 0.0;
+
       if (probone > 0.0) {
 	add_event(i,j,probone);
 	proball += probone;
@@ -299,7 +298,7 @@ double AppPore2::site_propensity(int i)
    ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppPore2::site_event(int i, class RandomPark *random)
+void AppDiffusionNonLinear::site_event(int i, class RandomPark *random)
 {
   int j,jj,k,kk,kkk,m,mm,mmm,isite;
 
@@ -308,8 +307,8 @@ void AppPore2::site_event(int i, class RandomPark *random)
   // perform event
 
   double threshhold = random->uniform() * propensity[i2site[i]];
-
   double proball = 0.0;
+
   int ievent = firstevent[i];
   while (1) {
     proball += events[ievent].propensity;
@@ -322,44 +321,45 @@ void AppPore2::site_event(int i, class RandomPark *random)
   lattice[j] = OCCUPIED;
 
   // compute propensity changes for self and swap site and their 1,2,3 neighs
-  // use check[] to avoid resetting propensity of same site
+  // use echeck[] to avoid resetting propensity of same site
+  // loop over neighbors of site even if site itself is out of sector
 
+  int nsites = 0;
   isite = i2site[i];
   propensity[isite] = site_propensity(i);
-  int nsites = 0;
-  sites[nsites++] = isite;
-  check[isite] = 1;
+  esites[nsites++] = isite;
+  echeck[isite] = 1;
 
   isite = i2site[j];
   if (isite >= 0) {
     propensity[isite] = site_propensity(j);
-    sites[nsites++] = isite;
-    check[isite] = 1;
+    esites[nsites++] = isite;
+    echeck[isite] = 1;
   }
 
   for (k = 0; k < numneigh[i]; k++) {
     m = neighbor[i][k];
     isite = i2site[m];
-    if (isite >= 0 && check[isite] == 0) {
-      sites[nsites++] = isite;
+    if (isite >= 0 && echeck[isite] == 0) {
       propensity[isite] = site_propensity(m);
-      check[isite] = 1;
+      esites[nsites++] = isite;
+      echeck[isite] = 1;
     }
     for (kk = 0; kk < numneigh[m]; kk++) {
       mm = neighbor[m][kk];
       isite = i2site[mm];
-      if (isite >= 0 && check[isite] == 0) {
-	sites[nsites++] = isite;
+      if (isite >= 0 && echeck[isite] == 0) {
 	propensity[isite] = site_propensity(mm);
-	check[isite] = 1;
+	esites[nsites++] = isite;
+	echeck[isite] = 1;
       }
       for (kkk = 0; kkk < numneigh[mm]; kkk++) {
 	mmm = neighbor[mm][kkk];
 	isite = i2site[mmm];
-	if (isite >= 0 && check[isite] == 0) {
-	  sites[nsites++] = isite;
+	if (isite >= 0 && echeck[isite] == 0) {
 	  propensity[isite] = site_propensity(mmm);
-	  check[isite] = 1;
+	  esites[nsites++] = isite;
+	  echeck[isite] = 1;
 	}
       }
     }
@@ -368,36 +368,36 @@ void AppPore2::site_event(int i, class RandomPark *random)
   for (k = 0; k < numneigh[j]; k++) {
     m = neighbor[j][k];
     isite = i2site[m];
-    if (isite >= 0 && check[isite] == 0) {
-      sites[nsites++] = isite;
+    if (isite >= 0 && echeck[isite] == 0) {
       propensity[isite] = site_propensity(m);
-      check[isite] = 1;
+      esites[nsites++] = isite;
+      echeck[isite] = 1;
     }
     for (kk = 0; kk < numneigh[m]; kk++) {
       mm = neighbor[m][kk];
       isite = i2site[mm];
-      if (isite >= 0 && check[isite] == 0) {
-	sites[nsites++] = isite;
+      if (isite >= 0 && echeck[isite] == 0) {
 	propensity[isite] = site_propensity(mm);
-	check[isite] = 1;
+	esites[nsites++] = isite;
+	echeck[isite] = 1;
       }
       for (kkk = 0; kkk < numneigh[mm]; kkk++) {
 	mmm = neighbor[mm][kkk];
 	isite = i2site[mmm];
-	if (isite >= 0 && check[isite] == 0) {
-	  sites[nsites++] = isite;
+	if (isite >= 0 && echeck[isite] == 0) {
 	  propensity[isite] = site_propensity(mmm);
-	  check[isite] = 1;
+	  esites[nsites++] = isite;
+	  echeck[isite] = 1;
 	}
       }
     }
   }
 
-  solve->update(nsites,sites,propensity);
+  solve->update(nsites,esites,propensity);
 
-  // clear check array
+  // clear echeck array
 
-  for (m = 0; m < nsites; m++) check[sites[m]] = 0;
+  for (m = 0; m < nsites; m++) echeck[esites[m]] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -405,7 +405,7 @@ void AppPore2::site_event(int i, class RandomPark *random)
    add cleared events to free list
 ------------------------------------------------------------------------- */
 
-void AppPore2::clear_events(int i)
+void AppDiffusionNonLinear::clear_events(int i)
 {
   int next;
   int index = firstevent[i];
@@ -424,7 +424,7 @@ void AppPore2::clear_events(int i)
    event = exchange with site J with probability = propensity
 ------------------------------------------------------------------------- */
 
-void AppPore2::add_event(int i, int partner, double propensity)
+void AppDiffusionNonLinear::add_event(int i, int partner, double propensity)
 {
   // grow event list and setup free list
 

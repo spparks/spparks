@@ -15,7 +15,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_pore.h"
+#include "app_pore_nonlinear.h"
 #include "random_park.h"
 #include "memory.h"
 #include "error.h"
@@ -26,11 +26,11 @@ enum{ZERO,VACANT,OCCUPIED};
 
 /* ---------------------------------------------------------------------- */
 
-AppPore::AppPore(SPPARKS *spk, int narg, char **arg) : 
-  AppDiffusionTable(spk,narg,arg)
+AppPoreNonLinear::AppPoreNonLinear(SPPARKS *spk, int narg, char **arg) : 
+  AppDiffusionNonLinear(spk,narg,arg)
 {
   delevent = 1;
-  delpropensity = 2;
+  delpropensity = 3;
 
   // parse arguments
 
@@ -47,31 +47,40 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
   options(narg-7,&arg[7]);
 
   // define lattice and partition it across processors
-  // esites must be large enough for 2 sites and 1st/2nd nearest neighbors
+  // sites must be large enough for 2 sites and their 1,2,3 nearest neighbors
 
   create_lattice();
-  esites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
-  echeck = NULL;
+  int nmax = 1 + maxneigh + maxneigh*maxneigh + maxneigh*maxneigh*maxneigh;
+  esites = new int[2*nmax];
+  psites = new int[2*nmax];
+  echeck = pcheck = NULL;
+
+  // event list
+
+  events = NULL;
+  firstevent = NULL;
+
+  // energy as a function of coordination
+
+  ecoord = new double[maxneigh+1];
+  for (int i = 0; i <= maxneigh; i++) ecoord[i] = 0.0;
 
   // initialize my portion of lattice
-  // each site = VACANT or OCCUPIED as defined by pore geometry
+  // each site = 1 (vacancy) or 2 (occupied)
+  // pore geometry defines occupied vs unoccupied
 
-  if (infile) read_file();
-
-  else {
-    double x,y,z;
-    int isite;
-    for (int i = 0; i < nlocal; i++) {
-      x = xyz[i][0];
-      y = xyz[i][1];
-      z = xyz[i][2];
-      if (z > zc + 0.5*thickness || z < zc - 0.5*thickness) isite = VACANT;
-      else isite = OCCUPIED;
-      if (isite == OCCUPIED) {
-	if ((x-xc)*(x-xc) + (y-yc)*(y-yc) < 0.25*diameter*diameter)
-	  isite = VACANT;
-      }
-      lattice[i] = isite;
+  double x,y,z;
+  int isite;
+  for (int i = 0; i < nlocal; i++) {
+    x = xyz[i][0];
+    y = xyz[i][1];
+    z = xyz[i][2];
+    if (z > zc + 0.5*thickness || z < zc - 0.5*thickness) isite = VACANT;
+    else isite = OCCUPIED;
+    if (isite == OCCUPIED) {
+      if ((x-xc)*(x-xc) + (y-yc)*(y-yc) < 0.25*diameter*diameter)
+	isite = VACANT;
     }
+    lattice[i] = isite;
   }
 }

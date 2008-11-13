@@ -30,8 +30,8 @@ class AppDiffusion : public AppLattice {
   void site_event(int, class RandomPark *);
 
  private:
-  int *sites;
-  int *check;
+  int *esites;
+  int *echeck;
 };
 
 }
