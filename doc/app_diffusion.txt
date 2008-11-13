@@ -7,30 +7,34 @@
 :line
 
 app_style diffusion command :h3
+app_style diffusion/table command :h3
+app_style diffusion/nonlinear command :h3
 
 [Syntax:]
 
-app_style diffusion fraction seed keyword values ... :pre
+app_style style fraction seed keyword values ... :pre
 
-diffusion = application style name
+style = {diffusion} or {diffusion/table} or {diffusion/nonlinear}
 fraction = fraction of sites to occupy initially
 seed = random number seed (positive integer)
 see the "app_style"_app_style.html command for additional keywords that can be appended :ul
 
 [Examples:]
 
-app_style diffusion 0.2 18874 lattice tri 1.0 50 50 :pre
+app_style diffusion 0.2 18874 lattice tri 1.0 50 50
+app_style diffusion/nonlinear 0.2 18874 lattice tri 1.0 50 50 :pre
 
 [Description:]
 
-This application performs diffusive hops on a lattice that is
-partially occupied and partially unoccupied (vacant sites).  Thus it
-can be used to model surface diffusion on a 2d lattice or bulk
-diffusion on a 3d lattice.  It is equivalent to a 2-state Ising model
-performing Kawasaki dynamics, where each lattice site has a spin of 1
-or 2.  Neighboring sites exchange their spins as the model evolves.
+This application performs diffusive hops on a lattice whose sites are
+partially occupied and partially unoccupied (vacancies).  Thus it can
+be used to model surface diffusion on a 2d lattice or bulk diffusion
+on a 3d lattice.  It is equivalent to a 2-state Ising model performing
+Kawasaki dynamics..  Neighboring sites exchange their spins as the
+model evolves.
 
-The Hamiltonian representing the energy of site I is as follows:
+The Hamiltonian representing the energy of site I for the {diffusion}
+and {diffusion/table} styles is as follows:
 
 H = - Sum_j delta_ij :pre
 
@@ -38,14 +42,52 @@ where Sum_j is a sum over all the neighbor sites of site I and
 delta_ij is 1 if the spin of sites I and J are the same and 0
 otherwise.
 
-These is a general lattice application; see the
+The Hamiltonian representing the energy of site I for the
+{diffusion/nonlinear} style is as follows:
+
+H = Eng(Sum_j delta_ij) :pre
+
+where H = 0 if a site is a vacancy.  If a site is occupied, Sum_j is
+the sum over all its neighbor sites and delta_ij is 1 if site J is
+occupied and 0 otherwise.  The function Eng() is a tabulated function
+specified by the user via the "ecoord"_ecoord.html command.  The inner
+sum is effectively the coordination number of site I, and the energy
+of site I is modeled as a function of the coordination number.
+
+The relationship between the 3 variants of app_style diffusion is as
+follows.  Styles {diffusion} and {diffusion/table} are the same except
+for how events and probabilities are stored and accessed internally.
+Their results should be statistically the same, although not exactly
+the same, due to differences in how events are chosen by random
+numbers.
+
+The style {diffusion/nonlinear} should give exactly the same answers
+as {diffusion/table} if the tabulated function specified by the
+"ecoord"_ecoord.html command is set up so that E_0 = N, E_1 = N-1,
+... E_N-1 = 1, E_N = 0.  N = the number of neighbors of each lattice
+site, i.e. the maximum coordination number.  In this scenario, the
+energy is a linear function of coordination number, which is
+effectively the model used by the {diffusion} and {diffusion/table}
+styles.  Note that while the dynamics of the 2 models will be
+identical, the output energy of the system will be 2x larger in the
+{diffusion/table} case versus the {diffusion/nonlinear} case.  This is
+because the first Hamiltonian formulas above double-counts the energy
+of a occupied site neighboring a vacancy site.
+
+Of course, if the specified "ecoord"_ecoord.html values are not
+specified as a linear function, then the {diffusion/nonlinear} style
+will evolve differently.
+
+:line
+
+These applications are general lattice application; see the
 "app_style"_app_style.html commmand for further discussion.  The
 lattice must be specified by the appended {lattice} keword with its
 associated values, as discussed on the doc page for the
 "app_style"_app_style.html command.
 
 This application performs Kawasaki dynamics, meaning the spins on two
-neighboring sites are swapped or equivalently an atom hops from an
+neighboring sites are swapped.  Equivalently, an atom hops from an
 occupied site to a vacancy site.
 
 As explained on "this page"_app_style.html, these applications can be
@@ -55,11 +97,13 @@ and/or KMC solver to be used with the application via the
 "sweep_style"_sweep_style.html and "solve_style"_solve_style.html
 commands.
 
-For solution by a KMC algorithm, the possible events a site can
-perform are swaps with any neighbor site with a spin different than
-itself.  The probability of each such event is min\[1,exp(-dE/kT)\],
-where dE = Efinal - Einitial and E is the sum of the energy for the
-site and its neighbor.
+For solution by a KMC algorithm, the possible events an occupied site
+can perform are swaps with vacant neighbor sites The probability of
+each such event is min\[1,exp(-dE/kT)\], where dE = Efinal - Einitial.
+For the {diffusion} and {diffusion/table} styles, E is the sum of the
+energy for the site and its neighbor.  For the {diffusion/nonlinear}
+style, E is the sum of the energy for the site and its neighbor, and
+also the energy of the neighbors of each of the 2 sites involved.
 
 For solution by a Metropolis algorithm, the spin is flipped to its
 opposite state and dE = Efinal - Einitial is calculated, as is a
@@ -68,9 +112,12 @@ min\[1,exp(-dE/kT)\], else it is rejected.
 
 :line
 
-The following additional commands are defined by this application:
+The following additional commands are defined by these applications.
+The ecoord command is only defined by the {diffusion/nonlinear}
+application.
 
 "dump"_dump.html : output of lattice snapshots
+"ecoord"_ecoord.html : energy as a function of coordination
 "stats"_stats.html : output of system info
 "temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
 
@@ -78,6 +125,6 @@ The following additional commands are defined by this application:
 
 [Related commands:]
 
-"app_style ising"_app_ising.html
+"app_style ising"_app_ising.html, "app_style pore"_app_pore.html
 
 [Default:] none

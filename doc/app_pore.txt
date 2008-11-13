@@ -7,15 +7,16 @@
 :line
 
 app_style pore command :h3
+app_style pore/nonlinear command :h3
 
 [Syntax:]
 
-app_style pore xc yc zc diameter thickness seed keyword values ... :pre
+app_style style xc yc zc diameter thickness seed keyword values ... :pre
 
-pore = application style name
+style = {pore} or {pore/nonlinear}
 xc,yc,zc = coordinates of center point of pore
 diameter = xy diameter of cylindrical pore aligned along z axis
-thickness = thickness of thin film which the pore spans
+thickness = z thickness of thin film which the pore spans
 seed = random number seed (positive integer)
 see the "app_style"_app_style.html command for additional keywords that can be appended :ul
 
@@ -25,53 +26,23 @@ app_style pore 10 10 10 4 10 18874 lattice fcc 1.0 20 20 20 :pre
 
 [Description:]
 
-This application sets up a cylindrical pore in a thin-film membrane
-and then performs diffusive hops for atoms on the surface of the thin
-film and exposed pore surface.  The pore is aligned with the z-axis
-and the thin film is periodic in the x and y dimensions.  The lattice
-is initialized with each site as occupied or vacant.  Atoms on occupied
-sites can hop into neighboring vacant sites as the model evolves.
+This application is exactly the same as the "app_style
+diffusion"_app_diffusion application, except for the way the
+lattice of occupied/vacant sites is initialized.
 
-The Hamiltonian representing the energy of site I is as follows:
+A single cylindrical pore in a thin-film membrane is setup.  The pore
+is aligned with the z-axis and the thin film is periodic in the x and
+y dimensions.
 
-H = - Sum_j delta_ij :pre
+The {pore} style is equivalent to the "app_style diffusion/table"
+style.  The {pore/nonlinear} style is equivalent to the "app_style
+diffusion/nonlinear" style.
 
-where Sum_j is a sum over all the neighbor sites of site I and
-delta_ij is 1 if the spin of sites I and J are the same and 0
-otherwise.
+:line
 
-This needs to be amended for energy as a function of coordination,
-with ecoord command.
-
-These is a general lattice application; see the
-"app_style"_app_style.html commmand for further discussion.  The
-lattice must be specified by the appended {lattice} keword with its
-associated values, as discussed on the doc page for the
-"app_style"_app_style.html command.
-
-This application performs Kawasaki dynamics, meaning the spins on two
-neighboring sites are swapped or equivalently an atom hops from an
-occupied site to a vacancy site.
-
-As explained on "this page"_app_style.html, these applications can be
-evolved by either a kinetic Monte Carlo (KMC) or Metropolis
-rejection-based algorithm.  You must thus define a sweeping method
-and/or KMC solver to be used with the application via the
-"sweep_style"_sweep_style.html and "solve_style"_solve_style.html
-commands.
-
-For solution by a KMC algorithm, the possible events a site can
-perform are swaps with any neighbor site with a spin different than
-itself.  The probability of each such event is min\[1,exp(-dE/kT)\],
-where dE = Efinal - Einitial and E is the sum of the energy for the
-site and its neighbor.
-
-For solution by a Metropolis algorithm, the spin is flipped to its
-opposite state and dE = Efinal - Einitial is calculated, as is a
-uniform random number R between 0 and 1.  The flip is accepted if R <
-min\[1,exp(-dE/kT)\], else it is rejected.
-
-The following additional commands are defined by these applications:
+The following additional commands are defined by these applications.
+The ecoord command is only defined by the {pore/nonlinear}
+application.
 
 "dump"_dump.html : output of lattice snapshots
 "ecoord"_ecoord.html : energy as a function of coordination
@@ -82,6 +53,6 @@ The following additional commands are defined by these applications:
 
 [Related commands:]
 
-"app_style diffusion"_app_ising.html
+"app_style diffusion"_app_diffusion.html
 
 [Default:] none

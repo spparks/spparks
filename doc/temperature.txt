@@ -12,7 +12,7 @@ temperature command :h3
 
 temperature T :pre
 
-T = value of temperature used in Boltzmann factor (energy units) :ul
+T = value of temperature for the Monte Carlo simulation (energy units) :ul
 
 [Examples:]
 
@@ -37,4 +37,3 @@ value should have the units of energy as computed by the Hamiltonian.
 [Default:]
 
 The default temperature is 0.0.
-

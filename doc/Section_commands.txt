@@ -178,7 +178,7 @@ Initialization commands:
 Application-specific commands:
 
 "add_reaction"_add_reaction.html, "add_species"_add_species.html,
-"count"_count.html, "inclusion"_inclusion.html,
+"count"_count.html, "ecoord"_ecoord.html, "inclusion"_inclusion.html,
 "temperature"_temperature.html, "volume"_volume.html
 
 Output commands:
@@ -218,6 +218,7 @@ Restrictions in the command's documentation.
 "diag_style"_diag_style.html,
 "dump"_dump.html,
 "echo"_echo.html,
+"ecoord"_ecoord.html,
 "if"_if.html,
 "include"_include.html,
 "inclusion"_inclusion.html,
@@ -243,9 +244,12 @@ full description:
 
 "chemistry"_app_chemistry.html,
 "diffusion"_app_diffusion.html,
+"diffusion/table"_app_diffusion.html,
+"diffusion/nonlinear"_app_diffusion.html,
 "ising"_app_ising.html,
 "membrane"_app_membrane.html,
 "pore"_app_pore.html,
+"pore/nonlinear"_app_pore.html,
 "potts"_app_potts.html,
 "test/group"_app_test_group.html :tb(c=8,ea=c)
 

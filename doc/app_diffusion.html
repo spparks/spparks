@@ -11,29 +11,35 @@
 
 <H3>app_style diffusion command 
 </H3>
+<H3>app_style diffusion/table command 
+</H3>
+<H3>app_style diffusion/nonlinear command 
+</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style diffusion fraction seed keyword values ... 
+<PRE>app_style style fraction seed keyword values ... 
 </PRE>
-<UL><LI>diffusion = application style name
+<UL><LI>style = <I>diffusion</I> or <I>diffusion/table</I> or <I>diffusion/nonlinear</I>
 <LI>fraction = fraction of sites to occupy initially
 <LI>seed = random number seed (positive integer)
 <LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style diffusion 0.2 18874 lattice tri 1.0 50 50 
+<PRE>app_style diffusion 0.2 18874 lattice tri 1.0 50 50
+app_style diffusion/nonlinear 0.2 18874 lattice tri 1.0 50 50 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This application performs diffusive hops on a lattice that is
-partially occupied and partially unoccupied (vacant sites).  Thus it
-can be used to model surface diffusion on a 2d lattice or bulk
-diffusion on a 3d lattice.  It is equivalent to a 2-state Ising model
-performing Kawasaki dynamics, where each lattice site has a spin of 1
-or 2.  Neighboring sites exchange their spins as the model evolves.
+<P>This application performs diffusive hops on a lattice whose sites are
+partially occupied and partially unoccupied (vacancies).  Thus it can
+be used to model surface diffusion on a 2d lattice or bulk diffusion
+on a 3d lattice.  It is equivalent to a 2-state Ising model performing
+Kawasaki dynamics..  Neighboring sites exchange their spins as the
+model evolves.
 </P>
-<P>The Hamiltonian representing the energy of site I is as follows:
+<P>The Hamiltonian representing the energy of site I for the <I>diffusion</I>
+and <I>diffusion/table</I> styles is as follows:
 </P>
 <PRE>H = - Sum_j delta_ij 
 </PRE>
@@ -41,14 +47,52 @@ or 2.  Neighboring sites exchange their spins as the model evolves.
 delta_ij is 1 if the spin of sites I and J are the same and 0
 otherwise.
 </P>
-<P>These is a general lattice application; see the
+<P>The Hamiltonian representing the energy of site I for the
+<I>diffusion/nonlinear</I> style is as follows:
+</P>
+<PRE>H = Eng(Sum_j delta_ij) 
+</PRE>
+<P>where H = 0 if a site is a vacancy.  If a site is occupied, Sum_j is
+the sum over all its neighbor sites and delta_ij is 1 if site J is
+occupied and 0 otherwise.  The function Eng() is a tabulated function
+specified by the user via the <A HREF = "ecoord.html">ecoord</A> command.  The inner
+sum is effectively the coordination number of site I, and the energy
+of site I is modeled as a function of the coordination number.
+</P>
+<P>The relationship between the 3 variants of app_style diffusion is as
+follows.  Styles <I>diffusion</I> and <I>diffusion/table</I> are the same except
+for how events and probabilities are stored and accessed internally.
+Their results should be statistically the same, although not exactly
+the same, due to differences in how events are chosen by random
+numbers.
+</P>
+<P>The style <I>diffusion/nonlinear</I> should give exactly the same answers
+as <I>diffusion/table</I> if the tabulated function specified by the
+<A HREF = "ecoord.html">ecoord</A> command is set up so that E_0 = N, E_1 = N-1,
+... E_N-1 = 1, E_N = 0.  N = the number of neighbors of each lattice
+site, i.e. the maximum coordination number.  In this scenario, the
+energy is a linear function of coordination number, which is
+effectively the model used by the <I>diffusion</I> and <I>diffusion/table</I>
+styles.  Note that while the dynamics of the 2 models will be
+identical, the output energy of the system will be 2x larger in the
+<I>diffusion/table</I> case versus the <I>diffusion/nonlinear</I> case.  This is
+because the first Hamiltonian formulas above double-counts the energy
+of a occupied site neighboring a vacancy site.
+</P>
+<P>Of course, if the specified <A HREF = "ecoord.html">ecoord</A> values are not
+specified as a linear function, then the <I>diffusion/nonlinear</I> style
+will evolve differently.
+</P>
+<HR>
+
+<P>These applications are general lattice application; see the
 <A HREF = "app_style.html">app_style</A> commmand for further discussion.  The
 lattice must be specified by the appended <I>lattice</I> keword with its
 associated values, as discussed on the doc page for the
 <A HREF = "app_style.html">app_style</A> command.
 </P>
 <P>This application performs Kawasaki dynamics, meaning the spins on two
-neighboring sites are swapped or equivalently an atom hops from an
+neighboring sites are swapped.  Equivalently, an atom hops from an
 occupied site to a vacancy site.
 </P>
 <P>As explained on <A HREF = "app_style.html">this page</A>, these applications can be
@@ -58,11 +102,13 @@ and/or KMC solver to be used with the application via the
 <A HREF = "sweep_style.html">sweep_style</A> and <A HREF = "solve_style.html">solve_style</A>
 commands.
 </P>
-<P>For solution by a KMC algorithm, the possible events a site can
-perform are swaps with any neighbor site with a spin different than
-itself.  The probability of each such event is min[1,exp(-dE/kT)],
-where dE = Efinal - Einitial and E is the sum of the energy for the
-site and its neighbor.
+<P>For solution by a KMC algorithm, the possible events an occupied site
+can perform are swaps with vacant neighbor sites The probability of
+each such event is min[1,exp(-dE/kT)], where dE = Efinal - Einitial.
+For the <I>diffusion</I> and <I>diffusion/table</I> styles, E is the sum of the
+energy for the site and its neighbor.  For the <I>diffusion/nonlinear</I>
+style, E is the sum of the energy for the site and its neighbor, and
+also the energy of the neighbors of each of the 2 sites involved.
 </P>
 <P>For solution by a Metropolis algorithm, the spin is flipped to its
 opposite state and dE = Efinal - Einitial is calculated, as is a
@@ -71,10 +117,13 @@ min[1,exp(-dE/kT)], else it is rejected.
 </P>
 <HR>
 
-<P>The following additional commands are defined by this application:
+<P>The following additional commands are defined by these applications.
+The ecoord command is only defined by the <I>diffusion/nonlinear</I>
+application.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD ><A HREF = "dump.html">dump</A> </TD><TD > output of lattice snapshots</TD></TR>
+<TR><TD ><A HREF = "ecoord.html">ecoord</A> </TD><TD > energy as a function of coordination</TD></TR>
 <TR><TD ><A HREF = "stats.html">stats</A> </TD><TD > output of system info</TD></TR>
 <TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature 
 </TD></TR></TABLE></DIV>
@@ -83,7 +132,7 @@ min[1,exp(-dE/kT)], else it is rejected.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "app_ising.html">app_style ising</A>
+<P><A HREF = "app_ising.html">app_style ising</A>, <A HREF = "app_pore.html">app_style pore</A>
 </P>
 <P><B>Default:</B> none
 </P>

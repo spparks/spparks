@@ -1,0 +1,46 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>ecoord command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>ecoord N eng 
+</PRE>
+<UL><LI>N = coordination number
+<LI>eng = energy of site with this coordination number (energy units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>ecoord 8 5.6
+ecoord 0 1.0e20 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command sets the energy of an occupied site in a lattice as a
+function of coordination number, where coordination = the number of
+occupied neighbor sites.  Typically this command should be used Nmax+1
+times with N varying from 0 to Nmax+1, when Nmax is the number of
+neighbor sites for each lattice site.
+</P>
+<P>The <I>eng</I> value should be in the energy units defined by the
+application's Hamiltonian and should be consistent with the units used
+in any <A HREF = "temperature.html">temperature</A> command.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_diffusion.html">app_style diffusion/nonlinear</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>
