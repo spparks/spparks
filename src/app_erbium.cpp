@@ -15,7 +15,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_diffusion_table.h"
+#include "app_erbium.h"
 #include "solve.h"
 #include "random_park.h"
 #include "memory.h"
@@ -25,20 +25,17 @@
 
 using namespace SPPARKS_NS;
 
-enum{ZERO,VACANT,OCCUPIED};
+enum{NOOP,FCC,TETRA,OCTA};
+enum{ZERO,ERBIUM,HYDROGEN,HELIUM,VACANCY};
 #define DELTAEVENT 100000
 
 /* ---------------------------------------------------------------------- */
 
-AppDiffusionTable::AppDiffusionTable(SPPARKS *spk, int narg, char **arg) : 
+AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
   delevent = 1;
-  delpropensity = 2;
-
-  // allow derived classes to invoke their own constructor
-
-  if (strcmp(style,"diffusion/table") != 0) return;
+  delpropensity = 1;
 
   // parse arguments
 
@@ -57,13 +54,23 @@ AppDiffusionTable::AppDiffusionTable(SPPARKS *spk, int narg, char **arg) :
   esites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
   echeck = NULL;
 
+  // assign variable names
+
+  if (ninteger != 2 || ndouble != 0)
+    error->all("Invalid site specification in app_style erbium");
+
+  type = iarray[0];
+  element = iarray[1];
+
   // event list
 
   events = NULL;
   firstevent = NULL;
 
   // initialize my portion of lattice
-  // each site = VACANT or OCCUPIED with fraction OCCUPIED
+  // FCC sites are ERBIUM
+  // OCTA sites are VACANCY
+  // random fraction of TETRA sites are HYDROGEN
   // loop over global list so assignment is independent of # of procs
   // use map to see if I own global site
 
@@ -75,19 +82,24 @@ AppDiffusionTable::AppDiffusionTable(SPPARKS *spk, int narg, char **arg) :
       hash.insert(std::pair<int,int> (id[i],i));
     std::map<int,int>::iterator loc;
     
-    int isite;
+    int itype,flag;
     for (int iglobal = 1; iglobal <= nglobal; iglobal++) {
-      if (random->uniform() < fraction) isite = OCCUPIED;
-      else isite = VACANT;
+      if (random->uniform() < fraction) flag = HYDROGEN;
+      else flag = VACANCY;
       loc = hash.find(iglobal);
-      if (loc != hash.end()) lattice[loc->second] = isite;
+      if (loc != hash.end()) {
+	itype = type[loc->second];
+	if (itype == FCC) element[loc->second] = ERBIUM;
+	else if (itype == OCTA) element[loc->second] = VACANCY;
+	else if (itype == TETRA) element[loc->second] = flag;
+      }
     }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-AppDiffusionTable::~AppDiffusionTable()
+AppErbium::~AppErbium()
 {
   delete random;
   delete [] esites;
@@ -98,7 +110,7 @@ AppDiffusionTable::~AppDiffusionTable()
 
 /* ---------------------------------------------------------------------- */
 
-void AppDiffusionTable::init_app()
+void AppErbium::init_app()
 {
   delete [] echeck;
   echeck = new int[nlocal];
@@ -117,13 +129,9 @@ void AppDiffusionTable::init_app()
    compute energy of site
 ------------------------------------------------------------------------- */
 
-double AppDiffusionTable::site_energy(int i)
+double AppErbium::site_energy(int i)
 {
-  int isite = lattice[i];
-  int eng = 0;
-  for (int j = 0; j < numneigh[i]; j++)
-    if (isite != lattice[neighbor[i][j]]) eng++;
-  return (double) eng;
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -131,7 +139,7 @@ double AppDiffusionTable::site_energy(int i)
    if site cannot change, set mask
 ------------------------------------------------------------------------- */
 
-void AppDiffusionTable::site_event_rejection(int i, RandomPark *random)
+void AppErbium::site_event_rejection(int i, RandomPark *random)
 {
   // event = exchange with random neighbor
 
@@ -165,26 +173,26 @@ void AppDiffusionTable::site_event_rejection(int i, RandomPark *random)
    propensity for one event is based on einitial,efinal
 ------------------------------------------------------------------------- */
 
-double AppDiffusionTable::site_propensity(int i)
+double AppErbium::site_propensity(int i)
 {
   int j;
 
-  // possible events = OCCUPIED site exchanges with adjacent VACANT site
+  // possible events from tabulated list
 
   clear_events(i);
 
-  if (lattice[i] == VACANT) return 0.0;
+  if (element[i] != ERBIUM) return 0.0;   // not correct, should allow all sites to have events, ERBIUM only handles 2-hop exchange events
 
   double einitial,efinal,probone;
   double proball = 0.0;
 
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
     j = neighbor[i][ineigh];
-    if (lattice[j] == VACANT) {
+    if (lattice[j] == VACANCY) {
       einitial = site_energy(i) + site_energy(j);
 
-      lattice[i] = VACANT;
-      lattice[j] = OCCUPIED;
+//      lattice[i] = VACANT;
+//      lattice[j] = OCCUPIED;
       efinal = site_energy(i) + site_energy(j);
 
       if (efinal <= einitial) probone = 1.0;
@@ -192,12 +200,15 @@ double AppDiffusionTable::site_propensity(int i)
       else probone = 0.0;
 
       if (probone > 0.0) {
+
+	// also put event ID into event list?
+
 	add_event(i,j,probone);
 	proball += probone;
       }
 
-      lattice[i] = OCCUPIED;
-      lattice[j] = VACANT;
+      //      lattice[i] = OCCUPIED;
+      // lattice[j] = VACANT;
     }
   }
 
@@ -210,7 +221,7 @@ double AppDiffusionTable::site_propensity(int i)
    ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
-void AppDiffusionTable::site_event(int i, class RandomPark *random)
+void AppErbium::site_event(int i, class RandomPark *random)
 {
   int j,jj,k,kk,m,mm;
 
@@ -229,8 +240,8 @@ void AppDiffusionTable::site_event(int i, class RandomPark *random)
   }
 
   j = events[ievent].partner;
-  lattice[i] = VACANT;
-  lattice[j] = OCCUPIED;
+  //  lattice[i] = VACANT;
+  //lattice[j] = OCCUPIED;
 
   // compute propensity changes for self and swap site and their 1,2 neighs
   // use echeck[] to avoid resetting propensity of same site
@@ -299,7 +310,7 @@ void AppDiffusionTable::site_event(int i, class RandomPark *random)
    add cleared events to free list
 ------------------------------------------------------------------------- */
 
-void AppDiffusionTable::clear_events(int i)
+void AppErbium::clear_events(int i)
 {
   int next;
   int index = firstevent[i];
@@ -318,7 +329,7 @@ void AppDiffusionTable::clear_events(int i)
    event = exchange with site J with probability = propensity
 ------------------------------------------------------------------------- */
 
-void AppDiffusionTable::add_event(int i, int partner, double propensity)
+void AppErbium::add_event(int i, int partner, double propensity)
 {
   // grow event list and setup free list
 

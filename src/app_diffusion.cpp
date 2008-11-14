@@ -16,7 +16,6 @@
 #include "string.h"
 #include "stdlib.h"
 #include "app_diffusion.h"
-#include "comm_lattice.h"
 #include "solve.h"
 #include "random_park.h"
 #include "memory.h"

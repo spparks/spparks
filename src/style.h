@@ -16,6 +16,7 @@
 #include "app_diffusion.h"
 #include "app_diffusion_table.h"
 #include "app_diffusion_nonlinear.h"
+#include "app_erbium.h"
 #include "app_ising.h"
 #include "app_ising_2d_4n.h"
 #include "app_ising_2d_4n_exchange.h"
@@ -42,6 +43,7 @@ AppStyle(chemistry,AppChemistry)
 AppStyle(diffusion,AppDiffusion)
 AppStyle(diffusion/table,AppDiffusionTable)
 AppStyle(diffusion/nonlinear,AppDiffusionNonLinear)
+AppStyle(erbium,AppErbium)
 AppStyle(ising,AppIsing)
 AppStyle(ising/2d/4n,AppIsing2d4n)
 AppStyle(ising/2d/4n/exchange,AppIsing2d4nExchange)
