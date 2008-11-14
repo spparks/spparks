@@ -226,7 +226,7 @@ fp = open(latfile,"w")
 print >>fp,\
       "Erbium 3-fold lattice for %d by %d by %d cubic unit cells" % (nx,ny,nz)
 print >>fp
-print >>fp,3."dimension"
+print >>fp,3,"dimension"
 print >>fp,len(xyz),"vertices"
 print >>fp,maxconn,"max connectivity"
 print >>fp,0,nx,"xlo xhi"
