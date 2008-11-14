@@ -32,11 +32,19 @@ class AppErbium : public AppLattice {
  private:
   int *type,*element;      // variables on each lattice site
 
-  int *esites;
-  int *echeck;
+  int *sites;
+
+  int nsingle,ndouble,ntriple;
+  double *srate,*drate,*trate;
+  double *spropensity,*dpropensity,*tpropensity;
+  int *stype,**dtype,**ttype;
+  int *sinput,**dinput,**tinput;
+  int *soutput,**doutput,**toutput;
 
   struct Event {           // one event for an owned site
-    int partner;           // local ID of exchange partner
+    int type;              // reaction type = 1,2,3 for single,double,triple
+    int which;             // which reaction of this type
+    int jpartner,kpartner; // which J,K neighbors of I are part of event
     int next;              // index of next event for this site
     double propensity;     // propensity of this event
   };
@@ -48,7 +56,7 @@ class AppErbium : public AppLattice {
   int freeevent;           // index of 1st unused event in list
 
   void clear_events(int);
-  void add_event(int, int, double);
+  void add_event(int, int, int, double, int, int);
 };
 
 }

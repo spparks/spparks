@@ -48,11 +48,10 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
   options(narg-3,&arg[3]);
 
   // define lattice and partition it across processors
-  // esites must be large enough for 2 sites and 1st/2nd nearest neighbors
+  // sites must be large enough for self and 1st neighbors
 
   create_lattice();
-  esites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
-  echeck = NULL;
+  sites = new int[1 + maxneigh];
 
   // assign variable names
 
@@ -102,8 +101,7 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
 AppErbium::~AppErbium()
 {
   delete random;
-  delete [] esites;
-  delete [] echeck;
+  delete [] sites;
   memory->sfree(events);
   memory->sfree(firstevent);
 }
@@ -112,10 +110,6 @@ AppErbium::~AppErbium()
 
 void AppErbium::init_app()
 {
-  delete [] echeck;
-  echeck = new int[nlocal];
-  for (int i = 0; i < nlocal; i++) echeck[i] = 0;
-
   memory->sfree(events);
   memory->sfree(firstevent);
 
@@ -170,47 +164,50 @@ void AppErbium::site_event_rejection(int i, RandomPark *random)
 
 /* ----------------------------------------------------------------------
    compute total propensity of owned site summed over possible events
-   propensity for one event is based on einitial,efinal
+   propensity for each possible event is input by user
 ------------------------------------------------------------------------- */
 
 double AppErbium::site_propensity(int i)
 {
-  int j;
+  int j,k,m;
 
   // possible events from tabulated list
 
   clear_events(i);
 
-  if (element[i] != ERBIUM) return 0.0;   // not correct, should allow all sites to have events, ERBIUM only handles 2-hop exchange events
-
-  double einitial,efinal,probone;
   double proball = 0.0;
 
-  for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
-    j = neighbor[i][ineigh];
-    if (lattice[j] == VACANCY) {
-      einitial = site_energy(i) + site_energy(j);
+  // single-site events
 
-//      lattice[i] = VACANT;
-//      lattice[j] = OCCUPIED;
-      efinal = site_energy(i) + site_energy(j);
-
-      if (efinal <= einitial) probone = 1.0;
-      else if (temperature > 0.0) probone = exp((einitial-efinal)*t_inverse);
-      else probone = 0.0;
-
-      if (probone > 0.0) {
-
-	// also put event ID into event list?
-
-	add_event(i,j,probone);
-	proball += probone;
-      }
-
-      //      lattice[i] = OCCUPIED;
-      // lattice[j] = VACANT;
-    }
+  for (m = 0; m < nsingle; m++) {
+    if (type[i] != stype[m] || element[i] != sinput[m]) continue;
+    add_event(i,1,m,spropensity[m],-1,-1);
+    proball += propensity[m];
   }
+
+  // double-site events
+
+  for (int j = 0; j < numneigh[i]; j++)
+    for (m = 0; m < ndouble; m++) {
+      if (type[i] != dtype[m][0] || element[i] != dinput[m][0]) continue;
+      if (type[j] != dtype[m][1] || element[j] != dinput[m][1]) continue;
+      add_event(i,2,m,dpropensity[m],j,-1);
+      proball += dpropensity[m];
+    }
+
+  // triple-site events
+
+  for (int j = 0; j < numneigh[i]; j++)
+    for (int k = 0; k < numneigh[i]; k++) {
+      if (j == k) continue;
+      for (m = 0; m < ntriple; m++) {
+	if (type[i] != ttype[m][0] || element[i] != tinput[m][0]) continue;
+	if (type[j] != ttype[m][1] || element[j] != tinput[m][1]) continue;
+	if (type[k] != ttype[m][2] || element[k] != tinput[m][2]) continue;
+	add_event(i,3,m,tpropensity[m],j,k);
+	proball += tpropensity[m];
+      }
+    }
 
   return proball;
 }
@@ -223,11 +220,10 @@ double AppErbium::site_propensity(int i)
 
 void AppErbium::site_event(int i, class RandomPark *random)
 {
-  int j,jj,k,kk,m,mm;
+  int j,k,m;
 
   // pick one event from total propensity for this site
   // compare prob to threshhold, break when reach it to select event
-  // perform event
 
   double threshhold = random->uniform() * propensity[i2site[i]];
   double proball = 0.0;
@@ -239,70 +235,41 @@ void AppErbium::site_event(int i, class RandomPark *random)
     ievent = events[ievent].next;
   }
 
-  j = events[ievent].partner;
-  //  lattice[i] = VACANT;
-  //lattice[j] = OCCUPIED;
+  // perform single, double, or triple event
 
-  // compute propensity changes for self and swap site and their 1,2 neighs
-  // use echeck[] to avoid resetting propensity of same site
-  // loop over neighbors of site even if site itself is out of sector
+  int type = events[ievent].type;
+  int which = events[ievent].which;
+  j = events[ievent].jpartner;
+  k = events[ievent].kpartner;
+
+  if (type == 1) {
+    element[i] = soutput[which];
+  } else if (type == 2) {
+    element[i] = doutput[which][0];
+    element[neighbor[i][j]] = doutput[which][1];
+  } else {
+    element[i] = doutput[which][0];
+    element[neighbor[i][j]] = toutput[which][1];
+    element[neighbor[i][k]] = toutput[which][2];
+  }
+
+  // compute propensity changes for self and my first neighbors
 
   int nsites = 0;
   int isite = i2site[i];
   propensity[isite] = site_propensity(i);
-  esites[nsites++] = isite;
-  echeck[isite] = 1;
+  sites[nsites++] = isite;
 
-  isite = i2site[j];
-  if (isite >= 0) {
-    propensity[isite] = site_propensity(j);
-    esites[nsites++] = isite;
-    echeck[isite] = 1;
-  }
-
-  for (k = 0; k < numneigh[i]; k++) {
-    m = neighbor[i][k];
+  for (j = 0; j < numneigh[i]; j++) {
+    m = neighbor[i][j];
     isite = i2site[m];
-    if (isite >= 0 && echeck[isite] == 0) {
+    if (isite >= 0) {
       propensity[isite] = site_propensity(m);
-      esites[nsites++] = isite;
-      echeck[isite] = 1;
-    }
-    for (kk = 0; kk < numneigh[m]; kk++) {
-      mm = neighbor[m][kk];
-      isite = i2site[mm];
-      if (isite >= 0 && echeck[isite] == 0) {
-	propensity[isite] = site_propensity(mm);
-	esites[nsites++] = isite;
-	echeck[isite] = 1;
-      }
+      sites[nsites++] = isite;
     }
   }
 
-  for (k = 0; k < numneigh[j]; k++) {
-    m = neighbor[j][k];
-    isite = i2site[m];
-    if (isite >= 0 && echeck[isite] == 0) {
-      propensity[isite] = site_propensity(m);
-      esites[nsites++] = isite;
-      echeck[isite] = 1;
-    }
-    for (kk = 0; kk < numneigh[m]; kk++) {
-      mm = neighbor[m][kk];
-      isite = i2site[mm];
-      if (isite >= 0 && echeck[isite] == 0) {
-	propensity[isite] = site_propensity(mm);
-	esites[nsites++] = isite;
-	echeck[isite] = 1;
-      }
-    }
-  }
-
-  solve->update(nsites,esites,propensity);
-
-  // clear echeck array
-
-  for (m = 0; m < nsites; m++) echeck[esites[m]] = 0;
+  solve->update(nsites,sites,propensity);
 }
 
 /* ----------------------------------------------------------------------
@@ -329,7 +296,8 @@ void AppErbium::clear_events(int i)
    event = exchange with site J with probability = propensity
 ------------------------------------------------------------------------- */
 
-void AppErbium::add_event(int i, int partner, double propensity)
+void AppErbium::add_event(int i, int type, int which, double propensity,
+			  int jpartner, int kpartner)
 {
   // grow event list and setup free list
 
@@ -342,9 +310,14 @@ void AppErbium::add_event(int i, int partner, double propensity)
   }
 
   int next = events[freeevent].next;
-  events[freeevent].partner = partner;
-  events[freeevent].next = firstevent[i];
+
+  events[freeevent].type = type;
+  events[freeevent].which = which;
+  events[freeevent].jpartner = jpartner;
+  events[freeevent].kpartner = kpartner;
   events[freeevent].propensity = propensity;
+
+  events[freeevent].next = firstevent[i];
   firstevent[i] = freeevent;
   freeevent = next;
   nevents++;
