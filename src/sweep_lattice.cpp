@@ -96,8 +96,6 @@ SweepLattice::SweepLattice(SPPARKS *spk, int narg, char **arg) :
 
   if (Lkmc && (Lmask || Lstrict))
       error->all("Invalid combination of sweep flags");
-  if (Ladapt && !Lkmc)
-      error->all("Invalid combination of sweep flags");
 
   if (Lkmc) sweeper = &SweepLattice::sweep_sector_kmc;
   else {
