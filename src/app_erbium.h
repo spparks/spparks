@@ -55,8 +55,10 @@ class AppErbium : public AppLattice {
   int *firstevent;         // index of 1st event for each owned site
   int freeevent;           // index of 1st unused event in list
 
+  void input_app(char *, int, char **);
   void clear_events(int);
   void add_event(int, int, int, double, int, int);
+  void grow_reactions(int);
 };
 
 }

@@ -36,6 +36,7 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
 {
   delevent = 1;
   delpropensity = 1;
+  allow_metropolis = 0;
 
   // parse arguments
 
@@ -66,7 +67,18 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
   events = NULL;
   firstevent = NULL;
 
+  // reaction lists
+
+  nsingle = ndouble = ntriple = 0;
+  srate = drate = trate = NULL;
+  spropensity = dpropensity = tpropensity = NULL;
+  stype = sinput = soutput = NULL;
+  dtype = dinput = doutput = NULL;
+  ttype = tinput = toutput = NULL;
+
   // initialize my portion of lattice
+  // type (FCC,OCTA,TETRA) is determined by global site ID
+  // 16 sites/unit cell: 1st 4 are FCC, 2nd 4 are OCTA, last 8 are TETRA
   // FCC sites are ERBIUM
   // OCTA sites are VACANCY
   // random fraction of TETRA sites are HYDROGEN
@@ -81,13 +93,17 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
       hash.insert(std::pair<int,int> (id[i],i));
     std::map<int,int>::iterator loc;
     
-    int itype,flag;
+    int ibasis,itype,flag;
     for (int iglobal = 1; iglobal <= nglobal; iglobal++) {
       if (random->uniform() < fraction) flag = HYDROGEN;
       else flag = VACANCY;
       loc = hash.find(iglobal);
       if (loc != hash.end()) {
-	itype = type[loc->second];
+	ibasis = iglobal % 16;
+	if (ibasis < 4) itype = FCC;
+	else if (ibasis < 8) itype = OCTA;
+	else itype = TETRA;
+	type[loc->second] = itype;
 	if (itype == FCC) element[loc->second] = ERBIUM;
 	else if (itype == OCTA) element[loc->second] = VACANCY;
 	else if (itype == TETRA) element[loc->second] = flag;
@@ -104,6 +120,134 @@ AppErbium::~AppErbium()
   delete [] sites;
   memory->sfree(events);
   memory->sfree(firstevent);
+
+  memory->sfree(srate);
+  memory->sfree(drate);
+  memory->sfree(trate);
+  memory->sfree(spropensity);
+  memory->sfree(dpropensity);
+  memory->sfree(tpropensity);
+  memory->sfree(stype);
+  memory->sfree(sinput);
+  memory->sfree(soutput);
+  memory->destroy_2d_int_array(dtype);
+  memory->destroy_2d_int_array(dinput);
+  memory->destroy_2d_int_array(doutput);
+  memory->destroy_2d_int_array(ttype);
+  memory->destroy_2d_int_array(tinput);
+  memory->destroy_2d_int_array(toutput);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppErbium::input_app(char *command, int narg, char **arg)
+{
+  if (strcmp(command,"event") == 0) {
+    if (narg < 1) error->all("Illegal event command");
+    int which = atoi(arg[0]);
+    grow_reactions(which);
+
+    if (which == 1) {
+      if (narg != 5) error->all("Illegal event command");
+
+      if (strcmp(arg[1],"fcc") == 0) stype[nsingle] = FCC;
+      else if (strcmp(arg[1],"oct") == 0) stype[nsingle] = OCTA;
+      else if (strcmp(arg[1],"tet") == 0) stype[nsingle] = TETRA;
+      else error->all("Illegal event command");
+      if (strcmp(arg[2],"er") == 0) sinput[nsingle] = ERBIUM;
+      else if (strcmp(arg[2],"h") == 0) sinput[nsingle] = HYDROGEN;
+      else if (strcmp(arg[2],"he") == 0) sinput[nsingle] = HELIUM;
+      else error->all("Illegal event command");
+
+      srate[nsingle] = atof(arg[3]);
+
+      if (strcmp(arg[4],"er") == 0) soutput[nsingle] = ERBIUM;
+      else if (strcmp(arg[4],"h") == 0) soutput[nsingle] = HYDROGEN;
+      else if (strcmp(arg[4],"he") == 0) soutput[nsingle] = HELIUM;
+      else error->all("Illegal event command");
+
+      nsingle++;
+      
+    } else if (which == 2) {
+      if (narg != 8) error->all("Illegal event command");
+
+      if (strcmp(arg[1],"fcc") == 0) dtype[ndouble][0] = FCC;
+      else if (strcmp(arg[1],"oct") == 0) dtype[ndouble][0] = OCTA;
+      else if (strcmp(arg[1],"tet") == 0) dtype[ndouble][0] = TETRA;
+      else error->all("Illegal event command");
+      if (strcmp(arg[2],"fcc") == 0) dtype[ndouble][1] = FCC;
+      else if (strcmp(arg[2],"oct") == 0) dtype[ndouble][1] = OCTA;
+      else if (strcmp(arg[2],"tet") == 0) dtype[ndouble][1] = TETRA;
+      else error->all("Illegal event command");
+      if (strcmp(arg[3],"er") == 0) dinput[ndouble][0] = ERBIUM;
+      else if (strcmp(arg[3],"h") == 0) dinput[ndouble][0] = HYDROGEN;
+      else if (strcmp(arg[3],"he") == 0) dinput[ndouble][0] = HELIUM;
+      else error->all("Illegal event command");
+      if (strcmp(arg[4],"er") == 0) dinput[ndouble][1] = ERBIUM;
+      else if (strcmp(arg[4],"h") == 0) dinput[ndouble][1] = HYDROGEN;
+      else if (strcmp(arg[4],"he") == 0) dinput[ndouble][1] = HELIUM;
+      else error->all("Illegal event command");
+
+      drate[ndouble] = atof(arg[5]);
+
+      if (strcmp(arg[6],"er") == 0) doutput[ndouble][0] = ERBIUM;
+      else if (strcmp(arg[6],"h") == 0) doutput[ndouble][0] = HYDROGEN;
+      else if (strcmp(arg[6],"he") == 0) doutput[ndouble][0] = HELIUM;
+      else error->all("Illegal event command");
+      if (strcmp(arg[7],"er") == 0) doutput[ndouble][1] = ERBIUM;
+      else if (strcmp(arg[7],"h") == 0) doutput[ndouble][1] = HYDROGEN;
+      else if (strcmp(arg[7],"he") == 0) doutput[ndouble][1] = HELIUM;
+      else error->all("Illegal event command");
+
+      ndouble++;
+
+    } else if (which == 3) {
+      if (narg != 11) error->all("Illegal event command");
+
+      if (strcmp(arg[1],"fcc") == 0) ttype[ntriple][0] = FCC;
+      else if (strcmp(arg[1],"oct") == 0) ttype[ntriple][0] = OCTA;
+      else if (strcmp(arg[1],"tet") == 0) ttype[ntriple][0] = TETRA;
+      else error->all("Illegal event command");
+      if (strcmp(arg[2],"fcc") == 0) ttype[ntriple][1] = FCC;
+      else if (strcmp(arg[2],"oct") == 0) ttype[ntriple][1] = OCTA;
+      else if (strcmp(arg[2],"tet") == 0) ttype[ntriple][1] = TETRA;
+      else error->all("Illegal event command");
+      if (strcmp(arg[3],"fcc") == 0) ttype[ntriple][2] = FCC;
+      else if (strcmp(arg[3],"oct") == 0) ttype[ntriple][2] = OCTA;
+      else if (strcmp(arg[3],"tet") == 0) ttype[ntriple][2] = TETRA;
+      else error->all("Illegal event command");
+      if (strcmp(arg[4],"er") == 0) tinput[ntriple][0] = ERBIUM;
+      else if (strcmp(arg[4],"h") == 0) tinput[ntriple][0] = HYDROGEN;
+      else if (strcmp(arg[4],"he") == 0) tinput[ntriple][0] = HELIUM;
+      else error->all("Illegal event command");
+      if (strcmp(arg[5],"er") == 0) tinput[ntriple][1] = ERBIUM;
+      else if (strcmp(arg[5],"h") == 0) tinput[ntriple][1] = HYDROGEN;
+      else if (strcmp(arg[5],"he") == 0) tinput[ntriple][1] = HELIUM;
+      else error->all("Illegal event command");
+      if (strcmp(arg[6],"er") == 0) tinput[ntriple][2] = ERBIUM;
+      else if (strcmp(arg[6],"h") == 0) tinput[ntriple][2] = HYDROGEN;
+      else if (strcmp(arg[6],"he") == 0) tinput[ntriple][2] = HELIUM;
+      else error->all("Illegal event command");
+
+      trate[ntriple] = atof(arg[7]);
+
+      if (strcmp(arg[8],"er") == 0) toutput[ntriple][0] = ERBIUM;
+      else if (strcmp(arg[8],"h") == 0) toutput[ntriple][0] = HYDROGEN;
+      else if (strcmp(arg[8],"he") == 0) toutput[ntriple][0] = HELIUM;
+      else error->all("Illegal event command");
+      if (strcmp(arg[9],"er") == 0) toutput[ntriple][1] = ERBIUM;
+      else if (strcmp(arg[9],"h") == 0) toutput[ntriple][1] = HYDROGEN;
+      else if (strcmp(arg[9],"he") == 0) toutput[ntriple][1] = HELIUM;
+      else error->all("Illegal event command");
+      if (strcmp(arg[10],"er") == 0) toutput[ntriple][2] = ERBIUM;
+      else if (strcmp(arg[10],"h") == 0) toutput[ntriple][2] = HYDROGEN;
+      else if (strcmp(arg[10],"he") == 0) toutput[ntriple][2] = HELIUM;
+      else error->all("Illegal event command");
+
+      ntriple++;
+
+    } else error->all("Illegal event command");
+  } else error->all("Unrecognized command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,31 +279,6 @@ double AppErbium::site_energy(int i)
 
 void AppErbium::site_event_rejection(int i, RandomPark *random)
 {
-  // event = exchange with random neighbor
-
-  int iran = (int) (numneigh[i]*random->uniform());
-  if (iran >= numneigh[i]) iran = numneigh[i] - 1;
-  int j = neighbor[i][iran];
-
-  double einitial = site_energy(i) + site_energy(j);
-
-  int mystate = lattice[i];
-  int neighstate = lattice[j];
-  lattice[i] = neighstate;
-  lattice[j] = mystate;
-
-  double efinal = site_energy(i) + site_energy(j);
-
-  // accept or reject the event
-
-  if (efinal <= einitial) {
-  } else if (temperature == 0.0) {
-    lattice[i] = mystate;
-    lattice[j] = neighstate;
-  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
-    lattice[i] = mystate;
-    lattice[j] = neighstate;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -253,7 +372,7 @@ void AppErbium::site_event(int i, class RandomPark *random)
     element[neighbor[i][k]] = toutput[which][2];
   }
 
-  // compute propensity changes for self and my first neighbors
+  // compute propensity changes for participating sites and first neighbors
 
   int nsites = 0;
   int isite = i2site[i];
@@ -322,3 +441,45 @@ void AppErbium::add_event(int i, int type, int which, double propensity,
   freeevent = next;
   nevents++;
 }
+
+/* ----------------------------------------------------------------------
+   grow list of stored reactions for single, double, or triple
+------------------------------------------------------------------------- */
+
+void AppErbium::grow_reactions(int which)
+{
+  if (which == 1) {
+    int n = nsingle + 1;
+    srate = (double *) 
+      memory->srealloc(srate,n*sizeof(double),"app/erbium:srate");
+    spropensity = (double *) 
+      memory->srealloc(spropensity,n*sizeof(double),"app/erbium:spropensity");
+    stype = (int *) 
+      memory->srealloc(stype,n*sizeof(int),"app/erbium:stype");
+    sinput = (int *) 
+      memory->srealloc(sinput,n*sizeof(int),"app/erbium:sinput");
+    soutput = (int *) 
+      memory->srealloc(soutput,n*sizeof(int),"app/erbium:soutput");
+
+  } else if (which == 2) {
+    int n = ndouble + 1;
+    drate = (double *) 
+      memory->srealloc(drate,n*sizeof(double),"app/erbium:drate");
+    dpropensity = (double *) 
+      memory->srealloc(dpropensity,n*sizeof(double),"app/erbium:dpropensity");
+    dtype = memory->grow_2d_int_array(dtype,n,2,"app/erbium:dtype");
+    dinput = memory->grow_2d_int_array(dinput,n,2,"app/erbium:dinput");
+    doutput = memory->grow_2d_int_array(doutput,n,2,"app/erbium:doutput");
+
+  } else if (which == 3) {
+    int n = ntriple + 1;
+    trate = (double *) 
+      memory->srealloc(trate,n*sizeof(double),"app/erbium:trate");
+    tpropensity = (double *) 
+      memory->srealloc(tpropensity,n*sizeof(double),"app/erbium:tpropensity");
+    ttype = memory->grow_2d_int_array(ttype,n,2,"app/erbium:ttype");
+    tinput = memory->grow_2d_int_array(tinput,n,2,"app/erbium:tinput");
+    toutput = memory->grow_2d_int_array(toutput,n,2,"app/erbium:toutput");
+  }
+}
+

@@ -36,6 +36,7 @@ AppDiffusionNonLinear(SPPARKS *spk, int narg, char **arg) :
 {
   delevent = 1;
   delpropensity = 3;
+  allow_metropolis = 0;
 
   // allow derived classes to invoke their own constructor
 
@@ -321,25 +322,20 @@ void AppDiffusionNonLinear::site_event(int i, class RandomPark *random)
 
   // compute propensity changes for self and swap site and their 1,2,3 neighs
   // use echeck[] to avoid resetting propensity of same site
-  // loop over neighbors of site even if site itself is out of sector
+  // do not loop over neighbors of any out-of-sector sites
 
   int nsites = 0;
+
   isite = i2site[i];
   propensity[isite] = site_propensity(i);
   esites[nsites++] = isite;
   echeck[isite] = 1;
 
-  isite = i2site[j];
-  if (isite >= 0) {
-    propensity[isite] = site_propensity(j);
-    esites[nsites++] = isite;
-    echeck[isite] = 1;
-  }
-
   for (k = 0; k < numneigh[i]; k++) {
     m = neighbor[i][k];
     isite = i2site[m];
-    if (isite >= 0 && echeck[isite] == 0) {
+    if (isite < 0) continue;
+    if (echeck[isite] == 0) {
       propensity[isite] = site_propensity(m);
       esites[nsites++] = isite;
       echeck[isite] = 1;
@@ -347,7 +343,8 @@ void AppDiffusionNonLinear::site_event(int i, class RandomPark *random)
     for (kk = 0; kk < numneigh[m]; kk++) {
       mm = neighbor[m][kk];
       isite = i2site[mm];
-      if (isite >= 0 && echeck[isite] == 0) {
+      if (isite < 0) continue;
+      if (echeck[isite] == 0) {
 	propensity[isite] = site_propensity(mm);
 	esites[nsites++] = isite;
 	echeck[isite] = 1;
@@ -355,7 +352,8 @@ void AppDiffusionNonLinear::site_event(int i, class RandomPark *random)
       for (kkk = 0; kkk < numneigh[mm]; kkk++) {
 	mmm = neighbor[mm][kkk];
 	isite = i2site[mmm];
-	if (isite >= 0 && echeck[isite] == 0) {
+	if (isite < 0) continue;
+	if (echeck[isite] == 0) {
 	  propensity[isite] = site_propensity(mmm);
 	  esites[nsites++] = isite;
 	  echeck[isite] = 1;
@@ -364,29 +362,39 @@ void AppDiffusionNonLinear::site_event(int i, class RandomPark *random)
     }
   }
 
-  for (k = 0; k < numneigh[j]; k++) {
-    m = neighbor[j][k];
-    isite = i2site[m];
-    if (isite >= 0 && echeck[isite] == 0) {
-      propensity[isite] = site_propensity(m);
-      esites[nsites++] = isite;
-      echeck[isite] = 1;
-    }
-    for (kk = 0; kk < numneigh[m]; kk++) {
-      mm = neighbor[m][kk];
-      isite = i2site[mm];
-      if (isite >= 0 && echeck[isite] == 0) {
-	propensity[isite] = site_propensity(mm);
+  isite = i2site[j];
+  if (isite >= 0) {
+    propensity[isite] = site_propensity(j);
+    esites[nsites++] = isite;
+    echeck[isite] = 1;
+
+    for (k = 0; k < numneigh[j]; k++) {
+      m = neighbor[j][k];
+      isite = i2site[m];
+      if (isite < 0) continue;
+      if (echeck[isite] == 0) {
+	propensity[isite] = site_propensity(m);
 	esites[nsites++] = isite;
 	echeck[isite] = 1;
       }
-      for (kkk = 0; kkk < numneigh[mm]; kkk++) {
-	mmm = neighbor[mm][kkk];
-	isite = i2site[mmm];
-	if (isite >= 0 && echeck[isite] == 0) {
-	  propensity[isite] = site_propensity(mmm);
+      for (kk = 0; kk < numneigh[m]; kk++) {
+	mm = neighbor[m][kk];
+	isite = i2site[mm];
+	if (isite < 0) continue;
+	if (echeck[isite] == 0) {
+	  propensity[isite] = site_propensity(mm);
 	  esites[nsites++] = isite;
 	  echeck[isite] = 1;
+	}
+	for (kkk = 0; kkk < numneigh[mm]; kkk++) {
+	  mmm = neighbor[mm][kkk];
+	  isite = i2site[mmm];
+	  if (isite < 0) continue;
+	  if (echeck[isite] == 0) {
+	    propensity[isite] = site_propensity(mmm);
+	    esites[nsites++] = isite;
+	    echeck[isite] = 1;
+	  }
 	}
       }
     }

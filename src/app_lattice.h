@@ -68,6 +68,8 @@ class AppLattice : public App {
   int delpropensity;           // # of sites away needed to compute propensity
   int delevent;                // # of sites away affected by an event
   int numrandom;               // # of RN used by rejection routine
+  int allow_metropolis;        // 1 if site_event_rejection() is implemented
+  int allow_kmc;               // 1 if s_event() and s_propensity() implemented
 
   bool Lmask;                  // from sweeper
   char *mask;

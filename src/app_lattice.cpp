@@ -71,6 +71,8 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   delpropensity = 1;
   delevent = 0;
   numrandom = 1;
+  allow_metropolis = 1;
+  allow_kmc = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1214,7 +1216,14 @@ void AppLattice::init()
     error->all("Cannot use solver with non-KMC sweeper");
 
   if (solve && sweep == NULL && nprocs > 1)
-    error->all("Cannot use solver in parallel");
+    error->all("Cannot use solver in parallel without KMC sweeper");
+
+  if (sweep && ((SweepLattice*) sweep)->Lkmc == false && 
+      allow_metropolis == 0)
+    error->all("Metropolis events are not implemented in app");
+
+  if (solve && allow_kmc == 0)
+    error->all("KMC events are not implemented in app");
 
   // app-specific initialization
 
