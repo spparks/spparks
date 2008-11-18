@@ -178,8 +178,9 @@ Initialization commands:
 Application-specific commands:
 
 "add_reaction"_add_reaction.html, "add_species"_add_species.html,
-"count"_count.html, "ecoord"_ecoord.html, "inclusion"_inclusion.html,
-"temperature"_temperature.html, "volume"_volume.html
+"count"_count.html, "ecoord"_ecoord.html, "event"_event.html,
+"inclusion"_inclusion.html, "temperature"_temperature.html,
+"volume"_volume.html
 
 Output commands:
 
@@ -219,6 +220,7 @@ Restrictions in the command's documentation.
 "dump"_dump.html,
 "echo"_echo.html,
 "ecoord"_ecoord.html,
+"event"_event.html,
 "if"_if.html,
 "include"_include.html,
 "inclusion"_inclusion.html,
@@ -246,6 +248,7 @@ full description:
 "diffusion"_app_diffusion.html,
 "diffusion/table"_app_diffusion.html,
 "diffusion/nonlinear"_app_diffusion.html,
+"erbium"_app_erbium.html,
 "ising"_app_ising.html,
 "membrane"_app_membrane.html,
 "pore"_app_pore.html,

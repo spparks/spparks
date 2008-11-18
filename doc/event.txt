@@ -1,0 +1,43 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+event command :h3
+
+[Syntax:]
+
+event N eng :pre
+
+N = coordination number
+eng = energy of site with this coordination number (energy units) :ul
+
+[Examples:]
+
+ecoord 8 5.6
+ecoord 0 1.0e20 :pre
+
+[Description:]
+
+This command defines an event for the "app_style erbium" application.
+
+sets the energy of an occupied site in a lattice as a
+function of coordination number, where coordination = the number of
+occupied neighbor sites.  Typically this command should be used Nmax+1
+times with N varying from 0 to Nmax+1, when Nmax is the number of
+neighbor sites for each lattice site.
+
+The {eng} value should be in the energy units defined by the
+application's Hamiltonian and should be consistent with the units used
+in any "temperature"_temperature.html command.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"app_style diffusion/nonlinear"_app_diffusion.html
+
+[Default:] none

@@ -17,12 +17,13 @@
 </PRE>
 <UL><LI>delta = time increment between dumps (seconds)
 <LI>filename = name of file to dump snapshots to
-<LI>keyword = <I>id</I> or <I>lattice</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>energy</I> or <I>propensity</I> 
+<LI>keyword = <I>id</I> or <I>lattice</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>energy</I> or <I>propensity</I> or <I>iN</I> or <I>dN</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>dump 0.25 tmp.dump
-dump 5.0 snap.ising id lattice energy 
+dump 5.0 snap.ising id lattice energy
+dump 5.0 snap.erbium id i1 i2 x y z 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -39,14 +40,21 @@ toolkit</A>, converted to other formats, or used for visualization.
 <P>If keywords are listed then only those quantities will be printed for
 each lattice site.
 </P>
-<P>The <I>id</I> is a unique integer ID for each site.  The <I>lattice</I> value is
-typically the integer state of the lattice, e.g. the spin value.  The
-<I>x</I>, <I>y</I>, <I>z</I> values are the coordinates assigned to the lattice site.
-The <I>energy</I> value is what is computed by the energy() function in the
-application.  Likewise for the <I>propensity</I> value which can be thought
-of as the relative probablity for that site to perform a KMC event.
-Note that if you are doing Metropolis MC and not kinetic MC, no
-propensity is defined.
+<P>The <I>id</I> is a unique integer ID for each site.
+</P>
+<P>The <I>lattice</I> value is typically the integer state of the lattice,
+e.g. the spin value, assuming the application uses the lattice array.
+Some applications store multiple values per lattice site; see the
+<I>site</I> option of the <A HREF = "app_style.html">app_style</A> command.  You can
+specify these values be dumped as <I>iN</I> or <I>dN</I>, where i = integer, d =
+double, and N = which value to print (1,2,3,...).
+</P>
+<P>The <I>x</I>, <I>y</I>, <I>z</I> values are the coordinates assigned to the lattice
+site.  The <I>energy</I> value is what is computed by the energy() function
+in the application.  Likewise for the <I>propensity</I> value which can be
+thought of as the relative probablity for that site to perform a KMC
+event.  Note that if you are doing Metropolis MC and not kinetic MC,
+no propensity is defined.
 </P>
 <P>When running in parallel, the order of sites as printed to the dump
 file will be in chunks by processor, not ordered by ID.  The order
