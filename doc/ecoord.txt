@@ -32,7 +32,11 @@ The {eng} value should be in the energy units defined by the
 application's Hamiltonian and should be consistent with the units used
 in any "temperature"_temperature.html command.
 
-[Restrictions:] none
+[Restrictions:]
+
+This command can only be used as part of the "app_style
+diffusion/nonlinear"_app_diffusion_nonlinear.html or "app_style
+pore/nonlinear"_app_pore_nonlinear.html applications.
 
 [Related commands:]
 

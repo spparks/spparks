@@ -60,7 +60,11 @@ will be the same in every snapshot.
 :link(lammps,http://lammps.sandia.gov)
 :link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
 
-[Restrictions:] none
+[Restrictions:]
+
+This command can only be used as part of the lattice-based
+applications.  See the "app_style"_app_style.html command for further
+details.
 
 [Related commands:]
 

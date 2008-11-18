@@ -32,6 +32,9 @@ lattices with a 2d geometry, the z value should be speficied as 0.0.
 
 [Restrictions:] none
 
+This command can only be used as part of the "app_style
+pore"_app_pore.html applications.
+
 [Related commands:]
 
 "app_style membrane"_app_membrane.html

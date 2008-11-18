@@ -82,6 +82,9 @@ full description of an Erbium diffusion model.
 
 [Restrictions:] none
 
+This command can only be used as part of the "app_style
+erbium"_app_erbium.html application.
+
 [Related commands:]
 
 "app_style erbium"_app_erbium.html

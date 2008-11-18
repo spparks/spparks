@@ -32,6 +32,11 @@ value should have the units of energy as computed by the Hamiltonian.
 
 [Restrictions:] none
 
+This command can only be used as part of applications that allow for a
+temperature to be specified.  See the doc pages for individual
+applications defined by the "app_style"_app_style.html command for
+further details.
+
 [Related commands:] none
 
 [Default:]
