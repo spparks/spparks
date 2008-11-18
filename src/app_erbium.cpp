@@ -49,10 +49,11 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
   options(narg-3,&arg[3]);
 
   // define lattice and partition it across processors
-  // sites must be large enough for self and 1st neighbors
+  // esites must be large enough for 3 sites and their 1st neighbors
 
   create_lattice();
-  sites = new int[1 + maxneigh];
+  esites = new int[3 + 3*maxneigh];
+  echeck = NULL;
 
   // assign variable names
 
@@ -69,7 +70,7 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
 
   // reaction lists
 
-  nsingle = ndouble = ntriple = 0;
+  none = ntwo = nthree = 0;
   srate = drate = trate = NULL;
   spropensity = dpropensity = tpropensity = NULL;
   stype = sinput = soutput = NULL;
@@ -117,7 +118,8 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
 AppErbium::~AppErbium()
 {
   delete random;
-  delete [] sites;
+  delete [] esites;
+  delete [] echeck;
   memory->sfree(events);
   memory->sfree(firstevent);
 
@@ -144,107 +146,119 @@ void AppErbium::input_app(char *command, int narg, char **arg)
 {
   if (strcmp(command,"event") == 0) {
     if (narg < 1) error->all("Illegal event command");
-    int which = atoi(arg[0]);
-    grow_reactions(which);
+    int rstyle = atoi(arg[0]);
+    grow_reactions(rstyle);
 
-    if (which == 1) {
+    if (rstyle == 1) {
       if (narg != 5) error->all("Illegal event command");
 
-      if (strcmp(arg[1],"fcc") == 0) stype[nsingle] = FCC;
-      else if (strcmp(arg[1],"oct") == 0) stype[nsingle] = OCTA;
-      else if (strcmp(arg[1],"tet") == 0) stype[nsingle] = TETRA;
+      if (strcmp(arg[1],"fcc") == 0) stype[none] = FCC;
+      else if (strcmp(arg[1],"oct") == 0) stype[none] = OCTA;
+      else if (strcmp(arg[1],"tet") == 0) stype[none] = TETRA;
       else error->all("Illegal event command");
-      if (strcmp(arg[2],"er") == 0) sinput[nsingle] = ERBIUM;
-      else if (strcmp(arg[2],"h") == 0) sinput[nsingle] = HYDROGEN;
-      else if (strcmp(arg[2],"he") == 0) sinput[nsingle] = HELIUM;
-      else error->all("Illegal event command");
-
-      srate[nsingle] = atof(arg[3]);
-
-      if (strcmp(arg[4],"er") == 0) soutput[nsingle] = ERBIUM;
-      else if (strcmp(arg[4],"h") == 0) soutput[nsingle] = HYDROGEN;
-      else if (strcmp(arg[4],"he") == 0) soutput[nsingle] = HELIUM;
+      if (strcmp(arg[2],"er") == 0) sinput[none] = ERBIUM;
+      else if (strcmp(arg[2],"h") == 0) sinput[none] = HYDROGEN;
+      else if (strcmp(arg[2],"he") == 0) sinput[none] = HELIUM;
+      else if (strcmp(arg[2],"vac") == 0) sinput[none] = VACANCY;
       else error->all("Illegal event command");
 
-      nsingle++;
+      srate[none] = atof(arg[3]);
+
+      if (strcmp(arg[4],"er") == 0) soutput[none] = ERBIUM;
+      else if (strcmp(arg[4],"h") == 0) soutput[none] = HYDROGEN;
+      else if (strcmp(arg[4],"he") == 0) soutput[none] = HELIUM;
+      else if (strcmp(arg[4],"vac") == 0) soutput[none] = VACANCY;
+      else error->all("Illegal event command");
+
+      none++;
       
-    } else if (which == 2) {
+    } else if (rstyle == 2) {
       if (narg != 8) error->all("Illegal event command");
 
-      if (strcmp(arg[1],"fcc") == 0) dtype[ndouble][0] = FCC;
-      else if (strcmp(arg[1],"oct") == 0) dtype[ndouble][0] = OCTA;
-      else if (strcmp(arg[1],"tet") == 0) dtype[ndouble][0] = TETRA;
+      if (strcmp(arg[1],"fcc") == 0) dtype[ntwo][0] = FCC;
+      else if (strcmp(arg[1],"oct") == 0) dtype[ntwo][0] = OCTA;
+      else if (strcmp(arg[1],"tet") == 0) dtype[ntwo][0] = TETRA;
       else error->all("Illegal event command");
-      if (strcmp(arg[2],"fcc") == 0) dtype[ndouble][1] = FCC;
-      else if (strcmp(arg[2],"oct") == 0) dtype[ndouble][1] = OCTA;
-      else if (strcmp(arg[2],"tet") == 0) dtype[ndouble][1] = TETRA;
+      if (strcmp(arg[2],"fcc") == 0) dtype[ntwo][1] = FCC;
+      else if (strcmp(arg[2],"oct") == 0) dtype[ntwo][1] = OCTA;
+      else if (strcmp(arg[2],"tet") == 0) dtype[ntwo][1] = TETRA;
       else error->all("Illegal event command");
-      if (strcmp(arg[3],"er") == 0) dinput[ndouble][0] = ERBIUM;
-      else if (strcmp(arg[3],"h") == 0) dinput[ndouble][0] = HYDROGEN;
-      else if (strcmp(arg[3],"he") == 0) dinput[ndouble][0] = HELIUM;
+      if (strcmp(arg[3],"er") == 0) dinput[ntwo][0] = ERBIUM;
+      else if (strcmp(arg[3],"h") == 0) dinput[ntwo][0] = HYDROGEN;
+      else if (strcmp(arg[3],"he") == 0) dinput[ntwo][0] = HELIUM;
+      else if (strcmp(arg[3],"vac") == 0) dinput[ntwo][0] = VACANCY;
       else error->all("Illegal event command");
-      if (strcmp(arg[4],"er") == 0) dinput[ndouble][1] = ERBIUM;
-      else if (strcmp(arg[4],"h") == 0) dinput[ndouble][1] = HYDROGEN;
-      else if (strcmp(arg[4],"he") == 0) dinput[ndouble][1] = HELIUM;
-      else error->all("Illegal event command");
-
-      drate[ndouble] = atof(arg[5]);
-
-      if (strcmp(arg[6],"er") == 0) doutput[ndouble][0] = ERBIUM;
-      else if (strcmp(arg[6],"h") == 0) doutput[ndouble][0] = HYDROGEN;
-      else if (strcmp(arg[6],"he") == 0) doutput[ndouble][0] = HELIUM;
-      else error->all("Illegal event command");
-      if (strcmp(arg[7],"er") == 0) doutput[ndouble][1] = ERBIUM;
-      else if (strcmp(arg[7],"h") == 0) doutput[ndouble][1] = HYDROGEN;
-      else if (strcmp(arg[7],"he") == 0) doutput[ndouble][1] = HELIUM;
+      if (strcmp(arg[4],"er") == 0) dinput[ntwo][1] = ERBIUM;
+      else if (strcmp(arg[4],"h") == 0) dinput[ntwo][1] = HYDROGEN;
+      else if (strcmp(arg[4],"he") == 0) dinput[ntwo][1] = HELIUM;
+      else if (strcmp(arg[4],"vac") == 0) dinput[ntwo][1] = VACANCY;
       else error->all("Illegal event command");
 
-      ndouble++;
+      drate[ntwo] = atof(arg[5]);
 
-    } else if (which == 3) {
+      if (strcmp(arg[6],"er") == 0) doutput[ntwo][0] = ERBIUM;
+      else if (strcmp(arg[6],"h") == 0) doutput[ntwo][0] = HYDROGEN;
+      else if (strcmp(arg[6],"he") == 0) doutput[ntwo][0] = HELIUM;
+      else if (strcmp(arg[6],"vac") == 0) doutput[ntwo][0] = VACANCY;
+      else error->all("Illegal event command");
+      if (strcmp(arg[7],"er") == 0) doutput[ntwo][1] = ERBIUM;
+      else if (strcmp(arg[7],"h") == 0) doutput[ntwo][1] = HYDROGEN;
+      else if (strcmp(arg[7],"he") == 0) doutput[ntwo][1] = HELIUM;
+      else if (strcmp(arg[7],"vac") == 0) doutput[ntwo][1] = VACANCY;
+      else error->all("Illegal event command");
+
+      ntwo++;
+
+    } else if (rstyle == 3) {
       if (narg != 11) error->all("Illegal event command");
 
-      if (strcmp(arg[1],"fcc") == 0) ttype[ntriple][0] = FCC;
-      else if (strcmp(arg[1],"oct") == 0) ttype[ntriple][0] = OCTA;
-      else if (strcmp(arg[1],"tet") == 0) ttype[ntriple][0] = TETRA;
+      if (strcmp(arg[1],"fcc") == 0) ttype[nthree][0] = FCC;
+      else if (strcmp(arg[1],"oct") == 0) ttype[nthree][0] = OCTA;
+      else if (strcmp(arg[1],"tet") == 0) ttype[nthree][0] = TETRA;
       else error->all("Illegal event command");
-      if (strcmp(arg[2],"fcc") == 0) ttype[ntriple][1] = FCC;
-      else if (strcmp(arg[2],"oct") == 0) ttype[ntriple][1] = OCTA;
-      else if (strcmp(arg[2],"tet") == 0) ttype[ntriple][1] = TETRA;
+      if (strcmp(arg[2],"fcc") == 0) ttype[nthree][1] = FCC;
+      else if (strcmp(arg[2],"oct") == 0) ttype[nthree][1] = OCTA;
+      else if (strcmp(arg[2],"tet") == 0) ttype[nthree][1] = TETRA;
       else error->all("Illegal event command");
-      if (strcmp(arg[3],"fcc") == 0) ttype[ntriple][2] = FCC;
-      else if (strcmp(arg[3],"oct") == 0) ttype[ntriple][2] = OCTA;
-      else if (strcmp(arg[3],"tet") == 0) ttype[ntriple][2] = TETRA;
+      if (strcmp(arg[3],"fcc") == 0) ttype[nthree][2] = FCC;
+      else if (strcmp(arg[3],"oct") == 0) ttype[nthree][2] = OCTA;
+      else if (strcmp(arg[3],"tet") == 0) ttype[nthree][2] = TETRA;
       else error->all("Illegal event command");
-      if (strcmp(arg[4],"er") == 0) tinput[ntriple][0] = ERBIUM;
-      else if (strcmp(arg[4],"h") == 0) tinput[ntriple][0] = HYDROGEN;
-      else if (strcmp(arg[4],"he") == 0) tinput[ntriple][0] = HELIUM;
+      if (strcmp(arg[4],"er") == 0) tinput[nthree][0] = ERBIUM;
+      else if (strcmp(arg[4],"h") == 0) tinput[nthree][0] = HYDROGEN;
+      else if (strcmp(arg[4],"he") == 0) tinput[nthree][0] = HELIUM;
+      else if (strcmp(arg[4],"vac") == 0) tinput[nthree][0] = VACANCY;
       else error->all("Illegal event command");
-      if (strcmp(arg[5],"er") == 0) tinput[ntriple][1] = ERBIUM;
-      else if (strcmp(arg[5],"h") == 0) tinput[ntriple][1] = HYDROGEN;
-      else if (strcmp(arg[5],"he") == 0) tinput[ntriple][1] = HELIUM;
+      if (strcmp(arg[5],"er") == 0) tinput[nthree][1] = ERBIUM;
+      else if (strcmp(arg[5],"h") == 0) tinput[nthree][1] = HYDROGEN;
+      else if (strcmp(arg[5],"he") == 0) tinput[nthree][1] = HELIUM;
+      else if (strcmp(arg[5],"vac") == 0) tinput[nthree][1] = VACANCY;
       else error->all("Illegal event command");
-      if (strcmp(arg[6],"er") == 0) tinput[ntriple][2] = ERBIUM;
-      else if (strcmp(arg[6],"h") == 0) tinput[ntriple][2] = HYDROGEN;
-      else if (strcmp(arg[6],"he") == 0) tinput[ntriple][2] = HELIUM;
-      else error->all("Illegal event command");
-
-      trate[ntriple] = atof(arg[7]);
-
-      if (strcmp(arg[8],"er") == 0) toutput[ntriple][0] = ERBIUM;
-      else if (strcmp(arg[8],"h") == 0) toutput[ntriple][0] = HYDROGEN;
-      else if (strcmp(arg[8],"he") == 0) toutput[ntriple][0] = HELIUM;
-      else error->all("Illegal event command");
-      if (strcmp(arg[9],"er") == 0) toutput[ntriple][1] = ERBIUM;
-      else if (strcmp(arg[9],"h") == 0) toutput[ntriple][1] = HYDROGEN;
-      else if (strcmp(arg[9],"he") == 0) toutput[ntriple][1] = HELIUM;
-      else error->all("Illegal event command");
-      if (strcmp(arg[10],"er") == 0) toutput[ntriple][2] = ERBIUM;
-      else if (strcmp(arg[10],"h") == 0) toutput[ntriple][2] = HYDROGEN;
-      else if (strcmp(arg[10],"he") == 0) toutput[ntriple][2] = HELIUM;
+      if (strcmp(arg[6],"er") == 0) tinput[nthree][2] = ERBIUM;
+      else if (strcmp(arg[6],"h") == 0) tinput[nthree][2] = HYDROGEN;
+      else if (strcmp(arg[6],"he") == 0) tinput[nthree][2] = HELIUM;
+      else if (strcmp(arg[6],"vac") == 0) tinput[nthree][2] = VACANCY;
       else error->all("Illegal event command");
 
-      ntriple++;
+      trate[nthree] = atof(arg[7]);
+
+      if (strcmp(arg[8],"er") == 0) toutput[nthree][0] = ERBIUM;
+      else if (strcmp(arg[8],"h") == 0) toutput[nthree][0] = HYDROGEN;
+      else if (strcmp(arg[8],"he") == 0) toutput[nthree][0] = HELIUM;
+      else if (strcmp(arg[8],"vac") == 0) toutput[nthree][0] = VACANCY;
+      else error->all("Illegal event command");
+      if (strcmp(arg[9],"er") == 0) toutput[nthree][1] = ERBIUM;
+      else if (strcmp(arg[9],"h") == 0) toutput[nthree][1] = HYDROGEN;
+      else if (strcmp(arg[9],"he") == 0) toutput[nthree][1] = HELIUM;
+      else if (strcmp(arg[9],"vac") == 0) toutput[nthree][1] = VACANCY;
+      else error->all("Illegal event command");
+      if (strcmp(arg[10],"er") == 0) toutput[nthree][2] = ERBIUM;
+      else if (strcmp(arg[10],"h") == 0) toutput[nthree][2] = HYDROGEN;
+      else if (strcmp(arg[10],"he") == 0) toutput[nthree][2] = HELIUM;
+      else if (strcmp(arg[10],"vac") == 0) toutput[nthree][2] = VACANCY;
+      else error->all("Illegal event command");
+
+      nthree++;
 
     } else error->all("Illegal event command");
   } else error->all("Unrecognized command");
@@ -254,6 +268,10 @@ void AppErbium::input_app(char *command, int narg, char **arg)
 
 void AppErbium::init_app()
 {
+  delete [] echeck;
+  echeck = new int[nlocal];
+  for (int i = 0; i < nlocal; i++) echeck[i] = 0;
+
   memory->sfree(events);
   memory->sfree(firstevent);
 
@@ -261,6 +279,18 @@ void AppErbium::init_app()
   nevents = maxevent = 0;
   firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
   for (int i = 0; i < nlocal; i++) firstevent[i] = -1;
+
+  // set propensities from rates
+
+  if (temperature == 0.0)
+    error->all("Temperature cannot be 0.0 for app erbium");
+
+  for (int m = 0; m < none; m++)
+    spropensity[m] = srate[m];
+  for (int m = 0; m < ntwo; m++)
+    dpropensity[m] = exp(-drate[m]/temperature);
+  for (int m = 0; m < nthree; m++)
+    tpropensity[m] = exp(-trate[m]/temperature);
 }
 
 /* ----------------------------------------------------------------------
@@ -277,9 +307,7 @@ double AppErbium::site_energy(int i)
    if site cannot change, set mask
 ------------------------------------------------------------------------- */
 
-void AppErbium::site_event_rejection(int i, RandomPark *random)
-{
-}
+void AppErbium::site_event_rejection(int i, RandomPark *random) {}
 
 /* ----------------------------------------------------------------------
    compute total propensity of owned site summed over possible events
@@ -290,36 +318,45 @@ double AppErbium::site_propensity(int i)
 {
   int j,k,m;
 
-  // possible events from tabulated list
+  // possible single, double, triple events are in tabulated lists
 
   clear_events(i);
 
   double proball = 0.0;
 
+  // currently Erbium sites have no events
+  // can remove this later
+
+  if (type[i] == ERBIUM) return proball = 0.0;
+
   // single-site events
 
-  for (m = 0; m < nsingle; m++) {
+  for (m = 0; m < none; m++) {
     if (type[i] != stype[m] || element[i] != sinput[m]) continue;
     add_event(i,1,m,spropensity[m],-1,-1);
-    proball += propensity[m];
+    proball += spropensity[m];
   }
 
   // double-site events
 
-  for (int j = 0; j < numneigh[i]; j++)
-    for (m = 0; m < ndouble; m++) {
+  for (int jj = 0; jj < numneigh[i]; jj++) {
+    j = neighbor[i][jj];
+    for (m = 0; m < ntwo; m++) {
       if (type[i] != dtype[m][0] || element[i] != dinput[m][0]) continue;
       if (type[j] != dtype[m][1] || element[j] != dinput[m][1]) continue;
       add_event(i,2,m,dpropensity[m],j,-1);
       proball += dpropensity[m];
     }
+  }
 
   // triple-site events
 
-  for (int j = 0; j < numneigh[i]; j++)
-    for (int k = 0; k < numneigh[i]; k++) {
-      if (j == k) continue;
-      for (m = 0; m < ntriple; m++) {
+  for (int jj = 0; jj < numneigh[i]; jj++) {
+    j = neighbor[i][jj];
+    for (int kk = 0; kk < numneigh[i]; kk++) {
+      if (jj == kk) continue;
+      k = neighbor[i][kk];
+      for (m = 0; m < nthree; m++) {
 	if (type[i] != ttype[m][0] || element[i] != tinput[m][0]) continue;
 	if (type[j] != ttype[m][1] || element[j] != tinput[m][1]) continue;
 	if (type[k] != ttype[m][2] || element[k] != tinput[m][2]) continue;
@@ -327,6 +364,7 @@ double AppErbium::site_propensity(int i)
 	proball += tpropensity[m];
       }
     }
+  }
 
   return proball;
 }
@@ -339,7 +377,7 @@ double AppErbium::site_propensity(int i)
 
 void AppErbium::site_event(int i, class RandomPark *random)
 {
-  int j,k,m;
+  int j,k,m,n;
 
   // pick one event from total propensity for this site
   // compare prob to threshhold, break when reach it to select event
@@ -356,39 +394,75 @@ void AppErbium::site_event(int i, class RandomPark *random)
 
   // perform single, double, or triple event
 
-  int type = events[ievent].type;
+  int rstyle = events[ievent].style;
   int which = events[ievent].which;
   j = events[ievent].jpartner;
   k = events[ievent].kpartner;
 
-  if (type == 1) {
+  if (rstyle == 1) {
     element[i] = soutput[which];
-  } else if (type == 2) {
+  } else if (rstyle == 2) {
     element[i] = doutput[which][0];
-    element[neighbor[i][j]] = doutput[which][1];
+    element[j] = doutput[which][1];
   } else {
-    element[i] = doutput[which][0];
-    element[neighbor[i][j]] = toutput[which][1];
-    element[neighbor[i][k]] = toutput[which][2];
+    element[i] = toutput[which][0];
+    element[j] = toutput[which][1];
+    element[k] = toutput[which][2];
   }
 
   // compute propensity changes for participating sites and first neighbors
+  // use echeck[] to avoid resetting propensity of same site
+  // do not loop over neighbors of any out-of-sector sites
 
   int nsites = 0;
+
   int isite = i2site[i];
   propensity[isite] = site_propensity(i);
-  sites[nsites++] = isite;
+  esites[nsites++] = isite;
+  echeck[isite] = 1;
 
-  for (j = 0; j < numneigh[i]; j++) {
-    m = neighbor[i][j];
+  for (n = 0; n < numneigh[i]; n++) {
+    m = neighbor[i][n];
     isite = i2site[m];
-    if (isite >= 0) {
+    if (isite < 0) continue;
+    if (echeck[isite] == 0) {
       propensity[isite] = site_propensity(m);
-      sites[nsites++] = isite;
+      esites[nsites++] = isite;
+      echeck[isite] = 1;
     }
   }
 
-  solve->update(nsites,sites,propensity);
+  if (rstyle == 2 || rstyle == 3) {
+    for (n = 0; n < numneigh[j]; n++) {
+      m = neighbor[j][n];
+      isite = i2site[m];
+      if (isite < 0) continue;
+      if (echeck[isite] == 0) {
+	propensity[isite] = site_propensity(m);
+	esites[nsites++] = isite;
+	echeck[isite] = 1;
+      }
+    }
+  }
+
+  if (rstyle == 3) {
+    for (n = 0; n < numneigh[k]; n++) {
+      m = neighbor[k][n];
+      isite = i2site[m];
+      if (isite < 0) continue;
+      if (echeck[isite] == 0) {
+	propensity[isite] = site_propensity(m);
+	esites[nsites++] = isite;
+	echeck[isite] = 1;
+      }
+    }
+  }
+
+  solve->update(nsites,esites,propensity);
+
+  // clear echeck array
+
+  for (m = 0; m < nsites; m++) echeck[esites[m]] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -415,7 +489,7 @@ void AppErbium::clear_events(int i)
    event = exchange with site J with probability = propensity
 ------------------------------------------------------------------------- */
 
-void AppErbium::add_event(int i, int type, int which, double propensity,
+void AppErbium::add_event(int i, int rstyle, int which, double propensity,
 			  int jpartner, int kpartner)
 {
   // grow event list and setup free list
@@ -430,7 +504,7 @@ void AppErbium::add_event(int i, int type, int which, double propensity,
 
   int next = events[freeevent].next;
 
-  events[freeevent].type = type;
+  events[freeevent].style = rstyle;
   events[freeevent].which = which;
   events[freeevent].jpartner = jpartner;
   events[freeevent].kpartner = kpartner;
@@ -446,10 +520,10 @@ void AppErbium::add_event(int i, int type, int which, double propensity,
    grow list of stored reactions for single, double, or triple
 ------------------------------------------------------------------------- */
 
-void AppErbium::grow_reactions(int which)
+void AppErbium::grow_reactions(int rstyle)
 {
-  if (which == 1) {
-    int n = nsingle + 1;
+  if (rstyle == 1) {
+    int n = none + 1;
     srate = (double *) 
       memory->srealloc(srate,n*sizeof(double),"app/erbium:srate");
     spropensity = (double *) 
@@ -461,8 +535,8 @@ void AppErbium::grow_reactions(int which)
     soutput = (int *) 
       memory->srealloc(soutput,n*sizeof(int),"app/erbium:soutput");
 
-  } else if (which == 2) {
-    int n = ndouble + 1;
+  } else if (rstyle == 2) {
+    int n = ntwo + 1;
     drate = (double *) 
       memory->srealloc(drate,n*sizeof(double),"app/erbium:drate");
     dpropensity = (double *) 
@@ -471,15 +545,14 @@ void AppErbium::grow_reactions(int which)
     dinput = memory->grow_2d_int_array(dinput,n,2,"app/erbium:dinput");
     doutput = memory->grow_2d_int_array(doutput,n,2,"app/erbium:doutput");
 
-  } else if (which == 3) {
-    int n = ntriple + 1;
+  } else if (rstyle == 3) {
+    int n = nthree + 1;
     trate = (double *) 
       memory->srealloc(trate,n*sizeof(double),"app/erbium:trate");
     tpropensity = (double *) 
       memory->srealloc(tpropensity,n*sizeof(double),"app/erbium:tpropensity");
-    ttype = memory->grow_2d_int_array(ttype,n,2,"app/erbium:ttype");
-    tinput = memory->grow_2d_int_array(tinput,n,2,"app/erbium:tinput");
-    toutput = memory->grow_2d_int_array(toutput,n,2,"app/erbium:toutput");
+    ttype = memory->grow_2d_int_array(ttype,n,3,"app/erbium:ttype");
+    tinput = memory->grow_2d_int_array(tinput,n,3,"app/erbium:tinput");
+    toutput = memory->grow_2d_int_array(toutput,n,3,"app/erbium:toutput");
   }
 }
-
