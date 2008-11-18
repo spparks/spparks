@@ -34,6 +34,8 @@ This application can only be evolved using a kinetic Monte Carlo (KMC)
 algorithm.  You must thus define a KMC solver to be used with the
 application via the "solve_style"_solve_style.html command
 
+:line
+
 The following additional commands are defined by this application:
 
 "add_reaction"_add_reaction.html : define a chemical reaction

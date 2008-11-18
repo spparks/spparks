@@ -10,34 +10,80 @@ event command :h3
 
 [Syntax:]
 
-event N eng :pre
+event Nsite site1 site2 site3 old1 old2 old3 rate new1 new2 new3 :pre
 
-N = coordination number
-eng = energy of site with this coordination number (energy units) :ul
+Nsite = number of lattice sites involved in the event = 1,2,3
+site1,site2,site3 = {fcc} or {tet} or {oct}
+old1,old2,old3 = {er} or {h} or {he} or {vac}
+rate = rate constant for the event (inverse seconds or energy units)
+new1,new2,new3 = {er} or {h} or {he} or {vac} :ul
 
 [Examples:]
 
-ecoord 8 5.6
-ecoord 0 1.0e20 :pre
+event	        1 tet h 1.78279E-9 he
+event		1 oct h 1.78279E-9 he :pre
+
+event	        2 tet tet h vac 0.98 vac h
+event	        2 tet oct h vac 1.89 vac h
+event	        2 tet oct vac h 0.68 h vac
+event		2 tet tet he vac 0.49 vac he
+event		2 oct oct he vac 1.49 vac he :pre
+
+event		3 tet oct oct h vac h 0.62 h h vac
+event		3 tet oct tet h vac he 1.31 he h vac
+event		3 tet oct tet he h vac 0.16 h vac he
+event		3 tet oct oct h vac he 0.88 he h vac
+event		3 tet oct oct he h vac 0.16 h vac he :pre
 
 [Description:]
 
 This command defines an event for the "app_style erbium" application.
+It can be an event involving one, two, or three lattice sites, as
+specified by {Nsite}.  The first site is the central site which owns
+the event.  The other 2 sites (if specified) are neighors of the
+central site.
 
-sets the energy of an occupied site in a lattice as a
-function of coordination number, where coordination = the number of
-occupied neighbor sites.  Typically this command should be used Nmax+1
-times with N varying from 0 to Nmax+1, when Nmax is the number of
-neighbor sites for each lattice site.
+"App_style erbium"_app_erbium.html operates on a 3-fold lattice which
+contains fcc, tetrahedral, and octahedral sites.  The {site1},
+{site2}, and {site3} settings specify which kinds of sites are
+involved in the event: {fcc} or {tet} or {oct}.  If Nsite = 1, then
+only {site1} is specified.  If Nsite = 2, then only {site1} and
+{site2} are specified.
 
-The {eng} value should be in the energy units defined by the
-application's Hamiltonian and should be consistent with the units used
-in any "temperature"_temperature.html command.
+The {old1}, {old2}, and {old3} settings specify what kinds of atoms
+must be on those sites in order for the event to possibly take place.
+The possible atoms are {er} for Erbium, {h} for Hydrogen, {he} for
+Helium, and {vac} for a vacant site.  E.g. in the first example above,
+a Hydrogen atom must be on a tetrahedral site for the event to be
+possible.
+
+The {rate} setting determines the relative rate at which the event
+will occur.  For Nsite=1 events, the units are inverse seconds.
+For Nsite=2 or Nsite=3 events, the units are energy, which
+is converted into a rate by the application, via the formula:
+
+rate = exp(-energy/kT) :pre
+
+where T is the "temperature"_temperature.html you have specified.
+
+In this case the {rate} setting should be in the energy units defined
+by the application's Hamiltonian and should be consistent with the
+units used in the "temperature"_temperature.html command.
+
+The {new1}, {new2}, and {new3} settings specify what the atoms on each
+of the sites will become if the event takes place.  As with the {old}
+settings, the possible atoms are {er} for Erbium, {h} for Hydrogen,
+{he} for Helium, and {vac} for a vacant site.  E.g. in the first
+example above, a Hydrogen atom on a tetrahedral site transmutes into a
+Helium atom if the event takes place.
+
+Note that the set of Nsite=1,2,3 events listed above are a reasonably
+full description of an Erbium diffusion model.
 
 [Restrictions:] none
 
 [Related commands:]
 
-"app_style diffusion/nonlinear"_app_diffusion.html
+"app_style erbium"_app_erbium.html
 
 [Default:] none
