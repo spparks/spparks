@@ -349,8 +349,7 @@ void SweepLattice::do_sweep(double &dt)
 
   dt = delt;
 
-  // If adaptive kmc specified
-  // adjust KMC threshold time
+  // if adaptive kmc specified, adjust KMC threshold time
 
   if (Lkmc && Ladapt) {
     MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);

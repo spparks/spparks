@@ -432,7 +432,7 @@ void AppErbium::site_event(int i, class RandomPark *random)
     }
   }
 
-  if (rstyle == 2 || rstyle == 3) {
+  if (rstyle >= 2 && i2site[j] >= 0) {
     for (n = 0; n < numneigh[j]; n++) {
       m = neighbor[j][n];
       isite = i2site[m];
@@ -445,7 +445,7 @@ void AppErbium::site_event(int i, class RandomPark *random)
     }
   }
 
-  if (rstyle == 3) {
+  if (rstyle == 3 && i2site[k] >= 0) {
     for (n = 0; n < numneigh[k]; n++) {
       m = neighbor[k][n];
       isite = i2site[m];
