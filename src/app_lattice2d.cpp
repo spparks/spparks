@@ -317,13 +317,6 @@ void AppLattice2d::set_temperature(int narg, char **arg)
   if (temperature != 0.0) t_inverse = 1.0/temperature;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void AppLattice2d::set_stats(int narg, char **arg)
-{
-  if (narg != 1) error->all("Illegal stats command");
-}
-
 /* ----------------------------------------------------------------------
    assign nprocs to 2d global lattice so as to minimize perimeter per proc
    setup id and xyz arrays

@@ -86,6 +86,18 @@ AppChemistry::~AppChemistry()
 
 /* ---------------------------------------------------------------------- */
 
+void AppChemistry::input(char *command, int narg, char **arg)
+{
+  if (strcmp(command,"add_reaction") == 0) add_reaction(narg,arg);
+  else if (strcmp(command,"add_species") == 0) add_species(narg,arg);
+  else if (strcmp(command,"count") == 0) set_count(narg,arg);
+  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
+  else if (strcmp(command,"volume") == 0) set_volume(narg,arg);
+  else error->all("Unrecognized command");
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AppChemistry::init()
 {
   if (volume <= 0.0) error->all("Invalid volume setting");
@@ -119,18 +131,6 @@ void AppChemistry::init()
 
   output->init(time);
 
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AppChemistry::input(char *command, int narg, char **arg)
-{
-  if (strcmp(command,"add_reaction") == 0) add_reaction(narg,arg);
-  else if (strcmp(command,"add_species") == 0) add_species(narg,arg);
-  else if (strcmp(command,"count") == 0) set_count(narg,arg);
-  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
-  else if (strcmp(command,"volume") == 0) set_volume(narg,arg);
-  else error->all("Unrecognized command");
 }
 
 /* ----------------------------------------------------------------------
@@ -214,11 +214,10 @@ void AppChemistry::iterate()
 
     timer->stamp(TIME_APP);
 
-    // Do output
+    // output
 
     output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
-
   }
 
   timer->barrier_stop(TIME_LOOP);
@@ -373,24 +372,6 @@ void AppChemistry::add_species(int narg, char **arg)
     pcount[nspecies+iarg] = 0;
   }
   nspecies += narg;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AppChemistry::set_stats(int narg, char **arg)
-{
-  int iarg = 1;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"your_option_here") == 0) {
-      iarg++;
-      if (iarg < narg) {
-	int itmp = atoi(arg[iarg]);
-      } else {
-	error->all("Illegal stats command");
-      }
-    }
-    iarg++;
-  }
 }
 
 /* ---------------------------------------------------------------------- */

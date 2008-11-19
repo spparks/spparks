@@ -30,6 +30,7 @@ using namespace SPPARKS_NS;
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define EPSILON 1.0e-10
+#define OUTPUT 1
 
 /* ---------------------------------------------------------------------- */
 
@@ -96,6 +97,14 @@ AppTestGroup::~AppTestGroup()
 
 /* ---------------------------------------------------------------------- */
 
+void AppTestGroup::input(char *command, int narg, char **arg)
+{
+  if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
+  else error->all("Unrecognized command");
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AppTestGroup::init()
 {
   delete [] ndepends;
@@ -122,24 +131,16 @@ void AppTestGroup::init()
     psum += propensity[m];
   }
 
-  // comment out if don't want event counts, including call to output->init
-
   // allocate and zero event stats
-
-  //delete [] count;
-  //count = new int[nevents];
-  //for (int m = 0; m < nevents; m++) count[m] = 0;
-
   // initialize output
 
-  //output->init(time);
-}
+#ifdef OUTPUT
+  delete [] count;
+  count = new int[nevents];
+  for (int m = 0; m < nevents; m++) count[m] = 0;
 
-/* ---------------------------------------------------------------------- */
-
-void AppTestGroup::input(char *command, int narg, char **arg)
-{
-  error->all("Unrecognized command");
+  output->init(time);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -190,9 +191,9 @@ void AppTestGroup::iterate()
     timer->stamp();
     ievent = solve->event(&dt);
 
-    // comment out if don't want event counts
-
-    //count[ievent]++;
+#ifdef OUTPUT
+    count[ievent]++;
+#endif
 
     timer->stamp(TIME_SOLVE);
 
@@ -220,14 +221,14 @@ void AppTestGroup::iterate()
     time += dt;
     if (ntimestep >= nlimit) done = 1;
     else if (ievent < 0) done = 1;
+
+#ifdef OUTPUT
+    output->compute(time,done);
+    timer->stamp(TIME_OUTPUT);
+#endif
   }
 
   timer->barrier_stop(TIME_LOOP);
-
-  // comment out if don't want event counts
-
-  //output->compute(time,done);
-  //timer->stamp(TIME_OUTPUT);
 
   if (screen) fprintf(screen,"\nNumber of reactions, events = %d %d\n",
 		      nevents,ntimestep);
@@ -242,9 +243,6 @@ void AppTestGroup::iterate()
 void AppTestGroup::stats(char *strtmp)
 {
   char *strpnt = strtmp;
-  
-  sprintf(strpnt,"Reactions counts: ");
-  strpnt += strlen(strpnt);
   for (int m = 0; m < nevents; m++) {
     sprintf(strpnt," %d",count[m]);
     strpnt += strlen(strpnt);

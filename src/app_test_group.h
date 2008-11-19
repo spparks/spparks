@@ -22,8 +22,8 @@ class AppTestGroup : public App {
  public:
   AppTestGroup(class SPPARKS *, int, char **);
   ~AppTestGroup();
-  void init();
   void input(char *, int, char **);
+  void init();
   void run(int, char **);
 
  private:

@@ -139,8 +139,6 @@ class AppLattice : public App {
   void iterate();
   void stats(char *);
   void stats_header(char *);
-
-  void set_stats(int, char **);
   void set_temperature(int, char **);
 
   void procs2lattice_2d();

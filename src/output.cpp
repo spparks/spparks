@@ -134,8 +134,6 @@ void Output::set_stats(int narg, char **arg)
     }
     iarg++;
   }
-
-  app->set_stats(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -294,7 +292,7 @@ void Output::set_dump(int narg, char **arg)
   }
 
   int nbuf = nlocal*size_one;
-  MPI_Allreduce(&nbuf,&maxbuf,1,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&nbuf,&maxbuf,1,MPI_INT,MPI_MAX,world);
   buf = (double *) memory->smalloc(maxbuf*sizeof(double),"output:buf");
 }
 

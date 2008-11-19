@@ -22,8 +22,8 @@ class AppChemistry : public App {
  public:
   AppChemistry(class SPPARKS *, int, char **);
   virtual ~AppChemistry();
-  void init();
   void input(char *, int, char **);
+  void init();
   void run(int, char **);
 
  private:
