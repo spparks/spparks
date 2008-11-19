@@ -28,12 +28,14 @@ stats 1.0 log 7 10.0 :pre
 [Description:]
 
 Print statistics to the screen and log file every so many seconds
-during a simulation.  The quantities printed are obtained by calling
-the stats() functions belongs to the application and each of the
-diagnostics. Typically the application reports only the number of
-events or sweeps executed, followed by the simulation time, but other
-application-specific quantities may also be reported.  Standard
-quantities such as energy can be included in the statistical output by
+during a simulation.  The quantities printed are obtained are provided
+by the "application"_app_style.html, followed by those provided by any
+"diagnostics"_diag_style.html you have defined.
+
+Typically the application reports only the number of events or sweeps
+executed, followed by the simulation time, but other
+application-specific quantities may also be reported.  Quantities such
+as the total energy of the system can be included in the output by
 creating diagnostics via the "diag_style"_diag_style.html command.
 
 Using the {log} keyword will produce statistical output at varying
@@ -61,6 +63,10 @@ t = 0, 0.01, 0.02, 0.04, 0.08, ... :pre
 :line
 
 [Restrictions:]
+
+This command can only be used as part of applications that allow for
+it.  See the doc pages for individual applications defined by the
+"app_style"_app_style.html command for further details.
 
 If stats is called on a timestep when a diagnostic is not called, then
 the information provided by the diagnostic may be old.
