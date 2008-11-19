@@ -76,7 +76,9 @@ means to perform 10000 events, not to run for 10000 seconds.
 
 :line
 
-There are no additional commands defined by this application.
+The following additional command is defined by this application:
+
+"stats"_stats.html : output of system info :tb(s=:)
 
 [Restrictions:] none
 
