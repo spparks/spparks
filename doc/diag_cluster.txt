@@ -18,13 +18,14 @@ diag_style style keyword value keyword value ... :pre
 
 style = {cluster} or {cluster2d} or {cluster3d} :ulb,l
 zero or more keyword/value pairs may be appended :l
+see the "diag_style"_diag_style.html command for additional keywords that can be appended to a diagnostic command and which must appear before these keywords :l
 keyword = {filename} or {dump} :l
   {filename} value = name
     name = name of file to write clustering results to
   {dump} value = style filename
     style = {standard} or {opendx}
     filename = file to write viz data to :pre
-see the "diag_style"_diag_style.html command for additional keywords that can be appended to any diagnostic command :l,ule
+:ule
 
 [Examples:]
 
@@ -37,38 +38,37 @@ diag_style cluster3d stats no delt 1.0 filename cluster3d.a.0.1.dat dump opendx 
 
 The cluster diagnostic computes a clustering analysis on all lattice
 sites in the system, identifying geometric groupings of identical spin
-values, e.g. a grain in a grain growth model. The total number of 
+values, e.g. a grain in a grain growth model. The total number of
 clusters is printed as stats output via the "stats"_stats.html
 command.
 
-Clustering uses a connectivity definition provided by the
-application (e.g. sites are adjacent and have same spin value) to
-identify the set of connected clusters.
+Clustering uses a connectivity definition provided by the application
+(e.g. sites are adjacent and have same spin value) to identify the set
+of connected clusters.
 
-The variants cluster, cluster2d, and cluster3d are used with applications
-based on lattice, lattice2d, and lattice3d, respectively.
+The variants cluster, cluster2d, and cluster3d are used with
+applications based on lattice, lattice2d, and lattice3d, respectively.
 
 The {filename} keyword allows a file to be specified which a full 
 listing of cluster statistics is written to.
 
-The {dump} keyword causes the cluster ID for each site to be printed out in
-snapshot format which can be used for visualization purposes.  The
-cluster IDs are arbitrary integers such that two sites have the same
-ID if and only if they belong to the same cluster. The {standard}
+The {dump} keyword causes the cluster ID for each site to be printed
+out in snapshot format which can be used for visualization purposes.
+The cluster IDs are arbitrary integers such that two sites have the
+same ID if and only if they belong to the same cluster. The {standard}
 setting generates LAMMPS-style. For {cluster2d} and {cluster3d} styles
-only two values are printed for each site: site index and
-cluster ID. For the {cluster} style, three additional values are printed: the
-x, y, and z coordinate of the site (for 2d lattices, z=0). 
-These files can be visualized with various tools in the "LAMMPS
+only two values are printed for each site: site index and cluster
+ID. For the {cluster} style, three additional values are printed: the
+x, y, and z coordinate of the site (for 2d lattices, z=0).  These
+files can be visualized with various tools in the "LAMMPS
 package"_lammps and the "Pizza.py package"_pizza.
 
-The {opendx}
-keyword generates a set of files that can be read by the OpenDX script called
-aniso0.net to visualize the clusters in 3D. The filenames are composed of the
-input filename, followed by a sequential number, followed by '.dx'. 
-Because the OpenDX format assumes a particular ordering of the sites, 
-the {opendx} style can only
-be used with square and simple cubic lattices.
+The {opendx} keyword generates a set of files that can be read by the
+OpenDX script called aniso0.net to visualize the clusters in 3D. The
+filenames are composed of the input filename, followed by a sequential
+number, followed by '.dx'.  Because the OpenDX format assumes a
+particular ordering of the sites, the {opendx} style can only be used
+with square and simple cubic lattices.
 
 :link(lammps,http://lammps.sandia.gov)
 :link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)

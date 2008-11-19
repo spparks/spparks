@@ -28,7 +28,7 @@
   <I>stats</I> values = <I>yes</I> or <I>no</I>
     yes/no = provide output to stats line 
 </PRE>
-<LI>see doc pages for individual diagnostic commands for additional keywords that can be appended 
+<LI>see doc pages for individual diagnostic commands for additional keywords that can be appended after these keywords 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -38,14 +38,13 @@ diag_style energy2d
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command invokes a diagnostic calculation.
-Currently, diagnostics can only be defined for
-on-lattice applications.  See the <A HREF = "app_style.html">app_style</A> command
-for an overview of such applications.
-As described by the <A HREF = "app_style.html">app_style</A> command, on-lattice
-applications use one of 3 styles of lattice: general, 2d, or 3d.  For
-several of the diagnostic styles, you must use a style that matches
-the application's lattice.
+<P>This command invokes a diagnostic calculation.  Currently, diagnostics
+can only be defined for on-lattice applications.  See the
+<A HREF = "app_style.html">app_style</A> command for an overview of such
+applications.  As described by the <A HREF = "app_style.html">app_style</A> command,
+on-lattice applications use one of 3 styles of lattice: general, 2d,
+or 3d.  For several of the diagnostic styles, you must use a style
+that matches the application's lattice.
 </P>
 <P>The diagnostics currently available are:
 </P>
@@ -59,23 +58,22 @@ the application's lattice.
 </UL>
 <HR>
 
-<P>All diagnostics may provide one or more values that are appended to 
-other statistical output and printed to the screen and log file via 
-the <A HREF = "stats.html">stats</A> command. We call this stats output. In addition,
-diagnostic may optionally write more extensive output to dedicated
-files that are specified using diagnostic-specific keywords.
+<P>Diagnostics may provide one or more values that are appended to other
+statistical output and printed to the screen and log file via the
+<A HREF = "stats.html">stats</A> command.  We call this stats output. In addition,
+the diagnostic may optionally write more extensive output to files if
+requested by diagnostic-specific keywords.
 </P>
 <P>The <I>stats</I> keyword controls whether or not the diagnostic appends
-values to the statistical output. If stats is set to yes, then
-the <I>delt</I> and <I>log</I> keywords may not be used, as the output interval
-is controlled by the <I>stats</I> command. 
-If stats is set to no, then the <I>delt</I> keyword specificies <I>Delta</I>, the
-interval of time between each diagnostic calculation. 
-Using the <I>log</I> keyword will cause the diagnostic to run at varying
-intervals during the course of a simulation.  There will be <I>N</I>
-outputs per interval where the size of each interval scales up by
-<I>factor</I> each time.  <I>Delta</I> is the time between outputs in the first
-(smallest) interval.
+values to the statistical output. If stats is set to yes, then the
+<I>delt</I> and <I>log</I> keywords may not be used, as the output interval is
+controlled by the <I>stats</I> command.  If stats is set to no, then the
+<I>delt</I> keyword specificies <I>Delta</I>, the interval of time between each
+diagnostic calculation.  Using the <I>log</I> keyword will cause the
+diagnostic to run at varying intervals during the course of a
+simulation.  There will be <I>N</I> outputs per interval where the size of
+each interval scales up by <I>factor</I> each time.  <I>Delta</I> is the time
+between outputs in the first (smallest) interval.
 </P>
 <P>For example, this command
 </P>
@@ -101,6 +99,8 @@ outputs per interval where the size of each interval scales up by
 </P>
 <P><A HREF = "stats.html">stats</A>
 </P>
-<P><B>Default:</B> stats=yes
+<P><B>Default:</B>
+</P>
+<P>The stats setting is yes.
 </P>
 </HTML>

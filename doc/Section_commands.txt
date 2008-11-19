@@ -284,4 +284,4 @@ full description:
 
 "cluster"_diag_cluster.html,
 "energy"_diag_energy.html,
-"eprof3d"_diag_eprof3d.html :tb(c=6,ea=c)
+"eprof3d"_diag_eprof.html :tb(c=6,ea=c)

@@ -15,7 +15,7 @@ diag_style energy3d command :h3
 diag_style style keyword value keyword value ... :pre
 
 style = {energy} or {energy2d} or {energy3d}
-see the "diag_style"_diag_style.html command for additional keywords that can be appended to any diagnostic command :ul
+see the "diag_style"_diag_style.html command for additional keywords that can be appended to a diagnostic command :ul
 
 [Examples:]
 
@@ -26,8 +26,8 @@ diag_style energy3d :pre
 [Description:]
 
 The energy diagnostic computes the total energy of all lattice sites
-in the system. The energy is printed as stats output via the "stats"_stats.html
-command.
+in the system. The energy is printed as stats output via the
+"stats"_stats.html command.
 
 [Restrictions:]
 
