@@ -258,7 +258,7 @@ void AppTestGroup::stats(char *strtmp)
 
 void AppTestGroup::stats_header(char *strtmp)
 {
-  sprintf(strtmp," %10s %10s %20s","Step","Time","Reaction Counts");
+  sprintf(strtmp," %10s %10s %20s","Step","Time","Reaction-Counts");
 }
 
 /* ----------------------------------------------------------------------

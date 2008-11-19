@@ -101,10 +101,11 @@ SweepStyle(lattice3d,SweepLattice3d)
 #include "diag_cluster.h"
 #include "diag_cluster2d.h"
 #include "diag_cluster3d.h"
-#include "diag_eprof3d.h"
 #include "diag_energy.h"
 #include "diag_energy2d.h"
 #include "diag_energy3d.h"
+#include "diag_eprof3d.h"
+#include "diag_erbium.h"
 #endif
 
 #ifdef DiagClass
@@ -115,6 +116,7 @@ DiagStyle(energy,DiagEnergy)
 DiagStyle(energy2d,DiagEnergy2d)
 DiagStyle(energy3d,DiagEnergy3d)
 DiagStyle(eprof3d,DiagEprof3d)
+DiagStyle(erbium,DiagErbium)
 #endif
 
 // packages

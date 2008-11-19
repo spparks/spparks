@@ -32,8 +32,7 @@ using namespace SPPARKS_NS;
 
 DiagEnergy::DiagEnergy(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
-
-  int iarg = 1;
+  int iarg = iarg_child;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"filename") == 0) {
       iarg++;
@@ -42,20 +41,10 @@ DiagEnergy::DiagEnergy(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
 	  fp = fopen(arg[iarg],"w");
 	  if (!fp) error->one("Cannot open diag_style energy output file");
 	}
-      } else {
-	error->all("Illegal diag_style energy command");
-      } 
-    } else {
-      //      error->all("Illegal diag_style energy command");
-    }
+      } else error->all("Illegal diag_style energy command");
+    } else  error->all("Illegal diag_style energy command");
     iarg++;
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-DiagEnergy::~DiagEnergy()
-{
 }
 
 /* ---------------------------------------------------------------------- */

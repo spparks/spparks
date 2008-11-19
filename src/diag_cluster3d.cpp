@@ -40,7 +40,7 @@ DiagCluster3d::DiagCluster3d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg
   dump_style = STANDARD;
   radius = 0.0;
 
-  int iarg = 1;
+  int iarg = iarg_child;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"filename") == 0) {
       iarg++;
@@ -49,9 +49,7 @@ DiagCluster3d::DiagCluster3d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg
 	  fp = fopen(arg[iarg],"w");
 	  if (!fp) error->one("Cannot open diag_style cluster3d output file");
 	}
-      } else {
-	error->all("Illegal diag_style cluster3d command");
-      } 
+      } else error->all("Illegal diag_style cluster3d command");
     } else if (strcmp(arg[iarg],"dump_style") == 0) {
       iarg++;
       if (iarg < narg) {
@@ -65,9 +63,7 @@ DiagCluster3d::DiagCluster3d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg
 	      if (!fpdump)
 		error->one("Cannot open diag_style cluster3d dump file");
 	    }
-	  } else {
-	    error->all("Illegal diag_style cluster3d command");
-	  }
+	  } else error->all("Illegal diag_style cluster3d command");
 	} else if (strcmp(arg[iarg],"opendx") == 0) {
 	  idump = 1;
 	  dump_style = OPENDX;
@@ -77,20 +73,12 @@ DiagCluster3d::DiagCluster3d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg
 	    opendxroot = new char[n];
 	    strcpy(opendxroot,arg[iarg]);
 	    opendxcount = 0;
-	  } else {
-	    error->all("Illegal diag_style cluster3d command");
-	  }
+	  } else error->all("Illegal diag_style cluster3d command");
 	} else if (strcmp(arg[iarg],"none") == 0) {
 	  idump = 0;
-	} else {
-	    error->all("Illegal diag_style cluster3d command");
-	}
-      } else {
-	error->all("Illegal diag_style cluster3d command");
-      }
-    } else {
-      //      error->all("Illegal diag_style cluster3d command");
-    }
+	} else error->all("Illegal diag_style cluster3d command");
+      } else error->all("Illegal diag_style cluster3d command");
+    } else error->all("Illegal diag_style cluster3d command");
     iarg++;
   }
 }

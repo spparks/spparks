@@ -26,6 +26,7 @@ class AppLattice : public App {
   friend class SweepLattice;
   friend class CommLattice;
   friend class DiagEnergy;
+  friend class DiagErbium;
   friend class DiagCluster;
 
  public:

@@ -382,10 +382,10 @@ void Output::stats(int init_flag)
 
 void Output::stats_header()
 {
-  char str[1024] = {'\0'};
+  char str[2048] = {'\0'};
   char *strpnt = str;
 
-  sprintf(strpnt," CPU Time ");
+  sprintf(strpnt," CPU");
   strpnt += strlen(strpnt);
 
   app->stats_header(strpnt);
@@ -397,10 +397,8 @@ void Output::stats_header()
   }
 
   if (me == 0) {
-    if (screen)
-      fprintf(screen,"%s\n",str);
-    if (logfile)
-      fprintf(logfile,"%s\n",str);
+    if (screen) fprintf(screen,"%s\n",str);
+    if (logfile) fprintf(logfile,"%s\n",str);
   }
 }
 

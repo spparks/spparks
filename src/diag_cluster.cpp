@@ -29,7 +29,8 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
+DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : 
+  Diag(spk,narg,arg)
 {
   cluster_ids = NULL;
   comm = NULL;
@@ -41,7 +42,7 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
   idump = 0;
   dump_style = STANDARD;
 
-  int iarg = 1;
+  int iarg = iarg_child;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"filename") == 0) {
       iarg++;
@@ -50,9 +51,7 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
 	  fp = fopen(arg[iarg],"w");
 	  if (!fp) error->one("Cannot open diag_style cluster output file");
 	}
-      } else {
-	error->all("Illegal diag_style cluster command");
-      } 
+      } else error->all("Illegal diag_style cluster command");
     } else if (strcmp(arg[iarg],"dump") == 0) {
       iarg++;
       if (iarg < narg) {
@@ -63,11 +62,10 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
 	  if (iarg < narg) {
 	    if (me == 0) {
 	      fpdump = fopen(arg[iarg],"w");
-	      if (!fpdump) error->one("Cannot open diag_style cluster dump file");
+	      if (!fpdump)
+		error->one("Cannot open diag_style cluster dump file");
 	    }
-	  } else {
-	    error->all("Illegal diag_style cluster command");
-	  }
+	  } else error->all("Illegal diag_style cluster command");
 	} else if (strcmp(arg[iarg],"opendx") == 0) {
 	  idump = 1;
 	  dump_style = OPENDX;
@@ -77,20 +75,12 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
 	    opendxroot = new char[n];
 	    strcpy(opendxroot,arg[iarg]);
 	    opendxcount = 0;
-	  } else {
-	    error->all("Illegal diag_style cluster command");
-	  }
+	  } else error->all("Illegal diag_style cluster command");
 	} else if (strcmp(arg[iarg],"none") == 0) {
 	  idump = 0;
-	} else {
-	    error->all("Illegal diag_style cluster command");
-	}
-      } else {
-	error->all("Illegal diag_style cluster command");
-      }
-    } else {
-//       error->all("Illegal diag_style cluster command");
-    }
+	} else error->all("Illegal diag_style cluster command");
+      } else error->all("Illegal diag_style cluster command");
+    } else error->all("Illegal diag_style cluster command");
     iarg++;
   }
 }
@@ -162,9 +152,7 @@ void DiagCluster::init(double time)
 
 void DiagCluster::compute(double time, int iflag, int done)
 {
-  if (diag_delta > 0.0) {
-    iflag = check_time(time, done);
-  }
+  if (diag_delta > 0.0) iflag = check_time(time, done);
 
   if (iflag || done) {
     applattice->comm->all();

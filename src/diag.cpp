@@ -41,28 +41,25 @@ Diag::Diag(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   // stats_flag = 1, provide stats, compute interval controlled by Output
   //
   // If stats_flag = 1, then require diag_delta = 0.0; 
+
   stats_flag = 1;
   diag_delta = 0.0;
   diag_ilogfreq = 0;
 
   int iarg = 1;
   while (iarg < narg) {
-    if  (strcmp(arg[iarg],"delt") == 0) {
+    if (strcmp(arg[iarg],"delt") == 0) {
       iarg++;
       if (iarg < narg) {
 	diag_delta = atof(arg[iarg]);
-      } else {
-	error->all("Illegal diag_style command");
-      }
+      } else error->all("Illegal diag_style command");
     } else if  (strcmp(arg[iarg],"stats") == 0) {
       iarg++;
       if (iarg < narg) {
 	if (strcmp(arg[iarg],"yes") == 0) stats_flag = 1;
 	else if (strcmp(arg[iarg],"no") == 0) stats_flag = 0;
 	else error->all("Illegal diag_style command");
-      } else {
-	error->all("Illegal diag_style command");
-      }
+      } else error->all("Illegal diag_style command");
     } else if (strcmp(arg[iarg],"logfreq") == 0) {
       diag_ilogfreq = 1;
       iarg++;
@@ -70,12 +67,12 @@ Diag::Diag(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 	diag_nrepeat = atoi(arg[iarg]);
 	iarg++;
 	diag_scale = atof(arg[iarg]);
-      } else {
-	error->all("Illegal diag_style command");
-      }
-    }
+      } else error->all("Illegal diag_style command");
+    } else break;
     iarg++;
   }
+
+  iarg_child = iarg;
 
   if (diag_delta < 0.0) error->all("Illegal diag_style command");
   if (diag_ilogfreq && diag_delta <= 0.0) 

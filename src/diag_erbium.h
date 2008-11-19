@@ -11,19 +11,19 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DIAG_ENERGY_H
-#define DIAG_ENERGY_H
+#ifndef DIAG_ERBIUM_H
+#define DIAG_ERBIUM_H
 
 #include "stdio.h"
 #include "diag.h"
 
 namespace SPPARKS_NS {
 
-class DiagEnergy : public Diag {
+class DiagErbium : public Diag {
 
  public:
-  DiagEnergy(class SPPARKS *, int, char **);
-  ~DiagEnergy() {}
+  DiagErbium(class SPPARKS *, int, char **);
+  ~DiagErbium() {}
 
   void init(double);
   void compute(double, int, int);

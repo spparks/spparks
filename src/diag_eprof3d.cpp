@@ -43,7 +43,7 @@ DiagEprof3d::DiagEprof3d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
   eb1 = 0.0;
   eb2 = 0.0;
 
-  int iarg = 1;
+  int iarg = iarg_child;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"filename") == 0) {
       iarg++;
@@ -52,9 +52,7 @@ DiagEprof3d::DiagEprof3d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
 	  fp = fopen(arg[iarg],"w");
 	  if (!fp) error->one("Cannot open diag_style eprof3d output file");
 	}
-      } else {
-	error->all("Illegal diag_style cluster3d command");
-      } 
+      } else error->all("Illegal diag_style cluster3d command");
     } else if (strcmp(arg[iarg],"axis") == 0) {
       iarg++;
       if (iarg < narg) {
@@ -64,17 +62,11 @@ DiagEprof3d::DiagEprof3d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg
 	  prof_index = 1;
 	} else if (strcmp(arg[iarg],"z") == 0) {
 	  prof_index = 2;
-	} else {
-	  error->all("Illegal diag_style eprof3d command");
-	}
-      } else {
-	error->all("Illegal diag_style eprof3d command");
-      }
+	} else error->all("Illegal diag_style eprof3d command");
+      } else error->all("Illegal diag_style eprof3d command");
     } else if (strcmp(arg[iarg],"boundary") == 0) {
       iboundary = 1;
-    } else {
-      //      error->all("Illegal diag_style eprof3d command");
-    }
+    } else error->all("Illegal diag_style eprof3d command");
     iarg++;
   }
 }

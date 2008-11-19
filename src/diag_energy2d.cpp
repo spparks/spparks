@@ -30,10 +30,10 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DiagEnergy2d::DiagEnergy2d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
+DiagEnergy2d::DiagEnergy2d(SPPARKS *spk, int narg, char **arg) : 
+  Diag(spk,narg,arg)
 {
-
-  int iarg = 1;
+  int iarg = iarg_child;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"filename") == 0) {
       iarg++;
@@ -42,12 +42,8 @@ DiagEnergy2d::DiagEnergy2d(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,a
 	  fp = fopen(arg[iarg],"w");
 	  if (!fp) error->one("Cannot open diag_style energy2d output file");
 	}
-      } else {
-	error->all("Illegal diag_style energy2d command");
-      } 
-    } else {
-      //      error->all("Illegal diag_style energy2d command");
-    }
+      } else error->all("Illegal diag_style energy2d command");
+    } else error->all("Illegal diag_style energy2d command");
     iarg++;
   }
 }
