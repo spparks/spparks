@@ -30,7 +30,7 @@ using namespace SPPARKS_NS;
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define EPSILON 1.0e-10
-#define OUTPUT 1
+//#define OUTPUT 1
 
 /* ---------------------------------------------------------------------- */
 
@@ -243,6 +243,9 @@ void AppTestGroup::iterate()
 void AppTestGroup::stats(char *strtmp)
 {
   char *strpnt = strtmp;
+  sprintf(strpnt," %d %g",ntimestep,time);
+  strpnt += strlen(strpnt);
+
   for (int m = 0; m < nevents; m++) {
     sprintf(strpnt," %d",count[m]);
     strpnt += strlen(strpnt);
@@ -255,7 +258,7 @@ void AppTestGroup::stats(char *strtmp)
 
 void AppTestGroup::stats_header(char *strtmp)
 {
-  sprintf(strtmp," %20s ","Reaction Counts");
+  sprintf(strtmp," %10s %10s %20s","Step","Time","Reaction Counts");
 }
 
 /* ----------------------------------------------------------------------
