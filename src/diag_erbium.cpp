@@ -15,7 +15,6 @@
 #include "stdlib.h"
 #include "string.h"
 #include "diag_erbium.h"
-#include "output.h"
 #include "app.h"
 #include "app_lattice.h"
 #include "comm_lattice.h"
@@ -32,19 +31,6 @@ using namespace SPPARKS_NS;
 
 DiagErbium::DiagErbium(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
-  int iarg = iarg_child;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"filename") == 0) {
-      iarg++;
-      if (iarg < narg) {
-	if (me == 0) {
-	  fp = fopen(arg[iarg],"w");
-	  if (!fp) error->one("Cannot open diag_style energy output file");
-	}
-      } else error->all("Illegal diag_style energy command");
-    } else  error->all("Illegal diag_style energy command");
-    iarg++;
-  }
 }
 
 /* ---------------------------------------------------------------------- */
