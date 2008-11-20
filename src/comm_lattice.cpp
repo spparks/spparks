@@ -210,7 +210,7 @@ CommLattice::Swap *CommLattice::create_swap_sector(int nsites, int *site2i)
   for (m = 0; m < nsites; m++) flag[site2i[m]] = 0;
 
   // flag ghost sites up to delghost hops from sector with positive number
-  // assumes ghost sites up to delghost-1 away have a neighbor list
+  // assumes ghost sites have a neighbor list
 
   for (int ilayer = 0; ilayer < delghost; ilayer++) {
     for (i = 0; i < ntotal; i++) {
@@ -284,7 +284,7 @@ CommLattice::Swap *CommLattice::create_swap_sector_reverse(int nsites,
   for (m = 0; m < nsites; m++) flag[site2i[m]] = 0;
 
   // flag ghost sites up to delreverse hops from sector with positive number
-  // assumes ghost sites up to delreverse-1 away have a neighbor list
+  // assumes ghost sites have a neighbor list
 
   for (int ilayer = 0; ilayer < delreverse; ilayer++) {
     for (i = 0; i < ntotal; i++) {

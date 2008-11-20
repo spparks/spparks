@@ -23,7 +23,7 @@ class DiagErbium : public Diag {
 
  public:
   DiagErbium(class SPPARKS *, int, char **);
-  ~DiagErbium() {}
+  ~DiagErbium();
 
   void init(double);
   void compute(double, int, int);
@@ -31,10 +31,11 @@ class DiagErbium : public Diag {
   void stats_header(char *);
 
  private:
-  class AppLattice *applattice;
-  int nlocal;
-  double energy;
-  FILE* fp;
+  class AppErbium *apperbium;
+  int nvalues;
+  char **values;
+  int *which,*index,*ivector;
+  int siteflag;
 };
 
 }

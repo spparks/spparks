@@ -26,7 +26,7 @@
 using namespace SPPARKS_NS;
 
 enum{NOOP,FCC,TETRA,OCTA};
-enum{ZERO,ERBIUM,HYDROGEN,HELIUM,VACANCY};
+enum{ZERO,ERBIUM,HYDROGEN,HELIUM,VACANCY};      // same as DiagErbium
 #define DELTAEVENT 100000
 
 /* ---------------------------------------------------------------------- */
@@ -76,6 +76,7 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
   stype = sinput = soutput = NULL;
   dtype = dinput = doutput = NULL;
   ttype = tinput = toutput = NULL;
+  scount = dcount = tcount = NULL;
 
   // initialize my portion of lattice
   // type (FCC,OCTA,TETRA) is determined by global site ID
@@ -138,6 +139,9 @@ AppErbium::~AppErbium()
   memory->destroy_2d_int_array(ttype);
   memory->destroy_2d_int_array(tinput);
   memory->destroy_2d_int_array(toutput);
+  memory->sfree(scount);
+  memory->sfree(dcount);
+  memory->sfree(tcount);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -285,12 +289,18 @@ void AppErbium::init_app()
   if (temperature == 0.0)
     error->all("Temperature cannot be 0.0 for app erbium");
 
-  for (int m = 0; m < none; m++)
+  for (int m = 0; m < none; m++) {
     spropensity[m] = srate[m];
-  for (int m = 0; m < ntwo; m++)
+    scount[m] = 0;
+  }
+  for (int m = 0; m < ntwo; m++) {
     dpropensity[m] = exp(-drate[m]/temperature);
-  for (int m = 0; m < nthree; m++)
+    dcount[m] = 0;
+  }
+  for (int m = 0; m < nthree; m++) {
     tpropensity[m] = exp(-trate[m]/temperature);
+    tcount[m] = 0;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -399,20 +409,29 @@ void AppErbium::site_event(int i, class RandomPark *random)
   j = events[ievent].jpartner;
   k = events[ievent].kpartner;
 
+  int ibef = 0;
+  for (int jj = 0; jj < nlocal; jj++)
+    if (element[jj] == HYDROGEN) ibef++;
+  int iel1 = element[i];
+  int iel2 = element[j];
+
   if (rstyle == 1) {
     element[i] = soutput[which];
+    scount[which]++;
   } else if (rstyle == 2) {
     element[i] = doutput[which][0];
     element[j] = doutput[which][1];
+    dcount[which]++;
   } else {
     element[i] = toutput[which][0];
     element[j] = toutput[which][1];
     element[k] = toutput[which][2];
+    tcount[which]++;
   }
 
   // compute propensity changes for participating sites and first neighbors
   // use echeck[] to avoid resetting propensity of same site
-  // do not loop over neighbors of any out-of-sector sites
+  // loop over neighbors of out-of-sector sites, only update in-sector sites
 
   int nsites = 0;
 
@@ -432,7 +451,7 @@ void AppErbium::site_event(int i, class RandomPark *random)
     }
   }
 
-  if (rstyle >= 2 && i2site[j] >= 0) {
+  if (rstyle >= 2) {
     for (n = 0; n < numneigh[j]; n++) {
       m = neighbor[j][n];
       isite = i2site[m];
@@ -445,7 +464,7 @@ void AppErbium::site_event(int i, class RandomPark *random)
     }
   }
 
-  if (rstyle == 3 && i2site[k] >= 0) {
+  if (rstyle == 3) {
     for (n = 0; n < numneigh[k]; n++) {
       m = neighbor[k][n];
       isite = i2site[m];
@@ -463,6 +482,20 @@ void AppErbium::site_event(int i, class RandomPark *random)
   // clear echeck array
 
   for (m = 0; m < nsites; m++) echeck[esites[m]] = 0;
+
+  // DEBUG check on validity of all current events
+
+  for (m = 0; m < nlocal; m++) {
+    isite = i2site[m];
+    if (isite < 0) continue;
+    double before=propensity[isite];
+    double after=site_propensity(m);
+    if (before != after) {
+      printf("PROBLEM: %d %d %d %g %g \n",ntimestep,
+	     m,isite,before,after);
+      error->one("QUIT");
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -534,6 +567,8 @@ void AppErbium::grow_reactions(int rstyle)
       memory->srealloc(sinput,n*sizeof(int),"app/erbium:sinput");
     soutput = (int *) 
       memory->srealloc(soutput,n*sizeof(int),"app/erbium:soutput");
+    scount = (int *) 
+      memory->srealloc(scount,n*sizeof(int),"app/erbium:scount");
 
   } else if (rstyle == 2) {
     int n = ntwo + 1;
@@ -544,6 +579,8 @@ void AppErbium::grow_reactions(int rstyle)
     dtype = memory->grow_2d_int_array(dtype,n,2,"app/erbium:dtype");
     dinput = memory->grow_2d_int_array(dinput,n,2,"app/erbium:dinput");
     doutput = memory->grow_2d_int_array(doutput,n,2,"app/erbium:doutput");
+    dcount = (int *) 
+      memory->srealloc(dcount,n*sizeof(int),"app/erbium:dcount");
 
   } else if (rstyle == 3) {
     int n = nthree + 1;
@@ -554,5 +591,7 @@ void AppErbium::grow_reactions(int rstyle)
     ttype = memory->grow_2d_int_array(ttype,n,3,"app/erbium:ttype");
     tinput = memory->grow_2d_int_array(tinput,n,3,"app/erbium:tinput");
     toutput = memory->grow_2d_int_array(toutput,n,3,"app/erbium:toutput");
+    tcount = (int *) 
+      memory->srealloc(tcount,n*sizeof(int),"app/erbium:tcount");
   }
 }

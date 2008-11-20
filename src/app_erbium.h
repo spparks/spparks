@@ -19,6 +19,8 @@
 namespace SPPARKS_NS {
 
 class AppErbium : public AppLattice {
+  friend class DiagErbium;
+
  public:
   AppErbium(class SPPARKS *, int, char **);
   ~AppErbium();
@@ -41,6 +43,7 @@ class AppErbium : public AppLattice {
   int *stype,**dtype,**ttype;
   int *sinput,**dinput,**tinput;
   int *soutput,**doutput,**toutput;
+  int *scount,*dcount,*tcount;
 
   struct Event {           // one event for an owned site
     int style;             // reaction style = SINGLE,DOUBLE,TRIPLE

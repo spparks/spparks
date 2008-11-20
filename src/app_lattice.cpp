@@ -1023,7 +1023,8 @@ void AppLattice::connectivity_within_cutoff()
    numneigh and global neighbor IDs of each owned site are known as input
    add ghost sites for delpropensity layers
    form neigh list for each layer of ghost sites one layer at a time
-   when done, delpropensity-1 layers have a numneigh and neigh list
+   when done, delpropensity-1 layers have a full numneigh and neigh list
+     last delpropensity layers has a partial numneigh and neigh list
    convert neighbor IDs from global indices to local indices
  ------------------------------------------------------------------------- */
 
@@ -1127,15 +1128,14 @@ void AppLattice::ghosts_from_connectivity()
 	buf[m++] = xyz[j][0];
 	buf[m++] = xyz[j][1];
 	buf[m++] = xyz[j][2];
-	if (ilayer != delpropensity-1) {
-	  buf[m++] = numneigh[j];
-	  for (k = 0; k < numneigh[j]; k++)
-	    buf[m++] = neighbor[j][k];
-	}
+	buf[m++] = numneigh[j];
+	for (k = 0; k < numneigh[j]; k++)
+	  buf[m++] = neighbor[j][k];
       }
     }
 
     // reallocate site arrays so can append next layer of ghosts
+    // also reallocate neighbor list arrays
 
     npreviousghost = nghost;
     nghost += nsite;
@@ -1148,11 +1148,9 @@ void AppLattice::ghosts_from_connectivity()
 				     "app:index");
     memory->grow_2d_T_array(xyz,nlocal+nghost,3,"app:xyz");
 
-    if (ilayer != delpropensity-1) {
-      numneigh = (int *) memory->srealloc(numneigh,(nlocal+nghost)*sizeof(int),
-					  "app:numneigh");
-      memory->grow_2d_T_array(neighbor,nlocal+nghost,maxneigh,"app:neighbor");
-    }
+    numneigh = (int *) memory->srealloc(numneigh,(nlocal+nghost)*sizeof(int),
+					"app:numneigh");
+    memory->grow_2d_T_array(neighbor,nlocal+nghost,maxneigh,"app:neighbor");
 
     // original site list came back to me around ring
     // extract info for my new layer of ghost sites
@@ -1171,11 +1169,9 @@ void AppLattice::ghosts_from_connectivity()
       xyz[j][0] = buf[m++];
       xyz[j][1] = buf[m++];
       xyz[j][2] = buf[m++];
-      if (ilayer != delpropensity-1) {
-	numneigh[j] = static_cast<int> (buf[m++]);
-	for (k = 0; k < numneigh[j]; k++)
-	  neighbor[j][k] = static_cast<int> (buf[m++]);
-      }
+      numneigh[j] = static_cast<int> (buf[m++]);
+      for (k = 0; k < numneigh[j]; k++)
+	neighbor[j][k] = static_cast<int> (buf[m++]);
     }
 
     // clean up
@@ -1185,14 +1181,23 @@ void AppLattice::ghosts_from_connectivity()
   }
 
   // convert all my neighbor connections to local indices
+  // if i is owned or in delpropensity-1 layers, then error if neigh not found
+  // if i is ghost in last delpropensity layer, then delete neigh if not found
 
-  for (i = 0; i < nlocal+npreviousghost; i++)
-    for (j = 0; j < numneigh[i]; j++) {
+  for (i = 0; i < nlocal+nghost; i++) {
+    j = 0;
+    while (j < numneigh[i]) {
       m = neighbor[i][j];
       loc = hash.find(m);
-      if (loc == hash.end()) error->one("Ghost connection was not found");
-      neighbor[i][j] = loc->second;
+      if (loc != hash.end()) {
+	neighbor[i][j] = loc->second;
+	j++;
+      } else if (i >= nlocal+npreviousghost) {
+	numneigh[i]--;
+	for (k = j; k < numneigh[i]; k++) neighbor[i][k] = neighbor[i][k+1];
+      } else error->one("Ghost connection was not found");
     }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
