@@ -52,6 +52,8 @@ The following additional commands are defined by this application.
 
 [Restrictions:] none
 
-[Related commands:] none
+[Related commands:]
+
+"diag_style erbium"_diag_erbium.html
 
 [Default:] none

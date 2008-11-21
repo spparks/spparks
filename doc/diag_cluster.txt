@@ -87,7 +87,6 @@ and {cluster3d} styles are for 2d and 3d lattices.
 
 [Related commands:]
 
-"diag_style"_diag_style.html
-"stats"_stats.html
+"diag_style"_diag_style.html, "stats"_stats.html
 
 [Default:] none

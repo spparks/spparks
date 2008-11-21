@@ -58,8 +58,7 @@ supported.
 
 [Related commands:]
 
-"diag_style"_diag_style.html
-"stats"_stats.html
+"diag_style"_diag_style.html, "stats"_stats.html
 
 [Default:] none
 
