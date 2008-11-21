@@ -32,8 +32,8 @@ class DiagErbium : public Diag {
 
  private:
   class AppErbium *apperbium;
-  int nvalues;
-  char **values;
+  int nlist;
+  char **list;
   int *which,*index,*ivector;
   int siteflag;
 };

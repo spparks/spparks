@@ -34,36 +34,36 @@ enum{ER,H,HE,VAC,EVENTS,ONE,TWO,THREE};
 
 DiagErbium::DiagErbium(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
-  nvalues = 0;
+  nlist = 0;
 
   int iarg = iarg_child;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"values") == 0) {
-      nvalues = narg - iarg - 1;
-      values = new char*[nvalues];
+    if (strcmp(arg[iarg],"list") == 0) {
+      nlist = narg - iarg - 1;
+      list = new char*[nlist];
       int j = 0;
       for (int i = iarg+1; i < narg; i++) {
 	int n = strlen(arg[i]) + 1;
-	values[j] = new char[n];
-	strcpy(values[j],arg[i]);
+	list[j] = new char[n];
+	strcpy(list[j],arg[i]);
 	j++;
       }
       iarg = narg;
     } else error->all("Illegal diag_style erbium command");
   }
 
-  if (nvalues == 0) error->all("Illegal diag_style erbium command");
-  which = new int[nvalues];
-  index = new int[nvalues];
-  ivector = new int[nvalues];
+  if (nlist == 0) error->all("Illegal diag_style erbium command");
+  which = new int[nlist];
+  index = new int[nlist];
+  ivector = new int[nlist];
 }
 
 /* ---------------------------------------------------------------------- */
 
 DiagErbium::~DiagErbium()
 {
-  for (int i = 0; i < nvalues; i++) delete [] values[i];
-  delete [] values;
+  for (int i = 0; i < nlist; i++) delete [] list[i];
+  delete [] list;
   delete [] which;
   delete [] index;
   delete [] ivector;
@@ -81,27 +81,27 @@ void DiagErbium::init(double time)
   int ntwo = apperbium->ntwo;
   int nthree = apperbium->nthree;
 
-  for (int i = 0; i < nvalues; i++) {
-    if (strcmp(values[i],"er") == 0) which[i] = ER;
-    else if (strcmp(values[i],"h") == 0) which[i] = H;
-    else if (strcmp(values[i],"he") == 0) which[i] = HE;
-    else if (strcmp(values[i],"vac") == 0) which[i] = VAC;
-    else if (strcmp(values[i],"events") == 0) which[i] = EVENTS;
-    else if (values[i][0] == 's') {
+  for (int i = 0; i < nlist; i++) {
+    if (strcmp(list[i],"er") == 0) which[i] = ER;
+    else if (strcmp(list[i],"h") == 0) which[i] = H;
+    else if (strcmp(list[i],"he") == 0) which[i] = HE;
+    else if (strcmp(list[i],"vac") == 0) which[i] = VAC;
+    else if (strcmp(list[i],"events") == 0) which[i] = EVENTS;
+    else if (list[i][0] == 's') {
       which[i] = ONE;
-      int n = atoi(&values[i][1]);
+      int n = atoi(&list[i][1]);
       if (n < 1 || n > none) 
 	error->all("Invalid value setting in diag_style erbium");
       index[i] = n - 1;
-    } else if (values[i][0] == 'd') {
+    } else if (list[i][0] == 'd') {
       which[i] = TWO;
-      int n = atoi(&values[i][1]);
+      int n = atoi(&list[i][1]);
       if (n < 1 || n > ntwo) 
 	error->all("Invalid value setting in diag_style erbium");
       index[i] = n - 1;
-    } else if (values[i][0] == 't') {
+    } else if (list[i][0] == 't') {
       which[i] = THREE;
-      int n = atoi(&values[i][1]);
+      int n = atoi(&list[i][1]);
       if (n < 1 || n > nthree) 
 	error->all("Invalid value setting in diag_style erbium");
       index[i] = n - 1;
@@ -109,7 +109,7 @@ void DiagErbium::init(double time)
   }
 
   siteflag = 0;
-  for (int i = 0; i < nvalues; i++)
+  for (int i = 0; i < nlist; i++)
     if (which[i] == ER || which[i] == H || which[i] == HE || which[i] == VAC)
       siteflag = 1;
 
@@ -134,7 +134,7 @@ void DiagErbium::compute(double time, int iflag, int done)
       for (int i = 0; i < nlocal; i++) sites[element[i]]++;
     }
 
-    for (int i = 0; i < nvalues; i++) {
+    for (int i = 0; i < nlist; i++) {
       if (which[i] == ER) ivalue = sites[ERBIUM];
       else if (which[i] == H) ivalue = sites[HYDROGEN];
       else if (which[i] == HE) ivalue = sites[HELIUM];
@@ -154,7 +154,7 @@ void DiagErbium::compute(double time, int iflag, int done)
 void DiagErbium::stats(char *str) {
   if (stats_flag == 0) return;
 
-  for (int i = 0; i < nvalues; i++) {
+  for (int i = 0; i < nlist; i++) {
     sprintf(str," %d",ivector[i]);
     str += strlen(str);
   }
@@ -165,8 +165,8 @@ void DiagErbium::stats(char *str) {
 void DiagErbium::stats_header(char *str) {
   if (stats_flag == 0) return;
 
-  for (int i = 0; i < nvalues; i++) {
-    sprintf(str," %s",values[i]);
+  for (int i = 0; i < nlist; i++) {
+    sprintf(str," %s",list[i]);
     str += strlen(str);
   }
 }
