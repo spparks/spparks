@@ -35,6 +35,7 @@
 #include "app_potts_3d_6n.h"
 #include "app_potts_3d_12n.h"
 #include "app_potts_3d_26n.h"
+#include "app_surface.h"
 #include "app_test_group.h"
 #endif
 
@@ -62,6 +63,7 @@ AppStyle(potts/2d/24n,AppPotts2d24n)
 AppStyle(potts/3d/6n,AppPotts3d6n)
 AppStyle(potts/3d/12n,AppPotts3d12n)
 AppStyle(potts/3d/26n,AppPotts3d26n)
+AppStyle(surface,AppSurface)
 AppStyle(test/group,AppTestGroup)
 #endif
 
