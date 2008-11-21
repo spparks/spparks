@@ -431,7 +431,7 @@ void AppErbium::site_event(int i, class RandomPark *random)
 
   // compute propensity changes for participating sites and first neighbors
   // use echeck[] to avoid resetting propensity of same site
-  // loop over neighbors of out-of-sector sites, only update in-sector sites
+  // loop over neighs of out-of-sector sites, but only update in-sector sites
 
   int nsites = 0;
 
@@ -443,8 +443,7 @@ void AppErbium::site_event(int i, class RandomPark *random)
   for (n = 0; n < numneigh[i]; n++) {
     m = neighbor[i][n];
     isite = i2site[m];
-    if (isite < 0) continue;
-    if (echeck[isite] == 0) {
+    if (isite >= 0 && echeck[isite] == 0) {
       propensity[isite] = site_propensity(m);
       esites[nsites++] = isite;
       echeck[isite] = 1;
@@ -455,8 +454,7 @@ void AppErbium::site_event(int i, class RandomPark *random)
     for (n = 0; n < numneigh[j]; n++) {
       m = neighbor[j][n];
       isite = i2site[m];
-      if (isite < 0) continue;
-      if (echeck[isite] == 0) {
+      if (isite >= 0 && echeck[isite] == 0) {
 	propensity[isite] = site_propensity(m);
 	esites[nsites++] = isite;
 	echeck[isite] = 1;
@@ -468,8 +466,7 @@ void AppErbium::site_event(int i, class RandomPark *random)
     for (n = 0; n < numneigh[k]; n++) {
       m = neighbor[k][n];
       isite = i2site[m];
-      if (isite < 0) continue;
-      if (echeck[isite] == 0) {
+      if (isite >= 0 && echeck[isite] == 0) {
 	propensity[isite] = site_propensity(m);
 	esites[nsites++] = isite;
 	echeck[isite] = 1;
@@ -482,20 +479,6 @@ void AppErbium::site_event(int i, class RandomPark *random)
   // clear echeck array
 
   for (m = 0; m < nsites; m++) echeck[esites[m]] = 0;
-
-  // DEBUG check on validity of all current events
-
-  for (m = 0; m < nlocal; m++) {
-    isite = i2site[m];
-    if (isite < 0) continue;
-    double before=propensity[isite];
-    double after=site_propensity(m);
-    if (before != after) {
-      printf("PROBLEM: %d %d %d %g %g \n",ntimestep,
-	     m,isite,before,after);
-      error->one("QUIT");
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------
