@@ -101,7 +101,7 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
       else flag = VACANCY;
       loc = hash.find(iglobal);
       if (loc != hash.end()) {
-	ibasis = iglobal % 16;
+	ibasis = (iglobal-1) % 16;
 	if (ibasis < 4) itype = FCC;
 	else if (ibasis < 8) itype = OCTA;
 	else itype = TETRA;
