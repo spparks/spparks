@@ -32,10 +32,11 @@ class Output : protected Pointers {
   void add_diag(Diag *);
 
  private:
-  double stats_time,stats_delta,stats_scale,stats_t0;
-  double dump_time,dump_delta;
+  double stats_time,stats_delta,stats_scale,stats_t0,stats_eps;
+  double dump_time,dump_delta,dump_scale,dump_t0,dump_eps;
   int me,nprocs;
   int stats_nrepeat,stats_irepeat,stats_ilogfreq;
+  int dump_nrepeat,dump_irepeat,dump_ilogfreq;
 
   int ndiags;
   Diag **diaglist;

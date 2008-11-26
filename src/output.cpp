@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "output.h"
@@ -41,8 +42,11 @@ Output::Output(SPPARKS *spk) : Pointers(spk)
   ndiags = 0;
   diaglist = NULL;
   dump_delta = 0.0;
+  dump_ilogfreq = 0;
+  dump_eps = 1.0e-6;
   stats_delta = 0.0;
   stats_ilogfreq = 0;
+  stats_eps = 1.0e-6;
 
   size_one = 0;
   fp = NULL;
@@ -85,9 +89,15 @@ void Output::init(double time)
       error->all("Dumping propensity but no KMC solve performed");
   }
 
-  // setup future stat and dump calls
+  // setup future stats and dump calls
 
-  dump_time = time + dump_delta;
+  if (dump_ilogfreq == 0) {
+    dump_time = time + dump_delta;
+  } else if (dump_ilogfreq == 1) {
+    dump_time = time + dump_delta;
+    dump_t0 = time;
+    dump_irepeat = 0;
+  }
 
   if (stats_ilogfreq == 0) {
     stats_time = time + stats_delta;
@@ -121,13 +131,15 @@ void Output::set_stats(int narg, char **arg)
 
   int iarg = 1;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"log") == 0) {
+    if (strcmp(arg[iarg],"logfreq") == 0) {
       stats_ilogfreq = 1;
       iarg++;
       if (iarg+1 < narg) {
 	stats_nrepeat = atoi(arg[iarg]);
+	if (stats_nrepeat < 1) error->all("Illegal stats command");
 	iarg++;
 	stats_scale = atof(arg[iarg]);
+	if (stats_scale <= 1.0) error->all("Illegal stats command");
       } else {
 	error->all("Illegal stats command");
       }
@@ -162,18 +174,36 @@ void Output::set_dump(int narg, char **arg)
     if (!fp) error->one("Cannot open dump file");
   }
 
+  int iarg = 2;
+  if (iarg < narg) {
+    if (strcmp(arg[iarg],"logfreq") == 0) {
+      dump_ilogfreq = 1;
+      iarg++;
+      if (iarg+1 < narg) {
+	dump_nrepeat = atoi(arg[iarg]);
+	if (dump_nrepeat < 1) error->all("Illegal dump command");
+	iarg++;
+	dump_scale = atof(arg[iarg]);
+	if (dump_scale <= 1.0) error->all("Illegal dump command");
+	iarg++;
+      } else {
+	error->all("Illegal dump command");
+      }
+    }
+  }
+
   // line = one string of concatenated keywords
   // size_one = # of keywords
 
   char *line = new char[MAXLINE];
-  if (narg == 2) {
+  if (iarg == narg) {
     size_one = 5;
     strcpy(line,DEFAULT);
   } else {
-    size_one = narg - 2;
+    size_one = narg - iarg;
     line[0] = '\0';
-    for (int iarg = 2; iarg < narg; iarg++) {
-      strcat(line,arg[iarg]);
+    for (int jarg = iarg; jarg < narg; jarg++) {
+      strcat(line,arg[jarg]);
       strcat(line," ");
     }
     line[strlen(line)-1] = '\0';
@@ -301,10 +331,12 @@ void Output::set_dump(int narg, char **arg)
 void Output::compute(double time, int done)
 {
   int iflag;
+  int ntmp;
+  double tgoal;
 
   // check if dump output required
 
-  if ((dump_delta > 0.0 && time >= dump_time) || done) {
+  if ((dump_delta > 0.0 && time > dump_time-dump_eps) || done) {
     if (dump_delta > 0.0) dump();
     dump_time += dump_delta;
   }
@@ -312,7 +344,8 @@ void Output::compute(double time, int done)
   // check if stats output required
 
   iflag = 0;
-  if ((stats_delta > 0.0 && time >= stats_time) ) iflag = 1;
+
+  if (stats_delta > 0.0 && time > stats_time-stats_eps) iflag = 1;
 
   // perform diagnostics
 
@@ -323,21 +356,49 @@ void Output::compute(double time, int done)
 
   if (iflag || done) stats(1);
 
+  // calculate new dump time
+  // ensure new dump_time exceeds time
+
+  if (iflag) {
+    if (dump_ilogfreq == 0) {
+      dump_time += dump_delta;
+      if (time > dump_time-dump_eps)
+	dump_time = ceil(time/dump_delta)*dump_delta;
+    } else if (dump_ilogfreq == 1) {
+      dump_time += dump_delta;
+      dump_irepeat++;
+      if (dump_irepeat == dump_nrepeat || time > dump_time-dump_eps) {
+	// Calculate next smallest delta that will reach tgoal within nrepeat steps
+	tgoal = time-dump_t0+dump_delta;
+	ntmp = ceil(log(tgoal/(dump_delta*dump_nrepeat))/log(dump_scale));
+	// If ntmp is less than one, we will need to fix this
+	if (ntmp < 1) error->all("ntmp < 1 in Output::compute()");
+	dump_delta *= pow(dump_scale,ntmp);
+	dump_time = ceil(tgoal/dump_delta)*dump_delta;
+	dump_irepeat = 0;
+      }
+    }
+  }
+  // calculate new stats time
   // ensure new stats_time exceeds time
 
   if (iflag) {
     if (stats_ilogfreq == 0) {
-      //while (time >= stats_time) stats_time += stats_delta;
       stats_time += stats_delta;
+      if (time > stats_time-stats_eps)
+	stats_time = ceil(time/stats_delta)*stats_delta;
     } else if (stats_ilogfreq == 1) {
-      while (time >= stats_time) {
-	stats_time += stats_delta;
-	stats_irepeat++;
-	if (stats_irepeat == stats_nrepeat) {
-	  stats_delta *= stats_scale;
-	  stats_time = stats_t0+stats_delta;
-	  stats_irepeat = 0;
-	}
+      stats_time += stats_delta;
+      stats_irepeat++;
+      if (stats_irepeat == stats_nrepeat || time > stats_time-stats_eps) {
+	// Calculate next smallest delta that will reach tgoal within nrepeat steps
+	tgoal = time-stats_t0+stats_delta;
+	ntmp = ceil(log(tgoal/(stats_delta*stats_nrepeat))/log(stats_scale));
+	// If ntmp is less than one, we will need to fix this
+	if (ntmp < 1) error->all("ntmp < 1 in Output::compute()");
+	stats_delta *= pow(stats_scale,ntmp);
+	stats_time = ceil(tgoal/stats_delta)*stats_delta;
+	stats_irepeat = 0;
       }
     }
   }

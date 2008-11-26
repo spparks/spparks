@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "output.h"
@@ -45,6 +46,7 @@ Diag::Diag(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   stats_flag = 1;
   diag_delta = 0.0;
   diag_ilogfreq = 0;
+  diag_eps = 1.0e-6;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -93,29 +95,32 @@ Diag::~Diag()
 int Diag::check_time(double time, int done)
 {
   int iflag = 0;
-  if ((diag_delta > 0.0 && time >= diag_time) || done) iflag = 1;
+  int ntmp;
+  double tgoal;
 
-  if ((diag_delta > 0.0 && time >= diag_time)) {
+  if ((diag_delta > 0.0 && time > diag_time-diag_eps) || done) iflag = 1;
+
+  if ((diag_delta > 0.0 && time > diag_time-diag_eps)) {
     if (diag_ilogfreq == 0) {
-      // Ensure that new diag_time exceeds time
-      while (time >= diag_time) {
-	diag_time += diag_delta;
-      }
-      
+      diag_time += diag_delta;
+      if (time > diag_time-diag_eps)
+	diag_time = ceil(time/diag_delta)*diag_delta;
     } else if (diag_ilogfreq == 1) {
-      // Ensure that new diag_time exceeds time
-      while (time >= diag_time) {
-	diag_time += diag_delta;
-	diag_irepeat++;
-	if (diag_irepeat == diag_nrepeat) {
-	  diag_delta *= diag_scale;
-	  diag_time = diag_t0+diag_delta;
-	  diag_irepeat = 0;
-	}
+      diag_time += diag_delta;
+      diag_irepeat++;
+      if (diag_irepeat == diag_nrepeat || time > diag_time-diag_eps) {
+	// Calculate next smallest delta that will reach tgoal within nrepeat steps
+	tgoal = time-diag_t0+diag_delta;
+	ntmp = ceil(log(tgoal/(diag_delta*diag_nrepeat))/log(diag_scale));
+	// If ntmp is less than one, we will need to fix this
+	if (ntmp < 1) error->all("ntmp < 1 in Output::compute()");
+	diag_delta *= pow(diag_scale,ntmp);
+	diag_time = ceil(tgoal/diag_delta)*diag_delta;
+	diag_irepeat = 0;
       }
     }
-    
   }
+
   return iflag;
 }
 

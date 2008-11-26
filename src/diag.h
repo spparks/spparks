@@ -42,7 +42,7 @@ class Diag : protected Pointers {
   int me,nprocs;
   int iarg_child;
 
-  double diag_time,diag_delta,diag_scale,diag_t0;
+  double diag_time,diag_delta,diag_scale,diag_t0,diag_eps;
   int diag_nrepeat,diag_irepeat,diag_ilogfreq;
   int stats_flag;
 
