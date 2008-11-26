@@ -30,6 +30,7 @@ using namespace SPPARKS_NS;
 #define DELTA 100
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
