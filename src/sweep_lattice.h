@@ -44,7 +44,7 @@ class SweepLattice : public Sweep {
   char *mask;
   class RandomPark *ranlat;
 
-  double pmax,pmaxall,deln0;
+  double pmax,pmaxall,deln0,stoptime;
 
   int nsector;
   struct {

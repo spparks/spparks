@@ -30,6 +30,7 @@ using namespace SPPARKS_NS;
 #define DELTA 100
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
@@ -322,6 +323,8 @@ void SweepLattice::init()
     if (deln0 <= 0.0) deln0 = pmaxall*delt;
     else if (pmaxall > 0.0) delt = deln0/pmaxall;
   }
+  stoptime = applattice->stoptime;
+  delt = MIN(delt,stoptime);
 }
 
 /* ----------------------------------------------------------------------
@@ -354,6 +357,7 @@ void SweepLattice::do_sweep(double &dt)
   if (Lkmc && Ladapt) {
     MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
     if (pmaxall > 0.0) delt = deln0/pmaxall;
+    delt = MIN(delt,stoptime);
   }
 }
 

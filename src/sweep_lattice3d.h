@@ -48,7 +48,7 @@ class SweepLattice3d : public Sweep {
   int numrandom;
   int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
 
-  double pmax,pmaxall,deln0;
+  double pmax,pmaxall,deln0,stoptime;
 
   int nsector;
   struct {

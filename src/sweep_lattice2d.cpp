@@ -355,6 +355,8 @@ void SweepLattice2d::init()
     MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
     if (deln0 <= 0.0) deln0 = pmaxall*delt;
     else if (pmaxall > 0.0) delt = deln0/pmaxall;
+    stoptime = applattice->stoptime;
+    delt = MIN(delt,stoptime);
   }
 }
 
@@ -388,6 +390,7 @@ void SweepLattice2d::do_sweep(double &dt)
   if (Lkmc && Ladapt) {
     MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_SUM,world);
     if (pmaxall > 0.0) delt = deln0/pmaxall;
+    delt = MIN(delt,stoptime);
   }
 }
 
