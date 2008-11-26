@@ -10,31 +10,57 @@ dump command :h3
 
 [Syntax:]
 
-dump delta filename keyword1 keyword2 ... :pre
+dump delta filename keyword values field1 field2 ... :pre
 
 delta = time increment between dumps (seconds)
 filename = name of file to dump snapshots to
-keyword = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} or {iN} or {dN} :ul
+keyword =  logfreq :l
+  {logfreq} values = N factor
+    N = number of repetitions per interval
+    factor = scale factor between interval :pre
+field = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} or {iN} or {dN} :ul
 
 [Examples:]
 
 dump 0.25 tmp.dump
 dump 5.0 snap.ising id lattice energy
-dump 5.0 snap.erbium id i1 i2 x y z :pre
+dump 1.0 snap.erbium logfreq 9 10.0 id i1 i2 x y z :pre
 
 [Description:]
 
-Dump snapshots of the state of the lattice to a file every so many
-seconds during a simulation.  The quantities printed are obtained from
+Dump snapshots of the state of the lattice to a file at intervals of delta
+during a simulation.  The quantities printed are obtained from
 the application.  Only lattice-based applications support dumps since
 what is output is one line per lattice site.
 
-By default (if no keywords are listed), the output values for each
+Using the {logfreq} keyword will produce statistical output at varying
+intervals during the course of a simulation.  There will be {N}
+outputs per interval where the size of each interval scales up by
+{factor} each time.  {Delta} is the time between outputs in the first
+(smallest) interval.
+
+For example, this command
+
+dump 0.1 snap.erbium logfreq 7 10.0 id i1 i2 x y z :pre
+
+will dump snapshots at these times:
+
+t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... :pre
+
+This command
+
+dump 0.1 snap.erbium logfreq 1 2.0 id i1 i2 x y z :pre
+
+will dump snapshots at these times:
+
+t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... :pre
+
+By default (if no fields are listed), the output values for each
 site are the "id lattice x y z".  This is in the format of a "LAMMPS
 dump file"_lammps which can thus be read-in by the "Pizza.py
 toolkit"_pizza, converted to other formats, or used for visualization.
 
-If keywords are listed then only those quantities will be printed for
+If fieldss are listed then only those quantities will be printed for
 each lattice site.
 
 The {id} is a unique integer ID for each site.

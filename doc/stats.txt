@@ -14,8 +14,8 @@ stats delta keyword values ... :pre
 
 delta = time increment between statistical output (seconds) :ulb,l
 zero or more keyword/value pairs may be appended :l
-keyword = {log} :l
-  {log} values = N factor
+keyword = {logfreq} :l
+  {logfreq} values = N factor
     N = number of repetitions per interval
     factor = scale factor between interval :pre
 :ule
@@ -23,12 +23,13 @@ keyword = {log} :l
 [Examples:]
 
 stats 0.1
-stats 1.0 log 7 10.0 :pre
+stats 1.0 logfreq 7 10.0 :pre
 
 [Description:]
 
 Print statistics to the screen and log file every so many seconds
-during a simulation.  The quantities printed are obtained are provided
+during a simulation.  The quantities printed are elapsed CPU time
+followed by those provided
 by the "application"_app_style.html, followed by those provided by any
 "diagnostics"_diag_style.html you have defined.
 
@@ -38,7 +39,7 @@ application-specific quantities may also be reported.  Quantities such
 as the total energy of the system can be included in the output by
 creating diagnostics via the "diag_style"_diag_style.html command.
 
-Using the {log} keyword will produce statistical output at varying
+Using the {logfreq} keyword will produce statistical output at varying
 intervals during the course of a simulation.  There will be {N}
 outputs per interval where the size of each interval scales up by
 {factor} each time.  {Delta} is the time between outputs in the first
@@ -46,33 +47,31 @@ outputs per interval where the size of each interval scales up by
 
 For example, this command
 
-stats 0.01 log 7 10.0 :pre
+stats 0.1 logfreq 7 10.0 :pre
 
 will produce output at these times:
 
-t = 0, 0.01, 0.02, ..., 0.07, 1.0, 2.0, ...., 7.0, 10.0, 20.0, .... :pre
+t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... :pre
 
 This command
 
-stats 0.01 log 1 2.0 :pre
+stats 0.1 logfreq 1 2.0 :pre
 
 will produce output at these times:
 
-t = 0, 0.01, 0.02, 0.04, 0.08, ... :pre
+t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... :pre
 
 :line
 
 [Restrictions:]
 
-This command can only be used as part of applications that allow for
-it.  See the doc pages for individual applications defined by the
-"app_style"_app_style.html command for further details.
-
-If stats is called on a timestep when a diagnostic is not called, then
-the information provided by the diagnostic may be old.
+See the doc pages for quantities provided
+by particular "app_style"_app_style.html 
+and "diag_style"_diag_style.html 
+commands for further details.
 
 [Related commands:]
 
-"dump"_dump.html
+"dump"_dump.html, "diag"_diag_style.html
 
 [Default:] none
