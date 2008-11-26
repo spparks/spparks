@@ -23,6 +23,7 @@ class App : protected Pointers {
   enum AppClasses {GENERAL,LATTICE,LATTICE2D,LATTICE3D};
   char *style;
   int appclass;
+  double time_eps;
 
   App(class SPPARKS *, int, char **);
   virtual ~App();

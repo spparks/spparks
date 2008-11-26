@@ -1311,6 +1311,9 @@ void AppLattice::run(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal run command");
   stoptime = time + atof(arg[0]);
+  // time_eps eliminates overruns due to finite machine precision
+  // It can be set to zero in any App that does not like it.
+  stoptime -= time_eps;
 
   init();
   timer->init();
