@@ -68,7 +68,7 @@ test:
 	@make $(TESTMACHINE)
 	@cp MAKE/Makefile.$(TESTMACHINE) ../test/Makefile
 	@cd ../test; rm -f test.out; \
-	files="in.abc in.ising in.membrane in.potts"; \
+	files="in.ising in.membrane in.potts"; \
 	for file in $$files; do echo >> test.out;echo >> test.out; \
 	echo "*** Testing file $$file ***" >> test.out;echo >> test.out; \
 	$(MAKE) "INPUTFILE = $$file" "EXE = ../src/$(ROOT)_$(TESTMACHINE)" test >> test.out 2>&1; \

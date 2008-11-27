@@ -336,30 +336,10 @@ void Output::compute(double time, int done)
 
   // check if dump output required
 
-  if ((dump_delta > 0.0 && time > dump_time-dump_eps) || done) {
-    if (dump_delta > 0.0) dump();
-    dump_time += dump_delta;
-  }
-
-  // check if stats output required
-
-  iflag = 0;
-
-  if (stats_delta > 0.0 && time > stats_time-stats_eps) iflag = 1;
-
-  // perform diagnostics
-
-  for (int i = 0; i < ndiags; i++)
-    diaglist[i]->compute(time,iflag,done);
-
-  // perform stats (after diagnostics)
-
-  if (iflag || done) stats(1);
-
+  if (dump_delta > 0.0 && time > dump_time-dump_eps ) {
+    dump();
   // calculate new dump time
   // ensure new dump_time exceeds time
-
-  if (iflag) {
     if (dump_ilogfreq == 0) {
       dump_time += dump_delta;
       if (time > dump_time-dump_eps)
@@ -379,6 +359,22 @@ void Output::compute(double time, int done)
       }
     }
   }
+
+  // check if stats output required
+
+  iflag = 0;
+
+  if (stats_delta > 0.0 && time > stats_time-stats_eps) iflag = 1;
+
+  // perform diagnostics
+
+  for (int i = 0; i < ndiags; i++)
+    diaglist[i]->compute(time,iflag,done);
+
+  // perform stats (after diagnostics)
+
+  if (iflag || done) stats(1);
+
   // calculate new stats time
   // ensure new stats_time exceeds time
 

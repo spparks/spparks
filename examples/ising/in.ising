@@ -16,11 +16,11 @@ sweep_style      lattice 12345
 #sweep_style      lattice 12345 kmc yes
 #solve_style      tree 12345
 
-diag_style       energy 10.0 
+diag_style       energy
 
 temperature	 0.0
 
 stats            10.0
-dump             10.0 coord dump.ising
+dump             10.0 dump.ising
 
 run              100.0

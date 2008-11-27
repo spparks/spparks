@@ -98,9 +98,15 @@ int Diag::check_time(double time, int done)
   int ntmp;
   double tgoal;
 
-  if ((diag_delta > 0.0 && time > diag_time-diag_eps) || done) iflag = 1;
+  if (done) iflag = 1;
 
   if ((diag_delta > 0.0 && time > diag_time-diag_eps)) {
+
+    iflag = 1;
+    
+    // calculate new diag time
+    // ensure new diag_time exceeds time
+
     if (diag_ilogfreq == 0) {
       diag_time += diag_delta;
       if (time > diag_time-diag_eps)
@@ -113,7 +119,7 @@ int Diag::check_time(double time, int done)
 	tgoal = time-diag_t0+diag_delta;
 	ntmp = ceil(log(tgoal/(diag_delta*diag_nrepeat))/log(diag_scale));
 	// If ntmp is less than one, we will need to fix this
-	if (ntmp < 1) error->all("ntmp < 1 in Output::compute()");
+	if (ntmp < 1) error->all("ntmp < 1 in Diag::check_time()");
 	diag_delta *= pow(diag_scale,ntmp);
 	diag_time = ceil(tgoal/diag_delta)*diag_delta;
 	diag_irepeat = 0;

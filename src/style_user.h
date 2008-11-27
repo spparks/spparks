@@ -16,9 +16,11 @@
 // see style.h for examples
 
 #ifdef AppInclude
+#include "app_surface.h"
 #endif
 
 #ifdef AppClass
+AppStyle(surface,AppSurface)
 #endif
 
 #ifdef CommandInclude

@@ -3,7 +3,7 @@
 app_style       membrane 1.25 1.0 -3.0 12345 lattice tri 1.0 100 50
 
 solve_style     tree 12345
-sweep_style     lattice 12345 kmc yes
+sweep_style     lattice 12345 kmc yes delt 1.0 adapt no
 
 inclusion	20 20 0 6
 inclusion	40 20 0 6
@@ -13,9 +13,9 @@ inclusion	20 54 0 6
 inclusion	40 54 0 6
 
 stats           10.0
-diag_style      energy 10.0 
+diag_style      energy
 
-dump            5.0 coord dump.membrane
+dump            5.0 dump.membrane
 
 temperature	0.7
 run             500

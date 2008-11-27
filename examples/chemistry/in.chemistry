@@ -6,10 +6,12 @@ solve_style	linear 12345
 
 volume		1.9098395e-11
 
-species		A B C
+add_species		A
+add_species		B
+add_species		C
 
-reaction	1 A B 1.0e10 C
-reaction	2 C 1.0 A B
+add_reaction	1 A B 1.0e10 C
+add_reaction	2 C 1.0 A B
 
 count		A 30000
 count		B 10000
