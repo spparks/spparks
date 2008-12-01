@@ -434,14 +434,46 @@ void AppSurface::site_event(int i, class RandomPark *random)
   lattice[j] = OCCUPIED;
 
   // compute propensity changes for self and swap site and their 1,2,3 neighs
-  // depending on Schwoebel barrier
   // use check[] to avoid resetting propensity of same site
+  // loop over neighs of out-of-sector sites, but only update in-sector sites
+
+  int nsites = 0;
 
   isite = i2site[i];
   propensity[isite] = site_propensity(i);
-  int nsites = 0;
   sites[nsites++] = isite;
   check[isite] = 1;
+
+  for (k = 0; k < numneigh[i]; k++) {
+    m = neighbor[i][k];
+    isite = i2site[m];
+    if (isite >= 0 && check[isite] == 0) {
+      propensity[isite] = site_propensity(m);
+      sites[nsites++] = isite;
+      check[isite] = 1;
+    }
+    for (kk = 0; kk < numneigh[m]; kk++) {
+      mm = neighbor[m][kk];
+      isite = i2site[mm];
+      if (isite >= 0 && check[isite] == 0) {
+        propensity[isite] = site_propensity(mm);
+        sites[nsites++] = isite;
+        check[isite] = 1;
+      }
+//      if (jumptype == 1) {
+      if (eSchwoebel < 1.0e6) {
+        for (kkk = 0; kkk < numneigh[mm]; kkk++) {
+          mmm = neighbor[mm][kkk];
+          isite = i2site[mmm];
+          if (isite >= 0 && check[isite] == 0) {
+            propensity[isite] = site_propensity(mmm);
+            sites[nsites++] = isite;
+            check[isite] = 1;
+          }
+        }
+      }
+    }
+  }
 
   isite = i2site[j];
   if (isite >= 0) {
@@ -450,56 +482,20 @@ void AppSurface::site_event(int i, class RandomPark *random)
     check[isite] = 1;
   }
 
-  for (k = 0; k < numneigh[i]; k++) {
-    m = neighbor[i][k];
-    isite = i2site[m];
-    if (isite < 0) continue;
-    if (check[isite] == 0) {
-      sites[nsites++] = isite;
-      propensity[isite] = site_propensity(m);
-      check[isite] = 1;
-    }
-    for (kk = 0; kk < numneigh[m]; kk++) {
-      mm = neighbor[m][kk];
-      isite = i2site[mm];
-      if (isite < 0) continue;
-      if (check[isite] == 0) {
-        sites[nsites++] = isite;
-        propensity[isite] = site_propensity(mm);
-        check[isite] = 1;
-      }
-//      if (jumptype == 1) {
-      if (eSchwoebel < 1.0e6) {
-        for (kkk = 0; kkk < numneigh[mm]; kkk++) {
-          mmm = neighbor[mm][kkk];
-          isite = i2site[mmm];
-          if (isite < 0) continue;
-          if (check[isite] == 0) {
-            sites[nsites++] = isite;
-            propensity[isite] = site_propensity(mmm);
-            check[isite] = 1;
-          }
-        }
-      }
-    }
-  }
-
   for (k = 0; k < numneigh[j]; k++) {
     m = neighbor[j][k];
     isite = i2site[m];
-    if (isite < 0) continue;
-    if (check[isite] == 0) {
-      sites[nsites++] = isite;
+    if (isite >= 0 && check[isite] == 0) {
       propensity[isite] = site_propensity(m);
+      sites[nsites++] = isite;
       check[isite] = 1;
     }
     for (kk = 0; kk < numneigh[m]; kk++) {
       mm = neighbor[m][kk];
       isite = i2site[mm];
-      if (isite < 0) continue;
-      if (check[isite] == 0) {
-        sites[nsites++] = isite;
+      if (isite >= 0 && check[isite] == 0) {
         propensity[isite] = site_propensity(mm);
+        sites[nsites++] = isite;
         check[isite] = 1;
       }
 //      if (jumptype == 1) {
@@ -507,10 +503,9 @@ void AppSurface::site_event(int i, class RandomPark *random)
         for (kkk = 0; kkk < numneigh[mm]; kkk++) {
           mmm = neighbor[mm][kkk];
           isite = i2site[mmm];
-          if (isite < 0) continue;
-          if (check[isite] == 0) {
-            sites[nsites++] = isite;
+          if (isite >= 0 && check[isite] == 0) {
             propensity[isite] = site_propensity(mmm);
+            sites[nsites++] = isite;
             check[isite] = 1;
           }
         }
