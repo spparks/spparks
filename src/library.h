@@ -11,11 +11,14 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-// prototypes for calling SPPARKS as a library
+/* 
+   C or Fortran style library interface to SPPARKS
+   new SPPARKS-specific functions can be added
+*/
 
 #include "mpi.h"
 
-void spparks_open(int, char **, MPI_Comm);   // start SPPARKS w/ cmdline args
-void spparks_close();                        // shut-down SPPARKS
-void spparks_file(char *);                   // execute an input script
-char *spparks_command(char *);               // execute a SPPARKS command
+void spparks_open(int, char **, MPI_Comm, void **);  /* start-up SPPARKS */
+void spparks_close(void *);                          /* shut-down SPPARKS */
+void spparks_file(void *, char *);                   /* run an input script */
+char *spparks_command(void *, char *);               /* execute a command */
