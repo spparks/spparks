@@ -14,7 +14,6 @@
 #ifdef AppInclude
 #include "app_chemistry.h"
 #include "app_diffusion.h"
-#include "app_diffusion_deposit.h"
 #include "app_diffusion_table.h"
 #include "app_diffusion_nonlinear.h"
 #include "app_erbium.h"
@@ -43,7 +42,6 @@
 #ifdef AppClass
 AppStyle(chemistry,AppChemistry)
 AppStyle(diffusion,AppDiffusion)
-AppStyle(diffusion/deposit,AppDiffusionDeposit)
 AppStyle(diffusion/table,AppDiffusionTable)
 AppStyle(diffusion/nonlinear,AppDiffusionNonLinear)
 AppStyle(erbium,AppErbium)
