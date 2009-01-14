@@ -18,13 +18,15 @@ namespace SPPARKS_NS {
 
 class Cluster {
  private:
-  double volume;
   int global_id;
+  int ivalue;
+  double dvalue;
+  double volume;
   int nneigh;
   int* neighlist;
   
  public:
-  Cluster(int, double, int, double*);
+  Cluster(int, int, double, double, int, double*);
   Cluster& operator=(const Cluster&);
   ~Cluster();
   void add_neigh(int);

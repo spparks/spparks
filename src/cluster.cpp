@@ -17,8 +17,10 @@
 
 using namespace SPPARKS_NS;
 
-Cluster::Cluster(int id, double vol, int nn, double* neighs) {
+Cluster::Cluster(int id, int iv, double dv, double vol, int nn, double* neighs) {
   global_id = id;
+  ivalue = iv;
+  dvalue = dv;
   volume = vol;
   nneigh = nn;
   if (nneigh == 0) {
@@ -36,6 +38,8 @@ Cluster::Cluster(int id, double vol, int nn, double* neighs) {
 // the object is initialized, can not use constructor.
 Cluster& Cluster::operator=(const Cluster& c) {
   global_id = c.global_id;
+  ivalue = c.ivalue;
+  dvalue = c.dvalue;
   volume = c.volume;
   nneigh = c.nneigh;
   if (nneigh == 0) {
@@ -63,7 +67,7 @@ void Cluster::add_neigh(int id) {
 }
   
 void Cluster::print(FILE* fp) {
-  fprintf(fp,"%d %g %d ",global_id,volume,nneigh);
+  fprintf(fp,"%d %g %d ",global_id,ivalue,dvalue,volume,nneigh);
   for (int ineigh = 0; ineigh < nneigh; ineigh++) {
     fprintf(fp,"%d ",neighlist[ineigh]);
   }

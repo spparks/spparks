@@ -41,7 +41,7 @@ class DiagCluster : public Diag {
   void dump_clusters(double);
   void dump_clusters_detailed();
   void generate_clusters();
-  void add_cluster(int, double, int, double*);
+  void add_cluster(int, int, double, double, int, double*);
   void free_clustlist();
 
   int* cluster_ids;

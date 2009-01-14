@@ -230,6 +230,9 @@ void DiagCluster3d::generate_clusters()
   // At this point, the problem is reduced to the simpler problem of 
   // clustering the clusters. This can be done by the root process.
 
+  int iv;
+  double dv;
+
   // Set ghost site ids to -1
   // Use six slabs, with z-slabs grabbing
   // the xz and yz ghost edges and y-slab grabbing
@@ -304,8 +307,10 @@ void DiagCluster3d::generate_clusters()
 
       // Push first site onto stack
       id = ncluster+1;
+      iv = applattice3d->lattice[i][j][k];
+      dv = 0.0;
       vol = 0.0;
-      add_cluster(id,vol,0,NULL);
+      add_cluster(id,iv,dv,vol,0,NULL);
       cluststack.push(i);
       cluststack.push(j);
       cluststack.push(k);
@@ -369,7 +374,7 @@ void DiagCluster3d::generate_clusters()
   
   me_size = 0;
   for (int i = 0; i < ncluster; i++) {
-    me_size += 3+clustlist[i].nneigh;
+    me_size += 5+clustlist[i].nneigh;
   }
   if (me == 0) me_size = 0;
 
@@ -381,6 +386,8 @@ void DiagCluster3d::generate_clusters()
     m = 0;
     for (int i = 0; i < ncluster; i++) {
       dbufclust[m++] = clustlist[i].global_id;
+      dbufclust[m++] = clustlist[i].ivalue;
+      dbufclust[m++] = clustlist[i].dvalue;
       dbufclust[m++] = clustlist[i].volume;
       dbufclust[m++] = clustlist[i].nneigh;
       for (int j = 0; j < clustlist[i].nneigh; j++) {
@@ -407,9 +414,11 @@ void DiagCluster3d::generate_clusters()
       m = 0;
       while (m < nrecv) {
 	id = static_cast<int> (dbufclust[m++]);
+	iv = static_cast<int> (dbufclust[m++]);
+	dv = dbufclust[m++];
 	vol = dbufclust[m++];
 	nn = static_cast<int> (dbufclust[m++]);
-	add_cluster(id,vol,nn,&dbufclust[m]);
+	add_cluster(id,iv,dv,vol,nn,&dbufclust[m]);
 	m+=nn;
 	volsum+=vol;
       }
@@ -439,6 +448,8 @@ void DiagCluster3d::generate_clusters()
       
       // Push first cluster onto stack
       id = clustlist[i].global_id;
+      iv = clustlist[i].ivalue;
+      dv = clustlist[i].dvalue;
       vol = 0.0;
       ncluster_reduced++;
       //      fprintf(fp,"vol new = %g \n",clustlist[i].volume);
@@ -454,6 +465,12 @@ void DiagCluster3d::generate_clusters()
 	neighs = clustlist[ii].neighlist;
 	for (int j = 0; j < clustlist[ii].nneigh; j++) {
 	  jneigh = neighs[j]-idoffset;
+	  if (clustlist[jneigh].ivalue != iv) {
+	    error->one("DiagCluster3d:ivalue in neighboring clusters do not match");
+	  }
+	  if (clustlist[jneigh].dvalue != dv) {
+	    error->one("DiagCluster3d:dvalue in neighboring clusters do not match");
+	  }
 	  if (clustlist[jneigh].volume > 0.0) {
 	    cluststack.push(jneigh);
 	    vol+=clustlist[jneigh].volume;
@@ -475,10 +492,13 @@ void DiagCluster3d::generate_clusters()
     radius /= ncluster_reduced;
 
     if (fp) {
-      fprintf(fp,"ncluster_reduced = %d \nvolumes = ",ncluster_reduced);
+      fprintf(fp,"ncluster = %d \n",ncluster_reduced);
+      fprintf(fp,"id ivalue dvalue size\n");
       for (int i = 0; i < ncluster; i++) {
 	if (clustlist[i].volume > 0.0) {
-	  fprintf(fp," %g",clustlist[i].volume);
+	  fprintf(fp," %d %d %g %g\n",
+		  clustlist[i].global_id,clustlist[i].ivalue,
+		  clustlist[i].dvalue,clustlist[i].volume);
 	}
       }
       fprintf(fp,"\n");
@@ -491,14 +511,14 @@ void DiagCluster3d::generate_clusters()
 
 /* ---------------------------------------------------------------------- */
 
-void DiagCluster3d::add_cluster(int id, double vol, int nn, double* neighs)
+void DiagCluster3d::add_cluster(int id, int iv, double dv, double vol, int nn, double* neighs)
 {
   // grow cluster array
 
   ncluster++;
   clustlist = (Cluster *) memory->srealloc(clustlist,ncluster*sizeof(Cluster),
 					 "diagcluster3d:clustlist");
-  clustlist[ncluster-1] = Cluster(id,vol,nn,neighs);
+  clustlist[ncluster-1] = Cluster(id,iv,dv,vol,nn,neighs);
 }
 
 /* ----------------------------------------------------------------------
