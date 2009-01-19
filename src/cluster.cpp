@@ -67,7 +67,7 @@ void Cluster::add_neigh(int id) {
 }
   
 void Cluster::print(FILE* fp) {
-  fprintf(fp,"%d %g %d ",global_id,ivalue,dvalue,volume,nneigh);
+  fprintf(fp,"%d %d %g %g %d ",global_id,ivalue,dvalue,volume,nneigh);
   for (int ineigh = 0; ineigh < nneigh; ineigh++) {
     fprintf(fp,"%d ",neighlist[ineigh]);
   }
