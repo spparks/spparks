@@ -51,11 +51,11 @@ application except that the <I>site</I> keyword (described with the
 <A HREF = "app_style.html">app_style</A> command) can be used to define multiple
 quantities per site, instead of just a single spin value.
 </P>
-<P>As explained on <A HREF = "app_style.html">this page</A>, this application can be
-evolved by either a kinetic Monte Carlo (KMC) or Metropolis
-rejection-based algorithm.  You must thus define a rejection method or
-KMC solver to be used with the application via the
-<A HREF = "sweep_style.html">reject_style</A> and <A HREF = "solve_style.html">solve_style</A>
+<P>As explained on <A HREF = "app_style.html">this page</A>, these applications can be
+evolved by either a kinetic Monte Carlo (KMC) or rejection kinetic
+Monte Carlo (rKMC) algorithm.  You must thus define a KMC solver or
+rejection method to be used with the application via the
+<A HREF = "solve_style.html">solve_style</A> or <A HREF = "sweep_style.html">reject_style</A>
 commands.
 </P>
 <P>For solution by a KMC algorithm, a site event is a spin flip and its
@@ -65,10 +65,13 @@ is the temperature of the system defined by the
 <A HREF = "temperature.html">temperature</A> command (which includes the Boltzmann
 constant k implicitly).
 </P>
-<P>For solution by a rejection KMC (rKMC) algorithm, the spin is set
-randomly to 1 or 2 and dE = Efinal - Einitial is calculated, as is a
-uniform random number R between 0 and 1.  The new state is accepted if
-R < min[1,exp(-dE/kT)].
+<P>For solution by a rKMC algorithm, the <I>rejectstyle</I> keyword determines
+what rejection-based algorithm is used by the application.  For the
+<I>spin</I> style, a random spin from 1 to Q is chosen, dE = Efinal -
+Einitial is calculated, as is a uniform random number R between 0 and
+1.  The new state is accepted if R < min[1,exp(-dE/kT)].
+</P>
+<P>wild flips
 </P>
 <P>As explained on <A HREF = "app_style.html">this page</A>, these applications can be
 evolved by either a kinetic Monte Carlo (KMC) or Metropolis

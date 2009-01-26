@@ -13,12 +13,11 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>reject_style style order seed keyword value ... 
+<PRE>reject_style style seed keyword value ... 
 </PRE>
-<UL><LI>style = <I>lattice</I> or <I>lattice2d</I> or <I>lattice3d</I> 
+<UL><LI>style = <I>random</I> or <I>raster</I> or <I>color</I> or <I>color/strict</I> 
 
-<LI>order = <I>random</I> or <I>raster</I> or <I>color</I> or <I>color/strict</I>
-seed = random number seed (positive integer) 
+<LI>seed = random number seed (positive integer) 
 
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -38,8 +37,8 @@ seed = random number seed (positive integer)
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>sweep_style lattice2d seed option arg option arg ...
-sweep_style lattice3d seed option arg option arg ... 
+<PRE>sweep_style random 194893 option arg option arg ...
+sweep_style raster 588273 option arg option arg ... 
 </PRE>
 <P><B>Description:</B>
 </P>

@@ -47,11 +47,16 @@ application except that the {site} keyword (described with the
 "app_style"_app_style.html command) can be used to define multiple
 quantities per site, instead of just a single spin value.
 
-As explained on "this page"_app_style.html, this application can be
-evolved by either a kinetic Monte Carlo (KMC) or Metropolis
-rejection-based algorithm.  You must thus define a rejection method or
-KMC solver to be used with the application via the
-"reject_style"_sweep_style.html and "solve_style"_solve_style.html
+
+
+
+
+
+As explained on "this page"_app_style.html, these applications can be
+evolved by either a kinetic Monte Carlo (KMC) or rejection kinetic
+Monte Carlo (rKMC) algorithm.  You must thus define a KMC solver or
+rejection method to be used with the application via the
+"solve_style"_solve_style.html or "reject_style"_sweep_style.html
 commands.
 
 For solution by a KMC algorithm, a site event is a spin flip and its
@@ -61,10 +66,13 @@ is the temperature of the system defined by the
 "temperature"_temperature.html command (which includes the Boltzmann
 constant k implicitly).
 
-For solution by a rejection KMC (rKMC) algorithm, the spin is set
-randomly to 1 or 2 and dE = Efinal - Einitial is calculated, as is a
-uniform random number R between 0 and 1.  The new state is accepted if
-R < min\[1,exp(-dE/kT)\].
+For solution by a rKMC algorithm, the {rejectstyle} keyword determines
+what rejection-based algorithm is used by the application.  For the
+{spin} style, a random spin from 1 to Q is chosen, dE = Efinal -
+Einitial is calculated, as is a uniform random number R between 0 and
+1.  The new state is accepted if R < min\[1,exp(-dE/kT)\].
+
+wild flips
 
 
 

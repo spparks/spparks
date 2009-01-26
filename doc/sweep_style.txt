@@ -10,10 +10,9 @@ reject_style command :h3
 
 [Syntax:]
 
-reject_style style order seed keyword value ... :pre
+reject_style style seed keyword value ... :pre
 
-style = {lattice} or {lattice2d} or {lattice3d} :ulb,l
-order = {random} or {raster} or {color} or {color/strict}
+style = {random} or {raster} or {color} or {color/strict} :ulb,l
 seed = random number seed (positive integer) :l
 zero or more keyword/value pairs may be appended :l
 keyword = {{mask} :l
@@ -31,8 +30,8 @@ keyword = {{mask} :l
 
 [Examples:]
 
-sweep_style lattice2d seed option arg option arg ...
-sweep_style lattice3d seed option arg option arg ... :pre
+sweep_style random 194893 option arg option arg ...
+sweep_style raster 588273 option arg option arg ... :pre
 
 [Description:]
 
