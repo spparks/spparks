@@ -19,21 +19,22 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<PRE>keyword = <I>delt</I> or <I>log</I> or <I>stats</I>
+<PRE>keyword = <I>delt</I> or <I>logfreq</I> or <I>stats</I>
   <I>delt</I> values = delta
     delta = time increment between evaluations of the diagnostic (seconds)
-  <I>log</I> values = N factor
+  <I>logfreq</I> values = N factor
     N = number of repetitions per interval
     factor = scale factor between interval
   <I>stats</I> values = <I>yes</I> or <I>no</I>
     yes/no = provide output to stats line 
 </PRE>
-<LI>see doc pages for individual diagnostic commands for additional keywords that can be appended after these keywords 
+<LI>see doc pages for individual diagnostic commands for additional keywords. These diagnostic-specific
+keywords must come after all of the standard keywords 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>diag_style cluster stats no delt 1.0 
-diag_style eprof3d stats no delt 0.01 log 7 10.0
+diag_style eprof3d stats no delt 0.01 logfreq 7 10.0
 diag_style energy2d 
 </PRE>
 <P><B>Description:</B>
@@ -66,30 +67,31 @@ requested by diagnostic-specific keywords.
 </P>
 <P>The <I>stats</I> keyword controls whether or not the diagnostic appends
 values to the statistical output. If stats is set to yes, then the
-<I>delt</I> and <I>log</I> keywords may not be used, as the output interval is
+<I>delt</I> and <I>logfreq</I> keywords may not be used, as the output interval is
 controlled by the <I>stats</I> command.  If stats is set to no, then the
 <I>delt</I> keyword specificies <I>Delta</I>, the interval of time between each
-diagnostic calculation.  Using the <I>log</I> keyword will cause the
-diagnostic to run at varying intervals during the course of a
-simulation.  There will be <I>N</I> outputs per interval where the size of
-each interval scales up by <I>factor</I> each time.  <I>Delta</I> is the time
-between outputs in the first (smallest) interval.
+diagnostic calculation. Using the <I>logfreq</I> keyword will cause the
+diagnostic to run at varying
+intervals during the course of a simulation.  There will be <I>N</I>
+outputs per interval where the size of each interval scales up by
+<I>factor</I> each time.  <I>Delta</I> is the time between outputs in the first
+(smallest) interval.
 </P>
 <P>For example, this command
 </P>
-<PRE>diag_style eprof3d stats no delt 0.01 log 7 10.0 
+<PRE>diag_style eprof3d stats no delt 0.1 logfreq 7 10.0 
 </PRE>
 <P>will perform its computation at these times:
 </P>
-<PRE>t = 0, 0.01, 0.02, ..., 0.07, 1.0, 2.0, ...., 7.0, 10.0, 20.0, .... 
+<PRE>t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... 
 </PRE>
 <P>This command
 </P>
-<PRE>diag_style enegy eprof3d stats no delt 0.01 log 1 2.0 
+<PRE>diag_style enegy eprof3d stats no delt 0.1 logfreq 1 2.0 
 </PRE>
 <P>will perform its computation at these times:
 </P>
-<PRE>t = 0, 0.01, 0.02, 0.04, 0.08, ... 
+<PRE>t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... 
 </PRE>
 <HR>
 

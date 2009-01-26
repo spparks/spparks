@@ -59,8 +59,27 @@ of connected clusters.
 <P>The variants cluster, cluster2d, and cluster3d are used with
 applications based on lattice, lattice2d, and lattice3d, respectively.
 </P>
-<P>The <I>filename</I> keyword allows a file to be specified which a full 
-listing of cluster statistics is written to.
+<P>The <I>filename</I> keyword allows an output file to be specified.
+Every time the cluster analysis is performed, the key properties
+of each cluster are appended to this file. The output format is:
+</P>
+<P>Clustering Analysis for Lattice (diag_style cluster) 
+nglobal = <total number of sites>
+nprocs = <number of processors>
+</P>
+<P>--------------------------------------------------
+Time = <time>
+ncluster = <total number of cluster> 
+id ivalue dvalue size
+ <cluster id> <ivalue> <dvalue> <size>
+</P>
+<P>cluster_id is an arbitrary integer assigned uniquely to each cluster.
+It will be different for different numbers of processors.
+</P>
+<P>ivalue is an application-specific integer associated with each cluster. 
+For lattice applications, it is the spin value of all sites in the cluster
+dvalue is an application-specific double associated with each cluster. 
+size is the numbers of sites in the cluster.
 </P>
 <P>The <I>dump</I> keyword causes the cluster ID for each site to be printed
 out in snapshot format which can be used for visualization purposes.

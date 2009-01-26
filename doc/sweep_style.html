@@ -9,27 +9,25 @@
 
 <HR>
 
-<H3>sweep_style command 
+<H3>reject_style command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>sweep_style style seed keyword value keyword value ... 
+<PRE>reject_style style order seed keyword value ... 
 </PRE>
 <UL><LI>style = <I>lattice</I> or <I>lattice2d</I> or <I>lattice3d</I> 
 
-<LI>seed = random number seed (positive integer) 
+<LI>order = <I>random</I> or <I>raster</I> or <I>color</I> or <I>color/strict</I>
+seed = random number seed (positive integer) 
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>mask</I> or <I>strict</I> or <I>kmc</I> or <I>delt</I> or <I>adapt</I> 
+<LI>keyword = <I><I>mask</I> 
 
-<PRE>  <I>mask</I> value = <I>yes</I> or <I>no</I>
+<P>  <I>mask</I> value = <I>yes</I> or <I>no</I>
     yes/no = mask out sites than cannot change
-  <I>strict</I> value = <I>yes</I> or <I>no</I>
-    yes/no = loop over sites in color sets for answers independent of parallelism and masking
-  <I>kmc</I> value = <I>yes</I> or <I>no</I>
-    yes/no = perform approximate kinetic MC algorithm
-  <I>adapt</I> value = <I>yes</I> or <I>no</I>
+</P>
+<PRE>  <I>adapt</I> value = <I>yes</I> or <I>no</I>
     yes/no = adapt timestep as the simulation proceeds to preserve accuracy
   <I>delt</I> value = dt
     dt = time associated with one sweep (seconds)
@@ -45,10 +43,10 @@ sweep_style lattice3d seed option arg option arg ...
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Choose a sweeping algorithm to use in an on-lattice Monte Carlo
-<A HREF = "app_style.html">application</A>.  If no sweeper is used then a kinetic
-Monte Carlo (KMC) <A HREF = "solve_style.html">solver</A> is required.  If a sweeper
-with the KMC option is used, then a solver is also required.
+<P>Use a rejection kinetic Monte Carlo (rKMC) algorithm in an <A HREF = "app_style.html">on-lattice
+application</A>.  If rKMC is not used then a kinetic Monte
+Carlo (KMC) algorithm must be used as defined by the
+<A HREF = "solve_style.html">solve_style</A> command.
 </P>
 <P>As explained in the <A HREF = "app_style.html">app_style</A> command, there are 3
 kinds of lattices: general, 2d, and 3d.  You must use a sweep style
@@ -57,11 +55,10 @@ applications which use general lattices, style <I>lattice2d</I> for
 applications which use 2d lattices, and style <I>lattice3d</I> for
 applications which use 3d lattices.
 </P>
-<P>A sweeping algorithm loops over the sites on a lattice and requests
-that the application perform events.  The application defines the
-geometry and connectivity of the lattice, what the possible events
-are, and defines their probabilities and acceptance/rejection
-criteria.
+<P>The rKMC algorithm oops over the sites on a lattice and requests that
+the application perform events.  The application defines the geometry
+and connectivity of the lattice, what the possible events are, and
+defines their rates and acceptance/rejection criteria.
 </P>
 <P>When SPPARKS runs in parallel, the simulation domain is partitioned
 into sub-domains, one per processor.  For 2d lattices, the processors

@@ -8,50 +8,27 @@
 
 app_style potts command :h3
 app_style potts/variable command :h3
-app_style potts/2d/4n command :h3
-app_style potts/2d/8n command :h3
-app_style potts/2d/24n command :h3
-app_style potts/3d/6n command :h3
-app_style potts/3d/12n command :h3
-app_style potts/3d/26n command :h3
 
 [Syntax:]
 
-app_style style args keyword values ... :pre
+app_style style Q rejectstyle seed keyword values ... :pre
 
-style = {potts} or {potts/variable} or {potts/2d/4n} or {potts/2d/8n} or {potts/2d/24n} or {potts/3d/6n} or {potts/3d/12n} or {potts/3d/26n} :ulb,l
-  {potts} arg = Q seed 
-  {potts/variable} arg = Q seed 
-    Q = number of spin states
-    seed = random number seed (positive integer)
-  {potts/2d/4n} args = Nx Ny Q seed
-  {potts/2d/8n} args = Nx Ny Q seed
-  {potts/2d/24n} args = Nx Ny Q seed
-  {potts/3d/6n} args = Nx Ny Nz Q seed
-  {potts/3d/12n} args = Nx Ny Nz Q seed
-  {potts/3d/26n} args = Nx Ny Nz Q seed
-    Nx,Ny = size of 2d lattice size
-    Nx,Ny,Nz = size of 3d lattice size
-    Q = number of spin states
-    seed = random number seed (positive integer) :pre
-see the "app_style"_app_style.html command for additional keywords that can be appended to the {potts} and {potts/variable} styles :l,ule
+style = {potts} or {potts/variable}
+Q = number of spin states
+rejectstyle = {spin} or {neigh} or {neighonly}
+seed = random number seed (positive integer)
+see the "app_style"_app_style.html command for additional keywords that can be appended to the {potts} and {potts/variable} styles :ul
 
 [Examples:]
 
-app_style potts 20 18874 lattice sq/4n 1.0 50 50
-app_style potts/variable 20 18874 lattice sq/4n 1.0 50 50 site 1 1
-app_style potts/2d/4n 50 50 20 18874
-app_style potts/2d/8n 100 100 20 48783
-app_style potts/2d/24n 100 100 20 48783
-app_style potts/3d/6n 100 100 100 100 887287
-app_style potts/3d/12n 100 100 100 100 887287
-app_style potts/3d/26n 50 50 100 1000 487827 :pre
+app_style potts 20 spin 18874 lattice sq/4n 1.0 50 50
+app_style potts/variable 20 neigh 18874 lattice sq/4n 1.0 50 50 site 1 1 :pre
 
 [Description:]
 
-These applications evolve a Q-state Ising model, where each lattice
-site has a spin value from 1 to Q.  Sites flip their spin as the model
-evolves.
+These applications evolve a Q-state Ising model or Potts model, where
+each lattice site has a spin value from 1 to Q.  Sites flip their spin
+as the model evolves.
 
 The Hamiltonian representing the energy of site I is as follows:
 
@@ -60,29 +37,36 @@ H = - Sum_j delta_ij :pre
 where Sum_j is a sum over all the neighbor sites of site I and delta_ij
 is 1 if the spin of sites I and J are the same and 0 otherwise.
 
-These Potts models can be run in one of several modes, either as a
-general lattice application or as a 2d square lattice application or
-as a 3d square lattice application.  See the
-"app_style"_app_style.html commmand for further discussion.  When
-running as a general lattice application, the lattice is specified by
-the appended {lattice} keword with its associated values, as discussed
-on the doc page for the "app_style"_app_style.html command.  When run
-as a 2d or 3d lattice application the style name also determines how
-many neighbors per site are defined:
+These applications perform Glauber dynamics, meaning the spin is
+flipped on a single site.  See "app_style diffusion" for an Ising
+model which performs Kawasaki dynamics, meaning the spins on two
+neighboring sites are swapped.
 
-2d/4n = 2d square lattice with 4 neighbors per site (nearest neighbors)
-2d/8n = 2d square lattice with 8 neighbors per site (1st and 2nd nearest neighbors)
-2d/24n = 2d square lattice with 24 neighbors per site (5x5 stencil surrounding each site)
-3d/6n = 3d cubic lattice with 6 neighbors per site (nearest neighbors)
-3d/12n = 3d cubic lattice with 12 neighbors per site (2 neighbors in each of 6 directions)
-3d/26n = 3d cubic lattice with 26 neighbors per site (1st,2nd,3rd nearest neighbors) :ul
+The {potts/variable} application is identical to the {potts}
+application except that the {site} keyword (described with the
+"app_style"_app_style.html command) can be used to define multiple
+quantities per site, instead of just a single spin value.
 
-All the Potts applications perform Glauber dynamics, meaning they flip
-the spin on a single site.  The {potts/variable} application is
-identical to the {potts} application except that the {site} keyword
-(described with the "app_style"_app_style.html command) can be used to
-define multiple quantities per site, instead of just a single spin
-value.
+As explained on "this page"_app_style.html, this application can be
+evolved by either a kinetic Monte Carlo (KMC) or Metropolis
+rejection-based algorithm.  You must thus define a rejection method or
+KMC solver to be used with the application via the
+"reject_style"_sweep_style.html and "solve_style"_solve_style.html
+commands.
+
+For solution by a KMC algorithm, a site event is a spin flip and its
+probability is min\[1,exp(-dE/kT)\], where dE = Efinal - Einitial
+using the Hamiltonian defined above for the energy of the site, and T
+is the temperature of the system defined by the
+"temperature"_temperature.html command (which includes the Boltzmann
+constant k implicitly).
+
+For solution by a rejection KMC (rKMC) algorithm, the spin is set
+randomly to 1 or 2 and dE = Efinal - Einitial is calculated, as is a
+uniform random number R between 0 and 1.  The new state is accepted if
+R < min\[1,exp(-dE/kT)\].
+
+
 
 As explained on "this page"_app_style.html, these applications can be
 evolved by either a kinetic Monte Carlo (KMC) or Metropolis

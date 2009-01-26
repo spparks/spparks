@@ -17,7 +17,7 @@ style = {diffusion} or {ising} or {pore} or {potts} or {membrane} or {chemistry}
 args = arguments specific to an application :l
   (see application doc page for details) :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {lattice} or {site} :l
+keyword = {lattice} or {site} or {input} :l
   {lattice} values = type params
     type = {sq/4n} or {sq/8n} or {tri} or {sc/6n} or {sc/26n} or {fcc} or {bcc} or {diamond} or {random/2d} or {random/3d} or {file}
       {sq/4n} params = a nx ny = 2d square lattice with 4 neighbors per site
@@ -57,25 +57,13 @@ app_style diffusion ... lattice fcc 1.0 100 100 100 :pre
 
 app_style ising ... lattice sq/4n 1.0 100 100
 app_style ising ... lattice sq/4n 1.0 100 100 input restart.state
-app_style ising/2d/4n ...
-app_style ising/2d/4n/exchange ...
-app_style ising/2d/8n ...
-app_style ising/3d/6n ... 
-app_style ising/3d/26n ... :pre
 
 app_style pore ... lattice fcc 1.0 100 100 100 :pre
 
 app_style potts ... lattice file tmp.latttice
 app_style potts/variable ... lattice random/2d 1000 10.0 10.0 3.0 49893
-app_style potts/2d/4n ...
-app_style potts/2d/8n ...
-app_style potts/2d/24n ...
-app_style potts/3d/6n ...
-app_style potts/3d/12n ...
-app_style potts/3d/26n ... :pre
 
 app_style membrane ... lattice tri 1.0 100 50
-app_style membrane/2d ... :pre
 
 app_style chemistry ... :pre
 
@@ -85,18 +73,9 @@ app_style test/group ... :pre
 
 This command defines what model or application SPPARKS will run.
 There are 2 basic kinds of applications: on-lattice and off-lattice.
-For lattice-based simulations, there are 3 variants: those on a 2d
-square lattice, on a 3d cubic lattice, and on a general lattice which
-can be either 2d or 3d and of various kinds.  The reason for these
-variants is that we are still experimenting with the best way to write
-lattice appications in SPPARKS.  Eventually, we will probably support
-only the general lattice option, so it is probably best to develop new
-on-lattice MC applications for that style.
 
 Here is the list of on-lattice applications SPPARKS currently
-includes.  Each of these applications has 2d, 3d, and general lattice
-variants as illustrated above.  See the doc for each application for
-details:
+includes.  See the doc page for each application for details:
 
 "diffusion"_app_diffusion.html = vacancy exchange diffusion model
 "ising"_app_ising.html = Ising model
@@ -110,54 +89,68 @@ includes:
 "chemistry"_app_chemistry.html = biochemical reaction networks
 "test/group"_app_test_group.html = artificial chemical networks that test "solve_style"_solve_style.html :ul
 
-Depending on the application, the model it represents can be evolved
-in one or two ways.
+The off-lattice applications in SPPARKS can only be evolved via a
+kinetic Monte Carlo (KMC) solver, specified by the
+"solve_style"_solve_style.html command.  On-lattice applications can
+be evolved by either a KMC solver or a rejection kinetic Monte Carlo
+(rKMC) solver, specified by the "sweep_style"_sweep_style.html
+command.  Not all on-lattice applications support both choices.
 
-The first method is to use a kinetic Monte Carlo (KMC) solver,
-specified by the "solve_style"_solve_style.html command.  If the
-application supports parallel KMC evolution, then the "sweep_style kmc
-yes" command is also used in conjunction with a KMC solver.  In this
-scenario the application defines a list of "events" and associated
-probabilities, the solver chooses the next event, and the application
-updates the system accordingly.  For off-lattice applications the
-definition of an "event" is arbitrary.  For on-lattice application
-zero or more possible events are typically defined for each lattice
-site.
+The KMC algorithm is sometimes called rejection-free KMC or the N-fold
+way or the Gillespie algorithm in the MC literature.  The application
+defines a list of "events" and associated rates for each event.  The
+solver chooses the next event, and the application updates the system
+accordingly.  For off-lattice applications the definition of an
+"event" is arbitrary.  For on-lattice application zero or more
+possible events are typically defined for each lattice site.
 
-The second method, which is supported by many of the on-lattice
-applications, is to sweep over the lattice and use a rejection-based
-Metropolis algorithm to accept or reject events occuring on each site.
-The style of sweeping is specified by the
-"sweep_style"_sweep_style.html command.  No
-"solve_style"_solve_style.html command is specified in this scenario.
+The rKMC algorithm picks successive lattice sites via some method (see
+the "sweep_style"_sweep_style.html command), and an event on that site
+which it accepts or rejects.  This is sometimes called null-event MC
+in the literature.  The application again defines the "events" for
+each site and associated rates which influence the acceptance or
+rejection.
 
-For both methods (KMC and Metropolis) the rules for how events are
-chosen and accepted or rejected are discussed in the doc pages for the
-individual applications.
+Note that rKMC is different from Metropolis MC, which is sometimes
+called thermodynamic equilibrium MC or barrier-free MC, in that rKMC
+still uses rates to define events (often associated with the rate to
+cross some energy barrier) and thus will track the dynamic evolution
+of a system in a time-accurate manner as events are performed.
+Metropolis MC is typically used to sample states from a system in
+equilibrium or to drive a system to equilibrium (energy minimization).
+via (possibly) non-physical events.  As such it has no requirement to
+sample events with the correct relative probabilities or to limit
+itself to physical events (e.g. it can change an atom to a new
+species).  Because of this it also does not evolve the system in a
+time-accurate manner; in general there is no "time" associated with
+Metropolis MC events.
+
+However, to complicate matters, if an application defines rates for
+its events based on energy differences between the initial and final
+state of the event and a Metropolis-style accept/reject criterion
+based on the Boltzmann factor, then it can be said to perform
+Metropolis MC.  The KMC or rKMC options for an application in SPPARKS
+can be written to define rates in this way, and thus the system will
+evolve in a time-accurate manner, assuming the Metropolis rates are
+correct in a relative sense.
+
+For both time evolution methods (KMC and rKMC) the rules for how
+events are defined and are accepted or rejected are discussed in the
+doc pages for the individual applications.
 
 :line
 
-For 2d and 3d lattice applications, the kind of lattice used and its
-size are determined by the application style and its arguments.  E.g.
+For on-lattice applications, there are several keyword/value 
+pairs that may be used as part of the app_style command.
 
-app_style ising/2d/4n 100 100 12345 :pre
-
-means a 2d square lattice of size 100x100 with 4 neighbors per
-lattice.  The only lattice types supported in this mode are 2d square
-and 3d cubic, though the neighbor stencil can be of various kinds
-(e.g. 4 or 8 neighbors in 2d).  See the doc pages for individual
-applications for details.
-
-For general lattice applications, the kind of lattice used and its
-size are independent of the application and must be specified by the
-{lattice} keyword and its values.  E.g.
+The {lattice} keyword must be specified for on-lattice applications as
+it determines the kind and size of lattice used.  For example,
 
 app_style ising 12345 lattice sq/4n 100 100 :pre
 
-means exactly the same thing as the 2d lattice example above, namely a
-2d square lattice of size 100x100 with 4 neighbors per lattice site.
-A variety of lattice types and neighbor stencils are given as options
-with the {lattice} keyword as described above.
+means use a 2d square lattice of size 100x100 with 4 neighbors per
+lattice site.  A variety of lattice types and neighbor stencils can be
+given as options with the {lattice} keyword as described above.
 
 The {sq} and {sc} lattice types are 2d square and 3d cubic lattices
 The total number of lattice sites is one per unit cell, i.e. the
@@ -216,23 +209,20 @@ N n1 n2 n3 ...       # N lines in this section :pre
 
 :line
 
-For 2d and 3d lattice applications, there is always one integer
-stored per lattice site, which your application can access and update.
-
-For general lattice applications, the {site} keyword can be used.  By
-default each lattice site stores a single integer value.  By
-specifying {site}, multiple integer and or double values can be stored
-on each site and accessed/updated by your application.  For example,
-an integer flag could be stored for the type of lattice site and one
-or more doubles could store the state of the site.  If {site 0 0} is
-specified, then the default of a single integer per site is used.
+For on-lattice applications, by default each lattice site stores a
+single integer value.  By specifying {site}, multiple integer and or
+double values can be stored on each site and accessed/updated by your
+application.  For example, an integer flag could be stored for the
+type of lattice site and one or more doubles could store the state of
+the site.  If {site 0 0} is specified, then the default of a single
+integer per site is used.
 
 :line
 
-For general lattice applications, you can initialize the values stored
-on each lattice site explicitly by using the {input} keyword.  This
-can be useful for restarting a simulation from the dump file generated
-by a previous simulation.  See the "dump2input.py" script in the tools
+For on-lattice applications, you can initialize the values stored on
+each lattice site explicitly by using the {input} keyword.  This can
+be useful for restarting a simulation from the dump file generated by
+a previous simulation.  See the "dump2input.py" script in the tools
 directory for a way to convert a dump file to the input format
 described below.
 
@@ -269,5 +259,4 @@ integer value(s) first, followed by the double value(s).
 [Default:]
 
 There is no default for the {lattice} keyword.  It must be specified
-for on-lattice applications of the general lattice style.  The default
-value for site is 0 0.
+for on-lattice applications.  The default value for site is 0 0.

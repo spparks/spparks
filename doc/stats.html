@@ -19,9 +19,9 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>log</I> 
+<LI>keyword = <I>logfreq</I> 
 
-<PRE>  <I>log</I> values = N factor
+<PRE>  <I>logfreq</I> values = N factor
     N = number of repetitions per interval
     factor = scale factor between interval 
 </PRE>
@@ -30,12 +30,13 @@
 <P><B>Examples:</B>
 </P>
 <PRE>stats 0.1
-stats 1.0 log 7 10.0 
+stats 1.0 logfreq 7 10.0 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Print statistics to the screen and log file every so many seconds
-during a simulation.  The quantities printed are obtained are provided
+during a simulation.  The quantities printed are elapsed CPU time
+followed by those provided
 by the <A HREF = "app_style.html">application</A>, followed by those provided by any
 <A HREF = "diag_style.html">diagnostics</A> you have defined.
 </P>
@@ -45,7 +46,7 @@ application-specific quantities may also be reported.  Quantities such
 as the total energy of the system can be included in the output by
 creating diagnostics via the <A HREF = "diag_style.html">diag_style</A> command.
 </P>
-<P>Using the <I>log</I> keyword will produce statistical output at varying
+<P>Using the <I>logfreq</I> keyword will produce statistical output at varying
 intervals during the course of a simulation.  There will be <I>N</I>
 outputs per interval where the size of each interval scales up by
 <I>factor</I> each time.  <I>Delta</I> is the time between outputs in the first
@@ -53,34 +54,32 @@ outputs per interval where the size of each interval scales up by
 </P>
 <P>For example, this command
 </P>
-<PRE>stats 0.01 log 7 10.0 
+<PRE>stats 0.1 logfreq 7 10.0 
 </PRE>
 <P>will produce output at these times:
 </P>
-<PRE>t = 0, 0.01, 0.02, ..., 0.07, 1.0, 2.0, ...., 7.0, 10.0, 20.0, .... 
+<PRE>t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... 
 </PRE>
 <P>This command
 </P>
-<PRE>stats 0.01 log 1 2.0 
+<PRE>stats 0.1 logfreq 1 2.0 
 </PRE>
 <P>will produce output at these times:
 </P>
-<PRE>t = 0, 0.01, 0.02, 0.04, 0.08, ... 
+<PRE>t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... 
 </PRE>
 <HR>
 
 <P><B>Restrictions:</B>
 </P>
-<P>This command can only be used as part of applications that allow for
-it.  See the doc pages for individual applications defined by the
-<A HREF = "app_style.html">app_style</A> command for further details.
-</P>
-<P>If stats is called on a timestep when a diagnostic is not called, then
-the information provided by the diagnostic may be old.
+<P>See the doc pages for quantities provided
+by particular <A HREF = "app_style.html">app_style</A> 
+and <A HREF = "diag_style.html">diag_style</A> 
+commands for further details.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "dump.html">dump</A>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "diag_style.html">diag</A>
 </P>
 <P><B>Default:</B> none
 </P>

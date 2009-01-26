@@ -6,22 +6,21 @@
 
 :line
 
-sweep_style command :h3
+reject_style command :h3
 
 [Syntax:]
 
-sweep_style style seed keyword value keyword value ... :pre
+reject_style style order seed keyword value ... :pre
 
 style = {lattice} or {lattice2d} or {lattice3d} :ulb,l
+order = {random} or {raster} or {color} or {color/strict}
 seed = random number seed (positive integer) :l
 zero or more keyword/value pairs may be appended :l
-keyword = {mask} or {strict} or {kmc} or {delt} or {adapt} :l
+keyword = {{mask} :l
   {mask} value = {yes} or {no}
     yes/no = mask out sites than cannot change
-  {strict} value = {yes} or {no}
-    yes/no = loop over sites in color sets for answers independent of parallelism and masking
-  {kmc} value = {yes} or {no}
-    yes/no = perform approximate kinetic MC algorithm
+
+
   {adapt} value = {yes} or {no}
     yes/no = adapt timestep as the simulation proceeds to preserve accuracy
   {delt} value = dt
@@ -37,10 +36,10 @@ sweep_style lattice3d seed option arg option arg ... :pre
 
 [Description:]
 
-Choose a sweeping algorithm to use in an on-lattice Monte Carlo
-"application"_app_style.html.  If no sweeper is used then a kinetic
-Monte Carlo (KMC) "solver"_solve_style.html is required.  If a sweeper
-with the KMC option is used, then a solver is also required.
+Use a rejection kinetic Monte Carlo (rKMC) algorithm in an "on-lattice
+application"_app_style.html.  If rKMC is not used then a kinetic Monte
+Carlo (KMC) algorithm must be used as defined by the
+"solve_style"_solve_style.html command.
 
 As explained in the "app_style"_app_style.html command, there are 3
 kinds of lattices: general, 2d, and 3d.  You must use a sweep style
@@ -49,11 +48,10 @@ applications which use general lattices, style {lattice2d} for
 applications which use 2d lattices, and style {lattice3d} for
 applications which use 3d lattices.
 
-A sweeping algorithm loops over the sites on a lattice and requests
-that the application perform events.  The application defines the
-geometry and connectivity of the lattice, what the possible events
-are, and defines their probabilities and acceptance/rejection
-criteria.
+The rKMC algorithm oops over the sites on a lattice and requests that
+the application perform events.  The application defines the geometry
+and connectivity of the lattice, what the possible events are, and
+defines their rates and acceptance/rejection criteria.
 
 When SPPARKS runs in parallel, the simulation domain is partitioned
 into sub-domains, one per processor.  For 2d lattices, the processors

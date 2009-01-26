@@ -11,47 +11,21 @@
 
 <H3>app_style ising command 
 </H3>
-<H3>app_style ising/2d/4n command 
-</H3>
-<H3>app_style ising/2d/4n/exchange command 
-</H3>
-<H3>app_style ising/2d/8n command 
-</H3>
-<H3>app_style ising/3d/6n command 
-</H3>
-<H3>app_style ising/3d/26n command 
-</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style args keyword values ... 
+<PRE>app_style ising seed keyword values ... 
 </PRE>
-<UL><LI>style = <I>ising</I> or <I>ising/2d/4n</I> or <I>ising/2d/4n/exchange</I> or <I>ising/2d/8n</I> or <I>ising/3d/6n</I> or <I>ising/3d/26n</I> 
-
-<PRE>  <I>ising</I> arg = seed 
-    seed = random number seed (positive integer)
-  <I>ising/2d/4n</I> args = Nx Ny seed
-  <I>ising/2d/4n/exchange</I> args = Nx Ny seed
-  <I>ising/2d/8n</I> args = Nx Ny seed
-  <I>ising/3d/6n</I> args = Nx Ny Nz seed
-  <I>ising/3d/26n</I> args = Nx Ny Nz seed
-    Nx,Ny = size of 2d lattice size
-    Nx,Ny,Nz = size of 3d lattice size
-    seed = random number seed (positive integer) 
-</PRE>
-<LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended to the <I>ising</I> and <I>ising/exchange</I> styles 
+<UL><LI>ising = style name of this applicatoin
+<LI>seed = random number seed (positive integer) 
+<LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended to the <I>ising</I> style 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 18874 lattice sq/4n 1.0 50 50
-app_style ising/2d/4n 50 50 18874
-app_style ising/2d/4n/exchange 50 50 18874
-app_style ising/2d/8n 100 100 48783
-app_style ising/3d/6n 100 100 100 887287
-app_style ising/3d/26n 50 50 100 487827 
+<PRE>app_style ising 18874 lattice sq/4n 1.0 50 50 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>These applications evolve a 2-state Ising model, where each lattice
+<P>This application evolves a 2-state Ising model, where each lattice
 site has a spin of 1 or 2.  Sites flip their spin as the model
 evolves.
 </P>
@@ -62,62 +36,33 @@ evolves.
 <P>where Sum_j is a sum over all the neighbor sites of site I and delta_ij
 is 1 if the spin of sites I and J are the same and 0 otherwise.
 </P>
-<P>These Ising models can be run in one of several modes, either as a
-general lattice application or as a 2d square lattice application or
-as a 3d square lattice application.  See the
-<A HREF = "app_style.html">app_style</A> commmand for further discussion.  When
-running as a general lattice application, the lattice is specified by
-the appended <I>lattice</I> keword with its associated values, as discussed
-on the doc page for the <A HREF = "app_style.html">app_style</A> command.  When run
-as a 2d or 3d lattice application the style name also determines how
-many neighbors per site are defined:
+<P>This applicaiton performs Glauber dynamics, meaning the spin is
+flipped on a single site.  See "app_style diffusion" for an Ising
+model which performs Kawasaki dynamics, meaning the spins on two
+neighboring sites are swapped.
 </P>
-<UL><LI>2d/4n = 2d square lattice with 4 neighbors per site (nearest neighbors)
-<LI>2d/8n = 2d square lattice with 8 neighbors per site (1st and 2nd nearest neighbors)
-<LI>3d/6n = 3d cubic lattice with 6 neighbors per site (nearest neighbors)
-<LI>3d/26n = 3d cubic lattice with 26 neighbors per site (1st,2nd,3rd nearest neighbors) 
-</UL>
-<P>All the Ising applications except those with "exchange" in the style
-name perform Glauber dynamics, meaning they flip the spin on a single
-site.  The applications with "exchange" in the style name perform
-Kawasaki dynamics, meaning the spins on two neighboring sites are
-swapped.
-</P>
-<P>As explained on <A HREF = "app_style.html">this page</A>, these applications can be
+<P>As explained on <A HREF = "app_style.html">this page</A>, this application can be
 evolved by either a kinetic Monte Carlo (KMC) or Metropolis
-rejection-based algorithm.  You must thus define a sweeping method
-and/or KMC solver to be used with the application via the
-<A HREF = "sweep_style.html">sweep_style</A> and <A HREF = "solve_style.html">solve_style</A>
+rejection-based algorithm.  You must thus define a rejection method or
+KMC solver to be used with the application via the
+<A HREF = "sweep_style.html">reject_style</A> and <A HREF = "solve_style.html">solve_style</A>
 commands.
 </P>
-<P>For the Glauber dynamics applications with solution by a KMC
-algorithm, a site event is a spin flip and its probability is
-min[1,exp(-dE/kT)], where dE = Efinal - Einitial using the
-Hamiltonian defined above for the energy of the site, and T is the
-temperature of the system defined by the
+<P>For solution by a KMC algorithm, a site event is a spin flip and its
+probability is min[1,exp(-dE/kT)], where dE = Efinal - Einitial
+using the Hamiltonian defined above for the energy of the site, and T
+is the temperature of the system defined by the
 <A HREF = "temperature.html">temperature</A> command (which includes the Boltzmann
 constant k implicitly).
 </P>
-<P>For the Glauber dynamics applications with solution by a Metropolis
-algorithm, the spin is set randomly to 1 or 2 and dE = Efinal -
-Einitial is calculated, as is a uniform random number R between 0 and
-1.  The new state is accepted if R < min[1,exp(-dE/kT)].
-</P>
-<P>For the Kawasaki dynamics applications with solution by a KMC
-algorithm, the possible events a site can perform are swaps with any
-neighbor site with a spin different than itself.  The probability of
-each such event is min[1,exp(-dE/kT)], where dE = Efinal - Einitial
-and E is the sum of the energy for the site and its neighbor.
-</P>
-<P>For the Kawasaki dynamics applications with solution by a Metropolis
-algorithm, the spin is flipped to its opposite state and dE = Efinal -
-Einitial is calculated, as is a uniform random number R between 0 and
-1.  The flip is accepted if R < min[1,exp(-dE/kT)], else it is
-rejected.
+<P>For solution by a rejection KMC (rKMC) algorithm, the spin is set
+randomly to 1 or 2 and dE = Efinal - Einitial is calculated, as is a
+uniform random number R between 0 and 1.  The new state is accepted if
+R < min[1,exp(-dE/kT)].
 </P>
 <HR>
 
-<P>The following additional commands are defined by these applications:
+<P>The following additional commands are defined by this application:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD ><A HREF = "dump.html">dump</A> </TD><TD > output of lattice snapshots</TD></TR>
