@@ -71,8 +71,9 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   delpropensity = 1;
   delevent = 0;
   numrandom = 1;
-  allow_metropolis = 1;
   allow_kmc = 1;
+  allow_rejection = 1;
+  allow_masking = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -571,6 +572,7 @@ void AppLattice::file_lattice()
 
   // read and broadcast list of global vertices
   // keep ones in my sub-domain
+  // special treatment to avoid losing vertices at upper boundaries
   // NOTE: one at a time for now, should be chunked later
 
   if (me == 0) {
@@ -597,9 +599,11 @@ void AppLattice::file_lattice()
     MPI_Bcast(&idone,1,MPI_INT,0,world);
     MPI_Bcast(xone,3,MPI_DOUBLE,0,world);
 
-    if (xone[0] < subxlo || xone[0] >= subxhi || 
-	xone[1] < subylo || xone[1] >= subyhi || 
-	xone[2] < subzlo || xone[2] >= subzhi) continue;
+    if (xone[0] < subxlo || xone[1] < subylo || xone[2] < subzlo) continue;
+    if (xone[0] > subxhi || xone[1] > subyhi || xone[2] > subzhi) continue;
+    if (xone[0] == subxhi && subxhi != boxxhi) continue;
+    if (xone[1] == subyhi && subyhi != boxyhi) continue;
+    if (xone[2] == subzhi && subzhi != boxzhi) continue;
 
     if (nlocal == max) {
       max += DELTA;
@@ -1224,8 +1228,8 @@ void AppLattice::init()
     error->all("Cannot use solver in parallel without KMC sweeper");
 
   if (sweep && ((SweepLattice*) sweep)->Lkmc == false && 
-      allow_metropolis == 0)
-    error->all("Metropolis events are not implemented in app");
+      allow_rejection == 0)
+    error->all("Rejection events are not implemented in app");
 
   if (solve && allow_kmc == 0)
     error->all("KMC events are not implemented in app");

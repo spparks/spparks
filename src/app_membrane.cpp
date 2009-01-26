@@ -112,8 +112,7 @@ double AppMembrane::site_energy(int i)
 }
 
 /* ----------------------------------------------------------------------
-   perform a site event with rejection
-   if site cannot change, set mask
+   perform a site event with null bin rejection
 ------------------------------------------------------------------------- */
 
 void AppMembrane::site_event_rejection(int i, RandomPark *random)
@@ -133,6 +132,7 @@ void AppMembrane::site_event_rejection(int i, RandomPark *random)
   double efinal = site_energy(i);
 
   // accept or reject via Boltzmann criterion
+  // null bin size = 1 - single event propensity
 
   if (efinal <= einitial) {
   } else if (temperature == 0.0) {
@@ -144,10 +144,6 @@ void AppMembrane::site_event_rejection(int i, RandomPark *random)
 
 /* ----------------------------------------------------------------------
    compute total propensity of owned site summed over possible events
-   propensity for one event is based on einitial,efinal
-   if no energy change, propensity = 1
-   if downhill energy change, propensity = 1
-   if uphill energy change, propensity = Boltzmann factor
 ------------------------------------------------------------------------- */
 
 double AppMembrane::site_propensity(int i)
@@ -160,6 +156,8 @@ double AppMembrane::site_propensity(int i)
   if (oldstate == LIPID) newstate = FLUID;
 
   // compute energy difference between initial and final state
+  // if downhill or no energy change, propensity = 1
+  // if uphill energy change, propensity = Boltzmann factor
 
   double einitial = site_energy(i);
   lattice[i] = newstate;
@@ -176,8 +174,6 @@ double AppMembrane::site_propensity(int i)
 
 /* ----------------------------------------------------------------------
    choose and perform an event for site
-   update propensities of all affected sites
-   ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
 void AppMembrane::site_event(int i, RandomPark *random)
@@ -189,6 +185,7 @@ void AppMembrane::site_event(int i, RandomPark *random)
   else lattice[i] = LIPID;
 
   // compute propensity changes for self and neighbor sites
+  // ignore update of neighbor sites with isite < 0
 
   int j,m,isite;
 

@@ -96,9 +96,7 @@ double AppPottsVariable::site_energy(int i)
 }
 
 /* ----------------------------------------------------------------------
-   perform a site event with rejection
-   if site cannot change, set mask
-   if site changes, unset mask of neighbor sites with affected propensity
+   perform a site event with null bin rejection
 ------------------------------------------------------------------------- */
 
 void AppPottsVariable::site_event_rejection(int i, RandomPark *random)
@@ -106,21 +104,13 @@ void AppPottsVariable::site_event_rejection(int i, RandomPark *random)
   int oldstate = spin[i];
   double einitial = site_energy(i);
 
-  // event = random spin
+  // event = random spin from 1 to nspins, including self
+  // null bin size = nspins - summed propensity of all events
 
   int iran = (int) (nspins*random->uniform()) + 1;
   if (iran > nspins) iran = nspins;
   spin[i] = iran;
   double efinal = site_energy(i);
-
-  // event = random neighbor spin
-
-  //int iran = (int) (numneigh[i]*random->uniform());
-  //if (iran >= numneigh[i]) iran = numneigh[i] - 1;
-  //spin[i] = spin[neighbor[i][iran]];
-
-  // event = random unique neighbor spin
-  // not yet implemented
 
   // accept or reject via Boltzmann criterion
 
@@ -130,6 +120,10 @@ void AppPottsVariable::site_event_rejection(int i, RandomPark *random)
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
     spin[i] = oldstate;
   }
+
+  // set mask if site could not have changed
+  // if site changed, unset mask of sites with affected propensity
+  // OK to change mask of ghost sites since never used
 
   if (Lmask) {
     if (einitial < 0.5*numneigh[i]) mask[i] = 1;
@@ -141,15 +135,12 @@ void AppPottsVariable::site_event_rejection(int i, RandomPark *random)
 
 /* ----------------------------------------------------------------------
    compute total propensity of owned site summed over possible events
-   propensity for one event is based on einitial,efinal
-   if no energy change, propensity = 1
-   if downhill energy change, propensity = 1
-   if uphill energy change, propensity = Boltzmann factor
 ------------------------------------------------------------------------- */
 
 double AppPottsVariable::site_propensity(int i)
 {
-  // possible events = spin flips to neighboring site different than self
+  // events = spin flips to neighboring site different than self
+  // disallows wild flips = flips to value different than all neighs
 
   int j,m,value;
   int nevent = 0;
@@ -163,9 +154,10 @@ double AppPottsVariable::site_propensity(int i)
     unique[nevent++] = value;
   }
 
-  // for each possible flip:
+  // for each flip:
   // compute energy difference between initial and final state
-  // sum to prob for all events on this site
+  // if downhill or no energy change, propensity = 1
+  // if uphill energy change, propensity = Boltzmann factor
 
   int oldstate = spin[i];
   double einitial = site_energy(i);
@@ -185,21 +177,17 @@ double AppPottsVariable::site_propensity(int i)
 
 /* ----------------------------------------------------------------------
    choose and perform an event for site
-   update propensities of all affected sites
-   ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
 void AppPottsVariable::site_event(int i, RandomPark *random)
 {
-  // pick one event from total propensity
+  int j,m,value;
+
+  // pick one event from total propensity by accumulating its probability
+  // compare prob to threshhold, break when reach it to select event
+  // perform event
 
   double threshhold = random->uniform() * propensity[i2site[i]];
-
-  // possible events = spin flips to neighboring site different than self
-  // find one event by accumulating its probability
-  // compare prob to threshhold, break when reach it to select event
-
-  int j,m,value;
   double efinal;
 
   int oldstate = spin[i];
@@ -224,6 +212,7 @@ void AppPottsVariable::site_event(int i, RandomPark *random)
   }
 
   // compute propensity changes for self and neighbor sites
+  // ignore update of neighbor sites with isite < 0
 
   int nsites = 0;
   int isite = i2site[i];

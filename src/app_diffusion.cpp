@@ -34,7 +34,7 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
 {
   delevent = 1;
   delpropensity = 2;
-  allow_metropolis = 0;
+  allow_masking = 0;
 
   // parse arguments
 
@@ -100,57 +100,60 @@ void AppDiffusion::init_app()
 
 double AppDiffusion::site_energy(int i)
 {
-  int isite = lattice[i];
+  // energy only non-zero for OCCUPIED sites
+
+  if (lattice[i] == VACANT) return 0.0;
+
   int eng = 0;
   for (int j = 0; j < numneigh[i]; j++)
-    if (isite != lattice[neighbor[i][j]]) eng++;
+    if (lattice[neighbor[i][j]] == VACANT) eng++;
   return (double) eng;
 }
 
 /* ----------------------------------------------------------------------
-   perform a site event with rejection
-   if site cannot change, set mask
+   perform a site event with null bin rejection
 ------------------------------------------------------------------------- */
 
 void AppDiffusion::site_event_rejection(int i, RandomPark *random)
 {
-  // event = exchange with random neighbor
+  // exchange with random neighbor if vacant
+  // null bin extends to maxneigh
 
-  int iran = (int) (numneigh[i]*random->uniform());
-  if (iran >= numneigh[i]) iran = numneigh[i] - 1;
+  int iran = (int) (maxneigh*random->uniform());
+  if (iran > maxneigh) iran = maxneigh-1;
   int j = neighbor[i][iran];
+  if (lattice[j] == OCCUPIED) return;
+
+  // accept or reject via Boltzmann criterion
 
   double einitial = site_energy(i) + site_energy(j);
-
-  int mystate = lattice[i];
-  int neighstate = lattice[j];
-  lattice[i] = neighstate;
-  lattice[j] = mystate;
-
+  lattice[i] = VACANT;
+  lattice[j] = OCCUPIED;
   double efinal = site_energy(i) + site_energy(j);
 
-  // accept or reject the event
-
   if (efinal <= einitial) {
-  } else if (temperature == 0.0) {
-    lattice[i] = mystate;
-    lattice[j] = neighstate;
+  } else if (temperature == 0) {
+    lattice[i] = OCCUPIED;
+    lattice[j] = VACANT;
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
-    lattice[i] = mystate;
-    lattice[j] = neighstate;
-  }
+    lattice[i] = OCCUPIED;
+    lattice[j] = VACANT;
+  }    
 }
 
 /* ----------------------------------------------------------------------
    compute total propensity of owned site summed over possible events
-   propensity for one event is based on einitial,efinal
 ------------------------------------------------------------------------- */
 
 double AppDiffusion::site_propensity(int i)
 {
   int j;
 
-  // possible events = OCCUPIED site exchanges with adjacent VACANT site
+  // events = OCCUPIED site exchanges with adjacent VACANT site
+  // for each exchange
+  // compute energy difference between initial and final state
+  // if downhill or no energy change, propensity = 1
+  // if uphill energy change, propensity = Boltzmann factor
 
   if (lattice[i] == VACANT) return 0.0;
 
@@ -179,15 +182,13 @@ double AppDiffusion::site_propensity(int i)
 
 /* ----------------------------------------------------------------------
    choose and perform an event for site
-   update propensities of all affected sites
-   ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
 void AppDiffusion::site_event(int i, class RandomPark *random)
 {
   int j,jj,k,kk,m,mm;
 
-  // pick one event from total propensity for this site
+  // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
   // perform event
 
@@ -211,8 +212,8 @@ void AppDiffusion::site_event(int i, class RandomPark *random)
   }
 
   // compute propensity changes for self and swap site and their 1,2 neighs
+  // ignore update of sites with isite < 0
   // use echeck[] to avoid resetting propensity of same site
-  // loop over neighs of out-of-sector sites, but only update in-sector sites
 
   int nsites = 0;
 

@@ -36,7 +36,8 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
 {
   delevent = 1;
   delpropensity = 1;
-  allow_metropolis = 0;
+  allow_rejection = 0;
+  allow_masking = 0;
 
   // parse arguments
 
@@ -313,22 +314,15 @@ double AppErbium::site_energy(int i)
 }
 
 /* ----------------------------------------------------------------------
-   perform a site event with rejection
-   if site cannot change, set mask
-------------------------------------------------------------------------- */
-
-void AppErbium::site_event_rejection(int i, RandomPark *random) {}
-
-/* ----------------------------------------------------------------------
    compute total propensity of owned site summed over possible events
-   propensity for each possible event is input by user
 ------------------------------------------------------------------------- */
 
 double AppErbium::site_propensity(int i)
 {
   int j,k,m;
 
-  // possible single, double, triple events are in tabulated lists
+  // valid single, double, triple events are in tabulated lists
+  // propensity for each event is input by user
 
   clear_events(i);
 
@@ -381,15 +375,13 @@ double AppErbium::site_propensity(int i)
 
 /* ----------------------------------------------------------------------
    choose and perform an event for site
-   update propensities of all affected sites
-   ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
 void AppErbium::site_event(int i, class RandomPark *random)
 {
   int j,k,m,n;
 
-  // pick one event from total propensity for this site
+  // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
 
   double threshhold = random->uniform() * propensity[i2site[i]];
@@ -429,9 +421,9 @@ void AppErbium::site_event(int i, class RandomPark *random)
     tcount[which]++;
   }
 
-  // compute propensity changes for participating sites and first neighbors
+  // compute propensity changes for participating sites and first neighs
+  // ignore update of sites with isite < 0
   // use echeck[] to avoid resetting propensity of same site
-  // loop over neighs of out-of-sector sites, but only update in-sector sites
 
   int nsites = 0;
 

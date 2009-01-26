@@ -29,8 +29,12 @@ class AppPotts : public AppLattice {
   void site_event(int, class RandomPark *);
 
  private:
-  int nspins;
+  int nspins,rejectstyle;
   int *sites,*unique;
+
+  void site_event_rejection_spins(int, class RandomPark *);
+  void site_event_rejection_neighbors(int, class RandomPark *);
+  void site_event_rejection_neighbors_only(int, class RandomPark *);
 };
 
 }

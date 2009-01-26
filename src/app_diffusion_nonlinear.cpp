@@ -36,7 +36,8 @@ AppDiffusionNonLinear(SPPARKS *spk, int narg, char **arg) :
 {
   delevent = 1;
   delpropensity = 3;
-  allow_metropolis = 0;
+  allow_rejection = 0;
+  allow_masking = 0;
 
   // allow derived classes to invoke their own constructor
 
@@ -159,49 +160,18 @@ double AppDiffusionNonLinear::site_energy(int i)
 }
 
 /* ----------------------------------------------------------------------
-   perform a site event with rejection
-   if site cannot change, set mask
-------------------------------------------------------------------------- */
-
-void AppDiffusionNonLinear::site_event_rejection(int i, RandomPark *random)
-{
-  // event = exchange with random neighbor
-
-  int iran = (int) (numneigh[i]*random->uniform());
-  if (iran >= numneigh[i]) iran = numneigh[i] - 1;
-  int j = neighbor[i][iran];
-
-  double einitial = site_energy(i) + site_energy(j);
-
-  int mystate = lattice[i];
-  int neighstate = lattice[j];
-  lattice[i] = neighstate;
-  lattice[j] = mystate;
-
-  double efinal = site_energy(i) + site_energy(j);
-
-  // accept or reject the event
-
-  if (efinal <= einitial) {
-  } else if (temperature == 0.0) {
-    lattice[i] = mystate;
-    lattice[j] = neighstate;
-  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
-    lattice[i] = mystate;
-    lattice[j] = neighstate;
-  }
-}
-
-/* ----------------------------------------------------------------------
    compute total propensity of owned site summed over possible events
-   propensity for one event is based on einitial,efinal
 ------------------------------------------------------------------------- */
 
 double AppDiffusionNonLinear::site_propensity(int i)
 {
   int j,k,m,nsites;
 
-  // possible events = OCCUPIED site exchanges with adjacent VACANT site
+  // events = OCCUPIED site exchanges with adjacent VACANT site
+  // for each exchange
+  // compute energy difference between initial and final state
+  // if downhill or no energy change, propensity = 1
+  // if uphill energy change, propensity = Boltzmann factor
 
   clear_events(i);
 
@@ -294,15 +264,13 @@ double AppDiffusionNonLinear::site_propensity(int i)
 
 /* ----------------------------------------------------------------------
    choose and perform an event for site
-   update propensities of all affected sites
-   ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
 void AppDiffusionNonLinear::site_event(int i, class RandomPark *random)
 {
   int j,jj,k,kk,kkk,m,mm,mmm,isite;
 
-  // pick one event from total propensity for this site
+  // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
   // perform event
 
@@ -321,8 +289,8 @@ void AppDiffusionNonLinear::site_event(int i, class RandomPark *random)
   lattice[j] = OCCUPIED;
 
   // compute propensity changes for self and swap site and their 1,2,3 neighs
+  // ignore update of sites with isite < 0
   // use echeck[] to avoid resetting propensity of same site
-  // loop over neighs of out-of-sector sites, but only update in-sector sites
 
   int nsites = 0;
 

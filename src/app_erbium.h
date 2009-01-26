@@ -27,7 +27,7 @@ class AppErbium : public AppLattice {
   void init_app();
 
   double site_energy(int);
-  void site_event_rejection(int, class RandomPark *);
+  void site_event_rejection(int, class RandomPark *) {}
   double site_propensity(int);
   void site_event(int, class RandomPark *);
 

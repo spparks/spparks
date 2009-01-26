@@ -90,9 +90,7 @@ double AppIsing::site_energy(int i)
 }
 
 /* ----------------------------------------------------------------------
-   perform a site event with rejection
-   if site cannot change, set mask
-   if site changes, unset mask of neighbor sites with affected propensity
+   perform a site event with null bin rejection
 ------------------------------------------------------------------------- */
 
 void AppIsing::site_event_rejection(int i, RandomPark *random)
@@ -100,22 +98,14 @@ void AppIsing::site_event_rejection(int i, RandomPark *random)
   int oldstate = lattice[i];
   double einitial = site_energy(i);
 
-  // event = random up or down spin
+  // event = spin flip
 
-  if (random->uniform() < 0.5) lattice[i] = 1;
-  else lattice[i] = 2;
+  if (oldstate == 1) lattice[i] = 2;
+  else lattice[i] = 1;
   double efinal = site_energy(i);
 
-  // event = random neighbor spin
-
-  //int iran = (int) (numneigh[i]*random->uniform());
-  //if (iran >= numneigh[i]) iran = numneigh[i] - 1;
-  //lattice[i] = lattice[neighbor[i][iran]];
-
-  // event = random unique neighbor spin
-  // not yet implemented
-
   // accept or reject via Boltzmann criterion
+  // null bin size = 1 - single event propensity
 
   if (efinal <= einitial) {
   } else if (temperature == 0.0) {
@@ -123,6 +113,10 @@ void AppIsing::site_event_rejection(int i, RandomPark *random)
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
     lattice[i] = oldstate;
   }
+
+  // set mask if site could not have changed
+  // if site changed, unset mask of sites with affected propensity
+  // OK to change mask of ghost sites since never used
 
   if (Lmask) {
     if (einitial < 0.5*numneigh[i]) mask[i] = 1;
@@ -134,10 +128,6 @@ void AppIsing::site_event_rejection(int i, RandomPark *random)
 
 /* ----------------------------------------------------------------------
    compute total propensity of owned site summed over possible events
-   propensity for one event is based on einitial,efinal
-   if no energy change, propensity = 1
-   if downhill energy change, propensity = 1
-   if uphill energy change, propensity = Boltzmann factor
 ------------------------------------------------------------------------- */
 
 double AppIsing::site_propensity(int i)
@@ -149,6 +139,8 @@ double AppIsing::site_propensity(int i)
   if (oldstate == 1) newstate = 2;
 
   // compute energy difference between initial and final state
+  // if downhill or no energy change, propensity = 1
+  // if uphill energy change, propensity = Boltzmann factor
 
   double einitial = site_energy(i);
   lattice[i] = newstate;
@@ -162,20 +154,19 @@ double AppIsing::site_propensity(int i)
 
 /* ----------------------------------------------------------------------
    choose and perform an event for site
-   update propensities of all affected sites
-   ignore neighbor sites that should not be updated (isite < 0)
 ------------------------------------------------------------------------- */
 
 void AppIsing::site_event(int i, RandomPark *random)
 {
-  // event = spin flip
+  int m;
+
+  // perform event = spin flip
 
   if (lattice[i] == 1) lattice[i] = 2;
   else lattice[i] = 1;
 
   // compute propensity changes for self and neighbor sites
-
-  int m;
+  // ignore update of neighbor sites with isite < 0
 
   int nsites = 0;
   int isite = i2site[i];

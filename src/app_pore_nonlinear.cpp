@@ -31,6 +31,8 @@ AppPoreNonLinear::AppPoreNonLinear(SPPARKS *spk, int narg, char **arg) :
 {
   delevent = 1;
   delpropensity = 3;
+  allow_rejection = 0;
+  allow_masking = 0;
 
   // parse arguments
 
