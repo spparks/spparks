@@ -63,18 +63,6 @@ SolveStyle(linear,SolveLinear)
 SolveStyle(tree,SolveTree)
 #endif
 
-#ifdef SweepInclude
-#include "sweep_lattice.h"
-#include "sweep_lattice2d.h"
-#include "sweep_lattice3d.h"
-#endif
-
-#ifdef SweepClass
-SweepStyle(lattice,SweepLattice)
-SweepStyle(lattice2d,SweepLattice2d)
-SweepStyle(lattice3d,SweepLattice3d)
-#endif
-
 #ifdef DiagInclude
 #include "diag_cluster.h"
 #include "diag_energy.h"

@@ -98,14 +98,21 @@ void AppIsing::site_event_rejection(int i, RandomPark *random)
   int oldstate = lattice[i];
   double einitial = site_energy(i);
 
-  // event = spin flip
+  // event = random spin from 1 to 2, including self
 
-  if (oldstate == 1) lattice[i] = 2;
-  else lattice[i] = 1;
+  if (random->uniform() < 0.5) lattice[i] = 1;
+  else lattice[i] = 2;
   double efinal = site_energy(i);
 
+  // event = spin flip
+  // replace line below: null bin size = 1 - single event propensity
+
+  //if (oldstate == 1) lattice[i] = 2;
+  //else lattice[i] = 1;
+  //double efinal = site_energy(i);
+
   // accept or reject via Boltzmann criterion
-  // null bin size = 1 - single event propensity
+  // null bin size = 2 - single event propensity
 
   if (efinal <= einitial) {
   } else if (temperature == 0.0) {

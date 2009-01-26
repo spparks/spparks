@@ -18,15 +18,13 @@
 #include "output.h"
 #include "app.h"
 #include "app_lattice.h"
-#include "app_lattice2d.h"
-#include "app_lattice3d.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace SPPARKS_NS;
 
-enum{GENERAL,LATTICE,LATTICE2D,LATTICE3D};     // same as in app.h
+enum{GENERAL,LATTICE};     // same as in app.h
 enum{INT,DOUBLE};
 
 #define MAXLINE 1024
@@ -156,11 +154,7 @@ void Output::set_dump(int narg, char **arg)
 
   if (app->appclass == LATTICE)
     applattice = (AppLattice *) app;
-  else if (app->appclass == LATTICE2D)
-    applattice2d = (AppLattice2d *) app;
-  else if (app->appclass == LATTICE3D)
-    applattice3d = (AppLattice3d *) app;
-  else error->all("Cannot use dump with non-lattice app");
+  else error->all("Cannot use dump with off-lattice app");
 
   // parse dump args
 
@@ -287,39 +281,14 @@ void Output::set_dump(int narg, char **arg)
 
   // setup dump params and buf
 
-  if (app->appclass == LATTICE) {
-    nglobal = applattice->nglobal;
-    nlocal = applattice->nlocal;
-    boxxlo = applattice->boxxlo;
-    boxxhi = applattice->boxxhi;
-    boxylo = applattice->boxylo;
-    boxyhi = applattice->boxyhi;
-    boxzlo = applattice->boxzlo;
-    boxzhi = applattice->boxzhi;
-  } else if (app->appclass == LATTICE2D) {
-    nglobal = applattice2d->nglobal;
-    nlocal = applattice2d->nlocal;
-    nx_local = applattice2d->nx_local;
-    ny_local = applattice2d->ny_local;
-    boxxlo = applattice2d->boxxlo;
-    boxxhi = applattice2d->boxxhi;
-    boxylo = applattice2d->boxylo;
-    boxyhi = applattice2d->boxyhi;
-    boxzlo = 0.0;
-    boxzhi = 0.0;
-  } else if (app->appclass == LATTICE3D) {
-    nglobal = applattice3d->nglobal;
-    nlocal = applattice3d->nlocal;
-    nx_local = applattice3d->nx_local;
-    ny_local = applattice3d->ny_local;
-    nz_local = applattice3d->nz_local;
-    boxxlo = applattice3d->boxxlo;
-    boxxhi = applattice3d->boxxhi;
-    boxylo = applattice3d->boxylo;
-    boxyhi = applattice3d->boxyhi;
-    boxzlo = applattice3d->boxzlo;
-    boxzhi = applattice3d->boxzhi;
-  }
+  nglobal = applattice->nglobal;
+  nlocal = applattice->nlocal;
+  boxxlo = applattice->boxxlo;
+  boxxhi = applattice->boxxhi;
+  boxylo = applattice->boxylo;
+  boxyhi = applattice->boxyhi;
+  boxzlo = applattice->boxzlo;
+  boxzhi = applattice->boxzhi;
 
   int nbuf = nlocal*size_one;
   MPI_Allreduce(&nbuf,&maxbuf,1,MPI_INT,MPI_MAX,world);
@@ -350,7 +319,8 @@ void Output::compute(double time, int done)
       if (dump_irepeat == dump_nrepeat || time > dump_time-dump_eps) {
 	// Calculate next smallest delta that will reach tgoal within nrepeat steps
 	tgoal = time-dump_t0+dump_delta;
-	ntmp = ceil(log(tgoal/(dump_delta*dump_nrepeat))/log(dump_scale));
+	ntmp = static_cast<int> 
+	  (ceil(log(tgoal/(dump_delta*dump_nrepeat))/log(dump_scale)));
 	// If ntmp is less than one, we will need to fix this
 	if (ntmp < 1) error->all("ntmp < 1 in Output::compute()");
 	dump_delta *= pow(dump_scale,ntmp);
@@ -389,7 +359,8 @@ void Output::compute(double time, int done)
       if (stats_irepeat == stats_nrepeat || time > stats_time-stats_eps) {
 	// Calculate next smallest delta that will reach tgoal within nrepeat steps
 	tgoal = time-stats_t0+stats_delta;
-	ntmp = ceil(log(tgoal/(stats_delta*stats_nrepeat))/log(stats_scale));
+	ntmp = static_cast<int>
+	  (ceil(log(tgoal/(stats_delta*stats_nrepeat))/log(stats_scale)));
 	// If ntmp is less than one, we will need to fix this
 	if (ntmp < 1) error->all("ntmp < 1 in Output::compute()");
 	stats_delta *= pow(stats_scale,ntmp);
@@ -478,9 +449,7 @@ void Output::dump()
   // proc 0 writes timestep header
 
   int ntimestep;
-  if (app->appclass == LATTICE) ntimestep = applattice->ntimestep;
-  else if (app->appclass == LATTICE2D) ntimestep = applattice2d->ntimestep;
-  else if (app->appclass == LATTICE3D) ntimestep = applattice3d->ntimestep;
+  ntimestep = applattice->ntimestep;
 
   int ntimestepall;
   MPI_Allreduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,world);
@@ -556,9 +525,7 @@ void Output::write_data(int n, double *buf)
 void Output::pack_id(int n)
 {
   int *id;
-  if (app->appclass == LATTICE) id = applattice->id;
-  else if (app->appclass == LATTICE2D) id = applattice2d->id;
-  else if (app->appclass == LATTICE3D) id = applattice3d->id;
+  id = applattice->id;
 
   for (int i = 0; i < nlocal; i++) {
     buf[n] = id[i];
@@ -572,27 +539,10 @@ void Output::pack_lattice(int n)
 {
   int i,j,k;
 
-  if (app->appclass == LATTICE) {
-    int *lattice = applattice->lattice;
-    for (i = 0; i < nlocal; i++) {
-      buf[n] = lattice[i];
-      n += size_one;
-    }
-  } else if (app->appclass == LATTICE2D) {
-    int **lattice = applattice2d->lattice;
-    for (j = 1; j <= ny_local; j++)
-      for (i = 1; i <= nx_local; i++) {
-	buf[n] = lattice[i][j];
-	n += size_one;
-      }
-  } else if (app->appclass == LATTICE3D) {
-    int ***lattice = applattice3d->lattice;
-    for (k = 1; k <= nz_local; k++)
-      for (j = 1; j <= ny_local; j++)
-	for (i = 1; i <= nx_local; i++) {
-	  buf[n] = lattice[i][j][k];
-	  n += size_one;
-	}
+  int *lattice = applattice->lattice;
+  for (i = 0; i < nlocal; i++) {
+    buf[n] = lattice[i];
+    n += size_one;
   }
 }
 
@@ -600,10 +550,7 @@ void Output::pack_lattice(int n)
 
 void Output::pack_x(int n)
 {
-  double **xyz;
-  if (app->appclass == LATTICE) xyz = applattice->xyz;
-  else if (app->appclass == LATTICE2D) xyz = applattice2d->xyz;
-  else if (app->appclass == LATTICE3D) xyz = applattice3d->xyz;
+  double **xyz = applattice->xyz;
 
   for (int i = 0; i < nlocal; i++) {
     buf[n] = xyz[i][0];
@@ -615,10 +562,7 @@ void Output::pack_x(int n)
 
 void Output::pack_y(int n)
 {
-  double **xyz;
-  if (app->appclass == LATTICE) xyz = applattice->xyz;
-  else if (app->appclass == LATTICE2D) xyz = applattice2d->xyz;
-  else if (app->appclass == LATTICE3D) xyz = applattice3d->xyz;
+  double **xyz = applattice->xyz;
 
   for (int i = 0; i < nlocal; i++) {
     buf[n] = xyz[i][1];
@@ -630,10 +574,7 @@ void Output::pack_y(int n)
 
 void Output::pack_z(int n)
 {
-  double **xyz;
-  if (app->appclass == LATTICE) xyz = applattice->xyz;
-  else if (app->appclass == LATTICE2D) xyz = applattice2d->xyz;
-  else if (app->appclass == LATTICE3D) xyz = applattice3d->xyz;
+  double **xyz = applattice->xyz;
 
   for (int i = 0; i < nlocal; i++) {
     buf[n] = xyz[i][2];
@@ -647,24 +588,9 @@ void Output::pack_energy(int n)
 {
   int i,j,k;
 
-  if (app->appclass == LATTICE) {
-    for (i = 0; i < nlocal; i++) {
-      buf[n] = applattice->site_energy(i);
-      n += size_one;
-    }
-  } else if (app->appclass == LATTICE2D) {
-    for (j = 1; j <= ny_local; j++)
-      for (i = 1; i <= nx_local; i++) {
-	buf[n] = applattice2d->site_energy(i,j);
-	n += size_one;
-      }
-  } else if (app->appclass == LATTICE3D) {
-    for (k = 1; k <= nz_local; k++)
-      for (j = 1; j <= ny_local; j++)
-	for (i = 1; i <= nx_local; i++) {
-	  buf[n] = applattice3d->site_energy(i,j,k);
-	  n += size_one;
-	}
+  for (i = 0; i < nlocal; i++) {
+    buf[n] = applattice->site_energy(i);
+    n += size_one;
   }
 }
 
@@ -674,24 +600,9 @@ void Output::pack_propensity(int n)
 {
   int i,j,k;
 
-  if (app->appclass == LATTICE) {
-    for (i = 0; i < nlocal; i++) {
-      buf[n] = applattice->site_propensity(i);
-      n += size_one;
-    }
-  } else if (app->appclass == LATTICE2D) {
-    for (j = 1; j <= ny_local; j++)
-      for (i = 1; i <= nx_local; i++) {
-	buf[n] = applattice2d->site_propensity(i,j);
-	n += size_one;
-      }
-  } else if (app->appclass == LATTICE3D) {
-    for (k = 1; k <= nz_local; k++)
-      for (j = 1; j <= ny_local; j++)
-	for (i = 1; i <= nx_local; i++) {
-	  buf[n] = applattice3d->site_propensity(i,j,k);
-	  n += size_one;
-	}
+  for (i = 0; i < nlocal; i++) {
+    buf[n] = applattice->site_propensity(i);
+    n += size_one;
   }
 }
 
@@ -711,7 +622,7 @@ void Output::pack_integer(int n)
 
 void Output::pack_double(int n)
 {
-  double *dvec = ((AppLattice *) app)->darray[n];
+  double *dvec = applattice->darray[n];
 
   for (int i = 0; i < nlocal; i++) {
     buf[n] = dvec[i];

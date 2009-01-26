@@ -20,7 +20,7 @@
 #include "variable.h"
 #include "app.h"
 #include "solve.h"
-#include "sweep.h"
+#include "sweep_lattice.h"
 #include "error.h"
 #include "memory.h"
 #include "output.h"
@@ -28,13 +28,11 @@
 #define AppInclude
 #define CommandInclude
 #define SolveInclude
-#define SweepInclude
 #define DiagInclude
 #include "style.h"
 #undef AppInclude
 #undef CommandInclude
 #undef SolveInclude
-#undef SweepInclude
 #undef DiagInclude
 
 using namespace SPPARKS_NS;
@@ -672,17 +670,7 @@ void Input::sweep_style()
   if (narg < 1) error->all("Illegal sweep_style command");
   delete sweep;
 
-  if (strcmp(arg[0],"none") == 0) sweep = NULL;
-
-#define SweepClass
-#define SweepStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) { \
-    sweep = new Class(spk,narg,arg); \
-  }
-#include "style.h"
-#undef SweepClass
-
-  else error->all("Illegal sweep_style command");
+  sweep = new SweepLattice(spk,narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

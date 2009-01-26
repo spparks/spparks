@@ -117,7 +117,8 @@ int Diag::check_time(double time, int done)
       if (diag_irepeat == diag_nrepeat || time > diag_time-diag_eps) {
 	// Calculate next smallest delta that will reach tgoal within nrepeat steps
 	tgoal = time-diag_t0+diag_delta;
-	ntmp = ceil(log(tgoal/(diag_delta*diag_nrepeat))/log(diag_scale));
+	ntmp = static_cast<int> 
+	  (ceil(log(tgoal/(diag_delta*diag_nrepeat))/log(diag_scale)));
 	// If ntmp is less than one, we will need to fix this
 	if (ntmp < 1) error->all("ntmp < 1 in Diag::check_time()");
 	diag_delta *= pow(diag_scale,ntmp);
