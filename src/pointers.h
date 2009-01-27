@@ -37,7 +37,6 @@ public:
     error(ptr->error),
     app(ptr->app),
     solve(ptr->solve),
-    sweep(ptr->sweep),
     timer(ptr->timer),
     output(ptr->output),
     world(ptr->world),
@@ -55,7 +54,6 @@ public:
 
   App *&app;
   Solve *&solve;
-  Sweep *&sweep;
   Output *&output;
   Timer *&timer;
 

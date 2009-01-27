@@ -63,7 +63,6 @@ class Input : protected Pointers {
   void app_style();
   void run();
   void solve_style();
-  void sweep_style();
   void diag_style();
 };
 

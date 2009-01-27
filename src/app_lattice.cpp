@@ -16,7 +16,6 @@
 #include "string.h"
 #include "stdlib.h"
 #include "app_lattice.h"
-#include "sweep_lattice.h"
 #include "comm_lattice.h"
 #include "solve.h"
 #include "random_park.h"
@@ -38,6 +37,8 @@ using namespace SPPARKS_NS;
 #define MAXLINE 256
 #define CHUNK 1024
 
+enum{NOSWEEP,RANDOM,RASTER,COLOR,COLORSTRICT};
+
 /* ---------------------------------------------------------------------- */
 
 AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
@@ -49,20 +50,27 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
 
   // default settings
 
+  Lmask = false;
+  mask = NULL;
+
+  sweepflag = NOSWEEP;
   ntimestep = 0;
   time = 0.0;
   temperature = 0.0;
   dbuf = NULL;
-  propensity = NULL;
-  site2i = NULL;
-  i2site = NULL;
-
+  
   lattice = NULL;
   iarray = NULL;
   darray = NULL;
   ninteger = ndouble = 0;
-  
-  // setup communicator for ghost sites
+
+  propensity = NULL;
+  i2site = NULL;
+
+  nset = 0;
+  set = NULL;
+
+  // communicator for ghost sites
 
   comm = new CommLattice(spk);
 
@@ -83,9 +91,17 @@ AppLattice::~AppLattice()
   delete comm;
 
   delete [] dbuf;
-  memory->sfree(propensity);
-  memory->sfree(site2i);
-  memory->sfree(i2site);
+
+  memory->sfree(mask);
+
+  for (int i = 0; i < nset; i++) {
+    memory->sfree(set[i].border);
+    memory->sfree(set[i].bsites);
+    delete set[i].solve;
+    memory->sfree(set[i].propensity);
+    memory->sfree(set[i].site2i);
+    memory->sfree(set[i].i2site);
+  }
 
   memory->sfree(lattice);
   for (int i = 0; i < ninteger; i++) memory->sfree(iarray[i]);
@@ -103,6 +119,498 @@ AppLattice::~AppLattice()
 
   memory->sfree(numneigh);
   memory->destroy_2d_T_array(neighbor);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppLattice::init()
+{
+  // error checks
+
+  if (solve == NULL && sweepflag == NOSWEEP)
+    error->all("Lattice app needs a KMC or rejection KMC solver");
+
+  if (solve && sweepflag != NOSWEEP)
+    error->all("Lattice app cannot use both a KMC and rejection KMC solver");
+
+  if (solve && allow_kmc == 0)
+    error->all("KMC events are not implemented in app");
+
+  if (sweepflag != NONE && allow_rejection == 0)
+    error->all("Rejection events are not implemented in app");
+
+  if (nprocs > 1 && sectorflag == 0 && solve)
+    error->all("Cannot use KMC solver in parallel with no sectors");
+  if (nprocs > 1 && sectorflag == 0 && sweepflag == RANDOM)
+    error->all("Cannot use random rejection KMC in parallel with no sectors");
+  if (nprocs > 1 && sectorflag == 0 && sweepflag == RASTER)
+    error->all("Cannot use raster rejection KMC in parallel with no sectors");
+
+  // app-specific initialization
+
+  init_app();
+
+  // if sectors, determine number of sectors
+
+  int nsectors;
+  if (dimension == 2) nsectors = 4;
+  else nsectors = 8;
+
+  // if coloring, determine number of colors
+
+  int ncolors = 1;
+  if (sweepflag == COLOR || sweepflag == COLORSTRICT) {
+  }
+
+  // create sets based on sectors and coloring
+  // only do this on first init
+
+  if (set == NULL) {
+    if (sectorflag == 0 && ncolors == 1) {
+      nset = 1;
+      set = new Set[nset];
+      create_set(0,0,0);
+    } else if (sectorflag == 0 && ncolors > 1) {
+      nset = ncolors;
+      set = new Set[nset];
+      for (int i = 0; i < nset; i++)
+	create_set(i,0,i);
+    } else if (sectorflag == 1 && ncolors == 0) {
+      nset = nsectors;
+      set = new Set[nset];
+      for (int i = 0; i < nset; i++)
+	create_set(i,i,0);
+    } else if (sectorflag == 1 && ncolors > 0) {
+      nset = nsectors*ncolors;
+      set = new Set[nset];
+      for (int i = 0; i < nset; i++)
+	for (int j = 0; j < ncolors; j++)
+	  create_set(i*ncolors+j,i,j);
+    }
+  }
+
+  // initialize mask array
+
+  if (!Lmask && mask) {
+    memory->sfree(mask);
+    mask = NULL;
+  }
+  if (Lmask && mask == NULL) {
+    mask = (char *)
+      memory->smalloc((nlocal+nghost)*sizeof(char),"applattice:mask");
+    for (int i = 0; i < nlocal+nghost; i++) mask[i] = 0;
+  }
+
+  // initialize comm
+  
+  comm->init(delpropensity,delevent,NULL);
+
+  // initialize propensities for KMC solver within each set
+  // comm insures ghost sites are up to date
+
+  if (solve) {
+    comm->all();
+    for (int i = 0; i < nset; i++) {
+      for (int m = 0; m < set[i].nlocal; m++)
+	set[i].propensity[m] = site_propensity(set[i].site2i[m]);
+      set[i].solve->init(set[i].nlocal,set[i].propensity);
+    }
+  }
+
+  // setup one RNG per site only on first init
+  // only owned values referenced in strict() methods
+
+  if (sweepflag == COLORSTRICT && ranlattice == NULL) {
+    ranlattice = (RandomPark *) memory->smalloc(nlocal*sizeof(RandomPark *),
+						"applattice:ranlattice");
+    for (int i = 0; i < nlocal; i++) ranlattice[i].init(strictseed+id[i]);
+  }
+
+  // If adaptive kmc specified
+  // compute deln0, which controls future timesteps
+  // If deln0 arleady specified, compute delt
+
+  // NOTE: this should only loop over sectors, not sets
+
+  if (solve && Ladapt) {
+    pmax = 0.0;
+    int ntmp ;
+    double ptmp;
+    for (int i = 0; i < nset; i++) {
+      ntmp = set[i].solve->get_num_active();
+      if (ntmp > 0) {
+	ptmp = set[i].solve->get_total_propensity();
+	ptmp /= ntmp;
+	pmax = MAX(ptmp,pmax);
+      }
+    }
+    double pmaxall;
+    MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
+    if (deln0 <= 0.0) deln0 = pmaxall*delt;
+    else if (pmaxall > 0.0) delt = deln0/pmaxall;
+  }
+  delt = MIN(delt,stoptime);
+
+  // initialize output
+
+  output->init(time);
+}
+
+/* ----------------------------------------------------------------------
+   create a subset of owned sites
+   insure all ptrs in Set data struct are allocated or NULL
+ ------------------------------------------------------------------------- */
+
+void AppLattice::create_set(int iset, int isector, int icolor)
+{
+  // sector boundaries
+
+  double xmid = 0.5 * (subxlo + subxhi);
+  double ymid = 0.5 * (subylo + subyhi);
+  double zmid = 0.5 * (subzlo + subzhi);
+
+  // count sites in subset
+
+  int flag,iwhich,jwhich,kwhich,nsector;
+
+  int n = 0;
+  for (int i = 0; i < nlocal; i++) {
+    flag = 1;
+
+    if (isector > 0) {
+      if (xyz[i][0] < xmid) iwhich = 0;
+      else iwhich = 1;
+      if (xyz[i][1] < ymid) jwhich = 0;
+      else jwhich = 1;
+      if (xyz[i][2] < zmid) kwhich = 0;
+      else kwhich = 1;
+
+      if (dimension == 2) nsector = 2*iwhich + jwhich + 1;
+      else nsector = 4*iwhich + 2*jwhich + kwhich + 1;
+
+      if (isector != nsector) flag = 0;
+    }
+
+    if (icolor > 0) {
+    }
+
+    if (flag) n++;
+  }
+
+  set[iset].nlocal = n;
+
+  // setup site2i for sites in set
+
+  set[iset].site2i =
+    (int *) memory->smalloc(n*sizeof(int),"applattice:site2i");
+
+  n = 0;
+  for (int i = 0; i < nlocal; i++) {
+    flag = 1;
+
+    if (isector > 0) {
+      if (xyz[i][0] < xmid) iwhich = 0;
+      else iwhich = 1;
+      if (xyz[i][1] < ymid) jwhich = 0;
+      else jwhich = 1;
+      if (xyz[i][2] < zmid) kwhich = 0;
+      else kwhich = 1;
+
+      if (dimension == 2) nsector = 2*iwhich + jwhich + 1;
+      else nsector = 4*iwhich + 2*jwhich + kwhich + 1;
+
+      if (isector != nsector) flag = 0;
+    }
+
+    if (icolor > 0) {
+    }
+
+    if (flag) set[iset].site2i[n++] = i;
+  }
+
+  // setup i2site for sites in set, only for KMC solver
+  // i2site = 0 to nsite-1 for owned points in set, else -1
+
+  if (solve) {
+    set[iset].i2site =
+      (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"applattice:i2site");
+      for (int i = 0; i < nlocal+nghost; i++) set[iset].i2site[i] = -1;
+      for (int i = 0; i < set[iset].nlocal; i++) 
+	set[iset].i2site[set[iset].site2i[i]] = i;
+  } else set[iset].i2site = NULL;
+
+  // allocate propensity array for set
+
+  set[iset].propensity =
+    (double *) memory->smalloc(n*sizeof(double),"applattice:propensity");
+
+  // allocate KMC solver for set
+
+  if (solve) set[iset].solve = solve->clone();
+  else set[iset].solve = NULL;
+
+  // setup border arrays for set
+  // nborder = # of sites in sector influenced by site outside sector
+  // border = list of these sites, stored as lattice indices
+  // bsites = scratch array for use by KMC solver
+  // border is only used by KMC solver in sectors and masking
+  // bsites is only used by KMC solver in sectors
+
+  if ((solve && sectorflag) || Lmask) {
+    set[iset].nborder = find_border_sites(isector);
+    if (solve && sectorflag)
+      set[iset].bsites =
+	(int *) memory->smalloc(set[iset].nborder*sizeof(int),
+				"applattice:bsites");
+    else set[iset].bsites = NULL;
+  } else {
+    set[iset].nborder = 0;
+    set[iset].border = NULL;
+    set[iset].bsites = NULL;
+  }
+
+  // init communication for ghost sites, requires site2i
+
+  comm->init(delpropensity,delevent,NULL);
+}
+
+
+/* ----------------------------------------------------------------------
+   perform a run
+ ------------------------------------------------------------------------- */
+
+void AppLattice::run(int narg, char **arg)
+{
+  if (narg != 1) error->all("Illegal run command");
+
+  init();
+  timer->init();
+
+  // time_eps eliminates overruns due to finite machine precision
+  // can be set to zero by an app that wants to ignore it
+
+  stoptime = time + atof(arg[0]) - time_eps;
+  if (time >= stoptime) {
+    Finish finish(spk);
+    return;
+  }
+
+  timer->barrier_start(TIME_LOOP);
+
+  if (solve) {
+    if (sectorflag) iterate_kmc_sector(stoptime);
+    else iterate_kmc_nosector(stoptime);
+  } else iterate_rejection(stoptime);
+
+  timer->barrier_stop(TIME_LOOP);
+  
+  Finish finish(spk);
+}
+
+/* ----------------------------------------------------------------------
+   KMC solver on entire domain
+   can only be invoked in serial
+ ------------------------------------------------------------------------- */
+
+void AppLattice::iterate_kmc_nosector(double stoptime)
+{
+  int isite;
+  double dt;
+  
+  propensity = set[0].propensity;
+  i2site = set[0].i2site;
+
+  int done = 0;
+  while (!done) {
+    timer->stamp();
+    isite = solve->event(&dt);
+    timer->stamp(TIME_SOLVE);
+
+    if (isite < 0) done = 1;
+    else {
+      ntimestep++;
+      site_event(isite,random);
+      time += dt;
+      timer->stamp(TIME_APP);
+    }
+
+    if (time >= stoptime) done = 1;
+    output->compute(time,done);
+    timer->stamp(TIME_OUTPUT);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   KMC solver on sectors
+   can be invoked in serial or parallel
+ ------------------------------------------------------------------------- */
+
+void AppLattice::iterate_kmc_sector(double stoptime)
+{
+  double dt,time;
+  int done,isite,i;
+
+  for (int iset = 0; iset < nset; iset++) {
+
+    if (nprocs > 1) {
+      comm->sector(iset);
+      timer->stamp(TIME_COMM);
+    }
+
+    Solve *ssolve = set[iset].solve;
+    propensity = set[iset].propensity;
+    i2site = set[iset].i2site;
+    int *site2i = set[iset].site2i;
+
+    // update propensities for sites which neighbor a site outside sector
+    // necessary since outside sites may have changed
+    // attribute this chunk of time to comm, b/c due to decomposition
+
+    timer->stamp();
+
+    int *bsites = set[iset].bsites;
+    int *border = set[iset].border;
+    int nborder = set[iset].nborder;
+
+    int nsites = 0;
+    for (int m = 0; m < nborder; m++) {
+      i = border[m];
+      isite = i2site[i];
+      bsites[nsites++] = isite;
+      propensity[isite] = site_propensity(i);
+    }
+
+    ssolve->update(nsites,bsites,propensity);
+    timer->stamp(TIME_COMM);
+
+    // compute maximum sector propensity per site
+    // controls future timesteps. We do this at start of sweep
+    // for the simple reason that a sector propensity can drop to
+    // zero during a sweep, but it can never increase from zero.
+    // Hence we avoid the problem of all the sectors reporting
+    // zero propensity. a more correct way to handle this would be to do
+    // a full propensity update when all the sectors have been swept,
+    // but that would increase the cost substantially.
+
+    if (Ladapt) {
+      int ntmp = ssolve->get_num_active();
+      if (ntmp > 0) {
+	double ptmp = ssolve->get_total_propensity();
+	ptmp /= ntmp;
+	pmax = MAX(ptmp,pmax);
+      }
+    }
+
+    // execute events until time threshhold reached
+
+    done = 0;
+    time = 0.0;
+    while (!done) {
+      timer->stamp();
+      isite = ssolve->event(&dt);
+      timer->stamp(TIME_SOLVE);
+      
+      if (isite < 0) done = 1;
+      else {
+	time += dt;	
+	if (time >= delt) done = 1;
+	else site_event(site2i[isite],random);
+	timer->stamp(TIME_APP);
+      }
+    }
+
+    if (nprocs > 1) {
+      comm->reverse_sector(iset);
+      timer->stamp(TIME_COMM);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   rejection KMC solver
+ ------------------------------------------------------------------------- */
+
+void AppLattice::iterate_rejection(double stoptime)
+{
+  int done = 0;
+  while (!done) {
+
+    timer->stamp();
+
+    for (int iset = 0; iset < nset; iset++) {
+      timer->stamp();
+
+      if (nprocs > 1) {
+	comm->sector(iset);
+	timer->stamp(TIME_COMM);
+      }
+
+      if (Lmask) boundary_clear_mask(iset);
+
+      if (sweepflag == RANDOM) {
+	generate_random_sites(set[iset].nlocal,nlocal);
+	(this->*sweep)(set[iset].nlocal,ransites);
+      } else (this->*sweep)(set[iset].nlocal,set[iset].site2i);
+
+      timer->stamp(TIME_SOLVE);
+
+      if (nprocs > 1) {
+	comm->reverse_sector(iset);
+	timer->stamp(TIME_COMM);
+      }
+    }
+
+    timer->stamp(TIME_SOLVE);
+
+    time += dt_sweep;
+    if (time >= stoptime) done = 1;
+
+    output->compute(time,done);
+    timer->stamp(TIME_OUTPUT);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppLattice::sweep_nomask_nostrict(int n, int *list)
+{
+  for (int m = 0; m < n; m++)
+    site_event_rejection(list[m],random);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppLattice::sweep_mask_nostrict(int n, int *list)
+{
+  int i;
+  for (int m = 0; m < n; m++) {
+    i = list[m];
+    if (mask[i]) continue;
+    site_event_rejection(i,random);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppLattice::sweep_nomask_strict(int n, int *list)
+{
+  int i;
+  for (int m = 0; m < n; m++) {
+    i = list[m];
+    site_event_rejection(i,&ranlattice[i]);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppLattice::sweep_mask_strict(int n, int *list)
+{
+  int i;
+  for (int m = 0; m < n; m++) {
+    i = list[m];
+    if (mask[i]) continue;
+    site_event_rejection(i,&ranlattice[i]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1206,92 +1714,6 @@ void AppLattice::ghosts_from_connectivity()
 
 /* ---------------------------------------------------------------------- */
 
-void AppLattice::init()
-{
-  int i;
-
-  // error checks
-
-  if (sweep && strcmp(sweep->style,"lattice") != 0)
-    error->all("Mismatched sweeper with app lattice");
-
-  if (sweep == NULL && solve == NULL)
-    error->all("Lattice app needs a solver or sweeper");
-
-  if (sweep && ((SweepLattice*) sweep)->Lkmc && solve == NULL)
-    error->all("Must define solver with KMC sweeper");
-
-  if (solve && sweep && ((SweepLattice*) sweep)->Lkmc == false)
-    error->all("Cannot use solver with non-KMC sweeper");
-
-  if (solve && sweep == NULL && nprocs > 1)
-    error->all("Cannot use solver in parallel without KMC sweeper");
-
-  if (sweep && ((SweepLattice*) sweep)->Lkmc == false && 
-      allow_rejection == 0)
-    error->all("Rejection events are not implemented in app");
-
-  if (solve && allow_kmc == 0)
-    error->all("KMC events are not implemented in app");
-
-  // app-specific initialization
-
-  init_app();
-
-  // initialize comm
-  
-  comm->init(NULL,delpropensity,delevent,NULL);
-
-  // if no sweeper, initialize 3 arrays: propensity, site2i,i2site
-  // sweeper allocates its own per-sector versions of these
-
-  memory->sfree(propensity);
-  memory->sfree(site2i);
-  memory->sfree(i2site);
-
-  int nsites = nlocal;
-
-  if (sweep == NULL) {
-    propensity = (double*) memory->smalloc(nsites*sizeof(double),
-					   "app:propensity");
-    site2i = (int *) memory->smalloc(nsites*sizeof(int),"app:site2i");
-    i2site = (int *) memory->smalloc(nsites*sizeof(int),"app:i2site");
-
-    for (i = 0; i < nsites; i++) site2i[i] = i;
-    for (i = 0 ; i < nlocal; i++) i2site[i] = i;
-
-  } else {
-    propensity = NULL;
-    site2i = NULL;
-    i2site = NULL;
-  }
-
-  // initialize sweeper
-  
-  if (sweep) {
-    sweep->init();
-    Lmask = sweep->Lmask;
-    mask = ((SweepLattice *) sweep)->mask;
-  }
-
-  // initialize propensities for solver
-  // if KMC sweep, sweeper does its own init of its propensity arrays
-  // comm insures ghost sites are set
-
-  if (!sweep) {
-    comm->all();
-    for (i = 0 ; i < nlocal; i++)
-      propensity[i2site[i]] = site_propensity(i);
-    solve->init(nlocal,propensity);
-  }
-
-  // initialize output
-
-  output->init(time);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void AppLattice::input(char *command, int narg, char **arg)
 {
   if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
@@ -1307,68 +1729,13 @@ void AppLattice::input_app(char *command, int narg, char **arg)
   error->all("Unrecognized command");
 }
 
-/* ----------------------------------------------------------------------
-   perform a run
- ------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-void AppLattice::run(int narg, char **arg)
+void AppLattice::set_temperature(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal run command");
-  stoptime = time + atof(arg[0]);
-  // time_eps eliminates overruns due to finite machine precision
-  // It can be set to zero in any App that does not like it.
-  stoptime -= time_eps;
-
-  init();
-  timer->init();
-
-  iterate();
-  
-  Finish finish(spk);
-}
-
-/* ----------------------------------------------------------------------
-   iterate on solver
- ------------------------------------------------------------------------- */
-
-void AppLattice::iterate()
-{
-  int i,isite;
-  double dt;
-
-  if (time >= stoptime) return;
-
-  timer->barrier_start(TIME_LOOP);
-  
-  int done = 0;
-  
-  while (!done) {
-    if (sweep) {
-      sweep->do_sweep(dt);
-      time += dt;
-
-    } else {
-      timer->stamp();
-      isite = solve->event(&dt);
-      timer->stamp(TIME_SOLVE);
-
-      if (isite < 0) done = 1;
-      else {
-	ntimestep++;
-	i = site2i[isite];
-	site_event(i,random);
-	time += dt;
-	timer->stamp(TIME_APP);
-      }
-    }
-
-    if (time >= stoptime) done = 1;
-
-    output->compute(time,done);
-    timer->stamp(TIME_OUTPUT);
-  }
-  
-  timer->barrier_stop(TIME_LOOP);
+  if (narg != 1) error->all("Illegal temperature command");
+  temperature = atof(arg[0]);
+  if (temperature != 0.0) t_inverse = 1.0/temperature;
 }
 
 /* ----------------------------------------------------------------------
@@ -1389,15 +1756,6 @@ void AppLattice::stats(char *strtmp)
 void AppLattice::stats_header(char *strtmp)
 {
   sprintf(strtmp," %10s %10s","Step","Time");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AppLattice::set_temperature(int narg, char **arg)
-{
-  if (narg != 1) error->all("Illegal temperature command");
-  temperature = atof(arg[0]);
-  if (temperature != 0.0) t_inverse = 1.0/temperature;
 }
 
 /* ----------------------------------------------------------------------
@@ -1747,6 +2105,84 @@ void AppLattice::offsets()
 }
 
 /* ----------------------------------------------------------------------
+   create list of border sites for a set
+   border site = site in set with a 1 to Nlayer neighbor outside the set
+   neighbor can be another owned site (outside set) or a ghost
+   border = lattice index of the sites
+ ------------------------------------------------------------------------- */
+
+int AppLattice::find_border_sites(int isector)
+{
+  int i,j,m;
+
+  int nlayer = delpropensity+delevent;
+  int ntotal = nlocal + nghost;
+  int nsites = set[isector].nlocal;
+  int *site2i = set[isector].site2i;
+
+  // flag sites with -1 that are not in sector
+  // flag sites with 0 that are in sector
+
+  int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"applattice:flag");
+  for (i = 0; i < ntotal; i++) flag[i] = -1;
+  for (m = 0; m < nsites; m++) flag[site2i[m]] = 0;
+
+  // flag sector sites with -1 that have non-sector neighbor up to nlayer away
+
+  for (int ilayer = 0; ilayer < nlayer; ilayer++) {
+    for (m = 0; m < nsites; m++) {
+      i = site2i[m];
+      if (flag[i]) continue;
+      for (j = 0; j < numneigh[i]; j++)
+	if (flag[neighbor[i][j]] < 0) break;
+      if (j < numneigh[i]) flag[i] = 1;
+    }
+    for (m = 0; m < nsites; m++) {
+      i = site2i[m];
+      if (flag[i] > 0) flag[i] = -1;
+    }
+  }
+
+  // nborder = # of border sites
+  // allocate border and fill with site indices
+
+  int nborder = 0;
+  for (m = 0; m < nsites; m++) {
+    i = site2i[m];
+    if (flag[i] < 0) nborder++;
+  }
+
+  int *border = (int *)
+    memory->smalloc(nborder*sizeof(int),"applattice:border");
+
+  nborder = 0;
+  for (m = 0; m < nsites; m++) {
+    i = site2i[m];
+    if (flag[i] < 0) border[nborder++] = i;
+  }
+
+  memory->sfree(flag);
+
+  set[isector].border = border;
+  return nborder;
+}
+  
+/* ----------------------------------------------------------------------
+   unset all mask values of owned sites in iset whose propensity
+     could change due to events on sites one neighbor outside the set
+   border list stores indices of these sites
+   their mask value may be out of date, due to state change in other sets
+ ------------------------------------------------------------------------- */
+
+void AppLattice::boundary_clear_mask(int iset)
+{
+  int *border = set[iset].border;
+  int nborder = set[iset].nborder;
+
+  for (int m = 0; m < nborder; m++) mask[border[m]] = 0;
+}
+
+/* ----------------------------------------------------------------------
    push connected neighbors of this site onto stack
      and assign current id
    ghost neighbors are masked by id = -1
@@ -1788,4 +2224,3 @@ void AppLattice::connected_ghosts(int i, int* cluster_ids,
     }
   }
 }
-

@@ -23,7 +23,7 @@ class CommLattice : protected Pointers {
  public:
  
   CommLattice(class SPPARKS *); ~CommLattice();
-  void init(class SweepLattice *, int, int, int *);
+  void init(int, int, int *);
   void all();
   void sector(int);
   void reverse_sector(int);

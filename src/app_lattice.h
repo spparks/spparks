@@ -54,9 +54,9 @@ class AppLattice : public App {
   int ntimestep;
   double time,stoptime;
   double temperature,t_inverse;
-  int nsweep;
+  double dt_sweep;
 
-  int latstyle;
+  int latstyle;               // lattice creation params
   double latconst;
   int dimension;
   int nx,ny,nz;
@@ -73,8 +73,20 @@ class AppLattice : public App {
   int allow_rejection;         // 1 if app supports rejection KMC
   int allow_masking;           // 1 if app supports rKMC masking
 
-  bool Lmask;                  // from sweeper
-  char *mask;
+  int sweepflag;               // 1 if rejection KMC solver
+  int sectorflag;              // 1 if partition my domain into sectors
+
+  bool Lmask;                  // masking on/off
+  char *mask;                  // size of nlocal + nghost sites
+
+  class RandomPark *ranlattice;  // one RN generator per lattice site
+  int strictseed;              // RNG seed for these RN generators
+
+  int *ransites;               // list of randomized site indices
+
+  bool Ladapt;                 // adaptive timestep on/off
+  double delt,deln,deln0;
+  double pmax;
 
   double xprd,yprd,zprd;
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // simulation box bounds
@@ -99,7 +111,6 @@ class AppLattice : public App {
 
   double *propensity;          // probabilities for each owned site
   int *i2site;                 // mapping of owned lattice to site index
-  int *site2i;                 // mapping of owned sites to lattice index
 
                                // neigh info for owned sites
                                // and ghost sites up to delpropensity-1 layers
@@ -113,10 +124,30 @@ class AppLattice : public App {
   int nbasis;                  // basis atoms for regular lattices
   int ***cmap;                 // connectivity map for regular lattices
 
+  struct Set {                 // subset of lattice sites I own
+    int nlocal;                // # of owned sites in sect
+    int nborder;               // # of sites with non-set site as neighbor
+    int *border;               // lattice index for each border site
+    int *bsites;               // list of border sites to pass to solver
+    class Solve *solve;        // KMC solver
+    double *propensity;        // propensities for set sites
+    int *site2i;               // map from set sites to lattice index
+    int *i2site;               // map from lattice index to set sites
+  };
+  Set *set;                    // list of subsets
+  int nset;                    // # of subsets of lattice sites
+
   struct Site {
     int id,proc,index;
     double x,y,z;
   };
+
+  typedef void (AppLattice::*FnPtrSweep)(int, int *);
+  FnPtrSweep sweep;                         // ptr to sweep functions
+  void sweep_nomask_nostrict(int, int *);
+  void sweep_mask_nostrict(int, int *);
+  void sweep_nomask_strict(int, int *);
+  void sweep_mask_strict(int, int *);
 
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
 
@@ -138,7 +169,12 @@ class AppLattice : public App {
   void ghosts_from_connectivity();
   void connectivity_within_cutoff();
 
-  void iterate();
+  void create_set(int, int, int);
+
+  void iterate_kmc_sector(double);
+  void iterate_kmc_nosector(double);
+  void iterate_rejection(double);
+
   void stats(char *);
   void stats_header(char *);
   void set_temperature(int, char **);
@@ -148,6 +184,10 @@ class AppLattice : public App {
 
   int connect(int, int);
   void offsets();
+
+  int find_border_sites(int);
+  void boundary_clear_mask(int);
+  void generate_random_sites(int, int) {}
 };
 
 }

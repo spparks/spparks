@@ -16,7 +16,6 @@
 #include "string.h"
 #include "comm_lattice.h"
 #include "app_lattice.h"
-#include "sweep_lattice.h"
 #include "solve.h"
 #include "finish.h"
 #include "timer.h"
@@ -60,8 +59,7 @@ CommLattice::~CommLattice()
 
 /* ---------------------------------------------------------------------- */
 
-void CommLattice::init(SweepLattice *sweep, int delpropensity, int delevent,
-		       int *array) 
+void CommLattice::init(int delpropensity, int delevent, int *array) 
 {
   delghost = delpropensity;
   delreverse = delevent;

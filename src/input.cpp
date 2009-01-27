@@ -399,7 +399,6 @@ int Input::execute_command()
   else if (!strcmp(command,"diag_style")) diag_style();
   else if (!strcmp(command,"run")) run();
   else if (!strcmp(command,"solve_style")) solve_style();
-  else if (!strcmp(command,"sweep_style")) sweep_style();
 
   else flag = 0;
 
@@ -661,16 +660,6 @@ void Input::solve_style()
 #undef SolveClass
 
   else error->all("Illegal solve_style command");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::sweep_style()
-{
-  if (narg < 1) error->all("Illegal sweep_style command");
-  delete sweep;
-
-  sweep = new SweepLattice(spk,narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
