@@ -20,7 +20,6 @@
 #include "variable.h"
 #include "app.h"
 #include "solve.h"
-#include "sweep_lattice.h"
 #include "error.h"
 #include "memory.h"
 #include "output.h"
@@ -621,9 +620,7 @@ void Input::app_style()
   if (narg < 1) error->all("Illegal app command");
   delete app;
   delete solve;
-  delete sweep;
   solve = NULL;
-  sweep = NULL;
 
   if (strcmp(arg[0],"none") == 0) error->all("Illegal app_style command");
 

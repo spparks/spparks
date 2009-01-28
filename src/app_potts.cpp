@@ -27,6 +27,8 @@
 
 using namespace SPPARKS_NS;
 
+enum{SPIN,NEIGH,NEIGHONLY};
+
 /* ---------------------------------------------------------------------- */
 
 AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) : 
@@ -34,16 +36,21 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
 {
   // parse arguments
 
-  if (narg < 3) error->all("Illegal app_style command");
+  if (narg < 4) error->all("Illegal app_style command");
 
   nspins = atoi(arg[1]);
-  int seed = atoi(arg[2]);
-  random = new RandomPark(seed);
+  if (strcmp(arg[2],"spin") == 0) rejectstyle = SPIN;
+  else if (strcmp(arg[2],"neigh") == 0) rejectstyle = NEIGH;
+  else if (strcmp(arg[2],"neighonly") == 0) rejectstyle = NEIGHONLY;
+  else error->all("Illegal app_style command");
+  int seed = atoi(arg[3]);
+  RandomPark *random = new RandomPark(seed);
 
-  // need to make this an actual arg, in doc page also
-  rejectstyle = 0;
+  if (rejectstyle == SPIN) dt_sweep = 1.0/nspins;
+  else if (rejectstyle == NEIGH) dt_sweep = 1.0/maxneigh;
+  else if (rejectstyle == NEIGHONLY) dt_sweep = 1.0/maxneigh;
 
-  options(narg-3,&arg[3]);
+  options(narg-4,&arg[4]);
 
   // define lattice and partition it across processors
   
@@ -71,13 +78,14 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
       if (loc != hash.end()) lattice[loc->second] = isite;
     }
   }
+
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppPotts::~AppPotts()
 {
-  delete random;
   delete [] sites;
   delete [] unique;
 }
@@ -101,8 +109,8 @@ double AppPotts::site_energy(int i)
 
 void AppPotts::site_event_rejection(int i, RandomPark *random)
 {
-  if (rejectstyle == 0) site_event_rejection_spins(i,random);
-  else if (rejectstyle == 1) site_event_rejection_neighbors(i,random);
+  if (rejectstyle == SPIN) site_event_rejection_spins(i,random);
+  else if (rejectstyle == NEIGH) site_event_rejection_neighbors(i,random);
   else site_event_rejection_neighbors_only(i,random);
 }
 

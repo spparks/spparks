@@ -57,9 +57,17 @@ CommLattice::~CommLattice()
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   setup comm pattern
+   3 kinds of patterns: all ghosts, sector ghosts, sector reverse
+   if sectorflag = 0, just all ghosts
+   if sectorflag = 1, do all 3 (if reverse is needed)
+   array = NULL = communicate lattice or iarray/darray from app
+   array = non-NULL = communicate passed-in array (from diagnostic)
+------------------------------------------------------------------------- */
 
-void CommLattice::init(int delpropensity, int delevent, int *array) 
+void CommLattice::init(int sectorflag, int delpropensity, int delevent,
+		       int *array) 
 {
   delghost = delpropensity;
   delreverse = delevent;
@@ -75,27 +83,32 @@ void CommLattice::init(int delpropensity, int delevent, int *array)
   iarray = applattice->iarray;
   darray = applattice->darray;
 
+  // clear out old swaps
+
   if (allswap) free_swap(allswap);
   for (int i = 0; i < nsector; i++) free_swap(sectorswap[i]);
   delete [] sectorswap;
+  if (reverseswap) {
+    for (int i = 0; i < nsector; i++) free_swap(reverseswap[i]);
+    delete [] reverseswap;
+  }
+
+  // create new swaps as requested
 
   allswap = create_swap_all();
 
-  if (sweep) {
-    if (applattice->dimension == 2) nsector = 4;
-    else nsector = 8;
+  if (sectorflag) {
+    nsector = applattice->nsector;
     sectorswap = new Swap*[nsector];
     for (int i = 0; i < nsector; i++)
-      sectorswap[i] = create_swap_sector(sweep->sector[i].nlocal,
-					 sweep->sector[i].site2i);
+      sectorswap[i] = create_swap_sector(applattice->set[i].nlocal,
+					 applattice->set[i].site2i);
   }
-  if (delreverse && sweep) {
-    if (applattice->dimension == 2) nsector = 4;
-    else nsector = 8;
+  if (delreverse && sectorflag) {
     reverseswap = new Swap*[nsector];
     for (int i = 0; i < nsector; i++)
-      reverseswap[i] = create_swap_sector_reverse(sweep->sector[i].nlocal,
-						  sweep->sector[i].site2i);
+      reverseswap[i] = create_swap_sector_reverse(applattice->set[i].nlocal,
+						  applattice->set[i].site2i);
   }
 }
 

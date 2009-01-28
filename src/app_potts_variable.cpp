@@ -38,7 +38,7 @@ AppPottsVariable::AppPottsVariable(SPPARKS *spk, int narg, char **arg) :
 
   nspins = atoi(arg[1]);
   int seed = atoi(arg[2]);
-  random = new RandomPark(seed);
+  RandomPark *random = new RandomPark(seed);
 
   options(narg-3,&arg[3]);
 
@@ -71,13 +71,14 @@ AppPottsVariable::AppPottsVariable(SPPARKS *spk, int narg, char **arg) :
     loc = hash.find(iglobal);
     if (loc != hash.end()) spin[loc->second] = isite;
   }
+
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppPottsVariable::~AppPottsVariable()
 {
-  delete random;
   delete [] sites;
   delete [] unique;
 }

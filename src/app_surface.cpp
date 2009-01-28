@@ -111,7 +111,7 @@ AppSurface::AppSurface(SPPARKS *spk, int narg, char **arg) :
 
   if (success == 0) error->all("Illegal app_style command");
 
-  random = new RandomPark(seed);
+  RandomPark *random = new RandomPark(seed);
 
   options(narg-success,&arg[success]);
 
@@ -159,13 +159,14 @@ AppSurface::AppSurface(SPPARKS *spk, int narg, char **arg) :
     else isite = FIXED;
     lattice[i] = isite;
   }
+
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppSurface::~AppSurface()
 {
-  delete random;
   delete [] sites;
   delete [] sitesSchwoebel;
   delete [] check;

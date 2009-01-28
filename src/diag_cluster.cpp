@@ -120,10 +120,11 @@ void DiagCluster::init(double time)
   id = applattice->id;
 
   memory->destroy_1d_T_array(cluster_ids,0);
-  memory->create_1d_T_array(cluster_ids,0,nlocal+nghost-1,"diagcluster:cluster");
+  memory->create_1d_T_array(cluster_ids,0,nlocal+nghost-1,
+			    "diagcluster:cluster");
 
   if (!comm) comm = new CommLattice(spk);
-  comm->init(NULL,1,0,cluster_ids);
+  comm->init(0,0,0,cluster_ids);
 
   if (dump_style == OPENDX) {
     if (applattice->latstyle == AppLattice::SC_6N || 

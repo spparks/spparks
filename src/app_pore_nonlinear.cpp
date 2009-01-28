@@ -44,7 +44,7 @@ AppPoreNonLinear::AppPoreNonLinear(SPPARKS *spk, int narg, char **arg) :
   double diameter = atof(arg[4]);
   double thickness = atof(arg[5]);
   int seed = atoi(arg[6]);
-  random = new RandomPark(seed);
+  RandomPark *random = new RandomPark(seed);
 
   options(narg-7,&arg[7]);
 
@@ -85,4 +85,6 @@ AppPoreNonLinear::AppPoreNonLinear(SPPARKS *spk, int narg, char **arg) :
     }
     lattice[i] = isite;
   }
+
+  delete random;
 }

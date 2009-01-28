@@ -32,12 +32,14 @@ using namespace SPPARKS_NS;
 AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
+  dt_sweep = 1.0/2.0;
+
   // parse arguments
 
   if (narg < 2) error->all("Illegal app_style command");
 
   int seed = atoi(arg[1]);
-  random = new RandomPark(seed);
+  RandomPark *random = new RandomPark(seed);
 
   options(narg-2,&arg[2]);
 
@@ -66,13 +68,14 @@ AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) :
       if (loc != hash.end()) lattice[loc->second] = isite;
     }
   }
+
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppIsing::~AppIsing()
 {
-  delete random;
   delete [] sites;
 }
 

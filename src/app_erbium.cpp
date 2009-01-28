@@ -45,7 +45,7 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
 
   double fraction = atof(arg[1]);
   int seed = atoi(arg[2]);
-  random = new RandomPark(seed);
+  RandomPark *random = new RandomPark(seed);
 
   options(narg-3,&arg[3]);
 
@@ -113,13 +113,13 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
       }
     }
   }
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppErbium::~AppErbium()
 {
-  delete random;
   delete [] esites;
   delete [] echeck;
   memory->sfree(events);

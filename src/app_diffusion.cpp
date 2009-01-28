@@ -42,7 +42,7 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
 
   double fraction = atof(arg[1]);
   int seed = atoi(arg[2]);
-  random = new RandomPark(seed);
+  RandomPark *random = new RandomPark(seed);
 
   options(narg-3,&arg[3]);
 
@@ -74,13 +74,14 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
       if (loc != hash.end()) lattice[loc->second] = isite;
     }
   }
+
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppDiffusion::~AppDiffusion()
 {
-  delete random;
   delete [] esites;
   delete [] echeck;
 }

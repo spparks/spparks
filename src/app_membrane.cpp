@@ -40,7 +40,7 @@ AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) :
   w11 = atof(arg[2]);
   mu = atof(arg[3]);
   int seed = atoi(arg[4]);
-  random = new RandomPark(seed);
+  RandomPark *random = new RandomPark(seed);
 
   options(narg-5,&arg[5]);
 
@@ -66,13 +66,14 @@ AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) :
   else {
     for (int i = 0; i < nlocal; i++) lattice[i] = LIPID;
   }
+
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppMembrane::~AppMembrane()
 {
-  delete random;
   delete [] sites;
 }
 

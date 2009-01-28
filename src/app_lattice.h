@@ -75,14 +75,17 @@ class AppLattice : public App {
 
   int sweepflag;               // 1 if rejection KMC solver
   int sectorflag;              // 1 if partition my domain into sectors
+  
+  int nsector;                 // # of sectors per proc
+  class RandomPark *ranreject; // RN generator for rejection KMC
+  class RandomPark *ransite;   // RN generator for strict per-site rKMC
+  int rejectseed;              // user RNG seed for ranreject
+  int strictseed;              // user RNG seed for ransite
+  int *siteseeds;              // per-site seeds for ransite
+  int *sitelist;               // randomized list of site indices
 
   bool Lmask;                  // masking on/off
   char *mask;                  // size of nlocal + nghost sites
-
-  class RandomPark *ranlattice;  // one RN generator per lattice site
-  int strictseed;              // RNG seed for these RN generators
-
-  int *ransites;               // list of randomized site indices
 
   bool Ladapt;                 // adaptive timestep on/off
   double delt,deln,deln0;
@@ -91,6 +94,7 @@ class AppLattice : public App {
   double xprd,yprd,zprd;
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // simulation box bounds
   double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;    // my portion of box
+  int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
 
   int nglobal;                 // global # of sites
   int nlocal;                  // # of sites I own
@@ -142,19 +146,18 @@ class AppLattice : public App {
     double x,y,z;
   };
 
+  class CommLattice *comm;
+
+  void iterate_kmc_global(double);
+  void iterate_kmc_sector(double);
+  void iterate_rejection(double);
+
   typedef void (AppLattice::*FnPtrSweep)(int, int *);
   FnPtrSweep sweep;                         // ptr to sweep functions
   void sweep_nomask_nostrict(int, int *);
   void sweep_mask_nostrict(int, int *);
   void sweep_nomask_strict(int, int *);
   void sweep_mask_strict(int, int *);
-
-  int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
-
-  double *dbuf;
-
-  class CommLattice *comm;
-  class RandomPark *random;
 
   void virtual input_app(char *, int, char **);
   void virtual init_app() {}
@@ -170,13 +173,14 @@ class AppLattice : public App {
   void connectivity_within_cutoff();
 
   void create_set(int, int, int);
-
-  void iterate_kmc_sector(double);
-  void iterate_kmc_nosector(double);
-  void iterate_rejection(double);
+  int find_border_sites(int);
+  void boundary_clear_mask(int);
 
   void stats(char *);
   void stats_header(char *);
+
+  void set_sector(int, char **);
+  void set_reject(int, char **);
   void set_temperature(int, char **);
 
   void procs2lattice_2d();
@@ -185,9 +189,6 @@ class AppLattice : public App {
   int connect(int, int);
   void offsets();
 
-  int find_border_sites(int);
-  void boundary_clear_mask(int);
-  void generate_random_sites(int, int) {}
 };
 
 }

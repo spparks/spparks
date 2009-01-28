@@ -20,7 +20,6 @@
 #include "input.h"
 #include "app.h"
 #include "solve.h"
-#include "sweep.h"
 #include "timer.h"
 #include "output.h"
 
@@ -275,7 +274,6 @@ void SPPARKS::create()
 {
   app = NULL;
   solve = NULL;
-  sweep = NULL;
   timer = new Timer(this);
   output = new Output(this);
 }
@@ -299,7 +297,6 @@ void SPPARKS::destroy()
 {
   delete app;
   delete solve;
-  delete sweep;
   delete timer;
   delete output;
 }
