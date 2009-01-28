@@ -33,16 +33,16 @@ H = - Sum_j delta_ij :pre
 where Sum_j is a sum over all the neighbor sites of site I and delta_ij
 is 1 if the spin of sites I and J are the same and 0 otherwise.
 
-This applicaiton performs Glauber dynamics, meaning the spin is
+This application performs Glauber dynamics, meaning the spin is
 flipped on a single site.  See "app_style diffusion" for an Ising
 model which performs Kawasaki dynamics, meaning the spins on two
 neighboring sites are swapped.
 
-As explained on "this page"_app_style.html, this application can be
-evolved by either a kinetic Monte Carlo (KMC) or Metropolis
-rejection-based algorithm.  You must thus define a rejection method or
-KMC solver to be used with the application via the
-"reject_style"_sweep_style.html and "solve_style"_solve_style.html
+As explained on "this page"_app_style.html, thus application can be
+evolved by either a kinetic Monte Carlo (KMC) or rejection kinetic
+Monte Carlo (rKMC) algorithm.  You must thus define a KMC solver or
+rejection method to be used with the application via the
+"solve_style"_solve_style.html or "reject_style"_sweep_style.html
 commands.
 
 For solution by a KMC algorithm, a site event is a spin flip and its
@@ -52,10 +52,10 @@ is the temperature of the system defined by the
 "temperature"_temperature.html command (which includes the Boltzmann
 constant k implicitly).
 
-For solution by a rejection KMC (rKMC) algorithm, the spin is set
-randomly to 1 or 2 and dE = Efinal - Einitial is calculated, as is a
-uniform random number R between 0 and 1.  The new state is accepted if
-R < min\[1,exp(-dE/kT)\].
+For solution by a rKMC algorithm, the spin is set randomly to 1 or 2
+and dE = Efinal - Einitial is calculated, as is a uniform random
+number R between 0 and 1.  The new state is accepted if R <
+min\[1,exp(-dE/kT)\].
 
 :line
 
