@@ -36,16 +36,16 @@ evolves.
 <P>where Sum_j is a sum over all the neighbor sites of site I and delta_ij
 is 1 if the spin of sites I and J are the same and 0 otherwise.
 </P>
-<P>This applicaiton performs Glauber dynamics, meaning the spin is
+<P>This application performs Glauber dynamics, meaning the spin is
 flipped on a single site.  See "app_style diffusion" for an Ising
 model which performs Kawasaki dynamics, meaning the spins on two
 neighboring sites are swapped.
 </P>
-<P>As explained on <A HREF = "app_style.html">this page</A>, this application can be
-evolved by either a kinetic Monte Carlo (KMC) or Metropolis
-rejection-based algorithm.  You must thus define a rejection method or
-KMC solver to be used with the application via the
-<A HREF = "sweep_style.html">reject_style</A> and <A HREF = "solve_style.html">solve_style</A>
+<P>As explained on <A HREF = "app_style.html">this page</A>, thus application can be
+evolved by either a kinetic Monte Carlo (KMC) or rejection kinetic
+Monte Carlo (rKMC) algorithm.  You must thus define a KMC solver or
+rejection method to be used with the application via the
+<A HREF = "solve_style.html">solve_style</A> or <A HREF = "sweep_style.html">reject_style</A>
 commands.
 </P>
 <P>For solution by a KMC algorithm, a site event is a spin flip and its
@@ -55,10 +55,10 @@ is the temperature of the system defined by the
 <A HREF = "temperature.html">temperature</A> command (which includes the Boltzmann
 constant k implicitly).
 </P>
-<P>For solution by a rejection KMC (rKMC) algorithm, the spin is set
-randomly to 1 or 2 and dE = Efinal - Einitial is calculated, as is a
-uniform random number R between 0 and 1.  The new state is accepted if
-R < min[1,exp(-dE/kT)].
+<P>For solution by a rKMC algorithm, the spin is set randomly to 1 or 2
+and dE = Efinal - Einitial is calculated, as is a uniform random
+number R between 0 and 1.  The new state is accepted if R <
+min[1,exp(-dE/kT)].
 </P>
 <HR>
 
