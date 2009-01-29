@@ -133,13 +133,13 @@ simulation, change some settings, run some more, etc.  Each of the 3
 parts is now described in more detail.  Remember that almost all the
 commands need only be used if a non-default value is desired.
 
-(1) Choice of application, solver, sweeper
+(1) Choice of application, solver, sweep method
 
 Use the "app_style"_app_style.html, "solve_style"_solve_style.html,
-and "sweep_style"_sweep_style.html commands to setup the kind of
-simulation you wish to run.  Note that a sweeper is only relevant to
-applications that define a geometric lattice of event sites and only
-if you wish to perform Monte Carlo updates via sweeping.
+and "sweep"_sweep.html commands to setup the kind of simulation you
+wish to run.  Note that sweeping is only relevant to applications that
+define a geometric lattice of event sites and only if you wish to
+perform rejection kinetic Monte Carlo updates.
 
 (2) Settings
 
@@ -173,7 +173,7 @@ documentation.
 Initialization commands:
 
 "app_style"_app_style.html, "solve_style"_solve_style.html,
-"sweep_style"_sweep_style.html
+"sweep"_sweep.html, "seed"_seed.html
 
 Application-specific commands:
 
@@ -230,10 +230,12 @@ Restrictions in the command's documentation.
 "next"_next.html,
 "print"_print.html,
 "run"_run.html,
+"sector"_sector.html,
+"seed"_seed.html,
 "shell"_shell.html,
 "solve_style"_solve_style.html,
 "stats"_stats.html,
-"sweep_style"_sweep_style.html,
+"sweep"_sweep.html,
 "temperature"_temperature.html,
 "variable"_variable.html,
 "volume"_volume.html :tb(c=6,ea=c)
@@ -265,16 +267,6 @@ full description:
 "group"_solve_group.html,
 "linear"_solve_linear.html,
 "tree"_solve_tree.html :tb(c=6,ea=c)
-
-:line
-
-Sweep styles.  See the "sweep_style"_sweep_style.html command for
-one-line descriptions of each style or click on the style itself for a
-full description:
-
-"lattice"_solve_lattice.html,
-"lattice2d"_solve_lattice2d.html,
-"lattice3d"_solve_lattice3d.html :tb(c=6,ea=c)
 
 :line
 
