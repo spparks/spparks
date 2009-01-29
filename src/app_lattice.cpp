@@ -31,7 +31,7 @@ using namespace SPPARKS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-enum{NOSWEEP,RANDOM,RASTER,COLOR,COLORSTRICT};
+enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};
 
 /* ---------------------------------------------------------------------- */
 
@@ -43,8 +43,6 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   MPI_Comm_size(world,&nprocs);
 
   // default settings
-
-  dt_sweep = 0.0;
 
   sectorflag = 0;
   Ladapt = false;
@@ -59,8 +57,6 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   Lmask = false;
   mask = NULL;
 
-  ntimestep = 0;
-  time = 0.0;
   temperature = 0.0;
   
   lattice = NULL;
@@ -72,6 +68,10 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   i2site = NULL;
 
   comm = NULL;
+  sweep = NULL;
+
+  dt_sweep = 0.0;
+  naccept = nattempt = 0;
 
   // app can override these values in its constructor
 
@@ -166,7 +166,7 @@ void AppLattice::init()
   // if coloring, determine number of colors
 
   int ncolors = 1;
-  if (sweepflag == COLOR || sweepflag == COLORSTRICT) {
+  if (sweepflag == COLOR || sweepflag == COLOR_STRICT) {
   }
 
   // create sets based on sectors and coloring
@@ -213,7 +213,7 @@ void AppLattice::init()
 
   if (ranreject == NULL) {
     ranreject = new RandomPark(rejectseed);
-    if (sweepflag == COLORSTRICT) {
+    if (sweepflag == COLOR_STRICT) {
       ransite = new RandomPark(0);
       siteseeds = 
 	(int *)	memory->smalloc(nlocal*sizeof(int),"applattice:siteseeds");
@@ -254,6 +254,19 @@ void AppLattice::init()
       set[i].solve->init(set[i].nlocal,set[i].propensity);
     }
   }
+
+  // set sweep function ptr
+
+  if (sweepflag != NOSWEEP) {
+    if (sweepflag != COLOR_STRICT && !Lmask)
+      sweep = &AppLattice::sweep_nomask_nostrict;
+    else if (sweepflag != COLOR_STRICT && Lmask)
+      sweep = &AppLattice::sweep_mask_nostrict;
+    else if (sweepflag == COLOR_STRICT && !Lmask)
+      sweep = &AppLattice::sweep_nomask_strict;
+    else if (sweepflag == COLOR_STRICT && Lmask)
+      sweep = &AppLattice::sweep_mask_strict;
+  } else sweep = NULL;
 
   // If adaptive kmc specified
   // compute deln0, which controls future timesteps
@@ -329,6 +342,10 @@ void AppLattice::iterate_kmc_global(double stoptime)
   int isite;
   double dt;
   
+  // global KMC runs with one set
+  // save ptr to system solver
+
+  Solve *hold_solve = solve;
   solve = set[0].solve;
   propensity = set[0].propensity;
   i2site = set[0].i2site;
@@ -341,7 +358,7 @@ void AppLattice::iterate_kmc_global(double stoptime)
 
     if (isite < 0) done = 1;
     else {
-      ntimestep++;
+      naccept++;
       site_event(isite,ranreject);
       time += dt;
       timer->stamp(TIME_APP);
@@ -351,6 +368,10 @@ void AppLattice::iterate_kmc_global(double stoptime)
     output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
   }
+
+  // restore system solver
+
+  solve = hold_solve;
 }
 
 /* ----------------------------------------------------------------------
@@ -360,83 +381,102 @@ void AppLattice::iterate_kmc_global(double stoptime)
 
 void AppLattice::iterate_kmc_sector(double stoptime)
 {
-  double dt,time;
-  int done,isite,i;
+  int i,isite,done;
+  double dt,timesector;
 
-  for (int iset = 0; iset < nset; iset++) {
+  // save ptr to system solver
 
-    if (nprocs > 1) {
-      comm->sector(iset);
-      timer->stamp(TIME_COMM);
-    }
+  Solve *hold_solve = solve;
 
-    Solve *solve = set[iset].solve;
-    propensity = set[iset].propensity;
-    i2site = set[iset].i2site;
-    int *site2i = set[iset].site2i;
-
-    // update propensities for sites which neighbor a site outside sector
-    // necessary since outside sites may have changed
-    // attribute this chunk of time to comm, b/c due to decomposition
-
-    timer->stamp();
-
-    int *bsites = set[iset].bsites;
-    int *border = set[iset].border;
-    int nborder = set[iset].nborder;
-
-    int nsites = 0;
-    for (int m = 0; m < nborder; m++) {
-      i = border[m];
-      isite = i2site[i];
-      bsites[nsites++] = isite;
-      propensity[isite] = site_propensity(i);
-    }
-
-    solve->update(nsites,bsites,propensity);
-    timer->stamp(TIME_COMM);
-
-    // compute maximum sector propensity per site
-    // controls future timesteps. We do this at start of sweep
-    // for the simple reason that a sector propensity can drop to
-    // zero during a sweep, but it can never increase from zero.
-    // Hence we avoid the problem of all the sectors reporting
-    // zero propensity. a more correct way to handle this would be to do
-    // a full propensity update when all the sectors have been swept,
-    // but that would increase the cost substantially.
-
-    if (Ladapt) {
-      int ntmp = solve->get_num_active();
-      if (ntmp > 0) {
-	double ptmp = solve->get_total_propensity();
-	ptmp /= ntmp;
-	pmax = MAX(ptmp,pmax);
-      }
-    }
-
-    // execute events until time threshhold reached
-
-    done = 0;
-    time = 0.0;
-    while (!done) {
+  int alldone = 0;
+  while (!alldone) {
+    for (int iset = 0; iset < nset; iset++) {
       timer->stamp();
-      isite = solve->event(&dt);
-      timer->stamp(TIME_SOLVE);
+
+      if (nprocs > 1) {
+	comm->sector(iset);
+	timer->stamp(TIME_COMM);
+      }
+
+      Solve *solve = set[iset].solve;
+      propensity = set[iset].propensity;
+      i2site = set[iset].i2site;
+      int *site2i = set[iset].site2i;
+
+      // update propensities for sites which neighbor a site outside sector
+      // necessary since outside sites may have changed
+      // attribute this chunk of time to comm, b/c due to decomposition
+
+      int *bsites = set[iset].bsites;
+      int *border = set[iset].border;
+      int nborder = set[iset].nborder;
+
+      int nsites = 0;
+      for (int m = 0; m < nborder; m++) {
+	i = border[m];
+	isite = i2site[i];
+	bsites[nsites++] = isite;
+	propensity[isite] = site_propensity(i);
+      }
       
-      if (isite < 0) done = 1;
-      else {
-	time += dt;	
-	if (time >= delt) done = 1;
-	else site_event(site2i[isite],ranreject);
-	timer->stamp(TIME_APP);
+      solve->update(nsites,bsites,propensity);
+      timer->stamp(TIME_COMM);
+      
+      // compute maximum sector propensity per site
+      // controls future timesteps. We do this at start of sweep
+      // for the simple reason that a sector propensity can drop to
+      // zero during a sweep, but it can never increase from zero.
+      // Hence we avoid the problem of all the sectors reporting
+      // zero propensity. a more correct way to handle this would be to do
+      // a full propensity update when all the sectors have been swept,
+      // but that would increase the cost substantially.
+      
+      if (Ladapt) {
+	int ntmp = solve->get_num_active();
+	if (ntmp > 0) {
+	  double ptmp = solve->get_total_propensity();
+	  ptmp /= ntmp;
+	  pmax = MAX(ptmp,pmax);
+	}
+      }
+      
+      // execute events until sector time threshhold reached
+      
+      done = 0;
+      timesector = 0.0;
+      while (!done) {
+	timer->stamp();
+	isite = solve->event(&dt);
+	timer->stamp(TIME_SOLVE);
+	
+	if (isite < 0) done = 1;
+	else {
+	  naccept++;
+	  timesector += dt;	
+	  if (timesector >= delt) done = 1;
+	  else site_event(site2i[isite],ranreject);
+	  timer->stamp(TIME_APP);
+	}
+      }
+      
+      if (nprocs > 1) {
+	comm->reverse_sector(iset);
+	timer->stamp(TIME_COMM);
       }
     }
 
-    if (nprocs > 1) {
-      comm->reverse_sector(iset);
-      timer->stamp(TIME_COMM);
-    }
+    // keep looping until overall time threshhold reached
+    
+    time += delt;
+    if (time >= stoptime) alldone = 1;
+    
+    output->compute(time,alldone);
+    timer->stamp(TIME_OUTPUT);
   }
+
+  // restore system solver
+
+  solve = hold_solve;
 }
 
 /* ----------------------------------------------------------------------
@@ -445,15 +485,13 @@ void AppLattice::iterate_kmc_sector(double stoptime)
 
 void AppLattice::iterate_rejection(double stoptime)
 {
+  int i,n,npossible;
+
   int done = 0;
   while (!done) {
-
-    timer->stamp();
-
     for (int iset = 0; iset < nset; iset++) {
-      timer->stamp();
-
       if (nprocs > 1) {
+	timer->stamp();
 	comm->sector(iset);
 	timer->stamp(TIME_COMM);
       }
@@ -463,14 +501,20 @@ void AppLattice::iterate_rejection(double stoptime)
       // NOTE: this should allow for generating different numbers of
       //       ran sites when in sector mode
 
-      if (sweepflag == RANDOM) {
-	int n = set[iset].nlocal;
-	int nsites = set[iset].nlocal;
-	for (int i = 0; i < n; i++) 
-	  sitelist[i] = ranreject->irandom(nsites) - 1;
-	(this->*sweep)(set[iset].nlocal,sitelist);
+      timer->stamp();
 
-      } else (this->*sweep)(set[iset].nlocal,set[iset].site2i);
+      if (sweepflag == RANDOM) {
+	n = set[iset].nlocal;
+	npossible = set[iset].nlocal;
+	for (i = 0; i < n; i++) 
+	  sitelist[i] = ranreject->irandom(npossible) - 1;
+	(this->*sweep)(n,sitelist);
+	nattempt += n;
+
+      } else {
+	(this->*sweep)(set[iset].nlocal,set[iset].site2i);
+	nattempt += set[iset].nlocal;
+      }
 
       timer->stamp(TIME_SOLVE);
 
@@ -479,8 +523,6 @@ void AppLattice::iterate_rejection(double stoptime)
 	timer->stamp(TIME_COMM);
       }
     }
-
-    timer->stamp(TIME_SOLVE);
 
     time += dt_sweep;
     if (time >= stoptime) done = 1;
@@ -573,12 +615,12 @@ void AppLattice::set_reject(int narg, char **arg)
   if (strcmp(arg[0],"random") == 0) sweepflag = RANDOM;
   else if (strcmp(arg[0],"raster") == 0) sweepflag = RASTER;
   else if (strcmp(arg[0],"color") == 0) sweepflag = COLOR;
-  else if (strcmp(arg[0],"color/strict") == 0) sweepflag = COLORSTRICT;
+  else if (strcmp(arg[0],"color/strict") == 0) sweepflag = COLOR_STRICT;
   else error->all("Illegal reject command");
 
   rejectseed = atoi(arg[1]);
   if (rejectseed <= 0) error->all("Illegal reject command");
-  if (sweepflag == COLORSTRICT) {
+  if (sweepflag == COLOR_STRICT) {
     if (narg < 3) error->all("Illegal reject command");
     strictseed = atoi(arg[2]);
     if (strictseed <= 0) error->all("Illegal reject command");
@@ -587,7 +629,7 @@ void AppLattice::set_reject(int narg, char **arg)
   Lmask = false;
 
   int iarg = 2;
-  if (sweepflag == COLORSTRICT) iarg = 3;
+  if (sweepflag == COLOR_STRICT) iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mask") == 0) {
       if (iarg+2 > narg) error->all("Illegal reject command");
@@ -614,9 +656,14 @@ void AppLattice::set_temperature(int narg, char **arg)
 
 void AppLattice::stats(char *strtmp)
 {
-  int ntimestepall;
-  MPI_Allreduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,world);
-  sprintf(strtmp," %10d %10g",ntimestepall,time);
+  int naccept_all;
+  MPI_Allreduce(&naccept,&naccept_all,1,MPI_INT,MPI_SUM,world);
+  if (solve) sprintf(strtmp," %d 0 %g",naccept_all,time);
+  else {
+    int nattempt_all;
+    MPI_Allreduce(&nattempt,&nattempt_all,1,MPI_INT,MPI_SUM,world);
+    sprintf(strtmp," %d %d %g",naccept_all,nattempt_all-naccept_all,time);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -625,7 +672,7 @@ void AppLattice::stats(char *strtmp)
 
 void AppLattice::stats_header(char *strtmp)
 {
-  sprintf(strtmp," %10s %10s","Step","Time");
+  sprintf(strtmp," %s %s %s","Naccept","Nreject","Time");
 }
 
 /* ----------------------------------------------------------------------
@@ -716,7 +763,7 @@ void AppLattice::create_set(int iset, int isector, int icolor)
   set[iset].propensity =
     (double *) memory->smalloc(n*sizeof(double),"applattice:propensity");
 
-  // allocate KMC solver for set
+  // allocate KMC solver for set in needed
 
   if (solve) set[iset].solve = solve->clone();
   else set[iset].solve = NULL;

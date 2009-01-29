@@ -40,6 +40,8 @@ AppPottsVariable::AppPottsVariable(SPPARKS *spk, int narg, char **arg) :
   int seed = atoi(arg[2]);
   RandomPark *random = new RandomPark(seed);
 
+  dt_sweep = 1.0/nspins;
+
   options(narg-3,&arg[3]);
 
   // define lattice and partition it across processors
@@ -98,6 +100,7 @@ double AppPottsVariable::site_energy(int i)
 
 /* ----------------------------------------------------------------------
    perform a site event with null bin rejection
+   null bin extends to size nspins
 ------------------------------------------------------------------------- */
 
 void AppPottsVariable::site_event_rejection(int i, RandomPark *random)
@@ -106,7 +109,6 @@ void AppPottsVariable::site_event_rejection(int i, RandomPark *random)
   double einitial = site_energy(i);
 
   // event = random spin from 1 to nspins, including self
-  // null bin size = nspins - summed propensity of all events
 
   int iran = (int) (nspins*random->uniform()) + 1;
   if (iran > nspins) iran = nspins;
@@ -121,6 +123,8 @@ void AppPottsVariable::site_event_rejection(int i, RandomPark *random)
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
     spin[i] = oldstate;
   }
+
+  if (spin[i] != oldstate) naccept++;
 
   // set mask if site could not have changed
   // if site changed, unset mask of sites with affected propensity

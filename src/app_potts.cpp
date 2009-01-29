@@ -132,6 +132,7 @@ void AppPotts::site_event_rejection_spins(int i, RandomPark *random)
   double efinal = site_energy(i);
 
   // accept or reject via Boltzmann criterion
+  // null bin extends to nspins
 
   if (efinal <= einitial) {
   } else if (temperature == 0.0) {
@@ -139,6 +140,8 @@ void AppPotts::site_event_rejection_spins(int i, RandomPark *random)
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
     lattice[i] = oldstate;
   }
+
+  if (lattice[i] != oldstate) naccept++;
 
   // set mask if site could not have changed
   // if site changed, unset mask of sites with affected propensity
@@ -154,7 +157,8 @@ void AppPotts::site_event_rejection_spins(int i, RandomPark *random)
 
 /* ----------------------------------------------------------------------
    perform a site event with null bin rejection
-   flip to random neighbor spin with null bin extending to maxneigh
+   flip to random neighbor spin with null bin
+   null bin extends to size maxneigh
 ------------------------------------------------------------------------- */
 
 void AppPotts::site_event_rejection_neighbors(int i, RandomPark *random)
@@ -190,6 +194,8 @@ void AppPotts::site_event_rejection_neighbors(int i, RandomPark *random)
     lattice[i] = oldstate;
   }
 
+  if (lattice[i] != oldstate) naccept++;
+
   // set mask if site could not have changed
   // if site changed, unset mask of sites with affected propensity
   // OK to change mask of ghost sites since never used
@@ -204,7 +210,7 @@ void AppPotts::site_event_rejection_neighbors(int i, RandomPark *random)
 
 /* ----------------------------------------------------------------------
    perform a site event with no null bin rejection
-   flip to random neighbor spin
+   flip to random neighbor spin without null bin
    technically this is an incorrect rejection-KMC algorithm
 ------------------------------------------------------------------------- */
 
@@ -241,6 +247,8 @@ void AppPotts::site_event_rejection_neighbors_only(int i, RandomPark *random)
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
     lattice[i] = oldstate;
   }
+
+  if (lattice[i] != oldstate) naccept++;
 
   // set mask if site could not have changed
   // if site changed, unset mask of sites with affected propensity

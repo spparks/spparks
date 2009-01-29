@@ -53,6 +53,8 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
   esites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
   echeck = NULL;
 
+  dt_sweep = 1.0/maxneigh;
+
   // initialize my portion of lattice
   // each site = VACANT or OCCUPIED with fraction OCCUPIED
   // loop over global list so assignment is independent of # of procs
@@ -113,12 +115,12 @@ double AppDiffusion::site_energy(int i)
 
 /* ----------------------------------------------------------------------
    perform a site event with null bin rejection
+   null bin extends to size maxneigh
 ------------------------------------------------------------------------- */
 
 void AppDiffusion::site_event_rejection(int i, RandomPark *random)
 {
   // exchange with random neighbor if vacant
-  // null bin extends to maxneigh
 
   int iran = (int) (maxneigh*random->uniform());
   if (iran > maxneigh) iran = maxneigh-1;
@@ -139,7 +141,9 @@ void AppDiffusion::site_event_rejection(int i, RandomPark *random)
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
     lattice[i] = OCCUPIED;
     lattice[j] = VACANT;
-  }    
+  }
+
+  if (lattice[i] == VACANT) naccept++;
 }
 
 /* ----------------------------------------------------------------------

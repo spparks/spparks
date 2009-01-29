@@ -160,14 +160,14 @@ CommLattice::Swap *CommLattice::create_swap_all()
 
   AppLattice *applattice = (AppLattice *) app;
   int nlocal = applattice->nlocal;
-  int ntotal = nlocal + applattice->nghost;
+  int nghost = applattice->nghost;
+  int ntotal = nlocal + nghost;
 
   int *id = applattice->id;
 
   // buf = list of global IDs I need to receive
 
-  Site *buf = (Site *) memory->smalloc(applattice->nghost*sizeof(Site),
-				       "comm:buf");
+  Site *buf = (Site *) memory->smalloc(nghost*sizeof(Site),"comm:buf");
   int nsite = 0;
 
   for (i = nlocal; i < ntotal; i++) {
@@ -207,7 +207,8 @@ CommLattice::Swap *CommLattice::create_swap_sector(int nsites, int *site2i)
 
   AppLattice *applattice = (AppLattice *) app;
   int nlocal = applattice->nlocal;
-  int ntotal = nlocal + applattice->nghost;
+  int nghost = applattice->nghost;
+  int ntotal = nlocal + nghost;
 
   int *id = applattice->id;
   int *numneigh = applattice->numneigh;
@@ -235,8 +236,7 @@ CommLattice::Swap *CommLattice::create_swap_sector(int nsites, int *site2i)
 
   // buf = list of global IDs I need to receive
 
-  Site *buf = (Site *) memory->smalloc(applattice->nghost*sizeof(Site),
-				       "comm:buf");
+  Site *buf = (Site *) memory->smalloc(nghost*sizeof(Site),"comm:buf");
   int nsite = 0;
 
   for (i = nlocal; i < ntotal; i++) {
@@ -280,7 +280,8 @@ CommLattice::Swap *CommLattice::create_swap_sector_reverse(int nsites,
 
   AppLattice *applattice = (AppLattice *) app;
   int nlocal = applattice->nlocal;
-  int ntotal = nlocal + applattice->nghost;
+  int nghost = applattice->nghost;
+  int ntotal = nlocal + nghost;
 
   int *id = applattice->id;
   int *owner = applattice->owner;
@@ -309,8 +310,7 @@ CommLattice::Swap *CommLattice::create_swap_sector_reverse(int nsites,
 
   // buf = list of global IDs I will send
 
-  Site *buf = (Site *) memory->smalloc(applattice->nghost*sizeof(Site),
-				       "comm:buf");
+  Site *buf = (Site *) memory->smalloc(nghost*sizeof(Site),"comm:buf");
   int nsite = 0;
 
   for (i = nlocal; i < ntotal; i++) {

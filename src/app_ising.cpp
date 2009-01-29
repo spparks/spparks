@@ -27,21 +27,27 @@
 
 using namespace SPPARKS_NS;
 
+enum{SINGLE,DOUBLE};
+
 /* ---------------------------------------------------------------------- */
 
 AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
-  dt_sweep = 1.0/2.0;
-
   // parse arguments
 
-  if (narg < 2) error->all("Illegal app_style command");
+  if (narg < 3) error->all("Illegal app_style command");
 
-  int seed = atoi(arg[1]);
+  if (strcmp(arg[1],"single") == 0) rejectstyle = SINGLE;
+  else if (strcmp(arg[1],"double") == 0) rejectstyle = DOUBLE;
+  else error->all("Illegal app_style command");
+  int seed = atoi(arg[2]);
   RandomPark *random = new RandomPark(seed);
 
-  options(narg-2,&arg[2]);
+  if (rejectstyle == SINGLE) dt_sweep = 1.0;
+  else if (rejectstyle == DOUBLE) dt_sweep = 1.0/2.0;
+
+  options(narg-3,&arg[3]);
 
   // define lattice and partition it across processors
 
@@ -98,6 +104,58 @@ double AppIsing::site_energy(int i)
 
 void AppIsing::site_event_rejection(int i, RandomPark *random)
 {
+  if (rejectstyle == SINGLE) site_event_rejection_single(i,random);
+  else site_event_rejection_double(i,random);
+}
+
+/* ----------------------------------------------------------------------
+   perform a site event with null bin rejection
+   flip to opposite spin
+   null bin extends to size 1
+------------------------------------------------------------------------- */
+
+void AppIsing::site_event_rejection_single(int i, RandomPark *random)
+{
+  int oldstate = lattice[i];
+  double einitial = site_energy(i);
+
+  // event = spin flip
+
+  if (oldstate == 1) lattice[i] = 2;
+  else lattice[i] = 1;
+  double efinal = site_energy(i);
+
+  // accept or reject via Boltzmann criterion
+
+  if (efinal <= einitial) {
+  } else if (temperature == 0.0) {
+    lattice[i] = oldstate;
+  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
+    lattice[i] = oldstate;
+  }
+
+  if (lattice[i] != oldstate) naccept++;
+
+  // set mask if site could not have changed
+  // if site changed, unset mask of sites with affected propensity
+  // OK to change mask of ghost sites since never used
+
+  if (Lmask) {
+    if (einitial < 0.5*numneigh[i]) mask[i] = 1;
+    if (lattice[i] != oldstate)
+      for (int j = 0; j < numneigh[i]; j++)
+	mask[neighbor[i][j]] = 0;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   perform a site event with null bin rejection
+   flip randomly to either spin
+   null bin extends to size 2
+------------------------------------------------------------------------- */
+
+void AppIsing::site_event_rejection_double(int i, RandomPark *random)
+{
   int oldstate = lattice[i];
   double einitial = site_energy(i);
 
@@ -107,15 +165,7 @@ void AppIsing::site_event_rejection(int i, RandomPark *random)
   else lattice[i] = 2;
   double efinal = site_energy(i);
 
-  // event = spin flip
-  // replace line below: null bin size = 1 - single event propensity
-
-  //if (oldstate == 1) lattice[i] = 2;
-  //else lattice[i] = 1;
-  //double efinal = site_energy(i);
-
   // accept or reject via Boltzmann criterion
-  // null bin size = 2 - single event propensity
 
   if (efinal <= einitial) {
   } else if (temperature == 0.0) {
@@ -123,6 +173,8 @@ void AppIsing::site_event_rejection(int i, RandomPark *random)
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
     lattice[i] = oldstate;
   }
+
+  if (lattice[i] != oldstate) naccept++;
 
   // set mask if site could not have changed
   // if site changed, unset mask of sites with affected propensity

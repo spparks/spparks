@@ -20,10 +20,11 @@ namespace SPPARKS_NS {
 
 class App : protected Pointers {
  public:
-  enum AppClasses {GENERAL,LATTICE,LATTICE2D,LATTICE3D};
-  char *style;
-  int appclass;
-  double time_eps;
+  enum AppClasses {GENERAL,LATTICE};
+  int appclass;           // one of the enum values
+  char *style;            // style name of app
+  double time;            // elapsed time due to events
+  double time_eps;        // epsilon to avoid time precision issues
 
   App(class SPPARKS *, int, char **);
   virtual ~App();
@@ -34,8 +35,7 @@ class App : protected Pointers {
   virtual void init() = 0;
   virtual void run(int, char **) = 0;
 
-  // virtual functions with empty definitions
-  // may be overridden in child class
+  // virtual functions, may be overridden in child class
 
   virtual void stats(char *strtmp) {strtmp[0] = '\0';};
   virtual void stats_header(char *strtmp) {strtmp[0] = '\0';};

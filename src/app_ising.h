@@ -29,7 +29,11 @@ class AppIsing : public AppLattice {
   void site_event(int, class RandomPark *);
 
  private:
+  int rejectstyle;
   int *sites;
+
+  void site_event_rejection_single(int, class RandomPark *);
+  void site_event_rejection_double(int, class RandomPark *);
 };
 
 }

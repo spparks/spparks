@@ -51,8 +51,9 @@ class AppLattice : public App {
 
  protected:
   int me,nprocs;
-  int ntimestep;
-  double time,stoptime;
+  int naccept,nattempt;       // number of accepted and attempted events
+
+  double stoptime;
   double temperature,t_inverse;
   double dt_sweep;
 

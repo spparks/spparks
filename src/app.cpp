@@ -23,7 +23,9 @@ App::App(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   int n = strlen(arg[0]) + 1;
   style = new char[n];
   strcpy(style,arg[0]);
+
   appclass = GENERAL;
+  time = 0.0;
   time_eps = 1.0e-6;
 }
 

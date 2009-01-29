@@ -32,6 +32,8 @@ enum{NONE,LIPID,FLUID,PROTEIN};
 AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
+  dt_sweep = 1.0/2.0;
+
   // parse arguments
 
   if (narg < 5) error->all("Illegal app_style command");
@@ -114,6 +116,7 @@ double AppMembrane::site_energy(int i)
 
 /* ----------------------------------------------------------------------
    perform a site event with null bin rejection
+   null bin extends to size 2
 ------------------------------------------------------------------------- */
 
 void AppMembrane::site_event_rejection(int i, RandomPark *random)
@@ -133,7 +136,6 @@ void AppMembrane::site_event_rejection(int i, RandomPark *random)
   double efinal = site_energy(i);
 
   // accept or reject via Boltzmann criterion
-  // null bin size = 1 - single event propensity
 
   if (efinal <= einitial) {
   } else if (temperature == 0.0) {
@@ -141,6 +143,8 @@ void AppMembrane::site_event_rejection(int i, RandomPark *random)
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
     lattice[i] = oldstate;
   }
+
+  if (lattice[i] != oldstate) naccept++;
 }
 
 /* ----------------------------------------------------------------------

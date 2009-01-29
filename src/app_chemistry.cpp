@@ -39,8 +39,6 @@ AppChemistry::AppChemistry(SPPARKS *spk, int narg, char **arg) :
 
   // default settings
 
-  ntimestep = 0;
-  time = 0.0;
   volume = 0.0;
 
   nspecies = 0;
@@ -127,10 +125,9 @@ void AppChemistry::init()
   rcount = new int[nreactions];
   for (int m = 0; m < nreactions; m++) rcount[m] = 0;
 
-  // Initialize output
+  // initialize output
 
   output->init(time);
-
 }
 
 /* ----------------------------------------------------------------------
@@ -175,21 +172,16 @@ void AppChemistry::iterate()
   timer->barrier_start(TIME_LOOP);
 
   while (!done) {
-    ntimestep++;
-
     timer->stamp();
     ireaction = solve->event(&dt);
     timer->stamp(TIME_SOLVE);
 
     // Check if solver failed to pick an event
 
-    if (ireaction < 0) {
+    if (ireaction < 0) done = 1;
+    else {
 
-      done = 1;
-
-    } else {
-
-    // update particle counts due to reaction
+      // update particle counts due to reaction
 
       rcount[ireaction]++;
       for (m = 0; m < nreactant[ireaction]; m++)
@@ -207,9 +199,9 @@ void AppChemistry::iterate()
 
       // update time by Gillepsie dt
 
+      nevents++;
       time += dt;
       if (time >= stoptime) done = 1;
-
     }
 
     timer->stamp(TIME_APP);
@@ -230,7 +222,7 @@ void AppChemistry::iterate()
 void AppChemistry::stats(char *strtmp)
 {
   char *strpnt = strtmp;
-  sprintf(strpnt," %10d %10g",ntimestep,time);
+  sprintf(strpnt," %10d %10g",nevents,time);
   strpnt += strlen(strpnt);
 
   for (int m = 0; m < nspecies; m++) {
@@ -246,11 +238,11 @@ void AppChemistry::stats(char *strtmp)
 void AppChemistry::stats_header(char *strtmp)
 {
   char *strpnt = strtmp;
-  sprintf(strpnt," %10s %10s","Step","Time");
+  sprintf(strpnt," %s %s","Step","Time");
   strpnt += strlen(strpnt);
 
   for (int m = 0; m < nspecies; m++) {
-    sprintf(strpnt," %10s",sname[m]);
+    sprintf(strpnt," %s",sname[m]);
     strpnt += strlen(strpnt);
   }
 }

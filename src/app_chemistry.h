@@ -27,11 +27,10 @@ class AppChemistry : public App {
   void run(int, char **);
 
  private:
-  int ntimestep;
-  double time,stoptime;
-
+  double stoptime;
   double volume;                 // Gillespie volume
 
+  int nevents;                   // # of reactions performed
   int nspecies;                  // # of unique species
   char **sname;                  // ID of each species
 

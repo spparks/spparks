@@ -29,11 +29,10 @@ class AppTestGroup : public App {
  private:
   class RandomPark *random;
 
-  int ntimestep;
-  double time;
-  int nlimit;
+  int ncount;                // # of events performed
+  int nlimit;                // user request to perform this many events
 
-  int nevents;               // # of events
+  int nevents;               // # of user-defined events (reactions)
   double *propensity;        // propensity of each event
   double pmax,pmin;          // maximum/minimun propensity value
   double tweak;              // percentage propensity tweak

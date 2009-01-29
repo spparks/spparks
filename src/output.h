@@ -36,7 +36,7 @@ class Output : protected Pointers {
   double dump_time,dump_delta,dump_scale,dump_t0,dump_eps;
   int me,nprocs;
   int stats_nrepeat,stats_irepeat,stats_ilogfreq;
-  int dump_nrepeat,dump_irepeat,dump_ilogfreq;
+  int idump,dump_nrepeat,dump_irepeat,dump_ilogfreq;
 
   int ndiags;
   Diag **diaglist;

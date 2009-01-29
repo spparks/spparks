@@ -40,6 +40,7 @@ Output::Output(SPPARKS *spk) : Pointers(spk)
   ndiags = 0;
   diaglist = NULL;
   dump_delta = 0.0;
+  idump = 0;
   dump_ilogfreq = 0;
   dump_eps = 1.0e-6;
   stats_delta = 0.0;
@@ -448,15 +449,9 @@ void Output::dump()
 {
   // proc 0 writes timestep header
 
-  int ntimestep;
-  ntimestep = applattice->ntimestep;
-
-  int ntimestepall;
-  MPI_Allreduce(&ntimestep,&ntimestepall,1,MPI_INT,MPI_SUM,world);
-
   if (me == 0) {
     fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,"%d\n",ntimestepall);
+    fprintf(fp,"%d\n",idump);
     fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
     fprintf(fp,"%d\n",nglobal);
     fprintf(fp,"ITEM: BOX BOUNDS\n");
@@ -465,6 +460,8 @@ void Output::dump()
     fprintf(fp,"%g %g\n",boxzlo,boxzhi);
     fprintf(fp,"ITEM: ATOMS\n");
   }
+
+  idump++;
 
   // pack my info into buffer
 

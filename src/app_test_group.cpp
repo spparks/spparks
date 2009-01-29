@@ -76,7 +76,7 @@ AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
   ran_dep = NULL;
   count = NULL;
 
-  time = 0.0;
+  ncount = 0;
 
   // classes needed by this app
 
@@ -180,14 +180,11 @@ void AppTestGroup::iterate()
   int i,m,n,ievent;
   double dt;
 
-  ntimestep = 0;
   int done = 0;
 
   timer->barrier_start(TIME_LOOP);
 
   while (!done) {
-    ntimestep++;
-
     timer->stamp();
     ievent = solve->event(&dt);
 
@@ -218,8 +215,9 @@ void AppTestGroup::iterate()
 
     timer->stamp(TIME_UPDATE);
 
+    ncount++;
     time += dt;
-    if (ntimestep >= nlimit) done = 1;
+    if (ncount >= nlimit) done = 1;
     else if (ievent < 0) done = 1;
 
 #ifdef OUTPUT
@@ -231,9 +229,9 @@ void AppTestGroup::iterate()
   timer->barrier_stop(TIME_LOOP);
 
   if (screen) fprintf(screen,"\nNumber of reactions, events = %d %d\n",
-		      nevents,ntimestep);
+		      nevents,ncount);
   if (logfile) fprintf(logfile,"\nNumber of reactions, events = %d %d\n",
-		       nevents,ntimestep);
+		       nevents,ncount);
 }
 
 /* ----------------------------------------------------------------------
@@ -243,7 +241,7 @@ void AppTestGroup::iterate()
 void AppTestGroup::stats(char *strtmp)
 {
   char *strpnt = strtmp;
-  sprintf(strpnt," %d %g",ntimestep,time);
+  sprintf(strpnt," %d %g",ncount,time);
   strpnt += strlen(strpnt);
 
   for (int m = 0; m < nevents; m++) {
@@ -258,7 +256,7 @@ void AppTestGroup::stats(char *strtmp)
 
 void AppTestGroup::stats_header(char *strtmp)
 {
-  sprintf(strtmp," %10s %10s %20s","Step","Time","Reaction-Counts");
+  sprintf(strtmp," %s %s %s","Step","Time","Reaction-Counts");
 }
 
 /* ----------------------------------------------------------------------
