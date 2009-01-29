@@ -9,19 +9,31 @@
 
 <HR>
 
-<H3>count command 
+<H3>sector command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>count species N 
+<PRE>sector flag keyword value ... 
 </PRE>
-<UL><LI>species = ID of chemical species
-<LI>N = count of molecules of this species 
+<UL><LI>flag = <I>yes</I> or <I>no</I> 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>nstop</I> or <I>tstop</I> 
+
+<PRE>  <I>nstop</I> value = N
+    N = 
+  <I>tstop</I> value = dt
+    dt = 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>count kinase 10000
-count NFkB-IKK 300 
+<PRE>sector no
+sector yes
+sector yes nstop 1.5
+sector yes tstop 5.0 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -33,16 +45,15 @@ the <A HREF = "app_chemistry.html">app_style chemistry</A> application.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This command can only be used as part of the <A HREF = "app_chemistry.html">app_style
-chemistry</A> application.
+<P>This command can only be used as part of on-lattice applications
+as specified by the <A HREF = "app_style.html">app_style</A> command.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "app_chemistry.html">app_style chemistry</A>,
-<A HREF = "add_species.html">add_species</A>, <A HREF = "add_reaction.html">add_reaction</A>
+<P><A HREF = "app_style.html">app_style</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The count of a defined species is 0 unless set via this command.
+<P>The option defaults are nstop = 1.0.
 </P>
 </HTML>

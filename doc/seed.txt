@@ -6,19 +6,17 @@
 
 :line
 
-count command :h3
+seed command :h3
 
 [Syntax:]
 
-count species N :pre
+seed Nvalue :pre
 
-species = ID of chemical species
-N = count of molecules of this species :ul
+Nvalue = seed for a random number generator (positive integer) :ul
 
 [Examples:]
 
-count kinase 10000
-count NFkB-IKK 300 :pre
+seed 5838959 :pre
 
 [Description:]
 
@@ -28,16 +26,8 @@ the "app_style chemistry"_app_chemistry.html application.
 The species ID can be any string defined by the
 "add_species"_add_species.html command.
 
-[Restrictions:]
+[Restrictions:] none
 
-This command can only be used as part of the "app_style
-chemistry"_app_chemistry.html application.
+[Related commands:] none
 
-[Related commands:]
-
-"app_style chemistry"_app_chemistry.html,
-"add_species"_add_species.html, "add_reaction"_add_reaction.html
-
-[Default:]
-
-The count of a defined species is 0 unless set via this command.
+[Default:] none

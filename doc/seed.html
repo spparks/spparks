@@ -9,19 +9,17 @@
 
 <HR>
 
-<H3>count command 
+<H3>seed command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>count species N 
+<PRE>seed Nvalue 
 </PRE>
-<UL><LI>species = ID of chemical species
-<LI>N = count of molecules of this species 
+<UL><LI>Nvalue = seed for a random number generator (positive integer) 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>count kinase 10000
-count NFkB-IKK 300 
+<PRE>seed 5838959 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -31,18 +29,10 @@ the <A HREF = "app_chemistry.html">app_style chemistry</A> application.
 <P>The species ID can be any string defined by the
 <A HREF = "add_species.html">add_species</A> command.
 </P>
-<P><B>Restrictions:</B>
+<P><B>Restrictions:</B> none
 </P>
-<P>This command can only be used as part of the <A HREF = "app_chemistry.html">app_style
-chemistry</A> application.
+<P><B>Related commands:</B> none
 </P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "app_chemistry.html">app_style chemistry</A>,
-<A HREF = "add_species.html">add_species</A>, <A HREF = "add_reaction.html">add_reaction</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The count of a defined species is 0 unless set via this command.
+<P><B>Default:</B> none
 </P>
 </HTML>

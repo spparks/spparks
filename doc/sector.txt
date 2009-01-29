@@ -6,19 +6,27 @@
 
 :line
 
-count command :h3
+sector command :h3
 
 [Syntax:]
 
-count species N :pre
+sector flag keyword value ... :pre
 
-species = ID of chemical species
-N = count of molecules of this species :ul
+flag = {yes} or {no} :ulb,l
+zero or more keyword/value pairs may be appended :l
+keyword = {nstop} or {tstop} :l
+  {nstop} value = N
+    N = 
+  {tstop} value = dt
+    dt = :pre
+:ule
 
 [Examples:]
 
-count kinase 10000
-count NFkB-IKK 300 :pre
+sector no
+sector yes
+sector yes nstop 1.5
+sector yes tstop 5.0 :pre
 
 [Description:]
 
@@ -30,14 +38,13 @@ The species ID can be any string defined by the
 
 [Restrictions:]
 
-This command can only be used as part of the "app_style
-chemistry"_app_chemistry.html application.
+This command can only be used as part of on-lattice applications
+as specified by the "app_style"_app_style.html command.
 
 [Related commands:]
 
-"app_style chemistry"_app_chemistry.html,
-"add_species"_add_species.html, "add_reaction"_add_reaction.html
+"app_style"_app_style.html
 
 [Default:]
 
-The count of a defined species is 0 unless set via this command.
+The option defaults are nstop = 1.0.
