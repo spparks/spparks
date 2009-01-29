@@ -136,13 +136,13 @@ simulation, change some settings, run some more, etc.  Each of the 3
 parts is now described in more detail.  Remember that almost all the
 commands need only be used if a non-default value is desired.
 </P>
-<P>(1) Choice of application, solver, sweeper
+<P>(1) Choice of application, solver, sweep method
 </P>
 <P>Use the <A HREF = "app_style.html">app_style</A>, <A HREF = "solve_style.html">solve_style</A>,
-and <A HREF = "sweep_style.html">sweep_style</A> commands to setup the kind of
-simulation you wish to run.  Note that a sweeper is only relevant to
-applications that define a geometric lattice of event sites and only
-if you wish to perform Monte Carlo updates via sweeping.
+and <A HREF = "sweep.html">sweep</A> commands to setup the kind of simulation you
+wish to run.  Note that sweeping is only relevant to applications that
+define a geometric lattice of event sites and only if you wish to
+perform rejection kinetic Monte Carlo updates.
 </P>
 <P>(2) Settings
 </P>
@@ -176,7 +176,7 @@ documentation.
 <P>Initialization commands:
 </P>
 <P><A HREF = "app_style.html">app_style</A>, <A HREF = "solve_style.html">solve_style</A>,
-<A HREF = "sweep_style.html">sweep_style</A>
+<A HREF = "sweep.html">sweep</A>, <A HREF = "seed.html">seed</A>
 </P>
 <P>Application-specific commands:
 </P>
@@ -218,8 +218,8 @@ Restrictions in the command's documentation.
 <TR ALIGN="center"><TD ><A HREF = "add_reaction.html">add_reaction</A></TD><TD ><A HREF = "add_species.html">add_species</A></TD><TD ><A HREF = "app_style.html">app_style</A></TD><TD ><A HREF = "clear.html">clear</A></TD><TD ><A HREF = "count.html">count</A></TD><TD ><A HREF = "diag_style.html">diag_style</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "dump.html">dump</A></TD><TD ><A HREF = "echo.html">echo</A></TD><TD ><A HREF = "ecoord.html">ecoord</A></TD><TD ><A HREF = "event.html">event</A></TD><TD ><A HREF = "if.html">if</A></TD><TD ><A HREF = "include.html">include</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "inclusion.html">inclusion</A></TD><TD ><A HREF = "jump.html">jump</A></TD><TD ><A HREF = "label.html">label</A></TD><TD ><A HREF = "log.html">log</A></TD><TD ><A HREF = "next.html">next</A></TD><TD ><A HREF = "print.html">print</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "run.html">run</A></TD><TD ><A HREF = "shell.html">shell</A></TD><TD ><A HREF = "solve_style.html">solve_style</A></TD><TD ><A HREF = "stats.html">stats</A></TD><TD ><A HREF = "sweep_style.html">sweep_style</A></TD><TD ><A HREF = "temperature.html">temperature</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "variable.html">variable</A></TD><TD ><A HREF = "volume.html">volume</A> 
+<TR ALIGN="center"><TD ><A HREF = "run.html">run</A></TD><TD ><A HREF = "sector.html">sector</A></TD><TD ><A HREF = "seed.html">seed</A></TD><TD ><A HREF = "shell.html">shell</A></TD><TD ><A HREF = "solve_style.html">solve_style</A></TD><TD ><A HREF = "stats.html">stats</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "sweep.html">sweep</A></TD><TD ><A HREF = "temperature.html">temperature</A></TD><TD ><A HREF = "variable.html">variable</A></TD><TD ><A HREF = "volume.html">volume</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -241,16 +241,6 @@ full description:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR ALIGN="center"><TD ><A HREF = "solve_group.html">group</A></TD><TD ><A HREF = "solve_linear.html">linear</A></TD><TD ><A HREF = "solve_tree.html">tree</A> 
-</TD></TR></TABLE></DIV>
-
-<HR>
-
-<P>Sweep styles.  See the <A HREF = "sweep_style.html">sweep_style</A> command for
-one-line descriptions of each style or click on the style itself for a
-full description:
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD ><A HREF = "solve_lattice.html">lattice</A></TD><TD ><A HREF = "solve_lattice2d.html">lattice2d</A></TD><TD ><A HREF = "solve_lattice3d.html">lattice3d</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
