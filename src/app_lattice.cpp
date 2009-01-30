@@ -32,6 +32,8 @@ using namespace SPPARKS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#define BIG 1.0e20
+
 enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};
 
 /* ---------------------------------------------------------------------- */
@@ -261,65 +263,67 @@ void AppLattice::init()
     }
   }
 
-  // convert per-sector time increment info to rKMC and KMC params
+  // convert per-sector time increment info to KMC params
+
+  if (sectorflag && solve) {
+    if (tstop > 0.0) {
+      Ladapt = false;
+      dt_kmc = tstop;
+    }
+    if (nstop > 0.0) {
+      Ladapt = true;
+      double pmax = 0.0;
+      for (int i = 0; i < nset; i++) {
+	int ntmp = set[i].solve->get_num_active();
+	if (ntmp > 0) {
+	  double ptmp = set[i].solve->get_total_propensity();
+	  ptmp /= ntmp;
+	  pmax = MAX(ptmp,pmax);
+	}
+      }
+      double pmaxall;
+      MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
+      if (pmaxall > 0.0) dt_kmc = nstop/pmaxall;
+      else dt_kmc = BIG;
+    }
+  }
+
+  dt_kmc = MIN(dt_kmc,stoptime-time);
+
+  // convert per-sector time increment info to rKMC params
 
   if (sectorflag && sweepflag != NOSWEEP) {
     if (sweepflag == RANDOM) {
       if (nstop > 0.0) {
 	for (int i = 0; i < nset; i++)
-	  set[i].nselect = nstop * set[i].nlocal;
-	dt_rkmc = nstop * dt_sweep;
+	  set[i].nselect = static_cast<int> (nstop*set[i].nlocal);
       }
       if (tstop > 0.0) {
-	int n = tstop / (dt_sweep/nglobal);
-	if (n == 0) error->all("Choice of sector tstop led to no rKMC events");
+	double n = tstop / (dt_sweep/nglobal);
 	for (int i = 0; i < nset; i++)
-	  set[i].nselect = n * set[i].nlocal/nglobal;
-	dt_rkmc = n * dt_sweep/nglobal;
+	  set[i].nselect = static_cast<int> (n/nglobal * set[i].nlocal);
       }
 
     } else if (sweepflag == RASTER) {
-      if (nstop > 0.0) {
-	int n = static_cast<int> (nstop);
-	if (n == 0) error->all("Choice of sector nstop led to no rKMC events");
-	for (int i = 0; i < nset; i++) {
-	  set[i].nloop = n;
-	  set[i].nselect = n * set[i].nlocal;
-	}
-	dt_rkmc = set[0].nloop * dt_sweep;
-      }
-      if (tstop > 0.0) {
-	int n = tstop / dt_sweep;
-	if (n == 0) error->all("Choice of sector tstop led to no rKMC events");
-	for (int i = 0; i < nset; i++) {
-	  set[i].nloop = n;
-	  set[i].nselect = n * set[i].nlocal;
-	}
-	dt_rkmc = n * dt_sweep;
+      int n;
+      if (nstop > 0.0) n = static_cast<int> (nstop);
+      if (tstop > 0.0) n = static_cast<int> (tstop/dt_sweep);
+      for (int i = 0; i < nset; i++) {
+	set[i].nloop = n;
+	set[i].nselect = n * set[i].nlocal;
       }
     }
+    double ntotal = 0.0;
+    for (int i = 0; i < nset; i++) ntotal += set[i].nselect;
+    dt_rkmc = ntotal/nglobal * dt_sweep;
+    if (dt_rkmc == 0.0)
+      error->all("Choice of sector stop led to no rKMC events");
   }
 
-  if (solve && Ladapt) {
-    double pmax = 0.0;
-    for (int i = 0; i < nset; i++) {
-      int ntmp = set[i].solve->get_num_active();
-      if (ntmp > 0) {
-	double ptmp = set[i].solve->get_total_propensity();
-	ptmp /= ntmp;
-	pmax = MAX(ptmp,pmax);
-      }
-    }
-    double pmaxall;
-    MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
-    if (nstop <= 0.0) nstop = pmaxall*tsector;
-    else if (pmaxall > 0.0) tsector = nstop/pmaxall;
-  }
-
-  tsector = MIN(tsector,stoptime);
+  dt_rkmc = MIN(dt_rkmc,stoptime-time);
 
   // setup sitelist if sweepflag = RANDOM
-  // do this every init since requested sector timestep could have changed
+  // do this every init since sector timestep could have changed
 
   if (sweepflag == RANDOM) {
     memory->sfree(sitelist);
@@ -354,17 +358,19 @@ void AppLattice::run(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal run command");
 
-  init();
-  timer->init();
-
   // time_eps eliminates overruns due to finite machine precision
   // can be set to zero by an app that wants to ignore it
 
+  timer->init();
   stoptime = time + atof(arg[0]) - time_eps;
   if (time >= stoptime) {
     Finish finish(spk);
     return;
   }
+
+  // initialize and run
+
+  init();
 
   timer->barrier_start(TIME_LOOP);
 
@@ -438,6 +444,7 @@ void AppLattice::iterate_kmc_sector(double stoptime)
   int alldone = 0;
   while (!alldone) {
     if (Ladapt) pmax = 0.0;
+
     for (int iset = 0; iset < nset; iset++) {
       timer->stamp();
 
@@ -470,15 +477,8 @@ void AppLattice::iterate_kmc_sector(double stoptime)
       solve->update(nsites,bsites,propensity);
       timer->stamp(TIME_COMM);
       
-      // compute maximum sector propensity per site
-      // controls future timesteps. We do this at start of sweep
-      // for the simple reason that a sector propensity can drop to
-      // zero during a sweep, but it can never increase from zero.
-      // Hence we avoid the problem of all the sectors reporting
-      // zero propensity. a more correct way to handle this would be to do
-      // a full propensity update when all the sectors have been swept,
-      // but that would increase the cost substantially.
-      
+      // pmax = maximum sector propensity per site
+
       if (Ladapt) {
 	int ntmp = solve->get_num_active();
 	if (ntmp > 0) {
@@ -501,7 +501,7 @@ void AppLattice::iterate_kmc_sector(double stoptime)
 	else {
 	  naccept++;
 	  timesector += dt;	
-	  if (timesector >= tsector) done = 1;
+	  if (timesector >= dt_kmc) done = 1;
 	  else site_event(site2i[isite],ranapp);
 	  timer->stamp(TIME_APP);
 	}
@@ -515,18 +515,19 @@ void AppLattice::iterate_kmc_sector(double stoptime)
 
     // keep looping until overall time threshhold reached
     
-    time += tsector;
+    time += dt_kmc;
     if (time >= stoptime) alldone = 1;
 
     output->compute(time,alldone);
     timer->stamp(TIME_OUTPUT);
 
-    // reset tsector if adaptive
+    // recompute dt_kmc if adaptive, based on pmax across all sectors
 
     if (Ladapt) {
       MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
-      if (pmaxall > 0.0) tsector = deln0/nstop;
-      tsector = MIN(tsector,stoptime);
+      if (pmaxall > 0.0) dt_kmc = nstop/pmaxall;
+      else dt_kmc = BIG;
+      dt_kmc = MIN(dt_kmc,stoptime-time);
     }
   }
 

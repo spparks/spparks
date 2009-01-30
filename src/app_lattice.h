@@ -53,9 +53,11 @@ class AppLattice : public App {
   int me,nprocs;
   int naccept,nattempt;       // number of accepted and attempted events
 
-  double stoptime;            // length of time to run
   double temperature,t_inverse;  // temperature settings
-  double dt_sweep;            // time for nglobal attemped rKMC events
+  double stoptime;            // length of time to run
+  double dt_sweep;            // rKMC time for nglobal attemped events
+  double dt_rkmc;             // rKMC time for one pass thru all sectors
+  double dt_kmc;              // KMC time for one pass thru all sectors
 
   int latstyle;               // lattice creation params
   double latconst;
