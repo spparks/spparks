@@ -22,23 +22,40 @@ using namespace SPPARKS_NS;
 #define IQ 127773
 #define IR 2836
 
-/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- 
+   Park/Miller RNG
+   assume iseed is a positive int
+ ------------------------------------------------------------------------*/
 
-RandomPark::RandomPark(int seed_init=0)
+RandomPark::RandomPark(int iseed)
 {
-  seed = seed_init;
+  seed = iseed;
 }
 
 /* ---------------------------------------------------------------------- 
-    reset the seed (if given) and warm up the sequence
+   set seed to positive int
+   assume 0.0 <= rseed < 1.0
  ------------------------------------------------------------------------*/
 
-void RandomPark::init(int seed_init=0)
+RandomPark::RandomPark(double rseed)
 {
-  if (seed_init != 0) {
-    seed = seed_init;
-  }
-  for (int ii = 0; ii < 100; ii++) uniform();
+  seed = static_cast<int> (rseed*IM);
+  if (seed == 0) seed = 1;
+}
+
+/* ---------------------------------------------------------------------- 
+   reset seed to a positive int based on rseed and offset
+   assume 0.0 <= rseed < 1.0 and offset is an int >= 0
+   warmup the new RNG if requested
+   typically used to setup one RN generator per proc or site or particle
+ ------------------------------------------------------------------------*/
+
+void RandomPark::reset(double rseed, int offset, int warmup)
+{
+  seed = static_cast<int> (rseed*IM + offset);
+  if (seed < 0) seed = -seed;
+  if (seed == 0) seed = 1;
+  for (int i = 0; i < warmup; i++) uniform();
 }
 
 /* ----------------------------------------------------------------------

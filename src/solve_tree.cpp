@@ -16,6 +16,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "solve_tree.h"
+#include "random_mars.h"
 #include "random_park.h"
 #include "error.h"
 
@@ -26,10 +27,10 @@ using namespace SPPARKS_NS;
 SolveTree::SolveTree(SPPARKS *spk, int narg, char **arg) : 
   Solve(spk, narg, arg)
 {
-  if (narg != 2) error->all("Illegal solve command");
+  if (narg != 1) error->all("Illegal solve command");
+
+  random = new RandomPark(ranmaster->uniform());
   allocated = 0;
-  seed = atoi(arg[1]);
-  random = new RandomPark(seed);
   tree = NULL;
 }
 
@@ -45,15 +46,12 @@ SolveTree::~SolveTree()
 
 SolveTree *SolveTree::clone()
 {
-  int narg = 2;
-  char *arg[2];
+  int narg = 1;
+  char *arg[1];
   arg[0] = style;
-  arg[1] = new char[16];
-  sprintf(arg[1],"%d",seed);
 
   SolveTree *ptr = new SolveTree(spk,narg,arg);
 
-  delete [] arg[1];
   return ptr;
 }
 

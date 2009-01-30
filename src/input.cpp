@@ -20,6 +20,7 @@
 #include "variable.h"
 #include "app.h"
 #include "solve.h"
+#include "random_mars.h"
 #include "error.h"
 #include "memory.h"
 #include "output.h"
@@ -397,6 +398,7 @@ int Input::execute_command()
   else if (!strcmp(command,"app_style")) app_style();
   else if (!strcmp(command,"diag_style")) diag_style();
   else if (!strcmp(command,"run")) run();
+  else if (!strcmp(command,"seed")) seed();
   else if (!strcmp(command,"solve_style")) solve_style();
 
   else flag = 0;
@@ -635,10 +637,43 @@ void Input::app_style()
 
 /* ---------------------------------------------------------------------- */
 
+void Input::diag_style()
+{
+  if (narg < 1) error->all("Illegal diag_style command");
+
+  if (strcmp(arg[0],"none") == 0) error->all("Illegal diag_style command");
+
+#define DiagClass
+#define DiagStyle(key,Class) \
+  else if (strcmp(arg[0],#key) == 0) { \
+    Diag *diagtmp = new Class(spk,narg,arg); \
+    output->add_diag(diagtmp); \
+  }
+  
+#include "style.h"
+#undef DiagClass
+
+  else error->all("Illegal diag_style command");
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Input::run()
 {
   if (app == NULL) error->all("Command used before app_style set");
   app->run(narg,arg);
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void Input::seed()
+{
+  if (narg != 1) error->all("Illegal seed command");
+  int seed = atoi(arg[0]);
+  if (seed <= 0) error->all("Illegal seed command");
+
+  ranmaster->init(seed);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -657,25 +692,4 @@ void Input::solve_style()
 #undef SolveClass
 
   else error->all("Illegal solve_style command");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::diag_style()
-{
-  if (narg < 1) error->all("Illegal diag_style command");
-
-  if (strcmp(arg[0],"none") == 0) error->all("Illegal diag_style command");
-
-#define DiagClass
-#define DiagStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) { \
-    Diag *diagtmp = new Class(spk,narg,arg); \
-    output->add_diag(diagtmp); \
-  }
-  
-#include "style.h"
-#undef DiagClass
-
-  else error->all("Illegal diag_style command");
 }

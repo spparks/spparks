@@ -20,6 +20,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "random_mars.h"
 #include "random_park.h"
 #include "math.h"
 #include "output.h"
@@ -37,14 +38,13 @@ using namespace SPPARKS_NS;
 AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
   App(spk, narg, arg)
 {
-  if (narg < 7) error->all("Illegal app_style command");
+  if (narg < 6) error->all("Illegal app_style command");
 
   nevents = atoi(arg[1]);
   ndep = atoi(arg[2]);
   pmax = atof(arg[3]);
   pmin = atof(arg[4]);
   tweak = atof(arg[5]);
-  seed = atoi(arg[6]);
 
   if (nevents == 0) error->all("Invalid event count for app_style test/group");
   if (pmin <= 0.0 || pmin >= pmax) 
@@ -59,7 +59,7 @@ AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
 
   dep_graph = true;
 
-  int iarg = 7;
+  int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"lomem") == 0) {
       if (iarg+2 > narg) error->all("Illegal app_style command");
@@ -80,7 +80,7 @@ AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
 
   // classes needed by this app
 
-  random = new RandomPark(seed);
+  RandomPark *random = new RandomPark(ranmaster->uniform());
 }
 
 /* ---------------------------------------------------------------------- */

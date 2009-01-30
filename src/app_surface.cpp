@@ -48,7 +48,6 @@ AppSurface::AppSurface(SPPARKS *spk, int narg, char **arg) :
   bondener=-1.0;
 
   double xbottom,xheight,xmin,xmax,zbottom,zheight,zmin,zmax,yfix;
-  int seed;
 
   xbottom=10000.0;
   xheight=0.0;
@@ -59,7 +58,6 @@ AppSurface::AppSurface(SPPARKS *spk, int narg, char **arg) :
   zmin=0.0;
   zmax=100.0;
   yfix=-10000.0;
-  seed=218392;
 
   // parse arguments
 
@@ -93,13 +91,6 @@ AppSurface::AppSurface(SPPARKS *spk, int narg, char **arg) :
            i = i+1;
         }
      }
-     if (strcmp(arg[i],"seed") == 0) {
-        if (narg < i+2)  error->all("Illegal app_style command");
-        else {
-           seed = atoi(arg[i+1]);
-           i = i+1;
-        }
-     }
      if (strcmp(arg[i],"lattice") == 0) {
         if (narg < i+5)  error->all("Illegal app_style command");
         else {
@@ -110,8 +101,6 @@ AppSurface::AppSurface(SPPARKS *spk, int narg, char **arg) :
   }
 
   if (success == 0) error->all("Illegal app_style command");
-
-  RandomPark *random = new RandomPark(seed);
 
   options(narg-success,&arg[success]);
 
@@ -159,8 +148,6 @@ AppSurface::AppSurface(SPPARKS *spk, int narg, char **arg) :
     else isite = FIXED;
     lattice[i] = isite;
   }
-
-  delete random;
 }
 
 /* ---------------------------------------------------------------------- */

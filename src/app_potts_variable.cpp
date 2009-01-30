@@ -18,6 +18,7 @@
 #include "app_potts_variable.h"
 #include "comm_lattice.h"
 #include "solve.h"
+#include "random_mars.h"
 #include "random_park.h"
 #include "timer.h"
 #include "memory.h"
@@ -34,15 +35,13 @@ AppPottsVariable::AppPottsVariable(SPPARKS *spk, int narg, char **arg) :
 {
   // parse arguments
 
-  if (narg < 3) error->all("Illegal app_style command");
+  if (narg < 2) error->all("Illegal app_style command");
 
   nspins = atoi(arg[1]);
-  int seed = atoi(arg[2]);
-  RandomPark *random = new RandomPark(seed);
 
   dt_sweep = 1.0/nspins;
 
-  options(narg-3,&arg[3]);
+  options(narg-2,&arg[2]);
 
   // define lattice and partition it across processors
   
@@ -61,6 +60,8 @@ AppPottsVariable::AppPottsVariable(SPPARKS *spk, int narg, char **arg) :
   // each site = one of nspins
   // loop over global list so assignment is independent of # of procs
   // use map to see if I own global site
+
+  RandomPark *random = new RandomPark(ranmaster->uniform());
 
   std::map<int,int> hash;
   for (int i = 0; i < nlocal; i++)

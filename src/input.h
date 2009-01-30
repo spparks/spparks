@@ -61,9 +61,10 @@ class Input : protected Pointers {
   void variable_command();
 
   void app_style();
-  void run();
-  void solve_style();
   void diag_style();
+  void run();
+  void seed();
+  void solve_style();
 };
 
 }

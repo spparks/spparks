@@ -20,7 +20,7 @@ namespace SPPARKS_NS {
 
 class Groups : protected Pointers {
  public:
-  Groups(class SPPARKS *, double, double, int, int);
+  Groups(class SPPARKS *, double, double, int);
   ~Groups();
 
   void partition_init(double *,int);

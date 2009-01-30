@@ -53,16 +53,15 @@ class AppLattice : public App {
   int me,nprocs;
   int naccept,nattempt;       // number of accepted and attempted events
 
-  double stoptime;
-  double temperature,t_inverse;
-  double dt_sweep;
+  double stoptime;            // length of time to run
+  double temperature,t_inverse;  // temperature settings
+  double dt_sweep;            // time for nglobal attemped rKMC events
 
   int latstyle;               // lattice creation params
   double latconst;
   int dimension;
   int nx,ny,nz;
   int nrandom;
-  int latseed;
   double cutoff;
   char *latfile;
   char *infile;
@@ -77,20 +76,17 @@ class AppLattice : public App {
   int sweepflag;               // 1 if rejection KMC solver
   int sectorflag;              // 1 if partition my domain into sectors
   
-  int nsector;                 // # of sectors per proc
-  class RandomPark *ranreject; // RN generator for rejection KMC
-  class RandomPark *ransite;   // RN generator for strict per-site rKMC
-  int rejectseed;              // user RNG seed for ranreject
-  int strictseed;              // user RNG seed for ransite
+  class RandomPark *ranapp;    // RN generator for KMC and rejection KMC
+  class RandomPark *ranstrict; // RN generator for per-site strict rKMC
   int *siteseeds;              // per-site seeds for ransite
   int *sitelist;               // randomized list of site indices
 
   bool Lmask;                  // masking on/off
   char *mask;                  // size of nlocal + nghost sites
 
-  bool Ladapt;                 // adaptive timestep on/off
-  double delt,deln,deln0;
-  double pmax;
+  double Ladapt;               // adaptive sector time increments for KMC
+  double tstop;                // requested time increment in sector
+  double nstop;                // requested events per site in sector
 
   double xprd,yprd,zprd;
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // simulation box bounds
@@ -130,7 +126,9 @@ class AppLattice : public App {
   int ***cmap;                 // connectivity map for regular lattices
 
   struct Set {                 // subset of lattice sites I own
-    int nlocal;                // # of owned sites in sect
+    int nlocal;                // # of owned sites in set
+    int nselect;               // # of selections from set for rKMC
+    int nloop;                 // # of loops over set for rKMC
     int nborder;               // # of sites with non-set site as neighbor
     int *border;               // lattice index for each border site
     int *bsites;               // list of border sites to pass to solver
@@ -181,7 +179,7 @@ class AppLattice : public App {
   void stats_header(char *);
 
   void set_sector(int, char **);
-  void set_reject(int, char **);
+  void set_sweep(int, char **);
   void set_temperature(int, char **);
 
   void procs2lattice_2d();

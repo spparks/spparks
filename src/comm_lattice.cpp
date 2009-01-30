@@ -49,8 +49,10 @@ CommLattice::CommLattice(SPPARKS *spk) : Pointers(spk)
 CommLattice::~CommLattice()
 {
   if (allswap) free_swap(allswap);
-  for (int i = 0; i < nsector; i++) free_swap(sectorswap[i]);
-  delete [] sectorswap;
+  if (sectorswap) {
+    for (int i = 0; i < nsector; i++) free_swap(sectorswap[i]);
+    delete [] sectorswap;
+  }
   if (reverseswap) {
     for (int i = 0; i < nsector; i++) free_swap(reverseswap[i]);
     delete [] reverseswap;
@@ -66,7 +68,7 @@ CommLattice::~CommLattice()
    array = non-NULL = communicate passed-in array (from diagnostic)
 ------------------------------------------------------------------------- */
 
-void CommLattice::init(int sectorflag, int delpropensity, int delevent,
+void CommLattice::init(int nsector_request, int delpropensity, int delevent,
 		       int *array) 
 {
   delghost = delpropensity;
@@ -86,25 +88,30 @@ void CommLattice::init(int sectorflag, int delpropensity, int delevent,
   // clear out old swaps
 
   if (allswap) free_swap(allswap);
-  for (int i = 0; i < nsector; i++) free_swap(sectorswap[i]);
-  delete [] sectorswap;
+  if (sectorswap) {
+    for (int i = 0; i < nsector; i++) free_swap(sectorswap[i]);
+    delete [] sectorswap;
+  }
   if (reverseswap) {
     for (int i = 0; i < nsector; i++) free_swap(reverseswap[i]);
     delete [] reverseswap;
   }
+  allswap = NULL;
+  sectorswap = NULL;
+  reverseswap = NULL;
 
   // create new swaps as requested
 
   allswap = create_swap_all();
 
-  if (sectorflag) {
-    nsector = applattice->nsector;
+  nsector = nsector_request;
+  if (nsector > 1) {
     sectorswap = new Swap*[nsector];
     for (int i = 0; i < nsector; i++)
       sectorswap[i] = create_swap_sector(applattice->set[i].nlocal,
 					 applattice->set[i].site2i);
   }
-  if (delreverse && sectorflag) {
+  if (delreverse && nsector > 1) {
     reverseswap = new Swap*[nsector];
     for (int i = 0; i < nsector; i++)
       reverseswap[i] = create_swap_sector_reverse(applattice->set[i].nlocal,

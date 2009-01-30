@@ -16,7 +16,6 @@
 #include "string.h"
 #include "stdlib.h"
 #include "app_pore.h"
-#include "random_park.h"
 #include "memory.h"
 #include "error.h"
 
@@ -36,17 +35,15 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  if (narg < 7) error->all("Illegal app_style command");
+  if (narg < 6) error->all("Illegal app_style command");
 
   double xc = atof(arg[1]);
   double yc = atof(arg[2]);
   double zc = atof(arg[3]);
   double diameter = atof(arg[4]);
   double thickness = atof(arg[5]);
-  int seed = atoi(arg[6]);
-  RandomPark *random = new RandomPark(seed);
 
-  options(narg-7,&arg[7]);
+  options(narg-6,&arg[6]);
 
   // define lattice and partition it across processors
   // esites must be large enough for 2 sites and 1st/2nd nearest neighbors
@@ -76,6 +73,4 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
       lattice[i] = isite;
     }
   }
-
-  delete random;
 }

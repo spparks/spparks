@@ -31,7 +31,6 @@ class SolveGroup : public Solve {
   int event(double *);
 
  private:
-  int seed;
   class RandomPark *random;
   class Groups *groups;
   int nevents;

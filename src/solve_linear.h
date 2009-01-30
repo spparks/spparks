@@ -31,7 +31,6 @@ class SolveLinear : public Solve {
   int event(double *);
 
  private:
-  int seed;
   class RandomPark *random;
   int nevents;
   double *prob;

@@ -18,6 +18,7 @@
 #include "app_lattice.h"
 #include "comm_lattice.h"
 #include "solve.h"
+#include "random_mars.h"
 #include "random_park.h"
 #include "finish.h"
 #include "cluster.h"
@@ -45,13 +46,12 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   // default settings
 
   sectorflag = 0;
-  Ladapt = false;
   nset = 0;
   set = NULL;
 
   sweepflag = NOSWEEP;
-  ranreject = NULL;
-  ransite = NULL;
+  ranapp = NULL;
+  ranstrict = NULL;
   siteseeds = NULL;
   sitelist = NULL;
   Lmask = false;
@@ -97,8 +97,8 @@ AppLattice::~AppLattice()
   }
   delete [] set;
 
-  delete ranreject;
-  delete ransite;
+  delete ranapp;
+  delete ranstrict;
   memory->sfree(siteseeds);
   memory->sfree(sitelist);
   memory->sfree(mask);
@@ -160,39 +160,43 @@ void AppLattice::init()
 
   // if sectors, determine number of sectors
 
-  if (dimension == 2) nsector = 4;
-  else nsector = 8;
+  int nsector = 1;
+  if (sectorflag) {
+    if (dimension == 2) nsector = 4;
+    else nsector = 8;
+  }
 
   // if coloring, determine number of colors
 
   int ncolors = 1;
   if (sweepflag == COLOR || sweepflag == COLOR_STRICT) {
+    error->all("Sweeping with color is not yet supported");
   }
 
   // create sets based on sectors and coloring
   // only do this on first init
 
   if (set == NULL) {
-    if (sectorflag == 0 && ncolors == 1) {
+    if (nsector == 1 && ncolors == 1) {
       nset = 1;
       set = new Set[nset];
       create_set(0,0,0);
-    } else if (sectorflag == 0 && ncolors > 1) {
+    } else if (nsector == 1 && ncolors > 1) {
       nset = ncolors;
       set = new Set[nset];
       for (int i = 0; i < nset; i++)
-	create_set(i,0,i);
-    } else if (sectorflag == 1 && ncolors == 0) {
+	create_set(i,0,i+1);
+    } else if (nsector > 1 && ncolors == 1) {
       nset = nsector;
       set = new Set[nset];
       for (int i = 0; i < nset; i++)
-	create_set(i,i,0);
-    } else if (sectorflag == 1 && ncolors > 0) {
+	create_set(i,i+1,0);
+    } else if (nsector > 1 && ncolors > 1) {
       nset = nsector*ncolors;
       set = new Set[nset];
       for (int i = 0; i < nset; i++)
 	for (int j = 0; j < ncolors; j++)
-	  create_set(i*ncolors+j,i,j);
+	  create_set(i*ncolors+j,i+1,j+1);
     }
   }
 
@@ -208,31 +212,33 @@ void AppLattice::init()
     for (int i = 0; i < nlocal+nghost; i++) mask[i] = 0;
   }
 
-  // setup RNGs for rejection KMC and per-lattice site if strict requested
-  // only do this on first init
+  // setup RN generators, only on first init
+  // ranapp is used for all options except sweep color/strict
+  // setup ranapp so different on every proc
+  // if strict requested, initialize per-lattice site seeds
 
-  if (ranreject == NULL) {
-    ranreject = new RandomPark(rejectseed);
-    if (sweepflag == COLOR_STRICT) {
-      ransite = new RandomPark(0);
-      siteseeds = 
-	(int *)	memory->smalloc(nlocal*sizeof(int),"applattice:siteseeds");
-      for (int i = 0; i < nlocal; i++) {
-	ransite->init(strictseed+id[i]);
-	siteseeds[i] = ransite->seed;
-      }
-    }
+  if (ranapp == NULL) {
+    ranapp = new RandomPark(ranmaster->uniform());
+    double seed = ranmaster->uniform();
+    ranapp->reset(seed,me,100);
   }
 
-  // setup sitelist if sweepflag = RANDOM
-  // do this on every init since requested timestep could have changed
-  // NOTE: size of sitelist should depend on dt_sweep
+  if (sweepflag != COLOR_STRICT) {
+    delete ranstrict;
+    memory->sfree(siteseeds);
+    ranstrict = NULL;
+    siteseeds = NULL;
+  }
 
-  if (sweepflag == RANDOM) {
-    memory->sfree(sitelist);
-    int n = 0;
-    for (int i = 0; i < nset; i++) n = MAX(n,set[i].nlocal);
-    sitelist = (int *) memory->smalloc(n*sizeof(int),"applattice:sitelist");
+  if (sweepflag == COLOR_STRICT && ranstrict == NULL) {
+    ranstrict = new RandomPark(ranmaster->uniform());
+    double seed = ranmaster->uniform();
+    siteseeds = 
+      (int *) memory->smalloc(nlocal*sizeof(int),"applattice:siteseeds");
+    for (int i = 0; i < nlocal; i++) {
+      ranstrict->reset(seed,id[i],100);
+      siteseeds[i] = ranstrict->seed;
+    }
   }
 
   // initialize comm, both for this proc's full domain and sectors
@@ -240,7 +246,7 @@ void AppLattice::init()
 
   if (comm == NULL) {
     comm = new CommLattice(spk);
-    comm->init(sectorflag,delpropensity,delevent,NULL);
+    comm->init(nsector,delpropensity,delevent,NULL);
   }
 
   // initialize propensities for KMC solver within each set
@@ -255,6 +261,73 @@ void AppLattice::init()
     }
   }
 
+  // convert per-sector time increment info to rKMC and KMC params
+
+  if (sectorflag && sweepflag != NOSWEEP) {
+    if (sweepflag == RANDOM) {
+      if (nstop > 0.0) {
+	for (int i = 0; i < nset; i++)
+	  set[i].nselect = nstop * set[i].nlocal;
+	dt_rkmc = nstop * dt_sweep;
+      }
+      if (tstop > 0.0) {
+	int n = tstop / (dt_sweep/nglobal);
+	if (n == 0) error->all("Choice of sector tstop led to no rKMC events");
+	for (int i = 0; i < nset; i++)
+	  set[i].nselect = n * set[i].nlocal/nglobal;
+	dt_rkmc = n * dt_sweep/nglobal;
+      }
+
+    } else if (sweepflag == RASTER) {
+      if (nstop > 0.0) {
+	int n = static_cast<int> (nstop);
+	if (n == 0) error->all("Choice of sector nstop led to no rKMC events");
+	for (int i = 0; i < nset; i++) {
+	  set[i].nloop = n;
+	  set[i].nselect = n * set[i].nlocal;
+	}
+	dt_rkmc = set[0].nloop * dt_sweep;
+      }
+      if (tstop > 0.0) {
+	int n = tstop / dt_sweep;
+	if (n == 0) error->all("Choice of sector tstop led to no rKMC events");
+	for (int i = 0; i < nset; i++) {
+	  set[i].nloop = n;
+	  set[i].nselect = n * set[i].nlocal;
+	}
+	dt_rkmc = n * dt_sweep;
+      }
+    }
+  }
+
+  if (solve && Ladapt) {
+    double pmax = 0.0;
+    for (int i = 0; i < nset; i++) {
+      int ntmp = set[i].solve->get_num_active();
+      if (ntmp > 0) {
+	double ptmp = set[i].solve->get_total_propensity();
+	ptmp /= ntmp;
+	pmax = MAX(ptmp,pmax);
+      }
+    }
+    double pmaxall;
+    MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
+    if (nstop <= 0.0) nstop = pmaxall*tsector;
+    else if (pmaxall > 0.0) tsector = nstop/pmaxall;
+  }
+
+  tsector = MIN(tsector,stoptime);
+
+  // setup sitelist if sweepflag = RANDOM
+  // do this every init since requested sector timestep could have changed
+
+  if (sweepflag == RANDOM) {
+    memory->sfree(sitelist);
+    int n = 0;
+    for (int i = 0; i < nset; i++) n = MAX(n,set[i].nselect);
+    sitelist = (int *) memory->smalloc(n*sizeof(int),"applattice:sitelist");
+  }
+
   // set sweep function ptr
 
   if (sweepflag != NOSWEEP) {
@@ -267,33 +340,6 @@ void AppLattice::init()
     else if (sweepflag == COLOR_STRICT && Lmask)
       sweep = &AppLattice::sweep_mask_strict;
   } else sweep = NULL;
-
-  // If adaptive kmc specified
-  // compute deln0, which controls future timesteps
-  // If deln0 arleady specified, compute delt
-
-  // NOTE: this should only loop over sectors, not sets
-
-  if (solve && Ladapt) {
-    pmax = 0.0;
-    int ntmp ;
-    double ptmp;
-    for (int i = 0; i < nset; i++) {
-      ntmp = set[i].solve->get_num_active();
-      if (ntmp > 0) {
-	ptmp = set[i].solve->get_total_propensity();
-	ptmp /= ntmp;
-	pmax = MAX(ptmp,pmax);
-      }
-    }
-    double pmaxall;
-    MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
-    if (deln0 <= 0.0) deln0 = pmaxall*delt;
-    else if (pmaxall > 0.0) delt = deln0/pmaxall;
-  }
-
-  // NOTE: this is needed, but stoptime is not defined yet
-  //delt = MIN(delt,stoptime);
 
   // initialize output
 
@@ -359,7 +405,7 @@ void AppLattice::iterate_kmc_global(double stoptime)
     if (isite < 0) done = 1;
     else {
       naccept++;
-      site_event(isite,ranreject);
+      site_event(isite,ranapp);
       time += dt;
       timer->stamp(TIME_APP);
     }
@@ -383,6 +429,7 @@ void AppLattice::iterate_kmc_sector(double stoptime)
 {
   int i,isite,done;
   double dt,timesector;
+  double pmax,pmaxall;
 
   // save ptr to system solver
 
@@ -390,6 +437,7 @@ void AppLattice::iterate_kmc_sector(double stoptime)
 
   int alldone = 0;
   while (!alldone) {
+    if (Ladapt) pmax = 0.0;
     for (int iset = 0; iset < nset; iset++) {
       timer->stamp();
 
@@ -453,8 +501,8 @@ void AppLattice::iterate_kmc_sector(double stoptime)
 	else {
 	  naccept++;
 	  timesector += dt;	
-	  if (timesector >= delt) done = 1;
-	  else site_event(site2i[isite],ranreject);
+	  if (timesector >= tsector) done = 1;
+	  else site_event(site2i[isite],ranapp);
 	  timer->stamp(TIME_APP);
 	}
       }
@@ -467,11 +515,19 @@ void AppLattice::iterate_kmc_sector(double stoptime)
 
     // keep looping until overall time threshhold reached
     
-    time += delt;
+    time += tsector;
     if (time >= stoptime) alldone = 1;
-    
+
     output->compute(time,alldone);
     timer->stamp(TIME_OUTPUT);
+
+    // reset tsector if adaptive
+
+    if (Ladapt) {
+      MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
+      if (pmaxall > 0.0) tsector = deln0/nstop;
+      tsector = MIN(tsector,stoptime);
+    }
   }
 
   // restore system solver
@@ -485,7 +541,8 @@ void AppLattice::iterate_kmc_sector(double stoptime)
 
 void AppLattice::iterate_rejection(double stoptime)
 {
-  int i,n,npossible;
+  int i,nselect,nrange;
+  int *site2i;
 
   int done = 0;
   while (!done) {
@@ -498,22 +555,21 @@ void AppLattice::iterate_rejection(double stoptime)
 
       if (Lmask) boundary_clear_mask(iset);
 
-      // NOTE: this should allow for generating different numbers of
-      //       ran sites when in sector mode
-
       timer->stamp();
 
       if (sweepflag == RANDOM) {
-	n = set[iset].nlocal;
-	npossible = set[iset].nlocal;
-	for (i = 0; i < n; i++) 
-	  sitelist[i] = ranreject->irandom(npossible) - 1;
-	(this->*sweep)(n,sitelist);
-	nattempt += n;
+	site2i = set[iset].site2i;
+	nrange = set[iset].nlocal;
+	nselect = set[iset].nselect;
+	for (i = 0; i < nselect; i++) 
+	  sitelist[i] = site2i[ranapp->irandom(nrange) - 1];
+	(this->*sweep)(nselect,sitelist);
+	nattempt += nselect;
 
       } else {
-	(this->*sweep)(set[iset].nlocal,set[iset].site2i);
-	nattempt += set[iset].nlocal;
+	for (i = 0; i < set[iset].nloop; i++)
+	  (this->*sweep)(set[iset].nlocal,set[iset].site2i);
+	nattempt += set[iset].nselect;
       }
 
       timer->stamp(TIME_SOLVE);
@@ -524,7 +580,7 @@ void AppLattice::iterate_rejection(double stoptime)
       }
     }
 
-    time += dt_sweep;
+    time += dt_rkmc;
     if (time >= stoptime) done = 1;
 
     output->compute(time,done);
@@ -537,7 +593,7 @@ void AppLattice::iterate_rejection(double stoptime)
 void AppLattice::sweep_nomask_nostrict(int n, int *list)
 {
   for (int m = 0; m < n; m++)
-    site_event_rejection(list[m],ranreject);
+    site_event_rejection(list[m],ranapp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -548,7 +604,7 @@ void AppLattice::sweep_mask_nostrict(int n, int *list)
   for (int m = 0; m < n; m++) {
     i = list[m];
     if (mask[i]) continue;
-    site_event_rejection(i,ranreject);
+    site_event_rejection(i,ranapp);
   }
 }
 
@@ -559,9 +615,9 @@ void AppLattice::sweep_nomask_strict(int n, int *list)
   int i;
   for (int m = 0; m < n; m++) {
     i = list[m];
-    ransite->seed = siteseeds[i];
-    site_event_rejection(i,ransite);
-    siteseeds[i] = ransite->seed;
+    ranstrict->seed = siteseeds[i];
+    site_event_rejection(i,ranstrict);
+    siteseeds[i] = ranstrict->seed;
   }
 }
 
@@ -573,9 +629,9 @@ void AppLattice::sweep_mask_strict(int n, int *list)
   for (int m = 0; m < n; m++) {
     i = list[m];
     if (mask[i]) continue;
-    ransite->seed = siteseeds[i];
-    site_event_rejection(i,ransite);
-    siteseeds[i] = ransite->seed;
+    ranstrict->seed = siteseeds[i];
+    site_event_rejection(i,ranstrict);
+    siteseeds[i] = ranstrict->seed;
   }
 }
 
@@ -585,7 +641,7 @@ void AppLattice::sweep_mask_strict(int n, int *list)
 void AppLattice::input(char *command, int narg, char **arg)
 {
   if (strcmp(command,"sector") == 0) set_sector(narg,arg);
-  else if (strcmp(command,"reject") == 0) set_reject(narg,arg);
+  else if (strcmp(command,"sweep") == 0) set_sweep(narg,arg);
   else if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
   else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
   else if (strcmp(command,"dump") == 0) output->set_dump(narg,arg);
@@ -603,41 +659,54 @@ void AppLattice::input_app(char *command, int narg, char **arg)
 
 void AppLattice::set_sector(int narg, char **arg)
 {
-  if (narg != 0) error->all("Illegal sector command");
-  Ladapt = false;
+  if (narg < 1) error->all("Illegal sector command");
+  if (strcmp(arg[0],"yes") == 0) sectorflag = 1;
+  else if (strcmp(arg[0],"no") == 0) sectorflag = 0;
+  else error->all("Illegal sector command");
+
+  nstop = 1.0;
+  tstop = 0.0;
+
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"nstop") == 0) {
+      if (iarg+2 > narg) error->all("Illegal sector command");
+      nstop = atof(arg[iarg+1]);
+      if (nstop <= 0.0) error->all("Illegal sector command");
+      tstop = 0.0;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"tstop") == 0) {
+      if (iarg+2 > narg) error->all("Illegal sector command");
+      tstop = atof(arg[iarg+1]);
+      if (tstop <= 0.0) error->all("Illegal sector command");
+      nstop = 0.0;
+      iarg += 2;
+    } else error->all("Illegal sector command");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AppLattice::set_reject(int narg, char **arg)
+void AppLattice::set_sweep(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal reject command");
+  if (narg < 1) error->all("Illegal sweep command");
   if (strcmp(arg[0],"random") == 0) sweepflag = RANDOM;
   else if (strcmp(arg[0],"raster") == 0) sweepflag = RASTER;
   else if (strcmp(arg[0],"color") == 0) sweepflag = COLOR;
   else if (strcmp(arg[0],"color/strict") == 0) sweepflag = COLOR_STRICT;
-  else error->all("Illegal reject command");
-
-  rejectseed = atoi(arg[1]);
-  if (rejectseed <= 0) error->all("Illegal reject command");
-  if (sweepflag == COLOR_STRICT) {
-    if (narg < 3) error->all("Illegal reject command");
-    strictseed = atoi(arg[2]);
-    if (strictseed <= 0) error->all("Illegal reject command");
-  }
+  else error->all("Illegal sweep command");
 
   Lmask = false;
 
-  int iarg = 2;
-  if (sweepflag == COLOR_STRICT) iarg = 3;
+  int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mask") == 0) {
-      if (iarg+2 > narg) error->all("Illegal reject command");
+      if (iarg+2 > narg) error->all("Illegal sweep command");
       if (arg[iarg+1],"no" == 0) Lmask = false;
       else if (arg[iarg+1],"yes" == 0) Lmask = true;
-      else error->all("Illegal reject command");
+      else error->all("Illegal sweep command");
       iarg += 2;
-    } else error->all("Illegal reject command");
+    } else error->all("Illegal sweep command");
   }
 }
 
@@ -678,6 +747,10 @@ void AppLattice::stats_header(char *strtmp)
 /* ----------------------------------------------------------------------
    create a subset of owned sites
    insure all ptrs in Set data struct are allocated or NULL
+   isector = 0 = all sites (no sector)
+   isector > 1 = sites within a sector
+   icolor = 0 = all sites (no color)
+   icolor > 1 = sites of a certain color
  ------------------------------------------------------------------------- */
 
 void AppLattice::create_set(int iset, int isector, int icolor)

@@ -37,8 +37,9 @@ public:
     error(ptr->error),
     app(ptr->app),
     solve(ptr->solve),
-    timer(ptr->timer),
+    ranmaster(ptr->ranmaster),
     output(ptr->output),
+    timer(ptr->timer),
     world(ptr->world),
     infile(ptr->infile),
     screen(ptr->screen),
@@ -54,6 +55,7 @@ public:
 
   App *&app;
   Solve *&solve;
+  RanMars *&ranmaster;
   Output *&output;
   Timer *&timer;
 

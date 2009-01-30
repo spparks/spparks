@@ -21,8 +21,9 @@ class RandomPark {
   int seed;
 
   RandomPark(int);
+  RandomPark(double);
   ~RandomPark() {}
-  void init(int);
+  void reset(double, int, int);
   double uniform();
   int irandom(int);
 };

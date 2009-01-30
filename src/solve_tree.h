@@ -36,7 +36,6 @@ class SolveTree : public Solve {
   void tree_to_screen(int);
 
  private:
-  int seed;
   class RandomPark *random;
   int nevents;
   int ntotal;

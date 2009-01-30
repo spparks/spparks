@@ -18,6 +18,7 @@
 #include "app_ising.h"
 #include "comm_lattice.h"
 #include "solve.h"
+#include "random_mars.h"
 #include "random_park.h"
 #include "timer.h"
 #include "memory.h"
@@ -36,18 +37,16 @@ AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) :
 {
   // parse arguments
 
-  if (narg < 3) error->all("Illegal app_style command");
+  if (narg < 2) error->all("Illegal app_style command");
 
   if (strcmp(arg[1],"single") == 0) rejectstyle = SINGLE;
   else if (strcmp(arg[1],"double") == 0) rejectstyle = DOUBLE;
   else error->all("Illegal app_style command");
-  int seed = atoi(arg[2]);
-  RandomPark *random = new RandomPark(seed);
 
   if (rejectstyle == SINGLE) dt_sweep = 1.0;
   else if (rejectstyle == DOUBLE) dt_sweep = 1.0/2.0;
 
-  options(narg-3,&arg[3]);
+  options(narg-2,&arg[2]);
 
   // define lattice and partition it across processors
 
@@ -58,6 +57,8 @@ AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) :
   // each site = one of 2 spins
   // loop over global list so assignment is independent of # of procs
   // use map to see if I own global site
+
+  RandomPark *random = new RandomPark(ranmaster->uniform());
 
   if (infile) read_file();
 

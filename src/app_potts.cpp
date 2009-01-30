@@ -18,6 +18,7 @@
 #include "app_potts.h"
 #include "comm_lattice.h"
 #include "solve.h"
+#include "random_mars.h"
 #include "random_park.h"
 #include "timer.h"
 #include "memory.h"
@@ -36,21 +37,15 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
 {
   // parse arguments
 
-  if (narg < 4) error->all("Illegal app_style command");
+  if (narg < 3) error->all("Illegal app_style command");
 
   nspins = atoi(arg[1]);
   if (strcmp(arg[2],"spin") == 0) rejectstyle = SPIN;
   else if (strcmp(arg[2],"neigh") == 0) rejectstyle = NEIGH;
   else if (strcmp(arg[2],"neighonly") == 0) rejectstyle = NEIGHONLY;
   else error->all("Illegal app_style command");
-  int seed = atoi(arg[3]);
-  RandomPark *random = new RandomPark(seed);
 
-  if (rejectstyle == SPIN) dt_sweep = 1.0/nspins;
-  else if (rejectstyle == NEIGH) dt_sweep = 1.0/maxneigh;
-  else if (rejectstyle == NEIGHONLY) dt_sweep = 1.0/maxneigh;
-
-  options(narg-4,&arg[4]);
+  options(narg-3,&arg[3]);
 
   // define lattice and partition it across processors
   
@@ -58,10 +53,16 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
   sites = new int[1 + maxneigh];
   unique = new int[1 + maxneigh];
 
+  if (rejectstyle == SPIN) dt_sweep = 1.0/nspins;
+  else if (rejectstyle == NEIGH) dt_sweep = 1.0/maxneigh;
+  else if (rejectstyle == NEIGHONLY) dt_sweep = 1.0/maxneigh;
+
   // initialize my portion of lattice
   // each site = one of nspins
   // loop over global list so assignment is independent of # of procs
   // use map to see if I own global site
+
+  RandomPark *random = new RandomPark(ranmaster->uniform());
 
   if (infile) read_file();
 

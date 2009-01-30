@@ -16,6 +16,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "solve_linear.h"
+#include "random_mars.h"
 #include "random_park.h"
 #include "error.h"
 
@@ -26,10 +27,9 @@ using namespace SPPARKS_NS;
 SolveLinear::SolveLinear(SPPARKS *spk, int narg, char **arg) : 
   Solve(spk, narg, arg)
 {
-  if (narg != 2) error->all("Illegal solve command");
+  if (narg != 1) error->all("Illegal solve command");
 
-  seed = atoi(arg[1]);
-  random = new RandomPark(seed);
+  random = new RandomPark(ranmaster->uniform());
   prob = NULL;
 }
 
@@ -45,15 +45,12 @@ SolveLinear::~SolveLinear()
 
 SolveLinear *SolveLinear::clone()
 {
-  int narg = 2;
-  char *arg[2];
+  int narg = 1;
+  char *arg[1];
   arg[0] = style;
-  arg[1] = new char[16];
-  sprintf(arg[1],"%d",seed);
 
   SolveLinear *ptr = new SolveLinear(spk,narg,arg);
 
-  delete [] arg[1];
   return ptr;
 }
 

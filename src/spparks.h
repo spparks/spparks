@@ -28,9 +28,9 @@ class SPPARKS {
 
   class App *app;                // application
   class Solve *solve;            // solver
-  class Sweep *sweep;            // sweep
-  class Timer *timer;            // timer
+  class RanMars *ranmaster;      // master random number generator
   class Output *output;          // output
+  class Timer *timer;            // timer
 
   MPI_Comm world;          // communicator for my world of procs
   FILE *infile;            // infile for my world
@@ -40,7 +40,6 @@ class SPPARKS {
   SPPARKS(int, char **, MPI_Comm);
   ~SPPARKS();
   void create();
-  void init();
   void destroy();
 };
 

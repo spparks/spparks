@@ -17,6 +17,7 @@
 #include "stdlib.h"
 #include "app_diffusion_nonlinear.h"
 #include "solve.h"
+#include "random_mars.h"
 #include "random_park.h"
 #include "memory.h"
 #include "error.h"
@@ -45,13 +46,11 @@ AppDiffusionNonLinear(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  if (narg < 3) error->all("Illegal app_style command");
+  if (narg < 2) error->all("Illegal app_style command");
 
   double fraction = atof(arg[1]);
-  int seed = atoi(arg[2]);
-  RandomPark *random = new RandomPark(seed);
 
-  options(narg-3,&arg[3]);
+  options(narg-2,&arg[2]);
 
   // define lattice and partition it across processors
   // sites must be large enough for 2 sites and their 1,2,3 nearest neighbors
@@ -76,6 +75,8 @@ AppDiffusionNonLinear(SPPARKS *spk, int narg, char **arg) :
   // each site = VACANT or OCCUPIED with fraction OCCUPIED
   // loop over global list so assignment is independent of # of procs
   // use map to see if I own global site
+
+  RandomPark *random = new RandomPark(ranmaster->uniform());
 
   if (infile) read_file();
 

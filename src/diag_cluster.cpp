@@ -123,8 +123,10 @@ void DiagCluster::init(double time)
   memory->create_1d_T_array(cluster_ids,0,nlocal+nghost-1,
 			    "diagcluster:cluster");
 
-  if (!comm) comm = new CommLattice(spk);
-  comm->init(0,0,0,cluster_ids);
+  if (!comm) {
+    comm = new CommLattice(spk);
+    comm->init(1,0,0,cluster_ids);
+  }
 
   if (dump_style == OPENDX) {
     if (applattice->latstyle == AppLattice::SC_6N || 
@@ -197,7 +199,6 @@ void DiagCluster::write_header()
 
 void DiagCluster::generate_clusters()
 {
-
   // Psuedocode
   //
   // work on copy of spin array since spin values are changed

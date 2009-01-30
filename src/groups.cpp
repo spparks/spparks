@@ -14,6 +14,7 @@
 #include "math.h"
 #include "stdlib.h"
 #include "groups.h"
+#include "random_mars.h"
 #include "random_park.h"
 #include "memory.h"
 
@@ -21,8 +22,8 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Groups::Groups(SPPARKS *spk, double hi_in, double lo_in, int seed_in, 
-		 int ng_in) : Pointers(spk)
+Groups::Groups(SPPARKS *spk, double hi_in, double lo_in, int ng_in) : 
+  Pointers(spk)
 {
   my_group = NULL;
   my_group_i = NULL;
@@ -34,7 +35,7 @@ Groups::Groups(SPPARKS *spk, double hi_in, double lo_in, int seed_in,
   empty_groups = NULL;
   nempty = 0;
 
-  random = new RandomPark(seed_in);
+  random = new RandomPark(ranmaster->uniform());
 
   hi = hi_in;
   lo = lo_in;

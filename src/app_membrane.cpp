@@ -36,15 +36,13 @@ AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  if (narg < 5) error->all("Illegal app_style command");
+  if (narg < 4) error->all("Illegal app_style command");
 
   w01 = atof(arg[1]);
   w11 = atof(arg[2]);
   mu = atof(arg[3]);
-  int seed = atoi(arg[4]);
-  RandomPark *random = new RandomPark(seed);
 
-  options(narg-5,&arg[5]);
+  options(narg-4,&arg[4]);
 
   // define lattice and partition it across processors
 
@@ -68,8 +66,6 @@ AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) :
   else {
     for (int i = 0; i < nlocal; i++) lattice[i] = LIPID;
   }
-
-  delete random;
 }
 
 /* ---------------------------------------------------------------------- */

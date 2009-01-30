@@ -20,6 +20,7 @@
 #include "input.h"
 #include "app.h"
 #include "solve.h"
+#include "random_mars.h"
 #include "timer.h"
 #include "output.h"
 
@@ -239,6 +240,7 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
 }
 
 /* ----------------------------------------------------------------------
+   shutdown SPPARKS
    delete top-level classes
    close screen and log files in world and universe
    output files were already closed in destroy()
@@ -274,18 +276,9 @@ void SPPARKS::create()
 {
   app = NULL;
   solve = NULL;
-  timer = new Timer(this);
+  ranmaster = new RanMars(this);
   output = new Output(this);
-}
-
-/* ----------------------------------------------------------------------
-   init top-level classes
-------------------------------------------------------------------------- */
-
-void SPPARKS::init()
-{
-  //app->init();
-  //solve->init();
+  timer = new Timer(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -297,6 +290,7 @@ void SPPARKS::destroy()
 {
   delete app;
   delete solve;
-  delete timer;
+  delete ranmaster;
   delete output;
+  delete timer;
 }
