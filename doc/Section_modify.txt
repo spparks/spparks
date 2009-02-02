@@ -77,8 +77,7 @@ Here is a list of the new features that can be added in this way.
 "Application styles"_#app
 "Diagnostic styles"_#diag
 "Input script commands"_#command
-"Solve styles"_#solve
-"Sweep styles"_#sweep :ul
+"Solve styles"_#solve :ul
 
 As illustrated by the application example, these options are referred
 to in the SPPARKS documentation as the "style" of a particular
@@ -103,12 +102,8 @@ evolved via Monte Carlo algorithms.  A new model typically requires
 adding a new application to the code.  Read the doc page for the
 "app_style"_app_style.html command to understand the distinction
 between on-lattice and off-lattice applications.  A new off-lattice
-application can be anything you wish.  On-lattice applications should
-derive from the AppLattice (general lattice), AppLattice2d (2d square
-lattice), of AppLattice3d (3d cubic lattice) classes.  The 2d and 3d
-variants may disappear in the future as they are superceded by
-AppLattice, so that style of application should be your default
-choice.
+application can be anything you wish.  On-lattice applications are
+derive from the AppLattice class.
 
 For off-lattice applications, here is a brief description of methods
 you define in your new derived class.  Some of them are required; some
@@ -124,16 +119,31 @@ set_dump: setup application-specific dump :tb(s=:)
 
 For off-lattice applications, here is a brief description of methods
 you define in your new derived class.  Some of them are required; some
-are optional.  See app_lattice.h for details.
+are optional.  See app_lattice.h for details.  Note that two of the
+methods are required if you want your application to perform kinetic
+Monte Carlo (KMC) with a "solver"_solve_style.html.  One of the
+methods is required if you want your application to perform rejection
+KMC (rKMC) with a "sweep method"_sweep.html.
 
 site_energy: compute energy of a lattice site
-site_event_rejection: peform a Metropolis event with rejection
-site_propensity: compute propensity of all events on a site
-site_event: perform a kinetic Monte Carlo event
+site_event_rejection: peform an event with null-bin rejection (for rKMC)
+site_propensity: compute propensity of all events on a site (for KMC)
+site_event: perform a kinetic Monte Carlo event (for KMC)
 input_app: perform application-specific input
 init_app: perform application-specific initialization :tb(s=:)
 
-:line
+For an on-lattice application, you also need to define various flags
+in the constructor of your application, to insure proper operation
+with the "KMC solvers'_solve.html and rejection KMC "sweep
+methods"_sweep.html.  These are the flags, all of which have default
+values set in app_lattice.cpp:
+
+delpropensity: how many neighbors away values are needed to compute propensity
+delevent: how many neighbors away may the value can be changed by an event
+allow_kmc: 1 if methods are provided for KMC
+allow_rejection: 1 if methods are provided for rejection KMC
+allow_masking: 1 if rKMC method supports masking
+numrandom: # of random numbers used by the site_event_rejection method :tb(s=:)
 
 Diagnostic styles :link(diag),h4
 
@@ -191,30 +201,6 @@ init: initialize the solver
 update: update one or more event probabilities
 resize: change the number of events in the list
 event: select an event and associated timestep :tb(s=:)
-
-:line
-
-Sweep styles :link(sweep),h4
-
-In SPPARKS, a sweep performs Metropolis Monte Carlo or kinetic Monte
-Carlo operations on a series of lattice sites for on-lattice
-applications.  See the "sweep_style"_sweep_style.html command for
-details.  See the "app_style"_app_style.html command for info on
-on-lattice applications.
-
-There are 3 sweep classes that support the various kinds of lattices
-used by applications: SweepLattice for general lattices,
-SweepLattice2d for 2d square lattices, and SweepLattice3d for 3d cubic
-lattices.
-
-Each of these sweep classes has lo-level functions defined for various
-kinds of sweeping: vanilla sweeping, with masking, with coloring for
-strict sweeping, etc.  New functions could be added to any of the
-these 3 classes for alternate sweeping strategies that could then be
-called by the top-level of the sweeper.
-
-See the sweep_lattice.h, sweep_lattice2d.h, and sweep_lattice3d.h
-files for details.
 
 :line
 :line

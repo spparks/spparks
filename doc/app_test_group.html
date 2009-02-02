@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style test/group N Nmax pmax pmin delta seed keyword value 
+<PRE>app_style test/group N Nmax pmax pmin delta keyword value 
 </PRE>
 <UL><LI>test/group = application style name 
 
@@ -27,8 +27,7 @@
 
 <LI>delta = percentage adjustment factor for dependent probabilities 
 
-<LI>seed = random number seed (positive integer) 
-zero or more keyword/value pairs may be appended 
+<LI>zero or more keyword/value pairs may be appended 
 
 <LI>keyword = <I>lomem</I> 
 
@@ -38,8 +37,8 @@ zero or more keyword/value pairs may be appended
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style test/group 10000 30 1.0 1.0e-6 5 49289
-app_style test/group 10000 30 1.0 1.0e-9 10 5982893 lomem yes 
+<PRE>app_style test/group 10000 30 1.0 1.0e-6 5
+app_style test/group 10000 30 1.0 1.0e-9 10 lomem yes 
 </PRE>
 <P><B>Description:</B>
 </P>

@@ -10,16 +10,15 @@ app_style erbium command :h3
 
 [Syntax:]
 
-app_style erbium frac seed keyword values ... :pre
+app_style erbium frac keyword values ... :pre
 
 erbium = application style name
 frac = fraction of tetrahedral sites that will initially be hydrogen
-seed = random number seed (positive integer)
 see the "app_style"_app_style.html command for additional keywords that can be appended :ul
 
 [Examples:]
 
-app_style erbium 0.1 12345 lattice file tmp.lattice site 2 0 :pre
+app_style erbium 0.1 lattice file tmp.lattice site 2 0 :pre
 
 [Description:]
 

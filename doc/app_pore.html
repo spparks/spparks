@@ -15,24 +15,23 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style xc yc zc diameter thickness seed keyword values ... 
+<PRE>app_style style xc yc zc diameter thickness keyword values ... 
 </PRE>
 <UL><LI>style = <I>pore</I> or <I>pore/nonlinear</I>
 <LI>xc,yc,zc = coordinates of center point of pore
 <LI>diameter = xy diameter of cylindrical pore aligned along z axis
 <LI>thickness = z thickness of thin film which the pore spans
-<LI>seed = random number seed (positive integer)
 <LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style pore 10 10 10 4 10 18874 lattice fcc 1.0 20 20 20 
+<PRE>app_style pore 10 10 10 4 10 lattice fcc 1.0 20 20 20 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This application is exactly the same as the <A HREF = "app_diffusion">app_style
-diffusion</A> application, except for the way the
-lattice of occupied/vacant sites is initialized.
+diffusion</A> application, except for the way the lattice
+of occupied/vacant sites is initialized.
 </P>
 <P>A single cylindrical pore in a thin-film membrane is setup.  The pore
 is aligned with the z-axis and the thin film is periodic in the x and

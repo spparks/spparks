@@ -15,18 +15,17 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style Q rejectstyle seed keyword values ... 
+<PRE>app_style style Q rejectstyle keyword values ... 
 </PRE>
 <UL><LI>style = <I>potts</I> or <I>potts/variable</I>
 <LI>Q = number of spin states
 <LI>rejectstyle = <I>spin</I> or <I>neigh</I> or <I>neighonly</I>
-<LI>seed = random number seed (positive integer)
 <LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended to the <I>potts</I> and <I>potts/variable</I> styles 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style potts 20 spin 18874 lattice sq/4n 1.0 50 50
-app_style potts/variable 20 neigh 18874 lattice sq/4n 1.0 50 50 site 1 1 
+<PRE>app_style potts 20 spin lattice sq/4n 1.0 50 50
+app_style potts/variable 20 neigh lattice sq/4n 1.0 50 50 site 1 1 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -52,11 +51,10 @@ application except that the <I>site</I> keyword (described with the
 quantities per site, instead of just a single spin value.
 </P>
 <P>As explained on <A HREF = "app_style.html">this page</A>, these applications can be
-evolved by either a kinetic Monte Carlo (KMC) or rejection kinetic
-Monte Carlo (rKMC) algorithm.  You must thus define a KMC solver or
-rejection method to be used with the application via the
-<A HREF = "solve_style.html">solve_style</A> or <A HREF = "sweep_style.html">reject_style</A>
-commands.
+evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
+algorithm.  You must thus define a KMC solver or sweeping method to be
+used with the application via the <A HREF = "solve_style.html">solve_style</A> or
+<A HREF = "sweep.html">sweep</A> commands.
 </P>
 <P>For solution by a KMC algorithm, a site event is a spin flip and its
 probability is min[1,exp(-dE/kT)], where dE = Efinal - Einitial
@@ -67,34 +65,18 @@ constant k implicitly).
 </P>
 <P>For solution by a rKMC algorithm, the <I>rejectstyle</I> keyword determines
 what rejection-based algorithm is used by the application.  For the
-<I>spin</I> style, a random spin from 1 to Q is chosen, dE = Efinal -
-Einitial is calculated, as is a uniform random number R between 0 and
-1.  The new state is accepted if R < min[1,exp(-dE/kT)].
+<I>spin</I> style, a random spin from 1 to Q is chosen.  For the <I>neigh</I>
+style, a spin is chosen randomly from the values held by neighbor
+sites and a null-bin (meaning no event).  For example, imagine a site
+has 12 neighbors and those 12 spins have 4 different values.  Each of
+the 4 spin values will be chosen with 1/12 probability and the null
+bin chosen with 8/12 probability.  For the <I>neighonly</I> style, the null
+bin is discarded, so each of the 4 spin values will be chosen with 1/4
+probability.  In all the cases, dE = Efinal - Einitial is calculated,
+as is a uniform random number R between 0 and 1.  The new state is
+accepted if R < min[1,exp(-dE/kT)], else it is rejected.
 </P>
-<P>wild flips
-</P>
-<P>As explained on <A HREF = "app_style.html">this page</A>, these applications can be
-evolved by either a kinetic Monte Carlo (KMC) or Metropolis
-rejection-based algorithm.  You must thus define a sweeping method
-and/or KMC solver to be used with the application via the
-<A HREF = "sweep_style.html">sweep_style</A> and <A HREF = "solve_style.html">solve_style</A>
-commands.
-</P>
-<P>For solution by a KMC algorithm, a site event is a spin flip to a spin
-value of a neighbor site different than itself.  For example, let a
-site have 12 neighbors and those 12 spins have 4 different values, one
-of which is the same as the central site.  There will then be 3 events
-defined for the central site.  The probability of each event is
-min[1,exp(-dE/kT)], where dE = Efinal - Einitial using the
-Hamiltonian defined above for the energy of the site, and T is the
-temperature of the system defined by the
-<A HREF = "temperature.html">temperature</A> command (which includes the Boltzmann
-constant k implicitly).
-</P>
-<P>For solution by a Metropolis algorithm, the spin is set to a random
-value between 1 and Q, dE = Efinal - Einitial is calculated, as is a
-uniform random number R between 0 and 1.  The new state is accepted if
-R < min[1,exp(-dE/kT)], else it is rejected.
+<P>Discuss wild flips for KMC and rKMC.
 </P>
 <HR>
 

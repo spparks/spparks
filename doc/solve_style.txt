@@ -13,13 +13,10 @@ solve_style command :h3
 solve_style style args keyword value ... :pre
 
 style = {linear} or {tree} or {group} :ulb,l
-  {linear} arg = seed
-    seed = random number seed (positive integer)
-  {tree} arg = seed
-    seed = random number seed (positive integer)
-  {group} args = hi lo seed 
+  {linear} arg = none
+  {tree} arg = none
+  {group} args = hi lo 
     hi,lo = range of allowed probabilities
-    seed = random number seed (positive integer) :pre
 zero or more keyword/value pairs may be appended :l
 keyword = {ngroup} :l
   {ngroup} value = N
@@ -28,17 +25,16 @@ keyword = {ngroup} :l
 
 [Examples:]
 
-solve_style linear 394893
-solve_style tree 1995893
-solve_style group 1.0 1.0e-6 6998729
-solve_style group 100.0 1.0 59983 ngroup 10 :pre
+solve_style linear
+solve_style tree
+solve_style group 1.0 1.0e-6
+solve_style group 100.0 1.0 ngroup 10 :pre
 
 [Description:]
 
 Choose a kinetic Monte Carlo (KMC) solver to use in your
-"application"_app_style.html.  If no "sweeper"_sweep_style.html is
-used then a solver is required.  If a sweeper with the KMC option is
-used, then a solver is also required.
+"application"_app_style.html.  If no "sweeper"_sweep.html is used then
+a solver is required.
 
 A KMC solver picks events for your application to perform from a list
 of events and their associated probabilities.  It does this using the

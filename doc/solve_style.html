@@ -17,15 +17,11 @@
 </PRE>
 <UL><LI>style = <I>linear</I> or <I>tree</I> or <I>group</I> 
 
-<PRE>  <I>linear</I> arg = seed
-    seed = random number seed (positive integer)
-  <I>tree</I> arg = seed
-    seed = random number seed (positive integer)
-  <I>group</I> args = hi lo seed 
+<LI>  <I>linear</I> arg = none
+  <I>tree</I> arg = none
+  <I>group</I> args = hi lo 
     hi,lo = range of allowed probabilities
-    seed = random number seed (positive integer) 
-</PRE>
-<LI>zero or more keyword/value pairs may be appended 
+zero or more keyword/value pairs may be appended 
 
 <LI>keyword = <I>ngroup</I> 
 
@@ -36,17 +32,16 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>solve_style linear 394893
-solve_style tree 1995893
-solve_style group 1.0 1.0e-6 6998729
-solve_style group 100.0 1.0 59983 ngroup 10 
+<PRE>solve_style linear
+solve_style tree
+solve_style group 1.0 1.0e-6
+solve_style group 100.0 1.0 ngroup 10 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Choose a kinetic Monte Carlo (KMC) solver to use in your
-<A HREF = "app_style.html">application</A>.  If no <A HREF = "sweep_style.html">sweeper</A> is
-used then a solver is required.  If a sweeper with the KMC option is
-used, then a solver is also required.
+<A HREF = "app_style.html">application</A>.  If no <A HREF = "sweep.html">sweeper</A> is used then
+a solver is required.
 </P>
 <P>A KMC solver picks events for your application to perform from a list
 of events and their associated probabilities.  It does this using the

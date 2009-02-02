@@ -80,8 +80,7 @@ processed by your new class.
 <UL><LI><A HREF = "#app">Application styles</A>
 <LI><A HREF = "#diag">Diagnostic styles</A>
 <LI><A HREF = "#command">Input script commands</A>
-<LI><A HREF = "#solve">Solve styles</A>
-<LI><A HREF = "#sweep">Sweep styles</A> 
+<LI><A HREF = "#solve">Solve styles</A> 
 </UL>
 <P>As illustrated by the application example, these options are referred
 to in the SPPARKS documentation as the "style" of a particular
@@ -107,12 +106,8 @@ evolved via Monte Carlo algorithms.  A new model typically requires
 adding a new application to the code.  Read the doc page for the
 <A HREF = "app_style.html">app_style</A> command to understand the distinction
 between on-lattice and off-lattice applications.  A new off-lattice
-application can be anything you wish.  On-lattice applications should
-derive from the AppLattice (general lattice), AppLattice2d (2d square
-lattice), of AppLattice3d (3d cubic lattice) classes.  The 2d and 3d
-variants may disappear in the future as they are superceded by
-AppLattice, so that style of application should be your default
-choice.
+application can be anything you wish.  On-lattice applications are
+derive from the AppLattice class.
 </P>
 <P>For off-lattice applications, here is a brief description of methods
 you define in your new derived class.  Some of them are required; some
@@ -130,18 +125,35 @@ are optional.  See app.h for details.
 
 <P>For off-lattice applications, here is a brief description of methods
 you define in your new derived class.  Some of them are required; some
-are optional.  See app_lattice.h for details.
+are optional.  See app_lattice.h for details.  Note that two of the
+methods are required if you want your application to perform kinetic
+Monte Carlo (KMC) with a <A HREF = "solve_style.html">solver</A>.  One of the
+methods is required if you want your application to perform rejection
+KMC (rKMC) with a <A HREF = "sweep.html">sweep method</A>.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >site_energy</TD><TD > compute energy of a lattice site</TD></TR>
-<TR><TD >site_event_rejection</TD><TD > peform a Metropolis event with rejection</TD></TR>
-<TR><TD >site_propensity</TD><TD > compute propensity of all events on a site</TD></TR>
-<TR><TD >site_event</TD><TD > perform a kinetic Monte Carlo event</TD></TR>
+<TR><TD >site_event_rejection</TD><TD > peform an event with null-bin rejection (for rKMC)</TD></TR>
+<TR><TD >site_propensity</TD><TD > compute propensity of all events on a site (for KMC)</TD></TR>
+<TR><TD >site_event</TD><TD > perform a kinetic Monte Carlo event (for KMC)</TD></TR>
 <TR><TD >input_app</TD><TD > perform application-specific input</TD></TR>
 <TR><TD >init_app</TD><TD > perform application-specific initialization 
 </TD></TR></TABLE></DIV>
 
-<HR>
+<P>For an on-lattice application, you also need to define various flags
+in the constructor of your application, to insure proper operation
+with the "KMC solvers'_solve.html and rejection KMC <A HREF = "sweep.html">sweep
+methods</A>.  These are the flags, all of which have default
+values set in app_lattice.cpp:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >delpropensity</TD><TD > how many neighbors away values are needed to compute propensity</TD></TR>
+<TR><TD >delevent</TD><TD > how many neighbors away may the value can be changed by an event</TD></TR>
+<TR><TD >allow_kmc</TD><TD > 1 if methods are provided for KMC</TD></TR>
+<TR><TD >allow_rejection</TD><TD > 1 if methods are provided for rejection KMC</TD></TR>
+<TR><TD >allow_masking</TD><TD > 1 if rKMC method supports masking</TD></TR>
+<TR><TD >numrandom</TD><TD > # of random numbers used by the site_event_rejection method 
+</TD></TR></TABLE></DIV>
 
 <A NAME = "diag"></A><H4>Diagnostic styles 
 </H4>
@@ -206,30 +218,6 @@ class.  All of them are required.  See solve.h for details.
 <TR><TD >event</TD><TD > select an event and associated timestep 
 </TD></TR></TABLE></DIV>
 
-<HR>
-
-<A NAME = "sweep"></A><H4>Sweep styles 
-</H4>
-<P>In SPPARKS, a sweep performs Metropolis Monte Carlo or kinetic Monte
-Carlo operations on a series of lattice sites for on-lattice
-applications.  See the <A HREF = "sweep_style.html">sweep_style</A> command for
-details.  See the <A HREF = "app_style.html">app_style</A> command for info on
-on-lattice applications.
-</P>
-<P>There are 3 sweep classes that support the various kinds of lattices
-used by applications: SweepLattice for general lattices,
-SweepLattice2d for 2d square lattices, and SweepLattice3d for 3d cubic
-lattices.
-</P>
-<P>Each of these sweep classes has lo-level functions defined for various
-kinds of sweeping: vanilla sweeping, with masking, with coloring for
-strict sweeping, etc.  New functions could be added to any of the
-these 3 classes for alternate sweeping strategies that could then be
-called by the top-level of the sweeper.
-</P>
-<P>See the sweep_lattice.h, sweep_lattice2d.h, and sweep_lattice3d.h
-files for details.
-</P>
 <HR>
 
 <HR>

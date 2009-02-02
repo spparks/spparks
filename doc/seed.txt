@@ -20,11 +20,11 @@ seed 5838959 :pre
 
 [Description:]
 
-This command sets the molecular count of a chemical species for use in
-the "app_style chemistry"_app_chemistry.html application.
-
-The species ID can be any string defined by the
-"add_species"_add_species.html command.
+This command sets the random number seed for a master random number
+generator which is used by SPPARKS to initialize auxiliary random
+number generators which in turn are used for all operations in the
+code requiring random numbers.  Thus this command is needed to perform
+any simulation with SPPARKS.
 
 [Restrictions:] none
 

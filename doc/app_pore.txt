@@ -11,24 +11,23 @@ app_style pore/nonlinear command :h3
 
 [Syntax:]
 
-app_style style xc yc zc diameter thickness seed keyword values ... :pre
+app_style style xc yc zc diameter thickness keyword values ... :pre
 
 style = {pore} or {pore/nonlinear}
 xc,yc,zc = coordinates of center point of pore
 diameter = xy diameter of cylindrical pore aligned along z axis
 thickness = z thickness of thin film which the pore spans
-seed = random number seed (positive integer)
 see the "app_style"_app_style.html command for additional keywords that can be appended :ul
 
 [Examples:]
 
-app_style pore 10 10 10 4 10 18874 lattice fcc 1.0 20 20 20 :pre
+app_style pore 10 10 10 4 10 lattice fcc 1.0 20 20 20 :pre
 
 [Description:]
 
 This application is exactly the same as the "app_style
-diffusion"_app_diffusion application, except for the way the
-lattice of occupied/vacant sites is initialized.
+diffusion"_app_diffusion application, except for the way the lattice
+of occupied/vacant sites is initialized.
 
 A single cylindrical pore in a thin-film membrane is setup.  The pore
 is aligned with the z-axis and the thin film is periodic in the x and

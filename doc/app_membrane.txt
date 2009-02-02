@@ -7,31 +7,24 @@
 :line
 
 app_style membrane command :h3
-app_style membrane/2d command :h3
 
 [Syntax:]
 
-app_style style args :pre
+app_style membrane w01 w11 mu keyword values ... :pre
 
-style = {membrane} or {membrane/2d} :ulb,l
-  {membrane} args = w01 w11 mu seed 
-    w01 = sovent-protein interaction energy (typically 1.25)
-    w11 = sovent-solvent interaction energy (typically 1.0)
-    mu = chemical potential to insert a solvent (typically -2.0)
-    seed = random number seed (positive integer)
-  {membrane/2d} args = Nx Ny w01 w11 mu seed
-    Nx,Ny = size of 2d square lattice with 4 neighbors per site
-    w01,w11,mu,seed = same as above :pre   
-see the "app_style"_app_style.html command for additional keywords that can be appended to the {membrane} style :l,ule
+membrane = style name of this application
+w01 = sovent-protein interaction energy (typically 1.25)
+w11 = sovent-solvent interaction energy (typically 1.0)
+mu = chemical potential to insert a solvent (typically -2.0)
+see the "app_style"_app_style.html command for additional keywords that can be appended to the {membrane} style :ul
 
 [Examples:]
 
-app_style membrane 1.25 1.0 -3.0 12345 lattice tri 1.0 100 50
-app_style membrane/2d 100 100 1.25 1.0 -3.0 12345 :pre
+app_style membrane 1.25 1.0 -3.0 lattice tri 1.0 100 50 :pre
 
 [Description:]
 
-These applications evolve a membrane model, where each lattice site is
+This application evolves a membrane model, where each lattice site is
 in one of 3 states: lipid, water, or protein.  Sites flip their state
 as the model evolves.  See the paper of "(Sarkisov)"_#Sarkisov for a
 description of the model and its applications to porous media.  Here
@@ -58,20 +51,11 @@ grand-canonical Monte Carlo model, which is isomorphic to an Ising
 model.  The mu term is a penalty for inserting solvent which prevents
 the system from becoming all solvent, which the 2nd term would prefer.
 
-These membrane models can be run in one of 2 modes, either as a
-general lattice application or as a 2d square lattice application with
-4 neighbors per site.  See the "app_style"_app_style.html commmand for
-further discussion.  When running as a general lattice application,
-the lattice is specified by the appended {lattice} keword with its
-associated values, as discussed on the doc page for the
-"app_style"_app_style.html command.
-
-As explained on "this page"_app_style.html, these applications can be
-evolved by either a kinetic Monte Carlo (KMC) or Metropolis
-rejection-based algorithm.  You must thus define a sweeping method
-and/or KMC solver to be used with the application via the
-"sweep_style"_sweep_style.html and "solve_style"_solve_style.html
-commands.
+As explained on "this page"_app_style.html, this application can be
+evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
+algorithm.  You must thus define a KMC solver or sweeping method to be
+used with the application via the "solve_style"_solve_style.html or
+"sweep"_sweep.html commands.
 
 For solution by a KMC algorithm, a site event is a spin flip from a
 lipid to fluid state or vice versa.  The probability of the event is

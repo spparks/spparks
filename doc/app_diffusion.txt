@@ -12,17 +12,16 @@ app_style diffusion/nonlinear command :h3
 
 [Syntax:]
 
-app_style style fraction seed keyword values ... :pre
+app_style style fraction keyword values ... :pre
 
 style = {diffusion} or {diffusion/table} or {diffusion/nonlinear}
 fraction = fraction of sites to occupy initially
-seed = random number seed (positive integer)
 see the "app_style"_app_style.html command for additional keywords that can be appended :ul
 
 [Examples:]
 
-app_style diffusion 0.2 18874 lattice tri 1.0 50 50
-app_style diffusion/nonlinear 0.2 18874 lattice tri 1.0 50 50 :pre
+app_style diffusion 0.2 lattice tri 1.0 50 50
+app_style diffusion/nonlinear 0.2 lattice tri 1.0 50 50 :pre
 
 [Description:]
 
@@ -46,20 +45,6 @@ The Hamiltonian representing the energy of site I for the
 {diffusion/nonlinear} style is as follows:
 
 H = Eng(Sum_j delta_ij) :pre
-
-
-For the Kawasaki dynamics applications with solution by a KMC
-algorithm, the possible events a site can perform are swaps with any
-neighbor site with a spin different than itself.  The probability of
-each such event is min\[1,exp(-dE/kT)\], where dE = Efinal - Einitial
-and E is the sum of the energy for the site and its neighbor.
-
-For the Kawasaki dynamics applications with solution by a Metropolis
-algorithm, the spin is flipped to its opposite state and dE = Efinal -
-Einitial is calculated, as is a uniform random number R between 0 and
-1.  The flip is accepted if R < min\[1,exp(-dE/kT)\], else it is
-rejected.
-
 
 where H = 0 if a site is a vacancy.  If a site is occupied, Sum_j is
 the sum over all its neighbor sites and delta_ij is 1 if site J is
@@ -105,14 +90,13 @@ neighboring sites are swapped.  Equivalently, an atom hops from an
 occupied site to a vacancy site.
 
 As explained on "this page"_app_style.html, these applications can be
-evolved by either a kinetic Monte Carlo (KMC) or Metropolis
-rejection-based algorithm.  You must thus define a sweeping method
-and/or KMC solver to be used with the application via the
-"sweep_style"_sweep_style.html and "solve_style"_solve_style.html
-commands.
+evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
+algorithm.  You must thus define a KMC solver or sweeping method to be
+used with the application via the "solve_style"_solve_style.html or
+"sweep"_sweep.html commands.
 
 For solution by a KMC algorithm, the possible events an occupied site
-can perform are swaps with vacant neighbor sites The probability of
+can perform are swaps with vacant neighbor sites.  The probability of
 each such event is min\[1,exp(-dE/kT)\], where dE = Efinal - Einitial.
 For the {diffusion} and {diffusion/table} styles, E is the sum of the
 energy for the site and its neighbor.  For the {diffusion/nonlinear}

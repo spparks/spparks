@@ -10,15 +10,15 @@ app_style ising command :h3
 
 [Syntax:]
 
-app_style ising seed keyword values ... :pre
+app_style ising rejectstyle keyword values ... :pre
 
-ising = style name of this applicatoin
-seed = random number seed (positive integer) 
+ising = style name of this application
+rejectstyle = {single} or {double}
 see the "app_style"_app_style.html command for additional keywords that can be appended to the {ising} style :ul
 
 [Examples:]
 
-app_style ising 18874 lattice sq/4n 1.0 50 50 :pre
+app_style ising double lattice sq/4n 1.0 50 50 :pre
 
 [Description:]
 
@@ -38,12 +38,11 @@ flipped on a single site.  See "app_style diffusion" for an Ising
 model which performs Kawasaki dynamics, meaning the spins on two
 neighboring sites are swapped.
 
-As explained on "this page"_app_style.html, thus application can be
-evolved by either a kinetic Monte Carlo (KMC) or rejection kinetic
-Monte Carlo (rKMC) algorithm.  You must thus define a KMC solver or
-rejection method to be used with the application via the
-"solve_style"_solve_style.html or "reject_style"_sweep_style.html
-commands.
+As explained on "this page"_app_style.html, this application can be
+evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
+algorithm.  You must thus define a KMC solver or sweeping method to be
+used with the application via the "solve_style"_solve_style.html or
+"sweep"_sweep.html commands.
 
 For solution by a KMC algorithm, a site event is a spin flip and its
 probability is min\[1,exp(-dE/kT)\], where dE = Efinal - Einitial
@@ -52,9 +51,12 @@ is the temperature of the system defined by the
 "temperature"_temperature.html command (which includes the Boltzmann
 constant k implicitly).
 
-For solution by a rKMC algorithm, the spin is set randomly to 1 or 2
-and dE = Efinal - Einitial is calculated, as is a uniform random
-number R between 0 and 1.  The new state is accepted if R <
+For solution by a rKMC algorithm, the {rejectstyle} keyword determines
+what rejection-based algorithm is used by the application.  For the
+{single} style, the spin is flipped to its opposite value.  For the
+{double} style, the spin is set randomly to 1 or 2.  In either case,
+dE = Efinal - Einitial is calculated, as is a uniform random number R
+between 0 and 1.  The new state is accepted if R <
 min\[1,exp(-dE/kT)\].
 
 :line

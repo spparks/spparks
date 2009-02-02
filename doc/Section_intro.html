@@ -27,24 +27,41 @@ the funding and people who have contributed to SPPARKS.
 <A NAME = "1_1"></A><H4>1.1 What is SPPARKS 
 </H4>
 <P>SPPARKS is a kinetic Monte Carlo (KMC) code that has algorithms for
-both KMC and Metropolis MC updating.  In a generic sense its KMC
-solvers catalog a list of "events", each with an associated
-"probability", choose a single event to perform, and advance time by
-the correct amount.  Events may be chosen indivudually at random or a
-sweep of a geometric lattice can be performed to select possible
-events in an ordered fashion.  In the Metropolis context an event may
-be accepted or rejected via a Boltzmann criterion.
+both rejection-free KMC and null-event or rejection KMC (rKMC).  In a
+generic sense its KMC and rKMC solvers catalog a list of "events",
+each with an associated "probability", choose a single event to
+perform, and advance time by the correct amount.  Events may be chosen
+indivudually at random or a sweep of a geometric lattice can be
+performed to select possible events in a more ordered fashion.
 </P>
-<P>Various applications are implemented in SPPARKS which use this
-solver/sweeper framework to perform simulations as a series of events.
-The application defines the events and their probabilities.  It also
-executes each event when it is selected.
+<P>Note that rKMC is different from Metropolis MC, which is sometimes
+called thermodynamic-equilibrium MC or barrier-free MC, in that rKMC
+still uses rates to define events, often associated with the rate for
+the system to cross some energy barrier.  Thus both KMC and rKMC track
+the dynamic evolution of a system in a time-accurate manner as events
+are performed.  Metropolis MC is typically used to sample states from
+a system in equilibrium or to drive a system to equilibrium (energy
+minimization).  It does this be performing (possibly) non-physical
+events.  As such it has no requirement to sample events with the
+correct relative probabilities or to limit itself to physical events
+(e.g. it can change an atom to a new species).  Because of this it
+also does not evolve the system in a time-accurate manner; in general
+there is no "time" associated with Metropolis MC events.
+</P>
+<P>Applications are implemented in SPPARKS which define events and their
+probabilities and acceptance/rejection criteria.  They are coupled to
+solvers or sweepers to perform KMC or rKMC simulations.  The KMC or
+rKMC options for an application in SPPARKS can be written to define
+rates based on energy differences between the initial and final state
+of an event and a Metropolis-style accept/reject criterion based on
+the Boltzmann factor SPPARKS will then perform a Metropolis-style
+Monte Carlo simulation.
 </P>
 <P>In parallel, a geometric partitioning of the simulation domain is
-performed.  Sub-partitioning of processor domains into quadrants (2d)
-or octants (3d) is done to enable multiple events to be performed on
-multiple processors simultaneously.  Communication of boundary
-information is performed as needed.
+performed.  Sub-partitioning of processor domains into colors or
+quadrants (2d) and octants (3d) is done to enable multiple events to
+be performed on multiple processors simultaneously.  Communication of
+boundary information is performed as needed.
 </P>
 <P>SPPARKS is designed to be easy to modify and extend.  For example, new
 solvers and sweeping rules can be added, as can new applications.
@@ -74,7 +91,8 @@ brief discussion of the open-source philosophy.
 </H4>
 <P>These are the applications currently available in SPPARKS:
 </P>
-<UL><LI>Ising model
+<UL><LI>Diffusion model
+<LI>Ising model
 <LI>Potts model
 <LI>Membrane model
 <LI>Biochemcial reaction network model 

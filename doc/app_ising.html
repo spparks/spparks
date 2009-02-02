@@ -13,15 +13,15 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style ising seed keyword values ... 
+<PRE>app_style ising rejectstyle keyword values ... 
 </PRE>
-<UL><LI>ising = style name of this applicatoin
-<LI>seed = random number seed (positive integer) 
+<UL><LI>ising = style name of this application
+<LI>rejectstyle = <I>single</I> or <I>double</I>
 <LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended to the <I>ising</I> style 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising 18874 lattice sq/4n 1.0 50 50 
+<PRE>app_style ising double lattice sq/4n 1.0 50 50 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -41,12 +41,11 @@ flipped on a single site.  See "app_style diffusion" for an Ising
 model which performs Kawasaki dynamics, meaning the spins on two
 neighboring sites are swapped.
 </P>
-<P>As explained on <A HREF = "app_style.html">this page</A>, thus application can be
-evolved by either a kinetic Monte Carlo (KMC) or rejection kinetic
-Monte Carlo (rKMC) algorithm.  You must thus define a KMC solver or
-rejection method to be used with the application via the
-<A HREF = "solve_style.html">solve_style</A> or <A HREF = "sweep_style.html">reject_style</A>
-commands.
+<P>As explained on <A HREF = "app_style.html">this page</A>, this application can be
+evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
+algorithm.  You must thus define a KMC solver or sweeping method to be
+used with the application via the <A HREF = "solve_style.html">solve_style</A> or
+<A HREF = "sweep.html">sweep</A> commands.
 </P>
 <P>For solution by a KMC algorithm, a site event is a spin flip and its
 probability is min[1,exp(-dE/kT)], where dE = Efinal - Einitial
@@ -55,9 +54,12 @@ is the temperature of the system defined by the
 <A HREF = "temperature.html">temperature</A> command (which includes the Boltzmann
 constant k implicitly).
 </P>
-<P>For solution by a rKMC algorithm, the spin is set randomly to 1 or 2
-and dE = Efinal - Einitial is calculated, as is a uniform random
-number R between 0 and 1.  The new state is accepted if R <
+<P>For solution by a rKMC algorithm, the <I>rejectstyle</I> keyword determines
+what rejection-based algorithm is used by the application.  For the
+<I>single</I> style, the spin is flipped to its opposite value.  For the
+<I>double</I> style, the spin is set randomly to 1 or 2.  In either case,
+dE = Efinal - Einitial is calculated, as is a uniform random number R
+between 0 and 1.  The new state is accepted if R <
 min[1,exp(-dE/kT)].
 </P>
 <HR>
