@@ -21,20 +21,16 @@ namespace SPPARKS_NS {
 class AppPotts : public AppLattice {
  public:
   AppPotts(class SPPARKS *, int, char **);
-  ~AppPotts();
+  virtual ~AppPotts();
 
   double site_energy(int);
-  void site_event_rejection(int, class RandomPark *);
+  virtual void site_event_rejection(int, class RandomPark *);
   double site_propensity(int);
   void site_event(int, class RandomPark *);
 
- private:
-  int nspins,rejectstyle;
+ protected:
+  int nspins;
   int *sites,*unique;
-
-  void site_event_rejection_spins(int, class RandomPark *);
-  void site_event_rejection_neighbors(int, class RandomPark *);
-  void site_event_rejection_neighbors_only(int, class RandomPark *);
 };
 
 }

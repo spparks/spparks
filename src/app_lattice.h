@@ -23,7 +23,6 @@ namespace SPPARKS_NS {
 
 class AppLattice : public App {
   friend class Output;
-  friend class SweepLattice;
   friend class CommLattice;
   friend class DiagEnergy;
   friend class DiagErbium;

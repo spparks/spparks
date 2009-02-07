@@ -18,10 +18,13 @@
 #include "app_diffusion_nonlinear.h"
 #include "app_erbium.h"
 #include "app_ising.h"
+#include "app_ising_single.h"
 #include "app_membrane.h"
 #include "app_pore.h"
 #include "app_pore_nonlinear.h"
 #include "app_potts.h"
+#include "app_potts_neigh.h"
+#include "app_potts_neighonly.h"
 #include "app_potts_variable.h"
 #include "app_surface.h"
 #include "app_test_group.h"
@@ -34,10 +37,13 @@ AppStyle(diffusion/table,AppDiffusionTable)
 AppStyle(diffusion/nonlinear,AppDiffusionNonLinear)
 AppStyle(erbium,AppErbium)
 AppStyle(ising,AppIsing)
+AppStyle(ising/single,AppIsingSingle)
 AppStyle(membrane,AppMembrane)
 AppStyle(pore,AppPore)
 AppStyle(pore/nonlinear,AppPoreNonLinear)
 AppStyle(potts,AppPotts)
+AppStyle(potts/neigh,AppPottsNeigh)
+AppStyle(potts/neigh/only,AppPottsNeighOnly)
 AppStyle(potts/variable,AppPottsVariable)
 AppStyle(surface,AppSurface)
 AppStyle(test/group,AppTestGroup)

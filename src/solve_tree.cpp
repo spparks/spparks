@@ -51,7 +51,6 @@ SolveTree *SolveTree::clone()
   arg[0] = style;
 
   SolveTree *ptr = new SolveTree(spk,narg,arg);
-
   return ptr;
 }
 
@@ -89,7 +88,6 @@ void SolveTree::init(int n, double *propensity)
   for (int i = offset; i < offset + n; i++) 
     tree[i] = propensity[i-offset];
   sum_tree();
-
 }
 
 /* ---------------------------------------------------------------------- */

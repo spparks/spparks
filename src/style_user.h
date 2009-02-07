@@ -34,9 +34,3 @@ AppStyle(surface,AppSurface)
 
 #ifdef SolveClass
 #endif
-
-#ifdef SweepInclude
-#endif
-
-#ifdef SweepClass
-#endif

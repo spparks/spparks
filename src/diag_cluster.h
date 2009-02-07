@@ -22,8 +22,6 @@
 namespace SPPARKS_NS {
 
 class DiagCluster : public Diag {
-  friend class SweepLattice;
-
  public:
   DiagCluster(class SPPARKS *, int, char **);
   virtual ~DiagCluster();

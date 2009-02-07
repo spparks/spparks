@@ -12,23 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
 #include "app_potts.h"
-#include "comm_lattice.h"
 #include "solve.h"
 #include "random_mars.h"
 #include "random_park.h"
-#include "timer.h"
-#include "memory.h"
 #include "error.h"
 
 #include <map>
 
 using namespace SPPARKS_NS;
-
-enum{SPIN,NEIGH,NEIGHONLY};
 
 /* ---------------------------------------------------------------------- */
 
@@ -37,25 +31,19 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
 {
   // parse arguments
 
-  if (narg < 3) error->all("Illegal app_style command");
+  if (narg < 2) error->all("Illegal app_style command");
 
   nspins = atoi(arg[1]);
-  if (strcmp(arg[2],"spin") == 0) rejectstyle = SPIN;
-  else if (strcmp(arg[2],"neigh") == 0) rejectstyle = NEIGH;
-  else if (strcmp(arg[2],"neighonly") == 0) rejectstyle = NEIGHONLY;
-  else error->all("Illegal app_style command");
 
-  options(narg-3,&arg[3]);
+  dt_sweep = 1.0/nspins;
+
+  options(narg-2,&arg[2]);
 
   // define lattice and partition it across processors
   
   create_lattice();
   sites = new int[1 + maxneigh];
   unique = new int[1 + maxneigh];
-
-  if (rejectstyle == SPIN) dt_sweep = 1.0/nspins;
-  else if (rejectstyle == NEIGH) dt_sweep = 1.0/maxneigh;
-  else if (rejectstyle == NEIGHONLY) dt_sweep = 1.0/maxneigh;
 
   // initialize my portion of lattice
   // each site = one of nspins
@@ -106,21 +94,10 @@ double AppPotts::site_energy(int i)
 
 /* ----------------------------------------------------------------------
    perform a site event with null bin rejection
-------------------------------------------------------------------------- */
-
-void AppPotts::site_event_rejection(int i, RandomPark *random)
-{
-  if (rejectstyle == SPIN) site_event_rejection_spins(i,random);
-  else if (rejectstyle == NEIGH) site_event_rejection_neighbors(i,random);
-  else site_event_rejection_neighbors_only(i,random);
-}
-
-/* ----------------------------------------------------------------------
-   perform a site event with null bin rejection
    flip to random spin from 1 to nspins
 ------------------------------------------------------------------------- */
 
-void AppPotts::site_event_rejection_spins(int i, RandomPark *random)
+void AppPotts::site_event_rejection(int i, RandomPark *random)
 {
   int oldstate = lattice[i];
   double einitial = site_energy(i);
@@ -134,113 +111,6 @@ void AppPotts::site_event_rejection_spins(int i, RandomPark *random)
 
   // accept or reject via Boltzmann criterion
   // null bin extends to nspins
-
-  if (efinal <= einitial) {
-  } else if (temperature == 0.0) {
-    lattice[i] = oldstate;
-  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
-    lattice[i] = oldstate;
-  }
-
-  if (lattice[i] != oldstate) naccept++;
-
-  // set mask if site could not have changed
-  // if site changed, unset mask of sites with affected propensity
-  // OK to change mask of ghost sites since never used
-
-  if (Lmask) {
-    if (einitial < 0.5*numneigh[i]) mask[i] = 1;
-    if (lattice[i] != oldstate)
-      for (int j = 0; j < numneigh[i]; j++)
-	mask[neighbor[i][j]] = 0;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   perform a site event with null bin rejection
-   flip to random neighbor spin with null bin
-   null bin extends to size maxneigh
-------------------------------------------------------------------------- */
-
-void AppPotts::site_event_rejection_neighbors(int i, RandomPark *random)
-{
-  int oldstate = lattice[i];
-  double einitial = site_energy(i);
-
-  // events = spin flips to neighboring site different than self
-
-  int j,m,value;
-  int nevent = 0;
-
-  for (j = 0; j < numneigh[i]; j++) {
-    value = lattice[neighbor[i][j]];
-    if (value == lattice[i]) continue;
-    for (m = 0; m < nevent; m++)
-      if (value == unique[m]) break;
-    if (m < nevent) continue;
-    unique[nevent++] = value;
-  }
-
-  int iran = (int) (maxneigh*random->uniform());
-  if (iran >= nevent) return;
-  lattice[i] = unique[iran];
-  double efinal = site_energy(i);
-
-  // accept or reject via Boltzmann criterion
-
-  if (efinal <= einitial) {
-  } else if (temperature == 0.0) {
-    lattice[i] = oldstate;
-  } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
-    lattice[i] = oldstate;
-  }
-
-  if (lattice[i] != oldstate) naccept++;
-
-  // set mask if site could not have changed
-  // if site changed, unset mask of sites with affected propensity
-  // OK to change mask of ghost sites since never used
-
-  if (Lmask) {
-    if (einitial < 0.5*numneigh[i]) mask[i] = 1;
-    if (lattice[i] != oldstate)
-      for (int j = 0; j < numneigh[i]; j++)
-	mask[neighbor[i][j]] = 0;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   perform a site event with no null bin rejection
-   flip to random neighbor spin without null bin
-   technically this is an incorrect rejection-KMC algorithm
-------------------------------------------------------------------------- */
-
-void AppPotts::site_event_rejection_neighbors_only(int i, RandomPark *random)
-{
-  int oldstate = lattice[i];
-  double einitial = site_energy(i);
-
-  // events = spin flips to neighboring site different than self
-
-  int j,m,value;
-  int nevent = 0;
-
-  for (j = 0; j < numneigh[i]; j++) {
-    value = lattice[neighbor[i][j]];
-    if (value == lattice[i]) continue;
-    for (m = 0; m < nevent; m++)
-      if (value == unique[m]) break;
-    if (m < nevent) continue;
-    unique[nevent++] = value;
-  }
-
-  if (nevent == 0) return;
-  int iran = (int) (nevent*random->uniform());
-  if (iran >= nevent) iran = nevent-1;
-  lattice[i] = unique[iran];
-  double efinal = site_energy(i);
-
-  // accept or reject via Boltzmann criterion
 
   if (efinal <= einitial) {
   } else if (temperature == 0.0) {
@@ -311,6 +181,8 @@ double AppPotts::site_propensity(int i)
 
 void AppPotts::site_event(int i, RandomPark *random)
 {
+  solve->update(0,NULL,NULL);
+
   int j,m,value;
 
   // pick one event from total propensity by accumulating its probability

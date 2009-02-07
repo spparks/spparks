@@ -133,16 +133,13 @@ void AppLattice::init()
 
   if (solve == NULL && sweepflag == NOSWEEP)
     error->all("Lattice app needs a KMC or rejection KMC solver");
-
   if (solve && sweepflag != NOSWEEP)
     error->all("Lattice app cannot use both a KMC and rejection KMC solver");
 
   if (solve && allow_kmc == 0)
     error->all("KMC events are not implemented in app");
-
   if (sweepflag != NOSWEEP && allow_rejection == 0)
     error->all("Rejection events are not implemented in app");
-
   if (sweepflag != NOSWEEP && Lmask && allow_masking == 0)
     error->all("Mask logic not implemented in app");
 
@@ -152,6 +149,8 @@ void AppLattice::init()
     error->all("Cannot use random rejection KMC in parallel with no sectors");
   if (nprocs > 1 && sectorflag == 0 && sweepflag == RASTER)
     error->all("Cannot use raster rejection KMC in parallel with no sectors");
+  if (sectorflag && (sweepflag == COLOR || sweepflag == COLOR_STRICT))
+    error->all("Cannot use colored rejection KMC with sectors");
 
   if (sweepflag && dt_sweep == 0.0)
     error->all("Lattice app did not set dt_sweep");
@@ -169,10 +168,37 @@ void AppLattice::init()
   }
 
   // if coloring, determine number of colors
+  // setup test for create_set
+  // check periodicity against lattice extent
 
   int ncolors = 1;
   if (sweepflag == COLOR || sweepflag == COLOR_STRICT) {
-    error->all("Sweeping with color is not yet supported");
+    int delcolor = delevent + delpropensity;
+    if (latstyle == SQ_4N) {
+      ncolors = delcolor+1;
+    } else if (latstyle == SQ_8N) {
+      ncolors = (delcolor+1)*(delcolor+1);
+    } else if (latstyle == TRI) {
+      if (delcolor == 1) ncolors = 4;
+    } else if (latstyle == SC_6N) {
+      ncolors = delcolor+1;
+    } else if (latstyle == SC_26N) {
+      ncolors = (delcolor+1)*(delcolor+1)*(delcolor+1);
+    } else if (latstyle == FCC) {
+      if (delcolor == 1) ncolors = 4;
+    } else if (latstyle == BCC) {
+      if (delcolor == 1) ncolors = 2;
+    } else if (latstyle == DIAMOND) {
+      ncolors = 1;
+    }
+    if (ncolors == 1)
+      error->all("Cannot color this combination of lattice and app");
+  }
+
+  // test that lattice size is commensurate with coloring
+
+  if (ncolors > 1) {
+    
   }
 
   // create sets based on sectors and coloring
@@ -183,22 +209,14 @@ void AppLattice::init()
       nset = 1;
       set = new Set[nset];
       create_set(0,0,0);
-    } else if (nsector == 1 && ncolors > 1) {
-      nset = ncolors;
-      set = new Set[nset];
-      for (int i = 0; i < nset; i++)
-	create_set(i,0,i+1);
-    } else if (nsector > 1 && ncolors == 1) {
+    } else if (nsector > 1) {
       nset = nsector;
       set = new Set[nset];
-      for (int i = 0; i < nset; i++)
-	create_set(i,i+1,0);
-    } else if (nsector > 1 && ncolors > 1) {
-      nset = nsector*ncolors;
+      for (int i = 0; i < nset; i++) create_set(i,i+1,0);
+    } else if (ncolors > 1) {
+      nset = ncolors;
       set = new Set[nset];
-      for (int i = 0; i < nset; i++)
-	for (int j = 0; j < ncolors; j++)
-	  create_set(i*ncolors+j,i+1,j+1);
+      for (int i = 0; i < nset; i++) create_set(i,0,i+1);
     }
   }
 
@@ -217,7 +235,7 @@ void AppLattice::init()
   // setup RN generators, only on first init
   // ranapp is used for all options except sweep color/strict
   // setup ranapp so different on every proc
-  // if strict requested, initialize per-lattice site seeds
+  // if color/strict, initialize per-lattice site seeds
 
   if (ranapp == NULL) {
     ranapp = new RandomPark(ranmaster->uniform());
@@ -270,6 +288,7 @@ void AppLattice::init()
       Ladapt = false;
       dt_kmc = tstop;
     }
+
     if (nstop > 0.0) {
       Ladapt = true;
       double pmax = 0.0;
@@ -286,9 +305,10 @@ void AppLattice::init()
       if (pmaxall > 0.0) dt_kmc = nstop/pmaxall;
       else dt_kmc = BIG;
     }
+
+    dt_kmc = MIN(dt_kmc,stoptime-time);
   }
 
-  dt_kmc = MIN(dt_kmc,stoptime-time);
 
   // convert per-sector time increment info to rKMC params
 
@@ -313,14 +333,15 @@ void AppLattice::init()
 	set[i].nselect = n * set[i].nlocal;
       }
     }
+
     double ntotal = 0.0;
     for (int i = 0; i < nset; i++) ntotal += set[i].nselect;
     dt_rkmc = ntotal/nglobal * dt_sweep;
     if (dt_rkmc == 0.0)
       error->all("Choice of sector stop led to no rKMC events");
+    dt_rkmc = MIN(dt_rkmc,stoptime-time);
   }
 
-  dt_rkmc = MIN(dt_rkmc,stoptime-time);
 
   // setup sitelist if sweepflag = RANDOM
   // do this every init since sector timestep could have changed
@@ -453,7 +474,8 @@ void AppLattice::iterate_kmc_sector(double stoptime)
 	timer->stamp(TIME_COMM);
       }
 
-      Solve *solve = set[iset].solve;
+      solve = set[iset].solve;
+      
       propensity = set[iset].propensity;
       i2site = set[iset].i2site;
       int *site2i = set[iset].site2i;
@@ -495,6 +517,9 @@ void AppLattice::iterate_kmc_sector(double stoptime)
       while (!done) {
 	timer->stamp();
 	isite = solve->event(&dt);
+
+	solve->update(0,NULL,NULL);
+
 	timer->stamp(TIME_SOLVE);
 	
 	if (isite < 0) done = 1;
@@ -550,7 +575,8 @@ void AppLattice::iterate_rejection(double stoptime)
     for (int iset = 0; iset < nset; iset++) {
       if (nprocs > 1) {
 	timer->stamp();
-	comm->sector(iset);
+	if (sectorflag) comm->sector(iset);
+	else comm->all();
 	timer->stamp(TIME_COMM);
       }
 
@@ -576,7 +602,8 @@ void AppLattice::iterate_rejection(double stoptime)
       timer->stamp(TIME_SOLVE);
 
       if (nprocs > 1) {
-	comm->reverse_sector(iset);
+	if (sectorflag) comm->reverse_sector(iset);
+	else comm->all_reverse();
 	timer->stamp(TIME_COMM);
       }
     }
@@ -764,7 +791,7 @@ void AppLattice::create_set(int iset, int isector, int icolor)
 
   // count sites in subset
 
-  int flag,iwhich,jwhich,kwhich,msector;
+  int flag,iwhich,jwhich,kwhich,msector,mcolor;
 
   int n = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -785,6 +812,8 @@ void AppLattice::create_set(int iset, int isector, int icolor)
     }
 
     if (icolor > 0) {
+      //mcolor = (id[i]-1) % ncolors + 1;
+      if (icolor != mcolor) flag = 0;
     }
 
     if (flag) n++;
@@ -837,7 +866,7 @@ void AppLattice::create_set(int iset, int isector, int icolor)
   set[iset].propensity =
     (double *) memory->smalloc(n*sizeof(double),"applattice:propensity");
 
-  // allocate KMC solver for set in needed
+  // allocate KMC solver for set
 
   if (solve) set[iset].solve = solve->clone();
   else set[iset].solve = NULL;
@@ -850,7 +879,7 @@ void AppLattice::create_set(int iset, int isector, int icolor)
   // bsites is only used by KMC solver in sectors
 
   if ((solve && sectorflag) || Lmask) {
-    set[iset].nborder = find_border_sites(isector);
+    set[iset].nborder = find_border_sites(iset);
     if (solve && sectorflag)
       set[iset].bsites =
 	(int *) memory->smalloc(set[iset].nborder*sizeof(int),

@@ -21,10 +21,10 @@ namespace SPPARKS_NS {
 
 class CommLattice : protected Pointers {
  public:
- 
   CommLattice(class SPPARKS *); ~CommLattice();
   void init(int, int, int, int *);
   void all();
+  void all_reverse();
   void sector(int);
   void reverse_sector(int);
 
@@ -57,8 +57,9 @@ class CommLattice : protected Pointers {
   };
 
   Swap *allswap;
+  Swap *reverseswap;
   Swap **sectorswap;
-  Swap **reverseswap;
+  Swap **sectorreverseswap;
   int nsector;
 
   int sitecustom;
@@ -68,6 +69,7 @@ class CommLattice : protected Pointers {
   double **darray;
 
   Swap *create_swap_all();
+  Swap *create_swap_all_reverse();
   Swap *create_swap_sector(int, int *);
   Swap *create_swap_sector_reverse(int, int *);
   void free_swap(Swap *);

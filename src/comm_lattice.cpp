@@ -39,9 +39,11 @@ CommLattice::CommLattice(SPPARKS *spk) : Pointers(spk)
   MPI_Comm_size(world,&nprocs);
 
   allswap = NULL;
-  sectorswap = NULL;
   reverseswap = NULL;
+
   nsector = 0;
+  sectorswap = NULL;
+  sectorreverseswap = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -49,21 +51,22 @@ CommLattice::CommLattice(SPPARKS *spk) : Pointers(spk)
 CommLattice::~CommLattice()
 {
   if (allswap) free_swap(allswap);
+  if (reverseswap) free_swap(reverseswap);
   if (sectorswap) {
     for (int i = 0; i < nsector; i++) free_swap(sectorswap[i]);
     delete [] sectorswap;
   }
-  if (reverseswap) {
-    for (int i = 0; i < nsector; i++) free_swap(reverseswap[i]);
-    delete [] reverseswap;
+  if (sectorreverseswap) {
+    for (int i = 0; i < nsector; i++) free_swap(sectorreverseswap[i]);
+    delete [] sectorreverseswap;
   }
 }
 
 /* ----------------------------------------------------------------------
    setup comm pattern
    3 kinds of patterns: all ghosts, sector ghosts, sector reverse
-   if sectorflag = 0, just all ghosts
-   if sectorflag = 1, do all 3 (if reverse is needed)
+   if sectorflag = 0, just ghosts for entire proc domain 
+   if sectorflag = 1, do all and sector ghosts, reverse if needed
    array = NULL = communicate lattice or iarray/darray from app
    array = non-NULL = communicate passed-in array (from diagnostic)
 ------------------------------------------------------------------------- */
@@ -88,21 +91,24 @@ void CommLattice::init(int nsector_request, int delpropensity, int delevent,
   // clear out old swaps
 
   if (allswap) free_swap(allswap);
+  if (reverseswap) free_swap(reverseswap);
   if (sectorswap) {
     for (int i = 0; i < nsector; i++) free_swap(sectorswap[i]);
     delete [] sectorswap;
   }
-  if (reverseswap) {
-    for (int i = 0; i < nsector; i++) free_swap(reverseswap[i]);
-    delete [] reverseswap;
+  if (sectorreverseswap) {
+    for (int i = 0; i < nsector; i++) free_swap(sectorreverseswap[i]);
+    delete [] sectorreverseswap;
   }
   allswap = NULL;
-  sectorswap = NULL;
   reverseswap = NULL;
+  sectorswap = NULL;
+  sectorreverseswap = NULL;
 
   // create new swaps as requested
 
   allswap = create_swap_all();
+  reverseswap = create_swap_all_reverse();
 
   nsector = nsector_request;
   if (nsector > 1) {
@@ -112,40 +118,16 @@ void CommLattice::init(int nsector_request, int delpropensity, int delevent,
 					 applattice->set[i].site2i);
   }
   if (delreverse && nsector > 1) {
-    reverseswap = new Swap*[nsector];
+    sectorreverseswap = new Swap*[nsector];
     for (int i = 0; i < nsector; i++)
-      reverseswap[i] = create_swap_sector_reverse(applattice->set[i].nlocal,
-						  applattice->set[i].site2i);
+      sectorreverseswap[i] = 
+	create_swap_sector_reverse(applattice->set[i].nlocal,
+				   applattice->set[i].site2i);
   }
 }
 
 /* ----------------------------------------------------------------------
-   acquire ghost values for one sector
-------------------------------------------------------------------------- */
-
-void CommLattice::sector(const int isector)
-{
-  if (sitecustom == 0) perform_swap_lattice(sectorswap[isector]);
-  else if (ninteger && !ndouble) perform_swap_int(sectorswap[isector]);
-  else if (ndouble && !ninteger) perform_swap_double(sectorswap[isector]);
-  else perform_swap_general(sectorswap[isector]);
-}
-
-/* ----------------------------------------------------------------------
-   reverse communicate changed border values for one sector
-------------------------------------------------------------------------- */
-
-void CommLattice::reverse_sector(const int isector)
-{
-  if (delreverse == 0) return;
-  if (sitecustom == 0) perform_swap_lattice(reverseswap[isector]);
-  else if (ninteger && !ndouble) perform_swap_int(reverseswap[isector]);
-  else if (ndouble && !ninteger) perform_swap_double(reverseswap[isector]);
-  else perform_swap_general(reverseswap[isector]);
-}
-
-/* ----------------------------------------------------------------------
-   update ghost values for entire sub-domain owned by this proc
+   acquire ghost values for entire proc sub-domain
 ------------------------------------------------------------------------- */
 
 void CommLattice::all()
@@ -157,11 +139,122 @@ void CommLattice::all()
 }
 
 /* ----------------------------------------------------------------------
+   reverse communicate changed border values for entire proc sub-domain
+------------------------------------------------------------------------- */
+
+void CommLattice::all_reverse()
+{
+  if (delreverse == 0) return;
+  if (sitecustom == 0) perform_swap_lattice(reverseswap);
+  else if (ninteger && !ndouble) perform_swap_int(reverseswap);
+  else if (ndouble && !ninteger) perform_swap_double(reverseswap);
+  else perform_swap_general(reverseswap);
+}
+
+/* ----------------------------------------------------------------------
+   acquire ghost values for one sector
+------------------------------------------------------------------------- */
+
+void CommLattice::sector(int isector)
+{
+  if (sitecustom == 0) perform_swap_lattice(sectorswap[isector]);
+  else if (ninteger && !ndouble) perform_swap_int(sectorswap[isector]);
+  else if (ndouble && !ninteger) perform_swap_double(sectorswap[isector]);
+  else perform_swap_general(sectorswap[isector]);
+}
+
+/* ----------------------------------------------------------------------
+   reverse communicate changed border values for one sector
+------------------------------------------------------------------------- */
+
+void CommLattice::reverse_sector(int isector)
+{
+  if (delreverse == 0) return;
+  if (sitecustom == 0) perform_swap_lattice(sectorreverseswap[isector]);
+  else if (ninteger && !ndouble) perform_swap_int(sectorreverseswap[isector]);
+  else if (ndouble && !ninteger) perform_swap_double(sectorreverseswap[isector]);
+  else perform_swap_general(sectorreverseswap[isector]);
+}
+
+/* ----------------------------------------------------------------------
    create a Swap communication pattern
    acquire ghost sites for my entire subdomain
 ------------------------------------------------------------------------- */
 
 CommLattice::Swap *CommLattice::create_swap_all()
+{
+  int i,j;
+
+  AppLattice *applattice = (AppLattice *) app;
+  int nlocal = applattice->nlocal;
+  int nghost = applattice->nghost;
+  int ntotal = nlocal + nghost;
+
+  int *id = applattice->id;
+  int *owner = applattice->owner;
+  int *numneigh = applattice->numneigh;
+  int **neighbor = applattice->neighbor;
+
+  // flag ghost sites with -1
+  // flag owned sites with 0
+
+  int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"comm:flag");
+  for (i = 0; i < ntotal; i++) flag[i] = -1;
+  for (i = 0; i < nlocal; i++) flag[i] = 0;
+
+  // flag ghost sites up to delreverse hops from subdomain with positive number
+  // assumes ghost sites have a neighbor list
+
+  for (int ilayer = 0; ilayer < delreverse; ilayer++) {
+    for (i = 0; i < ntotal; i++) {
+      if (flag[i] != ilayer) continue;
+      for (j = 0; j < numneigh[i]; j++) {
+	if (neighbor[i][j] < nlocal) continue;
+	if (flag[neighbor[i][j]] == -1) flag[neighbor[i][j]] = ilayer+1;
+      }
+    }
+  }
+
+  // buf = list of global IDs I will send
+
+  Site *buf = (Site *) memory->smalloc(nghost*sizeof(Site),"comm:buf");
+  int nsite = 0;
+
+  for (i = nlocal; i < ntotal; i++) {
+    if (flag[i] <= 0) continue;
+    buf[nsite].id_global = id[i];
+    buf[nsite].index_local = i;
+    buf[nsite].proc = owner[i];
+    nsite++;
+  }
+
+  memory->sfree(flag);
+
+  // grow buf to size of max sites on any proc
+
+  int maxsite;
+  MPI_Allreduce(&nsite,&maxsite,1,MPI_INT,MPI_MAX,world);
+
+  buf = (Site *) memory->srealloc(buf,maxsite*sizeof(Site),"comm:buf");
+
+  // create swap based on list of sends
+
+  Swap *swap = new Swap;
+
+  create_send_from_list(nsite,buf,swap);
+  create_recv_from_send(nsite,maxsite,buf,swap);
+
+  memory->sfree(buf);
+
+  return swap;
+}
+
+/* ----------------------------------------------------------------------
+   create a Swap communication pattern
+   reverse comm for my entire subdomain
+------------------------------------------------------------------------- */
+
+CommLattice::Swap *CommLattice::create_swap_all_reverse()
 {
   int i;
 

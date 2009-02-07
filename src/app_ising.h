@@ -21,19 +21,15 @@ namespace SPPARKS_NS {
 class AppIsing : public AppLattice {
  public:
   AppIsing(class SPPARKS *, int, char **);
-  ~AppIsing();
+  virtual ~AppIsing();
 
   double site_energy(int);
-  void site_event_rejection(int, class RandomPark *);
+  virtual void site_event_rejection(int, class RandomPark *);
   double site_propensity(int);
   void site_event(int, class RandomPark *);
 
- private:
-  int rejectstyle;
+ protected:
   int *sites;
-
-  void site_event_rejection_single(int, class RandomPark *);
-  void site_event_rejection_double(int, class RandomPark *);
 };
 
 }
