@@ -7,18 +7,19 @@
 :line
 
 app_style ising command :h3
+app_style ising/single command :h3
 
 [Syntax:]
 
-app_style ising rejectstyle keyword values ... :pre
+app_style style keyword values ... :pre
 
-ising = style name of this application
-rejectstyle = {single} or {double}
+style = {ising} or {ising/single}
 see the "app_style"_app_style.html command for additional keywords that can be appended to the {ising} style :ul
 
 [Examples:]
 
-app_style ising double lattice sq/4n 1.0 50 50 :pre
+app_style ising lattice sq/4n 1.0 50 50
+app_style ising/single lattice sq/4n 1.0 50 50 :pre
 
 [Description:]
 
@@ -51,11 +52,11 @@ is the temperature of the system defined by the
 "temperature"_temperature.html command (which includes the Boltzmann
 constant k implicitly).
 
-For solution by a rKMC algorithm, the {rejectstyle} keyword determines
-what rejection-based algorithm is used by the application.  For the
-{single} style, the spin is flipped to its opposite value.  For the
-{double} style, the spin is set randomly to 1 or 2.  In either case,
-dE = Efinal - Einitial is calculated, as is a uniform random number R
+For solution by a rKMC algorithm, the {ising} and {ising/single}
+styles use a different rejection-based algorithm.  For the {ising}
+style, the spin is set randomly to 1 or 2.  For the {ising/single}
+style, the spin is flipped to its opposite value.  In either case, dE
+= Efinal - Einitial is calculated, as is a uniform random number R
 between 0 and 1.  The new state is accepted if R <
 min\[1,exp(-dE/kT)\].
 

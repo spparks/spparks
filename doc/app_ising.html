@@ -11,17 +11,19 @@
 
 <H3>app_style ising command 
 </H3>
+<H3>app_style ising/single command 
+</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style ising rejectstyle keyword values ... 
+<PRE>app_style style keyword values ... 
 </PRE>
-<UL><LI>ising = style name of this application
-<LI>rejectstyle = <I>single</I> or <I>double</I>
+<UL><LI>style = <I>ising</I> or <I>ising/single</I>
 <LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended to the <I>ising</I> style 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising double lattice sq/4n 1.0 50 50 
+<PRE>app_style ising lattice sq/4n 1.0 50 50
+app_style ising/single lattice sq/4n 1.0 50 50 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -54,11 +56,11 @@ is the temperature of the system defined by the
 <A HREF = "temperature.html">temperature</A> command (which includes the Boltzmann
 constant k implicitly).
 </P>
-<P>For solution by a rKMC algorithm, the <I>rejectstyle</I> keyword determines
-what rejection-based algorithm is used by the application.  For the
-<I>single</I> style, the spin is flipped to its opposite value.  For the
-<I>double</I> style, the spin is set randomly to 1 or 2.  In either case,
-dE = Efinal - Einitial is calculated, as is a uniform random number R
+<P>For solution by a rKMC algorithm, the <I>ising</I> and <I>ising/single</I>
+styles use a different rejection-based algorithm.  For the <I>ising</I>
+style, the spin is set randomly to 1 or 2.  For the <I>ising/single</I>
+style, the spin is flipped to its opposite value.  In either case, dE
+= Efinal - Einitial is calculated, as is a uniform random number R
 between 0 and 1.  The new state is accepted if R <
 min[1,exp(-dE/kT)].
 </P>
