@@ -51,7 +51,7 @@ class AppLattice : public App {
  protected:
   int me,nprocs;
   int naccept,nattempt;       // number of accepted and attempted events
-
+  int nsweeps;                // number of sweeps performed
   double temperature,t_inverse;  // temperature settings
   double stoptime;            // length of time to run
   double dt_sweep;            // rKMC time for nglobal attemped events

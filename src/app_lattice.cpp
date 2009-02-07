@@ -74,6 +74,7 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
 
   dt_sweep = 0.0;
   naccept = nattempt = 0;
+  nsweeps = 0;
 
   // app can override these values in its constructor
 
@@ -608,6 +609,7 @@ void AppLattice::iterate_rejection(double stoptime)
       }
     }
 
+    nsweeps++;
     time += dt_rkmc;
     if (time >= stoptime) done = 1;
 
@@ -755,11 +757,12 @@ void AppLattice::stats(char *strtmp)
 {
   int naccept_all;
   MPI_Allreduce(&naccept,&naccept_all,1,MPI_INT,MPI_SUM,world);
-  if (solve) sprintf(strtmp," %d 0 %g",naccept_all,time);
+  if (solve) sprintf(strtmp," %10d %10d %10d %10g",naccept_all,0,0,time);
   else {
     int nattempt_all;
     MPI_Allreduce(&nattempt,&nattempt_all,1,MPI_INT,MPI_SUM,world);
-    sprintf(strtmp," %d %d %g",naccept_all,nattempt_all-naccept_all,time);
+    sprintf(strtmp," %10d %10d %10d %10g",
+	    naccept_all,nattempt_all-naccept_all,nsweeps,time);
   }
 }
 
@@ -769,7 +772,7 @@ void AppLattice::stats(char *strtmp)
 
 void AppLattice::stats_header(char *strtmp)
 {
-  sprintf(strtmp," %s %s %s","Naccept","Nreject","Time");
+  sprintf(strtmp," %10s %10s %10s %10s","Naccept","Nreject","Nsweeps","Time");
 }
 
 /* ----------------------------------------------------------------------

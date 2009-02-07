@@ -414,7 +414,7 @@ void Output::stats_header()
   char str[2048] = {'\0'};
   char *strpnt = str;
 
-  sprintf(strpnt," CPU");
+  sprintf(strpnt,"%10s","CPU ");
   strpnt += strlen(strpnt);
 
   app->stats_header(strpnt);
