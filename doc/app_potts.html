@@ -11,21 +11,25 @@
 
 <H3>app_style potts command 
 </H3>
+<H3>app_style potts/neigh command 
+</H3>
+<H3>app_style potts/neighonly command 
+</H3>
 <H3>app_style potts/variable command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style Q rejectstyle keyword values ... 
+<PRE>app_style style Q keyword values ... 
 </PRE>
-<UL><LI>style = <I>potts</I> or <I>potts/variable</I>
+<UL><LI>style = <I>potts</I> or <I>potts/neigh</I> or <I>potts/neighonly</I> or <I>potts/variable</I>
 <LI>Q = number of spin states
-<LI>rejectstyle = <I>spin</I> or <I>neigh</I> or <I>neighonly</I>
 <LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended to the <I>potts</I> and <I>potts/variable</I> styles 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style potts 20 spin lattice sq/4n 1.0 50 50
-app_style potts/variable 20 neigh lattice sq/4n 1.0 50 50 site 1 1 
+<PRE>app_style potts 100 spin lattice sq/4n 1.0 50 50
+app_style potts/neigh 20 spin lattice sq/4n 1.0 50 50
+app_style potts/variable 100 neigh lattice sq/4n 1.0 50 50 site 1 1 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -46,9 +50,9 @@ model which performs Kawasaki dynamics, meaning the spins on two
 neighboring sites are swapped.
 </P>
 <P>The <I>potts/variable</I> application is identical to the <I>potts</I>
-application except that the <I>site</I> keyword (described with the
-<A HREF = "app_style.html">app_style</A> command) can be used to define multiple
-quantities per site, instead of just a single spin value.
+application except that the <I>site</I> keyword must be used to define the
+per-site quantities stored on the lattice.  The <I>site</I> keyword is
+described with the <A HREF = "app_style.html">app_style</A> command.
 </P>
 <P>As explained on <A HREF = "app_style.html">this page</A>, these applications can be
 evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
@@ -63,20 +67,22 @@ is the temperature of the system defined by the
 <A HREF = "temperature.html">temperature</A> command (which includes the Boltzmann
 constant k implicitly).
 </P>
-<P>For solution by a rKMC algorithm, the <I>rejectstyle</I> keyword determines
-what rejection-based algorithm is used by the application.  For the
-<I>spin</I> style, a random spin from 1 to Q is chosen.  For the <I>neigh</I>
+<P>For solution by a rKMC algorithm, the various styles use different
+rejection-based algorithms.  For the <I>potts</I> and <I>potts/variable</I>
+styles, a random spin from 1 to Q is chosen.  For the <I>potts/neigh</I>
 style, a spin is chosen randomly from the values held by neighbor
-sites and a null-bin (meaning no event).  For example, imagine a site
-has 12 neighbors and those 12 spins have 4 different values.  Each of
-the 4 spin values will be chosen with 1/12 probability and the null
-bin chosen with 8/12 probability.  For the <I>neighonly</I> style, the null
-bin is discarded, so each of the 4 spin values will be chosen with 1/4
-probability.  In all the cases, dE = Efinal - Einitial is calculated,
-as is a uniform random number R between 0 and 1.  The new state is
-accepted if R < min[1,exp(-dE/kT)], else it is rejected.
+sites and a null-bin of a size which extends the possible events up to
+the maximum number of neighbors.  For example, imagine a site has 12
+neighbors and the 12 sites have 4 different spin values.  Then each of
+the 4 neighbor spin values will be chosen with 1/12 probability and
+the null bin will be chosen with 8/12 probability.  For the
+<I>potts/neighonly</I> style, the null bin is discarded, so in this case
+each of the 4 spin values will be chosen with 1/4 probability.  In all
+the cases, dE = Efinal - Einitial is calculated, as is a uniform
+random number R between 0 and 1.  The new state is accepted if R <
+min[1,exp(-dE/kT)], else it is rejected.
 </P>
-<P>Discuss wild flips for KMC and rKMC.
+<P>Need to discuss rules for wild flips for KMC and rKMC.
 </P>
 <HR>
 

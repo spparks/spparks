@@ -106,6 +106,22 @@ For both time evolution methods (KMC and rKMC) the rules for how
 events are defined and are accepted or rejected are discussed in the
 doc pages for the individual applications.
 
+Here is a table of the different kinds of solvers and options that can
+be used for on-lattice applications in SPPARKS.  Serial and parallel
+refer to running on one or many processors.  Sector vs no-sector is
+what is set by the "sector"_sector.html command.  The rKMC options
+are set by the "sweep"_sweep.html command.
+
+method,	serial/no-sectors, serial/sectors, parallel/no-sectors, parallel/sectors
+exact KMC, yes, yes, no, yes
+rKMC random, yes, yes, no, yes
+rKMC raster, yes, yes, no, yes
+rKMC color, yes, no, yes, no :tb(ea=c)
+
+Note that the choice of {color} can also be {color/strict} and that
+masking can also be turned on for rKMC algorithms via the
+"sweep"_sweep.html command if the lo-level application supports it.
+
 :line
 
 For on-lattice applications, there are several keyword/value 

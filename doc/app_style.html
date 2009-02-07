@@ -116,6 +116,24 @@ and associated rates which influence the acceptance or rejection.
 events are defined and are accepted or rejected are discussed in the
 doc pages for the individual applications.
 </P>
+<P>Here is a table of the different kinds of solvers and options that can
+be used for on-lattice applications in SPPARKS.  Serial and parallel
+refer to running on one or many processors.  Sector vs no-sector is
+what is set by the <A HREF = "sector.html">sector</A> command.  The rKMC options
+are set by the <A HREF = "sweep.html">sweep</A> command.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD >method</TD><TD >	serial/no-sectors</TD><TD > serial/sectors</TD><TD > parallel/no-sectors</TD><TD > parallel/sectors</TD></TR>
+<TR ALIGN="center"><TD >exact KMC</TD><TD > yes</TD><TD > yes</TD><TD > no</TD><TD > yes</TD></TR>
+<TR ALIGN="center"><TD >rKMC random</TD><TD > yes</TD><TD > yes</TD><TD > no</TD><TD > yes</TD></TR>
+<TR ALIGN="center"><TD >rKMC raster</TD><TD > yes</TD><TD > yes</TD><TD > no</TD><TD > yes</TD></TR>
+<TR ALIGN="center"><TD >rKMC color</TD><TD > yes</TD><TD > no</TD><TD > yes</TD><TD > no 
+</TD></TR></TABLE></DIV>
+
+<P>Note that the choice of <I>color</I> can also be <I>color/strict</I> and that
+masking can also be turned on for rKMC algorithms via the
+<A HREF = "sweep.html">sweep</A> command if the lo-level application supports it.
+</P>
 <HR>
 
 <P>For on-lattice applications, there are several keyword/value 
