@@ -14,7 +14,7 @@ sector flag keyword value ... :pre
 
 flag = {yes} or {no} :ulb,l
 zero or more keyword/value pairs may be appended :l
-keyword = {tstop} or {rstop} :l
+keyword = {tstop} or {nstop} :l
   {tstop} value = dt
     dt = elapsed time for events to perform within sector (seconds)
   {nstop} value = N
