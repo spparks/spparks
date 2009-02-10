@@ -1,0 +1,193 @@
+SPPARKS (10 Feb 2009)
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200
+
+app_style    test/group $n 30 1.0 1.0e-6 5
+app_style    test/group 100 30 1.0 1.0e-6 5
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 100 1000000
+Loop time of 1.18951 on 1 procs
+
+Solve time (%) = 0.317776 (26.715)
+Update time (%) = 0.670792 (56.3925)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.200938 (16.8926)
+
+clear
+next	     n
+jump	     in.group.himem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200
+
+app_style    test/group $n 30 1.0 1.0e-6 5
+app_style    test/group 200 30 1.0 1.0e-6 5
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 200 1000000
+Loop time of 1.2546 on 1 procs
+
+Solve time (%) = 0.316449 (25.223)
+Update time (%) = 0.737116 (58.7529)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.201038 (16.0241)
+
+clear
+next	     n
+jump	     in.group.himem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200
+
+app_style    test/group $n 30 1.0 1.0e-6 5
+app_style    test/group 400 30 1.0 1.0e-6 5
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 400 1000000
+Loop time of 1.23897 on 1 procs
+
+Solve time (%) = 0.308548 (24.9036)
+Update time (%) = 0.730016 (58.9214)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.200403 (16.175)
+
+clear
+next	     n
+jump	     in.group.himem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200
+
+app_style    test/group $n 30 1.0 1.0e-6 5
+app_style    test/group 800 30 1.0 1.0e-6 5
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 800 1000000
+Loop time of 1.16575 on 1 procs
+
+Solve time (%) = 0.302978 (25.9901)
+Update time (%) = 0.662129 (56.7988)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.200638 (17.2112)
+
+clear
+next	     n
+jump	     in.group.himem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200
+
+app_style    test/group $n 30 1.0 1.0e-6 5
+app_style    test/group 1600 30 1.0 1.0e-6 5
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 1600 1000000
+Loop time of 1.34986 on 1 procs
+
+Solve time (%) = 0.301221 (22.315)
+Update time (%) = 0.846601 (62.7176)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.202039 (14.9674)
+
+clear
+next	     n
+jump	     in.group.himem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200
+
+app_style    test/group $n 30 1.0 1.0e-6 5
+app_style    test/group 3200 30 1.0 1.0e-6 5
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 3200 1000000
+Loop time of 1.25928 on 1 procs
+
+Solve time (%) = 0.303553 (24.1053)
+Update time (%) = 0.753806 (59.86)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.201923 (16.0348)
+
+clear
+next	     n
+jump	     in.group.himem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200
+
+app_style    test/group $n 30 1.0 1.0e-6 5
+app_style    test/group 6400 30 1.0 1.0e-6 5
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 6400 1000000
+Loop time of 1.28536 on 1 procs
+
+Solve time (%) = 0.305766 (23.7884)
+Update time (%) = 0.776035 (60.375)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.203557 (15.8366)
+
+clear
+next	     n
+jump	     in.group.himem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200
+
+app_style    test/group $n 30 1.0 1.0e-6 5
+app_style    test/group 12800 30 1.0 1.0e-6 5
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 12800 1000000
+Loop time of 1.31602 on 1 procs
+
+Solve time (%) = 0.305655 (23.2257)
+Update time (%) = 0.803159 (61.0292)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.207209 (15.7451)
+
+clear
+next	     n
+jump	     in.group.himem
