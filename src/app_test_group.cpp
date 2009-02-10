@@ -80,7 +80,7 @@ AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
 
   // classes needed by this app
 
-  RandomPark *random = new RandomPark(ranmaster->uniform());
+  random = new RandomPark(ranmaster->uniform());
 }
 
 /* ---------------------------------------------------------------------- */
