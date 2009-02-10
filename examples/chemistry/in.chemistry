@@ -1,8 +1,10 @@
 # SPPARKS chemistry application
 # Simple A + B <-> C reaction via Gillepsie SSA
 
+seed		12345
+
 app_style	chemistry
-solve_style	linear 12345
+solve_style	linear
 
 volume		1.9098395e-11
 

@@ -1,20 +1,13 @@
 # SPPARKS Ising tests on generic lattice
 
-app_style	 ising 12345 lattice sq/4n 1.0 50 50
-#app_style	 ising 12345 lattice sq/8n 1.0 50 50
-#app_style	 ising 12345 lattice tri 1.0 50 50
-#app_style	 ising 12345 lattice sc/6n 1.0 20 20 20
-#app_style	 ising 12345 lattice sc/26n 1.0 20 20 20
-#app_style	 ising 12345 lattice fcc 1.0 20 20 20
-#app_style	 ising 12345 lattice bcc 1.0 20 20 20
-#app_style	 ising 12345 lattice diamond 1.0 20 20 20
-#app_style	 ising 12345 lattice random/2d 2500 10 10 1.0 56789
-#app_style	 ising 12345 lattice random/3d 8000 10 10 10 1.0 56789
+seed		 56789
 
-sweep_style      lattice 12345
-#sweep_style      lattice 12345 mask yes
-#sweep_style      lattice 12345 kmc yes
-#solve_style      tree 12345
+app_style	 ising lattice sq/4n 1.0 50 50
+
+sweep		 random
+#sweep		 raster mask yes
+#solve_style      tree
+sector		  yes
 
 diag_style       energy
 
