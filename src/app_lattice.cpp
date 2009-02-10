@@ -32,8 +32,6 @@ using namespace SPPARKS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define BIG 1.0e20
-
 enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};
 
 /* ---------------------------------------------------------------------- */
@@ -50,6 +48,8 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   sectorflag = 0;
   nset = 0;
   set = NULL;
+  nstop = 1.0;
+  tstop = 0.0;
 
   sweepflag = NOSWEEP;
   ranapp = NULL;
@@ -176,30 +176,33 @@ void AppLattice::init()
   if (sweepflag == COLOR || sweepflag == COLOR_STRICT) {
     int delcolor = delevent + delpropensity;
     if (latstyle == SQ_4N) {
-      ncolors = delcolor+1;
+      if (delcolor == 1) ncolors = 2;
+      if (nx % 2 || ny % 2)
+	error->all("Color stencil is incommensurate with lattice size");
     } else if (latstyle == SQ_8N) {
       ncolors = (delcolor+1)*(delcolor+1);
+      if (nx % (delcolor+1) || ny % (delcolor+1))
+	error->all("Color stencil is incommensurate with lattice size");
     } else if (latstyle == TRI) {
       if (delcolor == 1) ncolors = 4;
+      if (nx % 2)
+	error->all("Color stencil is incommensurate with lattice size");
     } else if (latstyle == SC_6N) {
-      ncolors = delcolor+1;
+      if (delcolor == 1) ncolors = 2;
+      if (nx % 2 || ny % 2 || nz % 2)
+	error->all("Color stencil is incommensurate with lattice size");
     } else if (latstyle == SC_26N) {
       ncolors = (delcolor+1)*(delcolor+1)*(delcolor+1);
+      if (nx % (delcolor+1) || ny % (delcolor+1) || nz % (delcolor+1))
+	error->all("Color stencil is incommensurate with lattice size");
     } else if (latstyle == FCC) {
       if (delcolor == 1) ncolors = 4;
     } else if (latstyle == BCC) {
       if (delcolor == 1) ncolors = 2;
-    } else if (latstyle == DIAMOND) {
-      ncolors = 1;
     }
+
     if (ncolors == 1)
       error->all("Cannot color this combination of lattice and app");
-  }
-
-  // test that lattice size is commensurate with coloring
-
-  if (ncolors > 1) {
-    
   }
 
   // create sets based on sectors and coloring
@@ -304,16 +307,15 @@ void AppLattice::init()
       double pmaxall;
       MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
       if (pmaxall > 0.0) dt_kmc = nstop/pmaxall;
-      else dt_kmc = BIG;
+      else dt_kmc = stoptime-time;
     }
 
     dt_kmc = MIN(dt_kmc,stoptime-time);
   }
 
+  // convert rejection info to rKMC params
 
-  // convert per-sector time increment info to rKMC params
-
-  if (sectorflag && sweepflag != NOSWEEP) {
+  if (sweepflag != NOSWEEP) {
     if (sweepflag == RANDOM) {
       if (nstop > 0.0) {
 	for (int i = 0; i < nset; i++)
@@ -325,7 +327,8 @@ void AppLattice::init()
 	  set[i].nselect = static_cast<int> (n/nglobal * set[i].nlocal);
       }
 
-    } else if (sweepflag == RASTER) {
+    } else if (sweepflag == RASTER || 
+	       sweepflag == COLOR || sweepflag == COLOR_STRICT) {
       int n;
       if (nstop > 0.0) n = static_cast<int> (nstop);
       if (tstop > 0.0) n = static_cast<int> (tstop/dt_sweep);
@@ -335,8 +338,11 @@ void AppLattice::init()
       }
     }
 
-    double ntotal = 0.0;
-    for (int i = 0; i < nset; i++) ntotal += set[i].nselect;
+    double nme = 0.0;
+    for (int i = 0; i < nset; i++) nme += set[i].nselect;
+    double ntotal;
+    MPI_Allreduce(&nme,&ntotal,1,MPI_DOUBLE,MPI_SUM,world);
+
     dt_rkmc = ntotal/nglobal * dt_sweep;
     if (dt_rkmc == 0.0)
       error->all("Choice of sector stop led to no rKMC events");
@@ -552,7 +558,7 @@ void AppLattice::iterate_kmc_sector(double stoptime)
     if (Ladapt) {
       MPI_Allreduce(&pmax,&pmaxall,1,MPI_DOUBLE,MPI_MAX,world);
       if (pmaxall > 0.0) dt_kmc = nstop/pmaxall;
-      else dt_kmc = BIG;
+      else dt_kmc = stoptime-time;
       dt_kmc = MIN(dt_kmc,stoptime-time);
     }
   }
@@ -607,6 +613,7 @@ void AppLattice::iterate_rejection(double stoptime)
 	else comm->all_reverse();
 	timer->stamp(TIME_COMM);
       }
+
     }
 
     nsweeps++;
@@ -815,7 +822,7 @@ void AppLattice::create_set(int iset, int isector, int icolor)
     }
 
     if (icolor > 0) {
-      //mcolor = (id[i]-1) % ncolors + 1;
+      mcolor = id2color(id[i]);
       if (icolor != mcolor) flag = 0;
     }
 
@@ -848,6 +855,8 @@ void AppLattice::create_set(int iset, int isector, int icolor)
     }
 
     if (icolor > 0) {
+      mcolor = id2color(id[i]);
+      if (icolor != mcolor) flag = 0;
     }
 
     if (flag) set[iset].site2i[n++] = i;
@@ -893,6 +902,55 @@ void AppLattice::create_set(int iset, int isector, int icolor)
     set[iset].border = NULL;
     set[iset].bsites = NULL;
   }
+}
+
+/* ----------------------------------------------------------------------
+   convert a lattice ID (1 to Nsites) to a color (1 to Ncolor)
+------------------------------------------------------------------------- */
+
+int AppLattice::id2color(int idsite)
+{
+  int i,j,k,ncolors,ncolor1d,icolor;
+
+  idsite--;
+  int delcolor = delevent + delpropensity;
+
+  if (latstyle == SQ_4N) {
+    i = idsite % nx;
+    j = idsite / nx;
+    icolor = (i+j) % 2;
+
+  } else if (latstyle == SQ_8N) {
+    ncolor1d = delcolor+1;
+    i = idsite % nx;
+    j = idsite / nx;
+    icolor = ncolor1d*(j%ncolor1d) + i%ncolor1d;
+
+  } else if (latstyle == TRI) {
+    icolor = idsite % 4;
+
+  } else if (latstyle == SC_6N) {
+    i = idsite % nx;
+    j = (idsite%(nx*ny)) / nx;
+    k = idsite / (nx*ny);
+    icolor = (i+j+k) % 2;
+
+  } else if (latstyle == SC_26N) {
+    ncolor1d = delcolor+1;
+    i = idsite % nx;
+    j = (idsite%(nx*ny)) / nx;
+    k = idsite / (nx*ny);
+    icolor = ncolor1d*ncolor1d*(k%ncolor1d) + 
+      ncolor1d*(j%ncolor1d) + i%ncolor1d;
+
+  } else if (latstyle == FCC) {
+    icolor = idsite % 4;
+
+  } else if (latstyle == BCC) {
+    icolor = idsite % 2;
+  }
+
+  return icolor+1;
 }
 
 /* ----------------------------------------------------------------------

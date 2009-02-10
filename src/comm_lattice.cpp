@@ -183,6 +183,53 @@ void CommLattice::reverse_sector(int isector)
 
 CommLattice::Swap *CommLattice::create_swap_all()
 {
+  int i;
+
+  AppLattice *applattice = (AppLattice *) app;
+  int nlocal = applattice->nlocal;
+  int nghost = applattice->nghost;
+  int ntotal = nlocal + nghost;
+
+  int *id = applattice->id;
+
+  // buf = list of global IDs I need to receive
+
+  Site *buf = (Site *) memory->smalloc(nghost*sizeof(Site),"comm:buf");
+  int nsite = 0;
+
+  for (i = nlocal; i < ntotal; i++) {
+    buf[nsite].id_global = id[i];
+    buf[nsite].index_local = i;
+    buf[nsite].proc = -1;
+    nsite++;
+  }
+
+  // grow buf to size of max ghosts on any proc
+
+  int maxsite;
+  MPI_Allreduce(&nsite,&maxsite,1,MPI_INT,MPI_MAX,world);
+
+  buf = (Site *) memory->srealloc(buf,maxsite*sizeof(Site),"comm:buf");
+
+  // create swap based on list of recvs
+
+  Swap *swap = new Swap;
+
+  create_send_from_recv(nsite,maxsite,buf,swap);
+  create_recv_from_list(nsite,buf,swap);
+
+  memory->sfree(buf);
+
+  return swap;
+}
+
+/* ----------------------------------------------------------------------
+   create a Swap communication pattern
+   reverse comm for my entire subdomain
+------------------------------------------------------------------------- */
+
+CommLattice::Swap *CommLattice::create_swap_all_reverse()
+{
   int i,j;
 
   AppLattice *applattice = (AppLattice *) app;
@@ -243,53 +290,6 @@ CommLattice::Swap *CommLattice::create_swap_all()
 
   create_send_from_list(nsite,buf,swap);
   create_recv_from_send(nsite,maxsite,buf,swap);
-
-  memory->sfree(buf);
-
-  return swap;
-}
-
-/* ----------------------------------------------------------------------
-   create a Swap communication pattern
-   reverse comm for my entire subdomain
-------------------------------------------------------------------------- */
-
-CommLattice::Swap *CommLattice::create_swap_all_reverse()
-{
-  int i;
-
-  AppLattice *applattice = (AppLattice *) app;
-  int nlocal = applattice->nlocal;
-  int nghost = applattice->nghost;
-  int ntotal = nlocal + nghost;
-
-  int *id = applattice->id;
-
-  // buf = list of global IDs I need to receive
-
-  Site *buf = (Site *) memory->smalloc(nghost*sizeof(Site),"comm:buf");
-  int nsite = 0;
-
-  for (i = nlocal; i < ntotal; i++) {
-    buf[nsite].id_global = id[i];
-    buf[nsite].index_local = i;
-    buf[nsite].proc = -1;
-    nsite++;
-  }
-
-  // grow buf to size of max ghosts on any proc
-
-  int maxsite;
-  MPI_Allreduce(&nsite,&maxsite,1,MPI_INT,MPI_MAX,world);
-
-  buf = (Site *) memory->srealloc(buf,maxsite*sizeof(Site),"comm:buf");
-
-  // create swap based on list of recvs
-
-  Swap *swap = new Swap;
-
-  create_send_from_recv(nsite,maxsite,buf,swap);
-  create_recv_from_list(nsite,buf,swap);
 
   memory->sfree(buf);
 
