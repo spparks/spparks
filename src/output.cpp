@@ -381,16 +381,16 @@ void Output::stats(int init_flag)
   char str[2048] = {'\0'};
   char *strpnt = str;
 
-  if (init_flag) {
-    sprintf(strpnt," %8.3g ",timer->elapsed(TIME_LOOP));
-    strpnt += strlen(strpnt);
-  } else {
-    sprintf(strpnt," %8.3g ",0.0);
-    strpnt += strlen(strpnt);
-  }
-
   app->stats(strpnt);
   strpnt += strlen(strpnt);
+
+  if (init_flag) {
+    sprintf(strpnt,"%10.3g ",timer->elapsed(TIME_LOOP));
+    strpnt += strlen(strpnt);
+  } else {
+    sprintf(strpnt,"%10.3g ",0.0);
+    strpnt += strlen(strpnt);
+  }
 
   for (int i = 0; i < ndiags; i++) {
     diaglist[i]->stats(strpnt);
@@ -414,10 +414,10 @@ void Output::stats_header()
   char str[2048] = {'\0'};
   char *strpnt = str;
 
-  sprintf(strpnt,"%10s","CPU ");
+  app->stats_header(strpnt);
   strpnt += strlen(strpnt);
 
-  app->stats_header(strpnt);
+  sprintf(strpnt,"%10s","CPU");
   strpnt += strlen(strpnt);
 
   for (int i = 0; i < ndiags; i++) {

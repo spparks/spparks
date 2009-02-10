@@ -222,11 +222,11 @@ void AppChemistry::iterate()
 void AppChemistry::stats(char *strtmp)
 {
   char *strpnt = strtmp;
-  sprintf(strpnt," %10d %10g",nevents,time);
+  sprintf(strpnt," %10g %10d",time,nevents);
   strpnt += strlen(strpnt);
 
   for (int m = 0; m < nspecies; m++) {
-    sprintf(strpnt," %10d",pcount[m]);
+    sprintf(strpnt," %d",pcount[m]);
     strpnt += strlen(strpnt);
   }
 }
@@ -238,7 +238,7 @@ void AppChemistry::stats(char *strtmp)
 void AppChemistry::stats_header(char *strtmp)
 {
   char *strpnt = strtmp;
-  sprintf(strpnt," %s %s","Step","Time");
+  sprintf(strpnt," %10s %10s","Time","Step");
   strpnt += strlen(strpnt);
 
   for (int m = 0; m < nspecies; m++) {

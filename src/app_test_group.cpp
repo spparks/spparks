@@ -241,7 +241,7 @@ void AppTestGroup::iterate()
 void AppTestGroup::stats(char *strtmp)
 {
   char *strpnt = strtmp;
-  sprintf(strpnt," %d %g",ncount,time);
+  sprintf(strpnt," %10g %10d",time,ncount);
   strpnt += strlen(strpnt);
 
   for (int m = 0; m < nevents; m++) {
@@ -256,7 +256,7 @@ void AppTestGroup::stats(char *strtmp)
 
 void AppTestGroup::stats_header(char *strtmp)
 {
-  sprintf(strtmp," %s %s %s","Step","Time","Reaction-Counts");
+  sprintf(strtmp," %10s %10s %s","Time","Step","Reaction-Counts");
 }
 
 /* ----------------------------------------------------------------------

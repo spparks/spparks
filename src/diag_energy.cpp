@@ -95,12 +95,12 @@ void DiagEnergy::compute(double time, int iflag, int done)
 
 void DiagEnergy::stats(char *strtmp) {
   if (stats_flag == 0) return;
-  sprintf(strtmp," %10g",energy);
+  sprintf(strtmp,"%10g",energy);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DiagEnergy::stats_header(char *strtmp) {
   if (stats_flag == 0) return;
-  sprintf(strtmp," %10s","Energy");
+  sprintf(strtmp,"%10s","Energy");
 }
