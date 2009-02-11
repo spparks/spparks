@@ -32,26 +32,31 @@ on a 3d lattice.  It is equivalent to a 2-state Ising model performing
 Kawasaki dynamics.  Neighboring sites exchange their spins as the
 model evolves.
 
-The Hamiltonian representing the energy of site I for the {diffusion}
-and {diffusion/table} styles is as follows:
+The Hamiltonian representing the energy of an occupied site I for the
+{diffusion} and {diffusion/table} styles is as follows:
 
-H = - Sum_j delta_ij :pre
+Hi = Sum_j delta_ij :pre
 
 where Sum_j is a sum over all the neighbor sites of site I and
-delta_ij is 1 if the spin of sites I and J are the same and 0
-otherwise.
+delta_ij is 0 if site J is occupied and 1 if site J is vacant.  The Hi
+for a vacant site is 0.
 
-The Hamiltonian representing the energy of site I for the
+The Hamiltonian representing the energy of an occupied site I for the
 {diffusion/nonlinear} style is as follows:
 
-H = Eng(Sum_j delta_ij) :pre
+Hi = Eng(Sum_j delta_ij) :pre
 
-where H = 0 if a site is a vacancy.  If a site is occupied, Sum_j is
-the sum over all its neighbor sites and delta_ij is 1 if site J is
-occupied and 0 otherwise.  The function Eng() is a tabulated function
-specified by the user via the "ecoord"_ecoord.html command.  The inner
-sum is effectively the coordination number of site I, and the energy
-of site I is modeled as a function of the coordination number.
+where Sum_j is the sum over all its neighbor sites and delta_ij now 1
+if site J is occupied and 0 otherwise.  Thus the summation computes
+the coordination number of site I.  Note that this definition of delta
+is the opposite of how it is defined for styles {diffusion} and
+{diffusion/table}.  The function Eng() is a tabulated function
+specified by the user via the "ecoord"_ecoord.html command, which
+allows the energy to be a non-linear function of coordination number.
+As before the Hi for a vacant site is 0.
+
+For all these applications, the energy of the entire system is the sum
+of Hi over all sites.
 
 The relationship between the 3 variants of app_style diffusion is as
 follows.  Styles {diffusion} and {diffusion/table} are the same except
@@ -60,18 +65,14 @@ Their results should be statistically the same, although not exactly
 the same, due to differences in how events are chosen by random
 numbers.
 
-The style {diffusion/nonlinear} should give exactly the same answers
-as {diffusion/table} if the tabulated function specified by the
-"ecoord"_ecoord.html command is set up so that E_0 = N, E_1 = N-1,
-... E_N-1 = 1, E_N = 0.  N = the number of neighbors of each lattice
-site, i.e. the maximum coordination number.  In this scenario, the
-energy is a linear function of coordination number, which is
-effectively the model used by the {diffusion} and {diffusion/table}
-styles.  Note that while the dynamics of the 2 models will be
-identical, the output energy of the system will be 2x larger in the
-{diffusion/table} case versus the {diffusion/nonlinear} case.  This is
-because the first Hamiltonian formulas above double-counts the energy
-of a occupied site neighboring a vacancy site.
+Note that the style {diffusion/nonlinear} should give the same answers
+(statistically) as {diffusion} or {diffusion/table} if the tabulated
+function specified by the "ecoord"_ecoord.html command is specified
+with E_0 = N, E_1 = N-1, ... E_N-1 = 1, E_N = 0.  N = the number of
+neighbors of each lattice site, i.e. the maximum coordination number.
+In this scenario, the energy is effectively a linear function of
+coordination number, which is the model used by the {diffusion} and
+{diffusion/table} styles.
 
 Of course, if the specified "ecoord"_ecoord.html values are not
 specified as a linear function, then the {diffusion/nonlinear} style

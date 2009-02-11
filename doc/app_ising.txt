@@ -29,15 +29,18 @@ evolves.
 
 The Hamiltonian representing the energy of site I is as follows:
 
-H = - Sum_j delta_ij :pre
+Hi = Sum_j delta_ij :pre
 
-where Sum_j is a sum over all the neighbor sites of site I and delta_ij
-is 1 if the spin of sites I and J are the same and 0 otherwise.
+where Sum_j is a sum over all the neighbor sites of site I and
+delta_ij is 0 if the spin of sites I and J are the same and 1 if they
+are different.  The energy of the entire system is the sum of Hi over
+all sites.
 
 This application performs Glauber dynamics, meaning the spin is
-flipped on a single site.  See "app_style diffusion" for an Ising
-model which performs Kawasaki dynamics, meaning the spins on two
-neighboring sites are swapped.
+flipped on a single site.  See "app_style
+diffusion"_app_diffusion.html for an Ising model which performs
+Kawasaki dynamics, meaning the spins on two neighboring sites are
+swapped.
 
 As explained on "this page"_app_style.html, this application can be
 evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)

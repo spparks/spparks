@@ -39,15 +39,18 @@ as the model evolves.
 </P>
 <P>The Hamiltonian representing the energy of site I is as follows:
 </P>
-<PRE>H = - Sum_j delta_ij 
+<PRE>Hi = Sum_j delta_ij 
 </PRE>
-<P>where Sum_j is a sum over all the neighbor sites of site I and delta_ij
-is 1 if the spin of sites I and J are the same and 0 otherwise.
+<P>where Sum_j is a sum over all the neighbor sites of site I and
+delta_ij is 0 if the spin of sites I and J are the same and 1 if they
+are different.  The energy of the entire system is the sum of Hi over
+all sites.
 </P>
 <P>These applications perform Glauber dynamics, meaning the spin is
-flipped on a single site.  See "app_style diffusion" for an Ising
-model which performs Kawasaki dynamics, meaning the spins on two
-neighboring sites are swapped.
+flipped on a single site.  See <A HREF = "app_diffusion.html">app_style
+diffusion</A> for an Ising model which performs
+Kawasaki dynamics, meaning the spins on two neighboring sites are
+swapped.
 </P>
 <P>The <I>potts/variable</I> application is identical to the <I>potts</I>
 application except that the <I>site</I> keyword must be used to define the
