@@ -23,13 +23,13 @@
 </PRE>
 <UL><LI>style = <I>potts</I> or <I>potts/neigh</I> or <I>potts/neighonly</I> or <I>potts/variable</I>
 <LI>Q = number of spin states
-<LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended to the <I>potts</I> and <I>potts/variable</I> styles 
+<LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style potts 100 spin lattice sq/4n 1.0 50 50
-app_style potts/neigh 20 spin lattice sq/4n 1.0 50 50
-app_style potts/variable 100 neigh lattice sq/4n 1.0 50 50 site 1 1 
+<PRE>app_style potts 100 lattice sq/4n 1.0 50 50
+app_style potts/neigh 20 lattice sq/4n 1.0 50 50
+app_style potts/variable 100 lattice sq/4n 1.0 50 50 site 1 1 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -55,7 +55,9 @@ swapped.
 <P>The <I>potts/variable</I> application is identical to the <I>potts</I>
 application except that the <I>site</I> keyword must be used to define the
 per-site quantities stored on the lattice.  The <I>site</I> keyword is
-described with the <A HREF = "app_style.html">app_style</A> command.
+described with the <A HREF = "app_style.html">app_style</A> command.  This
+application is provided to illustrate how an application is written
+using user-defined sites via the <I>site</I> keyword.
 </P>
 <P>As explained on <A HREF = "app_style.html">this page</A>, these applications can be
 evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
@@ -68,7 +70,9 @@ probability is min[1,exp(-dE/kT)], where dE = Efinal - Einitial
 using the Hamiltonian defined above for the energy of the site, and T
 is the temperature of the system defined by the
 <A HREF = "temperature.html">temperature</A> command (which includes the Boltzmann
-constant k implicitly).
+constant k implicitly).  The KMC algorithm does not allow spin flips
+known as "wild" flips, even at finite temperature.  These are flips to
+values that are not equal to any neighbor site value.
 </P>
 <P>For solution by a rKMC algorithm, the various styles use different
 rejection-based algorithms.  For the <I>potts</I> and <I>potts/variable</I>
@@ -85,7 +89,13 @@ the cases, dE = Efinal - Einitial is calculated, as is a uniform
 random number R between 0 and 1.  The new state is accepted if R <
 min[1,exp(-dE/kT)], else it is rejected.
 </P>
-<P>Need to discuss rules for wild flips for KMC and rKMC.
+<P>The rKMC algorithm for the <I>potts</I> style does allow spin flips known
+as "wild" flips.  These are flips to values that are not equal to any
+neighbor site value.  At temperature 0.0 these are effectively
+disallowed, since they will increase the energy of the system (except
+in the uninteresting case when the site already has a spin value not
+equal to any neighbor values), but at finite temperature they will
+have a non-zero probability of occurring.
 </P>
 <HR>
 
@@ -96,6 +106,8 @@ min[1,exp(-dE/kT)], else it is rejected.
 <TR><TD ><A HREF = "stats.html">stats</A> </TD><TD > output of system info</TD></TR>
 <TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature 
 </TD></TR></TABLE></DIV>
+
+<HR>
 
 <P><B>Restrictions:</B> none
 </P>

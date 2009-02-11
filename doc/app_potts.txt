@@ -17,13 +17,13 @@ app_style style Q keyword values ... :pre
 
 style = {potts} or {potts/neigh} or {potts/neighonly} or {potts/variable}
 Q = number of spin states
-see the "app_style"_app_style.html command for additional keywords that can be appended to the {potts} and {potts/variable} styles :ul
+see the "app_style"_app_style.html command for additional keywords that can be appended :ul
 
 [Examples:]
 
-app_style potts 100 spin lattice sq/4n 1.0 50 50
-app_style potts/neigh 20 spin lattice sq/4n 1.0 50 50
-app_style potts/variable 100 neigh lattice sq/4n 1.0 50 50 site 1 1 :pre
+app_style potts 100 lattice sq/4n 1.0 50 50
+app_style potts/neigh 20 lattice sq/4n 1.0 50 50
+app_style potts/variable 100 lattice sq/4n 1.0 50 50 site 1 1 :pre
 
 [Description:]
 
@@ -49,7 +49,9 @@ swapped.
 The {potts/variable} application is identical to the {potts}
 application except that the {site} keyword must be used to define the
 per-site quantities stored on the lattice.  The {site} keyword is
-described with the "app_style"_app_style.html command.
+described with the "app_style"_app_style.html command.  This
+application is provided to illustrate how an application is written
+using user-defined sites via the {site} keyword.
 
 As explained on "this page"_app_style.html, these applications can be
 evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
@@ -62,7 +64,9 @@ probability is min\[1,exp(-dE/kT)\], where dE = Efinal - Einitial
 using the Hamiltonian defined above for the energy of the site, and T
 is the temperature of the system defined by the
 "temperature"_temperature.html command (which includes the Boltzmann
-constant k implicitly).
+constant k implicitly).  The KMC algorithm does not allow spin flips
+known as "wild" flips, even at finite temperature.  These are flips to
+values that are not equal to any neighbor site value.
 
 For solution by a rKMC algorithm, the various styles use different
 rejection-based algorithms.  For the {potts} and {potts/variable}
@@ -79,7 +83,13 @@ the cases, dE = Efinal - Einitial is calculated, as is a uniform
 random number R between 0 and 1.  The new state is accepted if R <
 min\[1,exp(-dE/kT)\], else it is rejected.
 
-Need to discuss rules for wild flips for KMC and rKMC.
+The rKMC algorithm for the {potts} style does allow spin flips known
+as "wild" flips.  These are flips to values that are not equal to any
+neighbor site value.  At temperature 0.0 these are effectively
+disallowed, since they will increase the energy of the system (except
+in the uninteresting case when the site already has a spin value not
+equal to any neighbor values), but at finite temperature they will
+have a non-zero probability of occurring.
 
 :line
 
@@ -88,6 +98,8 @@ The following additional commands are defined by these applications:
 "dump"_dump.html : output of lattice snapshots
 "stats"_stats.html : output of system info
 "temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
+
+:line
 
 [Restrictions:] none
 

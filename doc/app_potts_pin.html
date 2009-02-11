@@ -9,27 +9,26 @@
 
 <HR>
 
-<H3>app_style ising command 
-</H3>
-<H3>app_style ising/single command 
+<H3>app_style potts/pin command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style keyword values ... 
+<PRE>app_style potts/pin Q keyword values ... 
 </PRE>
-<UL><LI>style = <I>ising</I> or <I>ising/single</I>
-<LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended to the <I>ising</I> style 
+<UL><LI>potts/pin = application style name
+<LI>Q = number of spin states
+<LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style ising lattice sq/4n 1.0 50 50
-app_style ising/single lattice sq/4n 1.0 50 50 
+<PRE>app_style potts/pin 100 lattice tri 1.0 50 50 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This application evolves a 2-state Ising model, where each lattice
-site has a spin of 1 or 2.  Sites flip their spin as the model
-evolves.
+<P>This application evolves a Q-state Potts model in the presence of
+pinning sites, which are sites tagged with a spin value of Q+1 which
+do not change.  Their effect is typically to pin or inhibit grain
+growth in various ways.
 </P>
 <P>The Hamiltonian representing the energy of site I is as follows:
 </P>
@@ -40,7 +39,7 @@ delta_ij is 0 if the spin of sites I and J are the same and 1 if they
 are different.  The energy of the entire system is the sum of Hi over
 all sites.
 </P>
-<P>This application performs Glauber dynamics, meaning the spin is
+<P>These applications perform Glauber dynamics, meaning the spin is
 flipped on a single site.  See <A HREF = "app_diffusion.html">app_style
 diffusion</A> for an Ising model which performs
 Kawasaki dynamics, meaning the spins on two neighboring sites are
@@ -57,15 +56,25 @@ probability is min[1,exp(-dE/kT)], where dE = Efinal - Einitial
 using the Hamiltonian defined above for the energy of the site, and T
 is the temperature of the system defined by the
 <A HREF = "temperature.html">temperature</A> command (which includes the Boltzmann
-constant k implicitly).
+constant k implicitly).  The KMC algorithm does not allow spin flips
+known as "wild" flips, even at finite temperature.  These are flips to
+values that are not equal to any neighbor site value.  The KMC
+algorithm also does not allow spin flips to a pinned site value.
 </P>
-<P>For solution by a rKMC algorithm, the <I>ising</I> and <I>ising/single</I>
-styles use a different rejection-based algorithm.  For the <I>ising</I>
-style, the spin is set randomly to 1 or 2.  For the <I>ising/single</I>
-style, the spin is flipped to its opposite value.  In either case, dE
-= Efinal - Einitial is calculated, as is a uniform random number R
+<P>For solution by a rKMC algorithm, a random spin from 1 to Q is chosen.
+Note that this does not allow a spin flip to a pinned site value,
+since those sites are set to Q+1.  When the flip is attempted dE =
+Efinal - Einitial is calculated, as is a uniform random number R
 between 0 and 1.  The new state is accepted if R <
-min[1,exp(-dE/kT)].
+min[1,exp(-dE/kT)], else it is rejected.
+</P>
+<P>The rKMC algorithm for the <I>potts</I> style does allow spin flips known
+as "wild" flips.  These are flips to values that are not equal to any
+neighbor site value.  At temperature 0.0 these are effectively
+disallowed, since they will increase the energy of the system (except
+in the uninteresting case when the site already has a spin value not
+equal to any neighbor values), but at finite temperature they will
+have a non-zero probability of occurring.
 </P>
 <HR>
 
@@ -73,6 +82,7 @@ min[1,exp(-dE/kT)].
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD ><A HREF = "dump.html">dump</A> </TD><TD > output of lattice snapshots</TD></TR>
+<TR><TD ><A HREF = "pin.html">pin</A> </TD><TD > create a set of pinned sites</TD></TR>
 <TR><TD ><A HREF = "stats.html">stats</A> </TD><TD > output of system info</TD></TR>
 <TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature 
 </TD></TR></TABLE></DIV>

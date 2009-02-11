@@ -99,7 +99,9 @@ occupied site to a vacancy site.
 evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
 algorithm.  You must thus define a KMC solver or sweeping method to be
 used with the application via the <A HREF = "solve_style.html">solve_style</A> or
-<A HREF = "sweep.html">sweep</A> commands.
+<A HREF = "sweep.html">sweep</A> commands.  The <I>diffusion</I> style supports both KMC
+and rKMC options.  The <I>diffusion/table</I> and <I>diffusion/nonlinear</I>
+styles only support KMC options.
 </P>
 <P>For solution by a KMC algorithm, the possible events an occupied site
 can perform are swaps with vacant neighbor sites.  The probability of
@@ -126,6 +128,8 @@ application.
 <TR><TD ><A HREF = "stats.html">stats</A> </TD><TD > output of system info</TD></TR>
 <TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature 
 </TD></TR></TABLE></DIV>
+
+<HR>
 
 <P><B>Restrictions:</B> none
 </P>

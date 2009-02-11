@@ -228,6 +228,7 @@ Restrictions in the command's documentation.
 "label"_label.html,
 "log"_log.html,
 "next"_next.html,
+"pin"_pin.html,
 "print"_print.html,
 "run"_run.html,
 "sector"_sector.html,
@@ -256,6 +257,9 @@ full description:
 "pore"_app_pore.html,
 "pore/nonlinear"_app_pore.html,
 "potts"_app_potts.html,
+"potts/neigh"_app_potts.html,
+"potts/neighonly"_app_potts.html,
+"potts/pin"_app_potts_pin.html,
 "test/group"_app_test_group.html :tb(c=8,ea=c)
 
 :line

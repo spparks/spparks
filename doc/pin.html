@@ -1,0 +1,47 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pin command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>inclusion fraction 
+</PRE>
+<UL><LI>fraction = fraction of sites (0 to 1) to convert to pinned sites 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pin 0.1 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command converts sites on a lattice to pinned sites by setting
+their spin value to Q+1, where Q is defined by a Potts model.  This
+command can only be used by the <A HREF = "app_potts_pin.html">app_style
+potts/pin</A> application.
+</P>
+<P>Pinned sites are chosen randomly until the desired fraction of
+changed sites is achieved.  The selection is done in a way
+that should be independent of the number of processors used to
+run a particular simulation.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P>This command can only be used as part of the <A HREF = "app_potts_pin.html">app_style
+potts/pin</A> applications.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_potts_pin.html">app_style potts/pin</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

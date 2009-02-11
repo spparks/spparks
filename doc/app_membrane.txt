@@ -78,6 +78,8 @@ The following additional commands are defined by these applications:
 "stats"_stats.html : output of system info
 "temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
 
+:line
+
 [Restrictions:] none
 
 [Related commands:] none

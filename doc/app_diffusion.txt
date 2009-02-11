@@ -94,7 +94,9 @@ As explained on "this page"_app_style.html, these applications can be
 evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
 algorithm.  You must thus define a KMC solver or sweeping method to be
 used with the application via the "solve_style"_solve_style.html or
-"sweep"_sweep.html commands.
+"sweep"_sweep.html commands.  The {diffusion} style supports both KMC
+and rKMC options.  The {diffusion/table} and {diffusion/nonlinear}
+styles only support KMC options.
 
 For solution by a KMC algorithm, the possible events an occupied site
 can perform are swaps with vacant neighbor sites.  The probability of
@@ -119,6 +121,8 @@ application.
 "ecoord"_ecoord.html : energy as a function of coordination
 "stats"_stats.html : output of system info
 "temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
+
+:line
 
 [Restrictions:] none
 
