@@ -140,7 +140,7 @@ void AppPotts::site_event_rejection(int i, RandomPark *random)
 double AppPotts::site_propensity(int i)
 {
   // events = spin flips to neighboring site different than self
-  // disallows wild flips = flips to value different than all neighs
+  // disallow wild flips = flips to value different than all neighs
 
   int j,m,value;
   int nevent = 0;
@@ -181,8 +181,6 @@ double AppPotts::site_propensity(int i)
 
 void AppPotts::site_event(int i, RandomPark *random)
 {
-  solve->update(0,NULL,NULL);
-
   int j,m,value;
 
   // pick one event from total propensity by accumulating its probability

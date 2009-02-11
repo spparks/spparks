@@ -25,6 +25,7 @@
 #include "app_potts.h"
 #include "app_potts_neigh.h"
 #include "app_potts_neighonly.h"
+#include "app_potts_pin.h"
 #include "app_potts_variable.h"
 #include "app_surface.h"
 #include "app_test_group.h"
@@ -44,6 +45,7 @@ AppStyle(pore/nonlinear,AppPoreNonLinear)
 AppStyle(potts,AppPotts)
 AppStyle(potts/neigh,AppPottsNeigh)
 AppStyle(potts/neighonly,AppPottsNeighOnly)
+AppStyle(potts/pin,AppPottsPin)
 AppStyle(potts/variable,AppPottsVariable)
 AppStyle(surface,AppSurface)
 AppStyle(test/group,AppTestGroup)

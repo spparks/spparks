@@ -146,7 +146,7 @@ void AppPottsVariable::site_event_rejection(int i, RandomPark *random)
 double AppPottsVariable::site_propensity(int i)
 {
   // events = spin flips to neighboring site different than self
-  // disallows wild flips = flips to value different than all neighs
+  // disallow wild flips = flips to value different than all neighs
 
   int j,m,value;
   int nevent = 0;
