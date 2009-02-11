@@ -150,10 +150,11 @@ void AppDiffusionNonLinear::input_app(char *command, int narg, char **arg)
 double AppDiffusionNonLinear::site_energy(int i)
 {
   // energy only non-zero for OCCUPIED sites
-  // energy is a non-linear function of coordination number
-  // computed from user-specified tabulated values
 
   if (lattice[i] == VACANT) return 0.0;
+
+  // energy is a non-linear function of coordination number
+  // computed from user-specified tabulated values
 
   int n = 0;
   for (int j = 0; j < numneigh[i]; j++)

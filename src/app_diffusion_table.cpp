@@ -144,6 +144,7 @@ double AppDiffusionTable::site_propensity(int i)
   // events = OCCUPIED site exchanges with adjacent VACANT site
   // for each exchange
   // compute energy difference between initial and final state
+  // factor of 2 in edelta accounts for energy change of neighbors of I,J
   // if downhill or no energy change, propensity = 1
   // if uphill energy change, propensity = Boltzmann factor
 
@@ -157,14 +158,15 @@ double AppDiffusionTable::site_propensity(int i)
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
     j = neighbor[i][ineigh];
     if (lattice[j] == VACANT) {
-      einitial = site_energy(i) + site_energy(j);
+      einitial = site_energy(i);
 
       lattice[i] = VACANT;
       lattice[j] = OCCUPIED;
-      efinal = site_energy(i) + site_energy(j);
+      efinal = site_energy(j);
 
       if (efinal <= einitial) probone = 1.0;
-      else if (temperature > 0.0) probone = exp((einitial-efinal)*t_inverse);
+      else if (temperature > 0.0)
+	probone = exp(2.0*(einitial-efinal)*t_inverse);
       else probone = 0.0;
 
       if (probone > 0.0) {
