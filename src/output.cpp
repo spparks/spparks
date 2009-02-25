@@ -30,6 +30,9 @@ enum{INT,DOUBLE};
 #define MAXLINE 1024
 #define DEFAULT "id lattice x y z"
 
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 /* ---------------------------------------------------------------------- */
 
 Output::Output(SPPARKS *spk) : Pointers(spk)
@@ -318,12 +321,14 @@ void Output::compute(double time, int done)
       dump_time += dump_delta;
       dump_irepeat++;
       if (dump_irepeat == dump_nrepeat || time > dump_time-dump_eps) {
-	// Calculate next smallest delta that will reach tgoal within nrepeat steps
+
+
+	// Calculate next smallest delta that will 
+	// reach tgoal within nrepeat steps
 	tgoal = time-dump_t0+dump_delta;
-	ntmp = static_cast<int> 
-	  (ceil(log(tgoal/(dump_delta*dump_nrepeat))/log(dump_scale)));
-	// If ntmp is less than one, we will need to fix this
-	if (ntmp < 1) error->all("ntmp < 1 in Output::compute()");
+	ntmp = MAX(1,static_cast<int>
+		   (ceil(log(tgoal/(dump_delta*dump_nrepeat))
+			 /log(dump_scale))));
 	dump_delta *= pow(dump_scale,ntmp);
 	dump_time = ceil(tgoal/dump_delta)*dump_delta;
 	dump_irepeat = 0;
@@ -358,12 +363,12 @@ void Output::compute(double time, int done)
       stats_time += stats_delta;
       stats_irepeat++;
       if (stats_irepeat == stats_nrepeat || time > stats_time-stats_eps) {
-	// Calculate next smallest delta that will reach tgoal within nrepeat steps
+	// Calculate next smallest delta that will 
+	// reach tgoal within nrepeat steps
 	tgoal = time-stats_t0+stats_delta;
-	ntmp = static_cast<int>
-	  (ceil(log(tgoal/(stats_delta*stats_nrepeat))/log(stats_scale)));
-	// If ntmp is less than one, we will need to fix this
-	if (ntmp < 1) error->all("ntmp < 1 in Output::compute()");
+	ntmp = MAX(1,static_cast<int>
+		   (ceil(log(tgoal/(stats_delta*stats_nrepeat))
+			 /log(stats_scale))));
 	stats_delta *= pow(stats_scale,ntmp);
 	stats_time = ceil(tgoal/stats_delta)*stats_delta;
 	stats_irepeat = 0;

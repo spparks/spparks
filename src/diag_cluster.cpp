@@ -387,7 +387,6 @@ void DiagCluster::generate_clusters()
     int* neighs;
     int jneigh;
 
-    volsum = 0.0;
     ncluster_reduced = 0;
 
     // loop over all clusters
@@ -432,13 +431,30 @@ void DiagCluster::generate_clusters()
 	}
       }
       clustlist[i].volume = vol;
-      volsum+=vol;
     }
     
+    volsum = 0.0;
+    double rsum = 0.0;
+    double invdim = 1.0/applattice->dimension;
+    for (int i = 0; i < ncluster; i++) {
+      if (clustlist[i].volume > 0.0) {
+	vol = clustlist[i].volume;
+	volsum += vol;
+	rsum += pow(vol,invdim);
+      }
+    }
+
+    vav = volsum/ncluster_reduced ;
+    r1av = pow(vav,invdim);
+    r2av = rsum/ncluster_reduced;
     if (fp) {
       fprintf(fp,"ncluster = %d \n",ncluster_reduced);
+      fprintf(fp,"<N> = %g \n",vav);
+      fprintf(fp,"<R1> = %g \n",r1av);
+      fprintf(fp,"<R2> = %g \n",r2av);
       fprintf(fp,"id ivalue dvalue size\n");
       for (int i = 0; i < ncluster; i++) {
+// 	clustlist[i].print(fp);
 	if (clustlist[i].volume > 0.0) {
 	  fprintf(fp," %d %d %g %g\n",
 		  clustlist[i].global_id,clustlist[i].ivalue,
@@ -652,12 +668,12 @@ void DiagCluster::free_clustlist()
 
 void DiagCluster::stats(char *strtmp) {
   if (stats_flag == 0) return;
-  sprintf(strtmp," %10d",ncluster_reduced);
+  sprintf(strtmp," %10d %10g %10g %10g",ncluster_reduced,vav,r1av,r2av);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DiagCluster::stats_header(char *strtmp) {
   if (stats_flag == 0) return;
-  sprintf(strtmp," %10s","Nclust");
+  sprintf(strtmp," %10s %10s %10s %10s","Nclust","<V>","<R1>","<R2>");
 }

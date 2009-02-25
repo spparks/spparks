@@ -24,6 +24,9 @@
 
 using namespace SPPARKS_NS;
 
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 /* ---------------------------------------------------------------------- */
 
 Diag::Diag(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
@@ -115,12 +118,12 @@ int Diag::check_time(double time, int done)
       diag_time += diag_delta;
       diag_irepeat++;
       if (diag_irepeat == diag_nrepeat || time > diag_time-diag_eps) {
-	// Calculate next smallest delta that will reach tgoal within nrepeat steps
+	// Calculate next smallest delta that will 
+	// reach tgoal within nrepeat steps
 	tgoal = time-diag_t0+diag_delta;
-	ntmp = static_cast<int> 
-	  (ceil(log(tgoal/(diag_delta*diag_nrepeat))/log(diag_scale)));
-	// If ntmp is less than one, we will need to fix this
-	if (ntmp < 1) error->all("ntmp < 1 in Diag::check_time()");
+	ntmp = MAX(1,static_cast<int>
+		   (ceil(log(tgoal/(diag_delta*diag_nrepeat))
+			 /log(diag_scale))));
 	diag_delta *= pow(diag_scale,ntmp);
 	diag_time = ceil(tgoal/diag_delta)*diag_delta;
 	diag_irepeat = 0;
