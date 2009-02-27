@@ -41,7 +41,7 @@ help:
 	@echo 'make package-update      replace src files with package files'
 	@echo 'make package-overwrite   replace package files with src files'
 	@echo ''
-	@echo 'make machine             build LAMMPS where machine is one of:'
+	@echo 'make machine             build SPPARKS where machine is one of:'
 	@echo ''
 	@files="`ls MAKE/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
