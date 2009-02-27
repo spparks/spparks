@@ -396,6 +396,13 @@ void AppSurface::site_event(int i, class RandomPark *random)
   sites[nsites++] = isite;
   check[isite] = 1;
 
+  isite = i2site[j];
+  if (isite >= 0) {
+    propensity[isite] = site_propensity(j);
+    sites[nsites++] = isite;
+    check[isite] = 1;
+  }
+
   for (k = 0; k < numneigh[i]; k++) {
     m = neighbor[i][k];
     isite = i2site[m];
@@ -425,13 +432,6 @@ void AppSurface::site_event(int i, class RandomPark *random)
         }
       }
     }
-  }
-
-  isite = i2site[j];
-  if (isite >= 0) {
-    propensity[isite] = site_propensity(j);
-    sites[nsites++] = isite;
-    check[isite] = 1;
   }
 
   for (k = 0; k < numneigh[j]; k++) {

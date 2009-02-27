@@ -223,6 +223,13 @@ void AppDiffusionDeposit::site_event(int i, class RandomPark *random)
   esites[nsites++] = isite;
   echeck[isite] = 1;
 
+  isite = i2site[j];
+  if (isite >= 0) {
+    propensity[isite] = site_propensity(j);
+    esites[nsites++] = isite;
+    echeck[isite] = 1;
+  }
+
   for (k = 0; k < numneigh[i]; k++) {
     m = neighbor[i][k];
     isite = i2site[m];
@@ -240,13 +247,6 @@ void AppDiffusionDeposit::site_event(int i, class RandomPark *random)
 	echeck[isite] = 1;
       }
     }
-  }
-
-  isite = i2site[j];
-  if (isite >= 0) {
-    propensity[isite] = site_propensity(j);
-    esites[nsites++] = isite;
-    echeck[isite] = 1;
   }
 
   for (k = 0; k < numneigh[j]; k++) {
