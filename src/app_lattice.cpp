@@ -349,7 +349,6 @@ void AppLattice::init()
     dt_rkmc = MIN(dt_rkmc,stoptime-time);
   }
 
-
   // setup sitelist if sweepflag = RANDOM
   // do this every init since sector timestep could have changed
 
