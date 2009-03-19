@@ -22,3 +22,5 @@ void spparks_open(int, char **, MPI_Comm, void **);  /* start-up SPPARKS */
 void spparks_close(void *);                          /* shut-down SPPARKS */
 void spparks_file(void *, char *);                   /* run an input script */
 char *spparks_command(void *, char *);               /* execute a command */
+
+void *spparks_extract(void *, char *);
