@@ -1069,3 +1069,27 @@ void AppLattice::connected_ghosts(int i, int* cluster_ids,
     }
   }
 }
+
+/* ----------------------------------------------------------------------
+   return a pointer to a named internal variable
+   name = "nlocal" or "lattice" or "xyz" or "iarrayN" or "darrayN"
+   N in iarray and darray is an integer from 1 to ninteger or ndouble
+ ------------------------------------------------------------------------- */
+
+void *AppLattice::extract(char *name)
+{
+  if (strcmp(name,"nlocal") == 0) return (void *) &nlocal;
+  if (strcmp(name,"lattice") == 0) return (void *) lattice;
+  if (strcmp(name,"xyz") == 0) return (void *) xyz;
+  if (strstr(name,"iarray") == name) {
+    int n = atoi(&name[6]);
+    if (n < 1 || n > ninteger) return NULL;
+    return (void *) iarray[n-1];
+  }
+  if (strstr(name,"darray") == name) {
+    int n = atoi(&name[6]);
+    if (n < 1 || n > ndouble) return NULL;
+    return (void *) darray[n-1];
+  }
+  return NULL;
+}

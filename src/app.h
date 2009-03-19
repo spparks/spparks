@@ -39,6 +39,7 @@ class App : protected Pointers {
 
   virtual void stats(char *strtmp) {strtmp[0] = '\0';};
   virtual void stats_header(char *strtmp) {strtmp[0] = '\0';};
+  virtual void *extract(char *) {return NULL;};
 };
 
 }

@@ -66,3 +66,16 @@ char *spparks_command(void *ptr, char *str)
    add SPPARKS-specific library functions
    all must receive SPPARKS pointer as argument
 ------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   extract a pointer to an internal SPPARKS value or data structure
+   name = desired quantity, e.g. lattice or nlocal
+   returns a void pointer which the caller can cast to the desired data type
+   returns a NULL if app does not recognize the name
+------------------------------------------------------------------------- */
+
+void *spparks_extract(void *ptr, char *name)
+{
+  SPPARKS *spk = (SPPARKS *) ptr;
+  return spk->app->extract(name);
+}

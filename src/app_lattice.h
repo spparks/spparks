@@ -34,6 +34,7 @@ class AppLattice : public App {
   void init();
   void input(char *, int, char **);
   void run(int, char **);
+  void *extract(char *);
 
   // pure virtual functions, must be defined in child class
 
