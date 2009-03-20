@@ -56,18 +56,18 @@ after a run.  This can be useful if you wish to do many short runs in
 succession (e.g. SPPARKS is being called as a library which is doing
 other computations between successive short SPPARKS runs).
 
-By default (pre and post = yes), SPPARKS initializes data structures
+By default (pre and post = {yes}), SPPARKS initializes data structures
 and computes propensities before every run.  After every run it
 gathers and prints timings statistics.  If a run is just a
 continuation of a previous run, the data structure initialization is
-not necessary.  So if {pre} is specified as "no" then the
+not necessary.  So if {pre} is specified as {no} then the
 initialization is skipped.  Propensities are still re-computed since
 commands between runs or a driver program may have changed the system,
-e.g. by altering lattice values.  Note that if {pre} is set to "no"
+e.g. by altering lattice values.  Note that if {pre} is set to {no}
 for the very 1st run SPPAKRS performs, then it is overridden, since
 the initialization must be done.
 
-If {post} is specified as "no", the full timing summary is skipped;
+If {post} is specified as {no}, the full timing summary is skipped;
 only a one-line summary timing is printed.
 
 [Restrictions:] none
