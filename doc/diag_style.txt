@@ -15,6 +15,8 @@ diag_style style keyword value keyword value ... :pre
 style = {cluster} or {cluster2d} or {cluster3d} or {eprof3d} or {energy} or {energy2d} or {energy3d} :ulb,l
 zero or more keyword/value pairs may be appended :l
 keyword = {delt} or {logfreq} or {stats}
+  {delay} values = tdelay
+    tdelay = delay evaluating diagnostic until at least this time
   {delt} values = delta
     delta = time increment between evaluations of the diagnostic (seconds)
   {logfreq} values = N factor
@@ -87,6 +89,10 @@ will perform its computation at these times:
 
 t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... :pre
 
+The delay keyword specifies the shortest time at which the 
+diagnostic can be evaluated. This is useful if it is inconvenient
+to evaluate the diagnostic at time t=0.
+ 
 :line
 
 [Restrictions:] none

@@ -15,9 +15,13 @@ dump delta filename keyword values field1 field2 ... :pre
 delta = time increment between dumps (seconds)
 filename = name of file to dump snapshots to
 keyword =  logfreq :l
+  {delay} values = tdelay
+    tdelay = delay dump until at least this time
   {logfreq} values = N factor
     N = number of repetitions per interval
     factor = scale factor between interval :pre
+  {maskzeroenergy} values = {yes} or {no}
+    yes/no = suppress out of lattice sites with zero energy
 field = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} or {iN} or {dN} :ul
 
 [Examples:]
@@ -59,8 +63,20 @@ By default (if no fields are listed), the output values for each
 site are the "id lattice x y z".  This is in the format of a "LAMMPS
 dump file"_lammps which can thus be read-in by the "Pizza.py
 toolkit"_pizza, converted to other formats, or used for visualization.
+An important modification to the LAMMPS-style header for each snapshot 
+is the addition of time to the line containing the timestep:
 
-If fieldss are listed then only those quantities will be printed for
+ITEM: TIMESTEP TIME
+100   3.23945
+
+Setting the {maskzeroenergy} keyword to {yes} will suppress output for sites whose energy is zero.
+The reduced number of sites for that snapshot will be reflected in the header line for the 
+number of atoms/sites.
+
+ITEM: NUMBER OF ATOMS
+314159
+
+If fields are listed then only those quantities will be printed for
 each lattice site.
 
 The {id} is a unique integer ID for each site.
