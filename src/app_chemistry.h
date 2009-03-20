@@ -24,10 +24,10 @@ class AppChemistry : public App {
   virtual ~AppChemistry();
   void input(char *, int, char **);
   void init();
-  void run(int, char **);
+  void setup();
+  void iterate();
 
  private:
-  double stoptime;
   double volume;                 // Gillespie volume
 
   int nevents;                   // # of reactions performed
@@ -54,7 +54,6 @@ class AppChemistry : public App {
 
   int *rcount;               // statistics
 
-  void iterate();
   void stats(char *);
   void stats_header(char *);
 

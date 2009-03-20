@@ -31,9 +31,10 @@ class AppLattice : public App {
  public:
   AppLattice(class SPPARKS *, int, char **);
   virtual ~AppLattice();
-  void init();
   void input(char *, int, char **);
-  void run(int, char **);
+  void init();
+  void setup();
+  void iterate();
   void *extract(char *);
 
   // pure virtual functions, must be defined in child class
@@ -54,7 +55,6 @@ class AppLattice : public App {
   int naccept,nattempt;       // number of accepted and attempted events
   int nsweeps;                // number of sweeps performed
   double temperature,t_inverse;  // temperature settings
-  double stoptime;            // length of time to run
   double dt_sweep;            // rKMC time for nglobal attemped events
   double dt_rkmc;             // rKMC time for one pass thru all sectors
   double dt_kmc;              // KMC time for one pass thru all sectors
@@ -162,6 +162,7 @@ class AppLattice : public App {
 
   void virtual input_app(char *, int, char **);
   void virtual init_app() {}
+  void virtual setup_app() {}
 
   void options(int, char **);
   void create_lattice();

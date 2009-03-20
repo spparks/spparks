@@ -113,25 +113,6 @@ AppDiffusionNonLinear::~AppDiffusionNonLinear()
 
 /* ---------------------------------------------------------------------- */
 
-void AppDiffusionNonLinear::init_app()
-{
-  delete [] echeck;
-  echeck = new int[nlocal+nghost];
-  delete [] pcheck;
-  pcheck = new int[nlocal+nghost];
-  for (int i = 0; i < nlocal+nghost; i++) echeck[i] = pcheck[i] = 0;
-
-  memory->sfree(events);
-  memory->sfree(firstevent);
-
-  events = NULL;
-  nevents = maxevent = 0;
-  firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
-  for (int i = 0; i < nlocal; i++) firstevent[i] = -1;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void AppDiffusionNonLinear::input_app(char *command, int narg, char **arg)
 {
   if (strcmp(command,"ecoord") == 0) {
@@ -141,6 +122,33 @@ void AppDiffusionNonLinear::input_app(char *command, int narg, char **arg)
     if (index < 0 || index > maxneigh) error->all("Illegal ecoord command");
     ecoord[index] = value;
   } else error->all("Unrecognized command");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppDiffusionNonLinear::init_app()
+{
+  delete [] echeck;
+  echeck = new int[nlocal+nghost];
+  delete [] pcheck;
+  pcheck = new int[nlocal+nghost];
+
+  memory->sfree(events);
+  memory->sfree(firstevent);
+
+  events = NULL;
+  maxevent = 0;
+  firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppDiffusionNonLinear::setup_app()
+{
+  for (int i = 0; i < nlocal+nghost; i++) echeck[i] = pcheck[i] = 0;
+
+  nevents = 0;
+  for (int i = 0; i < nlocal; i++) firstevent[i] = -1;
 }
 
 /* ----------------------------------------------------------------------

@@ -20,7 +20,7 @@ namespace SPPARKS_NS {
 
 class Finish : protected Pointers {
  public:
-  Finish(class SPPARKS *);
+  Finish(class SPPARKS *, int);
   ~Finish() {}
 
  private:

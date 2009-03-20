@@ -24,13 +24,13 @@ class AppTestGroup : public App {
   ~AppTestGroup();
   void input(char *, int, char **);
   void init();
-  void run(int, char **);
+  void setup();
+  void iterate();
 
  private:
   class RandomPark *random;
 
   int ncount;                // # of events performed
-  int nlimit;                // user request to perform this many events
 
   int nevents;               // # of user-defined events (reactions)
   double *propensity;        // propensity of each event
@@ -47,7 +47,6 @@ class AppTestGroup : public App {
   int **depends;             // i,j = jth event that depends on ith event
   int *ran_dep;              // random deps for on-the-fly generation
 
-  void iterate();
   void build_dependency_graph();
   double compute_propensity(int);
 

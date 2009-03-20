@@ -95,6 +95,12 @@ void AppDiffusion::init_app()
 {
   delete [] echeck;
   echeck = new int[nlocal];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppDiffusion::setup_app()
+{
   for (int i = 0; i < nlocal; i++) echeck[i] = 0;
 }
 

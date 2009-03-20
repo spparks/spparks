@@ -24,11 +24,12 @@ class Output : protected Pointers {
   Output(class SPPARKS *);
   ~Output();
   void init(double);
+  double setup(double);
   void set_stats(int, char **);
   void set_dump(int, char **);
   void stats(int);
   void stats_header();
-  void compute(double, int);
+  double compute(double, int);
   void add_diag(Diag *);
 
  private:
@@ -50,7 +51,7 @@ class Output : protected Pointers {
 
   int nglobal,nlocal,nx_local,ny_local,nz_local;
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;
-  int maskzeroenergy_flag, imask_data;
+  int mask_flag;
   double dump_delay;
 
   int *vtype;                // type of each vector (INT, DOUBLE)

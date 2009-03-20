@@ -22,7 +22,9 @@ class AppDiffusionNonLinear : public AppLattice {
  public:
   AppDiffusionNonLinear(class SPPARKS *, int, char **);
   virtual ~AppDiffusionNonLinear();
+  void input_app(char *, int, char **);
   void init_app();
+  void setup_app();
 
   double site_energy(int);
   void site_event_rejection(int, class RandomPark *) {}
@@ -33,8 +35,6 @@ class AppDiffusionNonLinear : public AppLattice {
   int *esites,*psites;
   int *echeck,*pcheck;
   double *ecoord;
-
-  void input_app(char *, int, char **);
 
   struct Event {           // one event for an owned site
     int partner;           // local ID of exchange partner

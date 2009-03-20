@@ -35,7 +35,8 @@ class Diag : protected Pointers {
   // pure virtual functions, must be defined in child class
   
   virtual void init(double) = 0;
-  virtual void compute(double, int, int) = 0;
+  virtual double setup(double) = 0;
+  virtual double compute(double, int, int) = 0;
 
  protected:
   char *style;

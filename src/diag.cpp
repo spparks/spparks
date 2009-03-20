@@ -40,11 +40,9 @@ Diag::Diag(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 
   // Default set stats_flag, so that stats are provided to Output 
   // and output interval is controlled by Output
-  //
   // stats_flag = 0, do not provide stats to Output
   // stats_flag = 1, provide stats, compute interval controlled by Output
-  //
-  // If stats_flag = 1, then require diag_delta = 0.0; 
+  // if stats_flag = 1, then require diag_delta = 0.0; 
 
   stats_flag = 1;
   diag_delta = 0.0;
@@ -120,12 +118,15 @@ int Diag::check_time(double time, int done)
       diag_time += diag_delta;
       if (time > diag_time-diag_eps)
 	diag_time = ceil(time/diag_delta)*diag_delta;
+
     } else if (diag_ilogfreq == 1) {
       diag_time += diag_delta;
       diag_irepeat++;
+
+      // calculate next smallest delta that will 
+      // reach tgoal within nrepeat steps
+
       if (diag_irepeat == diag_nrepeat || time > diag_time-diag_eps) {
-	// Calculate next smallest delta that will 
-	// reach tgoal within nrepeat steps
 	tgoal = time-diag_t0+diag_delta;
 	ntmp = MAX(1,static_cast<int>
 		   (ceil(log(tgoal/(diag_delta*diag_nrepeat))

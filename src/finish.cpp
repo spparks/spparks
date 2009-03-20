@@ -22,7 +22,7 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Finish::Finish (SPPARKS *spk) : Pointers(spk)
+Finish::Finish (SPPARKS *spk, int flag) : Pointers(spk)
 {
   double time,tmp;
 
@@ -33,8 +33,9 @@ Finish::Finish (SPPARKS *spk) : Pointers(spk)
   // deduce time_other
 
   double time_other = timer->array[TIME_LOOP] -
-    (timer->array[TIME_SOLVE] + timer->array[TIME_COMM] + timer->array[TIME_UPDATE] + 
-     timer->array[TIME_OUTPUT] + timer->array[TIME_APP]);
+    (timer->array[TIME_SOLVE] + timer->array[TIME_COMM] + 
+     timer->array[TIME_UPDATE] + timer->array[TIME_OUTPUT] + 
+     timer->array[TIME_APP]);
 
   double time_loop = timer->array[TIME_LOOP];
   MPI_Allreduce(&time_loop,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
@@ -50,6 +51,8 @@ Finish::Finish (SPPARKS *spk) : Pointers(spk)
       fprintf(logfile,
 	      "Loop time of %g on %d procs\n",time_loop,nprocs);
   }
+
+  if (flag == 0) return;
 
   if (me == 0) {
     if (screen) fprintf(screen,"\n");

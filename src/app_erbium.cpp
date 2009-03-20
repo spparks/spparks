@@ -277,14 +277,22 @@ void AppErbium::init_app()
 {
   delete [] echeck;
   echeck = new int[nlocal];
-  for (int i = 0; i < nlocal; i++) echeck[i] = 0;
 
   memory->sfree(events);
   memory->sfree(firstevent);
 
   events = NULL;
-  nevents = maxevent = 0;
+  maxevent = 0;
   firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppErbium::setup_app()
+{
+  for (int i = 0; i < nlocal; i++) echeck[i] = 0;
+
+  nevents = 0;
   for (int i = 0; i < nlocal; i++) firstevent[i] = -1;
 
   // set propensities from rates

@@ -113,20 +113,24 @@ void DiagErbium::init(double time)
     if (which[i] == ER || which[i] == H || which[i] == HE || which[i] == VAC)
       siteflag = 1;
 
-  if (diag_delay <= 0.0) compute(0.0,1,0);
-  else for (int i = 0; i < nlist; i++) ivector[i] = 0;
-
+  for (int i = 0; i < nlist; i++) ivector[i] = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DiagErbium::compute(double time, int iflag, int done)
+double DiagErbium::setup(double time)
+{
+  if (diag_delay <= 0.0) return compute(0.0,1,0);
+  return 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double DiagErbium::compute(double time, int iflag, int done)
 {
   int sites[5],ivalue;
 
-  if (stats_flag == 0) {
-    iflag = check_time(time,done);
-  }
+  if (stats_flag == 0) iflag = check_time(time,done);
 
   if (iflag || done) {
     if (siteflag) {
@@ -149,6 +153,8 @@ void DiagErbium::compute(double time, int iflag, int done)
       MPI_Allreduce(&ivalue,&ivector[i],1,MPI_INT,MPI_SUM,world);
     }
   }
+
+  return diag_time;
 }
 
 /* ---------------------------------------------------------------------- */

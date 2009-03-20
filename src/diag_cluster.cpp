@@ -144,7 +144,16 @@ void DiagCluster::init(double time)
     }
   }
 
+  setup_time(time);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double DiagCluster::setup(double time)
+{
   write_header();
+  applattice->comm->all();
+
   if (diag_delay <= 0.0) analyze_clusters(time);
   else {
     ncluster_reduced = 0;
@@ -152,13 +161,12 @@ void DiagCluster::init(double time)
     rav = 0.0;
   }
 
-  setup_time(time);
+  return 0.0;
 }
-
 
 /* ---------------------------------------------------------------------- */
 
-void DiagCluster::compute(double time, int iflag, int done)
+double DiagCluster::compute(double time, int iflag, int done)
 {
   if (diag_delta > 0.0) iflag = check_time(time, done);
 
@@ -166,6 +174,8 @@ void DiagCluster::compute(double time, int iflag, int done)
     applattice->comm->all();
     analyze_clusters(time);
   }
+
+  return diag_time;
 }
 
 /* ---------------------------------------------------------------------- */

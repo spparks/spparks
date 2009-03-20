@@ -23,23 +23,29 @@ class App : protected Pointers {
   enum AppClasses {GENERAL,LATTICE};
   int appclass;           // one of the enum values
   char *style;            // style name of app
-  double time;            // elapsed time due to events
-  double time_eps;        // epsilon to avoid time precision issues
+  double time;            // current simulation time due to executed events
+  double stoptime;        // time at which to stop this run
 
   App(class SPPARKS *, int, char **);
   virtual ~App();
-  
+  void run(int, char **);
+
   // pure virtual functions, must be defined in child class
   
   virtual void input(char *, int, char **) = 0;
   virtual void init() = 0;
-  virtual void run(int, char **) = 0;
+  virtual void setup() = 0;
+  virtual void iterate() = 0;
 
   // virtual functions, may be overridden in child class
 
   virtual void stats(char *strtmp) {strtmp[0] = '\0';};
   virtual void stats_header(char *strtmp) {strtmp[0] = '\0';};
   virtual void *extract(char *) {return NULL;};
+
+ protected:
+  int first_run;
+  double nextoutput;
 };
 
 }

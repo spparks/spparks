@@ -20,7 +20,6 @@
 #include "solve.h"
 #include "random_mars.h"
 #include "random_park.h"
-#include "finish.h"
 #include "cluster.h"
 #include "output.h"
 #include "timer.h"
@@ -128,6 +127,18 @@ AppLattice::~AppLattice()
 
 /* ---------------------------------------------------------------------- */
 
+void AppLattice::input(char *command, int narg, char **arg)
+{
+  if (strcmp(command,"sector") == 0) set_sector(narg,arg);
+  else if (strcmp(command,"sweep") == 0) set_sweep(narg,arg);
+  else if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
+  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
+  else if (strcmp(command,"dump") == 0) output->set_dump(narg,arg);
+  else input_app(command,narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AppLattice::init()
 {
   // error checks
@@ -155,10 +166,6 @@ void AppLattice::init()
 
   if (sweepflag && dt_sweep == 0.0)
     error->all("Lattice app did not set dt_sweep");
-
-  // app-specific initialization
-
-  init_app();
 
   // if sectors, determine number of sectors
 
@@ -273,6 +280,46 @@ void AppLattice::init()
     comm->init(nsector,delpropensity,delevent,NULL);
   }
 
+  // setup sitelist if sweepflag = RANDOM
+  // do this every init since sector timestep could have changed
+
+  if (sweepflag == RANDOM) {
+    memory->sfree(sitelist);
+    int n = 0;
+    for (int i = 0; i < nset; i++) n = MAX(n,set[i].nselect);
+    sitelist = (int *) memory->smalloc(n*sizeof(int),"applattice:sitelist");
+  }
+
+  // set sweep function ptr
+
+  if (sweepflag != NOSWEEP) {
+    if (sweepflag != COLOR_STRICT && !Lmask)
+      sweep = &AppLattice::sweep_nomask_nostrict;
+    else if (sweepflag != COLOR_STRICT && Lmask)
+      sweep = &AppLattice::sweep_mask_nostrict;
+    else if (sweepflag == COLOR_STRICT && !Lmask)
+      sweep = &AppLattice::sweep_nomask_strict;
+    else if (sweepflag == COLOR_STRICT && Lmask)
+      sweep = &AppLattice::sweep_mask_strict;
+  } else sweep = NULL;
+
+  // app-specific initialization, after general initialization
+
+  init_app();
+
+  // initialize output
+
+  output->init(time);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppLattice::setup()
+{
+  // app-specific setup, before propensities are computed
+
+  setup_app();
+
   // initialize propensities for KMC solver within each set
   // comm insures ghost sites are up to date
 
@@ -349,56 +396,15 @@ void AppLattice::init()
     dt_rkmc = MIN(dt_rkmc,stoptime-time);
   }
 
-  // setup sitelist if sweepflag = RANDOM
-  // do this every init since sector timestep could have changed
+  // setup of output
 
-  if (sweepflag == RANDOM) {
-    memory->sfree(sitelist);
-    int n = 0;
-    for (int i = 0; i < nset; i++) n = MAX(n,set[i].nselect);
-    sitelist = (int *) memory->smalloc(n*sizeof(int),"applattice:sitelist");
-  }
-
-  // set sweep function ptr
-
-  if (sweepflag != NOSWEEP) {
-    if (sweepflag != COLOR_STRICT && !Lmask)
-      sweep = &AppLattice::sweep_nomask_nostrict;
-    else if (sweepflag != COLOR_STRICT && Lmask)
-      sweep = &AppLattice::sweep_mask_nostrict;
-    else if (sweepflag == COLOR_STRICT && !Lmask)
-      sweep = &AppLattice::sweep_nomask_strict;
-    else if (sweepflag == COLOR_STRICT && Lmask)
-      sweep = &AppLattice::sweep_mask_strict;
-  } else sweep = NULL;
-
-  // initialize output
-
-  output->init(time);
+  nextoutput = output->setup(time);
 }
 
-/* ----------------------------------------------------------------------
-   perform a run
- ------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-void AppLattice::run(int narg, char **arg)
+void AppLattice::iterate()
 {
-  if (narg != 1) error->all("Illegal run command");
-
-  // time_eps eliminates overruns due to finite machine precision
-  // can be set to zero by an app that wants to ignore it
-
-  timer->init();
-  stoptime = time + atof(arg[0]) - time_eps;
-  if (time >= stoptime) {
-    Finish finish(spk);
-    return;
-  }
-
-  // initialize and run
-
-  init();
-
   timer->barrier_start(TIME_LOOP);
 
   if (solve) {
@@ -407,8 +413,6 @@ void AppLattice::run(int narg, char **arg)
   } else iterate_rejection(stoptime);
 
   timer->barrier_stop(TIME_LOOP);
-  
-  Finish finish(spk);
 }
 
 /* ----------------------------------------------------------------------
@@ -444,7 +448,8 @@ void AppLattice::iterate_kmc_global(double stoptime)
     }
 
     if (time >= stoptime) done = 1;
-    output->compute(time,done);
+    if (done || time >= nextoutput) 
+      nextoutput = output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
   }
 
@@ -545,8 +550,8 @@ void AppLattice::iterate_kmc_sector(double stoptime)
     
     time += dt_kmc;
     if (time >= stoptime) alldone = 1;
-
-    output->compute(time,alldone);
+    if (done || time >= nextoutput)
+      nextoutput = output->compute(time,alldone);
     timer->stamp(TIME_OUTPUT);
 
     // recompute dt_kmc if adaptive, based on pmax across all sectors
@@ -615,8 +620,8 @@ void AppLattice::iterate_rejection(double stoptime)
     nsweeps++;
     time += dt_rkmc;
     if (time >= stoptime) done = 1;
-
-    output->compute(time,done);
+    if (done || time >= nextoutput)
+      nextoutput = output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
   }
 }
@@ -666,19 +671,6 @@ void AppLattice::sweep_mask_strict(int n, int *list)
     site_event_rejection(i,ranstrict);
     siteseeds[i] = ranstrict->seed;
   }
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-void AppLattice::input(char *command, int narg, char **arg)
-{
-  if (strcmp(command,"sector") == 0) set_sector(narg,arg);
-  else if (strcmp(command,"sweep") == 0) set_sweep(narg,arg);
-  else if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
-  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
-  else if (strcmp(command,"dump") == 0) output->set_dump(narg,arg);
-  else input_app(command,narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

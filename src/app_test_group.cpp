@@ -107,6 +107,10 @@ void AppTestGroup::input(char *command, int narg, char **arg)
 
 void AppTestGroup::init()
 {
+  // error check
+
+  if (solve == NULL) error->all("No solver class defined");
+
   delete [] ndepends;
   memory->destroy_2d_int_array(depends);
   delete [] ran_dep;
@@ -114,22 +118,8 @@ void AppTestGroup::init()
   if (dep_graph) build_dependency_graph();
   else ran_dep = new int[ndep];
 
-  // compute initial propensity for each event
-  // inform solver
-
   delete [] propensity;
   propensity = new double[nevents];
-
-  double interval = log(pmax/pmin) / log(2.0);
-  psum = 0.0;
-
-  for (int m = 0; m < nevents; m++) {
-    double p = pmax * pow(2.0,-random->uniform()*interval);
-    p = MIN(p,pmax);
-    p = MAX(p,pmin);
-    propensity[m] = p;
-    psum += propensity[m];
-  }
 
   // allocate and zero event stats
   // initialize output
@@ -143,32 +133,32 @@ void AppTestGroup::init()
 #endif
 }
 
-/* ----------------------------------------------------------------------
-   perform a run
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-void AppTestGroup::run(int narg, char **arg)
+void AppTestGroup::setup()
 {
-  if (narg != 1) error->all("Illegal run command");
-  nlimit = atoi(arg[0]);
+  // compute initial propensity for each event
 
-  // error check
+  double interval = log(pmax/pmin) / log(2.0);
+  psum = 0.0;
 
-  if (solve == NULL) error->all("No solver class defined");
+  for (int m = 0; m < nevents; m++) {
+    double p = pmax * pow(2.0,-random->uniform()*interval);
+    p = MIN(p,pmax);
+    p = MAX(p,pmin);
+    propensity[m] = p;
+    psum += propensity[m];
+  }
 
-  // init classes used by this app
-  
-  init();
+  // initialize solver
+
   solve->init(nevents,propensity);
-  timer->init();
 
-  // perform the run
+  // setup of output
 
-  iterate();
-
-  // final statistics
-
-  Finish finish(spk);
+#ifdef OUTPUT
+  nextoutput = output->setup(time);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -217,11 +207,12 @@ void AppTestGroup::iterate()
 
     ncount++;
     time += dt;
-    if (ncount >= nlimit) done = 1;
+    if (ncount >= stoptime) done = 1;
     else if (ievent < 0) done = 1;
 
 #ifdef OUTPUT
-    output->compute(time,done);
+    if (done || time >= nextoutput)
+      nextoutput = output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
 #endif
   }

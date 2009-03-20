@@ -24,9 +24,9 @@ class DiagEnergy : public Diag {
  public:
   DiagEnergy(class SPPARKS *, int, char **);
   ~DiagEnergy() {}
-
   void init(double);
-  void compute(double, int, int);
+  double setup(double);
+  double compute(double, int, int);
   void stats(char *);
   void stats_header(char *);
 

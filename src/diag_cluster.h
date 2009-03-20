@@ -25,9 +25,9 @@ class DiagCluster : public Diag {
  public:
   DiagCluster(class SPPARKS *, int, char **);
   virtual ~DiagCluster();
-
   void init(double);
-  void compute(double, int, int);
+  double setup(double);
+  double compute(double, int, int);
   void stats(char *);
   void stats_header(char *);
 

@@ -60,7 +60,7 @@ Output::Output(SPPARKS *spk) : Pointers(spk)
   buf = NULL;
   mask = NULL;
 
-  maskzeroenergy_flag = 0;
+  mask_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,11 +81,13 @@ Output::~Output()
   memory->sfree(mask);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   called before every run unless turned off by run command
+------------------------------------------------------------------------- */
 
 void Output::init(double time)
 {
-  // test if dump is defined and propensity is output and doesn't exist
+  // test if dump is defined and propensity is output but doesn't exist
 
   if (dump_delta > 0.0) {
     int flag = 0;
@@ -95,14 +97,16 @@ void Output::init(double time)
       error->all("Dumping propensity but no KMC solve performed");
   }
 
-  // setup future stats and dump calls
+  // setup future dump and stats calls
 
-  if (dump_ilogfreq == 0) {
-    dump_time = time + MAX(dump_delta,dump_delay);
-  } else if (dump_ilogfreq == 1) {
-    dump_time = time + MAX(dump_delta,dump_delay);;
-    dump_t0 = time;
-    dump_irepeat = 0;
+  if (dump_delta > 0.0) {
+    if (dump_ilogfreq == 0) {
+      dump_time = time + MAX(dump_delta,dump_delay);
+    } else if (dump_ilogfreq == 1) {
+      dump_time = time + MAX(dump_delta,dump_delay);;
+      dump_t0 = time;
+      dump_irepeat = 0;
+    }
   }
 
   if (stats_ilogfreq == 0) {
@@ -118,14 +122,34 @@ void Output::init(double time)
   for (int i = 0; i < ndiags; i++)
     diaglist[i]->init(time);
 
-  // print dump file 1st snapshot
+  // initial dump file snapshot
 
-  if (dump_delta > 0.0 && dump_delay <= 0.0) dump(0.0);
+  if (dump_delta > 0.0 && dump_delay <= 0.0) dump(time);
+}
 
-  // print stats header and initial stats
-  
+/* ----------------------------------------------------------------------
+   called before every run
+------------------------------------------------------------------------- */
+
+double Output::setup(double time)
+{
+  double diag_time;
+
+  double stoptime = app->stoptime;
+  if (dump_delta > 0.0) stoptime = MIN(stoptime,dump_time);
+
+  // setup of all diagnostics
+
+  for (int i = 0; i < ndiags; i++) {
+    diag_time = diaglist[i]->setup(time);
+    stoptime = MIN(stoptime,diag_time);
+  }
+
   stats_header();
   stats(0);
+
+  stoptime = MIN(stoptime,stats_time);
+  return stoptime;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -200,11 +224,11 @@ void Output::set_dump(int narg, char **arg)
 	iarg++;
       } else error->all("Illegal dump_style command");
 
-    } else if (strcmp(arg[iarg],"maskzeroenergy") == 0) {
+    } else if (strcmp(arg[iarg],"mask") == 0) {
       iarg++;
       if (iarg < narg) {
-	if (strcmp(arg[iarg],"yes") == 0) maskzeroenergy_flag = 1;
-	else if (strcmp(arg[iarg],"no") == 0) maskzeroenergy_flag = 0;
+	if (strcmp(arg[iarg],"yes") == 0) mask_flag = 1;
+	else if (strcmp(arg[iarg],"no") == 0) mask_flag = 0;
 	iarg++;
       } else error->all("Illegal dump_style command");
     } else break;
@@ -315,24 +339,28 @@ void Output::set_dump(int narg, char **arg)
   boxzlo = applattice->boxzlo;
   boxzhi = applattice->boxzhi;
 
-  mask = (int *) memory->smalloc(nlocal*sizeof(int),"output:mask");
-
+  if (mask_flag)
+    mask = (int *) memory->smalloc(nlocal*sizeof(int),"output:mask");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Output::compute(double time, int done)
+double Output::compute(double time, int done)
 {
   int iflag;
   int ntmp;
   double tgoal;
+  double diag_time;
+
+  double stoptime = app->stoptime;
 
   // check if dump output required
-
-  if (dump_delta > 0.0 && (time > dump_time-dump_eps || done) ) {
-    dump(time);
   // calculate new dump time
   // ensure new dump_time exceeds time
+
+  if (dump_delta > 0.0 && time > dump_time-dump_eps) {
+    dump(time);
+
     if (dump_ilogfreq == 0) {
       dump_time += dump_delta;
       if (time > dump_time-dump_eps)
@@ -340,11 +368,11 @@ void Output::compute(double time, int done)
     } else if (dump_ilogfreq == 1) {
       dump_time += dump_delta;
       dump_irepeat++;
+
+      // calculate next smallest delta that will 
+      // reach tgoal within nrepeat steps
+
       if (dump_irepeat == dump_nrepeat || time > dump_time-dump_eps) {
-
-
-	// Calculate next smallest delta that will 
-	// reach tgoal within nrepeat steps
 	tgoal = time-dump_t0+dump_delta;
 	ntmp = MAX(1,static_cast<int>
 		   (ceil(log(tgoal/(dump_delta*dump_nrepeat))
@@ -354,25 +382,28 @@ void Output::compute(double time, int done)
 	dump_irepeat = 0;
       }
     }
+
+    stoptime = MIN(stoptime,dump_time);
   }
 
   // check if stats output required
 
   iflag = 0;
-
   if (stats_delta > 0.0 && time > stats_time-stats_eps) iflag = 1;
 
   // perform diagnostics
 
-  for (int i = 0; i < ndiags; i++)
-    diaglist[i]->compute(time,iflag,done);
+  for (int i = 0; i < ndiags; i++) {
+    diag_time = diaglist[i]->compute(time,iflag,done);
+    stoptime = MIN(stoptime,diag_time);
+  }
 
   // perform stats (after diagnostics)
 
   if (iflag || done) stats(1);
 
   // calculate new stats time
-  // ensure new stats_time exceeds time
+  // ensure new stats time exceeds time
 
   if (iflag) {
     if (stats_ilogfreq == 0) {
@@ -382,9 +413,11 @@ void Output::compute(double time, int done)
     } else if (stats_ilogfreq == 1) {
       stats_time += stats_delta;
       stats_irepeat++;
+
+      // calculate next smallest delta that will 
+      // reach tgoal within nrepeat steps
+
       if (stats_irepeat == stats_nrepeat || time > stats_time-stats_eps) {
-	// Calculate next smallest delta that will 
-	// reach tgoal within nrepeat steps
 	tgoal = time-stats_t0+stats_delta;
 	ntmp = MAX(1,static_cast<int>
 		   (ceil(log(tgoal/(stats_delta*stats_nrepeat))
@@ -394,7 +427,11 @@ void Output::compute(double time, int done)
 	stats_irepeat = 0;
       }
     }
+
+    stoptime = MIN(stoptime,stats_time);
   }
+
+  return stoptime;
 }
 
 /* ----------------------------------------------------------------------
@@ -474,16 +511,20 @@ void Output::dump(double time)
 {
   int nglobaldump,nlocaldump;
 
-  // Set print mask
+  // count sites to output with or without masking
 
-  for (int i = 0; i < nlocal; i++) mask[i] = 0;
-  maskzeroenergy();
-  nlocaldump = 0;
-  for (int i = 0; i < nlocal; i++)
-    if (!mask[i]) nlocaldump++;
+  if (mask_flag == 0) nlocaldump = nlocal;
+  else {
+    for (int i = 0; i < nlocal; i++) mask[i] = 0;
+    maskzeroenergy();
+    nlocaldump = 0;
+    for (int i = 0; i < nlocal; i++)
+      if (!mask[i]) nlocaldump++;
+  }
+
   MPI_Allreduce(&nlocaldump,&nglobaldump,1,MPI_INT,MPI_SUM,world);
 
-  // Allocate buffer and compute size of dump
+  // allocate buffer for getting site info from other procs
 
   int nbuf = nlocaldump*size_one;
   MPI_Allreduce(&nbuf,&maxbuf,1,MPI_INT,MPI_MAX,world);
@@ -492,7 +533,7 @@ void Output::dump(double time)
   // proc 0 writes timestep header
 
   if (me == 0) {
-    fprintf(fp,"ITEM: TIMESTEP TIME\n");
+    fprintf(fp,"ITEM: TIMESTEP\n");
     fprintf(fp,"%d %10g\n",idump,time);
     fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
     fprintf(fp,"%d\n",nglobaldump);
@@ -568,10 +609,17 @@ void Output::pack_id(int n)
   int *id;
   id = applattice->id;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i]) continue;
-    buf[n] = id[i];
-    n += size_one;
+  if (mask_flag == 0) {
+    for (int i = 0; i < nlocal; i++) {
+      buf[n] = id[i];
+      n += size_one;
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i]) continue;
+      buf[n] = id[i];
+      n += size_one;
+    }
   }
 }
 
@@ -580,12 +628,19 @@ void Output::pack_id(int n)
 void Output::pack_lattice(int n)
 {
   int i,j,k;
-
   int *lattice = applattice->lattice;
-  for (i = 0; i < nlocal; i++) {
-    if (mask[i]) continue;
-    buf[n] = lattice[i];
-    n += size_one;
+
+  if (mask_flag == 0) {
+    for (i = 0; i < nlocal; i++) {
+      buf[n] = lattice[i];
+      n += size_one;
+    }
+  } else {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i]) continue;
+      buf[n] = lattice[i];
+      n += size_one;
+    }
   }
 }
 
@@ -595,10 +650,17 @@ void Output::pack_x(int n)
 {
   double **xyz = applattice->xyz;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i]) continue;
-    buf[n] = xyz[i][0];
-    n += size_one;
+  if (mask_flag == 0) {
+    for (int i = 0; i < nlocal; i++) {
+      buf[n] = xyz[i][0];
+      n += size_one;
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i]) continue;
+      buf[n] = xyz[i][0];
+      n += size_one;
+    }
   }
 }
 
@@ -608,10 +670,17 @@ void Output::pack_y(int n)
 {
   double **xyz = applattice->xyz;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i]) continue;
-    buf[n] = xyz[i][1];
-    n += size_one;
+  if (mask_flag == 0) {
+    for (int i = 0; i < nlocal; i++) {
+      buf[n] = xyz[i][1];
+      n += size_one;
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i]) continue;
+      buf[n] = xyz[i][1];
+      n += size_one;
+    }
   }
 }
 
@@ -621,10 +690,17 @@ void Output::pack_z(int n)
 {
   double **xyz = applattice->xyz;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i]) continue;
-    buf[n] = xyz[i][2];
-    n += size_one;
+  if (mask_flag == 0) {
+    for (int i = 0; i < nlocal; i++) {
+      buf[n] = xyz[i][2];
+      n += size_one;
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i]) continue;
+      buf[n] = xyz[i][2];
+      n += size_one;
+    }
   }
 }
 
@@ -634,10 +710,17 @@ void Output::pack_energy(int n)
 {
   int i,j,k;
 
-  for (i = 0; i < nlocal; i++) {
-    if (mask[i]) continue;
-    buf[n] = applattice->site_energy(i);
-    n += size_one;
+  if (mask_flag == 0) {
+    for (i = 0; i < nlocal; i++) {
+      buf[n] = applattice->site_energy(i);
+      n += size_one;
+    }
+  } else {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i]) continue;
+      buf[n] = applattice->site_energy(i);
+      n += size_one;
+    }
   }
 }
 
@@ -647,10 +730,17 @@ void Output::pack_propensity(int n)
 {
   int i,j,k;
 
-  for (i = 0; i < nlocal; i++) {
-    if (mask[i]) continue;
-    buf[n] = applattice->site_propensity(i);
-    n += size_one;
+  if (mask_flag == 0) {
+    for (i = 0; i < nlocal; i++) {
+      buf[n] = applattice->site_propensity(i);
+      n += size_one;
+    }
+  } else {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i]) continue;
+      buf[n] = applattice->site_propensity(i);
+      n += size_one;
+    }
   }
 }
 
@@ -660,10 +750,17 @@ void Output::pack_integer(int n)
 {
   int *ivec = applattice->iarray[vindex[n]];
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i]) continue;
-    buf[n] = ivec[i];
-    n += size_one;
+  if (mask_flag == 0) {
+    for (int i = 0; i < nlocal; i++) {
+      buf[n] = ivec[i];
+      n += size_one;
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i]) continue;
+      buf[n] = ivec[i];
+      n += size_one;
+    }
   }
 }
 
@@ -673,10 +770,17 @@ void Output::pack_double(int n)
 {
   double *dvec = applattice->darray[n];
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i]) continue;
-    buf[n] = dvec[i];
-    n += size_one;
+  if (mask_flag == 0) {
+    for (int i = 0; i < nlocal; i++) {
+      buf[n] = dvec[i];
+      n += size_one;
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i]) continue;
+      buf[n] = dvec[i];
+      n += size_one;
+    }
   }
 }
 
@@ -684,8 +788,6 @@ void Output::pack_double(int n)
 
 void Output::maskzeroenergy()
 {
-  for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++)
     mask[i] = applattice->site_energy(i) <= 0.0;
-  }
 }
-

@@ -55,9 +55,15 @@ void DiagEnergy::init(double time)
     error->all("Diag style incompatible with app style");
 
   applattice = (AppLattice *) app;
-
   nlocal = applattice->nlocal;
 
+  setup_time(time);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double DiagEnergy::setup(double time)
+{
   applattice->comm->all();
 
   if (diag_delay <= 0.0) {  
@@ -68,19 +74,16 @@ void DiagEnergy::init(double time)
     MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,world);
   } else energy = 0.0;
 
-  setup_time(time);
+  return 0.0;
 }
-
 
 /* ---------------------------------------------------------------------- */
 
-void DiagEnergy::compute(double time, int iflag, int done)
+double DiagEnergy::compute(double time, int iflag, int done)
 {
   double etmp;
 
-  if (stats_flag == 0) {
-    iflag = check_time(time, done);
-  }
+  if (stats_flag == 0) iflag = check_time(time,done);
 
   if (iflag || done) {
     applattice->comm->all();
@@ -91,6 +94,8 @@ void DiagEnergy::compute(double time, int iflag, int done)
     
     MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,world);
   }
+
+  return diag_time;
 }
 
 /* ---------------------------------------------------------------------- */

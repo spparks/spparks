@@ -23,6 +23,7 @@ class AppDiffusionTable : public AppLattice {
   AppDiffusionTable(class SPPARKS *, int, char **);
   virtual ~AppDiffusionTable();
   void init_app();
+  void setup_app();
 
   double site_energy(int);
   void site_event_rejection(int, class RandomPark *) {}

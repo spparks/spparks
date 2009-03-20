@@ -22,7 +22,9 @@ class AppSurface : public AppLattice {
  public:
   AppSurface(class SPPARKS *, int, char **);
   ~AppSurface();
+  void input_app(char *, int, char **);
   void init_app();
+  void setup_app();
 
   double site_energy(int);
   void site_event_rejection(int, class RandomPark *) {}
@@ -30,14 +32,12 @@ class AppSurface : public AppLattice {
   void site_event(int, class RandomPark *);
 
  private:
-  double boltz;
+  double boltz,t_inverse_boltz;
   double vibrafreq,ebarrier,eSchwoebel,bondener;
   int nminRegular,nmaxSchwoebel,nminSchwoebel;
   int *sites,*sitesSchwoebel;
   int *check,*checkSchwoebel;
   double *ecoord;
-
-  void input_app(char *, int, char **);
 
   struct Event {           // one event for an owned site
     int partner;           // local ID of exchange partner

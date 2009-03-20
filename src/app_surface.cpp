@@ -163,28 +163,6 @@ AppSurface::~AppSurface()
   delete [] ecoord;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void AppSurface::init_app()
-{
-  // check used to temporarily label owned and ghost sites
-
-  delete [] check;
-  delete [] checkSchwoebel;
-  check = new int[nlocal+nghost];
-  checkSchwoebel = new int[nlocal+nghost];
-  for (int i = 0; i < nlocal+nghost; i++) check[i] = checkSchwoebel[i] = 0;
-
-  memory->sfree(events);
-  memory->sfree(firstevent);
-
-  events = NULL;
-  nevents = maxevent = 0;
-  firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
-  for (int i = 0; i < nlocal; i++) firstevent[i] = -1;
-
-  t_inverse = t_inverse/boltz;
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -212,6 +190,37 @@ void AppSurface::input_app(char *command, int narg, char **arg)
     if (narg != 1) error->all("Illegal bondener command");
     bondener = atof(arg[0]);
   } else error->all("Unrecognized command");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppSurface::init_app()
+{
+  // check used to temporarily label owned and ghost sites
+
+  delete [] check;
+  delete [] checkSchwoebel;
+  check = new int[nlocal+nghost];
+  checkSchwoebel = new int[nlocal+nghost];
+
+  memory->sfree(events);
+  memory->sfree(firstevent);
+
+  events = NULL;
+  maxevent = 0;
+  firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppSurface::setup_app()
+{
+  for (int i = 0; i < nlocal+nghost; i++) check[i] = checkSchwoebel[i] = 0;
+
+  nevents = 0;
+  for (int i = 0; i < nlocal; i++) firstevent[i] = -1;
+
+  t_inverse_boltz = t_inverse/boltz;
 }
 
 /* ----------------------------------------------------------------------
@@ -274,10 +283,10 @@ double AppSurface::site_propensity(int i)
       nbs = (int) (efinal/bondener + 0.5);
       if (nbs >= nminRegular) {
         if (efinal <= einitial)
-          probone = vibrafreq*exp(-ebarrier*t_inverse);
+          probone = vibrafreq*exp(-ebarrier*t_inverse_boltz);
         else {
           probone = vibrafreq*
-            exp((einitial-efinal-ebarrier)*t_inverse);
+            exp((einitial-efinal-ebarrier)*t_inverse_boltz);
         }
         if (probone > 0.0) {
           add_event(i,j,probone,0);
@@ -329,10 +338,10 @@ double AppSurface::site_propensity(int i)
             nbs = (int) (efinal/bondener + 0.5);
             if (nbs >= nminSchwoebel) {
               if (efinal <= einitial)
-                probone = vibrafreq*exp(-eSchwoebel*t_inverse);
+                probone = vibrafreq*exp(-eSchwoebel*t_inverse_boltz);
               else {
                 probone = vibrafreq*
-                  exp((einitial-efinal-eSchwoebel)*t_inverse);
+                  exp((einitial-efinal-eSchwoebel)*t_inverse_boltz);
                }
               if (probone > 0.0) {
                 add_event(i,k,probone,1);

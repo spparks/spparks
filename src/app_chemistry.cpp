@@ -98,6 +98,9 @@ void AppChemistry::input(char *command, int narg, char **arg)
 
 void AppChemistry::init()
 {
+  // error check
+
+  if (solve == NULL) error->all("No solver class defined");
   if (volume <= 0.0) error->all("Invalid volume setting");
   if (nreactions == 0)
     error->all("No reactions defined for chemistry app");
@@ -112,13 +115,6 @@ void AppChemistry::init()
   ndepends = new int[nreactions];
   build_dependency_graph();
 
-  // compute initial propensity for each reaction
-  // inform Gillespie solver
-
-  delete [] propensity;
-  propensity = new double[nreactions];
-  for (int m = 0; m < nreactions; m++) propensity[m] = compute_propensity(m);
-
   // zero reaction counts
 
   delete [] rcount;
@@ -130,32 +126,23 @@ void AppChemistry::init()
   output->init(time);
 }
 
-/* ----------------------------------------------------------------------
-   perform a run
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-void AppChemistry::run(int narg, char **arg)
+void AppChemistry::setup()
 {
-  if (narg != 1) error->all("Illegal run command");
-  stoptime = time + atof(arg[0]);
+  // compute initial propensity for each reaction
 
-  // error check
+  delete [] propensity;
+  propensity = new double[nreactions];
+  for (int m = 0; m < nreactions; m++) propensity[m] = compute_propensity(m);
 
-  if (solve == NULL) error->all("No solver class defined");
+  // initialize solver
 
-  // init classes used by this app
-  
-  init();
   solve->init(nreactions,propensity);
-  timer->init();
 
-  // perform the run
+  // setup of output
 
-  iterate();
-
-  // final statistics
-
-  Finish finish(spk);
+  nextoutput = output->setup(time);
 }
 
 /* ----------------------------------------------------------------------
@@ -176,7 +163,7 @@ void AppChemistry::iterate()
     ireaction = solve->event(&dt);
     timer->stamp(TIME_SOLVE);
 
-    // Check if solver failed to pick an event
+    // check if solver failed to pick an event
 
     if (ireaction < 0) done = 1;
     else {
@@ -206,9 +193,8 @@ void AppChemistry::iterate()
 
     timer->stamp(TIME_APP);
 
-    // output
-
-    output->compute(time,done);
+    if (done || time >= nextoutput)
+      nextoutput = output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
   }
 
