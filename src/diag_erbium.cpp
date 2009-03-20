@@ -113,7 +113,9 @@ void DiagErbium::init(double time)
     if (which[i] == ER || which[i] == H || which[i] == HE || which[i] == VAC)
       siteflag = 1;
 
-  compute(0.0,1,0);
+  if (diag_delay <= 0.0) compute(0.0,1,0);
+  else for (int i = 0; i < nlist; i++) ivector[i] = 0;
+
 }
 
 /* ---------------------------------------------------------------------- */

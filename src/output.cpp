@@ -49,6 +49,7 @@ Output::Output(SPPARKS *spk) : Pointers(spk)
   stats_delta = 0.0;
   stats_ilogfreq = 0;
   stats_eps = 1.0e-6;
+  dump_delay = 0.0;
 
   size_one = 0;
   fp = NULL;
@@ -57,6 +58,9 @@ Output::Output(SPPARKS *spk) : Pointers(spk)
   vformat = NULL;
   pack_choice = NULL;
   buf = NULL;
+  mask = NULL;
+
+  maskzeroenergy_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -74,7 +78,7 @@ Output::~Output()
   delete [] vformat;
   delete [] pack_choice;
 
-  memory->sfree(buf);
+  memory->sfree(mask);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,9 +98,9 @@ void Output::init(double time)
   // setup future stats and dump calls
 
   if (dump_ilogfreq == 0) {
-    dump_time = time + dump_delta;
+    dump_time = time + MAX(dump_delta,dump_delay);
   } else if (dump_ilogfreq == 1) {
-    dump_time = time + dump_delta;
+    dump_time = time + MAX(dump_delta,dump_delay);;
     dump_t0 = time;
     dump_irepeat = 0;
   }
@@ -116,7 +120,7 @@ void Output::init(double time)
 
   // print dump file 1st snapshot
 
-  if (dump_delta > 0.0) dump();
+  if (dump_delta > 0.0 && dump_delay <= 0.0) dump(0.0);
 
   // print stats header and initial stats
   
@@ -173,6 +177,8 @@ void Output::set_dump(int narg, char **arg)
   }
 
   int iarg = 2;
+  while (iarg < narg) {
+
   if (iarg < narg) {
     if (strcmp(arg[iarg],"logfreq") == 0) {
       dump_ilogfreq = 1;
@@ -187,7 +193,22 @@ void Output::set_dump(int narg, char **arg)
       } else {
 	error->all("Illegal dump command");
       }
-    }
+    } else if (strcmp(arg[iarg],"delay") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	dump_delay = atof(arg[iarg]);
+	iarg++;
+      } else error->all("Illegal dump_style command");
+
+    } else if (strcmp(arg[iarg],"maskzeroenergy") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	if (strcmp(arg[iarg],"yes") == 0) maskzeroenergy_flag = 1;
+	else if (strcmp(arg[iarg],"no") == 0) maskzeroenergy_flag = 0;
+	iarg++;
+      } else error->all("Illegal dump_style command");
+    } else break;
+  }
   }
 
   // line = one string of concatenated keywords
@@ -274,7 +295,7 @@ void Output::set_dump(int narg, char **arg)
 
   // setup vformat strings, one per field
 
-  for (i = 0; i < size_one; i++) {
+  for (int i = 0; i < size_one; i++) {
     char *format;
     if (vtype[i] == INT) format = "%d ";
     else if (vtype[i] == DOUBLE) format = "%g ";
@@ -283,7 +304,7 @@ void Output::set_dump(int narg, char **arg)
     strcpy(vformat[i],format);
   }
 
-  // setup dump params and buf
+  // setup dump params
 
   nglobal = applattice->nglobal;
   nlocal = applattice->nlocal;
@@ -294,9 +315,8 @@ void Output::set_dump(int narg, char **arg)
   boxzlo = applattice->boxzlo;
   boxzhi = applattice->boxzhi;
 
-  int nbuf = nlocal*size_one;
-  MPI_Allreduce(&nbuf,&maxbuf,1,MPI_INT,MPI_MAX,world);
-  buf = (double *) memory->smalloc(maxbuf*sizeof(double),"output:buf");
+  mask = (int *) memory->smalloc(nlocal*sizeof(int),"output:mask");
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -309,8 +329,8 @@ void Output::compute(double time, int done)
 
   // check if dump output required
 
-  if (dump_delta > 0.0 && time > dump_time-dump_eps ) {
-    dump();
+  if (dump_delta > 0.0 && (time > dump_time-dump_eps || done) ) {
+    dump(time);
   // calculate new dump time
   // ensure new dump_time exceeds time
     if (dump_ilogfreq == 0) {
@@ -450,15 +470,32 @@ void Output::add_diag(Diag *diag)
    dump a snapshot of lattice values as atom coords
 ------------------------------------------------------------------------- */
 
-void Output::dump()
+void Output::dump(double time)
 {
+  int nglobaldump,nlocaldump;
+
+  // Set print mask
+
+  for (int i = 0; i < nlocal; i++) mask[i] = 0;
+  maskzeroenergy();
+  nlocaldump = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (!mask[i]) nlocaldump++;
+  MPI_Allreduce(&nlocaldump,&nglobaldump,1,MPI_INT,MPI_SUM,world);
+
+  // Allocate buffer and compute size of dump
+
+  int nbuf = nlocaldump*size_one;
+  MPI_Allreduce(&nbuf,&maxbuf,1,MPI_INT,MPI_MAX,world);
+  buf = (double *) memory->smalloc(maxbuf*sizeof(double),"output:buf");
+
   // proc 0 writes timestep header
 
   if (me == 0) {
-    fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,"%d\n",idump);
+    fprintf(fp,"ITEM: TIMESTEP TIME\n");
+    fprintf(fp,"%d %10g\n",idump,time);
     fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-    fprintf(fp,"%d\n",nglobal);
+    fprintf(fp,"%d\n",nglobaldump);
     fprintf(fp,"ITEM: BOX BOUNDS\n");
     fprintf(fp,"%g %g\n",boxxlo,boxxhi);
     fprintf(fp,"%g %g\n",boxylo,boxyhi);
@@ -471,7 +508,7 @@ void Output::dump()
   // pack my info into buffer
 
   for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
-  int me_size = nlocal*size_one;
+  int me_size = nlocaldump*size_one;
 
   // proc 0 pings each proc, receives it's data, writes to file
   // all other procs wait for ping, send their data to proc 0
@@ -498,6 +535,8 @@ void Output::dump()
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
     MPI_Rsend(buf,me_size,MPI_DOUBLE,0,0,world);
   }
+
+  memory->sfree(buf);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -530,6 +569,7 @@ void Output::pack_id(int n)
   id = applattice->id;
 
   for (int i = 0; i < nlocal; i++) {
+    if (mask[i]) continue;
     buf[n] = id[i];
     n += size_one;
   }
@@ -543,6 +583,7 @@ void Output::pack_lattice(int n)
 
   int *lattice = applattice->lattice;
   for (i = 0; i < nlocal; i++) {
+    if (mask[i]) continue;
     buf[n] = lattice[i];
     n += size_one;
   }
@@ -555,6 +596,7 @@ void Output::pack_x(int n)
   double **xyz = applattice->xyz;
 
   for (int i = 0; i < nlocal; i++) {
+    if (mask[i]) continue;
     buf[n] = xyz[i][0];
     n += size_one;
   }
@@ -567,6 +609,7 @@ void Output::pack_y(int n)
   double **xyz = applattice->xyz;
 
   for (int i = 0; i < nlocal; i++) {
+    if (mask[i]) continue;
     buf[n] = xyz[i][1];
     n += size_one;
   }
@@ -579,6 +622,7 @@ void Output::pack_z(int n)
   double **xyz = applattice->xyz;
 
   for (int i = 0; i < nlocal; i++) {
+    if (mask[i]) continue;
     buf[n] = xyz[i][2];
     n += size_one;
   }
@@ -591,6 +635,7 @@ void Output::pack_energy(int n)
   int i,j,k;
 
   for (i = 0; i < nlocal; i++) {
+    if (mask[i]) continue;
     buf[n] = applattice->site_energy(i);
     n += size_one;
   }
@@ -603,6 +648,7 @@ void Output::pack_propensity(int n)
   int i,j,k;
 
   for (i = 0; i < nlocal; i++) {
+    if (mask[i]) continue;
     buf[n] = applattice->site_propensity(i);
     n += size_one;
   }
@@ -615,6 +661,7 @@ void Output::pack_integer(int n)
   int *ivec = applattice->iarray[vindex[n]];
 
   for (int i = 0; i < nlocal; i++) {
+    if (mask[i]) continue;
     buf[n] = ivec[i];
     n += size_one;
   }
@@ -627,7 +674,18 @@ void Output::pack_double(int n)
   double *dvec = applattice->darray[n];
 
   for (int i = 0; i < nlocal; i++) {
+    if (mask[i]) continue;
     buf[n] = dvec[i];
     n += size_one;
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void Output::maskzeroenergy()
+{
+  for (int i = 0; i < nlocal; i++) {
+    mask[i] = applattice->site_energy(i) <= 0.0;
+  }
+}
+

@@ -44,7 +44,7 @@ class DiagCluster : public Diag {
 
   int* cluster_ids;
   int ncluster, ncluster_reduced;
-  double vav,r1av,r2av;
+  double vav,rav;
   Cluster* clustlist;
   std::stack<int> cluststack;      // stack for performing cluster analysis
 

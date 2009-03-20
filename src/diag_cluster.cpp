@@ -145,7 +145,12 @@ void DiagCluster::init(double time)
   }
 
   write_header();
-  analyze_clusters(time);
+  if (diag_delay <= 0.0) analyze_clusters(time);
+  else {
+    ncluster_reduced = 0;
+    vav = 0.0;
+    rav = 0.0;
+  }
 
   setup_time(time);
 }
@@ -445,13 +450,11 @@ void DiagCluster::generate_clusters()
     }
 
     vav = volsum/ncluster_reduced ;
-    r1av = pow(vav,invdim);
-    r2av = rsum/ncluster_reduced;
+    rav = rsum/ncluster_reduced;
     if (fp) {
       fprintf(fp,"ncluster = %d \n",ncluster_reduced);
       fprintf(fp,"<N> = %g \n",vav);
-      fprintf(fp,"<R1> = %g \n",r1av);
-      fprintf(fp,"<R2> = %g \n",r2av);
+      fprintf(fp,"<R> = %g \n",rav);
       fprintf(fp,"id ivalue dvalue size\n");
       for (int i = 0; i < ncluster; i++) {
 // 	clustlist[i].print(fp);
@@ -668,12 +671,12 @@ void DiagCluster::free_clustlist()
 
 void DiagCluster::stats(char *strtmp) {
   if (stats_flag == 0) return;
-  sprintf(strtmp," %10d %10g %10g %10g",ncluster_reduced,vav,r1av,r2av);
+  sprintf(strtmp," %10d %10g %10g",ncluster_reduced,vav,rav);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DiagCluster::stats_header(char *strtmp) {
   if (stats_flag == 0) return;
-  sprintf(strtmp," %10s %10s %10s %10s","Nclust","<V>","<R1>","<R2>");
+  sprintf(strtmp," %10s %10s %10s","Nclust","<N>","<R>");
 }

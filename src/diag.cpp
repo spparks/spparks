@@ -50,6 +50,7 @@ Diag::Diag(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   diag_delta = 0.0;
   diag_ilogfreq = 0;
   diag_eps = 1.0e-6;
+  diag_delay = 0.0;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -72,6 +73,11 @@ Diag::Diag(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 	diag_nrepeat = atoi(arg[iarg]);
 	iarg++;
 	diag_scale = atof(arg[iarg]);
+      } else error->all("Illegal diag_style command");
+    } else if (strcmp(arg[iarg],"delay") == 0) {
+      iarg++;
+      if (iarg < narg) {
+	diag_delay = atof(arg[iarg]);
       } else error->all("Illegal diag_style command");
     } else break;
     iarg++;
@@ -139,9 +145,9 @@ int Diag::check_time(double time, int done)
 void Diag::setup_time(double time)
 {
   if (diag_ilogfreq == 0) {
-    diag_time = time + diag_delta;
+    diag_time = time + MAX(diag_delta,diag_delay);
   } else if (diag_ilogfreq == 1) {
-    diag_time = time + diag_delta;
+    diag_time = time + MAX(diag_delta,diag_delay);
     diag_t0 = time;
     diag_irepeat = 0;
   }

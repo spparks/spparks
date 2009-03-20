@@ -59,12 +59,14 @@ void DiagEnergy::init(double time)
   nlocal = applattice->nlocal;
 
   applattice->comm->all();
-  
-  double etmp = 0.0;
-  for (int i = 0; i < nlocal; i++)
-    etmp += applattice->site_energy(i);
-  
-  MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if (diag_delay <= 0.0) {  
+    double etmp = 0.0;
+    for (int i = 0; i < nlocal; i++)
+      etmp += applattice->site_energy(i);
+    
+    MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,world);
+  } else energy = 0.0;
 
   setup_time(time);
 }

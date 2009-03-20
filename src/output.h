@@ -50,17 +50,21 @@ class Output : protected Pointers {
 
   int nglobal,nlocal,nx_local,ny_local,nz_local;
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;
+  int maskzeroenergy_flag, imask_data;
+  double dump_delay;
 
   int *vtype;                // type of each vector (INT, DOUBLE)
   int *vindex;               // index into int,double packs
   char **vformat;            // format string for each vector element
 
   double *buf;
+  int *mask;
   int maxbuf;
 
   void dump_header();
-  void dump();
+  void dump(double);
   void write_data(int, double *);
+  void maskzeroenergy();
 
   typedef void (Output::*FnPtrPack)(int);
   FnPtrPack *pack_choice;              // ptrs to pack functions
