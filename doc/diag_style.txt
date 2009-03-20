@@ -38,44 +38,35 @@ diag_style energy2d :pre
 This command invokes a diagnostic calculation.  Currently, diagnostics
 can only be defined for on-lattice applications.  See the
 "app_style"_app_style.html command for an overview of such
-applications.  As described by the "app_style"_app_style.html command,
-on-lattice applications use one of 3 styles of lattice: general, 2d,
-or 3d.  For several of the diagnostic styles, you must use a style
-that matches the application's lattice.
+applications.
 
 The diagnostics currently available are:
 
 "cluster"_diag_cluster.html = grain size statistics for general lattices
-"cluster2d"_diag_cluster.html = grain size statistics for 2d lattices
-"cluster3d"_diag_cluster.html = grain size statistics for 3d lattices
-"eprof3d"_diag_eprof.html = site energy as function of distance from sector boundary for 3d lattices
 "energy"_diag_energy.html = compute energy of entire system for general lattices
-"energy2d"_diag_energy.html = compute energy of entire system for 2d lattices
-"energy3d"_diag_energy.html = compute energy of entire system for 3d lattiecs :ul
 
 :line
 
 Diagnostics may provide one or more values that are appended to other
 statistical output and printed to the screen and log file via the
-"stats"_stats.html command.  We call this stats output. In addition,
-the diagnostic may optionally write more extensive output to files if
+"stats"_stats.html command.  This is stats output.  In addition, the
+diagnostic may write more extensive output to its own files if
 requested by diagnostic-specific keywords.
 
 The {stats} keyword controls whether or not the diagnostic appends
-values to the statistical output. If stats is set to yes, then the
-{delt} and {logfreq} keywords may not be used, as the output interval is
-controlled by the {stats} command.  If stats is set to no, then the
-{delt} keyword specificies {Delta}, the interval of time between each
-diagnostic calculation. Using the {logfreq} keyword will cause the
-diagnostic to run at varying
-intervals during the course of a simulation.  There will be {N}
-outputs per interval where the size of each interval scales up by
-{factor} each time.  {Delta} is the time between outputs in the first
-(smallest) interval.
+values to the statistical output.  If stats is set to {yes}, then the
+{delt} and {logfreq} keywords can not be used.  Instead the output
+interval is controlled by the {stats} command.  If stats is set to
+{no}, then the {delt} keyword specificies {Delta} = the interval of
+time between each diagnostic calculation.  Similarly, the {logfreq}
+keyword will cause the diagnostic to run at varying intervals during
+the course of a simulation.  There will be {N} outputs per interval
+where the size of each interval scales up by {factor} each time.
+{Delta} is the time between outputs in the first (smallest) interval.
 
 For example, this command
 
-diag_style eprof3d stats no delt 0.1 logfreq 7 10.0 :pre
+diag_style energy stats no delt 0.1 logfreq 7 10.0 :pre
 
 will perform its computation at these times:
 
@@ -83,7 +74,7 @@ t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... :pre
 
 This command
 
-diag_style enegy eprof3d stats no delt 0.1 logfreq 1 2.0 :pre
+diag_style energy stats no delt 0.1 logfreq 1 2.0 :pre
 
 will perform its computation at these times:
 

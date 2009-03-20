@@ -44,44 +44,35 @@ diag_style energy2d
 <P>This command invokes a diagnostic calculation.  Currently, diagnostics
 can only be defined for on-lattice applications.  See the
 <A HREF = "app_style.html">app_style</A> command for an overview of such
-applications.  As described by the <A HREF = "app_style.html">app_style</A> command,
-on-lattice applications use one of 3 styles of lattice: general, 2d,
-or 3d.  For several of the diagnostic styles, you must use a style
-that matches the application's lattice.
+applications.
 </P>
 <P>The diagnostics currently available are:
 </P>
-<UL><LI><A HREF = "diag_cluster.html">cluster</A> = grain size statistics for general lattices
-<LI><A HREF = "diag_cluster.html">cluster2d</A> = grain size statistics for 2d lattices
-<LI><A HREF = "diag_cluster.html">cluster3d</A> = grain size statistics for 3d lattices
-<LI><A HREF = "diag_eprof.html">eprof3d</A> = site energy as function of distance from sector boundary for 3d lattices
-<LI><A HREF = "diag_energy.html">energy</A> = compute energy of entire system for general lattices
-<LI><A HREF = "diag_energy.html">energy2d</A> = compute energy of entire system for 2d lattices
-<LI><A HREF = "diag_energy.html">energy3d</A> = compute energy of entire system for 3d lattiecs 
-</UL>
+<P><A HREF = "diag_cluster.html">cluster</A> = grain size statistics for general lattices
+<A HREF = "diag_energy.html">energy</A> = compute energy of entire system for general lattices
+</P>
 <HR>
 
 <P>Diagnostics may provide one or more values that are appended to other
 statistical output and printed to the screen and log file via the
-<A HREF = "stats.html">stats</A> command.  We call this stats output. In addition,
-the diagnostic may optionally write more extensive output to files if
+<A HREF = "stats.html">stats</A> command.  This is stats output.  In addition, the
+diagnostic may write more extensive output to its own files if
 requested by diagnostic-specific keywords.
 </P>
 <P>The <I>stats</I> keyword controls whether or not the diagnostic appends
-values to the statistical output. If stats is set to yes, then the
-<I>delt</I> and <I>logfreq</I> keywords may not be used, as the output interval is
-controlled by the <I>stats</I> command.  If stats is set to no, then the
-<I>delt</I> keyword specificies <I>Delta</I>, the interval of time between each
-diagnostic calculation. Using the <I>logfreq</I> keyword will cause the
-diagnostic to run at varying
-intervals during the course of a simulation.  There will be <I>N</I>
-outputs per interval where the size of each interval scales up by
-<I>factor</I> each time.  <I>Delta</I> is the time between outputs in the first
-(smallest) interval.
+values to the statistical output.  If stats is set to <I>yes</I>, then the
+<I>delt</I> and <I>logfreq</I> keywords can not be used.  Instead the output
+interval is controlled by the <I>stats</I> command.  If stats is set to
+<I>no</I>, then the <I>delt</I> keyword specificies <I>Delta</I> = the interval of
+time between each diagnostic calculation.  Similarly, the <I>logfreq</I>
+keyword will cause the diagnostic to run at varying intervals during
+the course of a simulation.  There will be <I>N</I> outputs per interval
+where the size of each interval scales up by <I>factor</I> each time.
+<I>Delta</I> is the time between outputs in the first (smallest) interval.
 </P>
 <P>For example, this command
 </P>
-<PRE>diag_style eprof3d stats no delt 0.1 logfreq 7 10.0 
+<PRE>diag_style energy stats no delt 0.1 logfreq 7 10.0 
 </PRE>
 <P>will perform its computation at these times:
 </P>
@@ -89,7 +80,7 @@ outputs per interval where the size of each interval scales up by
 </PRE>
 <P>This command
 </P>
-<PRE>diag_style enegy eprof3d stats no delt 0.1 logfreq 1 2.0 
+<PRE>diag_style energy stats no delt 0.1 logfreq 1 2.0 
 </PRE>
 <P>will perform its computation at these times:
 </P>
