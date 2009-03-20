@@ -10,14 +10,22 @@ run command :h3
 
 [Syntax:]
 
-run delta :pre
+run delta keyword values ... :pre
 
-delta = run simulation for this amount of time (seconds) :ul
+delta = run simulation for this amount of time (seconds) :ulb,l
+zero or more keyword/value pairs may be appended :l
+keyword = {upto} or {pre} or {post} :l
+  {upto} value = none
+  {pre} value = {no} or {yes}
+  {post} value = {no} or {yes} :pre
+:ule
+
 
 [Examples:]
 
 run 100.0
-run 10000.0 :pre
+run 10000.0 upto
+run 1000 pre no post yes :pre
 
 [Description:]
 
@@ -30,8 +38,42 @@ The "application"_app_style.html defines Monte Carlo events and
 probabilities which determine the amount of physical time associated
 with each event.
 
+A value of delta = 0.0 is acceptable; only the status of the system is
+computed and printed without making any Monte Carlo moves.
+
+The {upto} keyword means to perform a run starting at the current time
+up to the specified time.  E.g. if the current time is 10.0 and "run
+100.0 upto" is used, then an additional 90.0 seconds will be run.
+This can be useful for very long runs on a machine that allocates
+chunks of time and terminate your job when time is exceeded.  If you
+need to restart your script multiple times (reading in the last
+restart file), you can keep restarting your script with the same run
+command until the simulation finally completes.
+
+The {pre} and {post} keywords can be used to streamline the setup,
+clean-up, and associated output to the screen that happens before and
+after a run.  This can be useful if you wish to do many short runs in
+succession (e.g. SPPARKS is being called as a library which is doing
+other computations between successive short SPPARKS runs).
+
+By default (pre and post = yes), SPPARKS initializes data structures
+and computes propensities before every run.  After every run it
+gathers and prints timings statistics.  If a run is just a
+continuation of a previous run, the data structure initialization is
+not necessary.  So if {pre} is specified as "no" then the
+initialization is skipped.  Propensities are still re-computed since
+commands between runs or a driver program may have changed the system,
+e.g. by altering lattice values.  Note that if {pre} is set to "no"
+for the very 1st run SPPAKRS performs, then it is overridden, since
+the initialization must be done.
+
+If {post} is specified as "no", the full timing summary is skipped;
+only a one-line summary timing is printed.
+
 [Restrictions:] none
 
 [Related commands:] none
 
-[Default:] none
+[Default:]
+
+The option defaults are pre = yes and post = yes.
