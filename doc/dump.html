@@ -19,11 +19,15 @@
 filename = name of file to dump snapshots to
 keyword =  logfreq 
 
-<PRE>  <I>logfreq</I> values = N factor
+<PRE>  <I>delay</I> values = tdelay
+    tdelay = delay dump until at least this time
+  <I>logfreq</I> values = N factor
     N = number of repetitions per interval
     factor = scale factor between interval 
 </PRE>
-<UL><LI>field = <I>id</I> or <I>lattice</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>energy</I> or <I>propensity</I> or <I>iN</I> or <I>dN</I> 
+<UL><LI>  <I>mask</I> values = <I>yes</I> or <I>no</I>
+<LI>    yes/no = suppress output of lattice sites with zero energy
+<LI>field = <I>id</I> or <I>lattice</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>energy</I> or <I>propensity</I> or <I>iN</I> or <I>dN</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -60,12 +64,25 @@ outputs per interval where the size of each interval scales up by
 </P>
 <PRE>t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... 
 </PRE>
-<P>By default (if no fields are listed), the output values for each
-site are the "id lattice x y z".  This is in the format of a <A HREF = "http://lammps.sandia.gov">LAMMPS
-dump file</A> which can thus be read-in by the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py
+<P>By default (if no fields are listed), the output values for each site
+are the "id lattice x y z".  This is in the format of a <A HREF = "http://lammps.sandia.gov">LAMMPS dump
+file</A> which can thus be read-in by the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py
 toolkit</A>, converted to other formats, or used for visualization.
+An important modification to the LAMMPS-style header for each snapshot
+is the addition of real time to the line containing the snapshot
+number:
 </P>
-<P>If fieldss are listed then only those quantities will be printed for
+<P>ITEM: TIMESTEP TIME
+100   3.23945
+</P>
+<P>Setting the <I>mask</I> keyword to <I>yes</I> will suppress output for sites
+whose energy is zero.  The reduced number of sites for that snapshot
+will be reflected in the header line for the number of atoms/sites.
+</P>
+<P>ITEM: NUMBER OF ATOMS
+314159
+</P>
+<P>If fields are listed then only those quantities will be printed for
 each lattice site.
 </P>
 <P>The <I>id</I> is a unique integer ID for each site.

@@ -20,6 +20,8 @@
 <LI>zero or more keyword/value pairs may be appended 
 
 <PRE>keyword = <I>delt</I> or <I>logfreq</I> or <I>stats</I>
+  <I>delay</I> values = tdelay
+    tdelay = delay evaluating diagnostic until at least this time
   <I>delt</I> values = delta
     delta = time increment between evaluations of the diagnostic (seconds)
   <I>logfreq</I> values = N factor
@@ -93,6 +95,10 @@ outputs per interval where the size of each interval scales up by
 </P>
 <PRE>t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... 
 </PRE>
+<P>The delay keyword specifies the shortest time at which the 
+diagnostic can be evaluated. This is useful if it is inconvenient
+to evaluate the diagnostic at time t=0.
+</P>
 <HR>
 
 <P><B>Restrictions:</B> none
