@@ -55,32 +55,29 @@ oodist = sqrt(2)/2 + epsilon
 otdist = sqrt(3)/4 + epsilon
 ttdist = 0.5 + epsilon
 
-# generate vertices, one unit cell at a time
+# coords of each basis atom in unit cell
+# xyz = Nbasis by 3
 
 xyz = []
 
-for k in xrange(nz):
-  for j in xrange(ny):
-    for i in xrange(nx):
-      xyz.append([i+0.0,j+0.0,k+0.0])       # 4 FCC sites
-      xyz.append([i+0.5,j+0.5,k+0.0]) 
-      xyz.append([i+0.5,j+0.0,k+0.5]) 
-      xyz.append([i+0.0,j+0.5,k+0.5]) 
+xyz.append([0.0,0.0,0.0])       # 4 FCC sites
+xyz.append([0.5,0.5,0.0]) 
+xyz.append([0.5,0.0,0.5]) 
+xyz.append([0.0,0.5,0.5]) 
 
-      xyz.append([i+0.5,j+0.0,k+0.0])       # 4 OCTA sites
-      xyz.append([i+0.0,j+0.5,k+0.0])
-      xyz.append([i+0.0,j+0.0,k+0.5])
-      xyz.append([i+0.5,j+0.5,k+0.5])
+xyz.append([0.5,0.0,0.0])       # 4 OCTA sites
+xyz.append([0.0,0.5,0.0])
+xyz.append([0.0,0.0,0.5])
+xyz.append([0.5,0.5,0.5])
       
-      xyz.append([i+0.25,j+0.25,k+0.25])    # 8 TETRA sites
-      xyz.append([i+0.75,j+0.25,k+0.25])
-      xyz.append([i+0.25,j+0.75,k+0.25])
-      xyz.append([i+0.75,j+0.75,k+0.25])
-      xyz.append([i+0.25,j+0.25,k+0.75])
-      xyz.append([i+0.75,j+0.25,k+0.75])
-      xyz.append([i+0.25,j+0.75,k+0.75])
-      xyz.append([i+0.75,j+0.75,k+0.75])
-
+xyz.append([0.25,0.25,0.25])    # 8 TETRA sites
+xyz.append([0.75,0.25,0.25])
+xyz.append([0.25,0.75,0.25])
+xyz.append([0.75,0.75,0.25])
+xyz.append([0.25,0.25,0.75])
+xyz.append([0.75,0.25,0.75])
+xyz.append([0.25,0.75,0.75])
+xyz.append([0.75,0.75,0.75])
 
 # create 3x3x3 array of unit cells of atoms
 # for each atom, store x,y,z,type,idelta,jdelta,kdelta,basis
@@ -194,16 +191,49 @@ for m in xrange(nbasis):
       print "ERROR: Bad cmap array TETRA counts"
       sys.exit(1)
     
-# generate edges
+# write SPPARKS lattice file
 
-edges = []
+fp = open(latfile,"w")
+print >>fp,\
+      "Erbium 3-fold lattice for %d by %d by %d cubic unit cells" % (nx,ny,nz)
+print >>fp
+print >>fp,3,"dimension"
+print >>fp,nx*ny*nz*nbasis,"vertices"
+print >>fp,maxconn,"max connectivity"
+print >>fp,0,nx,"xlo xhi"
+print >>fp,0,ny,"ylo yhi"
+print >>fp,0,nz,"zlo zhi"
 
+print >>fp
+print >>fp,"Vertices"
+print >>fp
+
+# generate vertices, one vertex at a time
+
+n = 0
 for k in xrange(nz):
   for j in xrange(ny):
     for i in xrange(nx):
       for m in xrange(nbasis):
-        neighs = []
+        x = xyz[m][0] + i
+        y = xyz[m][1] + j
+        z = xyz[m][2] + k
+        n += 1
+        print >>fp,n,x,y,z
 
+# generate edge list one vertex at a time
+
+print >>fp
+print >>fp,"Edges"
+print >>fp
+
+iatom = 0
+for k in xrange(nz):
+  for j in xrange(ny):
+    for i in xrange(nx):
+      for m in xrange(nbasis):
+
+        neighs = []
         for n in xrange(len(cmap[m])):      # neighbors per site
           ii = i + cmap[m][n][0]            # ii,jj,kk = new cubic unit cell
           jj = j + cmap[m][n][1]
@@ -217,36 +247,10 @@ for k in xrange(nz):
           if kk >= nz: kk -= nz
           id = kk*nx*ny*nbasis + jj*nx*nbasis + ii*nbasis + mm + 1
           neighs.append(id)
-          
-        edges.append(neighs)
-      
-# write SPPARKS lattice file
 
-fp = open(latfile,"w")
-print >>fp,\
-      "Erbium 3-fold lattice for %d by %d by %d cubic unit cells" % (nx,ny,nz)
-print >>fp
-print >>fp,3,"dimension"
-print >>fp,len(xyz),"vertices"
-print >>fp,maxconn,"max connectivity"
-print >>fp,0,nx,"xlo xhi"
-print >>fp,0,ny,"ylo yhi"
-print >>fp,0,nz,"zlo zhi"
-
-print >>fp
-print >>fp,"Vertices"
-print >>fp
-
-for i in xrange(len(xyz)):
-  print >>fp,i+1,xyz[i][0],xyz[i][1],xyz[i][2]
-  
-print >>fp
-print >>fp,"Edges"
-print >>fp
-
-for i in xrange(len(xyz)):
-  print >>fp,i+1,
-  for j in xrange(len(edges[i])): print >>fp,edges[i][j],
-  print >>fp
+        iatom += 1
+        print >>fp,iatom,
+        for mm in xrange(len(neighs)): print >>fp,neighs[mm],
+        print >>fp
 
 fp.close()
