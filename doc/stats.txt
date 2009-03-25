@@ -28,8 +28,10 @@ stats 1.0 logfreq 7 10.0 :pre
 [Description:]
 
 Print statistics to the screen and log file every so many seconds
-during a simulation.  The quantities printed are elapsed CPU time
-followed by those provided
+during a simulation.  A value of 0.0 for delta means only print
+stats at the beginning and end of the run.
+
+The quantities printed are elapsed CPU time followed by those provided
 by the "application"_app_style.html, followed by those provided by any
 "diagnostics"_diag_style.html you have defined.
 
@@ -65,13 +67,14 @@ t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... :pre
 
 [Restrictions:]
 
-See the doc pages for quantities provided
-by particular "app_style"_app_style.html 
-and "diag_style"_diag_style.html 
-commands for further details.
+See the doc pages for quantities provided by particular
+"app_style"_app_style.html and "diag_style"_diag_style.html commands
+for further details.
 
 [Related commands:]
 
-"dump"_dump.html, "diag"_diag_style.html
+"dump"_dump.html, "diag_style"_diag_style.html
 
-[Default:] none
+[Default:]
+
+The default stats increment is delta = 0.0.

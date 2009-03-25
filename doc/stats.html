@@ -35,8 +35,10 @@ stats 1.0 logfreq 7 10.0
 <P><B>Description:</B>
 </P>
 <P>Print statistics to the screen and log file every so many seconds
-during a simulation.  The quantities printed are elapsed CPU time
-followed by those provided
+during a simulation.  A value of 0.0 for delta means only print
+stats at the beginning and end of the run.
+</P>
+<P>The quantities printed are elapsed CPU time followed by those provided
 by the <A HREF = "app_style.html">application</A>, followed by those provided by any
 <A HREF = "diag_style.html">diagnostics</A> you have defined.
 </P>
@@ -72,15 +74,16 @@ outputs per interval where the size of each interval scales up by
 
 <P><B>Restrictions:</B>
 </P>
-<P>See the doc pages for quantities provided
-by particular <A HREF = "app_style.html">app_style</A> 
-and <A HREF = "diag_style.html">diag_style</A> 
-commands for further details.
+<P>See the doc pages for quantities provided by particular
+<A HREF = "app_style.html">app_style</A> and <A HREF = "diag_style.html">diag_style</A> commands
+for further details.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "dump.html">dump</A>, <A HREF = "diag_style.html">diag</A>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "diag_style.html">diag_style</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The default stats increment is delta = 0.0.
 </P>
 </HTML>

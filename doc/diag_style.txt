@@ -56,15 +56,19 @@ diagnostic may write more extensive output to its own files if
 requested by diagnostic-specific keywords.
 
 The {stats} keyword controls whether or not the diagnostic appends
-values to the statistical output.  If stats is set to {yes}, then the
-{delt} and {logfreq} keywords can not be used.  Instead the output
-interval is controlled by the {stats} command.  If stats is set to
-{no}, then the {delt} keyword specificies {Delta} = the interval of
-time between each diagnostic calculation.  Similarly, the {logfreq}
-keyword will cause the diagnostic to run at varying intervals during
-the course of a simulation.  There will be {N} outputs per interval
-where the size of each interval scales up by {factor} each time.
-{Delta} is the time between outputs in the first (smallest) interval.
+values to the statistical output.  If {stats} is set to {yes}, then none
+of the other keywords can be used, since the frequency of the
+"stats"_stats.html output will determine when the diagnostic is
+called.
+
+If {stats} is set to {no}, then the other keywords can be used, since
+presumably the diagnostic will create its own output files.  The
+{delt} keyword specificies {Delta} = the interval of time between each
+diagnostic calculation.  Similarly, the {logfreq} keyword will cause
+the diagnostic to run at varying intervals during the course of a
+simulation.  There will be {N} outputs per interval where the size of
+each interval scales up by {factor} each time.  {Delta} is the time
+between outputs in the first (smallest) interval.
 
 For example, this command
 
