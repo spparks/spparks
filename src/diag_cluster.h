@@ -25,23 +25,12 @@ class DiagCluster : public Diag {
  public:
   DiagCluster(class SPPARKS *, int, char **);
   virtual ~DiagCluster();
-  void init(double);
-  double setup(double);
-  double compute(double, int, int);
+  void init();
+  void compute();
   void stats(char *);
   void stats_header(char *);
 
  protected:
-
-  // Functions and Data for Cluster Analysis
-  void analyze_clusters(double);
-  void write_header();
-  void dump_clusters(double);
-  void dump_clusters_detailed();
-  void generate_clusters();
-  void add_cluster(int, int, double, double, int, double*);
-  void free_clustlist();
-
   int* cluster_ids;
   int ncluster, ncluster_reduced;
   double vav,rav;
@@ -69,6 +58,14 @@ class DiagCluster : public Diag {
   int idump;
   char* opendxroot;
   int opendxcount;
+
+  void analyze_clusters();
+  void write_header();
+  void dump_clusters(double);
+  void dump_clusters_detailed();
+  void generate_clusters();
+  void add_cluster(int, int, double, double, int, double*);
+  void free_clustlist();
 };
 
 }

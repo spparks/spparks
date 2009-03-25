@@ -15,7 +15,6 @@
 #define OUTPUT_H
 
 #include "pointers.h"
-#include "diag.h"
 
 namespace SPPARKS_NS {
 
@@ -27,20 +26,21 @@ class Output : protected Pointers {
   double setup(double);
   void set_stats(int, char **);
   void set_dump(int, char **);
-  void stats(int);
-  void stats_header();
+  void add_diag(class Diag *);
   double compute(double, int);
-  void add_diag(Diag *);
 
  private:
-  double stats_time,stats_delta,stats_scale,stats_t0,stats_eps;
-  double dump_time,dump_delta,dump_scale,dump_t0,dump_eps;
   int me,nprocs;
-  int stats_nrepeat,stats_irepeat,stats_ilogfreq;
-  int idump,dump_nrepeat,dump_irepeat,dump_ilogfreq;
+
+  double stats_time,stats_delta,stats_scale,stats_delay;
+  int stats_logfreq,stats_nrepeat;
+
+  double dump_time,dump_delta,dump_scale,dump_delay;
+  int dump_logfreq,dump_nrepeat;
+  int idump;
 
   int ndiags;
-  Diag **diaglist;
+  class Diag **diaglist;
 
   FILE *fp;                  // dump file pointer
   int size_one;
@@ -52,7 +52,6 @@ class Output : protected Pointers {
   int nglobal,nlocal,nx_local,ny_local,nz_local;
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;
   int mask_flag;
-  double dump_delay;
 
   int *vtype;                // type of each vector (INT, DOUBLE)
   int *vindex;               // index into int,double packs
@@ -62,10 +61,12 @@ class Output : protected Pointers {
   int *mask;
   int maxbuf;
 
+  double next_time(double, int, double, int, double, double);
+  void stats(int);
+  void stats_header();
   void dump_header();
   void dump(double);
   void write_data(int, double *);
-  void maskzeroenergy();
 
   typedef void (Output::*FnPtrPack)(int);
   FnPtrPack *pack_choice;              // ptrs to pack functions
@@ -79,6 +80,8 @@ class Output : protected Pointers {
   void pack_propensity(int);
   void pack_integer(int);
   void pack_double(int);
+
+  void maskzeroenergy();
 };
 
 }

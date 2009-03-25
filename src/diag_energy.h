@@ -24,9 +24,8 @@ class DiagEnergy : public Diag {
  public:
   DiagEnergy(class SPPARKS *, int, char **);
   ~DiagEnergy() {}
-  void init(double);
-  double setup(double);
-  double compute(double, int, int);
+  void init();
+  void compute();
   void stats(char *);
   void stats_header(char *);
 
@@ -34,7 +33,6 @@ class DiagEnergy : public Diag {
   class AppLattice *applattice;
   int nlocal;
   double energy;
-  FILE* fp;
 };
 
 }

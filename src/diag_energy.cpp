@@ -30,84 +30,43 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DiagEnergy::DiagEnergy(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
-{
-  int iarg = iarg_child;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"filename") == 0) {
-      iarg++;
-      if (iarg < narg) {
-	if (me == 0) {
-	  fp = fopen(arg[iarg],"w");
-	  if (!fp) error->one("Cannot open diag_style energy output file");
-	}
-      } else error->all("Illegal diag_style energy command");
-    } else  error->all("Illegal diag_style energy command");
-    iarg++;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DiagEnergy::init(double time)
+DiagEnergy::DiagEnergy(SPPARKS *spk, int narg, char **arg) : 
+  Diag(spk,narg,arg)
 {
   if (app->appclass != App::LATTICE)
     error->all("Diag style incompatible with app style");
-
-  applattice = (AppLattice *) app;
-  nlocal = applattice->nlocal;
-
-  setup_time(time);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double DiagEnergy::setup(double time)
+void DiagEnergy::init()
+{
+  applattice = (AppLattice *) app;
+  nlocal = applattice->nlocal;
+  energy = 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DiagEnergy::compute()
 {
   applattice->comm->all();
 
-  if (diag_delay <= 0.0) {  
-    double etmp = 0.0;
-    for (int i = 0; i < nlocal; i++)
-      etmp += applattice->site_energy(i);
-    
-    MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,world);
-  } else energy = 0.0;
-
-  return 0.0;
+  double etmp = 0.0;
+  for (int i = 0; i < nlocal; i++) etmp += applattice->site_energy(i);
+  MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,world);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double DiagEnergy::compute(double time, int iflag, int done)
+void DiagEnergy::stats(char *strtmp)
 {
-  double etmp;
-
-  if (stats_flag == 0) iflag = check_time(time,done);
-
-  if (iflag || done) {
-    applattice->comm->all();
-
-    etmp = 0.0;
-    for (int i = 0; i < nlocal; i++) 
-      etmp += applattice->site_energy(i);
-    
-    MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,world);
-  }
-
-  return diag_time;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DiagEnergy::stats(char *strtmp) {
-  if (stats_flag == 0) return;
   sprintf(strtmp,"%10g",energy);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DiagEnergy::stats_header(char *strtmp) {
-  if (stats_flag == 0) return;
+void DiagEnergy::stats_header(char *strtmp)
+{
   sprintf(strtmp,"%10s","Energy");
 }

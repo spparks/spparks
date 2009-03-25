@@ -34,6 +34,9 @@ enum{ER,H,HE,VAC,EVENTS,ONE,TWO,THREE};
 
 DiagErbium::DiagErbium(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
+  if (strcmp(app->style,"erbium") != 0)
+    error->all("Diag_style erbium requires app_style erbium");
+
   nlist = 0;
 
   int iarg = iarg_child;
@@ -71,10 +74,8 @@ DiagErbium::~DiagErbium()
 
 /* ---------------------------------------------------------------------- */
 
-void DiagErbium::init(double time)
+void DiagErbium::init()
 {
-  if (strcmp(app->style,"erbium") != 0)
-    error->all("Diag_style erbium requires app_style erbium");
   apperbium = (AppErbium *) app;
 
   int none = apperbium->none;
@@ -118,50 +119,35 @@ void DiagErbium::init(double time)
 
 /* ---------------------------------------------------------------------- */
 
-double DiagErbium::setup(double time)
-{
-  if (diag_delay <= 0.0) return compute(0.0,1,0);
-  return 0.0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double DiagErbium::compute(double time, int iflag, int done)
+void DiagErbium::compute()
 {
   int sites[5],ivalue;
 
-  if (stats_flag == 0) iflag = check_time(time,done);
-
-  if (iflag || done) {
-    if (siteflag) {
-      sites[ERBIUM] = sites[HYDROGEN] = sites[HELIUM] = sites[VACANCY] = 0;
-      int *element = apperbium->element;
-      int nlocal = apperbium->nlocal;
-      for (int i = 0; i < nlocal; i++) sites[element[i]]++;
-    }
-
-    for (int i = 0; i < nlist; i++) {
-      if (which[i] == ER) ivalue = sites[ERBIUM];
-      else if (which[i] == H) ivalue = sites[HYDROGEN];
-      else if (which[i] == HE) ivalue = sites[HELIUM];
-      else if (which[i] == VAC) ivalue = sites[VACANCY];
-      else if (which[i] == EVENTS) ivalue = apperbium->nevents;
-      else if (which[i] == ONE) ivalue = apperbium->scount[index[i]];
-      else if (which[i] == TWO) ivalue = apperbium->dcount[index[i]];
-      else if (which[i] == THREE) ivalue = apperbium->tcount[index[i]];
-      
-      MPI_Allreduce(&ivalue,&ivector[i],1,MPI_INT,MPI_SUM,world);
-    }
+  if (siteflag) {
+    sites[ERBIUM] = sites[HYDROGEN] = sites[HELIUM] = sites[VACANCY] = 0;
+    int *element = apperbium->element;
+    int nlocal = apperbium->nlocal;
+    for (int i = 0; i < nlocal; i++) sites[element[i]]++;
   }
 
-  return diag_time;
+  for (int i = 0; i < nlist; i++) {
+    if (which[i] == ER) ivalue = sites[ERBIUM];
+    else if (which[i] == H) ivalue = sites[HYDROGEN];
+    else if (which[i] == HE) ivalue = sites[HELIUM];
+    else if (which[i] == VAC) ivalue = sites[VACANCY];
+    else if (which[i] == EVENTS) ivalue = apperbium->nevents;
+    else if (which[i] == ONE) ivalue = apperbium->scount[index[i]];
+    else if (which[i] == TWO) ivalue = apperbium->dcount[index[i]];
+    else if (which[i] == THREE) ivalue = apperbium->tcount[index[i]];
+    
+    MPI_Allreduce(&ivalue,&ivector[i],1,MPI_INT,MPI_SUM,world);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DiagErbium::stats(char *str) {
-  if (stats_flag == 0) return;
-
+void DiagErbium::stats(char *str)
+{
   for (int i = 0; i < nlist; i++) {
     sprintf(str," %d",ivector[i]);
     str += strlen(str);
@@ -170,9 +156,8 @@ void DiagErbium::stats(char *str) {
 
 /* ---------------------------------------------------------------------- */
 
-void DiagErbium::stats_header(char *str) {
-  if (stats_flag == 0) return;
-
+void DiagErbium::stats_header(char *str)
+{
   for (int i = 0; i < nlist; i++) {
     sprintf(str," %s",list[i]);
     str += strlen(str);

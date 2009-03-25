@@ -24,9 +24,8 @@ class DiagErbium : public Diag {
  public:
   DiagErbium(class SPPARKS *, int, char **);
   ~DiagErbium();
-  void init(double);
-  double setup(double);
-  double compute(double, int, int);
+  void init();
+  void compute();
   void stats(char *);
   void stats_header(char *);
 

@@ -62,6 +62,7 @@ class Input : protected Pointers {
 
   void app_style();
   void diag_style();
+  void reset_time();
   void run();
   void seed();
   void solve_style();

@@ -32,6 +32,9 @@ using namespace SPPARKS_NS;
 DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) : 
   Diag(spk,narg,arg)
 {
+  if (app->appclass != App::LATTICE)
+    error->all("Diag style incompatible with app style");
+
   cluster_ids = NULL;
   comm = NULL;
   fp = NULL;
@@ -51,6 +54,7 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) :
 	  fp = fopen(arg[iarg],"w");
 	  if (!fp) error->one("Cannot open diag_style cluster output file");
 	}
+	write_header();
       } else error->all("Illegal diag_style cluster command");
     } else if (strcmp(arg[iarg],"dump") == 0) {
       iarg++;
@@ -101,11 +105,8 @@ DiagCluster::~DiagCluster()
 
 /* ---------------------------------------------------------------------- */
 
-void DiagCluster::init(double time)
+void DiagCluster::init()
 {
-  if (app->appclass != App::LATTICE)
-    error->all("Diag style incompatible with app style");
-
   applattice = (AppLattice *) app;
   nglobal = applattice->nglobal;
   nlocal = applattice->nlocal;
@@ -144,56 +145,33 @@ void DiagCluster::init(double time)
     }
   }
 
-  setup_time(time);
+  ncluster_reduced = 0;
+  vav = rav = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double DiagCluster::setup(double time)
+void DiagCluster::compute()
 {
-  write_header();
   applattice->comm->all();
-
-  if (diag_delay <= 0.0) analyze_clusters(time);
-  else {
-    ncluster_reduced = 0;
-    vav = 0.0;
-    rav = 0.0;
-  }
-
-  return 0.0;
+  analyze_clusters();
 }
 
 /* ---------------------------------------------------------------------- */
 
-double DiagCluster::compute(double time, int iflag, int done)
-{
-  if (diag_delta > 0.0) iflag = check_time(time, done);
-
-  if (iflag || done) {
-    applattice->comm->all();
-    analyze_clusters(time);
-  }
-
-  return diag_time;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DiagCluster::analyze_clusters(double time)
+void DiagCluster::analyze_clusters()
 {
   if (me == 0) {
     if (fp) {
       fprintf(fp,"\n\n--------------------------------------------------\n");
-      fprintf(fp,"Time = %f \n",time);
+      fprintf(fp,"Time = %f \n",applattice->time);
     }
   }
   free_clustlist();
   generate_clusters();
-   if (idump) {
-     dump_clusters(time);
-   }
+  if (idump) dump_clusters(applattice->time);
 }
+
 /* ---------------------------------------------------------------------- */
 
 void DiagCluster::write_header()
@@ -208,7 +186,7 @@ void DiagCluster::write_header()
 }
 
 /* ----------------------------------------------------------------------
-   Perform cluster analysis using a definition
+   perform cluster analysis using a definition
    of connectivity provided by the child application
 ------------------------------------------------------------------------- */
 
@@ -657,7 +635,6 @@ void DiagCluster::dump_clusters(double time)
       memory->sfree(datadx);
       memory->sfree(randomkeys);
       delete randomtmp;
-
     }
   }
 }
@@ -669,9 +646,8 @@ void DiagCluster::free_clustlist()
   // Can not call Cluster destructor, because 
   // that would free memory twice.
   // Instead, need to delete neighlist manually.
-  for (int i = 0; i < ncluster; i++) {
-    free(clustlist[i].neighlist);
-  }
+
+  for (int i = 0; i < ncluster; i++) free(clustlist[i].neighlist);
   memory->sfree(clustlist);
   clustlist = NULL;
   ncluster = 0;
@@ -679,14 +655,14 @@ void DiagCluster::free_clustlist()
 
 /* ---------------------------------------------------------------------- */
 
-void DiagCluster::stats(char *strtmp) {
-  if (stats_flag == 0) return;
+void DiagCluster::stats(char *strtmp)
+{
   sprintf(strtmp," %10d %10g %10g",ncluster_reduced,vav,rav);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DiagCluster::stats_header(char *strtmp) {
-  if (stats_flag == 0) return;
+void DiagCluster::stats_header(char *strtmp)
+{
   sprintf(strtmp," %10s %10s %10s","Nclust","<N>","<R>");
 }

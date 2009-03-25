@@ -20,34 +20,28 @@ namespace SPPARKS_NS {
 
 class Diag : protected Pointers {
  public:
+  char *style;
+  int stats_flag;                   // 1 if stats drives output, 0 if not
+  double diag_time,diag_delta;      // output params for stats_flag = 0
+  double diag_scale,diag_delay;
+  int diag_logfreq,diag_nrepeat;
+
   Diag(class SPPARKS *, int, char **);
   virtual ~Diag();
 
-  int check_time(double, int);
-  void setup_time(double);
+  // pure virtual functions, must be defined in child class
+  
+  virtual void init() = 0;
+  virtual void compute() = 0;
 
-  // virtual functions with default definitions
-  // may be overridden in child class
+  // virtual functions, may be overridden in child class
 
   virtual void stats(char *strtmp) {strtmp[0] = '\0';};
   virtual void stats_header(char *strtmp) {strtmp[0] = '\0';};
 
-  // pure virtual functions, must be defined in child class
-  
-  virtual void init(double) = 0;
-  virtual double setup(double) = 0;
-  virtual double compute(double, int, int) = 0;
-
  protected:
-  char *style;
   int me,nprocs;
   int iarg_child;
-
-  double diag_time,diag_delta,diag_scale,diag_t0,diag_eps;
-  double diag_delay;
-  int diag_nrepeat,diag_irepeat,diag_ilogfreq;
-  int stats_flag;
-
 };
 
 }

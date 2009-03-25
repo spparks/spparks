@@ -448,8 +448,7 @@ void AppLattice::iterate_kmc_global(double stoptime)
     }
 
     if (time >= stoptime) done = 1;
-    if (done || time >= nextoutput) 
-      nextoutput = output->compute(time,done);
+    if (done || time >= nextoutput) nextoutput = output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
   }
 
@@ -550,7 +549,7 @@ void AppLattice::iterate_kmc_sector(double stoptime)
     
     time += dt_kmc;
     if (time >= stoptime) alldone = 1;
-    if (done || time >= nextoutput)
+    if (alldone || time >= nextoutput)
       nextoutput = output->compute(time,alldone);
     timer->stamp(TIME_OUTPUT);
 
@@ -620,8 +619,7 @@ void AppLattice::iterate_rejection(double stoptime)
     nsweeps++;
     time += dt_rkmc;
     if (time >= stoptime) done = 1;
-    if (done || time >= nextoutput)
-      nextoutput = output->compute(time,done);
+    if (done || time >= nextoutput) nextoutput = output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
   }
 }

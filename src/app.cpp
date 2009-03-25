@@ -98,3 +98,10 @@ void App::run(int narg, char **arg)
 
   Finish finish(spk,postflag);
 }
+
+/* ---------------------------------------------------------------------- */
+
+void App::reset_time(double newtime)
+{
+  time = newtime;
+}

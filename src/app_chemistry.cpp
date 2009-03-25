@@ -193,8 +193,7 @@ void AppChemistry::iterate()
 
     timer->stamp(TIME_APP);
 
-    if (done || time >= nextoutput)
-      nextoutput = output->compute(time,done);
+    if (done || time >= nextoutput) nextoutput = output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
   }
 

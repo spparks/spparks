@@ -17,7 +17,7 @@
 #include "pointers.h"
 
 namespace SPPARKS_NS {
-
+  
 class App : protected Pointers {
  public:
   enum AppClasses {GENERAL,LATTICE};
@@ -29,6 +29,7 @@ class App : protected Pointers {
   App(class SPPARKS *, int, char **);
   virtual ~App();
   void run(int, char **);
+  void reset_time(double);
 
   // pure virtual functions, must be defined in child class
   

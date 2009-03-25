@@ -397,6 +397,7 @@ int Input::execute_command()
 
   else if (!strcmp(command,"app_style")) app_style();
   else if (!strcmp(command,"diag_style")) diag_style();
+  else if (!strcmp(command,"reset_time")) reset_time();
   else if (!strcmp(command,"run")) run();
   else if (!strcmp(command,"seed")) seed();
   else if (!strcmp(command,"solve_style")) solve_style();
@@ -639,6 +640,8 @@ void Input::app_style()
 
 void Input::diag_style()
 {
+  if (app == NULL) error->all("Command used before app_style set");
+
   if (narg < 1) error->all("Illegal diag_style command");
 
   if (strcmp(arg[0],"none") == 0) error->all("Illegal diag_style command");
@@ -658,12 +661,24 @@ void Input::diag_style()
 
 /* ---------------------------------------------------------------------- */
 
+void Input::reset_time()
+{
+  if (app == NULL) error->all("Command used before app_style set");
+
+  if (narg != 1) error->all("Illegal reset_time command");
+  double time = atof(arg[0]);
+  if (time < 0.0) error->all("Illegal reset_time command");
+
+  app->reset_time(time);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Input::run()
 {
   if (app == NULL) error->all("Command used before app_style set");
   app->run(narg,arg);
 }
-
 
 /* ---------------------------------------------------------------------- */
 

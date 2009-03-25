@@ -211,8 +211,7 @@ void AppTestGroup::iterate()
     else if (ievent < 0) done = 1;
 
 #ifdef OUTPUT
-    if (done || time >= nextoutput)
-      nextoutput = output->compute(time,done);
+    if (done || time >= nextoutput) nextoutput = output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
 #endif
   }

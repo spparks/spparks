@@ -18,6 +18,7 @@
 #include "output.h"
 #include "app.h"
 #include "app_lattice.h"
+#include "diag.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
@@ -40,16 +41,17 @@ Output::Output(SPPARKS *spk) : Pointers(spk)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
+  stats_delta = 0.0;
+  stats_logfreq = 0;
+  stats_delay = 0.0;
+
+  dump_delta = 0.0;
+  dump_logfreq = 0;
+  dump_delay = 0.0;
+  idump = 0;
+
   ndiags = 0;
   diaglist = NULL;
-  dump_delta = 0.0;
-  idump = 0;
-  dump_ilogfreq = 0;
-  dump_eps = 1.0e-6;
-  stats_delta = 0.0;
-  stats_ilogfreq = 0;
-  stats_eps = 1.0e-6;
-  dump_delay = 0.0;
 
   size_one = 0;
   fp = NULL;
@@ -67,10 +69,10 @@ Output::Output(SPPARKS *spk) : Pointers(spk)
 
 Output::~Output()
 {
+  if (me == 0 && fp) fclose(fp);
+
   for (int i = 0; i < ndiags; i++) delete diaglist[i];
   memory->sfree(diaglist);
-
-  if (me == 0 && fp) fclose(fp);
 
   delete [] vtype;
   delete [] vindex;
@@ -81,13 +83,11 @@ Output::~Output()
   memory->sfree(mask);
 }
 
-/* ----------------------------------------------------------------------
-   called before every run unless turned off by run command
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 void Output::init(double time)
 {
-  // test if dump is defined and propensity is output but doesn't exist
+  // error if dump is defined and propensity is output but doesn't exist
 
   if (dump_delta > 0.0) {
     int flag = 0;
@@ -97,59 +97,61 @@ void Output::init(double time)
       error->all("Dumping propensity but no KMC solve performed");
   }
 
-  // setup future dump and stats calls
+  // initial dump file snapshot
 
-  if (dump_delta > 0.0) {
-    if (dump_ilogfreq == 0) {
-      dump_time = time + MAX(dump_delta,dump_delay);
-    } else if (dump_ilogfreq == 1) {
-      dump_time = time + MAX(dump_delta,dump_delay);;
-      dump_t0 = time;
-      dump_irepeat = 0;
-    }
-  }
-
-  if (stats_ilogfreq == 0) {
-    stats_time = time + stats_delta;
-  } else if (stats_ilogfreq == 1) {
-    stats_time = time + stats_delta;
-    stats_t0 = time;
-    stats_irepeat = 0;
-  }
+  if (dump_delta > 0.0 && idump == 0) dump(time);
 
   // initialize all diagnostics
 
-  for (int i = 0; i < ndiags; i++)
-    diaglist[i]->init(time);
-
-  // initial dump file snapshot
-
-  if (dump_delta > 0.0 && dump_delay <= 0.0) dump(time);
+  for (int i = 0; i < ndiags; i++) diaglist[i]->init();
 }
 
 /* ----------------------------------------------------------------------
    called before every run
+   perform stats output
+   set next output time for all kinds of output
+   return tnext = next time any output is needed
 ------------------------------------------------------------------------- */
 
 double Output::setup(double time)
 {
-  double diag_time;
+  // set next dump time
 
-  double stoptime = app->stoptime;
-  if (dump_delta > 0.0) stoptime = MIN(stoptime,dump_time);
+  if (dump_delta > 0.0) {
+    dump_time = next_time(time,dump_logfreq,dump_delta,
+			  dump_nrepeat,dump_scale,dump_delta);
+  } else dump_time = app->stoptime;
 
-  // setup of all diagnostics
+  // if stats drives output, perform diagnostics
+  // else set next diagnostic times
 
+  double diag_time = app->stoptime;
   for (int i = 0; i < ndiags; i++) {
-    diag_time = diaglist[i]->setup(time);
-    stoptime = MIN(stoptime,diag_time);
+    if (diaglist[i]->stats_flag) diaglist[i]->compute();
+    else {
+      diaglist[i]->diag_time = 
+	next_time(time,diaglist[i]->diag_logfreq,diaglist[i]->diag_delta,
+		  diaglist[i]->diag_nrepeat,diaglist[i]->diag_scale,
+		  diaglist[i]->diag_delta);
+      diag_time = MIN(diag_time,diaglist[i]->diag_time);
+    }
   }
+
+  // perform stats output
+  // set next stats time
 
   stats_header();
   stats(0);
+  if (stats_delta > 0.0)
+    stats_time = next_time(time,stats_logfreq,stats_delta,
+			   stats_nrepeat,stats_scale,stats_delta);
+  else stats_time = app->stoptime;
 
-  stoptime = MIN(stoptime,stats_time);
-  return stoptime;
+  double tnext = app->stoptime;
+  tnext = MIN(tnext,dump_time);
+  tnext = MIN(tnext,diag_time);
+  tnext = MIN(tnext,stats_time);
+  return tnext;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -158,22 +160,23 @@ void Output::set_stats(int narg, char **arg)
 {
   if (narg < 1) error->all("Illegal stats command");
   stats_delta = atof(arg[0]);
+  if (stats_delta < 0.0) error->all("Illegal stats command");
 
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"logfreq") == 0) {
-      stats_ilogfreq = 1;
+      if (stats_delta == 0.0) error->all("Illegal stats command");
+      stats_logfreq = 1;
       iarg++;
       if (iarg+1 < narg) {
 	stats_nrepeat = atoi(arg[iarg]);
 	if (stats_nrepeat < 1) error->all("Illegal stats command");
 	iarg++;
 	stats_scale = atof(arg[iarg]);
-	if (stats_scale <= 1.0) error->all("Illegal stats command");
-      } else {
-	error->all("Illegal stats command");
-      }
-    }
+	if (stats_nrepeat*stats_delta > stats_scale)
+	  error->all("Illegal stats command");
+      } else error->all("Illegal stats command");
+    } else error->all("Illegal stats command");
     iarg++;
   }
 }
@@ -205,14 +208,15 @@ void Output::set_dump(int narg, char **arg)
 
   if (iarg < narg) {
     if (strcmp(arg[iarg],"logfreq") == 0) {
-      dump_ilogfreq = 1;
+      dump_logfreq = 1;
       iarg++;
       if (iarg+1 < narg) {
 	dump_nrepeat = atoi(arg[iarg]);
 	if (dump_nrepeat < 1) error->all("Illegal dump command");
 	iarg++;
 	dump_scale = atof(arg[iarg]);
-	if (dump_scale <= 1.0) error->all("Illegal dump command");
+	if (dump_nrepeat*dump_delta > dump_scale)
+	  error->all("Illegal dump command");
 	iarg++;
       } else {
 	error->all("Illegal dump command");
@@ -345,100 +349,100 @@ void Output::set_dump(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double Output::compute(double time, int done)
+void Output::add_diag(Diag *diag)
 {
-  int iflag;
-  int ntmp;
-  double tgoal;
-  double diag_time;
-
-  double stoptime = app->stoptime;
-
-  // check if dump output required
-  // calculate new dump time
-  // ensure new dump_time exceeds time
-
-  if (dump_delta > 0.0 && time > dump_time-dump_eps) {
-    dump(time);
-
-    if (dump_ilogfreq == 0) {
-      dump_time += dump_delta;
-      if (time > dump_time-dump_eps)
-	dump_time = ceil(time/dump_delta)*dump_delta;
-    } else if (dump_ilogfreq == 1) {
-      dump_time += dump_delta;
-      dump_irepeat++;
-
-      // calculate next smallest delta that will 
-      // reach tgoal within nrepeat steps
-
-      if (dump_irepeat == dump_nrepeat || time > dump_time-dump_eps) {
-	tgoal = time-dump_t0+dump_delta;
-	ntmp = MAX(1,static_cast<int>
-		   (ceil(log(tgoal/(dump_delta*dump_nrepeat))
-			 /log(dump_scale))));
-	dump_delta *= pow(dump_scale,ntmp);
-	dump_time = ceil(tgoal/dump_delta)*dump_delta;
-	dump_irepeat = 0;
-      }
-    }
-
-    stoptime = MIN(stoptime,dump_time);
-  }
-
-  // check if stats output required
-
-  iflag = 0;
-  if (stats_delta > 0.0 && time > stats_time-stats_eps) iflag = 1;
-
-  // perform diagnostics
-
-  for (int i = 0; i < ndiags; i++) {
-    diag_time = diaglist[i]->compute(time,iflag,done);
-    stoptime = MIN(stoptime,diag_time);
-  }
-
-  // perform stats (after diagnostics)
-
-  if (iflag || done) stats(1);
-
-  // calculate new stats time
-  // ensure new stats time exceeds time
-
-  if (iflag) {
-    if (stats_ilogfreq == 0) {
-      stats_time += stats_delta;
-      if (time > stats_time-stats_eps)
-	stats_time = ceil(time/stats_delta)*stats_delta;
-    } else if (stats_ilogfreq == 1) {
-      stats_time += stats_delta;
-      stats_irepeat++;
-
-      // calculate next smallest delta that will 
-      // reach tgoal within nrepeat steps
-
-      if (stats_irepeat == stats_nrepeat || time > stats_time-stats_eps) {
-	tgoal = time-stats_t0+stats_delta;
-	ntmp = MAX(1,static_cast<int>
-		   (ceil(log(tgoal/(stats_delta*stats_nrepeat))
-			 /log(stats_scale))));
-	stats_delta *= pow(stats_scale,ntmp);
-	stats_time = ceil(tgoal/stats_delta)*stats_delta;
-	stats_irepeat = 0;
-      }
-    }
-
-    stoptime = MIN(stoptime,stats_time);
-  }
-
-  return stoptime;
+  ndiags++;
+  diaglist = (Diag **) memory->srealloc(diaglist,ndiags*sizeof(Diag *),
+					"output:diaglist");
+  diaglist[ndiags-1] = diag;
 }
 
 /* ----------------------------------------------------------------------
-   print stats
+   called only when some output is needed or when app is done
+   set next output time for any output performed
+   return tnext = next time any output is needed
 ------------------------------------------------------------------------- */
 
-void Output::stats(int init_flag)
+double Output::compute(double time, int done)
+{
+  // dump output
+
+  if (dump_delta > 0.0 && time >= dump_time) {
+    dump(time);
+    dump_time = next_time(time,dump_logfreq,dump_delta,
+			  dump_nrepeat,dump_scale,dump_delta);
+  }
+
+  // sflag = 1 if stats output needed
+
+  int sflag = 0;
+  if (time >= stats_time) sflag = 1;
+  
+  // diagnostic output, which may be driven by stats output
+  
+  double diag_time = app->stoptime;
+  for (int i = 0; i < ndiags; i++) {
+    if (diaglist[i]->stats_flag) {
+      if (sflag) diaglist[i]->compute();
+    } else if (time >= diaglist[i]->diag_time) {
+      diaglist[i]->compute();
+      diaglist[i]->diag_time = 
+	next_time(time,diaglist[i]->diag_logfreq,diaglist[i]->diag_delta,
+		  diaglist[i]->diag_nrepeat,diaglist[i]->diag_scale,
+		  diaglist[i]->diag_delta);
+      diag_time = MIN(diag_time,diaglist[i]->diag_time);
+    } else diag_time = MIN(diag_time,diaglist[i]->diag_time);
+  }
+  
+  // stats output, after diagnostics compute any needed quantities
+  
+  if (sflag || done) {
+    stats(1);
+    if (stats_delta)
+      stats_time = next_time(time,stats_logfreq,stats_delta,
+			     stats_nrepeat,stats_scale,stats_delta);
+    else stats_time = app->stoptime;
+  }
+
+  // find next output time
+
+  double tnext = app->stoptime;
+  tnext = MIN(tnext,dump_time);
+  tnext = MIN(tnext,diag_time);
+  tnext = MIN(tnext,stats_time);
+  return tnext;
+}
+
+/* ----------------------------------------------------------------------
+   calculate next time that output of a particular kind should be performed
+   return tnew = next time at which output should be done
+------------------------------------------------------------------------- */
+
+double Output::next_time(double tcurrent, int logfreq, double delta, 
+			 int nrepeat, double scale, double delay)
+{
+  double tnew;
+
+  if (logfreq == 0) {
+    tnew = ceil(tcurrent/delta) * delta;
+    if (tnew == tcurrent) tnew = tcurrent + delta;
+  } else {
+    double start = delta;
+    while (tcurrent >= start*scale) start *= scale;
+    tnew = ceil(tcurrent/start) * start;
+    if (tnew == tcurrent) tnew = tcurrent + start;
+    if (static_cast<int> (tnew/start) > nrepeat) tnew = start*scale;
+  }
+
+  tnew = MAX(tnew,delay);
+  return tnew;
+}
+
+/* ----------------------------------------------------------------------
+   print stats, including contributions from app and diagnostics
+------------------------------------------------------------------------- */
+
+void Output::stats(int timeflag)
 {
   char str[2048] = {'\0'};
   char *strpnt = str;
@@ -446,7 +450,7 @@ void Output::stats(int init_flag)
   app->stats(strpnt);
   strpnt += strlen(strpnt);
 
-  if (init_flag) {
+  if (timeflag) {
     sprintf(strpnt,"%10.3g ",timer->elapsed(TIME_LOOP));
     strpnt += strlen(strpnt);
   } else {
@@ -454,10 +458,11 @@ void Output::stats(int init_flag)
     strpnt += strlen(strpnt);
   }
 
-  for (int i = 0; i < ndiags; i++) {
-    diaglist[i]->stats(strpnt);
-    strpnt += strlen(strpnt);
-  }
+  for (int i = 0; i < ndiags; i++)
+    if (diaglist[i]->stats_flag) {
+      diaglist[i]->stats(strpnt);
+      strpnt += strlen(strpnt);
+    }
 
   if (me == 0) {
     if (screen)
@@ -468,7 +473,7 @@ void Output::stats(int init_flag)
 }
 
 /* ----------------------------------------------------------------------
-   print stats header
+   print stats header, including contributions from app and diagnostics
 ------------------------------------------------------------------------- */
 
 void Output::stats_header()
@@ -482,25 +487,16 @@ void Output::stats_header()
   sprintf(strpnt,"%10s","CPU");
   strpnt += strlen(strpnt);
 
-  for (int i = 0; i < ndiags; i++) {
-    diaglist[i]->stats_header(strpnt);
-    strpnt += strlen(strpnt);
-  }
+  for (int i = 0; i < ndiags; i++)
+    if (diaglist[i]->stats_flag) {
+      diaglist[i]->stats_header(strpnt);
+      strpnt += strlen(strpnt);
+    }
 
   if (me == 0) {
     if (screen) fprintf(screen,"%s\n",str);
     if (logfile) fprintf(logfile,"%s\n",str);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Output::add_diag(Diag *diag)
-{
-  ndiags++;
-  diaglist = (Diag **) memory->srealloc(diaglist,ndiags*sizeof(Diag *),
-					"output:diaglist");
-  diaglist[ndiags-1] = diag;
 }
 
 /* ----------------------------------------------------------------------
