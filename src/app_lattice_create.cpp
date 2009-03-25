@@ -25,7 +25,8 @@ using namespace SPPARKS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define DELTA 100
+#define DELTA 100000
+#define DELTABUF 10000
 #define MAXLINE 256
 #define CHUNK 1024
 
@@ -727,7 +728,7 @@ void AppLattice::connectivity_within_cutoff()
 	xyz[i][1] - subylo <= cutoff || subyhi - xyz[i][1] <= cutoff ||
 	xyz[i][2] - subzlo <= cutoff || subzhi - xyz[i][2] <= cutoff) {
       if (nsend == maxbuf) {
-	maxbuf += DELTA;
+	maxbuf += DELTABUF;
 	bufsend = (Site *) 
 	  memory->srealloc(bufsend,maxbuf*sizeof(Site),"app:bufsend");
       }
@@ -814,7 +815,7 @@ void AppLattice::connectivity_within_cutoff()
       if (flag == 0) continue;
 
       if (nrecv == maxbuf) {
-	maxbuf += DELTA;
+	maxbuf += DELTABUF;
 	bufrecv = (Site *) memory->srealloc(bufrecv,maxbuf*sizeof(Site),
 					     "app:bufrecv");
       }
@@ -1001,7 +1002,7 @@ void AppLattice::ghosts_from_connectivity()
 	m = neighbor[i][j];
 	if (hash.find(m) == hash.end()) {
 	  if (nbuf + nchunk >= maxbuf) {
-	    maxbuf += DELTA;
+	    maxbuf += DELTABUF;
 	    buf = (double *) 
 	      memory->srealloc(buf,maxbuf*sizeof(double),"app:buf");
 	  }
