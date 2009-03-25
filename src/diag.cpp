@@ -108,7 +108,6 @@ int Diag::check_time(double time, int done)
   if (done) iflag = 1;
 
   if ((diag_delta > 0.0 && time > diag_time-diag_eps)) {
-
     iflag = 1;
     
     // calculate new diag time
