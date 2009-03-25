@@ -280,16 +280,6 @@ void AppLattice::init()
     comm->init(nsector,delpropensity,delevent,NULL);
   }
 
-  // setup sitelist if sweepflag = RANDOM
-  // do this every init since sector timestep could have changed
-
-  if (sweepflag == RANDOM) {
-    memory->sfree(sitelist);
-    int n = 0;
-    for (int i = 0; i < nset; i++) n = MAX(n,set[i].nselect);
-    sitelist = (int *) memory->smalloc(n*sizeof(int),"applattice:sitelist");
-  }
-
   // set sweep function ptr
 
   if (sweepflag != NOSWEEP) {
@@ -394,6 +384,16 @@ void AppLattice::setup()
     if (dt_rkmc == 0.0)
       error->all("Choice of sector stop led to no rKMC events");
     dt_rkmc = MIN(dt_rkmc,stoptime-time);
+  }
+
+  // setup sitelist if sweepflag = RANDOM
+  // do this every run since sector timestep could have changed
+
+  if (sweepflag == RANDOM) {
+    memory->sfree(sitelist);
+    int n = 0;
+    for (int i = 0; i < nset; i++) n = MAX(n,set[i].nselect);
+    sitelist = (int *) memory->smalloc(n*sizeof(int),"applattice:sitelist");
   }
 
   // setup of output
@@ -725,8 +725,8 @@ void AppLattice::set_sweep(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mask") == 0) {
       if (iarg+2 > narg) error->all("Illegal sweep command");
-      if (arg[iarg+1],"no" == 0) Lmask = false;
-      else if (arg[iarg+1],"yes" == 0) Lmask = true;
+      if (strcmp(arg[iarg+1],"no") == 0) Lmask = false;
+      else if (strcmp(arg[iarg+1],"yes") == 0) Lmask = true;
       else error->all("Illegal sweep command");
       iarg += 2;
     } else error->all("Illegal sweep command");

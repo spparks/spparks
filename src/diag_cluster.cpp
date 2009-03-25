@@ -54,7 +54,6 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) :
 	  fp = fopen(arg[iarg],"w");
 	  if (!fp) error->one("Cannot open diag_style cluster output file");
 	}
-	write_header();
       } else error->all("Illegal diag_style cluster command");
     } else if (strcmp(arg[iarg],"dump") == 0) {
       iarg++;
@@ -87,6 +86,8 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) :
     } else error->all("Illegal diag_style cluster command");
     iarg++;
   }
+
+  first_run = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -143,6 +144,11 @@ void DiagCluster::init()
     } else {
       error->all("Diag dump_style incompatible with latstyle");
     }
+  }
+
+  if (first_run) {
+    write_header();
+    first_run = 0;
   }
 
   ncluster_reduced = 0;

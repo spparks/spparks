@@ -52,6 +52,7 @@ class DiagCluster : public Diag {
   int nghost;                  // # of ghost sites I store
 
   int nx_global,ny_global,nz_global;
+  int first_run;
 
   enum DumpStyles {STANDARD,OPENDX};
   int dump_style;
