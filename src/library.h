@@ -24,3 +24,4 @@ void spparks_file(void *, char *);                   /* run an input script */
 char *spparks_command(void *, char *);               /* execute a command */
 
 void *spparks_extract(void *, char *);
+double spparks_energy(void *);

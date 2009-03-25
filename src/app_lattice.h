@@ -29,6 +29,10 @@ class AppLattice : public App {
   friend class DiagCluster;
 
  public:
+  int nglobal;                 // global # of sites
+  int nlocal;                  // # of sites I own
+  class CommLattice *comm;
+
   AppLattice(class SPPARKS *, int, char **);
   virtual ~AppLattice();
   void input(char *, int, char **);
@@ -95,8 +99,6 @@ class AppLattice : public App {
   double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;    // my portion of box
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
 
-  int nglobal;                 // global # of sites
-  int nlocal;                  // # of sites I own
   int nghost;                  // # of ghost sites I store
 
                                // these arrays stored for owned + ghost sites
@@ -146,8 +148,6 @@ class AppLattice : public App {
     int id,proc,index;
     double x,y,z;
   };
-
-  class CommLattice *comm;
 
   void iterate_kmc_global(double);
   void iterate_kmc_sector(double);

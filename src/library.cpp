@@ -18,6 +18,8 @@
 #include "mpi.h"
 #include "library.h"
 #include "app.h"
+#include "app_lattice.h"
+#include "comm_lattice.h"
 #include "input.h"
 
 using namespace SPPARKS_NS;
@@ -78,4 +80,24 @@ void *spparks_extract(void *ptr, char *name)
 {
   SPPARKS *spk = (SPPARKS *) ptr;
   return spk->app->extract(name);
+}
+
+/* ----------------------------------------------------------------------
+   return total energy of system
+------------------------------------------------------------------------- */
+
+double spparks_energy(void *ptr)
+{
+  SPPARKS *spk = (SPPARKS *) ptr;
+  if (spk->app->appclass != App::LATTICE) return 0.0;
+  AppLattice *applattice = (AppLattice *) spk->app;
+  int nlocal = applattice->nlocal;
+
+  applattice->comm->all();
+
+  double etmp = 0.0;
+  for (int i = 0; i < nlocal; i++) etmp += applattice->site_energy(i);
+  double energy;
+  MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,spk->world);
+  return energy;
 }
