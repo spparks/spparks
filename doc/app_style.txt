@@ -73,7 +73,7 @@ includes.  See the doc page for each application for details:
 "ising"_app_ising.html = Ising model
 "membrane"_app_membrane.html = membrane model of lipid,water,protein
 "pore"_app_ising.html = surface diffusion around thin-film pore
-"potts"_app_potts.html = multi-state Potts model for grain growth
+"potts"_app_potts.html = Potts model for grain growth
 "potts/pin"_app_potts_pin.html = Potts model with pinning sites :ul
 
 Here is the list of off-lattice applications SPPARKS currently
