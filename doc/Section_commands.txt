@@ -230,6 +230,7 @@ Restrictions in the command's documentation.
 "next"_next.html,
 "pin"_pin.html,
 "print"_print.html,
+"reset_time"_reset_time.html,
 "run"_run.html,
 "sector"_sector.html,
 "seed"_seed.html,

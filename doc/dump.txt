@@ -12,17 +12,17 @@ dump command :h3
 
 dump delta filename keyword values field1 field2 ... :pre
 
-delta = time increment between dumps (seconds)
-filename = name of file to dump snapshots to
-keyword =  logfreq :l
+delta = time increment between dumps (seconds) :ulb,l
+filename = name of file to dump snapshots to :l
+keyword = {delay} or {logfreq} or {mask} :l
   {delay} values = tdelay
     tdelay = delay dump until at least this time
   {logfreq} values = N factor
     N = number of repetitions per interval
-    factor = scale factor between interval :pre
+    factor = scale factor between interval
   {mask} values = {yes} or {no}
-    yes/no = suppress output of lattice sites with zero energy
-field = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} or {iN} or {dN} :ul
+    yes/no = suppress output of lattice sites with zero energy :pre
+field = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} or {iN} or {dN} :l,ule
 
 [Examples:]
 

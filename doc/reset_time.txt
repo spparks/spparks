@@ -1,0 +1,32 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+reset_time command :h3
+
+[Syntax:]
+
+reset_time time :pre
+
+time = new time :ul
+
+[Examples:]
+
+reset_time 0.0
+reset_time 100.0 :pre
+
+[Description:]
+
+Set the current time to the specified value.  This can be useful
+if a preliminary run was performed and you wish to reset the time
+before performing a subsequent run.
+
+[Restrictions:] none
+
+[Related commands:] none
+
+[Default:] none

@@ -15,18 +15,20 @@
 </P>
 <PRE>dump delta filename keyword values field1 field2 ... 
 </PRE>
-<LI>delta = time increment between dumps (seconds)
-filename = name of file to dump snapshots to
-keyword =  logfreq 
+<UL><LI>delta = time increment between dumps (seconds) 
+
+<LI>filename = name of file to dump snapshots to 
+
+<LI>keyword = <I>delay</I> or <I>logfreq</I> or <I>mask</I> 
 
 <PRE>  <I>delay</I> values = tdelay
     tdelay = delay dump until at least this time
   <I>logfreq</I> values = N factor
     N = number of repetitions per interval
-    factor = scale factor between interval 
+    factor = scale factor between interval
+  <I>mask</I> values = <I>yes</I> or <I>no</I>
+    yes/no = suppress output of lattice sites with zero energy 
 </PRE>
-<UL><LI>  <I>mask</I> values = <I>yes</I> or <I>no</I>
-<LI>    yes/no = suppress output of lattice sites with zero energy
 <LI>field = <I>id</I> or <I>lattice</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>energy</I> or <I>propensity</I> or <I>iN</I> or <I>dN</I> 
 </UL>
 <P><B>Examples:</B>

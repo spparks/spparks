@@ -15,23 +15,24 @@
 </P>
 <PRE>diag_style style keyword value keyword value ... 
 </PRE>
-<UL><LI>style = <I>cluster</I> or <I>cluster2d</I> or <I>cluster3d</I> or <I>eprof3d</I> or <I>energy</I> or <I>energy2d</I> or <I>energy3d</I> 
+<UL><LI>style = <I>cluster</I> or <I>energy</I> 
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<PRE>keyword = <I>delt</I> or <I>logfreq</I> or <I>stats</I>
+<PRE>keyword = <I>stats</I> or <I>delay</I> or <I>delt</I> or <I>logfreq</I>
+  <I>stats</I> values = <I>yes</I> or <I>no</I>
+    yes/no = provide output to stats line
   <I>delay</I> values = tdelay
     tdelay = delay evaluating diagnostic until at least this time
   <I>delt</I> values = delta
     delta = time increment between evaluations of the diagnostic (seconds)
   <I>logfreq</I> values = N factor
     N = number of repetitions per interval
-    factor = scale factor between interval
-  <I>stats</I> values = <I>yes</I> or <I>no</I>
-    yes/no = provide output to stats line 
+    factor = scale factor between interval 
 </PRE>
-<LI>see doc pages for individual diagnostic commands for additional keywords. These diagnostic-specific
-keywords must come after all of the standard keywords 
+<LI>see doc pages for individual diagnostic commands for additional
+keywords - diagnostic-specific keywords must come after any other
+standard keywords 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -48,9 +49,9 @@ applications.
 </P>
 <P>The diagnostics currently available are:
 </P>
-<P><A HREF = "diag_cluster.html">cluster</A> = grain size statistics for general lattices
-<A HREF = "diag_energy.html">energy</A> = compute energy of entire system for general lattices
-</P>
+<UL><LI><A HREF = "diag_cluster.html">cluster</A> = grain size statistics for general lattices
+<LI><A HREF = "diag_energy.html">energy</A> = compute energy of entire system for general lattices 
+</UL>
 <HR>
 
 <P>Diagnostics may provide one or more values that are appended to other

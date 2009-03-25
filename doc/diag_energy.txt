@@ -7,21 +7,17 @@
 :line
 
 diag_style energy command :h3
-diag_style energy2d command :h3
-diag_style energy3d command :h3
 
 [Syntax:]
 
-diag_style style keyword value keyword value ... :pre
+diag_style energy keyword value keyword value ... :pre
 
-style = {energy} or {energy2d} or {energy3d}
+energy = style name of this diagnostic
 see the "diag_style"_diag_style.html command for additional keywords that can be appended to a diagnostic command :ul
 
 [Examples:]
 
-diag_style energy
-diag_style energy2d
-diag_style energy3d :pre
+diag_style energy :pre
 
 [Description:]
 
@@ -31,11 +27,7 @@ in the system. The energy is printed as stats output via the
 
 [Restrictions:]
 
-As described by the "app_style"_app_style.html command, on-lattice
-applications use one of 3 styles of lattice: general, 2d, or 3d.  For
-this diagnostic you must use a style that matches the application's
-lattice.  The {energy} style is for general lattices, the {energy2d}
-and {energy3d} styles are for 2d and 3d lattices.
+This diagnostic can only be used for on-lattice applications.
 
 [Related commands:]
 

@@ -11,17 +11,11 @@
 
 <H3>diag_style cluster command 
 </H3>
-<H3>diag_style cluster2d command 
-</H3>
-<H3>diag_style cluster3d command 
-</H3>
-<H3>app_style command 
-</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>diag_style style keyword value keyword value ... 
+<PRE>diag_style cluster keyword value keyword value ... 
 </PRE>
-<UL><LI>style = <I>cluster</I> or <I>cluster2d</I> or <I>cluster3d</I> 
+<UL><LI>cluster = style name of this diagnostic 
 
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -40,9 +34,7 @@
 <P><B>Examples:</B>
 </P>
 <PRE>diag_style cluster
-diag_style cluster2d
-diag_style cluster3d
-diag_style cluster3d stats no delt 1.0 filename cluster3d.a.0.1.dat dump opendx cluster3d.a.0.1.dump 
+diag_style cluster stats no delt 1.0 filename cluster3d.a.0.1.dat dump opendx cluster3d.a.0.1.dump 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -105,15 +97,11 @@ with square and simple cubic lattices.
 
 <P><B>Restrictions:</B>
 </P>
+<P>This diagnostic can only be used for on-lattice applications.
+</P>
 <P>Applications need to provide push_connected_neighbors() and
 connected_ghosts() functions which are called by this diagnostic.  If
 they are not defined, SPPARKS will print an error message.
-</P>
-<P>As described by the <A HREF = "app_style.html">app_style</A> command, on-lattice
-applications use one of 3 styles of lattice: general, 2d, or 3d.  For
-this diagnostic you must use a style that matches the application's
-lattice.  The <I>cluster</I> style is for general lattices, the <I>cluster2d</I>
-and <I>cluster3d</I> styles are for 2d and 3d lattices.
 </P>
 <P><B>Related commands:</B>
 </P>

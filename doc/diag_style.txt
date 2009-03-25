@@ -12,20 +12,22 @@ diag_style command :h3
 
 diag_style style keyword value keyword value ... :pre
 
-style = {cluster} or {cluster2d} or {cluster3d} or {eprof3d} or {energy} or {energy2d} or {energy3d} :ulb,l
+style = {cluster} or {energy} :ulb,l
 zero or more keyword/value pairs may be appended :l
-keyword = {delt} or {logfreq} or {stats}
+keyword = {stats} or {delay} or {delt} or {logfreq}
+  {stats} values = {yes} or {no}
+    yes/no = provide output to stats line
   {delay} values = tdelay
     tdelay = delay evaluating diagnostic until at least this time
   {delt} values = delta
     delta = time increment between evaluations of the diagnostic (seconds)
   {logfreq} values = N factor
     N = number of repetitions per interval
-    factor = scale factor between interval
-  {stats} values = {yes} or {no}
-    yes/no = provide output to stats line :pre
-see doc pages for individual diagnostic commands for additional keywords. These diagnostic-specific
-keywords must come after all of the standard keywords :l,ule
+    factor = scale factor between interval :pre
+
+see doc pages for individual diagnostic commands for additional
+keywords - diagnostic-specific keywords must come after any other
+standard keywords :l,ule
 
 [Examples:]
 
@@ -43,7 +45,7 @@ applications.
 The diagnostics currently available are:
 
 "cluster"_diag_cluster.html = grain size statistics for general lattices
-"energy"_diag_energy.html = compute energy of entire system for general lattices
+"energy"_diag_energy.html = compute energy of entire system for general lattices :ul
 
 :line
 
