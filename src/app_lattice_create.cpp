@@ -432,6 +432,7 @@ void AppLattice::random_lattice()
 
 void AppLattice::file_lattice()
 {
+  int i,j,m,n;
   FILE *fp;
   char line[MAXLINE];
   char *eof;
@@ -497,7 +498,6 @@ void AppLattice::file_lattice()
   // read and broadcast list of global vertices
   // keep ones in my sub-domain
   // special treatment to avoid losing vertices at upper boundaries
-  // NOTE: one at a time for now, should be chunked later
 
   if (me == 0) {
     eof = fgets(line,MAXLINE,fp);
@@ -513,32 +513,57 @@ void AppLattice::file_lattice()
   double xone[3];
   xone[2] = 0.0;
 
-  for (int i = 0; i < nglobal; i++) {
+  int nchunk;
+  int nread = 0;
+  char *buffer = new char[CHUNK*MAXLINE];
+  char *next,*bufptr;
+
+  while (nread < nglobal) {
+    if (nglobal-nread > CHUNK) nchunk = CHUNK;
+    else nchunk = nglobal - nread;
     if (me == 0) {
-      eof = fgets(line,MAXLINE,fp);
-      if (eof == NULL) error->one("Unexpected end of lattice file");
-      if (dimension == 2) sscanf(line,"%d %lg %lg",&idone,&xone[0],&xone[1]);
-      else sscanf(line,"%d %lg %lg %lg",&idone,&xone[0],&xone[1],&xone[2]);
+      m = 0;
+      for (i = 0; i < nchunk; i++) {
+	eof = fgets(&buffer[m],MAXLINE,fp);
+	if (eof == NULL) error->one("Unexpected end of lattice file");
+	m += strlen(&buffer[m]);
+      }
+      buffer[m++] = '\n';
     }
-    MPI_Bcast(&idone,1,MPI_INT,0,world);
-    MPI_Bcast(xone,3,MPI_DOUBLE,0,world);
+    MPI_Bcast(&m,1,MPI_INT,0,world);
+    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
-    if (xone[0] < subxlo || xone[1] < subylo || xone[2] < subzlo) continue;
-    if (xone[0] > subxhi || xone[1] > subyhi || xone[2] > subzhi) continue;
-    if (xone[0] == subxhi && subxhi != boxxhi) continue;
-    if (xone[1] == subyhi && subyhi != boxyhi) continue;
-    if (xone[2] == subzhi && subzhi != boxzhi) continue;
+    bufptr = buffer;
+    for (i = 0; i < nchunk; i++) {
+      next = strchr(bufptr,'\n');
 
-    if (nlocal == max) {
-      max += DELTA;
-      id = (int *) memory->srealloc(id,max*sizeof(int),"app:id");
-      memory->grow_2d_T_array(xyz,max,3,"app:xyz");
+      idone = atoi(strtok(bufptr," \t\n\r\f"));
+      xone[0] = atof(strtok(NULL," \t\n\r\f"));
+      xone[1] = atof(strtok(NULL," \t\n\r\f"));
+      if (dimension == 3) xone[2] = atof(strtok(NULL," \t\n\r\f"));
+
+      bufptr = next + 1;
+
+      if (xone[0] < subxlo || xone[1] < subylo || xone[2] < subzlo) continue;
+      if (xone[0] > subxhi || xone[1] > subyhi || xone[2] > subzhi) continue;
+      if (xone[0] == subxhi && subxhi != boxxhi) continue;
+      if (xone[1] == subyhi && subyhi != boxyhi) continue;
+      if (xone[2] == subzhi && subzhi != boxzhi) continue;
+
+      if (nlocal == max) {
+	max += DELTA;
+	id = (int *) memory->srealloc(id,max*sizeof(int),"app:id");
+	memory->grow_2d_T_array(xyz,max,3,"app:xyz");
+      }
+
+      id[nlocal] = idone;
+      xyz[nlocal][0] = xone[0];
+      xyz[nlocal][1] = xone[1];
+      xyz[nlocal][2] = xone[2];
+      nlocal++;
     }
-    id[nlocal] = idone;
-    xyz[nlocal][0] = xone[0];
-    xyz[nlocal][1] = xone[1];
-    xyz[nlocal][2] = xone[2];
-    nlocal++;
+
+    nread += nchunk;
   }
 
   // error check to see if all vertices stored by some proc
@@ -564,30 +589,47 @@ void AppLattice::file_lattice()
 
   std::map<int,int>::iterator loc;
   std::map<int,int> hash;
-  for (int i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++)
     hash.insert(std::pair<int,int> (id[i],i));
 
-  int j,m,n;
   int neigh[maxneigh];
   char *word;
+  nread = 0;
 
-  for (int i = 0; i < nglobal; i++) {
+  while (nread < nglobal) {
+    if (nglobal-nread > CHUNK) nchunk = CHUNK;
+    else nchunk = nglobal - nread;
     if (me == 0) {
-      eof = fgets(line,MAXLINE,fp);
-      if (eof == NULL) error->one("Unexpected end of lattice file");
-      idone = atoi(strtok(line," \t\n\r\f"));
+      m = 0;
+      for (i = 0; i < nchunk; i++) {
+	eof = fgets(&buffer[m],MAXLINE,fp);
+	if (eof == NULL) error->one("Unexpected end of lattice file");
+	m += strlen(&buffer[m]);
+      }
+      buffer[m++] = '\n';
+    }
+    MPI_Bcast(&m,1,MPI_INT,0,world);
+    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
+
+    bufptr = buffer;
+    for (i = 0; i < nchunk; i++) {
+      next = strchr(bufptr,'\n');
+      *next = '\0';
+
+      idone = atoi(strtok(bufptr," \t\n\r\f"));
       n = 0;
       while (word = strtok(NULL," \t\n\r\f")) neigh[n++] = atoi(word);
-    }
-    MPI_Bcast(&idone,1,MPI_INT,0,world);
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(neigh,n,MPI_INT,0,world);
 
-    loc = hash.find(idone);
-    if (loc == hash.end()) continue;
-    m = loc->second;
-    numneigh[m] = n;
-    for (j = 0; j < n; j++) neighbor[m][j] = neigh[j];
+      bufptr = next + 1;
+
+      loc = hash.find(idone);
+      if (loc == hash.end()) continue;
+      m = loc->second;
+      numneigh[m] = n;
+      for (j = 0; j < n; j++) neighbor[m][j] = neigh[j];
+    }
+
+    nread += nchunk;
   }
 
   if (me == 0) fclose(fp);

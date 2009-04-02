@@ -91,9 +91,9 @@ void App::run(int narg, char **arg)
     init();
     first_run = 0;
   }
+
   timer->init();
   setup();
-
   if (stoptime > time) iterate();
 
   Finish finish(spk,postflag);
