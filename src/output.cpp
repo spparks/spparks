@@ -97,10 +97,6 @@ void Output::init(double time)
       error->all("Dumping propensity but no KMC solve performed");
   }
 
-  // initial dump file snapshot
-
-  if (dump_delta > 0.0 && idump == 0) dump(time);
-
   // initialize all diagnostics
 
   for (int i = 0; i < ndiags; i++) diaglist[i]->init();
@@ -115,6 +111,12 @@ void Output::init(double time)
 
 double Output::setup(double time)
 {
+  // initial dump file snapshot
+  // needs to happen in setup() in case propensity is output
+  // app not ready to compute propensities until setup_app() is called
+
+  if (dump_delta > 0.0 && idump == 0) dump(time);
+
   // set next dump time
 
   if (dump_delta > 0.0) {
