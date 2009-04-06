@@ -51,8 +51,8 @@ class AppLattice : public App {
   void push_connected_neighbors(int, int *, int, std::stack<int>*);
   void connected_ghosts(int, int *, class Cluster *, int);
 
-  enum{NONE,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
-       RANDOM_2D,RANDOM_3D,FILENAME};
+  enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
+       RANDOM_1D,RANDOM_2D,RANDOM_3D,FILENAME};
 
  protected:
   int me,nprocs;
@@ -71,6 +71,7 @@ class AppLattice : public App {
   double cutoff;
   char *latfile;
   char *infile;
+  int px_user,py_user,pz_user;
 
   int delpropensity;           // # of sites away needed to compute propensity
   int delevent;                // # of sites away affected by an event
@@ -186,6 +187,7 @@ class AppLattice : public App {
   void set_sweep(int, char **);
   void set_temperature(int, char **);
 
+  void procs2lattice_1d();
   void procs2lattice_2d();
   void procs2lattice_3d();
 

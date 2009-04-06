@@ -45,7 +45,8 @@ void AppLattice::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"lattice") == 0) {
       if (iarg+1 > narg) error->all("Illegal app_style command");
-      if (strcmp(arg[iarg+1],"sq/4n") == 0) latstyle = SQ_4N;
+      if (strcmp(arg[iarg+1],"line/2n") == 0) latstyle = LINE_2N;
+      else if (strcmp(arg[iarg+1],"sq/4n") == 0) latstyle = SQ_4N;
       else if (strcmp(arg[iarg+1],"sq/8n") == 0) latstyle = SQ_8N;
       else if (strcmp(arg[iarg+1],"tri") == 0) latstyle = TRI;
       else if (strcmp(arg[iarg+1],"sc/6n") == 0) latstyle = SC_6N;
@@ -53,12 +54,19 @@ void AppLattice::options(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"fcc") == 0) latstyle = FCC;
       else if (strcmp(arg[iarg+1],"bcc") == 0) latstyle = BCC;
       else if (strcmp(arg[iarg+1],"diamond") == 0) latstyle = DIAMOND;
+      else if (strcmp(arg[iarg+1],"random/1d") == 0) latstyle = RANDOM_1D;
       else if (strcmp(arg[iarg+1],"random/2d") == 0) latstyle = RANDOM_2D;
       else if (strcmp(arg[iarg+1],"random/3d") == 0) latstyle = RANDOM_3D;
       else if (strcmp(arg[iarg+1],"file") == 0) latstyle = FILENAME;
       else error->all("Illegal app_style command");
 
-      if (latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI) {
+      if (latstyle == LINE_2N) {
+	if (iarg+4 > narg) error->all("Illegal app_style command");
+	dimension = 1;
+	latconst = atof(arg[iarg+2]);
+	nx = atoi(arg[iarg+3]);
+	iarg += 4;
+      } else if (latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI) {
 	if (iarg+5 > narg) error->all("Illegal app_style command");
 	dimension = 2;
 	latconst = atof(arg[iarg+2]);
@@ -74,6 +82,13 @@ void AppLattice::options(int narg, char **arg)
 	ny = atoi(arg[iarg+4]);
 	nz = atoi(arg[iarg+5]);
 	iarg += 6;
+      } else if (latstyle == RANDOM_1D) {
+	if (iarg+5 > narg) error->all("Illegal app_style command");
+	dimension = 1;
+	nrandom = atoi(arg[iarg+2]);
+	xprd = atof(arg[iarg+3]);
+	cutoff = atof(arg[iarg+4]);
+	iarg += 5;
       } else if (latstyle == RANDOM_2D) {
 	if (iarg+6 > narg) error->all("Illegal app_style command");
 	dimension = 2;
@@ -98,6 +113,17 @@ void AppLattice::options(int narg, char **arg)
 	latfile = strcpy(latfile,arg[iarg+2]);
 	iarg += 3;
       }
+
+    } else if (strcmp(arg[iarg],"procs") == 0) {
+      if (iarg+4 > narg) error->all("Illegal app_style command");
+      px_user = atoi(arg[iarg+1]);
+      py_user = atoi(arg[iarg+2]);
+      pz_user = atoi(arg[iarg+3]);
+      if (px_user || py_user || pz_user) {
+	if (px_user*py_user*pz_user != nprocs)
+	  error->all("App style proc count is not valid");
+      }
+      iarg += 4;
 
     } else if (strcmp(arg[iarg],"site") == 0) {
       if (iarg+3 > narg) error->all("Illegal app_style command");
@@ -127,11 +153,13 @@ void AppLattice::options(int narg, char **arg)
 
 void AppLattice::create_lattice()
 {
-  if (latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI || 
+  if (latstyle == LINE_2N ||
+      latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI || 
       latstyle == SC_6N || latstyle == SC_26N || 
       latstyle == FCC || latstyle == BCC || latstyle == DIAMOND) {
     structured_lattice();
-  } else if (latstyle == RANDOM_2D || latstyle == RANDOM_3D) {
+  } else if (latstyle == RANDOM_1D || latstyle == RANDOM_2D ||
+	     latstyle == RANDOM_3D) {
     random_lattice();
     connectivity_within_cutoff();
   } else if (latstyle == FILENAME) {
@@ -163,7 +191,14 @@ void AppLattice::structured_lattice()
 {
   // determine box extent
 
-  if (latstyle == SQ_4N || latstyle == SQ_8N) {
+  if (latstyle == LINE_2N) {
+    boxxlo = 0.0;
+    boxxhi = nx * latconst;
+    boxylo = -0.5;
+    boxyhi = 0.5;
+    boxzlo = -0.5;
+    boxzhi = 0.5;
+  } else if (latstyle == SQ_4N || latstyle == SQ_8N) {
     boxxlo = boxylo = 0.0;
     boxxhi = nx * latconst;
     boxyhi = ny * latconst;
@@ -189,14 +224,19 @@ void AppLattice::structured_lattice()
 
   // partition domain
 
-  if (dimension == 2) procs2lattice_2d();
+  if (dimension == 1) procs2lattice_1d();
+  else if (dimension == 2) procs2lattice_2d();
   else if (dimension == 3) procs2lattice_3d();
 
   // basis sites of each unit cell depend on lattice
 
   double basis[8][3];
 
-  if (latstyle == SQ_4N || latstyle == SQ_8N) {
+  if (latstyle == LINE_2N) {
+    nbasis = 1;
+    nglobal = nbasis * nx;
+    basis[0][0] = 0.0; basis[0][1] = 0.0; basis[0][2] = 0.0;
+  } else if (latstyle == SQ_4N || latstyle == SQ_8N) {
     nbasis = 1;
     nglobal = nbasis * nx*ny;
     basis[0][0] = 0.0; basis[0][1] = 0.0; basis[0][2] = 0.0;
@@ -239,6 +279,7 @@ void AppLattice::structured_lattice()
   // 1st pass = count lattice points I own in my sub-domain
   // 2nd pass = generate xyz coords and store them with site ID
 
+  if (dimension == 1) ny = nz = 1;
   if (dimension == 2) nz = 1;
 
   double x,y,z;
@@ -255,11 +296,12 @@ void AppLattice::structured_lattice()
 	for (m = 0; m < nbasis; m++) {
 	  x = (i + basis[m][0]) * latconstx;
 	  y = (j + basis[m][1]) * latconsty;
-	  if (dimension == 2) z = 0.0;
-	  else z = (k + basis[m][2]) * latconstz;
+	  z = (k + basis[m][2]) * latconstz;
+
 	  if (x < subxlo || x >= subxhi || 
 	      y < subylo || y >= subyhi || 
 	      z < subzlo || z >= subzhi) continue;
+
 	  nlocal++;
 	}
 
@@ -275,8 +317,7 @@ void AppLattice::structured_lattice()
 	  count++;
 	  x = (i + basis[m][0]) * latconstx;
 	  y = (j + basis[m][1]) * latconsty;
-	  if (dimension == 2) z = 0.0;
-	  else z = (k + basis[m][2]) * latconstz;
+	  z = (k + basis[m][2]) * latconstz;
 
 	  if (x < subxlo || x >= subxhi || 
 	      y < subylo || y >= subyhi || 
@@ -291,7 +332,8 @@ void AppLattice::structured_lattice()
 
   // allocate arrays to store lattice connectivity
 
-  if (latstyle == SQ_4N) maxneigh = 4;
+  if (latstyle == LINE_2N) maxneigh = 2;
+  else if (latstyle == SQ_4N) maxneigh = 4;
   else if (latstyle == SQ_8N) maxneigh = 8;
   else if (latstyle == TRI) maxneigh = 6;
   else if (latstyle == SC_6N) maxneigh = 6;
@@ -342,17 +384,27 @@ void AppLattice::random_lattice()
 {
   int i,n;
 
-  if (latstyle == RANDOM_2D) {
-    boxxlo = boxylo = 0.0;
+  if (latstyle == RANDOM_1D) {
+    boxxlo = 0.0;
     boxxhi = xprd;
+    boxylo = -0.5;
+    boxyhi = 0.5;
+    boxzlo = -0.5;
+    boxzhi = 0.5;
+  } else if (latstyle == RANDOM_2D) {
+    boxxlo = 0.0;
+    boxxhi = xprd;
+    boxylo = 0.0;
     boxyhi = yprd;
     boxzlo = -0.5;
     boxzhi = 0.5;
   } else if (latstyle == RANDOM_3D) {
-    boxxlo = boxylo = boxzlo = 0.0;
+    boxxlo = 0.0;
     boxxhi = xprd;
+    boxylo = 0.0;
     boxyhi = yprd;
-    boxzhi = zprd;
+    boxzlo = 0.0;
+    boxzhi = xprd;
   }
 
   xprd = boxxhi - boxxlo;
@@ -361,7 +413,8 @@ void AppLattice::random_lattice()
 
   // partition domain
 
-  if (dimension == 2) procs2lattice_2d();
+  if (dimension == 1) procs2lattice_1d();
+  else if (dimension == 2) procs2lattice_2d();
   else if (dimension == 3) procs2lattice_3d();
 
   // generate random sites
@@ -379,8 +432,9 @@ void AppLattice::random_lattice()
   for (n = 0; n < nglobal; n++) {
     x = xprd * random->uniform();
     y = yprd * random->uniform();
-    if (dimension == 3) z = zprd * random->uniform();
-    else z = 0.0;
+    z = zprd * random->uniform();
+    if (dimension == 1) y = 0.0;
+    if (dimension != 3) z = 0.0;
     if (x < subxlo || x >= subxhi || 
 	y < subylo || y >= subyhi || 
 	z < subzlo || z >= subzhi) continue;
@@ -398,8 +452,9 @@ void AppLattice::random_lattice()
   for (n = 0; n < nglobal; n++) {
     x = xprd * random->uniform();
     y = yprd * random->uniform();
-    if (dimension == 3) z = zprd * random->uniform();
-    else z = 0.0;
+    z = zprd * random->uniform();
+    if (dimension == 1) y = 0.0;
+    if (dimension != 3) z = 0.0;
 
     if (x < subxlo || x >= subxhi || 
 	y < subylo || y >= subyhi || 
@@ -463,8 +518,15 @@ void AppLattice::file_lattice()
 
     eof = fgets(line,MAXLINE,fp);
     sscanf(line,"%lg %lg",&boxxlo,&boxxhi);
-    eof = fgets(line,MAXLINE,fp);
-    sscanf(line,"%lg %lg",&boxylo,&boxyhi);
+
+    if (dimension != 1) {
+      eof = fgets(line,MAXLINE,fp);
+      sscanf(line,"%lg %lg",&boxylo,&boxyhi);
+    } else {
+      boxylo = -0.5;
+      boxyhi = 0.5;
+    }
+
     if (dimension == 3) {
       eof = fgets(line,MAXLINE,fp);
       sscanf(line,"%lg %lg",&boxzlo,&boxzhi);
@@ -472,6 +534,7 @@ void AppLattice::file_lattice()
       boxzlo = -0.5;
       boxzhi = 0.5;
     }
+
     eof = fgets(line,MAXLINE,fp);
     if (eof == NULL) error->one("Unexpected end of lattice file");
   }
@@ -492,7 +555,8 @@ void AppLattice::file_lattice()
 
   // partition domain
 
-  if (dimension == 2) procs2lattice_2d();
+  if (dimension == 1) procs2lattice_1d();
+  else if (dimension == 2) procs2lattice_2d();
   else if (dimension == 3) procs2lattice_3d();
 
   // read and broadcast list of global vertices
@@ -511,7 +575,7 @@ void AppLattice::file_lattice()
   
   int idone;
   double xone[3];
-  xone[2] = 0.0;
+  xone[1] = xone[2] = 0.0;
 
   int nchunk;
   int nread = 0;
@@ -539,7 +603,7 @@ void AppLattice::file_lattice()
 
       idone = atoi(strtok(bufptr," \t\n\r\f"));
       xone[0] = atof(strtok(NULL," \t\n\r\f"));
-      xone[1] = atof(strtok(NULL," \t\n\r\f"));
+      if (dimension != 1) xone[1] = atof(strtok(NULL," \t\n\r\f"));
       if (dimension == 3) xone[2] = atof(strtok(NULL," \t\n\r\f"));
 
       bufptr = next + 1;
@@ -890,8 +954,10 @@ void AppLattice::connectivity_within_cutoff()
 
       if (dx < -0.5*xprd) dx += xprd;
       else if (dx > 0.5*xprd) dx -= xprd;
-      if (dy < -0.5*yprd) dy += yprd;
-      else if (dy > 0.5*yprd) dy -= yprd;
+      if (dimension != 1) {
+	if (dy < -0.5*yprd) dy += yprd;
+	else if (dy > 0.5*yprd) dy -= yprd;
+      }
       if (dimension == 3) {
 	if (dz < -0.5*zprd) dz += zprd;
 	else if (dz > 0.5*zprd) dz -= zprd;
@@ -911,8 +977,10 @@ void AppLattice::connectivity_within_cutoff()
 
       if (dx < -0.5*xprd) dx += xprd;
       else if (dx > 0.5*xprd) dx -= xprd;
-      if (dy < -0.5*yprd) dy += yprd;
-      else if (dy > 0.5*yprd) dy -= yprd;
+      if (dimension != 1) {
+	if (dy < -0.5*yprd) dy += yprd;
+	else if (dy > 0.5*yprd) dy -= yprd;
+      }
       if (dimension == 3) {
 	if (dz < -0.5*zprd) dz += zprd;
 	else if (dz > 0.5*zprd) dz -= zprd;
@@ -948,8 +1016,10 @@ void AppLattice::connectivity_within_cutoff()
 
       if (dx < -0.5*xprd) dx += xprd;
       else if (dx > 0.5*xprd) dx -= xprd;
-      if (dy < -0.5*yprd) dy += yprd;
-      else if (dy > 0.5*yprd) dy -= yprd;
+      if (dimension != 1) {
+	if (dy < -0.5*yprd) dy += yprd;
+	else if (dy > 0.5*yprd) dy -= yprd;
+      }
       if (dimension == 3) {
 	if (dz < -0.5*zprd) dz += zprd;
 	else if (dz > 0.5*zprd) dz -= zprd;
@@ -969,8 +1039,10 @@ void AppLattice::connectivity_within_cutoff()
 
       if (dx < -0.5*xprd) dx += xprd;
       else if (dx > 0.5*xprd) dx -= xprd;
-      if (dy < -0.5*yprd) dy += yprd;
-      else if (dy > 0.5*yprd) dy -= yprd;
+      if (dimension != 1) {
+	if (dy < -0.5*yprd) dy += yprd;
+	else if (dy > 0.5*yprd) dy -= yprd;
+      }
       if (dimension == 3) {
 	if (dz < -0.5*zprd) dz += zprd;
 	else if (dz > 0.5*zprd) dz -= zprd;
@@ -1176,7 +1248,16 @@ int AppLattice::connect(int iglobal, int ineigh)
 {
   int i,j,k,m,n;
 
-  if (latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI) {
+  if (latstyle == LINE_2N) {
+    i = (iglobal-1)/nbasis % nx;
+    m = (iglobal-1) % nbasis;
+    i += cmap[m][ineigh][0];
+    m = cmap[m][ineigh][1];
+    if (i < 0) i += nx;
+    if (i >= nx) i -= nx;
+    n = i*nbasis + m + 1;
+
+  } else if (latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI) {
     i = (iglobal-1)/nbasis % nx;
     j = (iglobal-1)/nbasis / nx;
     m = (iglobal-1) % nbasis;
@@ -1215,7 +1296,11 @@ int AppLattice::connect(int iglobal, int ineigh)
 
 void AppLattice::offsets()
 {
-  if (latstyle == SQ_4N) {
+  if (latstyle == LINE_2N) {
+    cmap[0][0][0] = -1; cmap[0][0][1] =  0;
+    cmap[0][1][0] =  1; cmap[0][1][1] =  0;
+
+  } else if (latstyle == SQ_4N) {
     cmap[0][0][0] = -1; cmap[0][0][1] =  0; cmap[0][0][2] = 0;
     cmap[0][1][0] =  1; cmap[0][1][1] =  0; cmap[0][1][2] = 0;
     cmap[0][2][0] =  0; cmap[0][2][1] = -1; cmap[0][2][2] = 0;
@@ -1418,32 +1503,68 @@ void AppLattice::offsets()
 }
 
 /* ----------------------------------------------------------------------
-   assign nprocs to global box so as to minimize perimeter per proc
+   assign nprocs to 1d box as equal partitions
+------------------------------------------------------------------------- */
+
+void AppLattice::procs2lattice_1d()
+{
+  if (px_user || py_user || pz_user) {
+    if (py_user != 1 || pz_user != 1)
+      error->all("App style proc count is not valid");
+    nx_procs = px_user;
+  } else {
+    nx_procs = nprocs;
+  }
+
+  int iprocx = me;
+
+  subxlo = boxxlo + iprocx * xprd/nx_procs;
+  if (iprocx < nx_procs-1) subxhi = boxxlo + (iprocx+1) * xprd/nx_procs;
+  else subxhi = boxxhi;
+
+  subylo = -0.5;
+  subyhi = 0.5;
+  subzlo = -0.5;
+  subzhi = 0.5;
+}
+
+/* ----------------------------------------------------------------------
+   assign nprocs to 2d box so as to minimize perimeter per proc
 ------------------------------------------------------------------------- */
 
 void AppLattice::procs2lattice_2d()
 {
   int ipx,ipy;
   double boxx,boxy,surf;
-  double bestsurf = 2.0 * (xprd+yprd);
-  
-  // loop thru all possible factorizations of nprocs
-  // surf = perimeter of a proc sub-domain
+
+  if (px_user || py_user || pz_user) {
+    if (pz_user != 1)
+      error->all("App style proc count is not valid");
+    nx_procs = px_user;
+    ny_procs = py_user;
+
+  } else {
+
+    // loop thru all possible factorizations of nprocs
+    // surf = perimeter of a proc sub-domain
+
+    double bestsurf = 2.0 * (xprd+yprd);
  
-  ipx = 1;
-  while (ipx <= nprocs) {
-    if (nprocs % ipx == 0) {
-      ipy = nprocs/ipx;
-      boxx = xprd/ipx;
-      boxy = yprd/ipy;
-      surf = boxx + boxy;
-      if (surf < bestsurf) {
-	bestsurf = surf;
-	nx_procs = ipx;
-	ny_procs = ipy;
+    ipx = 1;
+    while (ipx <= nprocs) {
+      if (nprocs % ipx == 0) {
+	ipy = nprocs/ipx;
+	boxx = xprd/ipx;
+	boxy = yprd/ipy;
+	surf = boxx + boxy;
+	if (surf < bestsurf) {
+	  bestsurf = surf;
+	  nx_procs = ipx;
+	  ny_procs = ipy;
+	}
       }
+      ipx++;
     }
-    ipx++;
   }
 
   int iprocx = me/ny_procs;
@@ -1461,40 +1582,51 @@ void AppLattice::procs2lattice_2d()
   subzhi = 0.5;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   assign nprocs to 3d box so as to minimize surface area per proc
+------------------------------------------------------------------------- */
 
 void AppLattice::procs2lattice_3d()
 {
   int ipx,ipy,ipz,nremain;
   double boxx,boxy,boxz,surf;
-  double bestsurf = 2.0 * (xprd*yprd + yprd*zprd + zprd*xprd);
-  
-  // loop thru all possible factorizations of nprocs
-  // surf = surface area of a proc sub-domain
 
-  ipx = 1;
-  while (ipx <= nprocs) {
-    if (nprocs % ipx == 0) {
-      nremain = nprocs/ipx;
-      ipy = 1;
-      while (ipy <= nremain) {
-        if (nremain % ipy == 0) {
-          ipz = nremain/ipy;
-	  boxx = xprd/ipx;
-	  boxy = yprd/ipy;
-	  boxz = zprd/ipz;
-	  surf = boxx*boxy + boxy*boxz + boxz*boxx;
-	  if (surf < bestsurf) {
-	    bestsurf = surf;
-	    nx_procs = ipx;
-	    ny_procs = ipy;
-	    nz_procs = ipz;
+  if (px_user || py_user || pz_user) {
+    nx_procs = px_user;
+    ny_procs = py_user;
+    nz_procs = pz_user;
+
+  } else {
+
+    double bestsurf = 2.0 * (xprd*yprd + yprd*zprd + zprd*xprd);
+  
+    // loop thru all possible factorizations of nprocs
+    // surf = surface area of a proc sub-domain
+
+    ipx = 1;
+    while (ipx <= nprocs) {
+      if (nprocs % ipx == 0) {
+	nremain = nprocs/ipx;
+	ipy = 1;
+	while (ipy <= nremain) {
+	  if (nremain % ipy == 0) {
+	    ipz = nremain/ipy;
+	    boxx = xprd/ipx;
+	    boxy = yprd/ipy;
+	    boxz = zprd/ipz;
+	    surf = boxx*boxy + boxy*boxz + boxz*boxx;
+	    if (surf < bestsurf) {
+	      bestsurf = surf;
+	      nx_procs = ipx;
+	      ny_procs = ipy;
+	      nz_procs = ipz;
+	    }
 	  }
+	  ipy++;
 	}
-	ipy++;
       }
+      ipx++;
     }
-    ipx++;
   }
 
   int nyz_procs = ny_procs * nz_procs;

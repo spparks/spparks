@@ -168,10 +168,12 @@ void AppLattice::init()
     error->all("Lattice app did not set dt_sweep");
 
   // if sectors, determine number of sectors
+  // SJP NOTE: allow an override here
 
   int nsector = 1;
   if (sectorflag) {
-    if (dimension == 2) nsector = 4;
+    if (dimension == 1) nsector = 2;
+    else if (dimension == 2) nsector = 4;
     else nsector = 8;
   }
 
@@ -182,7 +184,11 @@ void AppLattice::init()
   int ncolors = 1;
   if (sweepflag == COLOR || sweepflag == COLOR_STRICT) {
     int delcolor = delevent + delpropensity;
-    if (latstyle == SQ_4N) {
+    if (latstyle == LINE_2N) {
+      if (delcolor == 1) ncolors = 2;
+      if (nx % 2)
+	error->all("Color stencil is incommensurate with lattice size");
+    } else if (latstyle == SQ_4N) {
       if (delcolor == 1) ncolors = 2;
       if (nx % 2 || ny % 2)
 	error->all("Color stencil is incommensurate with lattice size");
@@ -801,7 +807,10 @@ void AppLattice::create_set(int iset, int isector, int icolor)
       if (xyz[i][2] < zmid) kwhich = 0;
       else kwhich = 1;
 
-      if (dimension == 2) msector = 2*iwhich + jwhich + 1;
+      // SJP NOTE: this needs to be more general
+
+      if (dimension == 1) msector = iwhich + 1;
+      else if (dimension == 2) msector = 2*iwhich + jwhich + 1;
       else msector = 4*iwhich + 2*jwhich + kwhich + 1;
 
       if (isector != msector) flag = 0;
@@ -834,7 +843,10 @@ void AppLattice::create_set(int iset, int isector, int icolor)
       if (xyz[i][2] < zmid) kwhich = 0;
       else kwhich = 1;
 
-      if (dimension == 2) msector = 2*iwhich + jwhich + 1;
+      // SJP NOTE: this needs to be more general
+
+      if (dimension == 1) msector = iwhich + 1;
+      else if (dimension == 2) msector = 2*iwhich + jwhich + 1;
       else msector = 4*iwhich + 2*jwhich + kwhich + 1;
 
       if (isector != msector) flag = 0;
