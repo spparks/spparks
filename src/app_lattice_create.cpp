@@ -38,6 +38,7 @@ void AppLattice::options(int narg, char **arg)
 
   latstyle = NONE;
   latfile = NULL;
+  px_user = py_user = pz_user = 0;
   sitecustom = 0;
   infile = NULL;
 
