@@ -15,7 +15,7 @@
 </P>
 <PRE>sector flag keyword value ... 
 </PRE>
-<UL><LI>flag = <I>yes</I> or <I>no</I> 
+<UL><LI>flag = <I>yes</I> or <I>no</I> or <I>N</I> where N = 2,4,8 
 
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -32,6 +32,7 @@
 </P>
 <PRE>sector no
 sector yes
+sector 4
 sector yes nstop 0.5
 sector yes tstop 5.0 
 </PRE>
@@ -41,18 +42,32 @@ sector yes tstop 5.0
 each processor into sectors or sub-domains.  It can only be used for
 <A HREF = "app_style.html">on-lattice applications</A>.  Typically, it is used in a
 parallel simulation, to enable parallelism, but it can also be used on
-a single processor.  For 2d lattices, each processor's sub-domain is
-partitioned into quadrants.  In 3d it is partitined into octants.
+a single processor.
 </P>
-<P>If sectors are turned on via a <I>yes</I> setting, then a kinetic Monte
-Carlo (KMC) or rejection KMC (rKMC) algorithm is performed in the
-following manner.  Events or sites are selected within the first
-sector on each processor, via a <A HREF = "solve_style.html">solver</A> or <A HREF = "sweep.html">sweeping
+<P>If sectoring is enabled via the <I>yes</I> setting, then for 1d lattices,
+each processor's sub-domain is partioned into 2 halves, for 2d
+lattices, each processor's sub-domain is partitioned into 4 quadrants,
+and for 3d lattices it is partitioned into 8 octants.  If the <I>N</I>
+setting is used instead, then the number of sectors can be specified
+directly.  This may be useful in some models to reduce communication.
+A 3d lattice can use 2 (x only) or 4 sectors (x and y), instead of the
+default 8 (x and y and z).  A 2d lattice can use 2 sectors (x only),
+instead of the default 4 (x and y).  Note that if no sectors are used
+in a dimension, then there must be only one processor assigned to that
+dimension of the simulation box (see the <A HREF = "app_style.html">app_style
+procs</A> command).  For example, if "sector 2" is used
+for a 2d lattice, then the processor layout must be Px1, where P is
+the total number of processors.
+</P>
+<P>If sectors are turned on, then a kinetic Monte Carlo (KMC) or
+rejection KMC (rKMC) algorithm is performed in the following manner.
+Events or sites are selected within the first sector on each
+processor, via a <A HREF = "solve_style.html">solver</A> or <A HREF = "sweep.html">sweeping
 method</A>.  Communication is then done between processors to
 update sector boundaries.  Then all proecessors move to the next
 sector, and the process is repeated.  Thus a single sweep over the
-entire lattice is performed in 4 (or 8) stages for 2d (or 3d)
-lattices, as sectors are processed one at a time, followed by the
+entire lattice is performed in 2 (or 4 or 8) stages for 1d (of 2d or
+3d) lattices, as sectors are processed one at a time, followed by the
 appropriate communication.  This procedure insure events occurring on
 one processor do not conflict with events performed by other
 processors.
@@ -96,8 +111,8 @@ achieved with good parallel performance due to a modest amount of
 communication being performed.
 </P>
 <P>Note that it makes no sense to define <I>tstop</I> and <I>nstop</I> together
-since they defined the time-per-sector in different ways.  If both
-are used, the last setting takes precedence.
+since they define the time-per-sector in different ways.  If both are
+used, the last setting takes precedence.
 </P>
 <P><B>Restrictions:</B>
 </P>

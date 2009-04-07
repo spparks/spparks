@@ -17,9 +17,10 @@ style = {diffusion} or {ising} or {pore} or {potts} or {membrane} or {chemistry}
 args = arguments specific to an application :l
   (see application doc page for details) :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {lattice} or {site} or {input} :l
+keyword = {lattice} or {procs} or {site} or {input} :l
   {lattice} values = type params
-    type = {sq/4n} or {sq/8n} or {tri} or {sc/6n} or {sc/26n} or {fcc} or {bcc} or {diamond} or {random/2d} or {random/3d} or {file}
+    type = {line/2n} or {sq/4n} or {sq/8n} or {tri} or {sc/6n} or {sc/26n} or {fcc} or {bcc} or {diamond} or {random/1d} or {random/2d} or {random/3d} or {file}
+      {line/2n} params = a nx = 1d regular lattice with 2 neighbors per site
       {sq/4n} params = a nx ny = 2d square lattice with 4 neighbors per site
       {sq/8n} params = a nx ny = 2d square lattice with 8 neighbors per site
       {tri} params = a nx ny = 2d triangular lattice with 6 neighborrs per site
@@ -32,6 +33,10 @@ keyword = {lattice} or {site} or {input} :l
       {diamond} params = a nx ny nz = 3d diamond lattice with 4 neighbors per site
         a = lattice constant
         nx,ny,nz = number of unit cells in each dimension
+      {random/1d} param = N xbox cutoff = lattice of random 1d points
+        N = # of lattice points
+	xbox = simulation extent in x
+        cutoff = distance cutoff for neighbor connectivity between sites 
       {random/2d} param = N xbox ybox cutoff = lattice of random 2d points
         N = # of lattice points
 	xbox,ybox = simulation extent in x,y
@@ -42,6 +47,8 @@ keyword = {lattice} or {site} or {input} :l
         cutoff = distance cutoff for neighbor connectivity between sites 
       {file} param = filename = read lattice and connectivity from file
         filename = name of file (see file format below)
+  {procs} values = Px Py Pz
+    Px,Py,Pz = # of processors assigned to each dimension of lattice
   {site} values = Nint Ndouble
     Nint = # of integer quantites to store per site
     Ndouble = # of double quantites to store per site
@@ -137,15 +144,16 @@ means use a 2d square lattice of size 100x100 with 4 neighbors per
 lattice site.  A variety of lattice types and neighbor stencils can be
 given as options with the {lattice} keyword as described above.
 
-The {sq} and {sc} lattice types are 2d square and 3d cubic lattices
-The total number of lattice sites is one per unit cell, i.e. the
-product of {nx}, {ny}, and {nz}.  The {fcc}, {bcc}, and {diamond}
-lattice types are 3d and generate multiple lattice sites per unit
-cell: 4 per fcc unit cell, 2 per bcc unit cell, and 8 per diamond unit
-cell.
+The {line} lattice type is a 1d regular lattice.  The {sq} and {sc}
+lattice types are 2d square and 3d cubic lattices.  The total number
+of lattice sites is one per unit cell, i.e. the product of {nx}, {ny},
+and {nz}.  The {fcc}, {bcc}, and {diamond} lattice types are 3d and
+generate multiple lattice sites per unit cell: 4 per fcc unit cell, 2
+per bcc unit cell, and 8 per diamond unit cell.
 
 The connectivity of these lattice types is as follows:
 
+line/2d = 1d regular lattice with 2 neighbors per site (nearest neighbors)
 sq/4n = 2d square lattice with 4 neighbors per site (nearest neighbors)
 sq/8n = 2d square lattice with 4 neighbors per site (1st and 2nd nearest neighbors)
 tri = 2d triangular lattice with 6 neighbors per site (nearest neighbors)
@@ -155,10 +163,10 @@ fcc = 3d fcc lattice with 12 neighbors per site (nearest neighbors)
 bcc = 3d fcc lattice with 8 neighbors per site (nearest neighbors)
 diamond = 3d fcc lattice with 4 neighbors per site (nearest neighbors) :ul
 
-The {random/2d} and {random/3d} lattice options generate a lattice of
-random points within a 2d or 3d box of specified size
-(0-xbox,0-ybox,0-zbox).  The {cutoff} criterion is used to assign
-lattice neighbors to each site.
+The {random} lattice options generate a lattice of random points
+within a 1d, 2d, or 3d box of specified size (0-xbox,0-ybox,0-zbox).
+The {cutoff} criterion is used to assign lattice neighbors to each
+site.
 
 The {file} lattice option reads in a lattice and neighbor connectivity
 from the specified {filename}.  The format of this file is as follows
@@ -170,17 +178,17 @@ twice, once as edge IJ, and once as edge JI.
 
 comment              # 1st line is skipped
                      # skipped line
-Ndim dimension       # Ndim = 2 or 3
+Ndim dimension       # Ndim = 1 or 2 or 3
 N vertices           # N = number of vertices
 M max connectivity   # M = maximum number of edges for any vertex
 X1 X2 xlo xhi        # X1,X2 = x bounds of box that encloses lattice
-Y1 Y2 xlo xhi        # y bounds
+Y1 Y2 xlo xhi        # y bounds (only if Ndim > 1)
 Z1 Z2 zlo zhi        # z bounds (only if Ndim = 3)
                      # skipped line
 Vertices
                      # skipped line
 1 x y z	             # ID, x, y, z for each vertex
-2 x y z              # no z value if dim = 2
+2 x y z              # no y value if dim = 1, no z value if dim = 2
 ...
 N x y z              # N lines in this section
                      # skipped line
@@ -190,6 +198,17 @@ Edges
 1 n1 n2 n3 ...       # can be different number of connections (up to M) for each vertex
 ...
 N n1 n2 n3 ...       # N lines in this section :pre
+
+:line
+
+For on-lattice applications, by default SPPARKS will decide how to
+partition the simulation domain across processors in order to minimize
+communication of lattice sites.  Typically this will create a 2d grid
+of processors for 2d lattices, and a 3d grid of processors for 3d
+lattices.  You can override the default and specify your own grid of
+Px by Py by Pz processors.  For 2d lattices, Pz must be 1.  For 1d
+lattices Py and Pz must be 1.  If {procs 0 0 0} is specified, then
+SPPARKS will decide the partitioning.
 
 :line
 
@@ -243,4 +262,5 @@ integer value(s) first, followed by the double value(s).
 [Default:]
 
 There is no default for the {lattice} keyword.  It must be specified
-for on-lattice applications.  The default value for site is 0 0.
+for on-lattice applications.  The default value for the {procs}
+keyword are 0 0 0.  The default values for the {site} keyword are 0 0.

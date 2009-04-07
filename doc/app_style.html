@@ -25,10 +25,11 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>lattice</I> or <I>site</I> or <I>input</I> 
+<LI>keyword = <I>lattice</I> or <I>procs</I> or <I>site</I> or <I>input</I> 
 
 <PRE>  <I>lattice</I> values = type params
-    type = <I>sq/4n</I> or <I>sq/8n</I> or <I>tri</I> or <I>sc/6n</I> or <I>sc/26n</I> or <I>fcc</I> or <I>bcc</I> or <I>diamond</I> or <I>random/2d</I> or <I>random/3d</I> or <I>file</I>
+    type = <I>line/2n</I> or <I>sq/4n</I> or <I>sq/8n</I> or <I>tri</I> or <I>sc/6n</I> or <I>sc/26n</I> or <I>fcc</I> or <I>bcc</I> or <I>diamond</I> or <I>random/1d</I> or <I>random/2d</I> or <I>random/3d</I> or <I>file</I>
+      <I>line/2n</I> params = a nx = 1d regular lattice with 2 neighbors per site
       <I>sq/4n</I> params = a nx ny = 2d square lattice with 4 neighbors per site
       <I>sq/8n</I> params = a nx ny = 2d square lattice with 8 neighbors per site
       <I>tri</I> params = a nx ny = 2d triangular lattice with 6 neighborrs per site
@@ -41,6 +42,10 @@
       <I>diamond</I> params = a nx ny nz = 3d diamond lattice with 4 neighbors per site
         a = lattice constant
         nx,ny,nz = number of unit cells in each dimension
+      <I>random/1d</I> param = N xbox cutoff = lattice of random 1d points
+        N = # of lattice points
+	xbox = simulation extent in x
+        cutoff = distance cutoff for neighbor connectivity between sites 
       <I>random/2d</I> param = N xbox ybox cutoff = lattice of random 2d points
         N = # of lattice points
 	xbox,ybox = simulation extent in x,y
@@ -51,6 +56,8 @@
         cutoff = distance cutoff for neighbor connectivity between sites 
       <I>file</I> param = filename = read lattice and connectivity from file
         filename = name of file (see file format below)
+  <I>procs</I> values = Px Py Pz
+    Px,Py,Pz = # of processors assigned to each dimension of lattice
   <I>site</I> values = Nint Ndouble
     Nint = # of integer quantites to store per site
     Ndouble = # of double quantites to store per site
@@ -149,16 +156,17 @@ it determines the kind and size of lattice used.  For example,
 lattice site.  A variety of lattice types and neighbor stencils can be
 given as options with the <I>lattice</I> keyword as described above.
 </P>
-<P>The <I>sq</I> and <I>sc</I> lattice types are 2d square and 3d cubic lattices
-The total number of lattice sites is one per unit cell, i.e. the
-product of <I>nx</I>, <I>ny</I>, and <I>nz</I>.  The <I>fcc</I>, <I>bcc</I>, and <I>diamond</I>
-lattice types are 3d and generate multiple lattice sites per unit
-cell: 4 per fcc unit cell, 2 per bcc unit cell, and 8 per diamond unit
-cell.
+<P>The <I>line</I> lattice type is a 1d regular lattice.  The <I>sq</I> and <I>sc</I>
+lattice types are 2d square and 3d cubic lattices.  The total number
+of lattice sites is one per unit cell, i.e. the product of <I>nx</I>, <I>ny</I>,
+and <I>nz</I>.  The <I>fcc</I>, <I>bcc</I>, and <I>diamond</I> lattice types are 3d and
+generate multiple lattice sites per unit cell: 4 per fcc unit cell, 2
+per bcc unit cell, and 8 per diamond unit cell.
 </P>
 <P>The connectivity of these lattice types is as follows:
 </P>
-<UL><LI>sq/4n = 2d square lattice with 4 neighbors per site (nearest neighbors)
+<UL><LI>line/2d = 1d regular lattice with 2 neighbors per site (nearest neighbors)
+<LI>sq/4n = 2d square lattice with 4 neighbors per site (nearest neighbors)
 <LI>sq/8n = 2d square lattice with 4 neighbors per site (1st and 2nd nearest neighbors)
 <LI>tri = 2d triangular lattice with 6 neighbors per site (nearest neighbors)
 <LI>sc/6n = 3d cubic lattice with 6 neighbors per site (nearest neighbors)
@@ -167,10 +175,10 @@ cell.
 <LI>bcc = 3d fcc lattice with 8 neighbors per site (nearest neighbors)
 <LI>diamond = 3d fcc lattice with 4 neighbors per site (nearest neighbors) 
 </UL>
-<P>The <I>random/2d</I> and <I>random/3d</I> lattice options generate a lattice of
-random points within a 2d or 3d box of specified size
-(0-xbox,0-ybox,0-zbox).  The <I>cutoff</I> criterion is used to assign
-lattice neighbors to each site.
+<P>The <I>random</I> lattice options generate a lattice of random points
+within a 1d, 2d, or 3d box of specified size (0-xbox,0-ybox,0-zbox).
+The <I>cutoff</I> criterion is used to assign lattice neighbors to each
+site.
 </P>
 <P>The <I>file</I> lattice option reads in a lattice and neighbor connectivity
 from the specified <I>filename</I>.  The format of this file is as follows
@@ -182,17 +190,17 @@ twice, once as edge IJ, and once as edge JI.
 </P>
 <PRE>comment              # 1st line is skipped
                      # skipped line
-Ndim dimension       # Ndim = 2 or 3
+Ndim dimension       # Ndim = 1 or 2 or 3
 N vertices           # N = number of vertices
 M max connectivity   # M = maximum number of edges for any vertex
 X1 X2 xlo xhi        # X1,X2 = x bounds of box that encloses lattice
-Y1 Y2 xlo xhi        # y bounds
+Y1 Y2 xlo xhi        # y bounds (only if Ndim > 1)
 Z1 Z2 zlo zhi        # z bounds (only if Ndim = 3)
                      # skipped line
 Vertices
                      # skipped line
 1 x y z	             # ID, x, y, z for each vertex
-2 x y z              # no z value if dim = 2
+2 x y z              # no y value if dim = 1, no z value if dim = 2
 ...
 N x y z              # N lines in this section
                      # skipped line
@@ -203,6 +211,17 @@ Edges
 ...
 N n1 n2 n3 ...       # N lines in this section 
 </PRE>
+<HR>
+
+<P>For on-lattice applications, by default SPPARKS will decide how to
+partition the simulation domain across processors in order to minimize
+communication of lattice sites.  Typically this will create a 2d grid
+of processors for 2d lattices, and a 3d grid of processors for 3d
+lattices.  You can override the default and specify your own grid of
+Px by Py by Pz processors.  For 2d lattices, Pz must be 1.  For 1d
+lattices Py and Pz must be 1.  If <I>procs 0 0 0</I> is specified, then
+SPPARKS will decide the partitioning.
+</P>
 <HR>
 
 <P>For on-lattice applications, by default each lattice site stores a
@@ -255,6 +274,7 @@ integer value(s) first, followed by the double value(s).
 <P><B>Default:</B>
 </P>
 <P>There is no default for the <I>lattice</I> keyword.  It must be specified
-for on-lattice applications.  The default value for site is 0 0.
+for on-lattice applications.  The default value for the <I>procs</I>
+keyword are 0 0 0.  The default values for the <I>site</I> keyword are 0 0.
 </P>
 </HTML>
