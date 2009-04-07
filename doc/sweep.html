@@ -1,0 +1,102 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>sweep command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>sweep style keyword value ... 
+</PRE>
+<UL><LI>style = <I>random</I> or <I>raster</I> or <I>color</I> or <I>color/strict</I> 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>mask</I> 
+
+<PRE>  <I>mask</I> value = <I>yes</I> or <I>no</I>
+    yes/no = mask out sites than cannot change 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>sweep random
+sweep raster mask yes ... 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Use a rejection kinetic Monte Carlo (rKMC) algorithm for an
+<A HREF = "app_style.html">on-lattice application</A>.  If rKMC is not used then a
+kinetic Monte Carlo (KMC) algorithm must be used as defined by the
+<A HREF = "solve_style.html">solve_style</A> command.
+</P>
+<P>The rKMC algorithm in SPPARKS selects sites on a lattice in an order
+determined by this command and requests that the application perform
+events.  The application defines the geometry and connectivity of the
+lattice, what the possible events are, and defines their rates and
+acceptance/rejection criteria.
+</P>
+<P>The ordering of selected sites is also affected by the <A HREF = "sector">sector</A>
+command, which partitions each processor's portion of the simulation
+domain into sectors which are quadrants (2d) or octants (3d).  In this
+case, the ordering described below is within each sector.  Sectors are
+looped over one at a time, interleaved by communication of lattice
+values inbetween.
+</P>
+<P>For the <I>random</I> style, sites are chosen randomly, one at a time.
+</P>
+<P>For the <I>raster</I> style, a sweep of the lattice is done, as a loop over
+all sites in a pre-determined order, e.g. a triple loop over i,j,k for
+a 3d cubic lattice.
+</P>
+<P>For the <I>color</I> style, lattice sites are partitioned into sub-groups
+or colors which are non-interacting in the sense that events on two
+sites of the same color can be perfored simultaneously without
+conflict.  This enables parallelism since events on all sites of the
+same color can be attempted simultaneously.  Similar to sectors, the
+colors are looped over, interleaved by communication of lattice
+values inbetween.
+</P>
+<P>The <I>color/strict</I> style is the same as the <I>color</I> style except that
+random numbers are generated in a way that is independent of the
+processor which generates them.  Thus SPPARKS should produce the same
+answer, independent of how many processors are used.  This can be
+useful in debugging an application.
+</P>
+<P>If the application supports it, the <I>mask</I> keyword can be set to <I>yes</I>
+to skip sites which cannot perform an event due to the current value
+of the site and its neighbors.  Enabling masking should not change the
+answer given by a simulation (in a statistical sense); it only offers
+a computational speed-up.  For example, sites in the interior of
+grains in a Potts grain-growth model may have no potential of flipping
+their value.  Masking can only be set to <I>yes</I> if the
+<A HREF = "temperature.html">temperature</A> is set to 0.0, since otherwise there is
+a finite probability of any site performing an event.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used as part of on-lattice applications
+as specified by the <A HREF = "app_style.html">app_style</A> command.
+</P>
+<P>Not all lattice styles and applications support the <I>color</I> and
+<I>color/strict</I> styles.  Not all applications support the <I>mask</I>
+option.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_style.html">app_style</A>, <A HREF = "solve_style.html">solve_style</A>,
+<A HREF = "sector.html">sector</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are mask = no.
+</P>
+</HTML>
