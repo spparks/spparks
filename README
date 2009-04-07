@@ -1,8 +1,8 @@
-This is the SPPARKS (23 Jul 2008) software package.
+This is the SPPARKS (3 Apr 2009) software package.
 
 SPPARKS stands for Stochastic Parallel PARticle Kinetic Simulator.
 
-Copyright (2008) Sandia Corporation.  Under the terms of Contract
+Copyright (2009) Sandia Corporation.  Under the terms of Contract
 DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
 certain rights in this software.  This software is distributed under
 the GNU General Public License.
@@ -22,14 +22,15 @@ athomps@sandia.gov, and alexander.slepoy@nnsa.doe.gov.  The SPPARKS
 WWW Site at http://www.cs.sandia.gov/~sjplimp/spparks.html has more
 information about the code and its uses.
 
-The SPPARKS (23 Jul 2008) distribution includes the following files
-and directories:
+The SPPARKS (3 Apr 2009) distribution includes the following files and
+directories:
 
 README			   this file
 LICENSE			   the GNU General Public License (GPL)
 doc			   documentation
 examples		   simple test problems
 src			   source files
+tools			   auxiliary tools
 
 Point your browser at any of these files to get started:
 

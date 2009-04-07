@@ -82,7 +82,9 @@ class AppLattice : public App {
 
   int sweepflag;               // 1 if rejection KMC solver
   int sectorflag;              // 1 if partition my domain into sectors
-  
+  int nsector;                 // 1,2,4,8 = # of sectors
+  int nsector_user;            // 0 if default, else 2,4,8
+
   class RandomPark *ranapp;    // RN generator for KMC and rejection KMC
   class RandomPark *ranstrict; // RN generator for per-site strict rKMC
   int *siteseeds;              // per-site seeds for ransite

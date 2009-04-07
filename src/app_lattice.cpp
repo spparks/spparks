@@ -167,14 +167,29 @@ void AppLattice::init()
   if (sweepflag && dt_sweep == 0.0)
     error->all("Lattice app did not set dt_sweep");
 
-  // if sectors, determine number of sectors
-  // SJP NOTE: allow an override here
+  // if sectors, set number of sectors
 
-  int nsector = 1;
+  nsector = 1;
   if (sectorflag) {
-    if (dimension == 1) nsector = 2;
+    if (nsector_user) nsector = nsector_user;
+    else if (dimension == 1) nsector = 2;
     else if (dimension == 2) nsector = 4;
     else nsector = 8;
+
+    if (dimension == 3) {
+      if (nsector == 2 && (ny_procs != 1 || nz_procs != 1))
+	error->all("Invalid number of sectors");
+      if (nsector == 4 && nz_procs != 1)
+	error->all("Invalid number of sectors");
+    }
+    if (dimension == 2) {
+      if (nsector == 2 && ny_procs != 1)
+	error->all("Invalid number of sectors");
+      if (nsector == 8)
+	error->all("Invalid number of sectors");
+    }
+    if (dimension == 1 && nsector != 2)
+      error->all("Invalid number of sectors");
   }
 
   // if coloring, determine number of colors
@@ -689,9 +704,16 @@ void AppLattice::input_app(char *command, int narg, char **arg)
 void AppLattice::set_sector(int narg, char **arg)
 {
   if (narg < 1) error->all("Illegal sector command");
+
+  nsector_user = 0;
   if (strcmp(arg[0],"yes") == 0) sectorflag = 1;
   else if (strcmp(arg[0],"no") == 0) sectorflag = 0;
-  else error->all("Illegal sector command");
+  else {
+    sectorflag = 1;
+    nsector_user = atoi(arg[0]);
+    if (nsector_user != 2 && nsector_user != 4 && nsector_user != 8)
+      error->all("Illegal sector command");
+  }
 
   nstop = 1.0;
   tstop = 0.0;
@@ -807,10 +829,8 @@ void AppLattice::create_set(int iset, int isector, int icolor)
       if (xyz[i][2] < zmid) kwhich = 0;
       else kwhich = 1;
 
-      // SJP NOTE: this needs to be more general
-
-      if (dimension == 1) msector = iwhich + 1;
-      else if (dimension == 2) msector = 2*iwhich + jwhich + 1;
+      if (nsector == 2) msector = iwhich + 1;
+      else if (nsector == 4) msector = 2*iwhich + jwhich + 1;
       else msector = 4*iwhich + 2*jwhich + kwhich + 1;
 
       if (isector != msector) flag = 0;
@@ -843,10 +863,8 @@ void AppLattice::create_set(int iset, int isector, int icolor)
       if (xyz[i][2] < zmid) kwhich = 0;
       else kwhich = 1;
 
-      // SJP NOTE: this needs to be more general
-
-      if (dimension == 1) msector = iwhich + 1;
-      else if (dimension == 2) msector = 2*iwhich + jwhich + 1;
+      if (nsector == 2) msector = iwhich + 1;
+      else if (nsector == 4) msector = 2*iwhich + jwhich + 1;
       else msector = 4*iwhich + 2*jwhich + kwhich + 1;
 
       if (isector != msector) flag = 0;
