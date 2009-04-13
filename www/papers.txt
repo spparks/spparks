@@ -1,0 +1,27 @@
+"SPPARKS WWW Site"_sws :c
+:link(sws,../spparks.html)
+
+:line
+
+SPPARKS Papers :h3
+
+We don't yet have a general paper that describes SPPARKS and its
+applications and algorithms.  We'll post one here when it's available.
+Until then, please cite the "SPPARKS WWW page"_sws, if you use SPPARKS
+in a paper.
+
+This paper describes the most novel KMC or event-selection algorithm
+in SPPARKS, a constant-time composition-rejection algorithm, whose
+cost to select a single event is independent of the total number of
+available events:
+
+[A Constant-Time Kinetic Monte Carlo Algorithm for Simulation of Large
+Biochemical Reaction Networks], A. Slepoy, A. P. Thompson,
+S. J. Plimpton, J Chem Phys, 128, 205101
+(2008). ("abstract"_../abstracts/jcp08.html)
+
+:line
+
+If you send us information about a paper that uses SPPARKS results,
+we'll be pleased to add info about it to this page.  Ditto for a
+picture or movie for the "Pictures & Movies"_pictures.html page.

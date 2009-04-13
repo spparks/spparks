@@ -60,6 +60,9 @@ quadrants (2d) and octants (3d) is done to enable multiple events to
 be performed on multiple processors simultaneously.  Communication of
 boundary information is performed as needed.
 
+Parallelism can also be invoked to perform multiple runs on a
+collection of processors, for statistical puposes.
+
 SPPARKS is designed to be easy to modify and extend.  For example, new
 solvers and sweeping rules can be added, as can new applications.
 Applications can define new commands which are read from the input

@@ -1,0 +1,65 @@
+"SPPARKS WWW Site"_sws :c
+:link(sws,../spparks.html)
+
+:line
+
+Open-Source Distribution :h3
+
+SPPARKS comes with no warranty of any kind.  As each source file
+states in its header, it is a copyrighted code that is distributed
+free-of-charge, under the terms of the "GNU Public License"_gnu (GPL).
+This is often referred to as open-source distribution - see
+"www.gnu.org"_gnuorg or "www.opensource.org"_opensource.  The legal
+text of the GPL is in the LICENSE file that is included in the SPPARKS
+distribution.
+
+:link(gnu,http://www.gnu.org/copyleft/gpl.html)
+:link(gnuorg,http://www.gnu.org)
+:link(opensource,http://www.opensource.org)
+
+Here is a summary of what the GPL means for SPPARKS users:
+
+(1) Anyone is free to use, modify, or extend SPPARKS in any way they
+choose, including for commercial purposes.
+
+(2) If you distribute a modified version of SPPARKS, it must remain
+open-source, meaning you distribute it under the terms of the GPL.
+You should clearly annotate such a code as a derivative version of
+SPPARKS.
+
+(3) If you release any code that includes SPPARKS source code, then it
+must also be open-sourced, meaning you distribute it under the terms
+of the GPL.
+
+(4) If you give SPPARKS files to someone else, the GPL LICENSE file and
+source file headers (including the copyright and GPL notices) should
+remain part of the code.
+
+:line
+
+In the spirit of an open-source code, these are various ways you can
+contribute to making SPPARKS better.  You can send email to the
+"authors"_thanks.html on any of these items.
+
+If you write/add a new feature to the code, let us know and we can
+include it in the general distribution.  :ulb,l
+
+If you find a bug, report it. :l
+
+If you perform an interesting calculation with SPPARKS or write a
+paper using SPPARKS results, let us know and we can include a brief
+description, image, movie on the "SPPARKS WWW page"_sws. :l
+
+Send an email if you find an error or omission in the "SPPARKS
+documentation"_doc/Manual.html, or have a suggestion for something to
+clarify or include. :l
+
+Point prospective users to the "SPPARKS WWW Site"_sws or link to it
+from your WWW site. :l
+
+Cash.  Small denominations, unmarked bills preferred.  Leave in paper
+sack on desk.  "VISA"_email also accepted.  Chocolate chip cookies
+encouraged. :ule,l
+
+:link(pd,doc/Manual.html)
+:link(email,mailto:sjplimp@sandia.gov)

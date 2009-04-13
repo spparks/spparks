@@ -1,0 +1,97 @@
+<HTML>
+<CENTER><A HREF = "../spparks.html">SPPARKS WWW Site</A> 
+</CENTER>
+
+
+<HR>
+
+<H3>SPPARKS Features 
+</H3>
+<P>SPPARKS is a kinetic Monte Carlo (KMC) code that has algorithms for
+both rejection-free KMC and null-event or rejection KMC (rKMC).  In a
+generic sense its KMC and rKMC solvers catalog a list of "events",
+each with an associated "probability", choose a single event to
+perform, and advance time by the correct amount.  Events may be chosen
+indivudually at random or a sweep of a geometric lattice can be
+performed to select possible events in a more ordered fashion.
+</P>
+<P>Applications are implemented in SPPARKS which define events and their
+probabilities and acceptance/rejection criteria.  They are coupled to
+solvers or sweepers to perform KMC or rKMC simulations.  The KMC or
+rKMC options for an application in SPPARKS can be written to define
+rates based on energy differences between the initial and final state
+of an event and a Metropolis-style accept/reject criterion based on
+the Boltzmann factor SPPARKS will then perform a Metropolis-style
+Monte Carlo simulation.
+</P>
+<H4>On-lattice applications 
+</H4>
+<UL><LI>  Ising model
+<LI>  various Potts models (Glauber and Kawasaki dynamics)
+<LI>  pore and surface diffusion models
+<LI>  membrane dynamics model 
+</UL>
+<H4>Off-lattice applications 
+</H4>
+<UL><LI>  reaction chemistry model
+<LI>  test model for constant-time KMC solver 
+</UL>
+<H4>KMC solvers 
+</H4>
+<UL><LI>  linear search, O(N)
+<LI>  tree search, O(NlogN)
+<LI>  composition-rejection search, O(1) 
+</UL>
+<H4>Code details 
+</H4>
+<P>SPPARKS is written in C++.  It runs on single-processor desktop or
+laptop machines, but for some applications, can also be run in
+parallel.  SPPARKS will run on any parallel machine that compiles C++
+and supports the <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPI</A> message-passing library.  This includes
+distributed- or shared-memory machines.
+</P>
+<P>In parallel, a geometric partitioning of the simulation domain is
+performed.  Sub-partitioning of processor domains into colors or
+quadrants (2d) and octants (3d) is done to enable multiple events to
+be performed on multiple processors simultaneously.  Communication of
+boundary information is performed as needed.
+</P>
+<P>Parallelism can also be invoked to perform multiple runs on a
+collection of processors, for statistical puposes.
+</P>
+<H4>Extensibility 
+</H4>
+<P>SPPARKS is designed to be easy to modify and extend.  For example, new
+solvers and sweeping rules can be added, as can new applications.
+Applications can define new commands which are read from the input
+script.
+</P>
+<H4>Pre- and post-processing 
+</H4>
+<P>Our group has written and released a separate toolkit called
+<A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py</A> which provides tools which can be used to setup,
+analyze, plot, and visualize data for SPPARKS simulations.  Pizza.py
+is written in <A HREF = "http://www.python.org">Python</A> and is available for download from <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">the
+Pizza.py WWW site</A>.
+</P>
+
+
+
+
+<H4>Open-source 
+</H4>
+<P>SPPARKS is a freely-available open-source code, distributed under the
+terms of the <A HREF = "http://www.gnu.org/copyleft/gpl.html">GNU Public License</A>, which means you can use or
+modify the code however you wish.  See <A HREF = "open_source.html">this page</A>
+for a brief discussion of the open-source philosophy.
+</P>
+<HR>
+
+<P>More details about the code are provided in the <A HREF = "doc/Manual.html">SPPARKS
+documentation</A>.
+</P>
+
+
+
+
+</HTML>

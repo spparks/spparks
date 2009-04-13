@@ -19,7 +19,7 @@
 
 SPPARKS Documentation :c,h3
 
-(25 Mar 2009 version of SPPARKS) :c
+(13 April 2009 version of SPPARKS) :c
 
 SPPARKS stands for Stochastic Parallel PARticle Kinetic Simulator.
 
