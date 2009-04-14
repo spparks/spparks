@@ -16,7 +16,6 @@
 #include "app_diffusion.h"
 #include "app_diffusion_table.h"
 #include "app_diffusion_nonlinear.h"
-#include "app_erbium.h"
 #include "app_ising.h"
 #include "app_ising_single.h"
 #include "app_membrane.h"
@@ -36,7 +35,6 @@ AppStyle(chemistry,AppChemistry)
 AppStyle(diffusion,AppDiffusion)
 AppStyle(diffusion/table,AppDiffusionTable)
 AppStyle(diffusion/nonlinear,AppDiffusionNonLinear)
-AppStyle(erbium,AppErbium)
 AppStyle(ising,AppIsing)
 AppStyle(ising/single,AppIsingSingle)
 AppStyle(membrane,AppMembrane)
@@ -74,13 +72,11 @@ SolveStyle(tree,SolveTree)
 #ifdef DiagInclude
 #include "diag_cluster.h"
 #include "diag_energy.h"
-#include "diag_erbium.h"
 #endif
 
 #ifdef DiagClass
 DiagStyle(cluster,DiagCluster)
 DiagStyle(energy,DiagEnergy)
-DiagStyle(erbium,DiagErbium)
 #endif
 
 // packages
