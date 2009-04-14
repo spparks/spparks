@@ -1,0 +1,193 @@
+SPPARKS (13 Apr 2009)
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200 		     #26214400 52428800 104857600
+
+app_style    test/group $n 30 1.0 1.0e-6 5 lomem yes
+app_style    test/group 100 30 1.0 1.0e-6 5 lomem yes
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 100 1000000
+Loop time of 1.36646 on 1 procs
+
+Solve time (%) = 0.317121 (23.2075)
+Update time (%) = 0.815248 (59.6612)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.234092 (17.1313)
+
+clear
+next	     n
+jump	     in.group.lomem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200 		     #26214400 52428800 104857600
+
+app_style    test/group $n 30 1.0 1.0e-6 5 lomem yes
+app_style    test/group 200 30 1.0 1.0e-6 5 lomem yes
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 200 1000000
+Loop time of 1.36625 on 1 procs
+
+Solve time (%) = 0.314959 (23.0528)
+Update time (%) = 0.817011 (59.7995)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.234281 (17.1477)
+
+clear
+next	     n
+jump	     in.group.lomem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200 		     #26214400 52428800 104857600
+
+app_style    test/group $n 30 1.0 1.0e-6 5 lomem yes
+app_style    test/group 400 30 1.0 1.0e-6 5 lomem yes
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 400 1000000
+Loop time of 1.3649 on 1 procs
+
+Solve time (%) = 0.311855 (22.8482)
+Update time (%) = 0.818586 (59.9739)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.234463 (17.178)
+
+clear
+next	     n
+jump	     in.group.lomem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200 		     #26214400 52428800 104857600
+
+app_style    test/group $n 30 1.0 1.0e-6 5 lomem yes
+app_style    test/group 800 30 1.0 1.0e-6 5 lomem yes
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 800 1000000
+Loop time of 1.36122 on 1 procs
+
+Solve time (%) = 0.301528 (22.1514)
+Update time (%) = 0.825805 (60.6666)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.233885 (17.182)
+
+clear
+next	     n
+jump	     in.group.lomem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200 		     #26214400 52428800 104857600
+
+app_style    test/group $n 30 1.0 1.0e-6 5 lomem yes
+app_style    test/group 1600 30 1.0 1.0e-6 5 lomem yes
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 1600 1000000
+Loop time of 1.37134 on 1 procs
+
+Solve time (%) = 0.294926 (21.5063)
+Update time (%) = 0.841827 (61.387)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.234591 (17.1067)
+
+clear
+next	     n
+jump	     in.group.lomem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200 		     #26214400 52428800 104857600
+
+app_style    test/group $n 30 1.0 1.0e-6 5 lomem yes
+app_style    test/group 3200 30 1.0 1.0e-6 5 lomem yes
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 3200 1000000
+Loop time of 1.40238 on 1 procs
+
+Solve time (%) = 0.294537 (21.0027)
+Update time (%) = 0.874125 (62.3317)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.233716 (16.6657)
+
+clear
+next	     n
+jump	     in.group.lomem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200 		     #26214400 52428800 104857600
+
+app_style    test/group $n 30 1.0 1.0e-6 5 lomem yes
+app_style    test/group 6400 30 1.0 1.0e-6 5 lomem yes
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 6400 1000000
+Loop time of 1.41363 on 1 procs
+
+Solve time (%) = 0.287364 (20.3281)
+Update time (%) = 0.894236 (63.258)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.232034 (16.414)
+
+clear
+next	     n
+jump	     in.group.lomem
+# Test simulation for solver performance
+
+seed         235689
+
+variable     n index 100 200 400 800 1600 3200 6400 12800 	             #25600 51200 102400 204800 409600 819200 		     #1638400 3267800 6553600 13107200 		     #26214400 52428800 104857600
+
+app_style    test/group $n 30 1.0 1.0e-6 5 lomem yes
+app_style    test/group 12800 30 1.0 1.0e-6 5 lomem yes
+solve_style  group 1.0 1.0e-6
+run	     1000000
+
+Number of reactions, events = 12800 1000000
+Loop time of 1.4216 on 1 procs
+
+Solve time (%) = 0.284088 (19.9837)
+Update time (%) = 0.907391 (63.8287)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+App   time (%) = 0 (0)
+Other time (%) = 0.230124 (16.1876)
+
+clear
+next	     n
+jump	     in.group.lomem
