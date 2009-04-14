@@ -9,4 +9,3 @@ usage.
 These are the included tools:
 
 dump2input.py          Pizza.py script for converting SPPARKS output to input
-erbium_lattice.py      Python script to generate 3-fold latice for app Erbium
