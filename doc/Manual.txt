@@ -31,7 +31,7 @@ open-source code, distributed freely under the terms of the GNU Public
 License (GPL).
 
 The developers of SPPARKS are "Steve Plimpton"_sjp, Aidan Thompson,
-and Alex Slepoys.  They can be contacted at sjplimp@sandia.gov,
+and Alex Slepoy.  They can be contacted at sjplimp@sandia.gov,
 athomps@sandia.gov, and alexander.slepoy@nnsa.doe.gov.  The "SPPARKS
 WWW Site"_sws at http://www.cs.sandia.gov/~sjplimp/spparks.html has
 more information about the code and its uses.
