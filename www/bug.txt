@@ -17,6 +17,16 @@ The current version of SPPARKS is 13 April 2009.
 
 :line
 
+[14 Apr 2009]
+
+Removed an application from the distribution that is still
+a work-in-progress.  Wasn't meant to be released yet.
+
+This is the "list of changed files"_patches/files.14Apr09 from the 13
+Apr 2009 version.
+
+:line
+
 [13 April 2009]
 
 Initial public release of SPPARKS.  17,341 lines of code in src dir.
