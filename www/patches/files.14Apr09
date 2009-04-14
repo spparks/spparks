@@ -1,0 +1,22 @@
+13Apr09 version files changed by 14Apr09 upgrade:
+
+doc/Manual.html
+doc/Manual.pdf
+doc/Manual.txt
+doc/Section_commands.html
+doc/Section_commands.txt
+doc/app_erbium.html
+doc/app_erbium.txt
+doc/diag_erbium.html
+doc/diag_erbium.txt
+doc/dump.html
+doc/dump.txt
+doc/event.html
+doc/event.txt
+src/app_erbium.cpp
+src/app_erbium.h
+src/diag_erbium.cpp
+src/diag_erbium.h
+src/style.h
+tools/README
+tools/erbium_lattice.py
