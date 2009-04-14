@@ -220,7 +220,6 @@ Restrictions in the command's documentation.
 "dump"_dump.html,
 "echo"_echo.html,
 "ecoord"_ecoord.html,
-"event"_event.html,
 "if"_if.html,
 "include"_include.html,
 "inclusion"_inclusion.html,
@@ -252,7 +251,6 @@ full description:
 "diffusion"_app_diffusion.html,
 "diffusion/table"_app_diffusion.html,
 "diffusion/nonlinear"_app_diffusion.html,
-"erbium"_app_erbium.html,
 "ising"_app_ising.html,
 "membrane"_app_membrane.html,
 "pore"_app_pore.html,
@@ -281,5 +279,4 @@ full description:
 
 "cluster"_diag_cluster.html,
 "energy"_diag_energy.html,
-"eprof3d"_diag_eprof.html,
-"erbium"_diag_erbium.html :tb(c=6,ea=c)
+"eprof3d"_diag_eprof.html :tb(c=6,ea=c)

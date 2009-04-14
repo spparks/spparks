@@ -28,7 +28,7 @@ field = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} or {i
 
 dump 0.25 tmp.dump
 dump 5.0 snap.ising id lattice energy
-dump 1.0 snap.erbium logfreq 9 10.0 id i1 i2 x y z :pre
+dump 1.0 snap.lattice logfreq 9 10.0 id i1 i2 x y z :pre
 
 [Description:]
 
@@ -45,7 +45,7 @@ outputs per interval where the size of each interval scales up by
 
 For example, this command
 
-dump 0.1 snap.erbium logfreq 7 10.0 id i1 i2 x y z :pre
+dump 0.1 snap.lattice logfreq 7 10.0 id i1 i2 x y z :pre
 
 will dump snapshots at these times:
 
@@ -53,7 +53,7 @@ t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... :pre
 
 This command
 
-dump 0.1 snap.erbium logfreq 1 2.0 id i1 i2 x y z :pre
+dump 0.1 snap.lattice logfreq 1 2.0 id i1 i2 x y z :pre
 
 will dump snapshots at these times:
 
