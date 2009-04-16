@@ -69,22 +69,6 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
   }
 
   delete random;
-
-  // hack to change to a circle embedded in a second grain
-
-  double xc = boxxlo + xprd/2.0;
-  double yc = boxylo + yprd/2.0;
-  double zc = boxzlo + zprd/2.0;
-  double dx,dy,dz;
-  double r = 35.0;
-
-  for (int i = 0; i < nlocal; i++) {
-    dx = xyz[i][0] - xc;
-    dy = xyz[i][1] - yc;
-    dz = xyz[i][2] - zc;
-    if (dx*dx + dy*dy + dz*dz > r*r) lattice[i] = 1;
-    else lattice[i] = 2;
-  }
 }
 
 /* ---------------------------------------------------------------------- */
