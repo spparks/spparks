@@ -87,8 +87,8 @@ The {ngroup} keyword can only be used with style {group}.
 
 :line
 
-:link(Gillepsie)
-[(Gillepsie)] Gillespie, J Chem Phys, 22, 403-434 (1976);
+:link(Gillespie)
+[(Gillespie)] Gillespie, J Comp Phys, 22, 403-434 (1976);
 Gillespie, J Phys Chem, 81, 2340-2361 (1977).
 
 :link(BKL)
