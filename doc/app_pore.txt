@@ -26,16 +26,17 @@ app_style pore 10 10 10 4 10 lattice fcc 1.0 20 20 20 :pre
 [Description:]
 
 This application is exactly the same as the "app_style
-diffusion"_app_diffusion application, except for the way the lattice
-of occupied/vacant sites is initialized.
+diffusion"_app_diffusion.html application, except for the way the
+lattice of occupied/vacant sites is initialized.
 
 A single cylindrical pore in a thin-film membrane is setup.  The pore
 is aligned with the z-axis and the thin film is periodic in the x and
 y dimensions.
 
-The {pore} style is equivalent to the "app_style diffusion/table"
-style.  The {pore/nonlinear} style is equivalent to the "app_style
-diffusion/nonlinear" style.
+The {pore} style is equivalent to the "app_style
+diffusion/table"_app_diffusion.html style.  The {pore/nonlinear} style
+is equivalent to the "app_style
+diffusion/nonlinear"_app_diffusion.html style.
 
 :line
 
