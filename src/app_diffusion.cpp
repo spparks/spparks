@@ -127,8 +127,9 @@ double AppDiffusion::site_energy(int i)
 
 void AppDiffusion::site_event_rejection(int i, RandomPark *random)
 {
-  // exchange with random neighbor if vacant
+  // OCCUPIED site exchanges with random neighbor if VACANT
 
+  if (lattice[i] == VACANT) return;
   int iran = (int) (maxneigh*random->uniform());
   if (iran > maxneigh) iran = maxneigh-1;
   int j = neighbor[i][iran];
