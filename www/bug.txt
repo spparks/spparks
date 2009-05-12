@@ -17,6 +17,18 @@ The current version of SPPARKS is 13 April 2009.
 
 :line
 
+[12 May 2009]
+
+Fixed a dumb bug with the rejection method (rKMC) applied to
+"app_style diffusion"_doc/app_diffusion.html.
+
+This is the "list of changed files"_patches/files.12May09 from the 14
+Apr 2009 version.
+
+Thanks to Greg Wagner (Sandia) for identifying the problem.
+
+:line
+
 [14 Apr 2009]
 
 Removed an application from the distribution that is still
