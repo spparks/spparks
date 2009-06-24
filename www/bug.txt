@@ -17,6 +17,18 @@ The current version of SPPARKS is 13 April 2009.
 
 :line
 
+[24 Jun 2009]
+
+Enhanced the "pin"_doc/pin.html command for use by the "app_style
+potts/pin"_doc/app_potts_pin.html command.  Also enhanced the grain
+identification performed by the "diag_style
+cluster"_doc/diag_cluster.html command to not include pinned sites.
+
+This is the "list of changed files"_patches/files.24Jun09 from the 12
+May 2009 version.
+
+:line
+
 [12 May 2009]
 
 Fixed a dumb bug with the rejection method (rKMC) applied to
