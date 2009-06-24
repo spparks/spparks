@@ -469,8 +469,10 @@ void Output::stats(int timeflag)
   if (me == 0) {
     if (screen)
       fprintf(screen,"%s\n",str);
-    if (logfile)
+    if (logfile) {
       fprintf(logfile,"%s\n",str);
+      fflush(logfile);
+    }
   }
 }
 
@@ -497,7 +499,10 @@ void Output::stats_header()
 
   if (me == 0) {
     if (screen) fprintf(screen,"%s\n",str);
-    if (logfile) fprintf(logfile,"%s\n",str);
+    if (logfile) {
+      fprintf(logfile,"%s\n",str);
+      fflush(logfile);
+    }
   }
 }
 
