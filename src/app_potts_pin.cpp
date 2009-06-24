@@ -303,7 +303,6 @@ void AppPottsPin::pin_create()
   delete random;
 }
 
-
 /* ----------------------------------------------------------------------
    push new site onto stack and assign new id
  ------------------------------------------------------------------------- */
@@ -318,4 +317,3 @@ void AppPottsPin::push_new_site(int i, int* cluster_ids, int id,
     cluster_ids[i] = id;
   }
 }
-
