@@ -27,7 +27,7 @@ using namespace SPPARKS_NS;
 
 #define DELTA 100000
 #define DELTABUF 10000
-#define MAXLINE 256
+#define MAXLINE 512
 #define CHUNK 1024
 
 /* ---------------------------------------------------------------------- */
@@ -591,6 +591,8 @@ void AppLattice::file_lattice()
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
 	if (eof == NULL) error->one("Unexpected end of lattice file");
+	if (strlen(&buffer[m]) == MAXLINE-1)
+	  error->one("Vertex line too long in lattice file - boost MAXLINE");
 	m += strlen(&buffer[m]);
       }
       buffer[m++] = '\n';
@@ -669,6 +671,8 @@ void AppLattice::file_lattice()
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
 	if (eof == NULL) error->one("Unexpected end of lattice file");
+	if (strlen(&buffer[m]) == MAXLINE-1)
+	  error->one("Edge line too long in lattice file - boost MAXLINE");
 	m += strlen(&buffer[m]);
       }
       buffer[m++] = '\n';
