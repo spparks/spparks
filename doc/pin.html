@@ -13,25 +13,45 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>inclusion fraction 
+<PRE>pin fraction multiflag nthresh 
 </PRE>
-<UL><LI>fraction = fraction of sites (0 to 1) to convert to pinned sites 
+<UL><LI>fraction = fraction of sites (0 to 1) to convert to pinned sites
+<LI>multiflag = 0 for single sites, 1 for sites+neighbors
+<LI>nthresh = # of neighbor sites which must have different spins 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pin 0.1 
+<PRE>pin 0.1 0 2 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This command converts sites on a lattice to pinned sites by setting
 their spin value to Q+1, where Q is defined by a Potts model.  This
 command can only be used by the <A HREF = "app_potts_pin.html">app_style
-potts/pin</A> application.
+potts/pin</A> application.  The size of the inclusions
+and their location (anywhere or preferentially near grain boundaries)
+can be controlled by the <I>multiflag</I> and <I>nthresh</I> parameters.
 </P>
-<P>Pinned sites are chosen randomly until the desired fraction of
-changed sites is achieved.  The selection is done in a way
-that should be independent of the number of processors used to
-run a particular simulation.
+<P>The way pinned sites are selected is as follows.  A pinned site is
+chosen randomly.  If the site is already a pinned site, then another
+site is selected.  If <I>multiflag</I> is set to 1, then if any of the
+site's neighbors are already a pinned site, then another site is
+selected.  If <I>nthresh</I> is a non-zero value, then the # of neighbor
+sites with spin values different than the chosen site are counted.  If
+the count is less than <I>nthresh</I>, then another site is selected.
+</P>
+<P>Once the site is selected, just that site is converted to a pinned site
+if <I>multiflag</I> is 0.  If <I>multiflag</I> is 1, then the site plus all
+its neibhbors are converted to pinned sites.
+</P>
+<P>This process continues until the desired fraction of changed sites is
+achieved.  The entire process is done in a way that should be
+independent of the number of processors used to run a particular
+simulation.
+</P>
+<P>Note that if you pick a large volume fraction and/or a high value for
+<I>nthresh</I> it is possible that SPPARKS will never find enough valid
+sites to convert to pinned sites.  It will then loop endlessly.
 </P>
 <P><B>Restrictions:</B> none
 </P>

@@ -10,25 +10,45 @@ pin command :h3
 
 [Syntax:]
 
-inclusion fraction :pre
+pin fraction multiflag nthresh :pre
 
-fraction = fraction of sites (0 to 1) to convert to pinned sites :ul
+fraction = fraction of sites (0 to 1) to convert to pinned sites
+multiflag = 0 for single sites, 1 for sites+neighbors
+nthresh = # of neighbor sites which must have different spins :ul
 
 [Examples:]
 
-pin 0.1 :pre
+pin 0.1 0 2 :pre
 
 [Description:]
 
 This command converts sites on a lattice to pinned sites by setting
 their spin value to Q+1, where Q is defined by a Potts model.  This
 command can only be used by the "app_style
-potts/pin"_app_potts_pin.html application.
+potts/pin"_app_potts_pin.html application.  The size of the inclusions
+and their location (anywhere or preferentially near grain boundaries)
+can be controlled by the {multiflag} and {nthresh} parameters.
 
-Pinned sites are chosen randomly until the desired fraction of
-changed sites is achieved.  The selection is done in a way
-that should be independent of the number of processors used to
-run a particular simulation.
+The way pinned sites are selected is as follows.  A pinned site is
+chosen randomly.  If the site is already a pinned site, then another
+site is selected.  If {multiflag} is set to 1, then if any of the
+site's neighbors are already a pinned site, then another site is
+selected.  If {nthresh} is a non-zero value, then the # of neighbor
+sites with spin values different than the chosen site are counted.  If
+the count is less than {nthresh}, then another site is selected.
+
+Once the site is selected, just that site is converted to a pinned site
+if {multiflag} is 0.  If {multiflag} is 1, then the site plus all
+its neibhbors are converted to pinned sites.
+
+This process continues until the desired fraction of changed sites is
+achieved.  The entire process is done in a way that should be
+independent of the number of processors used to run a particular
+simulation.
+
+Note that if you pick a large volume fraction and/or a high value for
+{nthresh} it is possible that SPPARKS will never find enough valid
+sites to convert to pinned sites.  It will then loop endlessly.
 
 [Restrictions:] none
 
