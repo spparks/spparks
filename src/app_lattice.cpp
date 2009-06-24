@@ -1048,6 +1048,20 @@ void AppLattice::boundary_clear_mask(int iset)
 }
 
 /* ----------------------------------------------------------------------
+   push new site onto stack and assign new id
+ ------------------------------------------------------------------------- */
+
+void AppLattice::push_new_site(int i, int* cluster_ids, int id,
+					  std::stack<int>* cluststack)
+{
+  // This can be used to screen out unwanted spin values
+  // int isite = lattice[i];
+
+  cluststack->push(i);
+  cluster_ids[i] = id;
+}
+
+/* ----------------------------------------------------------------------
    push connected neighbors of this site onto stack
      and assign current id
    ghost neighbors are masked by id = -1
@@ -1080,10 +1094,14 @@ void AppLattice::connected_ghosts(int i, int* cluster_ids,
   int ii;
   int isite = lattice[i];
 
+  // Check if this was a site that was ignored
+  if (cluster_ids[i] == 0) return;
+
+  iclust = cluster_ids[i]-idoffset;
+
   for (int j = 0; j < numneigh[i]; j++) {
     ii = neighbor[i][j];
     if (lattice[ii] == isite && ii >= nlocal) {
-      iclust = cluster_ids[i]-idoffset;
       // Add ghost cluster to neighbors of local cluster
       clustlist[iclust].add_neigh(cluster_ids[ii]);
     }

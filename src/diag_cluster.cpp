@@ -271,14 +271,16 @@ void DiagCluster::generate_clusters()
       continue;
     }
     
-    // Push first site onto stack
+    // Ask App to push first site onto stack
+    // If it does not, do nothing
     id = ncluster+1;
-    iv = applattice->lattice[i];
-    dv = 0.0;
-    vol = 0.0;
-    add_cluster(id,iv,dv,vol,0,NULL);
-    cluststack.push(i);
-    cluster_ids[i] = id;
+    applattice->push_new_site(i,cluster_ids,id,&cluststack);
+    if (cluststack.size()) {
+      iv = applattice->lattice[i];
+      dv = 0.0;
+      vol = 0.0;
+      add_cluster(id,iv,dv,vol,0,NULL);
+    }
 
     while (cluststack.size()) {
       // First top then pop

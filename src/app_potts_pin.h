@@ -27,6 +27,7 @@ class AppPottsPin : public AppPotts {
   void site_event_rejection(int, class RandomPark *);
   double site_propensity(int);
   void site_event(int, class RandomPark *);
+  void push_new_site(int, int*, int, std::stack<int>*);
 
  private:
   double pfraction;

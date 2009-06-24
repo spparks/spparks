@@ -48,8 +48,10 @@ class AppLattice : public App {
   virtual double site_propensity(int) = 0;
   virtual void site_event(int, class RandomPark *) = 0;
 
-  void push_connected_neighbors(int, int *, int, std::stack<int>*);
-  void connected_ghosts(int, int *, class Cluster *, int);
+  // virtual functions, may be overridden by child class
+  virtual void push_new_site(int, int *, int, std::stack<int>*);
+  virtual void push_connected_neighbors(int, int *, int, std::stack<int>*);
+  virtual void connected_ghosts(int, int *, class Cluster *, int);
 
   enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
        RANDOM_1D,RANDOM_2D,RANDOM_3D,FILENAME};
