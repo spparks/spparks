@@ -31,6 +31,7 @@ class AppPottsPin : public AppPotts {
 
  private:
   double pfraction;
+  int multi,nthresh;
 
   void pin_create();
 };

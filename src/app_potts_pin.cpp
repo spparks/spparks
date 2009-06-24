@@ -32,10 +32,13 @@ AppPottsPin::AppPottsPin(SPPARKS *spk, int narg, char **arg) :
 void AppPottsPin::input_app(char *command, int narg, char **arg)
 {
   if (strcmp(command,"pin") == 0) {
-    if (narg != 1) error->all("Illegal pin command");
+    if (narg != 3) error->all("Illegal pin command");
     pfraction = atof(arg[0]);
-    if (pfraction < 0.0 || pfraction > 1.0)
-      error->all("Illegal pin command");
+    multi = atoi(arg[1]);
+    nthresh = atoi(arg[2]);
+    if (pfraction < 0.0 || pfraction > 1.0) error->all("Illegal pin command");
+    if (multi != 0 && multi != 1) error->all("Illegal pin command");
+    if (nthresh < 0) error->all("Illegal pin command");
     pin_create();
   } else error->all("Unrecognized command");
 }
@@ -188,35 +191,113 @@ void AppPottsPin::site_event(int i, RandomPark *random)
 }
 
 /* ----------------------------------------------------------------------
-   change pfraction of sites to pinned sites
+   change some sites to pinned sites
+   user params = pfraction, multi, nthresh
 ------------------------------------------------------------------------- */
 
 void AppPottsPin::pin_create()
 {
-  int i,nattempt,iglobal,nme,npin;
+  int i,j,m,nattempt,iglobal,nme,npin,ndiff;
+  int flag,flags[2],flagall[2];
 
   int ndesired = static_cast<int> (pfraction*nglobal);
 
   RandomPark *random = new RandomPark(ranmaster->uniform());
 
-  std::map<int,int> hash;
-  for (int i = 0; i < nlocal; i++)
-    hash.insert(std::pair<int,int> (id[i],i));
-  std::map<int,int>::iterator loc;
+  // single site inclusions
+  // only put local sites into hash
+  // nthresh = 0 for insertion anywhere
+  // nthresh > 0 for insertion at grain boundaries
 
-  npin = 0;
-  while (npin < ndesired) {
-    nattempt = ndesired - npin;
-    for (i = 0; i < nattempt; i++) {
-      iglobal = random->irandom(nglobal);
-      loc = hash.find(iglobal);
-      if (loc != hash.end()) lattice[loc->second] = nspins+1;
+  if (!multi) {
+    std::map<int,int> hash;
+    for (i = 0; i < nlocal; i++)
+      hash.insert(std::pair<int,int> (id[i],i));
+    std::map<int,int>::iterator loc;
+
+    npin = 0;
+    while (npin < ndesired) {
+      nattempt = ndesired - npin;
+      for (i = 0; i < nattempt; i++) {
+	iglobal = random->irandom(nglobal);
+	loc = hash.find(iglobal);
+	if (loc != hash.end()) {
+	  if (nthresh == 0) lattice[loc->second] = nspins+1;
+	  else {
+	    m = loc->second;
+	    ndiff = 0;
+	    for (j = 0; j < numneigh[m]; j++)
+	      if (lattice[m] != lattice[neighbor[m][j]]) ndiff++;
+	    if (ndiff >= nthresh) lattice[m] = nspins+1;
+	  }
+	}
+      }
+      
+      nme = 0;
+      for (i = 0; i < nlocal; i++)
+	if (lattice[i] > nspins) nme++;
+      MPI_Allreduce(&nme,&npin,1,MPI_INT,MPI_SUM,world);
     }
 
-    nme = 0;
-    for (i = 0; i < nlocal; i++)
-      if (lattice[i] > nspins) nme++;
-    MPI_Allreduce(&nme,&npin,1,MPI_INT,MPI_SUM,world);
+  // multi site inclusions
+  // put local and ghost sites into hash
+  // nthresh = 0 for insertion anywhere
+  // nthresh > 0 for insertion at grain boundaries
+
+  } else if (multi) {
+    std::map<int,int> hash;
+    for (i = 0; i < nlocal+nghost; i++)
+      hash.insert(std::pair<int,int> (id[i],i));
+    std::map<int,int>::iterator loc;
+
+    int *list = new int[maxneigh+1];
+
+    npin = 0;
+    while (npin < ndesired) {
+      iglobal = random->irandom(nglobal);
+      loc = hash.find(iglobal);
+      if (loc != hash.end() && loc->second < nlocal) {
+	flag = 1;
+	i = loc->second;
+	if (lattice[i] > nspins) flag = 0;
+	for (j = 0; j < numneigh[i]; j++)
+	  if (lattice[neighbor[i][j]] > nspins) flag = 0;
+	if (nthresh) {
+	  ndiff = 0;
+	  for (j = 0; j < numneigh[i]; j++)
+	    if (lattice[i] != lattice[neighbor[i][j]]) ndiff++;
+	  if (ndiff < nthresh) flag = 0;
+	}
+
+	if (flag) {
+	  flags[0] = me+1;
+	  flags[1] = numneigh[i] + 1;
+	  lattice[i] = nspins+1;
+	  for (j = 0; j < numneigh[i]; j++) {
+	    lattice[neighbor[i][j]] = nspins+1;
+	    list[j] = id[neighbor[i][j]];
+	  }
+	  list[j++] = id[i];
+	} else flags[0] = flags[1] = 0;
+      } else flags[0] = flags[1] = 0;
+      
+      MPI_Allreduce(&flags,&flagall,2,MPI_INT,MPI_SUM,world);
+
+      if (flagall[0]) {
+	MPI_Bcast(list,flagall[1],MPI_INT,flagall[0]-1,world);
+	for (i = 0; i < flagall[1]; i++) {
+	  loc = hash.find(list[i]);
+	  if (loc != hash.end()) lattice[loc->second] = nspins+1;
+	}
+
+	nme = 0;
+	for (i = 0; i < nlocal; i++)
+	  if (lattice[i] > nspins) nme++;
+	MPI_Allreduce(&nme,&npin,1,MPI_INT,MPI_SUM,world);
+      }
+    }
+
+    delete [] list;
   }
 
   delete random;
