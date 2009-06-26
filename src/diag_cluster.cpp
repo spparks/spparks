@@ -280,17 +280,17 @@ void DiagCluster::generate_clusters()
       dv = 0.0;
       vol = 0.0;
       add_cluster(id,iv,dv,vol,0,NULL);
-    }
 
-    while (cluststack.size()) {
-      // First top then pop
-      ii = cluststack.top();
-      cluststack.pop();
-      vol++;
-      applattice->push_connected_neighbors(ii,cluster_ids,ncluster,&cluststack);
+      while (cluststack.size()) {
+	// First top then pop
+	ii = cluststack.top();
+	cluststack.pop();
+	vol++;
+	applattice->push_connected_neighbors(ii,cluster_ids,ncluster,&cluststack);
+      }
+      clustlist[ncluster-1].volume = vol;
+      volsum+=vol;
     }
-    clustlist[ncluster-1].volume = vol;
-    volsum+=vol;
   }
 
   int idoffset;
@@ -304,7 +304,8 @@ void DiagCluster::generate_clusters()
 
   // change site ids to global ids
   for (int i = 0; i < nlocal; i++) {
-    cluster_ids[i] = clustlist[cluster_ids[i]-1].global_id;
+    if (cluster_ids[i] != 0)
+      cluster_ids[i] = clustlist[cluster_ids[i]-1].global_id;
   }
 
   // Communicate side ids
