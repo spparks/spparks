@@ -17,6 +17,16 @@ The current version of SPPARKS is 13 April 2009.
 
 :line
 
+[26 Jun 2009]
+
+Aidan Thompson (Sandia) fixed a bug in the recent diag_style
+cluster"_doc/diag_cluster.html upgrade.
+
+This is the "list of changed files"_patches/files.26Jun09 from the 24
+Jun 2009 version.
+
+:line
+
 [24 Jun 2009]
 
 Enhanced the "pin"_doc/pin.html command for use by the "app_style
