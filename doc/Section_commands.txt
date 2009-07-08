@@ -218,6 +218,7 @@ Restrictions in the command's documentation.
 "count"_count.html,
 "diag_style"_diag_style.html,
 "dump"_dump.html,
+"dump_one"_dump_one.html,
 "echo"_echo.html,
 "ecoord"_ecoord.html,
 "if"_if.html,

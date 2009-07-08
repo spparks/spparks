@@ -14,6 +14,8 @@ dump delta filename keyword values field1 field2 ... :pre
 
 delta = time increment between dumps (seconds) :ulb,l
 filename = name of file to dump snapshots to :l
+
+zero or more keyword/value pairs may be appended :l
 keyword = {delay} or {logfreq} or {mask} :l
   {delay} values = tdelay
     tdelay = delay dump until at least this time
@@ -22,6 +24,8 @@ keyword = {delay} or {logfreq} or {mask} :l
     factor = scale factor between interval
   {mask} values = {yes} or {no}
     yes/no = suppress output of lattice sites with zero energy :pre
+
+zero or more fields may be appended :l
 field = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} or {iN} or {dN} :l,ule
 
 [Examples:]
@@ -59,8 +63,8 @@ will dump snapshots at these times:
 
 t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... :pre
 
-By default (if no fields are listed), the output values for each site
-are the "id lattice x y z".  This is in the format of a "LAMMPS dump
+If no fields are listed, then the default output values for each site
+are "id lattice x y z".  This is in the format of a "LAMMPS dump
 file"_lammps which can thus be read-in by the "Pizza.py
 toolkit"_pizza, converted to other formats, or used for visualization.
 An important modification to the LAMMPS-style header for each snapshot
@@ -77,7 +81,7 @@ will be reflected in the header line for the number of atoms/sites.
 ITEM: NUMBER OF ATOMS
 314159
 
-If fields are listed then only those quantities will be printed for
+If fields are listed, then only those quantities will be printed for
 each lattice site.
 
 The {id} is a unique integer ID for each site.
@@ -111,6 +115,6 @@ details.
 
 [Related commands:]
 
-"stats"_stats.html
+"dump_one"_dump_one.html, "stats"_stats.html
 
 [Default:] none
