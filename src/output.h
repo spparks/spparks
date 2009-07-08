@@ -28,6 +28,7 @@ class Output : protected Pointers {
   void set_dump(int, char **);
   void add_diag(class Diag *);
   double compute(double, int);
+  void dump_one(double);
 
  private:
   int me,nprocs;

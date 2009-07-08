@@ -22,6 +22,7 @@
 #include "app_pore.h"
 #include "app_pore_nonlinear.h"
 #include "app_potts.h"
+#include "app_potts_ca.h"
 #include "app_potts_neigh.h"
 #include "app_potts_neighonly.h"
 #include "app_potts_pin.h"
@@ -41,6 +42,7 @@ AppStyle(membrane,AppMembrane)
 AppStyle(pore,AppPore)
 AppStyle(pore/nonlinear,AppPoreNonLinear)
 AppStyle(potts,AppPotts)
+AppStyle(potts/ca,AppPottsCA)
 AppStyle(potts/neigh,AppPottsNeigh)
 AppStyle(potts/neighonly,AppPottsNeighOnly)
 AppStyle(potts/pin,AppPottsPin)
@@ -72,11 +74,13 @@ SolveStyle(tree,SolveTree)
 #ifdef DiagInclude
 #include "diag_cluster.h"
 #include "diag_energy.h"
+#include "diag_erbium.h"
 #endif
 
 #ifdef DiagClass
 DiagStyle(cluster,DiagCluster)
 DiagStyle(energy,DiagEnergy)
+DiagStyle(erbium,DiagErbium)
 #endif
 
 // packages

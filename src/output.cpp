@@ -189,8 +189,7 @@ void Output::set_dump(int narg, char **arg)
 {
   // determine correct kind of app pointer
 
-  if (app->appclass == LATTICE)
-    applattice = (AppLattice *) app;
+  if (app->appclass == LATTICE) applattice = (AppLattice *) app;
   else error->all("Cannot use dump with off-lattice app");
 
   // parse dump args
@@ -413,6 +412,21 @@ double Output::compute(double time, int done)
   tnext = MIN(tnext,diag_time);
   tnext = MIN(tnext,stats_time);
   return tnext;
+}
+
+/* ----------------------------------------------------------------------
+   force current snapshot to be written out
+   does not change any attributes of next time dump
+------------------------------------------------------------------------- */
+
+void Output::dump_one(double time)
+{
+  if (dump_delta == 0.0)
+    error->all("Cannot use dump_one with no dump defined");
+  if (idump == 0)
+    error->all("Cannot use dump_one for first snapshot in dump file");
+
+  dump(time);
 }
 
 /* ----------------------------------------------------------------------
