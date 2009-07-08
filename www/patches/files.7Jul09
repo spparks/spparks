@@ -1,0 +1,12 @@
+26Jun09 version files changed by 7Jul09 upgrade:
+
+doc/Section_commands.html
+doc/Section_commands.txt
+doc/dump.html
+doc/dump.txt
+doc/dump_one.html
+doc/dump_one.txt
+src/app_lattice.cpp
+src/output.cpp
+src/output.h
+src/style.h
