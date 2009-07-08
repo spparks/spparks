@@ -30,7 +30,7 @@ Jun 2009 version.
 
 [26 Jun 2009]
 
-Aidan Thompson (Sandia) fixed a bug in the recent diag_style
+Aidan Thompson (Sandia) fixed a bug in the recent "diag_style
 cluster"_doc/diag_cluster.html upgrade.
 
 This is the "list of changed files"_patches/files.26Jun09 from the 24
