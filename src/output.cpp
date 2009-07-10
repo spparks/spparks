@@ -175,8 +175,6 @@ void Output::set_stats(int narg, char **arg)
 	if (stats_nrepeat < 1) error->all("Illegal stats command");
 	iarg++;
 	stats_scale = atof(arg[iarg]);
-	if (stats_nrepeat*stats_delta > stats_scale)
-	  error->all("Illegal stats command");
       } else error->all("Illegal stats command");
     } else error->all("Illegal stats command");
     iarg++;
@@ -216,8 +214,6 @@ void Output::set_dump(int narg, char **arg)
 	if (dump_nrepeat < 1) error->all("Illegal dump command");
 	iarg++;
 	dump_scale = atof(arg[iarg]);
-	if (dump_nrepeat*dump_delta > dump_scale)
-	  error->all("Illegal dump command");
 	iarg++;
       } else {
 	error->all("Illegal dump command");
