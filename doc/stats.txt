@@ -43,9 +43,8 @@ creating diagnostics via the "diag_style"_diag_style.html command.
 
 Using the {logfreq} keyword will produce statistical output at varying
 intervals during the course of a simulation.  There will be {N}
-outputs per interval where the size of each interval scales up by
-{factor} each time.  {Delta} is the time between outputs in the first
-(smallest) interval.
+outputs per interval where the size of the interval is initially
+{delta} and then scales up by {factor} each time.
 
 For example, this command
 
