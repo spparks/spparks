@@ -49,6 +49,7 @@ class AppLattice : public App {
   virtual void site_event(int, class RandomPark *) = 0;
 
   // virtual functions, may be overridden by child class
+
   virtual void push_new_site(int, int *, int, std::stack<int>*);
   virtual void push_connected_neighbors(int, int *, int, std::stack<int>*);
   virtual void connected_ghosts(int, int *, class Cluster *, int);
@@ -197,7 +198,6 @@ class AppLattice : public App {
 
   int connect(int, int);
   void offsets();
-
 };
 
 }
