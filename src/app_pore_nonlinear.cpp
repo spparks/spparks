@@ -16,6 +16,8 @@
 #include "string.h"
 #include "stdlib.h"
 #include "app_pore_nonlinear.h"
+#include "random_mars.h"
+#include "random_park.h"
 #include "memory.h"
 #include "error.h"
 
@@ -68,6 +70,8 @@ AppPoreNonLinear::AppPoreNonLinear(SPPARKS *spk, int narg, char **arg) :
   // each site = 1 (vacancy) or 2 (occupied)
   // pore geometry defines occupied vs unoccupied
 
+  RandomPark *random = new RandomPark(ranmaster->uniform());
+
   double x,y,z;
   int isite;
   for (int i = 0; i < nlocal; i++) {
@@ -82,4 +86,6 @@ AppPoreNonLinear::AppPoreNonLinear(SPPARKS *spk, int narg, char **arg) :
     }
     lattice[i] = isite;
   }
+
+  delete random;
 }

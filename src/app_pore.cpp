@@ -1,3 +1,4 @@
+
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
    http://www.cs.sandia.gov/~sjplimp/spparks.html
@@ -16,6 +17,8 @@
 #include "string.h"
 #include "stdlib.h"
 #include "app_pore.h"
+#include "random_mars.h"
+#include "random_park.h"
 #include "memory.h"
 #include "error.h"
 
@@ -55,6 +58,8 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
   // initialize my portion of lattice
   // each site = VACANT or OCCUPIED as defined by pore geometry
 
+  RandomPark *random = new RandomPark(ranmaster->uniform());
+
   if (infile) read_file();
 
   else {
@@ -73,4 +78,6 @@ AppPore::AppPore(SPPARKS *spk, int narg, char **arg) :
       lattice[i] = isite;
     }
   }
+
+  delete random;
 }
