@@ -19,6 +19,35 @@ code.
 </P>
 <HR>
 
+<P><B>20 Jul 2009</B>
+</P>
+<P>Added a <A HREF = "doc/app_diffusion2.html">app_style diffusion2</A> application
+which will eventually replace all of the existing <A HREF = "doc/app_diffusion.html">app_style
+diffusion</A> and <A HREF = "doc/app_pore.html">app_style
+pore</A> variants, once we've done some more testing.
+</P>
+<P>As part of the new, more general diffusion application, new commands
+for defining energy <A HREF = "doc/barrier.html">barrier</A> and
+<A HREF = "doc/deposition.html">deposition</A> event parameters were also added.
+</P>
+<P>A new lattice option for the on-lattice <A HREF = "doc/app_style.html">application
+styles</A> was added.  It is <I>fcc/octa/tetra</I> and
+defines an FCC lattice with additional interstitial octahedral and
+tetrahedral sites.  It's useful for a new application we're developing
+and will release at some point.
+</P>
+<P>This patch also includes a new option to run with the <A HREF = "doc/sweep.html">sweep
+color</A> and <A HREF = "doc/sector.html">sector yes</A> settings
+together which was not previously allowed.  We think this will be
+useful for some rejection KMC applications to enable faster sweeping
+in parallel due to less communication, while still preserving the
+independence of site updating that coloring provides.
+</P>
+<P>This is the <A HREF = "patches/files.20Jul09">list of changed files</A> from the 7
+Jul 2009 version.
+</P>
+<HR>
+
 <P><B>7 Jul 2009</B>
 </P>
 <P>Added a <A HREF = "doc/dump_one.html">dump_one</A> command to force a shapshot of

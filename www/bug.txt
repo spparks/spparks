@@ -17,6 +17,35 @@ The current version of SPPARKS is 13 April 2009.
 
 :line
 
+[20 Jul 2009]
+
+Added a "app_style diffusion2"_doc/app_diffusion2.html application
+which will eventually replace all of the existing "app_style
+diffusion"_doc/app_diffusion.html and "app_style
+pore"_doc/app_pore.html variants, once we've done some more testing.
+
+As part of the new, more general diffusion application, new commands
+for defining energy "barrier"_doc/barrier.html and
+"deposition"_doc/deposition.html event parameters were also added.
+
+A new lattice option for the on-lattice "application
+styles"_doc/app_style.html was added.  It is {fcc/octa/tetra} and
+defines an FCC lattice with additional interstitial octahedral and
+tetrahedral sites.  It's useful for a new application we're developing
+and will release at some point.
+
+This patch also includes a new option to run with the "sweep
+color"_doc/sweep.html and "sector yes"_doc/sector.html settings
+together which was not previously allowed.  We think this will be
+useful for some rejection KMC applications to enable faster sweeping
+in parallel due to less communication, while still preserving the
+independence of site updating that coloring provides.
+
+This is the "list of changed files"_patches/files.20Jul09 from the 7
+Jul 2009 version.
+
+:line
+
 [7 Jul 2009]
 
 Added a "dump_one"_doc/dump_one.html command to force a shapshot of
