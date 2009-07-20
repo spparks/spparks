@@ -28,7 +28,6 @@
 #include "app_potts_neighonly.h"
 #include "app_potts_pin.h"
 #include "app_potts_variable.h"
-#include "app_surface.h"
 #include "app_test_group.h"
 #endif
 
@@ -49,7 +48,6 @@ AppStyle(potts/neigh,AppPottsNeigh)
 AppStyle(potts/neighonly,AppPottsNeighOnly)
 AppStyle(potts/pin,AppPottsPin)
 AppStyle(potts/variable,AppPottsVariable)
-AppStyle(surface,AppSurface)
 AppStyle(test/group,AppTestGroup)
 #endif
 
