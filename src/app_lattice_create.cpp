@@ -29,6 +29,7 @@ using namespace SPPARKS_NS;
 #define DELTABUF 10000
 #define MAXLINE 512
 #define CHUNK 1024
+#define EPSILON 0.0001
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,6 +56,8 @@ void AppLattice::options(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"fcc") == 0) latstyle = FCC;
       else if (strcmp(arg[iarg+1],"bcc") == 0) latstyle = BCC;
       else if (strcmp(arg[iarg+1],"diamond") == 0) latstyle = DIAMOND;
+      else if (strcmp(arg[iarg+1],"fcc/octa/tetra") == 0) 
+	latstyle = FCC_OCTA_TETRA;
       else if (strcmp(arg[iarg+1],"random/1d") == 0) latstyle = RANDOM_1D;
       else if (strcmp(arg[iarg+1],"random/2d") == 0) latstyle = RANDOM_2D;
       else if (strcmp(arg[iarg+1],"random/3d") == 0) latstyle = RANDOM_3D;
@@ -76,6 +79,14 @@ void AppLattice::options(int narg, char **arg)
 	iarg += 5;
       } else if (latstyle == SC_6N || latstyle == SC_26N ||
 		 latstyle == FCC || latstyle == BCC || latstyle == DIAMOND) {
+	if (iarg+6 > narg) error->all("Illegal app_style command");
+	dimension = 3;
+	latconst = atof(arg[iarg+2]);
+	nx = atoi(arg[iarg+3]);
+	ny = atoi(arg[iarg+4]);
+	nz = atoi(arg[iarg+5]);
+	iarg += 6;
+      } else if (latstyle == FCC_OCTA_TETRA) {
 	if (iarg+6 > narg) error->all("Illegal app_style command");
 	dimension = 3;
 	latconst = atof(arg[iarg+2]);
@@ -157,7 +168,8 @@ void AppLattice::create_lattice()
   if (latstyle == LINE_2N ||
       latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI || 
       latstyle == SC_6N || latstyle == SC_26N || 
-      latstyle == FCC || latstyle == BCC || latstyle == DIAMOND) {
+      latstyle == FCC || latstyle == BCC || latstyle == DIAMOND ||
+      latstyle == FCC_OCTA_TETRA) {
     structured_lattice();
   } else if (latstyle == RANDOM_1D || latstyle == RANDOM_2D ||
 	     latstyle == RANDOM_3D) {
@@ -212,7 +224,8 @@ void AppLattice::structured_lattice()
     boxzlo = -0.5;
     boxzhi = 0.5;
   } else if (latstyle == SC_6N || latstyle == SC_26N || 
-	     latstyle == FCC || latstyle == BCC || latstyle == DIAMOND) {
+	     latstyle == FCC || latstyle == BCC || latstyle == DIAMOND ||
+	     latstyle == FCC_OCTA_TETRA) {
     boxxlo = boxylo = boxzlo = 0.0;
     boxxhi = nx * latconst;
     boxyhi = ny * latconst;
@@ -231,7 +244,8 @@ void AppLattice::structured_lattice()
 
   // basis sites of each unit cell depend on lattice
 
-  double basis[8][3];
+  double **basis;
+  memory->create_2d_T_array(basis,16,3,"app:basis");
 
   if (latstyle == LINE_2N) {
     nbasis = 1;
@@ -274,6 +288,25 @@ void AppLattice::structured_lattice()
     basis[5][0] = 0.25; basis[5][1] = 0.75; basis[5][2] = 0.75;
     basis[6][0] = 0.75; basis[6][1] = 0.25; basis[6][2] = 0.75;
     basis[7][0] = 0.75; basis[7][1] = 0.75; basis[7][2] = 0.25;
+  } else if (latstyle == FCC_OCTA_TETRA) {
+    nbasis = 16;
+    nglobal = nbasis * nx*ny*nz;
+    basis[0][0] = 0.0; basis[0][1] = 0.0; basis[0][2] = 0.0;
+    basis[1][0] = 0.0; basis[1][1] = 0.5; basis[1][2] = 0.5;
+    basis[2][0] = 0.5; basis[2][1] = 0.0; basis[2][2] = 0.5;
+    basis[3][0] = 0.5; basis[3][1] = 0.5; basis[3][2] = 0.0;
+    basis[4][0] = 0.5; basis[4][1] = 0.0; basis[4][2] = 0.0;
+    basis[5][0] = 0.0; basis[5][1] = 0.5; basis[5][2] = 0.0;
+    basis[6][0] = 0.0; basis[6][1] = 0.0; basis[6][2] = 0.5;
+    basis[7][0] = 0.5; basis[7][1] = 0.5; basis[7][2] = 0.5;
+    basis[8][0] = 0.25; basis[8][1] = 0.25; basis[8][2] = 0.25;
+    basis[9][0] = 0.75; basis[9][1] = 0.25; basis[9][2] = 0.25;
+    basis[10][0] = 0.25; basis[10][1] = 0.75; basis[10][2] = 0.25;
+    basis[11][0] = 0.75; basis[11][1] = 0.75; basis[11][2] = 0.25;
+    basis[12][0] = 0.25; basis[12][1] = 0.25; basis[12][2] = 0.75;
+    basis[13][0] = 0.75; basis[13][1] = 0.25; basis[13][2] = 0.75;
+    basis[14][0] = 0.25; basis[14][1] = 0.75; basis[14][2] = 0.75;
+    basis[15][0] = 0.75; basis[15][1] = 0.75; basis[15][2] = 0.75;
   }
 
   // generate lattice of sites
@@ -342,6 +375,7 @@ void AppLattice::structured_lattice()
   else if (latstyle == FCC) maxneigh = 12;
   else if (latstyle == BCC) maxneigh = 8;
   else if (latstyle == DIAMOND) maxneigh = 4;
+  else if (latstyle == FCC_OCTA_TETRA) maxneigh = 26;
 
   numneigh = (int *) memory->smalloc(nlocal*sizeof(int),"app:numneigh");
   memory->create_2d_T_array(neighbor,nlocal,maxneigh,"app:neighbor");
@@ -349,21 +383,36 @@ void AppLattice::structured_lattice()
   // create connectivity offsets
 
   memory->create_3d_T_array(cmap,nbasis,maxneigh,4,"app:cmap");
-  offsets();
+  offsets(basis);
 
   // generate global lattice connectivity for each site
   // connect() computes global index of Jth neighbor of global site I
   // global index = 1 to Nglobal
+  // FCC_OCTA_TETRA does not have same # of neighs for all sites
 
-  for (i = 0; i < nlocal; i++) {
-    numneigh[i] = maxneigh;
-    for (j = 0; j < numneigh[i]; j++) {
-      neighbor[i][j] = connect(id[i],j);
-      if (neighbor[i][j] <= 0 || neighbor[i][j] > nglobal)
-	error->all("Bad connectivity result");
+  if (latstyle == FCC_OCTA_TETRA) {
+    for (i = 0; i < nlocal; i++) {
+      if ((id[i]-1) % 16 < 8) numneigh[i] = maxneigh;
+      else numneigh[i] = 14;
+      for (j = 0; j < numneigh[i]; j++) {
+	neighbor[i][j] = connect(id[i],j);
+	if (neighbor[i][j] <= 0 || neighbor[i][j] > nglobal)
+	  error->all("Bad connectivity result");
+      }
+    }
+
+  } else {
+    for (i = 0; i < nlocal; i++) {
+      numneigh[i] = maxneigh;
+      for (j = 0; j < numneigh[i]; j++) {
+	neighbor[i][j] = connect(id[i],j);
+	if (neighbor[i][j] <= 0 || neighbor[i][j] > nglobal)
+	  error->all("Bad connectivity result");
+      }
     }
   }
 
+  memory->destroy_2d_T_array(basis);
   memory->destroy_3d_T_array(cmap);
 
   // create and initialize other site arrays
@@ -563,6 +612,7 @@ void AppLattice::file_lattice()
   // read and broadcast list of global vertices
   // keep ones in my sub-domain
   // special treatment to avoid losing vertices at upper boundaries
+  // include a MPI_Allreduce to force sync, else fast Bcasts crash sometimes
 
   if (me == 0) {
     eof = fgets(line,MAXLINE,fp);
@@ -574,7 +624,7 @@ void AppLattice::file_lattice()
   int max = 0;
   nlocal = 0;
   
-  int idone;
+  int idone,tmp,tmpall;
   double xone[3];
   xone[1] = xone[2] = 0.0;
 
@@ -599,6 +649,7 @@ void AppLattice::file_lattice()
     }
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
+    MPI_Allreduce(&tmp,&tmpall,0,MPI_INT,MPI_SUM,world);
 
     bufptr = buffer;
     for (i = 0; i < nchunk; i++) {
@@ -701,6 +752,7 @@ void AppLattice::file_lattice()
     nread += nchunk;
   }
 
+  delete [] buffer;
   if (me == 0) fclose(fp);
 
   // create and initialize other site arrays
@@ -1276,7 +1328,8 @@ int AppLattice::connect(int iglobal, int ineigh)
     n = j*nx*nbasis + i*nbasis + m + 1;
 
   } else if (latstyle == SC_6N || latstyle == SC_26N || 
-	     latstyle == FCC || latstyle == BCC || latstyle == DIAMOND) {
+	     latstyle == FCC || latstyle == BCC || latstyle == DIAMOND ||
+	     latstyle == FCC_OCTA_TETRA) {
     i = (iglobal-1)/nbasis % nx;
     j = (iglobal-1)/nbasis / nx % ny;;
     k = (iglobal-1)/nbasis / (nx*ny);
@@ -1299,212 +1352,145 @@ int AppLattice::connect(int iglobal, int ineigh)
 
 /* ---------------------------------------------------------------------- */
 
-void AppLattice::offsets()
+void AppLattice::offsets(double **basis)
 {
   if (latstyle == LINE_2N) {
     cmap[0][0][0] = -1; cmap[0][0][1] =  0;
     cmap[0][1][0] =  1; cmap[0][1][1] =  0;
+  }
 
-  } else if (latstyle == SQ_4N) {
-    cmap[0][0][0] = -1; cmap[0][0][1] =  0; cmap[0][0][2] = 0;
-    cmap[0][1][0] =  1; cmap[0][1][1] =  0; cmap[0][1][2] = 0;
-    cmap[0][2][0] =  0; cmap[0][2][1] = -1; cmap[0][2][2] = 0;
-    cmap[0][3][0] =  0; cmap[0][3][1] =  1; cmap[0][3][2] = 0;
+  if (latstyle == SQ_4N)
+    for (int m = 0; m < nbasis; m++)
+      offsets_2d(m,basis,latconst,latconst,
+		 latconst,latconst,maxneigh,cmap[m]);
+  else if (latstyle == SQ_8N)
+    for (int m = 0; m < nbasis; m++)
+      offsets_2d(m,basis,latconst,latconst,
+		 latconst,sqrt(2.0)*latconst,maxneigh,cmap[m]);
+  else if (latstyle == TRI)
+    for (int m = 0; m < nbasis; m++)
+      offsets_2d(m,basis,latconst,sqrt(3.0)*latconst,
+		 latconst,latconst,maxneigh,cmap[m]);
 
-  } else if (latstyle == SQ_8N) {
-    cmap[0][0][0] = -1; cmap[0][0][1] =  0; cmap[0][0][2] = 0;
-    cmap[0][1][0] =  1; cmap[0][1][1] =  0; cmap[0][1][2] = 0;
-    cmap[0][2][0] =  0; cmap[0][2][1] = -1; cmap[0][2][2] = 0;
-    cmap[0][3][0] =  0; cmap[0][3][1] =  1; cmap[0][3][2] = 0;
-    cmap[0][4][0] = -1; cmap[0][4][1] = -1; cmap[0][4][2] = 0;
-    cmap[0][5][0] = -1; cmap[0][5][1] =  1; cmap[0][5][2] = 0;
-    cmap[0][6][0] =  1; cmap[0][6][1] = -1; cmap[0][6][2] = 0;
-    cmap[0][7][0] =  1; cmap[0][7][1] =  1; cmap[0][7][2] = 0;
+  if (latstyle == SC_6N)
+    for (int m = 0; m < nbasis; m++)
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		 latconst,latconst,maxneigh,cmap[m]);
+  else if (latstyle == SC_26N)
+    for (int m = 0; m < nbasis; m++)
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		latconst,sqrt(3.0)*latconst,maxneigh,cmap[m]);
+  else if (latstyle == FCC)
+    for (int m = 0; m < nbasis; m++)
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		sqrt(2.0)/2.0*latconst,sqrt(2.0)/2.0*latconst,
+		 maxneigh,cmap[m]);
+  else if (latstyle == BCC)
+    for (int m = 0; m < nbasis; m++)
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		sqrt(3.0)/2.0*latconst,sqrt(3.0)/2.0*latconst,
+		 maxneigh,cmap[m]);
+  else if (latstyle == DIAMOND)
+    for (int m = 0; m < nbasis; m++)
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		 sqrt(3.0)/4.0*latconst,sqrt(3.0)/4.0*latconst,
+		 maxneigh,cmap[m]);
 
-  } else if (latstyle == TRI) {
-    cmap[0][0][0] = -1; cmap[0][0][1] =  0; cmap[0][0][2] = 0;
-    cmap[0][1][0] =  1; cmap[0][1][1] =  0; cmap[0][1][2] = 0;
-    cmap[0][2][0] =  0; cmap[0][2][1] =  0; cmap[0][2][2] = 1;
-    cmap[0][3][0] = -1; cmap[0][3][1] =  0; cmap[0][3][2] = 1;
-    cmap[0][4][0] = -1; cmap[0][4][1] = -1; cmap[0][4][2] = 1;
-    cmap[0][5][0] =  0; cmap[0][5][1] = -1; cmap[0][5][2] = 1;
+  else if (latstyle == FCC_OCTA_TETRA) {
+    for (int m = 0; m < 4; m++) {
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		 sqrt(2.0)/2.0*latconst,sqrt(2.0)/2.0*latconst,12,&cmap[m][0]);
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		 0.5*latconst,0.5*latconst,6,&cmap[m][12]);
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		 sqrt(3.0)/4.0*latconst,sqrt(3.0)/4.0*latconst,8,&cmap[m][18]);
+    }
+    for (int m = 4; m < 8; m++) {
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		 0.5*latconst,0.5*latconst,6,&cmap[m][0]);
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		 sqrt(2.0)/2.0*latconst,sqrt(2.0)/2.0*latconst,12,&cmap[m][6]);
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		 sqrt(3.0)/4.0*latconst,sqrt(3.0)/4.0*latconst,8,&cmap[m][18]);
+    }
+    for (int m = 8; m < nbasis; m++) {
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		 sqrt(3.0)/4.0*latconst,sqrt(3.0)/4.0*latconst,8,&cmap[m][0]);
+      offsets_3d(m,basis,latconst,latconst,latconst,
+		 0.5*latconst,0.5*latconst,6,&cmap[m][8]);
+    }
+  }
+}
 
-    cmap[1][0][0] = -1; cmap[1][0][1] =  0; cmap[1][0][2] = 1;
-    cmap[1][1][0] =  1; cmap[1][1][1] =  0; cmap[1][1][2] = 1;
-    cmap[1][2][0] =  0; cmap[1][2][1] =  0; cmap[1][2][2] = 0;
-    cmap[1][3][0] =  0; cmap[1][3][1] =  1; cmap[1][3][2] = 0;
-    cmap[1][4][0] =  1; cmap[1][4][1] =  0; cmap[1][4][2] = 0;
-    cmap[1][5][0] =  1; cmap[1][5][1] =  1; cmap[1][5][2] = 0;
+/* ---------------------------------------------------------------------- */
 
-  } else if (latstyle == SC_6N) {
-    cmap[0][0][0] = -1; cmap[0][0][1] =  0; cmap[0][0][2] =  0;
-    cmap[0][1][0] =  1; cmap[0][1][1] =  0; cmap[0][1][2] =  0;
-    cmap[0][2][0] =  0; cmap[0][2][1] = -1; cmap[0][2][2] =  0;
-    cmap[0][3][0] =  0; cmap[0][3][1] =  1; cmap[0][3][2] =  0;
-    cmap[0][4][0] =  0; cmap[0][4][1] =  0; cmap[0][4][2] =  -1;
-    cmap[0][5][0] =  0; cmap[0][5][1] =  0; cmap[0][5][2] =   1;
-    for (int m = 0; m < maxneigh; m++) cmap[0][m][3] = 0;
- 
-  } else if (latstyle == SC_26N) {
-    int m = 0;
-    for (int i = -1; i <= 1; i++)
-      for (int j = -1; j <= 1; j++)
-	for (int k = -1; k <= 1; k++) {
-	  if (i == 0 && j == 0 && k == 0) continue;
-	  cmap[0][m][0] = i; cmap[0][m][1] = j; cmap[0][m][2] = k;
-	  cmap[0][m][3] = 0;
-	  m++;
+void AppLattice::offsets_2d(int ibasis, double **basis, 
+			    double xlat, double ylat,
+			    double cutlo, double cuthi,
+			    int ntarget, int **cmapone)
+{
+  int i,j,m,n;
+  double x0,y0,delx,dely,r;
+
+  n = 0;
+  x0 = basis[ibasis][0] * xlat;
+  y0 = basis[ibasis][1] * ylat;
+  for (i = -1; i <= 1; i++) {
+    for (j = -1; j <= 1; j++) {
+      for (m = 0; m < nbasis; m++) {
+	delx = (i+basis[m][0])*xlat - x0;
+	dely = (j+basis[m][1])*ylat - y0;
+	r = sqrt(delx*delx + dely*dely);
+	if (r > cutlo-EPSILON && r < cuthi+EPSILON) {
+	  if (n == ntarget) error->all("Incorrect lattice neighbor count");
+	  cmapone[n][0] = i;
+	  cmapone[n][1] = j;
+	  cmapone[n][2] = m;
+	  n++;
 	}
-
-  } else if (latstyle == FCC) {
-    int m = 0;                             // 1st basis site
-    for (int ii = -1; ii <= 0; ii++)       // 4 neighs with same x
-      for (int jj = -1; jj <= 0; jj++) {
-	cmap[0][m][0] = 0; cmap[0][m][1] = ii; cmap[0][m][2] = jj;
-	cmap[0][m][3] = 1;
-	m++;
-      }
-    for (int ii = -1; ii <= 0; ii++)       // 4 neighs with same y
-      for (int jj = -1; jj <= 0; jj++) {
-	cmap[0][m][0] = ii; cmap[0][m][1] = 0; cmap[0][m][2] = jj;
-	cmap[0][m][3] = 2;
-	m++;
-      }
-    for (int ii = -1; ii <= 0; ii++)       // 4 neighs with same y
-      for (int jj = -1; jj <= 0; jj++) {
-	cmap[0][m][0] = ii; cmap[0][m][1] = jj; cmap[0][m][2] = 0;
-	cmap[0][m][3] = 3;
-	m++;
-      }
-
-    m = 0;                                 // 2nd basis site
-    for (int ii = 0; ii <= 1; ii++)        // 4 neighs with same x
-      for (int jj = 0; jj <= 1; jj++) {
-	cmap[1][m][0] = 0; cmap[1][m][1] = ii; cmap[1][m][2] = jj;
-	cmap[1][m][3] = 0;
-	m++;
-      }
-    for (int ii = -1; ii <= 0; ii++)       // 4 neighs with same y
-      for (int jj = 0; jj <= 1; jj++) {
-	cmap[1][m][0] = ii; cmap[1][m][1] = 0; cmap[1][m][2] = jj;
-	cmap[1][m][3] = 3;
-	m++;
-      }
-    for (int ii = -1; ii <= 0; ii++)       // 4 neighs with same z
-      for (int jj = 0; jj <= 1; jj++) {
-	cmap[1][m][0] = ii; cmap[1][m][1] = jj; cmap[1][m][2] = 0;
-	cmap[1][m][3] = 2;
-	m++;
-      }
-
-    m = 0;                                 // 3rd basis site
-    for (int ii = -1; ii <= 0; ii++)       // 4 neighs with same x
-      for (int jj = 0; jj <= 1; jj++) {
-	cmap[2][m][0] = 0; cmap[2][m][1] = ii; cmap[2][m][2] = jj;
-	cmap[2][m][3] = 3;
-	m++;
-      }
-    for (int ii = 0; ii <= 1; ii++)        // 4 neighs with same y
-      for (int jj = 0; jj <= 1; jj++) {
-	cmap[2][m][0] = ii; cmap[2][m][1] = 0; cmap[2][m][2] = jj;
-	cmap[2][m][3] = 0;
-	m++;
-      }
-    for (int ii = 0; ii <= 1; ii++)       // 4 neighs with same z
-      for (int jj = -1; jj <= 0; jj++) {
-	cmap[2][m][0] = ii; cmap[2][m][1] = jj; cmap[2][m][2] = 0;
-	cmap[2][m][3] = 1;
-	m++;
-      }
-
-    m = 0;                                 // 4th basis site
-    for (int ii = 0; ii <= 1; ii++)        // 4 neighs with same x
-      for (int jj = -1; jj <= 0; jj++) {
-	cmap[3][m][0] = 0; cmap[3][m][1] = ii; cmap[3][m][2] = jj;
-	cmap[3][m][3] = 2;
-	m++;
-      }
-    for (int ii = 0; ii <= 1; ii++)       // 4 neighs with same y
-      for (int jj = -1; jj <= 0; jj++) {
-	cmap[3][m][0] = ii; cmap[3][m][1] = 0; cmap[3][m][2] = jj;
-	cmap[3][m][3] = 1;
-	m++;
-      }
-    for (int ii = 0; ii <= 1; ii++)        // 4 neighs with same z
-      for (int jj = 0; jj <= 1; jj++) {
-	cmap[3][m][0] = ii; cmap[3][m][1] = jj; cmap[3][m][2] = 0;
-	cmap[3][m][3] = 0;
-	m++;
-      }
-
-  } else if (latstyle == BCC) {
-    int m = 0;
-    for (int i = -1; i <= 0; i++)
-      for (int j = -1; j <= 0; j++)
-	for (int k = -1; k <= 0; k++) {
-	  cmap[0][m][0] = i; cmap[0][m][1] = j; cmap[0][m][2] = k;
-	  cmap[0][m][3] = 1;
-	  m++;
-	}
-
-    m = 0;
-    for (int i = 0; i <= 1; i++)
-      for (int j = 0; j <= 1; j++)
-	for (int k = 0; k <= 1; k++) {
-	  cmap[1][m][0] = i; cmap[1][m][1] = j; cmap[1][m][2] = k;
-	  cmap[1][m][3] = 0;
-	  m++;
-	}
-
-  } else if (latstyle == DIAMOND) {
-    int ibasis[8][3] = {{0,0,0}, {0,2,2}, {2,0,2}, {2,2,0}, 
-			{1,1,1}, {1,3,3}, {3,1,3}, {3,3,1}};
-    int bond[4][3] = {{1,1,1}, {1,-1,-1}, {-1,1,-1}, {-1,-1,1}};
-
-    int n,m,x,y,z,i,j,k,ib;
-
-    for (n = 0; n < nbasis; n++) {
-      for (m = 0; m < maxneigh; m++) {
-	if (n < 4) {
-	  x = ibasis[n][0] + bond[m][0];
-	  y = ibasis[n][1] + bond[m][1];
-	  z = ibasis[n][2] + bond[m][2];
-	} else {
-	  x = ibasis[n][0] - bond[m][0];
-	  y = ibasis[n][1] - bond[m][1];
-	  z = ibasis[n][2] - bond[m][2];
-	}
-
-	if (x < 0) {
-	  x += 4;
-	  i = -1;
-	} else if (x > 3) {
-	  x -= 4;
-	  i = 1;
-	} else i = 0;
-	if (y < 0) {
-	  y += 4;
-	  j = -1;
-	} else if (y > 3) {
-	  y -= 4;
-	  j = 1;
-	} else j = 0;
-	if (z < 0) {
-	  z += 4;
-	  k = -1;
-	} else if (z > 3) {
-	  z -= 4;
-	  k = 1;
-	} else k = 0;
-
-	cmap[n][m][0] = i; cmap[n][m][1] = j; cmap[n][m][2] = k;
-	
-	for (ib = 0; ib < nbasis; ib++)
-	  if (x == ibasis[ib][0] && y == ibasis[ib][1] && 
-	      z == ibasis[ib][2]) cmap[n][m][3] = ib;
       }
     }
   }
+
+  if (n != ntarget) error->all("Incorrect lattice neighbor count");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppLattice::offsets_3d(int ibasis, double **basis, 
+			    double xlat, double ylat, double zlat,
+			    double cutlo, double cuthi, 
+			    int ntarget, int **cmapone)
+{
+  int i,j,k,m,n;
+  double x0,y0,z0,delx,dely,delz,r;
+
+  n = 0;
+  x0 = basis[ibasis][0] * xlat;
+  y0 = basis[ibasis][1] * ylat;
+  z0 = basis[ibasis][2] * zlat;
+  for (i = -1; i <= 1; i++) {
+    for (j = -1; j <= 1; j++) {
+      for (k = -1; k <= 1; k++) {
+	for (m = 0; m < nbasis; m++) {
+	  delx = (i+basis[m][0])*xlat - x0;
+	  dely = (j+basis[m][1])*ylat - y0;
+	  delz = (k+basis[m][2])*zlat - z0;
+	  r = sqrt(delx*delx + dely*dely + delz*delz);
+	  if (r > cutlo-EPSILON && r < cuthi+EPSILON) {
+	    if (n == ntarget) error->all("Incorrect lattice neighbor count");
+	    cmapone[n][0] = i;
+	    cmapone[n][1] = j;
+	    cmapone[n][2] = k;
+	    cmapone[n][3] = m;
+	    n++;
+	  }
+	}
+      }
+    }
+  }
+
+  if (n != ntarget) error->all("Incorrect lattice neighbor count");
 }
 
 /* ----------------------------------------------------------------------

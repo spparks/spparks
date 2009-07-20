@@ -13,6 +13,7 @@
 
 #ifdef AppInclude
 #include "app_chemistry.h"
+#include "app_diffusion2.h"
 #include "app_diffusion.h"
 #include "app_diffusion_table.h"
 #include "app_diffusion_nonlinear.h"
@@ -33,6 +34,7 @@
 
 #ifdef AppClass
 AppStyle(chemistry,AppChemistry)
+AppStyle(diffusion2,AppDiffusion2)
 AppStyle(diffusion,AppDiffusion)
 AppStyle(diffusion/table,AppDiffusionTable)
 AppStyle(diffusion/nonlinear,AppDiffusionNonLinear)
@@ -73,14 +75,14 @@ SolveStyle(tree,SolveTree)
 
 #ifdef DiagInclude
 #include "diag_cluster.h"
+#include "diag_deposition.h"
 #include "diag_energy.h"
-#include "diag_erbium.h"
 #endif
 
 #ifdef DiagClass
 DiagStyle(cluster,DiagCluster)
+DiagStyle(deposition,DiagDeposition)
 DiagStyle(energy,DiagEnergy)
-DiagStyle(erbium,DiagErbium)
 #endif
 
 // packages

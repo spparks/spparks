@@ -55,7 +55,7 @@ class AppLattice : public App {
   virtual void connected_ghosts(int, int *, class Cluster *, int);
 
   enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
-       RANDOM_1D,RANDOM_2D,RANDOM_3D,FILENAME};
+	 FCC_OCTA_TETRA,RANDOM_1D,RANDOM_2D,RANDOM_3D,FILENAME};
 
  protected:
   int me,nprocs;
@@ -87,6 +87,8 @@ class AppLattice : public App {
   int sectorflag;              // 1 if partition my domain into sectors
   int nsector;                 // 1,2,4,8 = # of sectors
   int nsector_user;            // 0 if default, else 2,4,8
+  int ncolors;                 // # of colors, depends on lattice
+  int bothflag;                // 1 if both sectors and colors
 
   class RandomPark *ranapp;    // RN generator for KMC and rejection KMC
   class RandomPark *ranstrict; // RN generator for per-site strict rKMC
@@ -134,6 +136,9 @@ class AppLattice : public App {
 
   int nbasis;                  // basis atoms for regular lattices
   int ***cmap;                 // connectivity map for regular lattices
+                               // cmap[nbasis][maxneigh][4]
+                               // 0,1,2 = x,y,z offsets in unit cell
+                               // 3 = which atom in offset unit cell
 
   struct Set {                 // subset of lattice sites I own
     int nlocal;                // # of owned sites in set
@@ -197,7 +202,10 @@ class AppLattice : public App {
   void procs2lattice_3d();
 
   int connect(int, int);
-  void offsets();
+  void offsets(double **);
+  void offsets_2d(int, double **, double, double, double, double, int, int **);
+  void offsets_3d(int, double **, double, double, double, double, double,
+		  int, int **);
 };
 
 }

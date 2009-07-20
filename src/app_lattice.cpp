@@ -162,8 +162,8 @@ void AppLattice::init()
     error->all("Cannot use random rejection KMC in parallel with no sectors");
   if (nprocs > 1 && sectorflag == 0 && sweepflag == RASTER)
     error->all("Cannot use raster rejection KMC in parallel with no sectors");
-  if (sectorflag && (sweepflag == COLOR || sweepflag == COLOR_STRICT))
-    error->all("Cannot use colored rejection KMC with sectors");
+  if (sectorflag && sweepflag == COLOR_STRICT)
+    error->all("Cannot use color/strict rejection KMC with sectors");
 
   if (sweepflag && dt_sweep == 0.0)
     error->all("Lattice app did not set dt_sweep");
@@ -197,7 +197,7 @@ void AppLattice::init()
   // setup test for create_set
   // check periodicity against lattice extent
 
-  int ncolors = 1;
+  ncolors = 1;
   if (sweepflag == COLOR || sweepflag == COLOR_STRICT) {
     int delcolor = delevent + delpropensity;
     if (latstyle == LINE_2N) {
@@ -234,6 +234,9 @@ void AppLattice::init()
       error->all("Cannot color this combination of lattice and app");
   }
 
+  if (nsector > 1 && ncolors > 1) bothflag = 1;
+  else bothflag = 0;
+
   // create sets based on sectors and coloring
   // only do this on first init
 
@@ -242,14 +245,21 @@ void AppLattice::init()
       nset = 1;
       set = new Set[nset];
       create_set(0,0,0);
-    } else if (nsector > 1) {
+    } else if (nsector > 1 && ncolors == 1) {
       nset = nsector;
       set = new Set[nset];
       for (int i = 0; i < nset; i++) create_set(i,i+1,0);
-    } else if (ncolors > 1) {
+    } else if (ncolors > 1 && nsector == 1) {
       nset = ncolors;
       set = new Set[nset];
       for (int i = 0; i < nset; i++) create_set(i,0,i+1);
+    } else if (bothflag) {
+      nset = ncolors*nsector;
+      set = new Set[nset];
+      int m = 0;
+      for (int i = 0; i < nsector; i++) 
+	for (int j = 0; j < ncolors; j++)
+	  create_set(m++,i+1,j+1);
     }
   }
 
@@ -373,17 +383,22 @@ void AppLattice::setup()
   }
 
   // convert rejection info to rKMC params
+  // nloop and nselect are set whether sectoring is used or not
 
   if (sweepflag != NOSWEEP) {
     if (sweepflag == RANDOM) {
       if (nstop > 0.0) {
-	for (int i = 0; i < nset; i++)
+	for (int i = 0; i < nset; i++) {
+	  set[i].nloop = 0;
 	  set[i].nselect = static_cast<int> (nstop*set[i].nlocal);
+	}
       }
       if (tstop > 0.0) {
 	double n = tstop / (dt_sweep/nglobal);
-	for (int i = 0; i < nset; i++)
+	for (int i = 0; i < nset; i++) {
+	  set[i].nloop = 0;
 	  set[i].nselect = static_cast<int> (n/nglobal * set[i].nlocal);
+	}
       }
 
     } else if (sweepflag == RASTER || 
@@ -596,7 +611,7 @@ void AppLattice::iterate_kmc_sector(double stoptime)
 
 void AppLattice::iterate_rejection(double stoptime)
 {
-  int i,nselect,nrange;
+  int i,icolor,nselect,nrange;
   int *site2i;
 
   int done = 0;
@@ -604,7 +619,8 @@ void AppLattice::iterate_rejection(double stoptime)
     for (int iset = 0; iset < nset; iset++) {
       if (nprocs > 1) {
 	timer->stamp();
-	if (sectorflag) comm->sector(iset);
+	if (bothflag) comm->sector(iset/ncolors);
+	else if (sectorflag) comm->sector(iset);
 	else comm->all();
 	timer->stamp(TIME_COMM);
       }
@@ -612,6 +628,9 @@ void AppLattice::iterate_rejection(double stoptime)
       if (Lmask) boundary_clear_mask(iset);
 
       timer->stamp();
+
+      // sectors but no colors (could be no sectors)
+      // sweep over random selection of sites in iset
 
       if (sweepflag == RANDOM) {
 	site2i = set[iset].site2i;
@@ -622,16 +641,33 @@ void AppLattice::iterate_rejection(double stoptime)
 	(this->*sweep)(nselect,sitelist);
 	nattempt += nselect;
 
-      } else {
+      // sectors but no colors, or no sectors with colors
+      // sweep over all sites in iset
+
+      } else if (bothflag == 0) {
 	for (i = 0; i < set[iset].nloop; i++)
 	  (this->*sweep)(set[iset].nlocal,set[iset].site2i);
 	nattempt += set[iset].nselect;
+
+      // sectors and colors, so nset = nsector*ncolors
+      // increment iset here to make outer loop be over sectors,
+      // inner loop here is over colors, sweep over all sites in iset
+
+      } else {
+	for (icolor = 0; icolor < ncolors; icolor++) {
+	  for (i = 0; i < set[iset].nloop; i++)
+	    (this->*sweep)(set[iset].nlocal,set[iset].site2i);
+	  nattempt += set[iset].nselect;
+	  iset++;
+	}
+	iset--;
       }
 
       timer->stamp(TIME_SOLVE);
 
       if (nprocs > 1) {
-	if (sectorflag) comm->reverse_sector(iset);
+	if (bothflag) comm->reverse_sector(iset/ncolors);
+	else if (sectorflag) comm->reverse_sector(iset);
 	else comm->all_reverse();
 	timer->stamp(TIME_COMM);
       }
