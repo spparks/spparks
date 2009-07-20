@@ -1,0 +1,87 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>barrier command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>barrier Q
+barrier delta Q
+barrier I J Q 
+</PRE>
+<UL><LI>Q = barrier height (energy units)
+<LI>delta = difference in coordination number of 2 participating sites
+<LI>I,J = coordination numbers of 2 participating sites 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>barrier 0.25
+barrier 1 0.3
+barrier -1 0.35
+barrier 3 4 0.2
+barrier * * 0.1
+barrier 2*5 3* 0.1 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command sets the energy barrier for a diffusive hop of an atom
+from an occupied site to a neighboring vacant site.  See the
+<A HREF = "app_diffusion.html">app_style diffusion2</A> command for how the barrier
+is used in conjunction with the energy change of the system due to the
+hop to calculate a probability for the hop to occur.
+</P>
+<P>Barriers are assigned based on two coordination numbers, for the
+initial site of the hopping atom and its final site.  Thus typically
+(Nmax+1)*(Nmax+1) values should be specified by using this command one
+or more times, which can be thought of as (I,J) matrix entries where
+both I and J vary from 0 to Nmax, when Nmax is the number of neighbor
+sites for each lattice site.  Note that it is permissible to have Qij
+!= Qji, particularly if the model does not use energies, but only
+barriers to set forward/reverse rates.
+</P>
+<P>If only one argument Q is specified, then all matrix values are set to
+Q.  If the Q value = 0.0, this effectively turns off barriers in the
+model.
+</P>
+<P>If two arguments delta and Q are specified, then all matrix
+elements where delta = J-I are set to Q.
+</P>
+<P>If three arguments I and J and Q are specified, then the (I,J) element
+is set to Q.  In this case, the I.J indices can each be specified in
+one of two ways.  An explicit numeric value can be used, as in the 4th
+example above.  Or a wild-card asterisk can be used to set the energy
+value for multiple coordination numbers.  This takes the form "*" or
+"*n" or "n*" or "m*n".  If Nmax = the number of neighbor sites, then
+an asterisk with no numeric values means all coordination numbers from
+0 to Nmax.  A leading asterisk means all coordination numbers from 0
+to n (inclusive).  A trailing asterisk means all coordination numbers
+from n to Nmax (inclusive).  A middle asterisk means all coordination
+numbers from m to n (inclusive).
+</P>
+<P>The <I>Q</I> value should be in the energy units defined by the
+application's Hamiltonian and should be consistent with the units used
+in any <A HREF = "temperature.html">temperature</A> command.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used as part of the <A HREF = "app_diffusion2.html">app_style
+diffusion2</A> application.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "deposition.html">deposition</A>, <A HREF = "ecoord.html">ecoord</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>Energy barriers for all hop events are set to 0, which is effectively
+no barriers.
+</P>
+</HTML>

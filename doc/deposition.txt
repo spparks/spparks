@@ -1,0 +1,70 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+deposition command :h3
+
+[Syntax:]
+
+deposition rate dirx diry dirz d0 lo hi :pre
+
+rate = rate of atom deposition (atom/sec units)
+dirx,diry,dirz = vector in direction of incidence
+d0 = capture distance (distance units)
+lo,hi = min/max coordination number of deposition site :ul
+
+[Examples:]
+
+deposition	 1.0 0 -1 0 1.0 1 4 
+deposition	 1.0 1 1 -1 1.0 3 10 :pre
+
+[Description:]
+
+This commands invokes deposition events in an on-lattice diffusion
+model, specified by the "app_style diffusion"_app_diffusion2.html
+command.
+
+Deposition events will compete with diffusive hop events in the
+diffusion model.  Each time a deposition event is selected, a random
+starting point at the top of the simulation box is selected (top y
+surface in 2d, top z surface in 3d).  The atom trajectory is traced
+along its incident direction which is specified by (dirx,diry,dirz)
+and need not be a unit vector.  However, diry < 0 and dirz = 0 is
+required for 2d models.  Similarly, dirz < 0 is required for 3d
+models.
+
+Candidate deposition sites are vacant sites within a perpendicular
+distance {d0} from the incident trajectory which also have a current
+coordination number C such that {lo} <= C <= {hi}.  Note that {d0} is
+specified in distance units which will depend on how you setup your
+lattice via the "app_style"_app_style.html command.  For example, if
+you specified you lattice constant or box size in Angstroms, then the
+distance units for this command are Angstroms as well.
+
+If the inicident angle is not vertical, then periodic images of the
+starting point with associated incident trajectories are considered
+and the {d0} capture distance is applied to whichever trajectory the
+candidate site is closest to, in a perpendicular sense.  This means
+x-periodicity in 2d and x- and y-periodicity in 3d.
+
+For the set of candidate sites, the selected deposition site is the
+one closest to the starting point, measuring a projected distance
+along the incident direction.
+
+[Restrictions:]
+
+This command can only be used as part of the "app_style
+diffusion2"_app_diffusion2.html application.
+
+Deposition can currently only be done in serial simulations, not
+parallel.
+
+[Related commands:]
+
+"ecoord"_ecoord.html, "barrier"_barrier.html
+
+[Default:] none
