@@ -42,6 +42,9 @@
       <I>diamond</I> params = a nx ny nz = 3d diamond lattice with 4 neighbors per site
         a = lattice constant
         nx,ny,nz = number of unit cells in each dimension
+      <I>fcc/octa/tetra</I> params = a nx ny nz = 3d fcc/octa/tetra lattice
+        a = lattice constant
+        nx,ny,nz = number of unit cells in each dimension
       <I>random/1d</I> param = N xbox cutoff = lattice of random 1d points
         N = # of lattice points
 	xbox = simulation extent in x
@@ -161,7 +164,10 @@ lattice types are 2d square and 3d cubic lattices.  The total number
 of lattice sites is one per unit cell, i.e. the product of <I>nx</I>, <I>ny</I>,
 and <I>nz</I>.  The <I>fcc</I>, <I>bcc</I>, and <I>diamond</I> lattice types are 3d and
 generate multiple lattice sites per unit cell: 4 per fcc unit cell, 2
-per bcc unit cell, and 8 per diamond unit cell.
+per bcc unit cell, and 8 per diamond unit cell.  The <I>fcc/octa/tetra</I>
+lattice is more complex.  It is an fcc lattice with additional
+interstitial sites at octahedral and tetrahedral locations, which can
+be thought of as 3 inter-penetrating lattices.
 </P>
 <P>The connectivity of these lattice types is as follows:
 </P>
@@ -173,7 +179,8 @@ per bcc unit cell, and 8 per diamond unit cell.
 <LI>sc/26n = 3d cubic lattice with 26 neighbors per site (1st,2nd,3rd nearest neighbors)
 <LI>fcc = 3d fcc lattice with 12 neighbors per site (nearest neighbors)
 <LI>bcc = 3d fcc lattice with 8 neighbors per site (nearest neighbors)
-<LI>diamond = 3d fcc lattice with 4 neighbors per site (nearest neighbors) 
+<LI>diamond = 3d fcc lattice with 4 neighbors per site (nearest neighbors)
+<LI>fcc/octa/tetra = 3d lattice with up to 26 neighbors per site, depending on the site 
 </UL>
 <P>The <I>random</I> lattice options generate a lattice of random points
 within a 1d, 2d, or 3d box of specified size (0-xbox,0-ybox,0-zbox).

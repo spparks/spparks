@@ -12,7 +12,7 @@ diag_style command :h3
 
 diag_style style keyword value keyword value ... :pre
 
-style = {cluster} or {energy} :ulb,l
+style = {cluster} or {deposition} or {energy} or {eprof} :ulb,l
 zero or more keyword/value pairs may be appended :l
 keyword = {stats} or {delay} or {delt} or {logfreq}
   {stats} values = {yes} or {no}
@@ -32,8 +32,8 @@ standard keywords :l,ule
 [Examples:]
 
 diag_style cluster stats no delt 1.0 
-diag_style eprof3d stats no delt 0.01 logfreq 7 10.0
-diag_style energy2d :pre
+diag_style eprof stats no delt 0.01 logfreq 7 10.0
+diag_style energy :pre
 
 [Description:]
 
@@ -45,7 +45,9 @@ applications.
 The diagnostics currently available are:
 
 "cluster"_diag_cluster.html = grain size statistics for general lattices
-"energy"_diag_energy.html = compute energy of entire system for general lattices :ul
+"deposition"_diag_deposition.html = statistics on deposition events
+"energy"_diag_energy.html = energy of entire system for general lattices
+"eprof"_diag_eprof.html = 1d energy profile :ul
 
 :line
 

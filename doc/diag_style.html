@@ -15,7 +15,7 @@
 </P>
 <PRE>diag_style style keyword value keyword value ... 
 </PRE>
-<UL><LI>style = <I>cluster</I> or <I>energy</I> 
+<UL><LI>style = <I>cluster</I> or <I>deposition</I> or <I>energy</I> or <I>eprof</I> 
 
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -37,8 +37,8 @@ standard keywords
 <P><B>Examples:</B>
 </P>
 <PRE>diag_style cluster stats no delt 1.0 
-diag_style eprof3d stats no delt 0.01 logfreq 7 10.0
-diag_style energy2d 
+diag_style eprof stats no delt 0.01 logfreq 7 10.0
+diag_style energy 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -50,7 +50,9 @@ applications.
 <P>The diagnostics currently available are:
 </P>
 <UL><LI><A HREF = "diag_cluster.html">cluster</A> = grain size statistics for general lattices
-<LI><A HREF = "diag_energy.html">energy</A> = compute energy of entire system for general lattices 
+<LI><A HREF = "diag_deposition.html">deposition</A> = statistics on deposition events
+<LI><A HREF = "diag_energy.html">energy</A> = energy of entire system for general lattices
+<LI><A HREF = "diag_eprof.html">eprof</A> = 1d energy profile 
 </UL>
 <HR>
 

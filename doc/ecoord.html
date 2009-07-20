@@ -15,21 +15,43 @@
 </P>
 <PRE>ecoord N eng 
 </PRE>
-<UL><LI>N = coordination number
+<UL><LI>N = coordination number (see asterisk form below)
 <LI>eng = energy of site with this coordination number (energy units) 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>ecoord 8 5.6
-ecoord 0 1.0e20 
+ecoord 0 1.0e20
+ecoord * 1.0
+ecoord 8*12 10.0 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This command sets the energy of an occupied site in a lattice as a
 function of coordination number, where coordination = the number of
-occupied neighbor sites.  Typically this command should be used Nmax+1
-times with N varying from 0 to Nmax+1, when Nmax is the number of
-neighbor sites for each lattice site.
+occupied neighbor sites.  See the <A HREF = "app_diffusion.html">app_style diffusion2
+nonlinear</A> command for how the energy change of the
+system due to a diffusive hop is used to calculate a probability for
+the hop to occur.
+</P>
+<P>Typically, Nmax+1 values should be specified by using this command one
+or more times, with N varying from 0 to Nmax, when Nmax is the number
+of neighbor sites for each lattice site.
+</P>
+<P>The N index can be specified in one of two ways.  An explicit numeric
+value can be used, as in the 1st example above.  Or a wild-card
+asterisk can be used to set the energy value for multiple coordination
+numbers.  This takes the form "*" or "*n" or "n*" or "m*n".  If Nmax =
+the number of neighbor sites, then an asterisk with no numeric values
+means all coordination numbers from 0 to Nmax.  A leading asterisk
+means all coordination numbers from 0 to n (inclusive).  A trailing
+asterisk means all coordination numbers from n to Nmax (inclusive).  A
+middle asterisk means all coordination numbers from m to n (inclusive).
+</P>
+<P>Note that if the third example is specfied first, followed by the
+first example, then the effect would be to set the energy value for
+all coordination numbers to 1.0, then overwrite the energy value for
+coordination number 8 to 5.6.
 </P>
 <P>The <I>eng</I> value should be in the energy units defined by the
 application's Hamiltonian and should be consistent with the units used
@@ -37,14 +59,15 @@ in any <A HREF = "temperature.html">temperature</A> command.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This command can only be used as part of the <A HREF = "app_diffusion_nonlinear.html">app_style
-diffusion/nonlinear</A> or <A HREF = "app_pore_nonlinear.html">app_style
-pore/nonlinear</A> applications.
+<P>This command can only be used as part of the <A HREF = "app_diffusion2.html">app_style diffusion2
+nonlinear</A> application.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "app_diffusion.html">app_style diffusion/nonlinear</A>
+<P><A HREF = "deposition.html">deposition</A>, <A HREF = "barrier.html">barrier</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>Energy values for all coordination numbers are set to 0.
 </P>
 </HTML>

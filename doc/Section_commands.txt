@@ -250,6 +250,7 @@ full description:
 
 "chemistry"_app_chemistry.html,
 "diffusion"_app_diffusion.html,
+"diffusion2"_app_diffusion2.html,
 "diffusion/table"_app_diffusion.html,
 "diffusion/nonlinear"_app_diffusion.html,
 "ising"_app_ising.html,
@@ -279,5 +280,6 @@ one-line descriptions of each style or click on the style itself for a
 full description:
 
 "cluster"_diag_cluster.html,
+"deposition"_diag_deposition.html,
 "energy"_diag_energy.html,
-"eprof3d"_diag_eprof.html :tb(c=6,ea=c)
+"eprof"_diag_eprof.html :tb(c=6,ea=c)

@@ -72,36 +72,38 @@ appropriate communication.  This procedure insure events occurring on
 one processor do not conflict with events performed by other
 processors.
 </P>
-<P>The optional keywords for this command determine how much time is
-spent on each sector (i.e. how many events are performed) before
-moving to the next sector.  Note that using sectors turns an exact KMC
-or rKMC algorithm into an approximate one, in the spirit of
-<A HREF = "#Amar">Amar</A>.  This is because events are occuring within a sector
-while the state of the system on the boundary of the sector is held
-frozen.  If the time-per-sector is too large, this will require less
-communication but will induce incorrect dynamics at the sector
-boundaries.  Conversely, if the time-per-sector is too small, the
-simulation will perform few events per sector and spend too much time
-communicating.
+<P>The optional keywords determine how much time is spent on each sector
+(i.e. how many events are performed) before moving to the next sector.
+See the discussion below for what they mean when sectoring is set to
+<I>no</I>.
 </P>
-<P>If the <I>tstop</I> keyword is used, the time per sector is set to the
-specified value.  For a KMC algorithm, events are performed until this
-time threshhold is reached.  For a rKMC algorithm, a time per
-attempted event is defined, and events are attempted until this time
-threshhold is reached.
+<P>Note that using sectors turns an exact KMC or rKMC algorithm into an
+approximate one, in the spirit of <A HREF = "#Amar">Amar</A>.  This is because
+events are occuring within a sector while the state of the system on
+the boundary of the sector is held frozen.  If the time-per-sector is
+too large, this will require less communication but will induce
+incorrect dynamics at the sector boundaries.  Conversely, if the
+time-per-sector is too small, the simulation will perform few events
+per sector and spend too much time communicating.
 </P>
-<P>If the <I>nstop</I> keyword is used, it sets the average number of events
-(or attempts) per site.  For example, an <I>nstop</I> value of 2.0 means
-attempt 2 events per site for an rKMC algorithm.  For a KMC algorithm,
-this is converted into a time by computing the maximum propensity of
-all sites within any sector in the simulation domain.  In the KMC
-case, this means that if the total propensity of the system decreases
-as the simulation proceeds (e.g. grain growth occurs), then the
-effective time per sweep will increase in an adaptive way.  Said
-another way, the number of events per sweep will remain roughly
-constant, as the time per event increases.  In the rKMC case, the time
-per attempt is constant due to the use of a null-bin, so there is no
-adaptivity.
+<P>If the <I>tstop</I> keyword is set to a value > 0.0, it sets the time per
+sector to the specified value.  For a KMC algorithm, events are
+performed until this time threshhold is reached.  For a rKMC
+algorithm, a time per attempted event is defined, and events are
+attempted until this time threshhold is reached.
+</P>
+<P>If the <I>nstop</I> keyword is set to a value > 0.0, it sets the average
+number of events (or attempts) per site.  For example, an <I>nstop</I>
+value of 2.0 means attempt 2 events per site for an rKMC algorithm.
+For a KMC algorithm, this is converted into a time by computing the
+maximum propensity of all sites within any sector in the simulation
+domain.  In the KMC case, this means that if the total propensity of
+the system decreases as the simulation proceeds (e.g. grain growth
+occurs), then the effective time per sweep will increase in an
+adaptive way.  Said another way, the number of events per sweep will
+remain roughly constant, as the time per event increases.  In the rKMC
+case, the time per attempt is constant due to the use of a null-bin,
+so there is no adaptivity.
 </P>
 <P>If neither the <I>tstop</I> or <I>nstop</I> keywords are specified, a default
 value of nstop = 1.0 is used, meaning one event per site is performed
@@ -110,9 +112,18 @@ give good behavior in many applications, meaning high accuracy is
 achieved with good parallel performance due to a modest amount of
 communication being performed.
 </P>
-<P>Note that it makes no sense to define <I>tstop</I> and <I>nstop</I> together
-since they define the time-per-sector in different ways.  If both are
-used, the last setting takes precedence.
+<P>Note that it makes no sense to specify both <I>tstop</I> and <I>nstop</I> since
+they define the time-per-sector in different ways.  When <I>tstop</I> is
+specified, it sets <I>nstop</I> to 0.0.  Likewise when <I>nstop</I> is
+specified, it sets <I>tstop</I> to 0.0.  Thus if both are used, the last
+setting takes precedence.
+</P>
+<P>If sectors are turned off via the <I>no</I> setting, then the <I>nstop</I> or
+<I>tstop</I> settings still have an effect for rKMC simulations where the
+<A HREF = "sweep.html">sweep</A> style is set to <I>color</I>.  They determine how many
+times the sites associated with each color are looped over before
+moving to the next color.  Normally, this should just be 1, which is
+the <I>nstop</I> default, but this can be changed if desired.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -126,7 +137,8 @@ as specified by the <A HREF = "app_style.html">app_style</A> command.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are nstop = 1.0.
+<P>The default for sectoring is <I>n</I> and the option defaults are nstop =
+1.0 and tstop = 0.0.
 </P>
 <HR>
 
