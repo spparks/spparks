@@ -153,6 +153,11 @@ files (a long list of errors involving *.d files), then you'll need to
 create a Makefile.foo patterned after Makefile.tflop, which uses
 different rules that do not involve dependency files.
 
+(6) There is a -D compiler switches you can set as part of CCFLAGS.
+The dump command will read/write gzipped files if you compile with
+-DSPPARKS_GZIP.  It requires that your Unix support the "popen"
+command.
+
 That's it.  Once you have a correct Makefile.foo and you have
 pre-built the MPI library it uses, all you need to do from the src
 directory is type one of these 2 commands:
@@ -183,13 +188,13 @@ OS X is BSD Unix, so it already works.  See the Makefile.mac file.
 
 2.3 Making SPPARKS with optional packages :h4,link(2_3)
 
+NOTE: this sub-section is currently a placeholder.  There are no
+packages distributed with the current version of SPPARKS.
+
 The source code for SPPARKS is structured as a large set of core files
 which are always used, plus optional packages, which are groups of
 files that enable a specific set of features.  You can see the list of
 both standard and user-contributed packages by typing "make package".
-
-Note: this sub-section is a placeholder.  There are no packages
-distributed with the current version of SPPARKS.
 
 Any or all packages can be included or excluded when SPPARKS is built.
 You may wish to exclude certain packages if you will never run certain
