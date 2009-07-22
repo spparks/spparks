@@ -17,6 +17,24 @@ The current version of SPPARKS is 13 April 2009.
 
 :line
 
+[22 Jul 2009]
+
+Made some enhancements to the "dump" command.  There are now also
+"dump_modify", "dump_one", and "undump" commands.  All of them now
+take a dump ID, so that you can use multiple dump files during a
+simulation if desired.
+
+Additional features include changing output times via the
+"dump_modify"_dump_modify.html command, sub-selecting sites to output
+via the "dump_modify thresh"_dump_modify.html command, and allowing
+for one file per snapshot and/or one file per processor via wildcards
+in the "dump"_dump.html command filename.
+
+This is the "list of changed files"_patches/files.22Jul09 from the 20
+Jul 2009 version.
+
+:line
+
 [20 Jul 2009]
 
 Added a "app_style diffusion2"_doc/app_diffusion2.html application

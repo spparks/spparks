@@ -19,6 +19,24 @@ code.
 </P>
 <HR>
 
+<P><B>22 Jul 2009</B>
+</P>
+<P>Made some enhancements to the "dump" command.  There are now also
+"dump_modify", "dump_one", and "undump" commands.  All of them now
+take a dump ID, so that you can use multiple dump files during a
+simulation if desired.
+</P>
+<P>Additional features include changing output times via the
+<A HREF = "dump_modify.html">dump_modify</A> command, sub-selecting sites to output
+via the <A HREF = "dump_modify.html">dump_modify thresh</A> command, and allowing
+for one file per snapshot and/or one file per processor via wildcards
+in the <A HREF = "dump.html">dump</A> command filename.
+</P>
+<P>This is the <A HREF = "patches/files.22Jul09">list of changed files</A> from the 20
+Jul 2009 version.
+</P>
+<HR>
+
 <P><B>20 Jul 2009</B>
 </P>
 <P>Added a <A HREF = "doc/app_diffusion2.html">app_style diffusion2</A> application
