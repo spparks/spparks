@@ -37,9 +37,10 @@ files during a simulation if desired.
 
 Additional features include changing output times via the
 "dump_modify"_doc/dump_modify.html command, sub-selecting sites to output
-via the "dump_modify thresh"_doc/dump_modify.html command, and allowing
+via the "dump_modify thresh"_doc/dump_modify.html command, allowing
 for one file per snapshot and/or one file per processor via wildcards
-in the "dump"_doc/dump.html command filename.
+in the "dump"_doc/dump.html command filename, and allowing for
+output of binary or gzipped dump files.
 
 This is the "list of changed files"_patches/files.22Jul09 from the 20
 Jul 2009 version.
