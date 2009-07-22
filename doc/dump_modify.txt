@@ -1,0 +1,107 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+dump_modify command :h3
+
+[Syntax:]
+
+dump_modify dump-ID keyword values ... :pre
+
+dump-ID = ID of dump to modify :ulb,l
+one or more keyword/value pairs may be appended :l
+keyword = {delay} or {delta} or {flush} or {logfreq} or {thresh} :l
+  {delay} value = tdelay
+    tdelay = delay dump until at least this time (seconds)
+  {delta} arg = dt
+    dt = time increment between dumps (seconds)
+  {flush} arg = {yes} or {no}
+  {logfreq} values = N factor
+    N = number of repetitions per interval
+    factor = scale factor between interval
+  {thresh} args = attribute operation value
+    attribute = same fields (id,lattice,x,etc) used by "dump"_dump.html command
+    operation = "<" or "<=" or ">" or ">=" or "==" or "!="
+    value = numeric value to compare to
+    these 3 args can be replaced by the word "none" to turn off thresholding
+:pre
+:ule
+
+[Examples:]
+
+dump_modify 1 delay 30.0
+dump_modify 1 logfreq 7 10.0 delay 100.0 flush yes
+dump_modify mine thresh energy > 0.0 thresh id <= 1000 :pre
+
+[Description:]
+
+Dump snapshots of the state of the lattice to a file at intervals of delta
+during a simulation.  The quantities printed are obtained from
+the application.  Only lattice-based applications support dumps since
+what is output is one line per lattice site.
+
+The {delay} keyword will suppress output until {tdelay} time has
+elapsed.
+
+The {delta} keyword will suppress output until {tdelay} time has
+elapsed.
+
+The {flush} option determines whether a flush operation in invoked
+after a dump snapshot is written to the dump file.  A flush insures
+the output in that file is current (no buffering by the OS), even if
+SPPARKS halts before the simulation completes.
+
+The {logfreq} keyword will produce statistical output at varying
+intervals during the course of a simulation.  There will be {N}
+outputs per interval where the size of each interval is initially
+{delta} and then scales up by {factor} each time.
+
+For example, this command
+
+dump_modify 1 logfreq 7 10.0 :pre
+
+will dump snapshots at these times:
+
+t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... :pre
+
+This command
+
+dump_modify mine logfreq 1 2.0 :pre
+
+will dump snapshots at these times:
+
+t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... :pre
+
+If {N} is specified as 0, then this will turn off logarithmic output,
+and revert to regular output every {delta} seconds.
+
+The {thresh} keyword allows sub-selection of lattice sites to output.
+Multiple thresholds can be specified.  Specifying "none" turns off all
+threshold criteria.  If thresholds are specified, only sites whose
+attributes meet all the threshold criteria are written to the dump
+file.  The possible attributes that can be tested for are the same as
+the fields that can be specified in the "dump"_dump.html command.
+Note that different attributes can be output by the dump command than
+are used as threshold criteria by the dump_modify command.  E.g. you
+can output the coordinates and propensity of sites whose energy is
+above some threshold.
+
+[Restrictions:]
+
+This command can only be used as part of the lattice-based
+applications.  See the "app_style"_app_style.html command for further
+details.
+
+[Related commands:]
+
+"dump"_dump.html
+
+[Default:]
+
+The option defaults are delay = 0.0, delta = whatever was used in the
+"dump"_dump.html command, flush = yes, logfreq = off, and thresh =
+none.

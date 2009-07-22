@@ -1,0 +1,33 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+undump command :h3
+
+[Syntax:]
+
+undump dump-ID :pre
+
+dump-ID = ID of previously defined dump :ul
+
+[Examples:]
+
+undump mine
+undump 2 :pre
+
+[Description:]
+
+Turn off a previously defined "dump"_dump.html command so that it is
+no longer active.  This closes the file associated with the dump.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"dump"_dump.html
+
+[Default:] none

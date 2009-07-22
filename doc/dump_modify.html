@@ -1,0 +1,116 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dump_modify command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dump_modify dump-ID keyword values ... 
+</PRE>
+<UL><LI>dump-ID = ID of dump to modify 
+
+<LI>one or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>delay</I> or <I>delta</I> or <I>flush</I> or <I>logfreq</I> or <I>thresh</I> 
+
+<PRE>  <I>delay</I> value = tdelay
+    tdelay = delay dump until at least this time (seconds)
+  <I>delta</I> arg = dt
+    dt = time increment between dumps (seconds)
+  <I>flush</I> arg = <I>yes</I> or <I>no</I>
+  <I>logfreq</I> values = N factor
+    N = number of repetitions per interval
+    factor = scale factor between interval
+  <I>thresh</I> args = attribute operation value
+    attribute = same fields (id,lattice,x,etc) used by <A HREF = "dump.html">dump</A> command
+    operation = "<" or "<=" or ">" or ">=" or "==" or "!="
+    value = numeric value to compare to
+    these 3 args can be replaced by the word "none" to turn off thresholding
+
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>dump_modify 1 delay 30.0
+dump_modify 1 logfreq 7 10.0 delay 100.0 flush yes
+dump_modify mine thresh energy > 0.0 thresh id <= 1000 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Dump snapshots of the state of the lattice to a file at intervals of delta
+during a simulation.  The quantities printed are obtained from
+the application.  Only lattice-based applications support dumps since
+what is output is one line per lattice site.
+</P>
+<P>The <I>delay</I> keyword will suppress output until <I>tdelay</I> time has
+elapsed.
+</P>
+<P>The <I>delta</I> keyword will suppress output until <I>tdelay</I> time has
+elapsed.
+</P>
+<P>The <I>flush</I> option determines whether a flush operation in invoked
+after a dump snapshot is written to the dump file.  A flush insures
+the output in that file is current (no buffering by the OS), even if
+SPPARKS halts before the simulation completes.
+</P>
+<P>The <I>logfreq</I> keyword will produce statistical output at varying
+intervals during the course of a simulation.  There will be <I>N</I>
+outputs per interval where the size of each interval is initially
+<I>delta</I> and then scales up by <I>factor</I> each time.
+</P>
+<P>For example, this command
+</P>
+<PRE>dump_modify 1 logfreq 7 10.0 
+</PRE>
+<P>will dump snapshots at these times:
+</P>
+<PRE>t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... 
+</PRE>
+<P>This command
+</P>
+<PRE>dump_modify mine logfreq 1 2.0 
+</PRE>
+<P>will dump snapshots at these times:
+</P>
+<PRE>t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... 
+</PRE>
+<P>If <I>N</I> is specified as 0, then this will turn off logarithmic output,
+and revert to regular output every <I>delta</I> seconds.
+</P>
+<P>The <I>thresh</I> keyword allows sub-selection of lattice sites to output.
+Multiple thresholds can be specified.  Specifying "none" turns off all
+threshold criteria.  If thresholds are specified, only sites whose
+attributes meet all the threshold criteria are written to the dump
+file.  The possible attributes that can be tested for are the same as
+the fields that can be specified in the <A HREF = "dump.html">dump</A> command.
+Note that different attributes can be output by the dump command than
+are used as threshold criteria by the dump_modify command.  E.g. you
+can output the coordinates and propensity of sites whose energy is
+above some threshold.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used as part of the lattice-based
+applications.  See the <A HREF = "app_style.html">app_style</A> command for further
+details.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are delay = 0.0, delta = whatever was used in the
+<A HREF = "dump.html">dump</A> command, flush = yes, logfreq = off, and thresh =
+none.
+</P>
+</HTML>

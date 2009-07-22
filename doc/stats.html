@@ -19,9 +19,11 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>logfreq</I> 
+<LI>keyword = <I>delay</I> or <I>logfreq</I> 
 
-<PRE>  <I>logfreq</I> values = N factor
+<PRE>  <I>delay</I> value = tdelay
+    tdelay = delay stats until at least this time (seconds)
+  <I>logfreq</I> values = N factor
     N = number of repetitions per interval
     factor = scale factor between interval 
 </PRE>
@@ -30,13 +32,15 @@
 <P><B>Examples:</B>
 </P>
 <PRE>stats 0.1
+stats 0.1 delta 0.5
 stats 1.0 logfreq 7 10.0 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Print statistics to the screen and log file every so many seconds
-during a simulation.  A value of 0.0 for delta means only print
-stats at the beginning and end of the run.
+during a simulation.  A value of 0.0 for delta means only print stats
+at the beginning and end of the run, in which case no optional
+keywords can be used.
 </P>
 <P>The quantities printed are elapsed CPU time followed by those provided
 by the <A HREF = "app_style.html">application</A>, followed by those provided by any
@@ -47,6 +51,9 @@ executed, followed by the simulation time, but other
 application-specific quantities may also be reported.  Quantities such
 as the total energy of the system can be included in the output by
 creating diagnostics via the <A HREF = "diag_style.html">diag_style</A> command.
+</P>
+<P>The <I>delay</I> keyword will suppress output until <I>tdelay</I> time has
+elapsed.
 </P>
 <P>Using the <I>logfreq</I> keyword will produce statistical output at varying
 intervals during the course of a simulation.  There will be <I>N</I>
@@ -69,6 +76,9 @@ outputs per interval where the size of the interval is initially
 </P>
 <PRE>t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... 
 </PRE>
+<P>If <I>N</I> is specified as 0, then this will turn off logarithmic output,
+and revert to regular output every <I>delta</I> seconds.
+</P>
 <HR>
 
 <P><B>Restrictions:</B>
@@ -83,6 +93,7 @@ for further details.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The default stats increment is delta = 0.0.
+<P>The default stats delta is 0.0.  The keyword defaults are delay = 0.0
+and no logarithmic output.
 </P>
 </HTML>

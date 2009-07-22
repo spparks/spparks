@@ -10,18 +10,21 @@ dump_one command :h3
 
 [Syntax:]
 
-dump_one :pre
+dump_one dump-ID :pre
+
+dump-ID = ID of previously defined dump :ul
 
 [Examples:]
 
-dump_one :pre
+dump_one mine
+dump_one 2 :pre
 
 [Description:]
 
-Dump the current state of the lattice to the currently defined dump
-file.  This can be useful before or after a run, if the
-"dump"_dump.html command itself did not produce a snapshot at the
-desired time or state.
+Dump the current state of the lattice to the dump file defined by the
+"dump"_dump.html command with this {dump-ID}.  This can be useful
+before or after a run, if the "dump"_dump.html command itself did not
+produce a snapshot at the desired time or state.
 
 The information dumped is determined by the "dump"_dump.html command
 which must have been previously specified to use the dump_one command.

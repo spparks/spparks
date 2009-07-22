@@ -13,18 +13,21 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>dump_one 
+<PRE>dump_one dump-ID 
 </PRE>
+<UL><LI>dump-ID = ID of previously defined dump 
+</UL>
 <P><B>Examples:</B>
 </P>
-<PRE>dump_one 
+<PRE>dump_one mine
+dump_one 2 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Dump the current state of the lattice to the currently defined dump
-file.  This can be useful before or after a run, if the
-<A HREF = "dump.html">dump</A> command itself did not produce a snapshot at the
-desired time or state.
+<P>Dump the current state of the lattice to the dump file defined by the
+<A HREF = "dump.html">dump</A> command with this <I>dump-ID</I>.  This can be useful
+before or after a run, if the <A HREF = "dump.html">dump</A> command itself did not
+produce a snapshot at the desired time or state.
 </P>
 <P>The information dumped is determined by the <A HREF = "dump.html">dump</A> command
 which must have been previously specified to use the dump_one command.

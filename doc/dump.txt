@@ -10,78 +10,59 @@ dump command :h3
 
 [Syntax:]
 
-dump delta filename keyword values field1 field2 ... :pre
+dump dump-ID delta filename field1 field2 ... :pre
 
-delta = time increment between dumps (seconds) :ulb,l
+dump-ID = user-assigned name for the dump :l
+delta = time increment between dumps (seconds) :l
 filename = name of file to dump snapshots to :l
-
-zero or more keyword/value pairs may be appended :l
-keyword = {delay} or {logfreq} or {mask} :l
-  {delay} values = tdelay
-    tdelay = delay dump until at least this time
-  {logfreq} values = N factor
-    N = number of repetitions per interval
-    factor = scale factor between interval
-  {mask} values = {yes} or {no}
-    yes/no = suppress output of lattice sites with zero energy :pre
-
 zero or more fields may be appended :l
-field = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} or {iN} or {dN} :l,ule
+field = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} or {iN} or {dN} :l
 
 [Examples:]
 
 dump 0.25 tmp.dump
-dump 5.0 snap.ising id lattice energy
-dump 1.0 snap.lattice logfreq 9 10.0 id i1 i2 x y z :pre
+dump 5.0 snap.ising id lattice energy i1 :pre
 
 [Description:]
 
-Dump snapshots of the state of the lattice to a file at intervals of delta
-during a simulation.  The quantities printed are obtained from
-the application.  Only lattice-based applications support dumps since
-what is output is one line per lattice site.
+Dump snapshots of the state of the lattice to a file at time intervals
+of {delta} during a simulation.  As described below, the filename
+determines the kind of output (text or binary or gzipped, one big file
+or one per timestep, one big file or one per processor).  The
+quantities printed are obtained from the application.  Only
+lattice-based applications support dumps since one line per lattice
+site is output.  More that one dump command and file can be used
+during a simulation since each has a unique ID.
 
-Using the {logfreq} keyword will produce statistical output at varying
-intervals during the course of a simulation.  There will be {N}
-outputs per interval where the size of each interval is initially
-{delta} and then scales up by {factor} each time.
+IMPORTANT NOTE: When running in parallel, the order of sites as
+printed to the dump file will be in chunks by processor, not ordered
+by ID.  The order will be the same in every snapshot.
 
-For example, this command
+The "dump_modify"_dump_modify command can be used to alter the times
+at which snapshots are written out as well as defined a subset of
+sites to write out.
 
-dump 0.1 snap.lattice logfreq 7 10.0 id i1 i2 x y z :pre
-
-will dump snapshots at these times:
-
-t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... :pre
-
-This command
-
-dump 0.1 snap.lattice logfreq 1 2.0 id i1 i2 x y z :pre
-
-will dump snapshots at these times:
-
-t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... :pre
-
-If no fields are listed, then the default output values for each site
-are "id lattice x y z".  This is in the format of a "LAMMPS dump
+The text-based dump file is in the format of a "LAMMPS dump
 file"_lammps which can thus be read-in by the "Pizza.py
 toolkit"_pizza, converted to other formats, or used for visualization.
 An important modification to the LAMMPS-style header for each snapshot
 is the addition of real time to the line containing the snapshot
-number:
+number, i.e.
 
 ITEM: TIMESTEP TIME
-100   3.23945
+100   3.23945 :pre
 
-Setting the {mask} keyword to {yes} will suppress output for sites
-whose energy is zero.  The reduced number of sites for that snapshot
-will be reflected in the header line for the number of atoms/sites.
+The entry for "NUMBER OF ATOMS" is really number of sites, and will
+reflect any reduction in site count due to the
+"dump_modify"_dump_modify.html command, i.e.
 
 ITEM: NUMBER OF ATOMS
-314159
+314159 :pre
 
 If fields are listed, then only those quantities will be printed for
-each lattice site.
+each lattice site.  If no fields are listed, then the default output
+values for each site are "id lattice x y z".  These are the possible
+field values which may be specified.
 
 The {id} is a unique integer ID for each site.
 
@@ -99,12 +80,46 @@ thought of as the relative probablity for that site to perform a KMC
 event.  Note that if you are doing Metropolis MC and not kinetic MC,
 no propensity is defined.
 
-When running in parallel, the order of sites as printed to the dump
-file will be in chunks by processor, not ordered by ID.  The order
-will be the same in every snapshot.
-
 :link(lammps,http://lammps.sandia.gov)
 :link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
+
+:line
+
+The specified filename determines how the dump file(s) is written.
+The default is to write one large text file, which is opened when the
+dump command is invoked and closed when an "undump"_undump.html
+command is used or when SPPARKS exits.
+
+Dump filenames can contain two wild-card characters.  If a "*"
+character appears in the filename, then one file per snapshot is
+written and the "*" character is replaced with the timestep value.
+For example, tmp.dump.* becomes tmp.dump.0, tmp.dump.10000,
+tmp.dump.20000, etc.
+
+If a "%" character appears in the filename, then one file is written
+for each processor and the "%" character is replaced with the
+processor ID from 0 to P-1.  For example, tmp.dump.% becomes
+tmp.dump.0, tmp.dump.1, ... tmp.dump.P-1, etc.  This creates smaller
+files and can be a fast mode of output on parallel machines that
+support parallel I/O for output.
+
+Note that the "*" and "%" characters can be used together to produce a
+large number of small dump files!
+
+If the filename ends with ".bin", the dump file (or files, if "*" or
+"%" is also used) is written in binary format.  A binary dump file
+will be about the same size as a text version, but will typically
+write out much faster.  Of course, when post-processing, you will need
+to convert it back to text format, using your own code to read the
+binary file.  The format of the binary file can be understood by
+looking at the src/dump.cpp file.
+
+If the filename ends with ".gz", the dump file (or files, if "*" or
+"%" is also used) is written in gzipped format.  A gzipped dump file
+will be about 3x smaller than the text version, but will also take
+longer to write.
+
+:line
 
 [Restrictions:]
 
@@ -114,6 +129,7 @@ details.
 
 [Related commands:]
 
-"dump_one"_dump_one.html, "stats"_stats.html
+"dump_one"_dump_one.html, "dump_modify"_dump_modify.html,
+"undump"_undump.html, "stats"_stats.html
 
 [Default:] none

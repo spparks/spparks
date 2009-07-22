@@ -14,7 +14,9 @@ stats delta keyword values ... :pre
 
 delta = time increment between statistical output (seconds) :ulb,l
 zero or more keyword/value pairs may be appended :l
-keyword = {logfreq} :l
+keyword = {delay} or {logfreq} :l
+  {delay} value = tdelay
+    tdelay = delay stats until at least this time (seconds)
   {logfreq} values = N factor
     N = number of repetitions per interval
     factor = scale factor between interval :pre
@@ -23,13 +25,15 @@ keyword = {logfreq} :l
 [Examples:]
 
 stats 0.1
+stats 0.1 delta 0.5
 stats 1.0 logfreq 7 10.0 :pre
 
 [Description:]
 
 Print statistics to the screen and log file every so many seconds
-during a simulation.  A value of 0.0 for delta means only print
-stats at the beginning and end of the run.
+during a simulation.  A value of 0.0 for delta means only print stats
+at the beginning and end of the run, in which case no optional
+keywords can be used.
 
 The quantities printed are elapsed CPU time followed by those provided
 by the "application"_app_style.html, followed by those provided by any
@@ -40,6 +44,9 @@ executed, followed by the simulation time, but other
 application-specific quantities may also be reported.  Quantities such
 as the total energy of the system can be included in the output by
 creating diagnostics via the "diag_style"_diag_style.html command.
+
+The {delay} keyword will suppress output until {tdelay} time has
+elapsed.
 
 Using the {logfreq} keyword will produce statistical output at varying
 intervals during the course of a simulation.  There will be {N}
@@ -62,6 +69,9 @@ will produce output at these times:
 
 t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... :pre
 
+If {N} is specified as 0, then this will turn off logarithmic output,
+and revert to regular output every {delta} seconds.
+
 :line
 
 [Restrictions:]
@@ -76,4 +86,5 @@ for further details.
 
 [Default:]
 
-The default stats increment is delta = 0.0.
+The default stats delta is 0.0.  The keyword defaults are delay = 0.0
+and no logarithmic output.
