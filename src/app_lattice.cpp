@@ -133,8 +133,10 @@ void AppLattice::input(char *command, int narg, char **arg)
   else if (strcmp(command,"sweep") == 0) set_sweep(narg,arg);
   else if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
   else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
-  else if (strcmp(command,"dump") == 0) output->set_dump(narg,arg);
-  else if (strcmp(command,"dump_one") == 0) output->dump_one(time);
+  else if (strcmp(command,"dump") == 0) output->add_dump(narg,arg);
+  else if (strcmp(command,"dump_one") == 0) output->dump_one(narg,arg,time);
+  else if (strcmp(command,"dump_modify") == 0) output->dump_modify(narg,arg);
+  else if (strcmp(command,"undump") == 0) output->undump(narg,arg);
   else input_app(command,narg,arg);
 }
 

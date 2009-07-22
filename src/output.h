@@ -24,65 +24,31 @@ class Output : protected Pointers {
   ~Output();
   void init(double);
   double setup(double);
-  void set_stats(int, char **);
-  void set_dump(int, char **);
-  void add_diag(class Diag *);
   double compute(double, int);
-  void dump_one(double);
+  void set_stats(int, char **);
+  void add_dump(int, char **);
+  void dump_one(int, char **, double);
+  void dump_modify(int, char **);
+  void undump(int, char **);
+  void add_diag(class Diag *);
 
  private:
   int me,nprocs;
 
-  double stats_time,stats_delta,stats_scale,stats_delay;
+  double stats_time,stats_delta;     // stats info
+  double stats_scale,stats_delay;
   int stats_logfreq,stats_nrepeat;
 
-  double dump_time,dump_delta,dump_scale,dump_delay;
-  int dump_logfreq,dump_nrepeat;
-  int idump;
+  int ndump;                         // list of dumps
+  int max_dump;
+  class Dump **dumplist;
 
-  int ndiags;
+  int ndiag;                         // list of diagnostics
   class Diag **diaglist;
 
-  FILE *fp;                  // dump file pointer
-  int size_one;
-
-  class AppLattice *applattice;
-  class AppLattice2d *applattice2d;
-  class AppLattice3d *applattice3d;
-
-  int nglobal,nlocal,nx_local,ny_local,nz_local;
-  double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;
-  int mask_flag;
-
-  int *vtype;                // type of each vector (INT, DOUBLE)
-  int *vindex;               // index into int,double packs
-  char **vformat;            // format string for each vector element
-
-  double *buf;
-  int *mask;
-  int maxbuf;
-
-  double next_time(double, int, double, int, double, double);
   void stats(int);
   void stats_header();
-  void dump_header();
-  void dump(double);
-  void write_data(int, double *);
-
-  typedef void (Output::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;              // ptrs to pack functions
-
-  void pack_id(int);
-  void pack_lattice(int);
-  void pack_x(int);
-  void pack_y(int);
-  void pack_z(int);
-  void pack_energy(int);
-  void pack_propensity(int);
-  void pack_integer(int);
-  void pack_double(int);
-
-  void maskzeroenergy();
+  double next_time(double, int, double, int, double, double);
 };
 
 }

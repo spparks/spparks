@@ -22,9 +22,9 @@ class Diag : protected Pointers {
  public:
   char *style;
   int stats_flag;                   // 1 if stats drives output, 0 if not
-  double diag_time,diag_delta;      // output params for stats_flag = 0
-  double diag_scale,diag_delay;
-  int diag_logfreq,diag_nrepeat;
+  double next_time,delta;           // output params for stats_flag = 0
+  double scale,delay;
+  int logfreq,nrepeat;
 
   Diag(class SPPARKS *, int, char **);
   virtual ~Diag();

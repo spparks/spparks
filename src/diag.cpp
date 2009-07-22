@@ -42,9 +42,9 @@ Diag::Diag(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   // stats_flag = 0, do not provide stats to Output
 
   stats_flag = 1;
-  diag_delta = 0.0;
-  diag_logfreq = 0;
-  diag_delay = 0.0;
+  delta = 0.0;
+  logfreq = 0;
+  delay = 0.0;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -58,24 +58,24 @@ Diag::Diag(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
     } else if (strcmp(arg[iarg],"delt") == 0) {
       iarg++;
       if (iarg < narg) {
-	diag_delta = atof(arg[iarg]);
-	if (diag_delta <= 0.0) error->all("Illegal diag_style command");
+	delta = atof(arg[iarg]);
+	if (delta <= 0.0) error->all("Illegal diag_style command");
       } else error->all("Illegal diag_style command");
     } else if (strcmp(arg[iarg],"logfreq") == 0) {
-      diag_logfreq = 1;
+      logfreq = 1;
       iarg++;
       if (iarg+1 < narg) {
-	diag_nrepeat = atoi(arg[iarg]);
+	nrepeat = atoi(arg[iarg]);
 	iarg++;
-	diag_scale = atof(arg[iarg]);
-	if (diag_scale <= 0.0) error->all("Illegal diag_style command");
-	if (diag_nrepeat*diag_delta > diag_scale)
+	scale = atof(arg[iarg]);
+	if (scale <= 0.0) error->all("Illegal diag_style command");
+	if (nrepeat*delta > scale)
 	  error->all("Illegal diag_style command");
       } else error->all("Illegal diag_style command");
     } else if (strcmp(arg[iarg],"delay") == 0) {
       iarg++;
       if (iarg < narg) {
-	diag_delay = atof(arg[iarg]);
+	delay = atof(arg[iarg]);
       } else error->all("Illegal diag_style command");
     } else break;
     iarg++;
@@ -83,9 +83,9 @@ Diag::Diag(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 
   iarg_child = iarg;
 
-  if (stats_flag && diag_logfreq) error->all("Illegal diag_style command");
-  if (stats_flag && diag_delta > 0.0) error->all("Illegal diag_style command");
-  if (stats_flag && diag_delay > 0.0) error->all("Illegal diag_style command");
+  if (stats_flag && logfreq) error->all("Illegal diag_style command");
+  if (stats_flag && delta > 0.0) error->all("Illegal diag_style command");
+  if (stats_flag && delay > 0.0) error->all("Illegal diag_style command");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -13,23 +13,17 @@
 
 #include "mpi.h"
 #include "math.h"
-#include "stdlib.h"
 #include "string.h"
+#include "stdlib.h"
 #include "output.h"
 #include "app.h"
-#include "app_lattice.h"
+#include "dump.h"
 #include "diag.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace SPPARKS_NS;
-
-enum{GENERAL,LATTICE};     // same as in app.h
-enum{INT,DOUBLE};
-
-#define MAXLINE 1024
-#define DEFAULT "id lattice x y z"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -45,109 +39,139 @@ Output::Output(SPPARKS *spk) : Pointers(spk)
   stats_logfreq = 0;
   stats_delay = 0.0;
 
-  dump_delta = 0.0;
-  dump_logfreq = 0;
-  dump_delay = 0.0;
-  idump = 0;
+  ndump = 0;
+  max_dump = 0;
+  dumplist = 0;
 
-  ndiags = 0;
+  ndiag = 0;
   diaglist = NULL;
-
-  size_one = 0;
-  fp = NULL;
-  vtype = NULL;
-  vindex = NULL;
-  vformat = NULL;
-  pack_choice = NULL;
-  buf = NULL;
-  mask = NULL;
-
-  mask_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Output::~Output()
 {
-  if (me == 0 && fp) fclose(fp);
+  for (int i = 0; i < ndump; i++) delete dumplist[i];
+  memory->sfree(dumplist);
 
-  for (int i = 0; i < ndiags; i++) delete diaglist[i];
+  for (int i = 0; i < ndiag; i++) delete diaglist[i];
   memory->sfree(diaglist);
-
-  delete [] vtype;
-  delete [] vindex;
-  for (int i = 0; i < size_one; i++) delete [] vformat[i];
-  delete [] vformat;
-  delete [] pack_choice;
-
-  memory->sfree(mask);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Output::init(double time)
 {
-  // error if dump is defined and propensity is output but doesn't exist
-
-  if (dump_delta > 0.0) {
-    int flag = 0;
-    for (int i = 0; i < size_one; i++)
-      if (pack_choice[i] == &Output::pack_propensity) flag = 1;
-    if (flag && !solve)
-      error->all("Dumping propensity but no KMC solve performed");
-  }
-
-  // initialize all diagnostics
-
-  for (int i = 0; i < ndiags; i++) diaglist[i]->init();
+  for (int i = 0; i < ndump; i++) dumplist[i]->init();
+  for (int i = 0; i < ndiag; i++) diaglist[i]->init();
 }
 
 /* ----------------------------------------------------------------------
    called before every run
    perform stats output
-   set next output time for all kinds of output
+   set next output time for each kind of output
    return tnext = next time any output is needed
 ------------------------------------------------------------------------- */
 
 double Output::setup(double time)
 {
-  // initial dump file snapshot
+  // if dump has never occured, write initial snapshot
   // needs to happen in setup() in case propensity is output
-  // app not ready to compute propensities until setup_app() is called
+  // b/c app not ready to compute propensities until setup_app() is called
+  // set next time for each dump
 
-  if (dump_delta > 0.0 && idump == 0) dump(time);
+  double dump_time = app->stoptime;
+  for (int i = 0; i < ndump; i++) {
+    if (dumplist[i]->idump == 0) dumplist[i]->write(time);
+    dumplist[i]->next_time = 
+      next_time(time,dumplist[i]->logfreq,dumplist[i]->delta,
+		dumplist[i]->nrepeat,dumplist[i]->scale,dumplist[i]->delay);
+    dump_time = MIN(dump_time,dumplist[i]->next_time);
+  }
 
-  // set next dump time
-
-  if (dump_delta > 0.0) {
-    dump_time = next_time(time,dump_logfreq,dump_delta,
-			  dump_nrepeat,dump_scale,dump_delta);
-  } else dump_time = app->stoptime;
-
-  // if stats drives output, perform diagnostics
-  // else set next diagnostic times
+  // if a diagnostic is drven by stats, compute the diagnostic
+  // set next time for each diagnostic
 
   double diag_time = app->stoptime;
-  for (int i = 0; i < ndiags; i++) {
-    if (diaglist[i]->stats_flag) diaglist[i]->compute();
-    else {
-      diaglist[i]->diag_time = 
-	next_time(time,diaglist[i]->diag_logfreq,diaglist[i]->diag_delta,
-		  diaglist[i]->diag_nrepeat,diaglist[i]->diag_scale,
-		  diaglist[i]->diag_delta);
-      diag_time = MIN(diag_time,diaglist[i]->diag_time);
-    }
+  for (int i = 0; i < ndiag; i++) {
+    if  (diaglist[i]->stats_flag) diaglist[i]->compute();
+    diaglist[i]->next_time = 
+      next_time(time,diaglist[i]->logfreq,diaglist[i]->delta,
+		diaglist[i]->nrepeat,diaglist[i]->scale,diaglist[i]->delay);
+    diag_time = MIN(diag_time,diaglist[i]->next_time);
   }
 
   // perform stats output
-  // set next stats time
+  // set next time for stats
 
   stats_header();
   stats(0);
+  stats_time = app->stoptime;
   if (stats_delta > 0.0)
     stats_time = next_time(time,stats_logfreq,stats_delta,
-			   stats_nrepeat,stats_scale,stats_delta);
-  else stats_time = app->stoptime;
+			   stats_nrepeat,stats_scale,stats_delay);
+
+  // tnext = next output time for anything
+
+  double tnext = app->stoptime;
+  tnext = MIN(tnext,dump_time);
+  tnext = MIN(tnext,diag_time);
+  tnext = MIN(tnext,stats_time);
+  return tnext;
+}
+
+/* ----------------------------------------------------------------------
+   called only when some output is needed or when app is done
+   set next output time for any output performed
+   return tnext = next time any output is needed
+------------------------------------------------------------------------- */
+
+double Output::compute(double time, int done)
+{
+  // dump output
+
+  double dump_time = app->stoptime;
+  for (int i = 0; i < ndump; i++) {
+    if (time >= dumplist[i]->next_time) {
+      dumplist[i]->write(time);
+      dumplist[i]->next_time = 
+	next_time(time,dumplist[i]->logfreq,dumplist[i]->delta,
+		  dumplist[i]->nrepeat,dumplist[i]->scale,dumplist[i]->delay);
+      dump_time = MIN(dump_time,dumplist[i]->next_time);
+    } else dump_time = MIN(dump_time,dumplist[i]->next_time);
+  }
+
+  // sflag = 1 if stats output needed
+
+  int sflag = 0;
+  if (time >= stats_time || done) sflag = 1;
+  
+  // diagnostic output, which may be driven by stats output
+  
+  double diag_time = app->stoptime;
+  for (int i = 0; i < ndiag; i++) {
+    if (diaglist[i]->stats_flag) {
+      if (sflag) diaglist[i]->compute();
+    } else if (time >= diaglist[i]->next_time) {
+      diaglist[i]->compute();
+      diaglist[i]->next_time = 
+	next_time(time,diaglist[i]->logfreq,diaglist[i]->delta,
+		  diaglist[i]->nrepeat,diaglist[i]->scale,diaglist[i]->delay);
+      diag_time = MIN(diag_time,diaglist[i]->next_time);
+    } else diag_time = MIN(diag_time,diaglist[i]->next_time);
+  }
+  
+  // stats output, after diagnostics compute any needed quantities
+  
+  if (sflag) {
+    stats(1);
+    stats_time = app->stoptime;
+    if (stats_delta)
+      stats_time = next_time(time,stats_logfreq,stats_delta,
+			     stats_nrepeat,stats_scale,stats_delay);
+  }
+
+  // tnext = next output time for anything
 
   double tnext = app->stoptime;
   tnext = MIN(tnext,dump_time);
@@ -163,251 +187,46 @@ void Output::set_stats(int narg, char **arg)
   if (narg < 1) error->all("Illegal stats command");
   stats_delta = atof(arg[0]);
   if (stats_delta < 0.0) error->all("Illegal stats command");
+  if (stats_delta == 0.0 && narg > 1) error->all("Illegal stats command");
+
+  stats_delay = 0.0;
+  stats_logfreq = 0;
 
   int iarg = 1;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"logfreq") == 0) {
-      if (stats_delta == 0.0) error->all("Illegal stats command");
-      stats_logfreq = 1;
-      iarg++;
-      if (iarg+1 < narg) {
-	stats_nrepeat = atoi(arg[iarg]);
-	if (stats_nrepeat < 1) error->all("Illegal stats command");
-	iarg++;
-	stats_scale = atof(arg[iarg]);
-      } else error->all("Illegal stats command");
+    if (strcmp(arg[iarg],"delay") == 0) {
+      if (iarg+2 > narg) error->all("Illegal stats command");
+      stats_delay = atof(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"logfreq") == 0) {
+      if (iarg+3 > narg) error->all("Illegal stats command");
+      stats_nrepeat = atoi(arg[iarg+1]);
+      stats_scale = atof(arg[iarg+2]);
+      if (stats_nrepeat < 0) error->all("Illegal stats command");
+      if (stats_nrepeat == 0) stats_logfreq = 0;
+      else stats_logfreq = 1;
+      iarg += 3;
     } else error->all("Illegal stats command");
-    iarg++;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Output::set_dump(int narg, char **arg)
+void Output::add_dump(int narg, char **arg)
 {
-  // determine correct kind of app pointer
+  if (narg < 1) error->all("Illegal dump command");
 
-  if (app->appclass == LATTICE) applattice = (AppLattice *) app;
-  else error->all("Cannot use dump with off-lattice app");
+  for (int i = 0; i < ndump; i++)
+    if (strcmp(dumplist[i]->id,arg[0]) == 0)
+      error->all("Dump ID already exists");
 
-  // parse dump args
-
-  if (narg < 2) error->all("Illegal dump command");
-  dump_delta = atof(arg[0]);
-  if (dump_delta <= 0.0) error->all("Illegal dump command");
-
-  if (me == 0) {
-    if (fp) fclose(fp);
-    fp = fopen(arg[1],"w");
-    if (!fp) error->one("Cannot open dump file");
+  if (ndump == max_dump) {
+    max_dump++;
+    dumplist = (Dump **) memory->srealloc(dumplist,max_dump*sizeof(Dump *),
+					  "output:dumplist");
+    dumplist[ndump] = new Dump(spk,narg,arg);
+    ndump++;
   }
-
-  int iarg = 2;
-  while (iarg < narg) {
-
-  if (iarg < narg) {
-    if (strcmp(arg[iarg],"logfreq") == 0) {
-      dump_logfreq = 1;
-      iarg++;
-      if (iarg+1 < narg) {
-	dump_nrepeat = atoi(arg[iarg]);
-	if (dump_nrepeat < 1) error->all("Illegal dump command");
-	iarg++;
-	dump_scale = atof(arg[iarg]);
-	iarg++;
-      } else {
-	error->all("Illegal dump command");
-      }
-    } else if (strcmp(arg[iarg],"delay") == 0) {
-      iarg++;
-      if (iarg < narg) {
-	dump_delay = atof(arg[iarg]);
-	iarg++;
-      } else error->all("Illegal dump_style command");
-
-    } else if (strcmp(arg[iarg],"mask") == 0) {
-      iarg++;
-      if (iarg < narg) {
-	if (strcmp(arg[iarg],"yes") == 0) mask_flag = 1;
-	else if (strcmp(arg[iarg],"no") == 0) mask_flag = 0;
-	iarg++;
-      } else error->all("Illegal dump_style command");
-    } else break;
-  }
-  }
-
-  // line = one string of concatenated keywords
-  // size_one = # of keywords
-
-  char *line = new char[MAXLINE];
-  if (iarg == narg) {
-    size_one = 5;
-    strcpy(line,DEFAULT);
-  } else {
-    size_one = narg - iarg;
-    line[0] = '\0';
-    for (int jarg = iarg; jarg < narg; jarg++) {
-      strcat(line,arg[jarg]);
-      strcat(line," ");
-    }
-    line[strlen(line)-1] = '\0';
-  }
-
-  // allocate per-keyword memory
-
-  vtype = new int[size_one];
-  vindex = new int[size_one];
-  vformat = new char*[size_one];
-  pack_choice = new FnPtrPack[size_one];
-
-  int i = 0;
-  char *word = strtok(line," \0");
-
-  while (word) {
-    if (strcmp(word,"id") == 0) {
-      pack_choice[i] = &Output::pack_id;
-      vtype[i] = INT;
-    } else if (strcmp(word,"lattice") == 0) {
-      pack_choice[i] = &Output::pack_lattice;
-      vtype[i] = INT;
-      if (app->appclass == LATTICE && applattice->lattice == NULL)
-	error->all("Dumping lattice but application does not support it");
-    } else if (strcmp(word,"x") == 0) {
-      pack_choice[i] = &Output::pack_x;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(word,"y") == 0) {
-      pack_choice[i] = &Output::pack_y;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(word,"z") == 0) {
-      pack_choice[i] = &Output::pack_z;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(word,"energy") == 0) {
-      pack_choice[i] = &Output::pack_energy;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(word,"propensity") == 0) {
-      pack_choice[i] = &Output::pack_propensity;
-      vtype[i] = DOUBLE;
-
-    // integer value = iN
-    // double value = dN
-
-    } else if (word[0] == 'i') {
-      pack_choice[i] = &Output::pack_integer;
-      vtype[i] = INT;
-      vindex[i] = atoi(&word[1]);
-      if (app->appclass != LATTICE)
-	error->all("Invalid keyword in dump command");
-      if (vindex[i] < 1 || vindex[i] > applattice->ninteger)
-	error->all("Invalid keyword in dump command");
-      vindex[i]--;
-    } else if (word[0] == 'd') {
-      pack_choice[i] = &Output::pack_double;
-      vtype[i] = DOUBLE;
-      vindex[i] = atoi(&word[1]) - 1;
-      if (app->appclass != LATTICE)
-	error->all("Invalid keyword in dump command");
-      if (vindex[i] < 1 || vindex[i] > applattice->ndouble)
-	error->all("Invalid keyword in dump command");
-      vindex[i]--;
-
-    } else error->all("Invalid keyword in dump command");
-
-    word = strtok(NULL," \0");
-    i++;
-  }
-
-  delete [] line;
-
-  // setup vformat strings, one per field
-
-  for (int i = 0; i < size_one; i++) {
-    char *format;
-    if (vtype[i] == INT) format = "%d ";
-    else if (vtype[i] == DOUBLE) format = "%g ";
-    int n = strlen(format) + 1;
-    vformat[i] = new char[n];
-    strcpy(vformat[i],format);
-  }
-
-  // setup dump params
-
-  nglobal = applattice->nglobal;
-  nlocal = applattice->nlocal;
-  boxxlo = applattice->boxxlo;
-  boxxhi = applattice->boxxhi;
-  boxylo = applattice->boxylo;
-  boxyhi = applattice->boxyhi;
-  boxzlo = applattice->boxzlo;
-  boxzhi = applattice->boxzhi;
-
-  if (mask_flag)
-    mask = (int *) memory->smalloc(nlocal*sizeof(int),"output:mask");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Output::add_diag(Diag *diag)
-{
-  ndiags++;
-  diaglist = (Diag **) memory->srealloc(diaglist,ndiags*sizeof(Diag *),
-					"output:diaglist");
-  diaglist[ndiags-1] = diag;
-}
-
-/* ----------------------------------------------------------------------
-   called only when some output is needed or when app is done
-   set next output time for any output performed
-   return tnext = next time any output is needed
-------------------------------------------------------------------------- */
-
-double Output::compute(double time, int done)
-{
-  // dump output
-
-  if (dump_delta > 0.0 && time >= dump_time) {
-    dump(time);
-    dump_time = next_time(time,dump_logfreq,dump_delta,
-			  dump_nrepeat,dump_scale,dump_delta);
-  }
-
-  // sflag = 1 if stats output needed
-
-  int sflag = 0;
-  if (time >= stats_time) sflag = 1;
-  
-  // diagnostic output, which may be driven by stats output
-  
-  double diag_time = app->stoptime;
-  for (int i = 0; i < ndiags; i++) {
-    if (diaglist[i]->stats_flag) {
-      if (sflag) diaglist[i]->compute();
-    } else if (time >= diaglist[i]->diag_time) {
-      diaglist[i]->compute();
-      diaglist[i]->diag_time = 
-	next_time(time,diaglist[i]->diag_logfreq,diaglist[i]->diag_delta,
-		  diaglist[i]->diag_nrepeat,diaglist[i]->diag_scale,
-		  diaglist[i]->diag_delta);
-      diag_time = MIN(diag_time,diaglist[i]->diag_time);
-    } else diag_time = MIN(diag_time,diaglist[i]->diag_time);
-  }
-  
-  // stats output, after diagnostics compute any needed quantities
-  
-  if (sflag || done) {
-    stats(1);
-    if (stats_delta)
-      stats_time = next_time(time,stats_logfreq,stats_delta,
-			     stats_nrepeat,stats_scale,stats_delta);
-    else stats_time = app->stoptime;
-  }
-
-  // find next output time
-
-  double tnext = app->stoptime;
-  tnext = MIN(tnext,dump_time);
-  tnext = MIN(tnext,diag_time);
-  tnext = MIN(tnext,stats_time);
-  return tnext;
 }
 
 /* ----------------------------------------------------------------------
@@ -415,39 +234,59 @@ double Output::compute(double time, int done)
    does not change any attributes of next time dump
 ------------------------------------------------------------------------- */
 
-void Output::dump_one(double time)
+void Output::dump_one(int narg, char **arg, double time)
 {
-  if (dump_delta == 0.0)
-    error->all("Cannot use dump_one with no dump defined");
-  if (idump == 0)
+  if (narg != 1) error->all("Illegal dump_one command");
+
+  int i;
+  for (i = 0; i < ndump; i++)
+    if (strcmp(dumplist[i]->id,arg[0]) == 0) break;
+  if (i == ndump) error->all("Could not find dump ID in dump_one command");
+
+  if (dumplist[i]->idump == 0)
     error->all("Cannot use dump_one for first snapshot in dump file");
 
-  dump(time);
+  dumplist[i]->write(time);
 }
 
-/* ----------------------------------------------------------------------
-   calculate next time that output of a particular kind should be performed
-   return tnew = next time at which output should be done
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-double Output::next_time(double tcurrent, int logfreq, double delta, 
-			 int nrepeat, double scale, double delay)
+void Output::dump_modify(int narg, char **arg)
 {
-  double tnew;
+  if (narg < 1) error->all("Illegal dump_modify command");
 
-  if (logfreq == 0) {
-    tnew = ceil(tcurrent/delta) * delta;
-    if (tnew == tcurrent) tnew = tcurrent + delta;
-  } else {
-    double start = delta;
-    while (tcurrent >= start*scale) start *= scale;
-    tnew = ceil(tcurrent/start) * start;
-    if (tnew == tcurrent) tnew = tcurrent + start;
-    if (static_cast<int> (tnew/start) > nrepeat) tnew = start*scale;
-  }
+  int i;
+  for (i = 0; i < ndump; i++)
+    if (strcmp(dumplist[i]->id,arg[0]) == 0) break;
+  if (i == ndump) error->all("Could not find dump ID in dump_modify command");
 
-  tnew = MAX(tnew,delay);
-  return tnew;
+  dumplist[i]->modify_params(narg-1,&arg[1]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Output::undump(int narg, char **arg)
+{
+  if (narg != 1) error->all("Illegal undump command");
+
+  int i;
+  for (i = 0; i < ndump; i++)
+    if (strcmp(dumplist[i]->id,arg[0]) == 0) break;
+  if (i == ndump) error->all("Could not find dump ID in undump command");
+
+  delete [] dumplist[i];
+  for (int j = i; j < ndump-1; j++) dumplist[j] = dumplist[j+1];
+  ndump--;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Output::add_diag(Diag *diag)
+{
+  ndiag++;
+  diaglist = (Diag **) memory->srealloc(diaglist,ndiag*sizeof(Diag *),
+					"output:diaglist");
+  diaglist[ndiag-1] = diag;
 }
 
 /* ----------------------------------------------------------------------
@@ -470,7 +309,7 @@ void Output::stats(int timeflag)
     strpnt += strlen(strpnt);
   }
 
-  for (int i = 0; i < ndiags; i++)
+  for (int i = 0; i < ndiag; i++)
     if (diaglist[i]->stats_flag) {
       diaglist[i]->stats(strpnt);
       strpnt += strlen(strpnt);
@@ -501,7 +340,7 @@ void Output::stats_header()
   sprintf(strpnt,"%10s","CPU");
   strpnt += strlen(strpnt);
 
-  for (int i = 0; i < ndiags; i++)
+  for (int i = 0; i < ndiag; i++)
     if (diaglist[i]->stats_flag) {
       diaglist[i]->stats_header(strpnt);
       strpnt += strlen(strpnt);
@@ -517,290 +356,27 @@ void Output::stats_header()
 }
 
 /* ----------------------------------------------------------------------
-   dump a snapshot of lattice values as atom coords
+   calculate next time that output should be performed
+   account for logarithmic frequency and delay
+   return tnew = next time at which output should be done
 ------------------------------------------------------------------------- */
 
-void Output::dump(double time)
+double Output::next_time(double tcurrent, int logfreq, double delta, 
+			 int nrepeat, double scale, double delay)
 {
-  int nglobaldump,nlocaldump;
+  double tnew;
 
-  // count sites to output with or without masking
-
-  if (mask_flag == 0) nlocaldump = nlocal;
-  else {
-    for (int i = 0; i < nlocal; i++) mask[i] = 0;
-    maskzeroenergy();
-    nlocaldump = 0;
-    for (int i = 0; i < nlocal; i++)
-      if (!mask[i]) nlocaldump++;
-  }
-
-  MPI_Allreduce(&nlocaldump,&nglobaldump,1,MPI_INT,MPI_SUM,world);
-
-  // allocate buffer for getting site info from other procs
-
-  int nbuf = nlocaldump*size_one;
-  MPI_Allreduce(&nbuf,&maxbuf,1,MPI_INT,MPI_MAX,world);
-  buf = (double *) memory->smalloc(maxbuf*sizeof(double),"output:buf");
-
-  // proc 0 writes timestep header
-
-  if (me == 0) {
-    fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,"%d %10g\n",idump,time);
-    fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-    fprintf(fp,"%d\n",nglobaldump);
-    fprintf(fp,"ITEM: BOX BOUNDS\n");
-    fprintf(fp,"%g %g\n",boxxlo,boxxhi);
-    fprintf(fp,"%g %g\n",boxylo,boxyhi);
-    fprintf(fp,"%g %g\n",boxzlo,boxzhi);
-    fprintf(fp,"ITEM: ATOMS\n");
-  }
-
-  idump++;
-
-  // pack my info into buffer
-
-  for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
-  int me_size = nlocaldump*size_one;
-
-  // proc 0 pings each proc, receives it's data, writes to file
-  // all other procs wait for ping, send their data to proc 0
-
-  int tmp,nlines;
-  MPI_Status status;
-  MPI_Request request;
-
-  if (me == 0) {
-    for (int iproc = 0; iproc < nprocs; iproc++) {
-      if (iproc) {
-	MPI_Irecv(buf,maxbuf,MPI_DOUBLE,iproc,0,world,&request);
-	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-	MPI_Wait(&request,&status);
-	MPI_Get_count(&status,MPI_DOUBLE,&nlines);
-	nlines /= size_one;
-      } else nlines = me_size/size_one;
-      
-      write_data(nlines,buf);
-    }
-    fflush(fp);
-
+  if (logfreq == 0) {
+    tnew = ceil(tcurrent/delta) * delta;
+    if (tnew == tcurrent) tnew = tcurrent + delta;
   } else {
-    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(buf,me_size,MPI_DOUBLE,0,0,world);
+    double start = delta;
+    while (tcurrent >= start*scale) start *= scale;
+    tnew = ceil(tcurrent/start) * start;
+    if (tnew == tcurrent) tnew = tcurrent + start;
+    if (static_cast<int> (tnew/start) > nrepeat) tnew = start*scale;
   }
 
-  memory->sfree(buf);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Output::write_data(int n, double *buf)
-{
-  int i,j;
-
-  int m = 0;
-  for (i = 0; i < n; i++) {
-    for (j = 0; j < size_one; j++) {
-      if (vtype[j] == INT) fprintf(fp,vformat[j],static_cast<int> (buf[m]));
-      else fprintf(fp,vformat[j],buf[m]);
-      m++;
-    }
-    fprintf(fp,"\n");
-  }
-}
-
-/* ----------------------------------------------------------------------
-   one method for every keyword dump can output
-   the site quantity is packed into buf starting at n with stride size_one
-------------------------------------------------------------------------- */
-
-/* ---------------------------------------------------------------------- */
-
-void Output::pack_id(int n)
-{
-  int *id;
-  id = applattice->id;
-
-  if (mask_flag == 0) {
-    for (int i = 0; i < nlocal; i++) {
-      buf[n] = id[i];
-      n += size_one;
-    }
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i]) continue;
-      buf[n] = id[i];
-      n += size_one;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Output::pack_lattice(int n)
-{
-  int i,j,k;
-  int *lattice = applattice->lattice;
-
-  if (mask_flag == 0) {
-    for (i = 0; i < nlocal; i++) {
-      buf[n] = lattice[i];
-      n += size_one;
-    }
-  } else {
-    for (i = 0; i < nlocal; i++) {
-      if (mask[i]) continue;
-      buf[n] = lattice[i];
-      n += size_one;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Output::pack_x(int n)
-{
-  double **xyz = applattice->xyz;
-
-  if (mask_flag == 0) {
-    for (int i = 0; i < nlocal; i++) {
-      buf[n] = xyz[i][0];
-      n += size_one;
-    }
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i]) continue;
-      buf[n] = xyz[i][0];
-      n += size_one;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Output::pack_y(int n)
-{
-  double **xyz = applattice->xyz;
-
-  if (mask_flag == 0) {
-    for (int i = 0; i < nlocal; i++) {
-      buf[n] = xyz[i][1];
-      n += size_one;
-    }
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i]) continue;
-      buf[n] = xyz[i][1];
-      n += size_one;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Output::pack_z(int n)
-{
-  double **xyz = applattice->xyz;
-
-  if (mask_flag == 0) {
-    for (int i = 0; i < nlocal; i++) {
-      buf[n] = xyz[i][2];
-      n += size_one;
-    }
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i]) continue;
-      buf[n] = xyz[i][2];
-      n += size_one;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Output::pack_energy(int n)
-{
-  int i,j,k;
-
-  if (mask_flag == 0) {
-    for (i = 0; i < nlocal; i++) {
-      buf[n] = applattice->site_energy(i);
-      n += size_one;
-    }
-  } else {
-    for (i = 0; i < nlocal; i++) {
-      if (mask[i]) continue;
-      buf[n] = applattice->site_energy(i);
-      n += size_one;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Output::pack_propensity(int n)
-{
-  int i,j,k;
-
-  if (mask_flag == 0) {
-    for (i = 0; i < nlocal; i++) {
-      buf[n] = applattice->site_propensity(i);
-      n += size_one;
-    }
-  } else {
-    for (i = 0; i < nlocal; i++) {
-      if (mask[i]) continue;
-      buf[n] = applattice->site_propensity(i);
-      n += size_one;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Output::pack_integer(int n)
-{
-  int *ivec = applattice->iarray[vindex[n]];
-
-  if (mask_flag == 0) {
-    for (int i = 0; i < nlocal; i++) {
-      buf[n] = ivec[i];
-      n += size_one;
-    }
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i]) continue;
-      buf[n] = ivec[i];
-      n += size_one;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Output::pack_double(int n)
-{
-  double *dvec = applattice->darray[n];
-
-  if (mask_flag == 0) {
-    for (int i = 0; i < nlocal; i++) {
-      buf[n] = dvec[i];
-      n += size_one;
-    }
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i]) continue;
-      buf[n] = dvec[i];
-      n += size_one;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Output::maskzeroenergy()
-{
-  for (int i = 0; i < nlocal; i++)
-    mask[i] = applattice->site_energy(i) <= 0.0;
+  tnew = MAX(tnew,delay);
+  return tnew;
 }
