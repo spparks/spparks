@@ -16,9 +16,6 @@
 #include "string.h"
 #include "comm_lattice.h"
 #include "app_lattice.h"
-#include "solve.h"
-#include "finish.h"
-#include "timer.h"
 #include "memory.h"
 #include "error.h"
 

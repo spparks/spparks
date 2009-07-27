@@ -435,7 +435,7 @@ void AppLattice::setup()
     sitelist = (int *) memory->smalloc(n*sizeof(int),"applattice:sitelist");
   }
 
-  // setup of output
+  // setup future output
 
   nextoutput = output->setup(time);
 }

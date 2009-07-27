@@ -16,9 +16,11 @@
 // see style.h for examples
 
 #ifdef AppInclude
+//#include "app_erbium.h"
 #endif
 
 #ifdef AppClass
+//AppStyle(erbium,AppErbium)
 #endif
 
 #ifdef CommandInclude
@@ -31,4 +33,12 @@
 #endif
 
 #ifdef SolveClass
+#endif
+
+#ifdef DiagInclude
+//#include "diag_erbium.h"
+#endif
+
+#ifdef DiagClass
+//DiagStyle(erbium,DiagErbium)
 #endif

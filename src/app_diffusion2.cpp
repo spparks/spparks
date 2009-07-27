@@ -30,6 +30,7 @@ using namespace SPPARKS_NS;
 enum{ZERO,VACANT,OCCUPIED,TOP};
 enum{NO_ENERGY,LINEAR,LINEAR_TABLE,NONLINEAR};
 enum{NO_GEOMETRY,SURFACE,VOID_FRACTION,PORE};
+enum{HOP,SCHWOEBEL};
 enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};  // from app_lattice.cpp
 
 #define DELTAEVENT 100000
@@ -42,56 +43,81 @@ enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};  // from app_lattice.cpp
 AppDiffusion2::AppDiffusion2(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
+  // these can be changed by model choice, see below
+
   delevent = 1;
-  delpropensity = 2;     // change to 3 for nonlinear, see below
-  allow_rejection = 0;   // change to 1 for linear, see below
+  delpropensity = 2;
+  allow_rejection = 0;
   allow_masking = 0;
 
   // parse arguments
 
-  if (narg < 4) error->all("Illegal app_style command");
-
-  if (strcmp(arg[1],"off") == 0) engflag = NO_ENERGY;
-  else if (strcmp(arg[1],"linear") == 0) engflag = LINEAR;
-  else if (strcmp(arg[1],"linear/table") == 0) engflag = LINEAR_TABLE;
-  else if (strcmp(arg[1],"nonlinear") == 0) engflag = NONLINEAR;
-  else error->all("Illegal app_style command");
-
-  if (engflag == NONLINEAR) delpropensity = 3;
-  if (engflag == LINEAR) allow_rejection = 1;
-
-  int input_style,iarg;
   double level,fraction,xc,yc,zc,diameter,thickness;
 
-  if (strcmp(arg[2],"none") == 0) {
-    if (narg < 3) error->all("Illegal app_style command");
-    input_style = NO_GEOMETRY;
-    iarg = 3;
-  } else if (strcmp(arg[2],"surface") == 0) {
-    if (narg < 4) error->all("Illegal app_style command");
-    input_style = SURFACE;
-    level = atof(arg[3]);
+  int iarg = 1;
+  if (iarg+1 > narg) error->all("Illegal app_style command");
+  if (strcmp(arg[iarg],"off") == 0) engstyle = NO_ENERGY;
+  else if (strcmp(arg[iarg],"linear") == 0) engstyle = LINEAR;
+  else if (strcmp(arg[iarg],"linear/table") == 0) engstyle = LINEAR_TABLE;
+  else if (strcmp(arg[iarg],"nonlinear") == 0) engstyle = NONLINEAR;
+  else error->all("Illegal app_style command");
+  iarg++;
+
+  if (iarg+1 > narg) error->all("Illegal app_style command");
+  if (strcmp(arg[iarg],"hop") == 0) {
+    hopstyle = HOP;
+    iarg++;
+  } else if (strcmp(arg[iarg],"schwoebel") == 0) {
+    if (iarg+3 > narg) error->all("Illegal app_style command");
+    hopstyle = SCHWOEBEL;
+    nsmax = atoi(arg[iarg+1]);
+    nsmin = atoi(arg[iarg+2]);
+    iarg += 3;
+  } else error->all("Illegal app_style command");
+
+  if (iarg+1 > narg) error->all("Illegal app_style command");
+  if (strcmp(arg[iarg],"none") == 0) {
+    geomstyle = NO_GEOMETRY;
+    iarg++;
+  } else if (strcmp(arg[iarg],"surface") == 0) {
+    if (iarg+2 > narg) error->all("Illegal app_style command");
+    geomstyle = SURFACE;
+    level = atof(arg[iarg+1]);
     if (level < 0.0) error->all("Illegal app_style command");
-    iarg = 4;
-  } else if (strcmp(arg[2],"void") == 0) {
-    if (narg < 4) error->all("Illegal app_style command");
-    input_style = VOID_FRACTION;
-    fraction = atof(arg[3]);
+    iarg += 2;
+  } else if (strcmp(arg[iarg],"void") == 0) {
+    if (iarg+2 > narg) error->all("Illegal app_style command");
+    geomstyle = VOID_FRACTION;
+    fraction = atof(arg[iarg+1]);
     if (fraction <= 0.0 || fraction >= 1.0)
       error->all("Illegal app_style command");
-    iarg = 4;
-  } else if (strcmp(arg[2],"pore") == 0) {
-    if (narg < 8) error->all("Illegal app_style command");
-    input_style = PORE;
-    xc = atof(arg[3]);
-    yc = atof(arg[4]);
-    zc = atof(arg[5]);
-    diameter = atof(arg[6]);
-    thickness = atof(arg[7]);
-    iarg = 8;
+    iarg += 2;
+  } else if (strcmp(arg[iarg],"pore") == 0) {
+    if (iarg+6 > narg) error->all("Illegal app_style command");
+    geomstyle = PORE;
+    xc = atof(arg[iarg+1]);
+    yc = atof(arg[iarg+2]);
+    zc = atof(arg[iarg+3]);
+    diameter = atof(arg[iarg+4]);
+    thickness = atof(arg[iarg+5]);
+    iarg += 6;
   } else error->all("Illegal app_style command");
 
   options(narg-iarg,&arg[iarg]);
+
+  // error checks
+
+  if (engstyle == LINEAR && hopstyle == SCHWOEBEL)
+    error->all("Cannot perform Schwoebel hops with linear option");
+
+  // increment delpropensity by 1 for nonlinear energy
+  // increment delpropensity and delevent by 1 for Schwoebel hops
+  // change allow_rejection to 1 for linear energy and non-Schwoebel hops
+
+  if (engstyle == NONLINEAR) delpropensity++;
+  if (hopstyle == SCHWOEBEL) delpropensity++;
+  if (hopstyle == SCHWOEBEL) delevent++;
+  if (engstyle == LINEAR && hopstyle == HOP) allow_rejection = 1;
 
   // define lattice and partition it across processors
 
@@ -102,10 +128,10 @@ AppDiffusion2::AppDiffusion2(SPPARKS *spk, int narg, char **arg) :
   // for nonlinear:
   // make sites large enough for 2 sites and their 1,2,3 nearest neighbors
 
-  if (engflag == LINEAR || engflag == LINEAR_TABLE) {
+  if (engstyle == LINEAR || engstyle == LINEAR_TABLE) {
     esites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
     psites = NULL;
-  } else if (engflag == NONLINEAR) {
+  } else if (engstyle == NONLINEAR) {
     int nmax = 1 + maxneigh + maxneigh*maxneigh + maxneigh*maxneigh*maxneigh;
     esites = new int[2*nmax];
     psites = new int[2*nmax];
@@ -127,11 +153,23 @@ AppDiffusion2::AppDiffusion2(SPPARKS *spk, int narg, char **arg) :
   for (int i = 0; i <= maxneigh; i++) ecoord[i] = 0.0;
 
   barrierflag = 0;
-  barrier = 
-    memory->create_2d_double_array(maxneigh+1,maxneigh+1,"app:barrier");
+  hbarrier = 
+    memory->create_2d_double_array(maxneigh+1,maxneigh+1,"app:hbarrier");
+  sbarrier = 
+    memory->create_2d_double_array(maxneigh+1,maxneigh+1,"app:sbarrier");
+
   for (int i = 0; i <= maxneigh; i++)
     for (int j = 0; j <= maxneigh; j++)
-      barrier[i][j] = 0.0;
+      hbarrier[i][j] = sbarrier[i][j] = 0.0;
+
+  hopsite = new int[maxneigh*maxneigh + maxneigh];
+  marklist = new int[maxneigh*maxneigh];
+
+  mark = NULL;
+  if (hopstyle == SCHWOEBEL)
+    mark = (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:mark");
+  if (mark)
+    for (int i = 0; i < nlocal+nghost; i++) mark[i] = 0;
 
   // sweeping timestep
 
@@ -147,7 +185,7 @@ AppDiffusion2::AppDiffusion2(SPPARKS *spk, int narg, char **arg) :
 
   // SURFACE is sites < level = OCCUPIED, rest VACANT, except at TOP
 
-  else if (input_style == SURFACE) {
+  else if (geomstyle == SURFACE) {
     std::map<int,int> hash;
     for (int i = 0; i < nlocal; i++)
       hash.insert(std::pair<int,int> (id[i],i));
@@ -174,7 +212,7 @@ AppDiffusion2::AppDiffusion2(SPPARKS *spk, int narg, char **arg) :
 
   // VOID_FRACTION is sites = VACANT/OCCUPIED with fraction OCCUPIED
 
-  } else if (input_style == VOID_FRACTION) {
+  } else if (geomstyle == VOID_FRACTION) {
     std::map<int,int> hash;
     for (int i = 0; i < nlocal; i++)
       hash.insert(std::pair<int,int> (id[i],i));
@@ -191,7 +229,7 @@ AppDiffusion2::AppDiffusion2(SPPARKS *spk, int narg, char **arg) :
   // PORE is sites = VACANT/OCCUPIED
   // pore is in thin film at (xc,yc,zc) with diameter and thickness
 
-  } else if (input_style == PORE) {
+  } else if (geomstyle == PORE) {
     double x,y,z;
     int isite;
     for (int i = 0; i < nlocal; i++) {
@@ -229,8 +267,14 @@ AppDiffusion2::~AppDiffusion2()
   delete [] pcheck;
   memory->sfree(events);
   memory->sfree(firstevent);
-  memory->destroy_2d_double_array(barrier);
+
+  memory->destroy_2d_double_array(hbarrier);
+  memory->destroy_2d_double_array(sbarrier);
   delete [] ecoord;
+
+  delete [] hopsite;
+  delete [] marklist;
+  memory->sfree(mark);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -240,7 +284,7 @@ void AppDiffusion2::input_app(char *command, int narg, char **arg)
   double PI = 4.0*atan(1.0);
 
   if (strcmp(command,"ecoord") == 0) {
-    if (engflag != NONLINEAR)
+    if (engstyle != NONLINEAR)
       error->all("Can only use ecoord command with "
 		 "app_style diffusion nonlinear");
     if (narg != 2) error->all("Illegal ecoord command");
@@ -283,20 +327,33 @@ void AppDiffusion2::input_app(char *command, int narg, char **arg)
     dir[2] /= len;
 
   } else if (strcmp(command,"barrier") == 0) {
-    if (narg > 3) error->all("Illegal barrier command");
+    if (narg < 1) error->all("Illegal barrier command");
     barrierflag = 1;
 
-    if (narg == 1) {
-      double q = atof(arg[0]);
+    double **barrier;
+    if (strcmp(arg[0],"none") == 0) {
+      if (narg != 1) error->all("Illegal barrier command");
+      barrierflag = 0;
+      return;
+    } else if (strcmp(arg[0],"hop") == 0) {
+      barrier = hbarrier;
+    } else if (strcmp(arg[0],"schwoebel") == 0) {
+      barrier = sbarrier;
+    } else error->all("Illegal barrier command");
+    if (barrier == sbarrier && hopstyle != SCHWOEBEL)
+      error->all("Cannot define Schwoebel barrier without Schwoebel model");
+
+    if (narg < 2 || narg > 4) error->all("Illegal barrier command");
+    if (narg == 2) {
+      double q = atof(arg[1]);
       int i,j;
       for (i = 0; i <= maxneigh; i++)
 	for (j = 0; j <= maxneigh; j++)
 	  barrier[i][j] = q;
-      if (q == 0.0) barrierflag = 0;
 
-    } else if (narg == 2) {
-      int delta = atoi(arg[0]);
-      double q = atof(arg[1]);
+    } else if (narg == 3) {
+      int delta = atoi(arg[1]);
+      double q = atof(arg[2]);
       int i,j;
       for (i = 0; i <= maxneigh; i++)
 	for (j = 0; j <= maxneigh; j++)
@@ -304,9 +361,9 @@ void AppDiffusion2::input_app(char *command, int narg, char **arg)
 
     } else {
       int ilo,ihi,jlo,jhi;
-      bounds(arg[0],maxneigh,ilo,ihi);
-      bounds(arg[1],maxneigh,jlo,jhi);
-      double q = atof(arg[2]);
+      bounds(arg[1],maxneigh,ilo,ihi);
+      bounds(arg[2],maxneigh,jlo,jhi);
+      double q = atof(arg[3]);
 
       for (int i = ilo; i <= ihi; i++)
 	for (int j = jlo; j <= jhi; j++)
@@ -334,7 +391,7 @@ void AppDiffusion2::init_app()
   delete [] pcheck;
   pcheck = new int[nlocal+nghost];
 
-  if (engflag == LINEAR_TABLE || engflag == NONLINEAR) {
+  if (engstyle == LINEAR_TABLE || engstyle == NONLINEAR) {
     memory->sfree(events);
     memory->sfree(firstevent);
 
@@ -350,7 +407,7 @@ void AppDiffusion2::setup_app()
 {
   for (int i = 0; i < nlocal+nghost; i++) echeck[i] = pcheck[i] = 0;
 
-  if (engflag == LINEAR_TABLE || engflag == NONLINEAR) {
+  if (engstyle == LINEAR_TABLE || engstyle == NONLINEAR) {
     nevents = 0;
     for (int i = 0; i < nlocal; i++) firstevent[i] = -1;
   }
@@ -364,12 +421,12 @@ double AppDiffusion2::site_energy(int i)
 {
   // energy only non-zero for OCCUPIED sites when energy included in model
 
-  if (lattice[i] != OCCUPIED || engflag == NO_ENERGY) return 0.0;
+  if (lattice[i] != OCCUPIED || engstyle == NO_ENERGY) return 0.0;
 
   // energy is a non-linear function of coordination number
   // calculate from user-specified tabulated values
 
-  if (engflag == NONLINEAR) {
+  if (engstyle == NONLINEAR) {
     int n = 0;
     for (int j = 0; j < numneigh[i]; j++)
       if (lattice[neighbor[i][j]] == OCCUPIED) n++;
@@ -405,15 +462,15 @@ void AppDiffusion2::site_event_rejection(int i, RandomPark *random)
   // factor of 2 in edelta accounts for energy change of neighbors of I,J
 
   int hop = 0;
-  if (engflag != NO_ENERGY) einitial = site_energy(i);
+  if (engstyle != NO_ENERGY) einitial = site_energy(i);
 
   lattice[i] = VACANT;
   lattice[j] = OCCUPIED;
 
-  if (engflag == NO_ENERGY) {
+  if (engstyle == NO_ENERGY) {
     if (!barrierflag) hop = 1;
     else if (temperature > 0.0) {
-      if (random->uniform() < exp(-barrier[ncoord(i)-1][ncoord(j)]*t_inverse))
+      if (random->uniform() < exp(-hbarrier[ncoord(i)-1][ncoord(j)]*t_inverse))
 	  hop = 1;
     }
 
@@ -428,10 +485,10 @@ void AppDiffusion2::site_event_rejection(int i, RandomPark *random)
     } else if (temperature > 0.0) {
       if (edelta <= 0.0) {
 	if (random->uniform() < 
-	    exp(-barrier[ncoord(i)-1][ncoord(j)]*t_inverse)) hop = 1;
+	    exp(-hbarrier[ncoord(i)-1][ncoord(j)]*t_inverse)) hop = 1;
       } else {
 	if (random->uniform() < 
-	    exp((-2.0*edelta-barrier[ncoord(i)-1][ncoord(j)]) * t_inverse))
+	    exp((-2.0*edelta-hbarrier[ncoord(i)-1][ncoord(j)]) * t_inverse))
 	  hop = 1;
       }
     }
@@ -450,8 +507,8 @@ void AppDiffusion2::site_event_rejection(int i, RandomPark *random)
 
 double AppDiffusion2::site_propensity(int i)
 {
-  if (engflag == LINEAR) return site_propensity_linear(i);
-  else if (engflag == LINEAR_TABLE) return site_propensity_table(i);
+  if (engstyle == LINEAR) return site_propensity_linear(i);
+  else if (engstyle == LINEAR_TABLE) return site_propensity_table(i);
   else return site_propensity_nonlinear(i);
 }
 
@@ -463,7 +520,7 @@ double AppDiffusion2::site_propensity_linear(int i)
   double einitial,edelta,prob;
 
   // events = OCCUPIED site exchanges with adjacent VACANT site
-  // if engflag, compute edelta between initial and final state
+  // if engstyle, compute edelta between initial and final state
   // factor of 2 in edelta accounts for energy change of neighbors of I,J
   // if barrierflag, compute coordination of sites I,J, with hop atom removed
   // propensity is function of edelta, barrier, up/down hill, temperature
@@ -471,7 +528,7 @@ double AppDiffusion2::site_propensity_linear(int i)
   if (lattice[i] != OCCUPIED) return 0.0;
 
   prob = 0.0;
-  if (engflag != NO_ENERGY) einitial = site_energy(i);
+  if (engstyle != NO_ENERGY) einitial = site_energy(i);
 
   for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
     j = neighbor[i][ineigh];
@@ -479,23 +536,22 @@ double AppDiffusion2::site_propensity_linear(int i)
       lattice[i] = VACANT;
       lattice[j] = OCCUPIED;
 
-      if (engflag == NO_ENERGY) {
+      if (engstyle == NO_ENERGY) {
 	if (!barrierflag) prob += 1.0;
 	else if (temperature > 0.0)
-	  prob += exp(-barrier[ncoord(i)-1][ncoord(j)]*t_inverse);
+	  prob += exp(-hbarrier[ncoord(i)-1][ncoord(j)]*t_inverse);
 
       } else {
 	edelta = site_energy(j) - einitial;
 
 	if (!barrierflag) {
 	  if (edelta <= 0.0) prob += 1.0;
-	  else if (temperature > 0.0) 
-	    prob += exp(-2.0*edelta*t_inverse);
+	  else if (temperature > 0.0) prob += exp(-2.0*edelta*t_inverse);
 	} else if (temperature > 0.0) {
 	  if (edelta <= 0.0)
-	    prob += exp(-barrier[ncoord(i)-1][ncoord(j)]*t_inverse);
+	    prob += exp(-hbarrier[ncoord(i)-1][ncoord(j)]*t_inverse);
 	  else
-	    prob += exp((-2.0*edelta-barrier[ncoord(i)-1][ncoord(j)]) * 
+	    prob += exp((-2.0*edelta-hbarrier[ncoord(i)-1][ncoord(j)]) * 
 			t_inverse);
 	}
       }
@@ -516,58 +572,76 @@ double AppDiffusion2::site_propensity_linear(int i)
 
 double AppDiffusion2::site_propensity_table(int i)
 {
-  int j;
+  int j,ihop,nhop1,nhop2;
   double einitial,edelta,probone,proball;
 
   // events = OCCUPIED site exchanges with adjacent VACANT site
-  // if engflag, compute edelta between initial and final state
+  // if engstyle, compute edelta between initial and final state
   // factor of 2 in edelta accounts for energy change of neighbors of I,J
-  // if barrierflag, compute coordination of sites I,J, with hop atom removed
+  // if barrierflag, compute coordination of sites I,J
+  // for 1st neigh hop, set delta = 1 to remove hopping atom itself
   // propensity is function of edelta, barrier, up/down hill, temperature
 
   clear_events(i);
 
   if (lattice[i] != OCCUPIED) return 0.0;
 
+  // nhop1 = 1st neigh hops, nhop2 = 2nd neigh hops
+  // hopsite = all possible hop sites
+
+  nhop1 = 0;
+  for (j = 0; j < numneigh[i]; j++)
+    if (lattice[neighbor[i][j]] == VACANT) hopsite[nhop1++] = neighbor[i][j];
+  if (hopstyle == SCHWOEBEL) 
+    nhop2 = nhop1 + schwoebel_enumerate(i,&hopsite[nhop1]);
+
+  // loop over all possible hops
+
+  if (engstyle != NO_ENERGY) einitial = site_energy(i);
+
   proball = 0.0;
-  if (engflag != NO_ENERGY) einitial = site_energy(i);
+  double **barrier = hbarrier;
+  int delta = 1;
 
-  for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
-    j = neighbor[i][ineigh];
-    if (lattice[j] == VACANT) {
-      lattice[i] = VACANT;
-      lattice[j] = OCCUPIED;
-      probone = 0.0;
-
-      if (engflag == NO_ENERGY) {
-	if (!barrierflag) probone = 1.0;
-	else if (temperature > 0.0)
-	  probone = exp(-barrier[ncoord(i)-1][ncoord(j)]*t_inverse);
-
-      } else {
-	edelta = site_energy(j) - einitial;
-
-	if (!barrierflag) {
-	  if (edelta <= 0.0) probone = 1.0;
-	  else if (temperature > 0.0) 
-	    probone = exp(-2.0*edelta*t_inverse);
-	} else if (temperature > 0.0) {
-	  if (edelta <= 0.0)
-	    probone = exp(-barrier[ncoord(i)-1][ncoord(j)]*t_inverse);
-	  else
-	    probone = exp((-2.0*edelta-barrier[ncoord(i)-1][ncoord(j)]) * 
-			  t_inverse);
-	}
-      }
-
-      if (probone > 0.0) {
-	add_event(i,j,probone);
-	proball += probone;
-      }
-
-      lattice[i] = OCCUPIED;
-      lattice[j] = VACANT;
+  for (ihop = 0; ihop < nhop2; ihop++) {
+    j = hopsite[ihop];
+    if (j == nhop1) {
+      barrier = sbarrier;
+      delta = 0;
     }
+
+    lattice[i] = VACANT;
+    lattice[j] = OCCUPIED;
+    probone = 0.0;
+
+    if (engstyle == NO_ENERGY) {
+      if (!barrierflag) probone = 1.0;
+      else if (temperature > 0.0)
+	probone = exp(-barrier[ncoord(i)-delta][ncoord(j)]*t_inverse);
+      
+    } else {
+      edelta = site_energy(j) - einitial;
+      
+      if (!barrierflag) {
+	if (edelta <= 0.0) probone = 1.0;
+	else if (temperature > 0.0) 
+	  probone = exp(-2.0*edelta*t_inverse);
+      } else if (temperature > 0.0) {
+	if (edelta <= 0.0)
+	  probone = exp(-barrier[ncoord(i)-delta][ncoord(j)]*t_inverse);
+	else
+	  probone = exp((-2.0*edelta-barrier[ncoord(i)-delta][ncoord(j)]) * 
+			t_inverse);
+      }
+    }
+    
+    if (probone > 0.0) {
+      add_event(i,j,probone);
+      proball += probone;
+    }
+    
+    lattice[i] = OCCUPIED;
+    lattice[j] = VACANT;
   }
 
   // add in single deposition event, stored by site 0
@@ -584,113 +658,131 @@ double AppDiffusion2::site_propensity_table(int i)
 
 double AppDiffusion2::site_propensity_nonlinear(int i)
 {
-  int j,k,m,nsites;
+  int j,k,m,nsites,ihop,nhop1,nhop2;
   double einitial,efinal,edelta,probone,proball;
 
   // events = OCCUPIED site exchanges with adjacent VACANT site
-  // if engflag, compute edelta between initial and final state
+  // if engstyle, compute edelta between initial and final state
   // since eng is nonlinear, this must include eng of neighbor sites of I,J
-  // if barrierflag, compute coordination of sites I,J, with hop atom removed
+  // if barrierflag, compute coordination of sites I,J
+  // for 1st neigh hop, set delta = 1 to remove hopping atom itself
   // propensity is function of edelta, barrier, up/down hill, temperature
 
   clear_events(i);
 
   if (lattice[i] != OCCUPIED) return 0.0;
 
+  // nhop1 = 1st neigh hops, nhop2 = 2nd neigh hops
+  // hopsite = all possible hop sites
+
+  nhop1 = 0;
+  for (j = 0; j < numneigh[i]; j++)
+    if (lattice[neighbor[i][j]] == VACANT) hopsite[nhop1++] = neighbor[i][j];
+  if (hopstyle == SCHWOEBEL) 
+    nhop2 = nhop1 + schwoebel_enumerate(i,&hopsite[nhop1]);
+
+
+  // loop over all possible hops
+
   proball = 0.0;
+  double **barrier = hbarrier;
+  int delta = 1;
 
-  for (int ineigh = 0; ineigh < numneigh[i]; ineigh++) {
-    j = neighbor[i][ineigh];
-    if (lattice[j] == VACANT) {
-      probone = 0.0;
+  for (ihop = 0; ihop < nhop2; ihop++) {
+    j = hopsite[ihop];
+    if (j == nhop1) {
+      barrier = sbarrier;
+      delta = 0;
+    }
 
-      if (engflag == NO_ENERGY) {
-	lattice[i] = VACANT;
-	lattice[j] = OCCUPIED;
-	if (!barrierflag) probone = 1.0;
-	else if (temperature > 0.0)
-	  probone = exp(-barrier[ncoord(i)-1][ncoord(j)]*t_inverse);
+    probone = 0.0;
 
-      } else {
+    if (engstyle == NO_ENERGY) {
+      lattice[i] = VACANT;
+      lattice[j] = OCCUPIED;
+      if (!barrierflag) probone = 1.0;
+      else if (temperature > 0.0)
+	probone = exp(-barrier[ncoord(i)-delta][ncoord(j)]*t_inverse);
 
-	// einitial = i,j and their neighbors
-	// use pcheck[] to avoid recomputing energy of same site
+    } else {
 
-	einitial = site_energy(i) + site_energy(j);
-	nsites = 0;
-	psites[nsites++] = i;
-	psites[nsites++] = j;
-	pcheck[i] = pcheck[j] = 1;
-	
-	for (k = 0; k < numneigh[i]; k++) {
-	  m = neighbor[i][k];
-	  if (pcheck[m]) continue;
-	  einitial += site_energy(m);
-	  psites[nsites++] = m;
-	  pcheck[m] = 1;
-	}
-	for (k = 0; k < numneigh[j]; k++) {
-	  m = neighbor[j][k];
-	  if (pcheck[m]) continue;
-	  einitial += site_energy(m);
-	  psites[nsites++] = m;
-	  pcheck[m] = 1;
-	}
+      // einitial = i,j and their neighbors
+      // use pcheck[] to avoid recomputing energy of same site
 
-	for (m = 0; m < nsites; m++) pcheck[psites[m]] = 0;
-
-	lattice[i] = VACANT;
-	lattice[j] = OCCUPIED;
-
-	// efinal = i,j and their neighbors
-	// use pcheck[] to avoid recomputing energy of same site
-
-	efinal = site_energy(i) + site_energy(j);
-	nsites = 0;
-	psites[nsites++] = i;
-	psites[nsites++] = j;
-	pcheck[i] = pcheck[j] = 1;
-	
-	for (k = 0; k < numneigh[i]; k++) {
-	  m = neighbor[i][k];
-	  if (pcheck[m]) continue;
-	  efinal += site_energy(m);
-	  psites[nsites++] = m;
-	  pcheck[m] = 1;
-	}
-	for (k = 0; k < numneigh[j]; k++) {
-	  m = neighbor[j][k];
-	  if (pcheck[m]) continue;
-	  efinal += site_energy(m);
-	  psites[nsites++] = m;
-	  pcheck[m] = 1;
-	}
-	
-	for (m = 0; m < nsites; m++) pcheck[psites[m]] = 0;
-
-	edelta = efinal - einitial;
-
-	if (!barrierflag) {
-	  if (edelta <= 0.0) probone = 1.0;
-	  else if (temperature > 0.0) 
-	    probone = exp(-edelta*t_inverse);
-	} else if (temperature > 0.0) {
-	  if (edelta <= 0.0)
-	    probone = exp(-barrier[ncoord(i)-1][ncoord(j)]*t_inverse);
-	  else
-	    probone = exp((-edelta-barrier[ncoord(i)-1][ncoord(j)]) * 
-			  t_inverse);
-	}
+      einitial = site_energy(i) + site_energy(j);
+      nsites = 0;
+      psites[nsites++] = i;
+      psites[nsites++] = j;
+      pcheck[i] = pcheck[j] = 1;
+      
+      for (k = 0; k < numneigh[i]; k++) {
+	m = neighbor[i][k];
+	if (pcheck[m]) continue;
+	einitial += site_energy(m);
+	psites[nsites++] = m;
+	pcheck[m] = 1;
       }
-
-      if (probone > 0.0) {
-	add_event(i,j,probone);
-	proball += probone;
+      for (k = 0; k < numneigh[j]; k++) {
+	m = neighbor[j][k];
+	if (pcheck[m]) continue;
+	einitial += site_energy(m);
+	psites[nsites++] = m;
+	pcheck[m] = 1;
       }
       
-      lattice[i] = OCCUPIED;
-      lattice[j] = VACANT;
+      for (m = 0; m < nsites; m++) pcheck[psites[m]] = 0;
+      
+      lattice[i] = VACANT;
+      lattice[j] = OCCUPIED;
+      
+      // efinal = i,j and their neighbors
+      // use pcheck[] to avoid recomputing energy of same site
+      
+      efinal = site_energy(i) + site_energy(j);
+      nsites = 0;
+      psites[nsites++] = i;
+      psites[nsites++] = j;
+      pcheck[i] = pcheck[j] = 1;
+      
+      for (k = 0; k < numneigh[i]; k++) {
+	m = neighbor[i][k];
+	if (pcheck[m]) continue;
+	efinal += site_energy(m);
+	psites[nsites++] = m;
+	pcheck[m] = 1;
+      }
+      for (k = 0; k < numneigh[j]; k++) {
+	m = neighbor[j][k];
+	if (pcheck[m]) continue;
+	efinal += site_energy(m);
+	psites[nsites++] = m;
+	pcheck[m] = 1;
+      }
+      
+      for (m = 0; m < nsites; m++) pcheck[psites[m]] = 0;
+      
+      edelta = efinal - einitial;
+      
+      if (!barrierflag) {
+	if (edelta <= 0.0) probone = 1.0;
+	else if (temperature > 0.0) 
+	  probone = exp(-edelta*t_inverse);
+      } else if (temperature > 0.0) {
+	if (edelta <= 0.0)
+	  probone = exp(-barrier[ncoord(i)-delta][ncoord(j)]*t_inverse);
+	else
+	  probone = exp((-edelta-barrier[ncoord(i)-delta][ncoord(j)]) * 
+			t_inverse);
+      }
     }
+    
+    if (probone > 0.0) {
+      add_event(i,j,probone);
+      proball += probone;
+    }
+    
+    lattice[i] = OCCUPIED;
+    lattice[j] = VACANT;
   }
 
   // add in single deposition event, stored by site 0
@@ -709,8 +801,8 @@ double AppDiffusion2::site_propensity_nonlinear(int i)
 
 void AppDiffusion2::site_event(int i, class RandomPark *random)
 {
-  if (engflag == LINEAR) return site_event_linear(i,random);
-  else if (engflag == LINEAR_TABLE) return site_event_table(i,random);
+  if (engstyle == LINEAR) return site_event_linear(i,random);
+  else if (engstyle == LINEAR_TABLE) return site_event_table(i,random);
   else return site_event_nonlinear(i,random);
 }
 
@@ -718,7 +810,7 @@ void AppDiffusion2::site_event(int i, class RandomPark *random)
 
 void AppDiffusion2::site_event_linear(int i, class RandomPark *random)
 {
-  int j,jj,k,kk,m,mm;
+  int j,k,kk,m,mm;
 
   // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
@@ -823,7 +915,7 @@ void AppDiffusion2::site_event_linear(int i, class RandomPark *random)
 
 void AppDiffusion2::site_event_table(int i, class RandomPark *random)
 {
-  int j,jj,k,kk,m,mm;
+  int j,k,kk,m,mm;
 
   // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
@@ -839,12 +931,12 @@ void AppDiffusion2::site_event_table(int i, class RandomPark *random)
     ievent = events[ievent].next;
   }
 
-  // if partner >= 0, hop event, else deposition event
+  // if destination >= 0, hop event, else deposition event
   // for deposition event, find site to deposit on
   // after deposition, reset i and j to that site
   // so propensity around it is updated correctly
 
-  j = events[ievent].partner;
+  j = events[ievent].destination;
   if (j >= 0) {
     lattice[i] = VACANT;
     lattice[j] = OCCUPIED;
@@ -923,7 +1015,7 @@ void AppDiffusion2::site_event_table(int i, class RandomPark *random)
 
 void AppDiffusion2::site_event_nonlinear(int i, class RandomPark *random)
 {
-  int j,jj,k,kk,kkk,m,mm,mmm,isite;
+  int j,k,kk,kkk,m,mm,mmm,isite;
 
   // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
@@ -939,12 +1031,12 @@ void AppDiffusion2::site_event_nonlinear(int i, class RandomPark *random)
     ievent = events[ievent].next;
   }
 
-  // if partner >= 0, hop event, else deposition event
+  // if destination >= 0, hop event, else deposition event
   // for deposition event, find site to deposit on
   // after deposition, reset i and j to that site
   // so propensity around it is updated correctly
 
-  j = events[ievent].partner;
+  j = events[ievent].destination;
   if (j >= 0) {
     lattice[i] = VACANT;
     lattice[j] = OCCUPIED;
@@ -1073,7 +1165,7 @@ void AppDiffusion2::clear_events(int i)
    event = exchange with site J with probability = propensity
 ------------------------------------------------------------------------- */
 
-void AppDiffusion2::add_event(int i, int partner, double propensity)
+void AppDiffusion2::add_event(int i, int destination, double propensity)
 {
   // grow event list and setup free list
 
@@ -1086,12 +1178,77 @@ void AppDiffusion2::add_event(int i, int partner, double propensity)
   }
 
   int next = events[freeevent].next;
-  events[freeevent].partner = partner;
+  events[freeevent].destination = destination;
   events[freeevent].next = firstevent[i];
   events[freeevent].propensity = propensity;
   firstevent[i] = freeevent;
   freeevent = next;
   nevents++;
+}
+
+/* ----------------------------------------------------------------------
+   enumerate Schwoebel hop events centered around OCCUPIED site I
+   assume mark array is currently cleared, use it, clear it when done
+------------------------------------------------------------------------- */
+
+int AppDiffusion2::schwoebel_enumerate(int i, int *site)
+{
+  int j,k,m,jneigh,kneigh,count;
+
+  int nhop = 0;
+
+  // if coord(I) > Nmax, no hops possible
+
+  count = 0;
+  for (j = 0; j < numneigh[i]; j++)
+    if (lattice[neighbor[i][j]] == OCCUPIED) count++;
+  if (count > nsmax) return nhop;
+
+  // mark first neighbors of site I as vacant = 1, occupied = 2
+
+  for (jneigh = 0; jneigh < numneigh[i]; jneigh++) {
+    j = neighbor[i][jneigh];
+    if (lattice[j] == VACANT) mark[j] = 1;
+    else if (lattice[j] == OCCUPIED) mark[j] = 2;
+  }
+
+  // loop over 1st and 2nd neighbors of site I to find possible hops to K
+  // if K not vacant, no hop
+  // if mark(K) = 1 or 2, K is a 1st neigh, not a 2nd neigh
+  // if mark(K) = 30, already seen as a possible hop
+  // mark(K) = 10 or 20, it has a 1st neigh that is vacant or occupied
+  // mark(K) = 30, has both a vacant/occupied 1st neigh, so consider it
+  // if coord(K) < Nmin, no hop possible
+  // if all criteria met, then it is a candidate hop, add to site[]
+  
+  int nlist = 0;
+  for (jneigh = 0; jneigh < numneigh[i]; jneigh++) {
+    j = neighbor[i][jneigh];
+    for (kneigh = 0; kneigh < numneigh[j]; kneigh++) {
+      k = neighbor[i][kneigh];
+      if (lattice[k] != VACANT) continue;
+      if (mark[k] == 1 || lattice[k] == 2) continue;
+      if (mark[k] == 30) continue;
+      if (mark[k] == 10*mark[j]) continue;
+      if (mark[k] == 0) marklist[nlist++] = k;
+      mark[k] += 10*mark[j];
+      if (mark[k] != 30) continue;
+
+      count = 0;
+      for (m = 0; m < numneigh[k]; m++)
+	if (lattice[neighbor[k][m]] == OCCUPIED) count++;
+      if (count < nsmin) continue;
+
+      site[nhop++] = k;
+    }
+  }
+
+  // clear marked sites, 1st and 2nd neighbors
+
+  for (j = 0; j < numneigh[i]; j++) mark[neighbor[i][j]] = 0;
+  for (k = 0; k < nlist; k++) mark[marklist[k]] = 0;
+
+  return nhop;
 }
 
 /* ----------------------------------------------------------------------

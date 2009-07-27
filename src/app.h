@@ -20,7 +20,8 @@ namespace SPPARKS_NS {
   
 class App : protected Pointers {
  public:
-  enum AppClasses {GENERAL,LATTICE};
+  enum AppClasses {GENERAL,LATTICE,OFF_LATTICE};
+
   int appclass;           // one of the enum values
   char *style;            // style name of app
   double time;            // current simulation time due to executed events

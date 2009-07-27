@@ -34,13 +34,13 @@ class AppDiffusion2 : public AppLattice {
   void site_event(int, class RandomPark *);
 
  private:
-  int engflag;
+  int engstyle,hopstyle,geomstyle;
   int *esites,*psites;
   int *echeck,*pcheck;
   double *ecoord;
 
   struct Event {           // one event for an owned site
-    int partner;           // local ID of exchange partner
+    int destination;       // local ID of destination site
     int next;              // index of next event for this site
     double propensity;     // propensity of this event
   };
@@ -60,7 +60,13 @@ class AppDiffusion2 : public AppLattice {
   double dir[3];
 
   int barrierflag;          // energy barriers on or off
-  double **barrier;
+  double **hbarrier;
+  double **sbarrier;
+
+  int nsmax,nsmin;          // Schwoebel hop params
+  int *hopsite;             // list of possible hops for one site
+  int *mark;                // flagged sites
+  int *marklist;            // list of flagged sites
 
   double site_propensity_linear(int);
   double site_propensity_table(int);
@@ -79,6 +85,7 @@ class AppDiffusion2 : public AppLattice {
   int exceed_limit(int, double *, double &);
   double distsq_to_dir(int, double *, int, int, double &);
   void bounds(char *, int, int &, int &);
+  int schwoebel_enumerate(int, int *);
 };
 
 }
