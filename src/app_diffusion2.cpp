@@ -592,8 +592,9 @@ double AppDiffusion2::site_propensity_table(int i)
   nhop1 = 0;
   for (j = 0; j < numneigh[i]; j++)
     if (lattice[neighbor[i][j]] == VACANT) hopsite[nhop1++] = neighbor[i][j];
+  nhop2 = nhop1;
   if (hopstyle == SCHWOEBEL) 
-    nhop2 = nhop1 + schwoebel_enumerate(i,&hopsite[nhop1]);
+    nhop2 += schwoebel_enumerate(i,&hopsite[nhop1]);
 
   // loop over all possible hops
 
@@ -678,9 +679,9 @@ double AppDiffusion2::site_propensity_nonlinear(int i)
   nhop1 = 0;
   for (j = 0; j < numneigh[i]; j++)
     if (lattice[neighbor[i][j]] == VACANT) hopsite[nhop1++] = neighbor[i][j];
+  nhop2 = nhop1;
   if (hopstyle == SCHWOEBEL) 
-    nhop2 = nhop1 + schwoebel_enumerate(i,&hopsite[nhop1]);
-
+    nhop2 += schwoebel_enumerate(i,&hopsite[nhop1]);
 
   // loop over all possible hops
 
