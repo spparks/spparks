@@ -214,6 +214,7 @@ Restrictions in the command's documentation.
 "add_reaction"_add_reaction.html,
 "add_species"_add_species.html,
 "app_style"_app_style.html,
+"barrier"_barrier.html,
 "clear"_clear.html,
 "count"_count.html,
 "diag_style"_diag_style.html,

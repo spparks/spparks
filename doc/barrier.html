@@ -13,39 +13,51 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>barrier Q
-barrier delta Q
-barrier I J Q 
+<PRE>barrier dstyle Q
+barrier dstyle delta Q
+barrier dstyle I J Q 
 </PRE>
-<UL><LI>Q = barrier height (energy units)
+<UL><LI>dstyle = <I>hop</I> or <I>schwoebel</I>
+<LI>Q = barrier height (energy units)
 <LI>delta = difference in coordination number of 2 participating sites
 <LI>I,J = coordination numbers of 2 participating sites 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>barrier 0.25
-barrier 1 0.3
-barrier -1 0.35
-barrier 3 4 0.2
-barrier * * 0.1
-barrier 2*5 3* 0.1 
+<PRE>barrier hop 0.25
+barrier schwoebel 1 0.3
+barrier hop -1 0.35
+barrier hop 3 4 0.2
+barrier schwoebel * * 0.1
+barrier hop 2*5 3* 0.1 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This command sets the energy barrier for a diffusive hop of an atom
-from an occupied site to a neighboring vacant site.  See the
-<A HREF = "app_diffusion.html">app_style diffusion2</A> command for how the barrier
-is used in conjunction with the energy change of the system due to the
-hop to calculate a probability for the hop to occur.
+from an occupied site to a nearby vacant site.  See the <A HREF = "app_diffusion2.html">app_style
+diffusion2</A> command for how the barrier is used in
+conjunction with the energy change of the system due to the hop to
+calculate a probability for the hop to occur.
+</P>
+<P>Barriers can be assigned to two kinds of diffusive hops.  The first is
+a hop to a nearest-neighbor vacancy, which is specified by setting
+<I>dstyle</I> to <I>hop</I>.  The second is a Schwoebel hop to a 2nd
+nearest-neighbor vacancy, which is specified by setting <I>dstyle</I> to
+<I>schwoebel</I>.  The latter is only allowed if the <A HREF = "app_diffusion2.html">app_style
+diffusion2</A> command also used <I>schwoebel</I> for its
+dstyle setting.
 </P>
 <P>Barriers are assigned based on two coordination numbers, for the
-initial site of the hopping atom and its final site.  Thus typically
-(Nmax+1)*(Nmax+1) values should be specified by using this command one
-or more times, which can be thought of as (I,J) matrix entries where
-both I and J vary from 0 to Nmax, when Nmax is the number of neighbor
-sites for each lattice site.  Note that it is permissible to have Qij
-!= Qji, particularly if the model does not use energies, but only
-barriers to set forward/reverse rates.
+initial site of the hopping atom and its final site.  In both cases
+the coordination count does not include the hopping atom itself.  Thus
+typically (Nmax+1)*(Nmax+1) values should be specified by using this
+command one or more times, which can be thought of as an (I,J) matrix
+entries where both I and J vary from 0 to Nmax inclusive, when Nmax is
+the number of neighbor sites for each lattice site.  There is one such
+matrix for nearest-neighbor diffusive hops and one for Schwoebel hops.
+Also note that it is permissible to have Qij != Qji to set
+forward/reverse rates, particularly if the model does not use
+energies, but only barriers.
 </P>
 <P>If only one argument Q is specified, then all matrix values are set to
 Q.  If the Q value = 0.0, this effectively turns off barriers in the

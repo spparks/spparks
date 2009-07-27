@@ -10,10 +10,15 @@ app_style diffusion2 command :h3
 
 [Syntax:]
 
-app_style diffusion2 estyle gstyle args keyword values ... :pre
+app_style diffusion2 estyle dstyle args gstyle args keyword values ... :pre
 
 diffusion2 = application style name :ulb,l
 estyle = {off} or {linear} or {linear/table} or {nonlinear} :l
+dstyle = {hop} or {schwoebel} :l
+  {hop} args = none
+  {schwoebel} args = Nmax Nmin
+    Nmax = max # of neighbors the initial Schwoebel site can have
+    Nmin = min # of neighbors the final Schwoebel site can have
 gstyle = {none} or {surface} or {void} or {pore} :l
   {none} args = none, use of input file option is assumed
   {surface} args = level
@@ -28,9 +33,9 @@ see the "app_style"_app_style.html command for additional keywords that can be a
 
 [Examples:]
 
-app_style diffusion2 linear void 0.2 lattice fcc 1.0 20 20 20
-app_style diffusion2 nonlinear void 0.2 lattice sq/4n 1.0 50 50
-app_style diffusion2 linear/table pore 10 10 10 5 15 &
+app_style diffusion2 linear hop void 0.2 lattice sq/4n 1.0 20 20
+app_style diffusion2 nonlinear schwoebel 5 2 void 0.2 lattice fcc 1.0 50 50
+app_style diffusion2 linear/table hop pore 10 10 10 5 15 &
 		     lattice fcc 1.0 20 20 20 :pre
 
 [Description:]
@@ -81,6 +86,17 @@ coordination number.  As before the Hi for a vacant site is 0.
 For all these {estyle} settings, the energy of the entire system is
 the sum of Hi over all sites.
 
+The {dstyle} setting determines what kind of diffusive hops are
+modeled.  For {hop}, only simple nearest-neighbor hops occur where an
+atom hops to a neighboring vacant site.  For {schwoebel}, Schwoebel
+hops can also occur, which are defined in the following way.  An atom
+I can hop to a 2nd neighbor vacant site K if there are two
+intermediate 1st neighbor sites J1 and J2, where J1 is vacant and J2
+is occupied, and J1 and J2 are neighbors of each other.  Additionaly
+the initial site I can have no more the {Nmax} occupied neighbors (its
+coordination number), and the destination site K can have no fewer
+than {Nmin} neighbors.
+
 The {gstyle} setting determines how the lattice geometry is
 initialized.
 
@@ -107,20 +123,19 @@ The "deposition"_deposition.html command can be used with this
 application to add atoms to the system in competition with hop events.
 
 The "barrier"_barrier.html command can be used with this application
-to add an energy barrier to the model for hop events, as discussed
-below.
+to add an energy barrier to the model for nearest-neighbor hop and
+Schwoebel hop events, as discussed below.
 
 The "ecoord"_ecoord.html command can be used with the {nonlinear}
 version of this application to set tabulated values for the
 Hamiltonian Eng() function as described above.
 
-Note that estyle {nonlinear} should give the same answers
-(statistically) as {linear} or {linear/table} if the tabulated
-function specified by the "ecoord"_ecoord.html command is specified as
-E_0 = N, E_1 = N-1, ... E_N-1 = 1, E_N = 0, where N = the number of
-neighbors of each lattice site, i.e. the maximum coordination number.
-In this scenario, the energy is effectively a linear function of
-coordination number.
+Note that estyle {nonlinear} should give the same answer as {linear}
+or {linear/table} if the tabulated function specified by the
+"ecoord"_ecoord.html command is specified as E_0 = N, E_1 = N-1,
+... E_N-1 = 1, E_N = 0, where N = the number of neighbors of each
+lattice site, i.e. the maximum coordination number.  In this scenario,
+the energy is effectively a linear function of coordination number.
 
 :line
 
