@@ -302,10 +302,10 @@ void Output::stats(int timeflag)
   strpnt += strlen(strpnt);
 
   if (timeflag) {
-    sprintf(strpnt,"%10.3g ",timer->elapsed(TIME_LOOP));
+    sprintf(strpnt,"%10.3g",timer->elapsed(TIME_LOOP));
     strpnt += strlen(strpnt);
   } else {
-    sprintf(strpnt,"%10.3g ",0.0);
+    sprintf(strpnt,"%10.3g",0.0);
     strpnt += strlen(strpnt);
   }
 

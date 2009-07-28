@@ -11,19 +11,19 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DIAG_DEPOSITION_H
-#define DIAG_DEPOSITION_H
+#ifndef DIAG_DIFFUSION_H
+#define DIAG_DIFFUSION_H
 
 #include "stdio.h"
 #include "diag.h"
 
 namespace SPPARKS_NS {
 
-class DiagDeposition : public Diag {
+class DiagDiffusion : public Diag {
 
  public:
-  DiagDeposition(class SPPARKS *, int, char **);
-  ~DiagDeposition() {}
+  DiagDiffusion(class SPPARKS *, int, char **);
+  ~DiagDiffusion() {}
   void init();
   void compute();
   void stats(char *);
@@ -32,6 +32,7 @@ class DiagDeposition : public Diag {
  private:
   class AppDiffusion2 *appdiff;
   double deposit_success,deposit_failed;
+  double nfirst_all,nsecond_all;
 };
 
 }

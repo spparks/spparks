@@ -73,13 +73,13 @@ SolveStyle(tree,SolveTree)
 
 #ifdef DiagInclude
 #include "diag_cluster.h"
-#include "diag_deposition.h"
+#include "diag_diffusion.h"
 #include "diag_energy.h"
 #endif
 
 #ifdef DiagClass
 DiagStyle(cluster,DiagCluster)
-DiagStyle(deposition,DiagDeposition)
+DiagStyle(diffusion,DiagDiffusion)
 DiagStyle(energy,DiagEnergy)
 #endif
 

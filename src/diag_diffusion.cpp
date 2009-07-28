@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
-#include "diag_deposition.h"
+#include "diag_diffusion.h"
 #include "app_diffusion2.h"
 #include "error.h"
 
@@ -23,16 +23,16 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DiagDeposition::DiagDeposition(SPPARKS *spk, int narg, char **arg) : 
+DiagDiffusion::DiagDiffusion(SPPARKS *spk, int narg, char **arg) : 
   Diag(spk,narg,arg)
 {
   if (strcmp(app->style,"diffusion2") != 0)
-    error->all("Diag_style deposition requires app_style diffusion");
+    error->all("Diag_style diffusion requires app_style diffusion");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DiagDeposition::init()
+void DiagDiffusion::init()
 {
   appdiff = (AppDiffusion2 *) app;
   deposit_success = deposit_failed = 0;
@@ -40,22 +40,29 @@ void DiagDeposition::init()
 
 /* ---------------------------------------------------------------------- */
 
-void DiagDeposition::compute()
+void DiagDiffusion::compute()
 {
   deposit_success = appdiff->ndeposit;
   deposit_failed = appdiff->ndeposit_failed;
+  double nfirst = appdiff->nfirst;
+  double nsecond = appdiff->nsecond;
+  
+  MPI_Allreduce(&nfirst,&nfirst_all,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&nsecond,&nsecond_all,1,MPI_DOUBLE,MPI_SUM,world);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DiagDeposition::stats(char *strtmp)
+void DiagDiffusion::stats(char *strtmp)
 {
-  sprintf(strtmp,"%10g %10g",deposit_success,deposit_failed);
+  sprintf(strtmp,"%10g %10g %10g %10g",
+	  deposit_success,deposit_failed,nfirst_all,nsecond_all);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DiagDeposition::stats_header(char *strtmp)
+void DiagDiffusion::stats_header(char *strtmp)
 {
-  sprintf(strtmp,"%10s %10s","Deposit","FailedDep");
+  sprintf(strtmp,"%10s %10s %10s %10s",
+	  "Deposit","FailedDep","1stHops","2ndHops");
 }

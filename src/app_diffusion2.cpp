@@ -30,7 +30,7 @@ using namespace SPPARKS_NS;
 enum{ZERO,VACANT,OCCUPIED,TOP};
 enum{NO_ENERGY,LINEAR,LINEAR_TABLE,NONLINEAR};
 enum{NO_GEOMETRY,SURFACE,VOID_FRACTION,PORE};
-enum{HOP,SCHWOEBEL};
+enum{DEPOSITION,NNHOP,SCHWOEBEL};
 enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};  // from app_lattice.cpp
 
 #define DELTAEVENT 100000
@@ -65,7 +65,7 @@ AppDiffusion2::AppDiffusion2(SPPARKS *spk, int narg, char **arg) :
 
   if (iarg+1 > narg) error->all("Illegal app_style command");
   if (strcmp(arg[iarg],"hop") == 0) {
-    hopstyle = HOP;
+    hopstyle = NNHOP;
     iarg++;
   } else if (strcmp(arg[iarg],"schwoebel") == 0) {
     if (iarg+3 > narg) error->all("Illegal app_style command");
@@ -117,7 +117,7 @@ AppDiffusion2::AppDiffusion2(SPPARKS *spk, int narg, char **arg) :
   if (engstyle == NONLINEAR) delpropensity++;
   if (hopstyle == SCHWOEBEL) delpropensity++;
   if (hopstyle == SCHWOEBEL) delevent++;
-  if (engstyle == LINEAR && hopstyle == HOP) allow_rejection = 1;
+  if (engstyle == LINEAR && hopstyle == NNHOP) allow_rejection = 1;
 
   // define lattice and partition it across processors
 
@@ -147,7 +147,6 @@ AppDiffusion2::AppDiffusion2(SPPARKS *spk, int narg, char **arg) :
   // default settings for app-specific commands
 
   depflag = 0;
-  ndeposit = ndeposit_failed = 0;
 
   ecoord = new double[maxneigh+1];
   for (int i = 0; i <= maxneigh; i++) ecoord[i] = 0.0;
@@ -170,6 +169,11 @@ AppDiffusion2::AppDiffusion2(SPPARKS *spk, int narg, char **arg) :
     mark = (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:mark");
   if (mark)
     for (int i = 0; i < nlocal+nghost; i++) mark[i] = 0;
+
+  // statistics
+
+  ndeposit = ndeposit_failed = 0;
+  nfirst = nsecond = 0;
 
   // sweeping timestep
 
@@ -494,8 +498,10 @@ void AppDiffusion2::site_event_rejection(int i, RandomPark *random)
     }
   }
 
-  if (hop) naccept++;
-  else {
+  if (hop) {
+    naccept++;
+    nfirst++;
+  } else {
     lattice[i] = OCCUPIED;
     lattice[j] = VACANT;
   }
@@ -572,7 +578,7 @@ double AppDiffusion2::site_propensity_linear(int i)
 
 double AppDiffusion2::site_propensity_table(int i)
 {
-  int j,ihop,nhop1,nhop2;
+  int j,ihop,nhop1,nhop2,eflag;
   double einitial,edelta,probone,proball;
 
   // events = OCCUPIED site exchanges with adjacent VACANT site
@@ -637,7 +643,8 @@ double AppDiffusion2::site_propensity_table(int i)
     }
     
     if (probone > 0.0) {
-      add_event(i,j,probone);
+      eflag = (ihop < nhop1) ? NNHOP : SCHWOEBEL;
+      add_event(i,j,probone,eflag);
       proball += probone;
     }
     
@@ -648,7 +655,7 @@ double AppDiffusion2::site_propensity_table(int i)
   // add in single deposition event, stored by site 0
 
   if (depflag && i == 0) {
-    add_event(i,-1,deprate);
+    add_event(i,-1,deprate,DEPOSITION);
     proball += deprate;
   }
 
@@ -659,7 +666,7 @@ double AppDiffusion2::site_propensity_table(int i)
 
 double AppDiffusion2::site_propensity_nonlinear(int i)
 {
-  int j,k,m,nsites,ihop,nhop1,nhop2;
+  int j,k,m,nsites,ihop,nhop1,nhop2,eflag;
   double einitial,efinal,edelta,probone,proball;
 
   // events = OCCUPIED site exchanges with adjacent VACANT site
@@ -778,7 +785,8 @@ double AppDiffusion2::site_propensity_nonlinear(int i)
     }
     
     if (probone > 0.0) {
-      add_event(i,j,probone);
+      eflag = (ihop < nhop1) ? NNHOP : SCHWOEBEL;
+      add_event(i,j,probone,eflag);
       proball += probone;
     }
     
@@ -789,7 +797,7 @@ double AppDiffusion2::site_propensity_nonlinear(int i)
   // add in single deposition event, stored by site 0
 
   if (depflag && i == 0) {
-    add_event(i,-1,deprate);
+    add_event(i,-1,deprate,DEPOSITION);
     proball += deprate;
   }
 
@@ -830,7 +838,10 @@ void AppDiffusion2::site_event_linear(int i, class RandomPark *random)
       efinal = site_energy(j);
       if (efinal <= einitial) prob += 1.0;
       else if (temperature > 0.0) prob += exp(2.0*(einitial-efinal)*t_inverse);
-      if (prob >= threshhold) break;
+      if (prob >= threshhold) {
+	nfirst++;
+	break;
+      }
       lattice[i] = OCCUPIED;
       lattice[j] = VACANT;
     }
@@ -932,21 +943,23 @@ void AppDiffusion2::site_event_table(int i, class RandomPark *random)
     ievent = events[ievent].next;
   }
 
-  // if destination >= 0, hop event, else deposition event
+  // deposition or hop event
   // for deposition event, find site to deposit on
   // after deposition, reset i and j to that site
   // so propensity around it is updated correctly
 
-  j = events[ievent].destination;
-  if (j >= 0) {
-    lattice[i] = VACANT;
-    lattice[j] = OCCUPIED;
-  } else {
+  if (events[ievent].style == DEPOSITION) {
     m = find_deposition_site(random);
     if (m < 0) return;
     lattice[m] = TOP;
     lattice[m] = OCCUPIED;
     i = j = m;
+  } else {
+    j = events[ievent].destination;
+    if (events[ievent].style == NNHOP) nfirst++;
+    else nsecond++;
+    lattice[i] = VACANT;
+    lattice[j] = OCCUPIED;
   }
 
   // compute propensity changes for self and swap site and their 1,2 neighs
@@ -1032,24 +1045,24 @@ void AppDiffusion2::site_event_nonlinear(int i, class RandomPark *random)
     ievent = events[ievent].next;
   }
 
-  // if destination >= 0, hop event, else deposition event
+  // deposition or hop event
   // for deposition event, find site to deposit on
   // after deposition, reset i and j to that site
   // so propensity around it is updated correctly
 
-  j = events[ievent].destination;
-  if (j >= 0) {
-    lattice[i] = VACANT;
-    lattice[j] = OCCUPIED;
-  } else {
+  if (events[ievent].style == DEPOSITION) {
     m = find_deposition_site(random);
     if (m < 0) return;
     lattice[m] = TOP;
     lattice[m] = OCCUPIED;
     i = j = m;
+  } else {
+    j = events[ievent].destination;
+    if (events[ievent].style == NNHOP) nfirst++;
+    else nsecond++;
+    lattice[i] = VACANT;
+    lattice[j] = OCCUPIED;
   }
-
-  if (site_energy(j) > 1500.0) exit(1);
 
   // compute propensity changes for self and swap site and their 1,2,3 neighs
   // ignore update of sites with isite < 0
@@ -1166,7 +1179,8 @@ void AppDiffusion2::clear_events(int i)
    event = exchange with site J with probability = propensity
 ------------------------------------------------------------------------- */
 
-void AppDiffusion2::add_event(int i, int destination, double propensity)
+void AppDiffusion2::add_event(int i, int destination, 
+			      double propensity, int eventflag)
 {
   // grow event list and setup free list
 
@@ -1179,9 +1193,10 @@ void AppDiffusion2::add_event(int i, int destination, double propensity)
   }
 
   int next = events[freeevent].next;
-  events[freeevent].destination = destination;
-  events[freeevent].next = firstevent[i];
   events[freeevent].propensity = propensity;
+  events[freeevent].destination = destination;
+  events[freeevent].style = eventflag;
+  events[freeevent].next = firstevent[i];
   firstevent[i] = freeevent;
   freeevent = next;
   nevents++;

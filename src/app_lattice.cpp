@@ -480,8 +480,8 @@ void AppLattice::iterate_kmc_global(double stoptime)
 
     if (isite < 0) done = 1;
     else {
-      naccept++;
       site_event(isite,ranapp);
+      naccept++;
       time += dt;
       timer->stamp(TIME_APP);
     }
@@ -570,10 +570,12 @@ void AppLattice::iterate_kmc_sector(double stoptime)
 	
 	if (isite < 0) done = 1;
 	else {
-	  naccept++;
 	  timesector += dt;	
 	  if (timesector >= dt_kmc) done = 1;
-	  else site_event(site2i[isite],ranapp);
+	  else {
+	    site_event(site2i[isite],ranapp);
+	    naccept++;
+	  }
 	  timer->stamp(TIME_APP);
 	}
       }

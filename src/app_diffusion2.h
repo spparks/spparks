@@ -19,7 +19,7 @@
 namespace SPPARKS_NS {
 
 class AppDiffusion2 : public AppLattice {
-  friend class DiagDeposition;
+  friend class DiagDiffusion;
 
  public:
   AppDiffusion2(class SPPARKS *, int, char **);
@@ -40,9 +40,10 @@ class AppDiffusion2 : public AppLattice {
   double *ecoord;
 
   struct Event {           // one event for an owned site
-    int destination;       // local ID of destination site
-    int next;              // index of next event for this site
     double propensity;     // propensity of this event
+    int destination;       // local ID of destination site
+    int style;             // nearest-neigh hop or Schwobel hop
+    int next;              // index of next event for this site
   };
 
   Event *events;           // list of events for all owned sites
@@ -52,8 +53,6 @@ class AppDiffusion2 : public AppLattice {
   int freeevent;           // index of 1st unused event in list
 
   int depflag;             // deposition on or off
-  int ndeposit;
-  int ndeposit_failed;
   double deprate,thetalo,thetahi;
   double d0;
   int coordlo,coordhi;
@@ -68,6 +67,9 @@ class AppDiffusion2 : public AppLattice {
   int *mark;                // flagged sites
   int *marklist;            // list of flagged sites
 
+  int ndeposit,ndeposit_failed;  // stats
+  int nfirst,nsecond;
+
   double site_propensity_linear(int);
   double site_propensity_table(int);
   double site_propensity_nonlinear(int);
@@ -79,7 +81,7 @@ class AppDiffusion2 : public AppLattice {
   int ncoord(int);
 
   void clear_events(int);
-  void add_event(int, int, double);
+  void add_event(int, int, double, int);
 
   int find_deposition_site(class RandomPark *);
   int exceed_limit(int, double *, double &);
