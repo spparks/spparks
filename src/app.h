@@ -48,6 +48,22 @@ class App : protected Pointers {
  protected:
   int first_run;
   double nextoutput;
+
+  void procs2domain_1d(int, int, int,
+		       double, double, double, int &,
+		       double &, double &, double &, 
+		       double &, double &, double &);
+  void procs2domain_2d(int, int, int,
+		       double, double, double, double, double, double,
+		       int &, int &,
+		       double &, double &, double &, 
+		       double &, double &, double &);
+  void procs2domain_3d(int, int, int, 
+		       double, double, double, double, double, double, 
+		       double, double, double,
+		       int &, int &, int &,
+		       double &, double &, double &, 
+		       double &, double &, double &);
 };
 
 }

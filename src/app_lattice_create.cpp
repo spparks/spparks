@@ -240,9 +240,23 @@ void AppLattice::structured_lattice()
 
   // partition domain
 
-  if (dimension == 1) procs2lattice_1d();
-  else if (dimension == 2) procs2lattice_2d();
-  else if (dimension == 3) procs2lattice_3d();
+  if (dimension == 1) procs2domain_1d(px_user,py_user,pz_user,
+				      xprd,boxxlo,boxxhi,nx_procs,
+				      subxlo,subylo,subzlo,
+				      subxhi,subyhi,subzhi);
+  else if (dimension == 2) procs2domain_2d(px_user,py_user,pz_user,
+					   xprd,yprd,
+					   boxxlo,boxylo,boxxhi,boxyhi,
+					   nx_procs,ny_procs,
+					   subxlo,subylo,subzlo,
+					   subxhi,subyhi,subzhi);
+  else if (dimension == 3) procs2domain_3d(px_user,py_user,pz_user,
+					   xprd,yprd,zprd,
+					   boxxlo,boxylo,boxzlo,
+					   boxxhi,boxyhi,boxzhi,
+					   nx_procs,ny_procs,nz_procs,
+					   subxlo,subylo,subzlo,
+					   subxhi,subyhi,subzhi);
 
   // basis sites of each unit cell depend on lattice
 
@@ -465,9 +479,23 @@ void AppLattice::random_lattice()
 
   // partition domain
 
-  if (dimension == 1) procs2lattice_1d();
-  else if (dimension == 2) procs2lattice_2d();
-  else if (dimension == 3) procs2lattice_3d();
+  if (dimension == 1) procs2domain_1d(px_user,py_user,pz_user,
+				      xprd,boxxlo,boxxhi,nx_procs,
+				      subxlo,subylo,subzlo,
+				      subxhi,subyhi,subzhi);
+  else if (dimension == 2) procs2domain_2d(px_user,py_user,pz_user,
+					   xprd,yprd,
+					   boxxlo,boxylo,boxxhi,boxyhi,
+					   nx_procs,ny_procs,
+					   subxlo,subylo,subzlo,
+					   subxhi,subyhi,subzhi);
+  else if (dimension == 3) procs2domain_3d(px_user,py_user,pz_user,
+					   xprd,yprd,zprd,
+					   boxxlo,boxylo,boxzlo,
+					   boxxhi,boxyhi,boxzhi,
+					   nx_procs,ny_procs,nz_procs,
+					   subxlo,subylo,subzlo,
+					   subxhi,subyhi,subzhi);
 
   // generate random sites
   // 1st pass = count sites I own in my sub-domain
@@ -607,9 +635,23 @@ void AppLattice::file_lattice()
 
   // partition domain
 
-  if (dimension == 1) procs2lattice_1d();
-  else if (dimension == 2) procs2lattice_2d();
-  else if (dimension == 3) procs2lattice_3d();
+  if (dimension == 1) procs2domain_1d(px_user,py_user,pz_user,
+				      xprd,boxxlo,boxxhi,nx_procs,
+				      subxlo,subylo,subzlo,
+				      subxhi,subyhi,subzhi);
+  else if (dimension == 2) procs2domain_2d(px_user,py_user,pz_user,
+					   xprd,yprd,
+					   boxxlo,boxylo,boxxhi,boxyhi,
+					   nx_procs,ny_procs,
+					   subxlo,subylo,subzlo,
+					   subxhi,subyhi,subzhi);
+  else if (dimension == 3) procs2domain_3d(px_user,py_user,pz_user,
+					   xprd,yprd,zprd,
+					   boxxlo,boxylo,boxzlo,
+					   boxxhi,boxyhi,boxzhi,
+					   nx_procs,ny_procs,nz_procs,
+					   subxlo,subylo,subzlo,
+					   subxhi,subyhi,subzhi);
 
   // read and broadcast list of global vertices
   // keep ones in my sub-domain
@@ -802,12 +844,12 @@ void AppLattice::read_file()
   MPI_Bcast(&nvalues,1,MPI_INT,0,world);
 
   if (nglobal_file != nglobal)
-    error->all("Lattice init file has incorrect number of sites");
+    error->all("Input file has incorrect number of sites");
   if (ninteger == 0 && ndouble == 0) {
     if (nvalues != 1)
-      error->all("Lattice init file has incorrect number of values/site");
+      error->all("Input file has incorrect number of values/site");
   } else if (nvalues != ninteger + ndouble)
-    error->all("Lattice init file has incorrect number of values/site");
+    error->all("Input file has incorrect number of values/site");
 
   // increment nvalues to include ID
 
@@ -837,7 +879,7 @@ void AppLattice::read_file()
       m = 0;
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
-	if (eof == NULL) error->one("Unexpected end of lattice init file");
+	if (eof == NULL) error->one("Unexpected end of input file");
 	m += strlen(&buffer[m]);
       }
       buffer[m++] = '\n';
@@ -1493,150 +1535,4 @@ void AppLattice::offsets_3d(int ibasis, double **basis,
   }
 
   if (n != ntarget) error->all("Incorrect lattice neighbor count");
-}
-
-/* ----------------------------------------------------------------------
-   assign nprocs to 1d box as equal partitions
-------------------------------------------------------------------------- */
-
-void AppLattice::procs2lattice_1d()
-{
-  if (px_user || py_user || pz_user) {
-    if (py_user != 1 || pz_user != 1)
-      error->all("App style proc count is not valid");
-    nx_procs = px_user;
-  } else {
-    nx_procs = nprocs;
-  }
-
-  int iprocx = me;
-
-  subxlo = boxxlo + iprocx * xprd/nx_procs;
-  if (iprocx < nx_procs-1) subxhi = boxxlo + (iprocx+1) * xprd/nx_procs;
-  else subxhi = boxxhi;
-
-  subylo = -0.5;
-  subyhi = 0.5;
-  subzlo = -0.5;
-  subzhi = 0.5;
-}
-
-/* ----------------------------------------------------------------------
-   assign nprocs to 2d box so as to minimize perimeter per proc
-------------------------------------------------------------------------- */
-
-void AppLattice::procs2lattice_2d()
-{
-  int ipx,ipy;
-  double boxx,boxy,surf;
-
-  if (px_user || py_user || pz_user) {
-    if (pz_user != 1)
-      error->all("App style proc count is not valid");
-    nx_procs = px_user;
-    ny_procs = py_user;
-
-  } else {
-
-    // loop thru all possible factorizations of nprocs
-    // surf = perimeter of a proc sub-domain
-
-    double bestsurf = 2.0 * (xprd+yprd);
- 
-    ipx = 1;
-    while (ipx <= nprocs) {
-      if (nprocs % ipx == 0) {
-	ipy = nprocs/ipx;
-	boxx = xprd/ipx;
-	boxy = yprd/ipy;
-	surf = boxx + boxy;
-	if (surf < bestsurf) {
-	  bestsurf = surf;
-	  nx_procs = ipx;
-	  ny_procs = ipy;
-	}
-      }
-      ipx++;
-    }
-  }
-
-  int iprocx = me/ny_procs;
-  int iprocy = me % ny_procs;
-
-  subxlo = boxxlo + iprocx * xprd/nx_procs;
-  if (iprocx < nx_procs-1) subxhi = boxxlo + (iprocx+1) * xprd/nx_procs;
-  else subxhi = boxxhi;
-
-  subylo = boxylo + iprocy * yprd/ny_procs;
-  if (iprocy < ny_procs-1) subyhi = boxylo + (iprocy+1) * yprd/ny_procs;
-  else subyhi = boxyhi;
-
-  subzlo = -0.5;
-  subzhi = 0.5;
-}
-
-/* ----------------------------------------------------------------------
-   assign nprocs to 3d box so as to minimize surface area per proc
-------------------------------------------------------------------------- */
-
-void AppLattice::procs2lattice_3d()
-{
-  int ipx,ipy,ipz,nremain;
-  double boxx,boxy,boxz,surf;
-
-  if (px_user || py_user || pz_user) {
-    nx_procs = px_user;
-    ny_procs = py_user;
-    nz_procs = pz_user;
-
-  } else {
-
-    double bestsurf = 2.0 * (xprd*yprd + yprd*zprd + zprd*xprd);
-  
-    // loop thru all possible factorizations of nprocs
-    // surf = surface area of a proc sub-domain
-
-    ipx = 1;
-    while (ipx <= nprocs) {
-      if (nprocs % ipx == 0) {
-	nremain = nprocs/ipx;
-	ipy = 1;
-	while (ipy <= nremain) {
-	  if (nremain % ipy == 0) {
-	    ipz = nremain/ipy;
-	    boxx = xprd/ipx;
-	    boxy = yprd/ipy;
-	    boxz = zprd/ipz;
-	    surf = boxx*boxy + boxy*boxz + boxz*boxx;
-	    if (surf < bestsurf) {
-	      bestsurf = surf;
-	      nx_procs = ipx;
-	      ny_procs = ipy;
-	      nz_procs = ipz;
-	    }
-	  }
-	  ipy++;
-	}
-      }
-      ipx++;
-    }
-  }
-
-  int nyz_procs = ny_procs * nz_procs;
-
-  int iprocx = (me/(nyz_procs)) % nx_procs;
-  int iprocy = (me/nz_procs) % ny_procs;
-  int iprocz = (me/1) % nz_procs;
-
-  subxlo = boxxlo + iprocx * xprd/nx_procs;
-  if (iprocx < nx_procs-1) subxhi = boxxlo + (iprocx+1) * xprd/nx_procs;
-  else subxhi = boxxhi;
-
-  subylo = boxylo + iprocy * yprd/ny_procs;
-  if (iprocy < ny_procs-1) subyhi = boxylo + (iprocy+1) * yprd/ny_procs;
-  else subyhi = boxyhi;
-
-  subzlo = boxzlo + iprocz * zprd/nz_procs;
-  if (iprocz < nz_procs-1) subzhi = boxzlo + (iprocz+1) * zprd/nz_procs;
-  else subzhi = boxzhi;
 }

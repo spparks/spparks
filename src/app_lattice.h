@@ -197,10 +197,6 @@ class AppLattice : public App {
   void set_sweep(int, char **);
   void set_temperature(int, char **);
 
-  void procs2lattice_1d();
-  void procs2lattice_2d();
-  void procs2lattice_3d();
-
   int connect(int, int);
   void offsets(double **);
   void offsets_2d(int, double **, double, double, double, double, int, int **);

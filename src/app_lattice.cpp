@@ -273,7 +273,7 @@ void AppLattice::init()
   }
   if (Lmask && mask == NULL) {
     mask = (char *)
-      memory->smalloc((nlocal+nghost)*sizeof(char),"applattice:mask");
+      memory->smalloc((nlocal+nghost)*sizeof(char),"app:mask");
     for (int i = 0; i < nlocal+nghost; i++) mask[i] = 0;
   }
 
@@ -299,7 +299,7 @@ void AppLattice::init()
     ranstrict = new RandomPark(ranmaster->uniform());
     double seed = ranmaster->uniform();
     siteseeds = 
-      (int *) memory->smalloc(nlocal*sizeof(int),"applattice:siteseeds");
+      (int *) memory->smalloc(nlocal*sizeof(int),"app:siteseeds");
     for (int i = 0; i < nlocal; i++) {
       ranstrict->reset(seed,id[i],100);
       siteseeds[i] = ranstrict->seed;
@@ -432,7 +432,7 @@ void AppLattice::setup()
     memory->sfree(sitelist);
     int n = 0;
     for (int i = 0; i < nset; i++) n = MAX(n,set[i].nselect);
-    sitelist = (int *) memory->smalloc(n*sizeof(int),"applattice:sitelist");
+    sitelist = (int *) memory->smalloc(n*sizeof(int),"app:sitelist");
   }
 
   // setup future output
@@ -889,7 +889,7 @@ void AppLattice::create_set(int iset, int isector, int icolor)
   // setup site2i for sites in set
 
   set[iset].site2i =
-    (int *) memory->smalloc(n*sizeof(int),"applattice:site2i");
+    (int *) memory->smalloc(n*sizeof(int),"app:site2i");
 
   n = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -923,7 +923,7 @@ void AppLattice::create_set(int iset, int isector, int icolor)
 
   if (solve) {
     set[iset].i2site =
-      (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"applattice:i2site");
+      (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:i2site");
       for (int i = 0; i < nlocal+nghost; i++) set[iset].i2site[i] = -1;
       for (int i = 0; i < set[iset].nlocal; i++) 
 	set[iset].i2site[set[iset].site2i[i]] = i;
@@ -932,7 +932,7 @@ void AppLattice::create_set(int iset, int isector, int icolor)
   // allocate propensity array for set
 
   set[iset].propensity =
-    (double *) memory->smalloc(n*sizeof(double),"applattice:propensity");
+    (double *) memory->smalloc(n*sizeof(double),"app:propensity");
 
   // allocate KMC solver for set
 
@@ -951,7 +951,7 @@ void AppLattice::create_set(int iset, int isector, int icolor)
     if (solve && sectorflag)
       set[iset].bsites =
 	(int *) memory->smalloc(set[iset].nborder*sizeof(int),
-				"applattice:bsites");
+				"app:bsites");
     else set[iset].bsites = NULL;
   } else {
     set[iset].nborder = 0;
@@ -1028,7 +1028,7 @@ int AppLattice::find_border_sites(int isector)
   // flag sites with -1 that are not in sector
   // flag sites with 0 that are in sector
 
-  int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"applattice:flag");
+  int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"app:flag");
   for (i = 0; i < ntotal; i++) flag[i] = -1;
   for (m = 0; m < nsites; m++) flag[site2i[m]] = 0;
 
@@ -1058,7 +1058,7 @@ int AppLattice::find_border_sites(int isector)
   }
 
   int *border = (int *)
-    memory->smalloc(nborder*sizeof(int),"applattice:border");
+    memory->smalloc(nborder*sizeof(int),"app:border");
 
   nborder = 0;
   for (m = 0; m < nsites; m++) {
