@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "string.h"
 #include "diag_diffusion.h"
 #include "app_diffusion2.h"
 #include "error.h"

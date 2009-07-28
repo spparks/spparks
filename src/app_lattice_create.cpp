@@ -12,6 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
+#include "string.h"
+#include "stdlib.h"
 #include "app_lattice.h"
 #include "random_mars.h"
 #include "random_park.h"

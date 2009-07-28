@@ -12,6 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
+#include "string.h"
+#include "stdlib.h"
 #include "app_potts_pin.h"
 #include "solve.h"
 #include "random_mars.h"
