@@ -217,8 +217,10 @@ Restrictions in the command's documentation.
 "barrier"_barrier.html,
 "clear"_clear.html,
 "count"_count.html,
+"deposition"_deposition.html,
 "diag_style"_diag_style.html,
 "dump"_dump.html,
+"dump_modify"_dump_modify.html,
 "dump_one"_dump_one.html,
 "echo"_echo.html,
 "ecoord"_ecoord.html,
@@ -240,6 +242,7 @@ Restrictions in the command's documentation.
 "stats"_stats.html,
 "sweep"_sweep.html,
 "temperature"_temperature.html,
+"undump"_undump.html,
 "variable"_variable.html,
 "volume"_volume.html :tb(c=6,ea=c)
 
@@ -281,6 +284,6 @@ one-line descriptions of each style or click on the style itself for a
 full description:
 
 "cluster"_diag_cluster.html,
-"deposition"_diag_deposition.html,
+"diffusion"_diag_diffusion.html,
 "energy"_diag_energy.html,
 "eprof"_diag_eprof.html :tb(c=6,ea=c)
