@@ -25,7 +25,7 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>lattice</I> or <I>box</I> or <I>procs</I> or <I>site</I> or <I>input</I> 
+<LI>keyword = <I>lattice</I> or <I>procs</I> or <I>site</I> or <I>input</I> 
 
 <PRE>  <I>lattice</I> values = type params
     type = <I>line/2n</I> or <I>sq/4n</I> or <I>sq/8n</I> or <I>tri</I> or <I>sc/6n</I> or <I>sc/26n</I> or <I>fcc</I> or <I>bcc</I> or <I>diamond</I> or <I>random/1d</I> or <I>random/2d</I> or <I>random/3d</I> or <I>file</I>
@@ -59,18 +59,13 @@
         cutoff = distance cutoff for neighbor connectivity between sites 
       <I>file</I> param = filename = read lattice and connectivity from file
         filename = name of file (see file format below)
-  <I>box</I> values = dim xlo xhi ylo yhi zlo zhi
-    dim = dimension of system = 1,2,3
-    xlo,xhi = lo/hi bounds of box in x dimension
-    ylo,yhi = lo/hi bounds of box in y dimension (only listed for dim = 2,3)
-    zlo,zhi = lo/hi bounds of box in z dimension (only listed for dim = 3)
   <I>procs</I> values = Px Py Pz
     Px,Py,Pz = # of processors assigned to each dimension of lattice
   <I>site</I> values = Nint Ndouble
     Nint = # of integer quantites to store per site
     Ndouble = # of double quantites to store per site
   <I>input</I> value = infile
-    infile = filename for file containing initial state of all sites 
+    infile = filename for file containing initial state of all lattice sites 
 </PRE>
 
 </UL>
@@ -89,19 +84,10 @@ app_style test/group ...
 <P><B>Description:</B>
 </P>
 <P>This command defines what model or application SPPARKS will run.
-There are 3 kinds of applications: general, on-lattice, and
-off-lattice.
+There are 2 basic kinds of applications: on-lattice and off-lattice.
 </P>
-<P>General applications typically involve no spatial information.  Here
-is the list of general applications SPPARKS currently includes.  See
-the doc page for each application for details:
-</P>
-<UL><LI><A HREF = "app_chemistry.html">chemistry</A> = biochemical reaction networks
-<LI><A HREF = "app_test_group.html">test/group</A> = artificial chemical networks that test <A HREF = "solve_style.html">solve_style</A> 
-</UL>
-<P>On-lattice applications define a lattice of points in space on which
-events occur.  Here is the list of on-lattice applications SPPARKS
-currently includes:
+<P>Here is the list of on-lattice applications SPPARKS currently
+includes.  See the doc page for each application for details:
 </P>
 <UL><LI><A HREF = "app_diffusion.html">diffusion</A> = vacancy exchange diffusion model
 <LI><A HREF = "app_ising.html">ising</A> = Ising model
@@ -110,14 +96,14 @@ currently includes:
 <LI><A HREF = "app_potts.html">potts</A> = Potts model for grain growth
 <LI><A HREF = "app_potts_pin.html">potts/pin</A> = Potts model with pinning sites 
 </UL>
-<P>Off-lattice applications define points in space at which events occur,
-but the points are not on a regular lattice.  Here is the list of
-off-lattice applications SPPARKS currently includes.
+<P>Here is the list of off-lattice applications SPPARKS currently
+includes:
 </P>
-<UL><LI><A HREF = "app_surf2d.html">surf2d</A> = 2d surface growth model 
+<UL><LI><A HREF = "app_chemistry.html">chemistry</A> = biochemical reaction networks
+<LI><A HREF = "app_test_group.html">test/group</A> = artificial chemical networks that test <A HREF = "solve_style.html">solve_style</A> 
 </UL>
-<P>The general and off-lattice applications in SPPARKS can only be
-evolved via a kinetic Monte Carlo (KMC) solver, specified by the
+<P>The off-lattice applications in SPPARKS can only be evolved via a
+kinetic Monte Carlo (KMC) solver, specified by the
 <A HREF = "solve_style.html">solve_style</A> command.  On-lattice applications can
 be evolved by either a KMC solver or a rejection kinetic Monte Carlo
 (rKMC) solver, specified by the <A HREF = "sweep.html">sweep</A> command.  Not all
@@ -127,11 +113,9 @@ on-lattice applications support both choices.
 way or the Gillespie algorithm in the MC literature.  The application
 defines a list of "events" and associated rates for each event.  The
 solver chooses the next event, and the application updates the system
-accordingly.  For general applications the definition of an "event" is
-arbitrary.  For off-lattice applications, zero or more events are
-typically defined for each site or particle.  For on-lattice
-applications zero or more possible events are typically defined for
-each lattice site.
+accordingly.  For off-lattice applications the definition of an
+"event" is arbitrary.  For on-lattice application zero or more
+possible events are typically defined for each lattice site.
 </P>
 <P>The rKMC algorithm picks successive lattice sites via some method (see
 the <A HREF = "sweep.html">sweep</A> command), and an event on that site which it
@@ -154,29 +138,18 @@ are set by the <A HREF = "sweep.html">sweep</A> command.
 <TR ALIGN="center"><TD >exact KMC</TD><TD > yes</TD><TD > yes</TD><TD > no</TD><TD > yes</TD></TR>
 <TR ALIGN="center"><TD >rKMC random</TD><TD > yes</TD><TD > yes</TD><TD > no</TD><TD > yes</TD></TR>
 <TR ALIGN="center"><TD >rKMC raster</TD><TD > yes</TD><TD > yes</TD><TD > no</TD><TD > yes</TD></TR>
-<TR ALIGN="center"><TD >rKMC color</TD><TD > yes</TD><TD > yes</TD><TD > yes</TD><TD > yes</TD></TR>
-<TR ALIGN="center"><TD >rKMC color/strict</TD><TD > yes</TD><TD > no</TD><TD > yes</TD><TD > no 
+<TR ALIGN="center"><TD >rKMC color</TD><TD > yes</TD><TD > no</TD><TD > yes</TD><TD > no 
 </TD></TR></TABLE></DIV>
 
-<P>Masking can also be turned on for rKMC algorithms via the
+<P>Note that the choice of <I>color</I> can also be <I>color/strict</I> and that
+masking can also be turned on for rKMC algorithms via the
 <A HREF = "sweep.html">sweep</A> command if the lo-level application supports it.
 </P>
 <HR>
 
-<P>For general applications, none of the keyword/value pairs can be used
-as part of the app_style command.
+<P>For on-lattice applications, there are several keyword/value 
+pairs that may be used as part of the app_style command.
 </P>
-<P>For on-lattice applications, the <I>lattice</I> keyword must be specified.
-The <I>procs</I>, <I>site</I>, and <I>input</I> keywords are optional.  The <I>box</I>
-keyword cannot be specified.
-</P>
-<P>For off-lattice applications, the <I>box</I> keyword must be specified.
-The <I>procs</I>, <I>site</I>, and <I>input</I> keywords are optional, though the
-<I>input</I> keyword is required if you wish to define any initial sites.
-The <I>lattice</I> keyword cannot be specified.
-</P>
-<HR>
-
 <P>The <I>lattice</I> keyword must be specified for on-lattice applications as
 it determines the kind and size of lattice used.  For example,
 </P>
@@ -247,77 +220,57 @@ N n1 n2 n3 ...       # N lines in this section
 </PRE>
 <HR>
 
-<P>The <I>box</I> keyword must be specified for off-lattice applications as it
-determines the size and shape of the simulation domain.
-</P>
-<P>The <I>dim</I> parameter is the dimensionality of the system.  The <I>lo/hi</I>
-parameters are the extent of the simulation box.
-</P>
-<HR>
-
-<P>For on-lattice and off-lattice applications, SPPARKS will, by default,
-decide how to partition the simulation domain across processors in
-order to minimize communication of site information.  Typically this
-will create a 2d grid of processors for 2d systems, and a 3d grid of
-processors for 3d systems.
-</P>
-<P>The <I>procs</I> keyword can be used to override the default and specify a
-grid of Px by Py by Pz processors.  For 2d systems, Pz must be 1.  For
-1d systems Py and Pz must be 1.  If <I>procs 0 0 0</I> is specified, then
+<P>For on-lattice applications, by default SPPARKS will decide how to
+partition the simulation domain across processors in order to minimize
+communication of lattice sites.  Typically this will create a 2d grid
+of processors for 2d lattices, and a 3d grid of processors for 3d
+lattices.  You can override the default and specify your own grid of
+Px by Py by Pz processors.  For 2d lattices, Pz must be 1.  For 1d
+lattices Py and Pz must be 1.  If <I>procs 0 0 0</I> is specified, then
 SPPARKS will decide the partitioning.
 </P>
 <HR>
 
-<P>For on-lattice and off-lattice applications, each site, by default,
-stores a single integer value.  By use of the <I>site</I> keyword, multiple
-integer and or double values can be stored with each site and
-accessed/updated by the application.  For example, an integer flag
-could store for the type of lattice site and one or more doubles could
-store the state of the site.  If <I>site 0 0</I> is specified, then the
-default of a single integer per site is used.
+<P>For on-lattice applications, by default each lattice site stores a
+single integer value.  By specifying <I>site</I>, multiple integer and or
+double values can be stored on each site and accessed/updated by your
+application.  For example, an integer flag could be stored for the
+type of lattice site and one or more doubles could store the state of
+the site.  If <I>site 0 0</I> is specified, then the default of a single
+integer per site is used.
 </P>
 <HR>
 
-<P>For on-lattice and off-lattice applications, the values stored for
-each site can be initialized by using the <I>input</I> keyword.
+<P>For on-lattice applications, you can initialize the values stored on
+each lattice site explicitly by using the <I>input</I> keyword.  This can
+be useful for restarting a simulation from the dump file generated by
+a previous simulation.  See the "dump2input.py" script in the tools
+directory for a way to convert a dump file to the input format
+described below.
 </P>
-<P>The <I>input</I> keyword must be used for off-lattice applications,
-assuming there are any sites to intially define, as it is the only way
-to initialize them.  For on-lattice applications, the application
-itself may initialize the value(s) stored on the lattice of sites in
-some manner.  But the <I>input</I> keyword can be useful for restarting a
-simulation from the dump file generated by a previous simulation.  See
-the "dump2input.py" script in the tools directory for a way to convert
-a dump file to the input format described below.
+<P>Normally, if the <I>input</I> keyword is not used, the application will
+initialize the lattice in some random manner.
 </P>
 <P>The file specified with the <I>input</I> keyword should have the following
 format.  As before, the comments (#) need not be included in the file.
 </P>
-<P>NOTE: as discussed below, the x,y,z fields are only included for
-off-lattice applications.
-</P>
 <PRE>comment              # 1st line is skipped
 Nsite nvalue         # Nsite = total # of lattice sites, nvalue = values/site
                      # skipped line
-1 x y z value1 value2 ...      # Nsite lines
-2 x y z value1 value2 ...      # only include x,y,z for off-lattice applications
+1 value1 value2 ...
+2 value1 value2 ...
 ...
-Nsites x y z value1 value2 ... 
+Nsites value1 value2 ...   # Nsite lines 
 </PRE>
-<P>In the body of the file, there is one line per site.  These
+<P>In the body of the file, there is one line per lattice site.  These
 lines can be in any order.  The first field on the line is the ID of
-the site, which should be an integer from 1 to Nsite.  The x,y,z
-fields are only listed for off-lattice applications, since they define
-the location of the site within the simulation box.  For on-lattice
-applications, the site locations are defined by the <I>lattice</I> keyword
-and are NOT listed on each site line.
-</P>
-<P>There should be "nvalue" remaining fields on each line.  These values
-are assigned to that site.  How many values there should be (nvalue)
-depends on the application.  For those with a single integer value
-(Nint = Ndouble = 0, nvalue = 1), just list that value.  If the <I>site</I>
-keyword is used (Nint and/or Ndouble != 0, nvalue = Nint+Ndouble),
-then list the integer value(s) first, followed by the double value(s).
+the site, which should be an integer from 1 to Nsite.  There should be
+"nvalue" remaining fields on each line.  These values are assigned to
+that site.  How many values there should be (nvalue) depends on the
+application.  For those with a single integer value (Nint = Ndouble =
+0, nvalue = 1), just list that value.  If the <I>site</I> keyword is used
+(Nint and/or Ndouble != 0, nvalue = Nint+Ndouble), then list the
+integer value(s) first, followed by the double value(s).
 </P>
 <HR>
 
@@ -327,10 +280,8 @@ then list the integer value(s) first, followed by the double value(s).
 </P>
 <P><B>Default:</B>
 </P>
-<P>There is no default for the <I>lattice</I> keyword; it must be specified
-for on-lattice applications.  There is no default for the <I>box</I>
-keyword; it must be specified for off-lattice applications.  The
-default values for the <I>procs</I> keyword are 0 0 0.  The default values
-for the <I>site</I> keyword are 0 0.
+<P>There is no default for the <I>lattice</I> keyword.  It must be specified
+for on-lattice applications.  The default value for the <I>procs</I>
+keyword are 0 0 0.  The default values for the <I>site</I> keyword are 0 0.
 </P>
 </HTML>
