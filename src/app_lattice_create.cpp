@@ -325,6 +325,8 @@ void AppLattice::structured_lattice()
     basis[15][0] = 0.75; basis[15][1] = 0.75; basis[15][2] = 0.75;
   }
 
+  if (nglobal <= 0) error->all("Invalid lattice size");
+
   // generate lattice of sites
   // 1st pass = count lattice points I own in my sub-domain
   // 2nd pass = generate xyz coords and store them with site ID
@@ -449,6 +451,8 @@ void AppLattice::structured_lattice()
 void AppLattice::random_lattice()
 {
   int i,n;
+
+  if (nrandom <= 0) error->all("Invalid lattice size");
 
   if (latstyle == RANDOM_1D) {
     boxxlo = 0.0;
