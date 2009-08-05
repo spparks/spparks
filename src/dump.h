@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DUMP_H
-#define DUMP_H
+#ifndef SPK_DUMP_H
+#define SPK_DUMP_H
 
 #include "stdio.h"
 #include "pointers.h"

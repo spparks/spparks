@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef UNIVERSE_H
-#define UNIVERSE_H
+#ifndef SPK_UNIVERSE_H
+#define SPK_UNIVERSE_H
 
 #include "mpi.h"
 #include "stdio.h"

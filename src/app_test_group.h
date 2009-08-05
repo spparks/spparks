@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef APP_TEST_GROUP_H
-#define APP_TEST_GROUP_H
+#ifndef SPK_APP_TEST_GROUP_H
+#define SPK_APP_TEST_GROUP_H
 
 #include "app.h"
 

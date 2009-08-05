@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SOLVE_H
-#define SOLVE_H
+#ifndef SPK_SOLVE_H
+#define SPK_SOLVE_H
 
 #include "pointers.h"
 

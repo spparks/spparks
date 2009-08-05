@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef SPK_TIMER_H
+#define SPK_TIMER_H
 
 #include "pointers.h"
 

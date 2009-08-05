@@ -1241,7 +1241,7 @@ int AppDiffusion2::schwoebel_enumerate(int i, int *site)
   for (jneigh = 0; jneigh < numneigh[i]; jneigh++) {
     j = neighbor[i][jneigh];
     for (kneigh = 0; kneigh < numneigh[j]; kneigh++) {
-      k = neighbor[i][kneigh];
+      k = neighbor[j][kneigh];
       if (lattice[k] != VACANT) continue;
       if (mark[k] == 1 || lattice[k] == 2) continue;
       if (mark[k] == 30) continue;

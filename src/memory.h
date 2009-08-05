@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef SPK_MEMORY_H
+#define SPK_MEMORY_H
 
 #include "pointers.h"
 

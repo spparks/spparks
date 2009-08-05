@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef APP_LATTICE_H
-#define APP_LATTICE_H
+#ifndef SPK_APP_LATTICE_H
+#define SPK_APP_LATTICE_H
 
 #include "stdio.h"
 #include "app.h"
@@ -49,6 +49,11 @@ class AppLattice : public App {
   virtual void site_event(int, class RandomPark *) = 0;
 
   // virtual functions, may be overridden by child class
+
+  void virtual input_app(char *, int, char **);
+  void virtual init_app() {}
+  void virtual setup_app() {}
+  virtual void *extract_app(char *) {return NULL;}
 
   virtual void push_new_site(int, int *, int, std::stack<int>*);
   virtual void push_connected_neighbors(int, int *, int, std::stack<int>*);
@@ -170,10 +175,6 @@ class AppLattice : public App {
   void sweep_mask_nostrict(int, int *);
   void sweep_nomask_strict(int, int *);
   void sweep_mask_strict(int, int *);
-
-  void virtual input_app(char *, int, char **);
-  void virtual init_app() {}
-  void virtual setup_app() {}
 
   void options(int, char **);
   void create_lattice();

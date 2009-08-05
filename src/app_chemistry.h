@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef APP_CHEMISTRY_H
-#define APP_CHEMISTRY_H
+#ifndef SPK_APP_CHEMISTRY_H
+#define SPK_APP_CHEMISTRY_H
 
 #include "app.h"
 

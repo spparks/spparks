@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SOLVE_LINEAR_H
-#define SOLVE_LINEAR_H
+#ifndef SPK_SOLVE_LINEAR_H
+#define SPK_SOLVE_LINEAR_H
 
 #include "solve.h"
 

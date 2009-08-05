@@ -18,8 +18,8 @@
 // *& variables are really pointers to the pointers in spparks.h
 // & enables them to be accessed directly in any class, e.g. error->all()
 
-#ifndef POINTERS_H
-#define POINTERS_H
+#ifndef SPK_POINTERS_H
+#define SPK_POINTERS_H
 
 #include "mpi.h"
 #include "stdio.h"

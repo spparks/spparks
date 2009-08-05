@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef APP_MEMBRANE_H
-#define APP_MEMBRANE_H
+#ifndef SPK_APP_MEMBRANE_H
+#define SPK_APP_MEMBRANE_H
 
 #include "app_lattice.h"
 

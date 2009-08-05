@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef GROUPS_H
-#define GROUPS_H
+#ifndef SPK_GROUPS_H
+#define SPK_GROUPS_H
 
 #include "pointers.h"
 

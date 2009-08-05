@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef VARIABLE_H
-#define VARIABLE_H
+#ifndef SPK_VARIABLE_H
+#define SPK_VARIABLE_H
 
 #include "pointers.h"
 

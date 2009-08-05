@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ERROR_H
-#define ERROR_H
+#ifndef SPK_ERROR_H
+#define SPK_ERROR_H
 
 #include "pointers.h"
 

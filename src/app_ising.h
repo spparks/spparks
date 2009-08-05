@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef APP_ISING_H
-#define APP_ISING_H
+#ifndef SPK_APP_ISING_H
+#define SPK_APP_ISING_H
 
 #include "app_lattice.h"
 

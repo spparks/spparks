@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef OUTPUT_H
-#define OUTPUT_H
+#ifndef SPK_OUTPUT_H
+#define SPK_OUTPUT_H
 
 #include "pointers.h"
 

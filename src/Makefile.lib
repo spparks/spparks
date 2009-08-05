@@ -1,4 +1,4 @@
-# SPK library multiple-machine Makefile
+# SPPARKS library multiple-machine Makefile
 
 SHELL = /bin/sh
 
@@ -7,9 +7,9 @@ SHELL = /bin/sh
 ROOT =	spk
 EXE =	lib$(ROOT)_$@.a
 
-SRC =	app.cpp app_chemistry.cpp app_diffusion.cpp app_diffusion_deposit.cpp app_diffusion_nonlinear.cpp app_diffusion_table.cpp app_erbium.cpp app_ising.cpp app_ising_2d_4n.cpp app_ising_2d_4n_exchange.cpp app_ising_2d_8n.cpp app_ising_3d_26n.cpp app_ising_3d_6n.cpp app_lattice.cpp app_lattice2d.cpp app_lattice3d.cpp app_membrane.cpp app_membrane_2d.cpp app_pore.cpp app_pore_nonlinear.cpp app_potts.cpp app_potts_2d_24n.cpp app_potts_2d_4n.cpp app_potts_2d_8n.cpp app_potts_3d_12n.cpp app_potts_3d_26n.cpp app_potts_3d_6n.cpp app_potts_variable.cpp app_surface.cpp app_test_group.cpp cluster.cpp comm_lattice.cpp comm_lattice2d.cpp comm_lattice3d.cpp diag.cpp diag_cluster.cpp diag_cluster2d.cpp diag_cluster3d.cpp diag_energy.cpp diag_energy2d.cpp diag_energy3d.cpp diag_eprof3d.cpp diag_erbium.cpp error.cpp finish.cpp groups.cpp input.cpp library.cpp memory.cpp output.cpp random_fiblag.cpp random_park.cpp random_ranecu.cpp shell.cpp solve.cpp solve_group.cpp solve_linear.cpp solve_tree.cpp spparks.cpp sweep.cpp sweep_lattice.cpp sweep_lattice2d.cpp sweep_lattice3d.cpp timer.cpp universe.cpp variable.cpp
+SRC =	app.cpp app_chemistry.cpp app_diffusion.cpp app_diffusion2.cpp app_diffusion_deposit.cpp app_diffusion_nonlinear.cpp app_diffusion_table.cpp app_erbium.cpp app_ising.cpp app_ising_single.cpp app_lattice.cpp app_lattice_create.cpp app_membrane.cpp app_off_lattice.cpp app_pore.cpp app_pore_nonlinear.cpp app_potts.cpp app_potts_neigh.cpp app_potts_neighonly.cpp app_potts_pin.cpp app_potts_strain.cpp app_potts_variable.cpp app_surf2d.cpp app_test_group.cpp cluster.cpp comm_lattice.cpp comm_off_lattice.cpp diag.cpp diag_cluster.cpp diag_diffusion.cpp diag_energy.cpp diag_erbium.cpp dump.cpp error.cpp finish.cpp groups.cpp input.cpp library.cpp memory.cpp output.cpp random_mars.cpp random_park.cpp shell.cpp solve.cpp solve_group.cpp solve_linear.cpp solve_tree.cpp spparks.cpp timer.cpp universe.cpp variable.cpp
 
-INC =	app.h app_chemistry.h app_diffusion.h app_diffusion_deposit.h app_diffusion_nonlinear.h app_diffusion_table.h app_erbium.h app_ising.h app_ising_2d_4n.h app_ising_2d_4n_exchange.h app_ising_2d_8n.h app_ising_3d_26n.h app_ising_3d_6n.h app_lattice.h app_lattice2d.h app_lattice3d.h app_membrane.h app_membrane_2d.h app_pore.h app_pore_nonlinear.h app_potts.h app_potts_2d_24n.h app_potts_2d_4n.h app_potts_2d_8n.h app_potts_3d_12n.h app_potts_3d_26n.h app_potts_3d_6n.h app_potts_variable.h app_surface.h app_test_group.h cluster.h comm_lattice.h comm_lattice2d.h comm_lattice3d.h diag.h diag_cluster.h diag_cluster2d.h diag_cluster3d.h diag_energy.h diag_energy2d.h diag_energy3d.h diag_eprof3d.h diag_erbium.h error.h finish.h groups.h input.h library.h memory.h output.h pointers.h random_fiblag.h random_park.h random_ranecu.h shell.h solve.h solve_group.h solve_linear.h solve_tree.h spparks.h style.h style_gppt.h style_user.h sweep.h sweep_lattice.h sweep_lattice2d.h sweep_lattice3d.h timer.h universe.h variable.h
+INC =	app.h app_chemistry.h app_diffusion.h app_diffusion2.h app_diffusion_deposit.h app_diffusion_nonlinear.h app_diffusion_table.h app_erbium.h app_ising.h app_ising_single.h app_lattice.h app_membrane.h app_off_lattice.h app_pore.h app_pore_nonlinear.h app_potts.h app_potts_neigh.h app_potts_neighonly.h app_potts_pin.h app_potts_strain.h app_potts_variable.h app_surf2d.h app_test_group.h cluster.h comm_lattice.h comm_off_lattice.h diag.h diag_cluster.h diag_diffusion.h diag_energy.h diag_erbium.h dump.h error.h finish.h groups.h input.h library.h memory.h output.h pointers.h random_mars.h random_park.h shell.h solve.h solve_group.h solve_linear.h solve_tree.h spparks.h style.h style_gppt.h style_user.h timer.h universe.h variable.h
 
 OBJ = 	$(SRC:.cpp=.o)
 
@@ -22,7 +22,7 @@ help:
 	for file in $$files; do head -1 $$file; done
 
 clean:
-	rm -r Obj_*
+	rm -rf Obj_*
 
 .DEFAULT:
 	@test -f MAKE/Makefile.$@
@@ -30,5 +30,5 @@ clean:
 	@cp -p $(SRC) $(INC) Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@cd Obj_$@; \
-	$(MAKE)  "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" lib
-	@if [ -d Obj_$@ ]; then cd Obj_$@; rm $(SRC) $(INC) Makefile*; fi
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" lib
+	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -r $(SRC) $(INC) Makefile*; fi

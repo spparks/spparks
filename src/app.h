@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef APP_H
-#define APP_H
+#ifndef SPK_APP_H
+#define SPK_APP_H
 
 #include "pointers.h"
 

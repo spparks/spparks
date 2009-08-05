@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SHELL_H
-#define SHELL_H
+#ifndef SPK_SHELL_H
+#define SPK_SHELL_H
 
 #include "pointers.h"
 

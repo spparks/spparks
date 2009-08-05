@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DIAG_H
-#define DIAG_H
+#ifndef SPK_DIAG_H
+#define SPK_DIAG_H
 
 #include "pointers.h"
 

@@ -6,10 +6,10 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		g++
-CCFLAGS =	-g -O -I/usr/local/lib -DMPICH_IGNORE_CXX_SEEK -DSPPARKS_GZIP
+CCFLAGS =	-g -O -DSPPARKS_GZIP -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-g -O -L/usr/local/lib
+LINKFLAGS =	-g -O
 USRLIB =	-lmpich
 SYSLIB =	-lpthread
 ARCHIVE =	ar

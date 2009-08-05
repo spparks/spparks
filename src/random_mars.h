@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef RANMARS_H
-#define RANMARS_H
+#ifndef SPK_RANMARS_H
+#define SPK_RANMARS_H
 
 #include "pointers.h"
 

@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef APP_POTTS_NEIGH_H
-#define APP_POTTS_NEIGH_H
+#ifndef SPK_APP_POTTS_NEIGH_H
+#define SPK_APP_POTTS_NEIGH_H
 
 #include "app_potts.h"
 

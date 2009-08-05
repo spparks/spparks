@@ -26,6 +26,7 @@
 #include "app_potts_neigh.h"
 #include "app_potts_neighonly.h"
 #include "app_potts_pin.h"
+#include "app_potts_strain.h"
 #include "app_potts_variable.h"
 #include "app_surf2d.h"
 #include "app_test_group.h"
@@ -46,6 +47,7 @@ AppStyle(potts,AppPotts)
 AppStyle(potts/neigh,AppPottsNeigh)
 AppStyle(potts/neighonly,AppPottsNeighOnly)
 AppStyle(potts/pin,AppPottsPin)
+AppStyle(potts/strain,AppPottsStrain)
 AppStyle(potts/variable,AppPottsVariable)
 AppStyle(surf/2d,AppSurf2d)
 AppStyle(test/group,AppTestGroup)

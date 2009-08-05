@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DIAG_CLUSTER_H
-#define DIAG_CLUSTER_H
+#ifndef SPK_DIAG_CLUSTER_H
+#define SPK_DIAG_CLUSTER_H
 
 #include "stdio.h"
 #include <stack>

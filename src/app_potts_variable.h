@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef APP_POTTS_VARIABLE_H
-#define APP_POTTS_VARIABLE_H
+#ifndef SPK_APP_POTTS_VARIABLE_H
+#define SPK_APP_POTTS_VARIABLE_H
 
 #include "app_lattice.h"
 

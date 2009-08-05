@@ -1150,15 +1150,26 @@ void AppLattice::connected_ghosts(int i, int* cluster_ids,
 
 /* ----------------------------------------------------------------------
    return a pointer to a named internal variable
-   name = "nlocal" or "lattice" or "xyz" or "iarrayN" or "darrayN"
-   N in iarray and darray is an integer from 1 to ninteger or ndouble
+   if don't recognize name, pass it along to lower-level app
+   names iarrayN and darrayN mean entry N from 1 to ninteger or ndouble
  ------------------------------------------------------------------------- */
 
 void *AppLattice::extract(char *name)
 {
+  if (strcmp(name,"dimension") == 0) return (void *) &dimension;
+  if (strcmp(name,"nglobal") == 0) return (void *) &nglobal;
   if (strcmp(name,"nlocal") == 0) return (void *) &nlocal;
+  if (strcmp(name,"boxxlo") == 0) return (void *) &boxxlo;
+  if (strcmp(name,"boxxhi") == 0) return (void *) &boxxhi;
+  if (strcmp(name,"boxylo") == 0) return (void *) &boxylo;
+  if (strcmp(name,"boxyhi") == 0) return (void *) &boxyhi;
+  if (strcmp(name,"boxzlo") == 0) return (void *) &boxzlo;
+  if (strcmp(name,"boxzhi") == 0) return (void *) &boxzhi;
+
+  if (strcmp(name,"id") == 0) return (void *) id;
   if (strcmp(name,"lattice") == 0) return (void *) lattice;
   if (strcmp(name,"xyz") == 0) return (void *) xyz;
+
   if (strstr(name,"iarray") == name) {
     int n = atoi(&name[6]);
     if (n < 1 || n > ninteger) return NULL;
@@ -1169,5 +1180,6 @@ void *AppLattice::extract(char *name)
     if (n < 1 || n > ndouble) return NULL;
     return (void *) darray[n-1];
   }
-  return NULL;
+
+  return extract_app(name);
 }

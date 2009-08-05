@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef INPUT_H
-#define INPUT_H
+#ifndef SPK_INPUT_H
+#define SPK_INPUT_H
 
 #include "stdio.h"
 #include "pointers.h"

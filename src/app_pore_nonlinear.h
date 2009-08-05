@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef APP_PORE_NONLINEAR_H
-#define APP_PORE_NONLINEAR_H
+#ifndef SPK_APP_PORE_NONLINEAR_H
+#define SPK_APP_PORE_NONLINEAR_H
 
 #include "app_diffusion_nonlinear.h"
 

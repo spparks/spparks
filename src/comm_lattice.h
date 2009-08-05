@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMM_LATTICE_H
-#define COMM_LATTICE_H
+#ifndef SPK_COMM_LATTICE_H
+#define SPK_COMM_LATTICE_H
 
 #include "mpi.h"
 #include "pointers.h"

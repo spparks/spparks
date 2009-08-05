@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPPARKS_H
-#define SPPARKS_H
+#ifndef SPK_SPPARKS_H
+#define SPK_SPPARKS_H
 
 #include "mpi.h"
 #include "stdio.h"

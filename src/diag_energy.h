@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DIAG_ENERGY_H
-#define DIAG_ENERGY_H
+#ifndef SPK_DIAG_ENERGY_H
+#define SPK_DIAG_ENERGY_H
 
 #include "stdio.h"
 #include "diag.h"
