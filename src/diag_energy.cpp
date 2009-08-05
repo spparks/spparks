@@ -61,12 +61,12 @@ void DiagEnergy::compute()
 
 void DiagEnergy::stats(char *strtmp)
 {
-  sprintf(strtmp,"%10g",energy);
+  sprintf(strtmp," %10g",energy);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DiagEnergy::stats_header(char *strtmp)
 {
-  sprintf(strtmp,"%10s","Energy");
+  sprintf(strtmp," %10s","Energy");
 }
