@@ -30,7 +30,6 @@ Memory::Memory(SPPARKS *spk) : Pointers(spk) {}
 void *Memory::smalloc(long long int n, const char *name)
 {
   if (n == 0) return NULL;
-  //  printf("Attempting to allocate %ld bytes for array %s \n",n,name);
   void *ptr = malloc(n);
   if (ptr == NULL) {
     char str[128];
@@ -57,7 +56,11 @@ void Memory::sfree(void *ptr)
 
 void *Memory::srealloc(void *ptr, long long int n, const char *name)
 {
-  if (n == 0) return NULL;
+  if (n == 0) {
+    sfree(ptr);
+    return NULL;
+  }
+
   ptr = realloc(ptr,n);
   if (ptr == NULL) {
     char str[128];
