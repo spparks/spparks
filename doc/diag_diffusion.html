@@ -1,0 +1,61 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>diag_style diffusion command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>diag_style diffusion keyword value keyword value ... 
+</PRE>
+<UL><LI>diffusion = style name of this diagnostic
+<LI>see the <A HREF = "diag_style.html">diag_style</A> command for additional keywords that can be appended to a diagnostic command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>diag_style diffusion 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The diffusion diagnostic calculates outputs various statistics about
+the different events that have occurred in a cummulative sense since
+the simulation began.  These values are printed as stats output via
+the <A HREF = "stats.html">stats</A> command.
+</P>
+<P>There are 4 kinds of events tallied, not all of which may occur
+depending on the parameters used in defining the <A HREF = "app_diffusion2.html">app_style
+diffusion2</A> model.
+</P>
+<UL><LI>successful deposition event
+<LI>failed deposition event
+<LI>1st neighbor hop
+<LI>2nd neighbor hop 
+</UL>
+<P>A successful deposition event is one that resulted in an atom added to
+the lattice.  A failed deposition event is one that was attempted, but
+no suitable site could be found and thus no atom was added.  A 1st
+neighbor hop is a diffusion hop from a lattice site to a
+nearest-neighbor vacancy.  A 2nd neighbor hop is a Schwoebel hop from
+a lattice site to a 2nd nearest-neighbor vacancy.  See the <A HREF = "app_diffusion2.html">app_style
+diffusion2</A> command for more info on how Schwoebel
+hops occur.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This diagnostic can only be used with the <A HREF = "app_diffusion2.html">app_style
+diffusion2</A> application.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "diag_style.html">diag_style</A>, <A HREF = "stats.html">stats</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>
