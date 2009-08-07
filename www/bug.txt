@@ -17,6 +17,18 @@ The current version of SPPARKS is 13 April 2009.
 
 :line
 
+[7 Aug 2009]
+
+Added Schwoebel hops to "app_style diffusion2"_doc/app_diffusion2.html
+which are effectively 2nd nearest neighbor hops.  This also affected
+the syntax of the "barrier"_doc/barrier.html and the output of the
+"diag_style diffusion"_doc/diag_diffusion.html command.
+
+This is the "list of changed files"_patches/files.7Aug09 from the 23
+Jul 2009 version.
+
+:line
+
 [23 Jul 2009]
 
 Also needed to update the examples input scripts to reflect the
