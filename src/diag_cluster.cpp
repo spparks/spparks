@@ -121,6 +121,10 @@ void DiagCluster::init()
   xyz = applattice->xyz;
   id = applattice->id;
 
+  if (nglobal > 2.1474e9) {
+    error->all("Diag dump_style does not work if ncluster > 2^31");
+  }
+
   memory->destroy_1d_T_array(cluster_ids,0);
   memory->create_1d_T_array(cluster_ids,0,nlocal+nghost-1,
 			    "diagcluster:cluster");
