@@ -20,8 +20,8 @@ field = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} or {i
 
 [Examples:]
 
-dump 0.25 tmp.dump
-dump 5.0 snap.ising id lattice energy i1 :pre
+dump 1 0.25 tmp.dump
+dump 1 5.0 snap.ising id lattice energy i1 :pre
 
 [Description:]
 
