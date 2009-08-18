@@ -1,0 +1,43 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+diag_style propensity command :h3
+
+[Syntax:]
+
+diag_style propensity keyword value keyword value ... :pre
+
+propensity = style name of this diagnostic
+see the "diag_style"_diag_style.html command for additional keywords that can be appended to a diagnostic command :ul
+
+[Examples:]
+
+diag_style propensity :pre
+
+[Description:]
+
+The propensity diagnostic computes the total propensity of all lattice
+sites in the system. The propensity is printed as stats output via the
+"stats"_stats.html command.
+
+The propensity can be thought of as the relative probablity of a site
+site to perform a KMC event.  Note that if you are doing Metropolis MC
+and not kinetic MC, no propensity is defined.
+
+[Restrictions:]
+
+This diagnostic can only be used for on-lattice applications.
+
+This diagnostic can only be used for KMC simulations where a
+"solver"_solve.html is defined.
+
+[Related commands:]
+
+"diag_style"_diag_style.html, "stats"_stats.html
+
+[Default:] none

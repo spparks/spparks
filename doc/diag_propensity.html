@@ -1,0 +1,48 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>diag_style propensity command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>diag_style propensity keyword value keyword value ... 
+</PRE>
+<UL><LI>propensity = style name of this diagnostic
+<LI>see the <A HREF = "diag_style.html">diag_style</A> command for additional keywords that can be appended to a diagnostic command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>diag_style propensity 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The propensity diagnostic computes the total propensity of all lattice
+sites in the system. The propensity is printed as stats output via the
+<A HREF = "stats.html">stats</A> command.
+</P>
+<P>The propensity can be thought of as the relative probablity of a site
+site to perform a KMC event.  Note that if you are doing Metropolis MC
+and not kinetic MC, no propensity is defined.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This diagnostic can only be used for on-lattice applications.
+</P>
+<P>This diagnostic can only be used for KMC simulations where a
+<A HREF = "solve.html">solver</A> is defined.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "diag_style.html">diag_style</A>, <A HREF = "stats.html">stats</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

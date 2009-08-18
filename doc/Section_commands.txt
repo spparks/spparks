@@ -286,4 +286,5 @@ full description:
 "cluster"_diag_cluster.html,
 "diffusion"_diag_diffusion.html,
 "energy"_diag_energy.html,
-"eprof"_diag_eprof.html :tb(c=6,ea=c)
+"eprof"_diag_eprof.html,
+"propensity"_diag_propensity.html :tb(c=6,ea=c)
