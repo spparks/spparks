@@ -612,7 +612,7 @@ double AppDiffusion2::site_propensity_table(int i)
 
   for (ihop = 0; ihop < nhop2; ihop++) {
     j = hopsite[ihop];
-    if (j == nhop1) {
+    if (ihop == nhop1) {
       barrier = sbarrier;
       delta = 0;
     }
@@ -698,7 +698,7 @@ double AppDiffusion2::site_propensity_nonlinear(int i)
 
   for (ihop = 0; ihop < nhop2; ihop++) {
     j = hopsite[ihop];
-    if (j == nhop1) {
+    if (ihop == nhop1) {
       barrier = sbarrier;
       delta = 0;
     }
