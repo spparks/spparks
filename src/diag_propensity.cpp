@@ -14,7 +14,7 @@
 #include "mpi.h"
 #include "stdlib.h"
 #include "string.h"
-#include "diag_energy.h"
+#include "diag_propensity.h"
 #include "app.h"
 #include "app_lattice.h"
 #include "comm_lattice.h"
@@ -27,7 +27,7 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DiagEnergy::DiagEnergy(SPPARKS *spk, int narg, char **arg) : 
+DiagPropensity::DiagPropensity(SPPARKS *spk, int narg, char **arg) : 
   Diag(spk,narg,arg)
 {
   if (app->appclass != App::LATTICE)
@@ -36,34 +36,37 @@ DiagEnergy::DiagEnergy(SPPARKS *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-void DiagEnergy::init()
+void DiagPropensity::init()
 {
+  if (!solve)
+    error->all("Diag propensity requires KMC solve be performed");
+
   applattice = (AppLattice *) app;
   nlocal = applattice->nlocal;
-  energy = 0.0;
+  propensity = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DiagEnergy::compute()
+void DiagPropensity::compute()
 {
   applattice->comm->all();
 
-  double etmp = 0.0;
-  for (int i = 0; i < nlocal; i++) etmp += applattice->site_energy(i);
-  MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,world);
+  double ptmp = 0.0;
+  for (int i = 0; i < nlocal; i++) ptmp += applattice->site_propensity(i);
+  MPI_Allreduce(&ptmp,&propensity,1,MPI_DOUBLE,MPI_SUM,world);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DiagEnergy::stats(char *strtmp)
+void DiagPropensity::stats(char *strtmp)
 {
-  sprintf(strtmp," %10g",energy);
+  sprintf(strtmp," %10g",propensity);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DiagEnergy::stats_header(char *strtmp)
+void DiagPropensity::stats_header(char *strtmp)
 {
-  sprintf(strtmp," %10s","Energy");
+  sprintf(strtmp," %10s","Propnsty");
 }

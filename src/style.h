@@ -75,12 +75,14 @@ SolveStyle(tree,SolveTree)
 #include "diag_cluster.h"
 #include "diag_diffusion.h"
 #include "diag_energy.h"
+#include "diag_propensity.h"
 #endif
 
 #ifdef DiagClass
 DiagStyle(cluster,DiagCluster)
 DiagStyle(diffusion,DiagDiffusion)
 DiagStyle(energy,DiagEnergy)
+DiagStyle(propensity,DiagPropensity)
 #endif
 
 // packages
