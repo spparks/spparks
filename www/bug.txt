@@ -17,6 +17,17 @@ The current version of SPPARKS is 13 April 2009.
 
 :line
 
+[20 Aug 2009]
+
+Fixed a bug in "app_style diffusion2"_doc/app_diffusion2.html with
+Schwoebel barriers that was preventing them from being calculated
+correctly when mixed with normal hop barriers.
+
+This is the "list of changed files"_patches/files.20Aug09 from the 19
+Aug 2009 version.
+
+:line
+
 [19 Aug 2009]
 
 Added a "diag_style propensity"_doc/diag_propensity.html command to
