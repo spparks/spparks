@@ -19,7 +19,7 @@ The current version of SPPARKS is 13 April 2009.
 
 [19 Aug 2009]
 
-Added a diag_style propensity"_doc/diag_propensity.html command to
+Added a "diag_style propensity"_doc/diag_propensity.html command to
 enable total system propensity for KMC simulations to be output with
 "statistics"_doc/stats.html.
 

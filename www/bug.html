@@ -21,3 +21,144 @@ code.
 
 <P><B>19 Aug 2009</B>
 </P>
+<P>Added a <A HREF = "doc/diag_propensity.html">diag_style propensity</A> command to
+enable total system propensity for KMC simulations to be output with
+<A HREF = "doc/stats.html">statistics</A>.
+</P>
+<P>This is the <A HREF = "patches/files.19Aug09">list of changed files</A> from the 7
+Aug 2009 version.
+</P>
+<HR>
+
+<P><B>7 Aug 2009</B>
+</P>
+<P>Added Schwoebel hops to <A HREF = "doc/app_diffusion2.html">app_style diffusion2</A>
+which are effectively 2nd nearest neighbor hops.  This also affected
+the syntax of the <A HREF = "doc/barrier.html">barrier</A> and the output of the
+<A HREF = "doc/diag_diffusion.html">diag_style diffusion</A> command.
+</P>
+<P>This is the <A HREF = "patches/files.7Aug09">list of changed files</A> from the 23
+Jul 2009 version.
+</P>
+<HR>
+
+<P><B>23 Jul 2009</B>
+</P>
+<P>Also needed to update the examples input scripts to reflect the
+changed syntax in <A HREF = "doc/dump.html">dump</A> commands due to the 22Jul09 patch.
+</P>
+<P>This is the <A HREF = "patches/files.23Jul09">list of changed files</A> from the 22
+Jul 2009 version.
+</P>
+<HR>
+
+<P><B>22 Jul 2009</B>
+</P>
+<P>Made some enhancements to the <A HREF = "doc/dump.html">dump</A> command.  There are
+now also <A HREF = "doc/dump_modify.html">dump_modify</A>,
+<A HREF = "doc/dump_one.html">dump_one</A>, and <A HREF = "doc/undump.html">undump</A> commands.
+All of them now take a dump ID, so that you can use multiple dump
+files during a simulation if desired.
+</P>
+<P>Additional features include changing output times via the
+<A HREF = "doc/dump_modify.html">dump_modify</A> command, sub-selecting sites to output
+via the <A HREF = "doc/dump_modify.html">dump_modify thresh</A> command, allowing
+for one file per snapshot and/or one file per processor via wildcards
+in the <A HREF = "doc/dump.html">dump</A> command filename, and allowing for
+output of binary or gzipped dump files.
+</P>
+<P>This is the <A HREF = "patches/files.22Jul09">list of changed files</A> from the 20
+Jul 2009 version.
+</P>
+<HR>
+
+<P><B>20 Jul 2009</B>
+</P>
+<P>Added a <A HREF = "doc/app_diffusion2.html">app_style diffusion2</A> application
+which will eventually replace all of the existing <A HREF = "doc/app_diffusion.html">app_style
+diffusion</A> and <A HREF = "doc/app_pore.html">app_style
+pore</A> variants, once we've done some more testing.
+</P>
+<P>As part of the new, more general diffusion application, new commands
+for defining energy <A HREF = "doc/barrier.html">barrier</A> and
+<A HREF = "doc/deposition.html">deposition</A> event parameters were also added.
+</P>
+<P>A new lattice option for the on-lattice <A HREF = "doc/app_style.html">application
+styles</A> was added.  It is <I>fcc/octa/tetra</I> and
+defines an FCC lattice with additional interstitial octahedral and
+tetrahedral sites.  It's useful for a new application we're developing
+and will release at some point.
+</P>
+<P>This patch also includes a new option to run with the <A HREF = "doc/sweep.html">sweep
+color</A> and <A HREF = "doc/sector.html">sector yes</A> settings
+together which was not previously allowed.  We think this will be
+useful for some rejection KMC applications to enable faster sweeping
+in parallel due to less communication, while still preserving the
+independence of site updating that coloring provides.
+</P>
+<P>This is the <A HREF = "patches/files.20Jul09">list of changed files</A> from the 7
+Jul 2009 version.
+</P>
+<HR>
+
+<P><B>7 Jul 2009</B>
+</P>
+<P>Added a <A HREF = "doc/dump_one.html">dump_one</A> command to force a shapshot of
+the lattice to be written to the file specified by the
+<A HREF = "doc/dump.html">dump</A> command.
+</P>
+<P>This is the <A HREF = "patches/files.7Jul09">list of changed files</A> from the 26
+Jun 2009 version.
+</P>
+<HR>
+
+<P><B>26 Jun 2009</B>
+</P>
+<P>Aidan Thompson (Sandia) fixed a bug in the recent <A HREF = "doc/diag_cluster.html">diag_style
+cluster</A> upgrade.
+</P>
+<P>This is the <A HREF = "patches/files.26Jun09">list of changed files</A> from the 24
+Jun 2009 version.
+</P>
+<HR>
+
+<P><B>24 Jun 2009</B>
+</P>
+<P>Enhanced the <A HREF = "doc/pin.html">pin</A> command for use by the <A HREF = "doc/app_potts_pin.html">app_style
+potts/pin</A> command.  Also enhanced the grain
+identification performed by the <A HREF = "doc/diag_cluster.html">diag_style
+cluster</A> command to not include pinned sites.
+</P>
+<P>This is the <A HREF = "patches/files.24Jun09">list of changed files</A> from the 12
+May 2009 version.
+</P>
+<HR>
+
+<P><B>12 May 2009</B>
+</P>
+<P>Fixed a dumb bug with the rejection method (rKMC) applied to
+<A HREF = "doc/app_diffusion.html">app_style diffusion</A>.
+</P>
+<P>This is the <A HREF = "patches/files.12May09">list of changed files</A> from the 14
+Apr 2009 version.
+</P>
+<P>Thanks to Greg Wagner (Sandia) for identifying the problem.
+</P>
+<HR>
+
+<P><B>14 Apr 2009</B>
+</P>
+<P>Removed an application from the distribution that is still
+a work-in-progress.  Wasn't meant to be released yet.
+</P>
+<P>This is the <A HREF = "patches/files.14Apr09">list of changed files</A> from the 13
+Apr 2009 version.
+</P>
+<HR>
+
+<P><B>13 April 2009</B>
+</P>
+<P>Initial public release of SPPARKS.  17,341 lines of code in src dir.
+This version supercedes earlier distributed beta versions.
+</P>
+</HTML>
