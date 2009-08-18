@@ -17,6 +17,17 @@ The current version of SPPARKS is 13 April 2009.
 
 :line
 
+[19 Aug 2009]
+
+Added a diag_style propensity"_doc/diag_propensity.html command to
+enable total system propensity for KMC simulations to be output with
+"statistics"_doc/stats.html.
+
+This is the "list of changed files"_patches/files.19Aug09 from the 7
+Aug 2009 version.
+
+:line
+
 [7 Aug 2009]
 
 Added Schwoebel hops to "app_style diffusion2"_doc/app_diffusion2.html

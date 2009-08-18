@@ -1,0 +1,18 @@
+7Aug09 version files changed by 19Aug09 upgrade:
+
+doc/Section_commands.html
+doc/Section_commands.txt
+doc/app_diffusion2.html
+doc/app_diffusion2.txt
+doc/diag_diffusion.html
+doc/diag_diffusion.txt
+doc/diag_propensity.html
+doc/diag_propensity.txt
+doc/diag_style.html
+doc/diag_style.txt
+doc/dump.txt
+src/diag_cluster.cpp
+src/diag_energy.cpp
+src/diag_propensity.cpp
+src/diag_propensity.h
+src/style.h
