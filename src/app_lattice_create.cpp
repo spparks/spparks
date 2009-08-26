@@ -167,6 +167,11 @@ void AppLattice::options(int narg, char **arg)
 
 void AppLattice::create_lattice()
 {
+  if (me == 0) {
+    if (screen) fprintf(screen,"Creating lattice ...\n");
+    if (logfile) fprintf(logfile,"Creating lattice ...\n");
+  }
+
   if (latstyle == LINE_2N ||
       latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI || 
       latstyle == SC_6N || latstyle == SC_26N || 
@@ -179,6 +184,11 @@ void AppLattice::create_lattice()
     connectivity_within_cutoff();
   } else if (latstyle == FILENAME) {
     file_lattice();
+  }
+
+  if (me == 0) {
+    if (screen) fprintf(screen,"  %d lattice sites\n",nglobal);
+    if (logfile) fprintf(logfile,"  %d lattice sites\n",nglobal);
   }
 
   ghosts_from_connectivity();

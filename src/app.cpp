@@ -138,6 +138,13 @@ void App::procs2domain_1d(int px_user, int py_user, int pz_user,
   subyhi = 0.5;
   subzlo = -0.5;
   subzhi = 0.5;
+
+  if (me == 0) {
+    if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
+			nx_procs,1,1);
+    if (logfile) fprintf(logfile,"  %d by %d by %d processor grid\n",
+			 nx_procs,1,1);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -202,6 +209,13 @@ void App::procs2domain_2d(int px_user, int py_user, int pz_user,
 
   subzlo = -0.5;
   subzhi = 0.5;
+
+  if (me == 0) {
+    if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
+			nx_procs,ny_procs,1);
+    if (logfile) fprintf(logfile,"  %d by %d by %d processor grid\n",
+			 nx_procs,ny_procs,1);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -278,4 +292,11 @@ void App::procs2domain_3d(int px_user, int py_user, int pz_user,
   subzlo = boxzlo + iprocz * zprd/nz_procs;
   if (iprocz < nz_procs-1) subzhi = boxzlo + (iprocz+1) * zprd/nz_procs;
   else subzhi = boxzhi;
+
+  if (me == 0) {
+    if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
+			nx_procs,ny_procs,nz_procs);
+    if (logfile) fprintf(logfile,"  %d by %d by %d processor grid\n",
+			 nx_procs,ny_procs,nz_procs);
+  }
 }
