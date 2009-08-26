@@ -130,7 +130,7 @@ as specified by the "app_style"_app_style.html command.
 
 [Default:]
 
-The default for sectoring is {n} and the option defaults are nstop =
+The default for sectoring is {no} and the option defaults are nstop =
 1.0 and tstop = 0.0.
 
 :line
