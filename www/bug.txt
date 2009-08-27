@@ -17,6 +17,19 @@ The current version of SPPARKS is 13 April 2009.
 
 :line
 
+[28 Aug 2009]
+
+Fixed a bug with oblique incident angles in deposition with the
+"deposition"_doc/deposition.html and "app_style
+diffusion"_doc/app_diffusion.html commands.
+
+This is the "list of changed files"_patches/files.28Aug09 from the 27
+Aug 2009 version.
+
+Thanks to Ed Webb (Sandia) for flagging this issue as well.
+
+:line
+
 [27 Aug 2009]
 
 Deprecated the old app_style diffusion, diffusion/table,
