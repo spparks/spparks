@@ -14,7 +14,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "diag_diffusion.h"
-#include "app_diffusion2.h"
+#include "app_diffusion.h"
 #include "error.h"
 
 using namespace SPPARKS_NS;
@@ -27,7 +27,7 @@ using namespace SPPARKS_NS;
 DiagDiffusion::DiagDiffusion(SPPARKS *spk, int narg, char **arg) : 
   Diag(spk,narg,arg)
 {
-  if (strcmp(app->style,"diffusion2") != 0)
+  if (strcmp(app->style,"diffusion") != 0)
     error->all("Diag_style diffusion requires app_style diffusion");
 }
 
@@ -35,7 +35,7 @@ DiagDiffusion::DiagDiffusion(SPPARKS *spk, int narg, char **arg) :
 
 void DiagDiffusion::init()
 {
-  appdiff = (AppDiffusion2 *) app;
+  appdiff = (AppDiffusion *) app;
   deposit_success = deposit_failed = 0;
 }
 

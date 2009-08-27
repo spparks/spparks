@@ -13,40 +13,28 @@
 
 #ifdef AppInclude
 #include "app_chemistry.h"
-#include "app_diffusion2.h"
 #include "app_diffusion.h"
-#include "app_diffusion_table.h"
-#include "app_diffusion_nonlinear.h"
 #include "app_ising.h"
 #include "app_ising_single.h"
 #include "app_membrane.h"
-#include "app_pore.h"
-#include "app_pore_nonlinear.h"
 #include "app_potts.h"
 #include "app_potts_neigh.h"
 #include "app_potts_neighonly.h"
 #include "app_potts_pin.h"
-#include "app_potts_strain.h"
 #include "app_potts_variable.h"
 #include "app_test_group.h"
 #endif
 
 #ifdef AppClass
 AppStyle(chemistry,AppChemistry)
-AppStyle(diffusion2,AppDiffusion2)
 AppStyle(diffusion,AppDiffusion)
-AppStyle(diffusion/table,AppDiffusionTable)
-AppStyle(diffusion/nonlinear,AppDiffusionNonLinear)
 AppStyle(ising,AppIsing)
 AppStyle(ising/single,AppIsingSingle)
 AppStyle(membrane,AppMembrane)
-AppStyle(pore,AppPore)
-AppStyle(pore/nonlinear,AppPoreNonLinear)
 AppStyle(potts,AppPotts)
 AppStyle(potts/neigh,AppPottsNeigh)
 AppStyle(potts/neighonly,AppPottsNeighOnly)
 AppStyle(potts/pin,AppPottsPin)
-AppStyle(potts/strain,AppPottsStrain)
 AppStyle(potts/variable,AppPottsVariable)
 AppStyle(test/group,AppTestGroup)
 #endif
