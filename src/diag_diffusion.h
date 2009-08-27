@@ -30,7 +30,7 @@ class DiagDiffusion : public Diag {
   void stats_header(char *);
 
  private:
-  class AppDiffusion2 *appdiff;
+  class AppDiffusion *appdiff;
   double deposit_success,deposit_failed;
   double nfirst_all,nsecond_all;
 };
