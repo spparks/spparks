@@ -1147,6 +1147,7 @@ int AppDiffusion::schwoebel_enumerate(int i, int *site)
 
 /* ----------------------------------------------------------------------
    identify a VACANT site to deposit an atom
+   return -1 if could not find a suitable site
 ------------------------------------------------------------------------- */
 
 int AppDiffusion::find_deposition_site(RandomPark *random)
@@ -1168,7 +1169,7 @@ int AppDiffusion::find_deposition_site(RandomPark *random)
   // find site whose projected distance is closest to start point
 
   int i,j,ncount;
-  double dist_projected;
+  double dist2start;
 
   int closesite = -1;
   double closedist = 1.0e20;
@@ -1179,9 +1180,10 @@ int AppDiffusion::find_deposition_site(RandomPark *random)
     for (int j = 0; j < numneigh[i]; j++)
       if (lattice[neighbor[i][j]] == OCCUPIED) ncount++;
     if (ncount < coordlo || ncount > coordhi) continue;
-    if (exceed_limit(i,start,dist_projected)) continue;
-    if (dist_projected < closedist) {
-      closedist = dist_projected;
+
+    if (exceed_limit(i,start,dist2start)) continue;
+    if (dist2start < closedist) {
+      closedist = dist2start;
       closesite = i;
     }
   }
@@ -1189,56 +1191,72 @@ int AppDiffusion::find_deposition_site(RandomPark *random)
   if (closesite < 0) ndeposit_failed++;
   else ndeposit++;
 
+  if (closesite < 0) exit(1);
+
   return closesite;
 }
 
 /* ----------------------------------------------------------------------
-   compute projected_dist from site M to incident line of deposition
-   return 1 if normal_dist exceeds d0 limit, else return 0
-   must account for periodic images in XY of incident line and start point
+   test if site M is within normal distance d0 from incident line
+   if so, return 0 and dist2start, else return 1
+   site M really becomes a periodic image in XY of M, adjusted via iprd/jprd
+   dist2start = dist from site M to starting point of incident line
+   dist2start is dist along incident line from start point to
+     normal projection point of M
 ------------------------------------------------------------------------- */
 
-int AppDiffusion::exceed_limit(int m, double *start, double &pdist)
+int AppDiffusion::exceed_limit(int m, double *start, double &dist2start)
 {
   int increment,iprd,jprd;
 
   iprd = jprd = 0;
   double d0sq = d0*d0;
 
-  double distsq = distsq_to_dir(m,start,iprd,jprd,pdist);
-  double newdistsq = distsq_to_dir(m,start,iprd-1,jprd,pdist);
+  double distsq = distsq_to_line(m,start,iprd,jprd,dist2start);
+  double newdistsq = distsq_to_line(m,start,iprd-1,jprd,dist2start);
   if (newdistsq < distsq) increment = -1;
   else increment = 1;
-  while ((newdistsq = distsq_to_dir(m,start,iprd,jprd,pdist)) < distsq) {
+
+  iprd += increment;
+  newdistsq = distsq_to_line(m,start,iprd,jprd,dist2start);
+  while (newdistsq < distsq) {
     distsq = newdistsq;
     iprd += increment;
+    newdistsq = distsq_to_line(m,start,iprd,jprd,dist2start);
   }
   iprd -= increment;
 
   if (dimension == 3) {
-    newdistsq = distsq_to_dir(m,start,iprd,jprd-1,pdist);
+    newdistsq = distsq_to_line(m,start,iprd,jprd-1,dist2start);
     if (newdistsq < distsq) increment = -1;
     else increment = 1;
-    while ((newdistsq = distsq_to_dir(m,start,iprd,jprd,pdist)) < distsq) {
+
+    jprd += increment;
+    newdistsq = distsq_to_line(m,start,iprd,jprd,dist2start);
+    while (newdistsq < distsq) {
       distsq = newdistsq;
       jprd += increment;
+      newdistsq = distsq_to_line(m,start,iprd,jprd,dist2start);
     }
   }
   jprd -= increment;
 
   if (distsq > d0sq) return 1;
-  distsq = distsq_to_dir(m,start,iprd,jprd,pdist);
+  distsq = distsq_to_line(m,start,iprd,jprd,dist2start);
   return 0;
 }
 
 /* ----------------------------------------------------------------------
-   compute projected_dist from site M to incident line of deposition
-   return 1 if normal_dist exceeds d0 limit, else return 0
-   must account for periodic images in XY of incident line and start point
+   compute normal distsq from site M to incident line of deposition
+   site M really becomes a periodic image in XY of M, adjusted via iprd/jprd
+   also compute and return dist2start
+   dist2start = dist from site M to starting point of incident line
+   dist2start is dist along incident line from start point to
+     normal projection point of M
 ------------------------------------------------------------------------- */
 
-double AppDiffusion::distsq_to_dir(int m, double *start,
-				   int iprd, int jprd, double &pdist)
+double AppDiffusion::distsq_to_line(int m, double *start,
+				    int iprd, int jprd, double &dist2start)
 {
   double dot,distsq;
   double delta[3],projection[3],offset[3];
@@ -1247,10 +1265,10 @@ double AppDiffusion::distsq_to_dir(int m, double *start,
   delta[1] = xyz[m][1] + jprd*yprd - start[1];
   delta[2] = xyz[m][2] - start[2];
     
-  pdist = dir[0]*delta[0] + dir[1]*delta[1] + dir[2]*delta[2];
-  projection[0] = pdist*dir[0];
-  projection[1] = pdist*dir[1];
-  projection[2] = pdist*dir[2];
+  dist2start = dir[0]*delta[0] + dir[1]*delta[1] + dir[2]*delta[2];
+  projection[0] = dist2start*dir[0];
+  projection[1] = dist2start*dir[1];
+  projection[2] = dist2start*dir[2];
   
   offset[0] = delta[0] - projection[0];
   offset[1] = delta[1] - projection[1];
