@@ -26,7 +26,7 @@ ecoord 8*12 10.0 :pre
 
 This command sets the energy of an occupied site in a lattice as a
 function of coordination number, where coordination = the number of
-occupied neighbor sites.  See the "app_style diffusion2
+occupied neighbor sites.  See the "app_style diffusion
 nonlinear"_app_diffusion.html command for how the energy change of the
 system due to a diffusive hop is used to calculate a probability for
 the hop to occur.
@@ -56,8 +56,8 @@ in any "temperature"_temperature.html command.
 
 [Restrictions:]
 
-This command can only be used as part of the "app_style diffusion2
-nonlinear"_app_diffusion2.html application.
+This command can only be used as part of the "app_style diffusion
+nonlinear"_app_diffusion.html application.
 
 [Related commands:]
 

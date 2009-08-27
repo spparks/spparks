@@ -28,7 +28,7 @@ the "stats"_stats.html command.
 
 There are 4 kinds of events tallied, not all of which may occur
 depending on the parameters used in defining the "app_style
-diffusion2"_app_diffusion2.html model.
+diffusion"_app_diffusion.html model.
 
 successful deposition event
 failed deposition event
@@ -41,13 +41,13 @@ no suitable site could be found and thus no atom was added.  A 1st
 neighbor hop is a diffusion hop from a lattice site to a
 nearest-neighbor vacancy.  A 2nd neighbor hop is a Schwoebel hop from
 a lattice site to a 2nd nearest-neighbor vacancy.  See the "app_style
-diffusion2"_app_diffusion2.html command for more info on how Schwoebel
+diffusion"_app_diffusion.html command for more info on how Schwoebel
 hops occur.
 
 [Restrictions:]
 
 This diagnostic can only be used with the "app_style
-diffusion2"_app_diffusion2.html application.
+diffusion"_app_diffusion.html application.
 
 [Related commands:]
 

@@ -25,7 +25,7 @@ deposition	 1.0 1 1 -1 1.0 3 10 :pre
 [Description:]
 
 This commands invokes deposition events in an on-lattice diffusion
-model, specified by the "app_style diffusion"_app_diffusion2.html
+model, specified by the "app_style diffusion"_app_diffusion.html
 command.
 
 Deposition events will compete with diffusive hop events in the
@@ -58,7 +58,7 @@ along the incident direction.
 [Restrictions:]
 
 This command can only be used as part of the "app_style
-diffusion2"_app_diffusion2.html application.
+diffusion"_app_diffusion.html application.
 
 Deposition can currently only be done in serial simulations, not
 parallel.

@@ -32,7 +32,7 @@ barrier hop 2*5 3* 0.1 :pre
 
 This command sets the energy barrier for a diffusive hop of an atom
 from an occupied site to a nearby vacant site.  See the "app_style
-diffusion2"_app_diffusion2.html command for how the barrier is used in
+diffusion"_app_diffusion.html command for how the barrier is used in
 conjunction with the energy change of the system due to the hop to
 calculate a probability for the hop to occur.
 
@@ -41,7 +41,7 @@ a hop to a nearest-neighbor vacancy, which is specified by setting
 {dstyle} to {hop}.  The second is a Schwoebel hop to a 2nd
 nearest-neighbor vacancy, which is specified by setting {dstyle} to
 {schwoebel}.  The latter is only allowed if the "app_style
-diffusion2"_app_diffusion2.html command also used {schwoebel} for its
+diffusion"_app_diffusion.html command also used {schwoebel} for its
 dstyle setting.
 
 Barriers are assigned based on two coordination numbers, for the
@@ -82,7 +82,7 @@ in any "temperature"_temperature.html command.
 [Restrictions:]
 
 This command can only be used as part of the "app_style
-diffusion2"_app_diffusion2.html application.
+diffusion"_app_diffusion.html application.
 
 [Related commands:]
 
