@@ -17,6 +17,25 @@ The current version of SPPARKS is 13 April 2009.
 
 :line
 
+[27 Aug 2009]
+
+Deprecated the old app_style diffusion, diffusion/table,
+diffusion/nonlinear, diffusion/deposition, pore, and pore/nonlinear
+commands.  All of their functionality is replaced and extended by the
+app_style diffusion2 command, which is now just the "app_style
+diffusion"_doc/app_diffusion.html command.
+
+Fixed two bugs in the "app_style diffusion"_doc/app_diffusion.html
+command having to do with deposition in a 2d model and with using
+estyle off.
+
+This is the "list of changed files"_patches/files.27Aug09 from the 20
+Aug 2009 version.
+
+Thanks to Ed Webb (Sandia) for running into these problems.
+
+:line
+
 [20 Aug 2009]
 
 Fixed a bug in "app_style diffusion2"_doc/app_diffusion2.html with
