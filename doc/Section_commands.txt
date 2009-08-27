@@ -254,13 +254,7 @@ full description:
 
 "chemistry"_app_chemistry.html,
 "diffusion"_app_diffusion.html,
-"diffusion2"_app_diffusion2.html,
-"diffusion/table"_app_diffusion.html,
-"diffusion/nonlinear"_app_diffusion.html,
 "ising"_app_ising.html,
-"membrane"_app_membrane.html,
-"pore"_app_pore.html,
-"pore/nonlinear"_app_pore.html,
 "potts"_app_potts.html,
 "potts/neigh"_app_potts.html,
 "potts/neighonly"_app_potts.html,

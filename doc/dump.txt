@@ -21,7 +21,7 @@ field = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} or {i
 [Examples:]
 
 dump 1 0.25 tmp.dump
-dump 1 5.0 snap.ising id lattice energy i1 :pre
+dump mydump 5.0 snap.ising id lattice energy i1 :pre
 
 [Description:]
 
@@ -32,7 +32,7 @@ or one per timestep, one big file or one per processor).  The
 quantities printed are obtained from the application.  Only
 lattice-based applications support dumps since one line per lattice
 site is output.  More that one dump command and file can be used
-during a simulation since each has a unique ID.
+during a simulation by giving each a unique dump-ID.
 
 IMPORTANT NOTE: When running in parallel, the order of sites as
 printed to the dump file will be in chunks by processor, not ordered
