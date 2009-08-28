@@ -255,11 +255,13 @@ full description:
 "chemistry"_app_chemistry.html,
 "diffusion"_app_diffusion.html,
 "ising"_app_ising.html,
+"ising/single"_app_ising.html,
 "membrane"_app_membrane.html,
 "potts"_app_potts.html,
 "potts/neigh"_app_potts.html,
 "potts/neighonly"_app_potts.html,
 "potts/pin"_app_potts_pin.html,
+"potts/variable"_app_potts.html,
 "test/group"_app_test_group.html :tb(c=8,ea=c)
 
 :line

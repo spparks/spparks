@@ -12,12 +12,12 @@ app_style command :h3
 
 app_style style args keyword values keyword values ... :pre
 
-style = {diffusion} or {ising} or {pore} or {potts} or {membrane} or {chemistry} or {test/group} :ulb,l
-  (see application doc page for additional variants) :pre
-args = arguments specific to an application :l
-  (see application doc page for details) :pre
+style = one of a list of possible style names (see below) :ulb,l
+args = arguments specific to an application, see application doc page for details :l
 zero or more keyword/value pairs may be appended :l
-keyword = {lattice} or {procs} or {site} or {input} :l
+keyword = {input} or {lattice} or {procs} or {site} :l
+  {input} value = infile
+    infile = filename for file containing initial state of all lattice sites
   {lattice} values = type params
     type = {line/2n} or {sq/4n} or {sq/8n} or {tri} or {sc/6n} or {sc/26n} or {fcc} or {bcc} or {diamond} or {random/1d} or {random/2d} or {random/3d} or {file}
       {line/2n} params = a nx = 1d regular lattice with 2 neighbors per site
@@ -54,9 +54,7 @@ keyword = {lattice} or {procs} or {site} or {input} :l
     Px,Py,Pz = # of processors assigned to each dimension of lattice
   {site} values = Nint Ndouble
     Nint = # of integer quantites to store per site
-    Ndouble = # of double quantites to store per site
-  {input} value = infile
-    infile = filename for file containing initial state of all lattice sites :pre
+    Ndouble = # of double quantites to store per site :pre
 :ule
 
 [Examples:]
@@ -64,64 +62,85 @@ keyword = {lattice} or {procs} or {site} or {input} :l
 app_style diffusion ... lattice fcc 1.0 100 100 100
 app_style ising ... lattice sq/4n 1.0 100 100
 app_style ising ... lattice sq/4n 1.0 100 100 input restart.state
-app_style pore ... lattice fcc 1.0 100 100 100
 app_style potts ... lattice file tmp.latttice
-app_style potts/variable ... lattice random/2d 1000 10.0 10.0 3.0
+app_style potts/variable ... lattice random/2d 1000 10.0 10.0 3.0 site 1 0
 app_style membrane ... lattice tri 1.0 100 50
 app_style chemistry ...
 app_style test/group ... :pre
 
 [Description:]
 
-This command defines what model or application SPPARKS will run.
-There are 2 basic kinds of applications: on-lattice and off-lattice.
+This command defines what application and associated model SPPARKS
+will run.  There are 2 basic kinds of applications: general and
+on-lattice.
 
-Here is the list of on-lattice applications SPPARKS currently
-includes.  See the doc page for each application for details:
-
-"diffusion"_app_diffusion.html = vacancy exchange diffusion model
-"ising"_app_ising.html = Ising model
-"membrane"_app_membrane.html = membrane model of lipid,water,protein
-"pore"_app_pore.html = surface diffusion around thin-film pore
-"potts"_app_potts.html = Potts model for grain growth
-"potts/pin"_app_potts_pin.html = Potts model with pinning sites :ul
-
-Here is the list of off-lattice applications SPPARKS currently
+Here is the list of general applications SPPARKS currently
 includes:
 
 "chemistry"_app_chemistry.html = biochemical reaction networks
 "test/group"_app_test_group.html = artificial chemical networks that test "solve_style"_solve_style.html :ul
 
-The off-lattice applications in SPPARKS can only be evolved via a
-kinetic Monte Carlo (KMC) solver, specified by the
+Here is the list of on-lattice applications SPPARKS currently
+includes:
+
+"diffusion"_app_diffusion.html = vacancy exchange diffusion model
+"ising"_app_ising.html = Ising model
+"ising/single"_app_ising.html = Ising model with different rejection KMC algorithm
+"membrane"_app_membrane.html = membrane model of lipid/water/protein states
+"potts"_app_potts.html = Potts model for grain growth
+"potts/neigh"_app_potts.html = Potts model for grain growth
+"potts/neighonly"_app_potts.html = Potts model for grain growth
+"potts/pin"_app_potts_pin.html = Potts model with pinning sites
+"potts/variable"_app_potts.html = Potts model for grain growth :ul
+
+The general applications in SPPARKS can only be evolved via a kinetic
+Monte Carlo (KMC) solver, specified by the
 "solve_style"_solve_style.html command.  On-lattice applications can
 be evolved by either a KMC solver or a rejection kinetic Monte Carlo
-(rKMC) solver, specified by the "sweep"_sweep.html command.  Not all
-on-lattice applications support both choices.
+(rKMC) method or a Metropolis method.  The latter two are specified by
+the "sweep"_sweep.html command.  Not all on-lattice applications
+support each option.
 
-The KMC algorithm is sometimes called rejection-free KMC or the N-fold
+The KMC method is sometimes called rejection-free KMC or the N-fold
 way or the Gillespie algorithm in the MC literature.  The application
 defines a list of "events" and associated rates for each event.  The
 solver chooses the next event, and the application updates the system
-accordingly.  For off-lattice applications the definition of an
-"event" is arbitrary.  For on-lattice application zero or more
-possible events are typically defined for each lattice site.
+accordingly.  This includes updating of the time, which is done
+accurately since rates are defined for each event.  For general
+applications the definition of an "event" is arbitrary.  For
+on-lattice application zero or more possible events are typically
+defined for each lattice site.
 
-The rKMC algorithm picks successive lattice sites via some method (see
-the "sweep"_sweep.html command), and an event on that site which it
-accepts or rejects.  This is sometimes called null-event MC in the
-literature.  The application again defines the "events" for each site
-and associated rates which influence the acceptance or rejection.
+The rKMC method is sometimes called null-event KMC or null-event MC.
+Successive lattice sites are chosen via some method (see the
+"sweep"_sweep.html command), and an event on that site is selected
+which is accepted or rejected.  The application again defines the
+"events" for each site and associated rates which influence the
+acceptance or rejection.  It also defines the null event which is
+essentially an additional rejection probability.  The updating is
+time-accurate as with the KMC algorithm, since rates are again defined
+for each event, including the null event.
 
-For both time evolution methods (KMC and rKMC) the rules for how
+The Metropolis method is similar to the rKMC method, except that it is
+not time-accurate.  It selects an event to perform and accepts or
+rejects it, typically based on an energy change in the system.  There
+is no rate associated with the event, and no requirement that events
+be chosen with relative probabilities corresponding to their rates.
+The effect of the Metropolis algorithm is to evolve the system towards
+a low energy state.  As with the rKMC method, the "sweep"_sweep.html
+command is used to determine how sites are selected.  It is up to the
+application to implement either a time-accurate rKMC method for event
+selection with a correct null-event or a Metropolis method.
+
+For all of these algorithms (KMC, rKMC, Metropolis) the rules for how
 events are defined and are accepted or rejected are discussed in the
 doc pages for the individual applications.
 
-Here is a table of the different kinds of solvers and options that can
-be used for on-lattice applications in SPPARKS.  Serial and parallel
-refer to running on one or many processors.  Sector vs no-sector is
-what is set by the "sector"_sector.html command.  The rKMC options
-are set by the "sweep"_sweep.html command.
+Here is a table of the different kinds of solvers and sweeping options
+that can be used for on-lattice applications in SPPARKS.  Serial and
+parallel refer to running on one or many processors.  Sector vs
+no-sector is what is set by the "sector"_sector.html command.  The
+rKMC options are set by the "sweep"_sweep.html command.
 
 method,	serial/no-sectors, serial/sectors, parallel/no-sectors, parallel/sectors
 exact KMC, yes, yes, no, yes
@@ -131,15 +150,21 @@ rKMC color, yes, no, yes, no :tb(ea=c)
 
 Note that the choice of {color} can also be {color/strict} and that
 masking can also be turned on for rKMC algorithms via the
-"sweep"_sweep.html command if the lo-level application supports it.
+"sweep"_sweep.html command if the application supports it.
 
 :line
 
-For on-lattice applications, there are several keyword/value 
-pairs that may be used as part of the app_style command.
+For general applications, none of the optional app_style keyword/value
+pairs can be used.
 
-The {lattice} keyword must be specified for on-lattice applications as
-it determines the kind and size of lattice used.  For example,
+For on-lattice applications, there are several app_style keyword/value
+pairs that may be appended to the app_style command.  The {lattice}
+keyword must be specified.
+
+:line
+
+The {lattice} keyword determines the kind and size of lattice used for
+on-lattice applications.  For example,
 
 app_style ising 12345 lattice sq/4n 100 100 :pre
 
@@ -213,9 +238,9 @@ partition the simulation domain across processors in order to minimize
 communication of lattice sites.  Typically this will create a 2d grid
 of processors for 2d lattices, and a 3d grid of processors for 3d
 lattices.  You can override the default and specify your own grid of
-Px by Py by Pz processors.  For 2d lattices, Pz must be 1.  For 1d
-lattices Py and Pz must be 1.  If {procs 0 0 0} is specified, then
-SPPARKS will decide the partitioning.
+Px by Py by Pz processors using the {procs} keyword.  For 2d lattices,
+Pz must be 1.  For 1d lattices Py and Pz must be 1.  If {procs 0 0 0}
+is specified, then SPPARKS will decide the partitioning.
 
 :line
 
@@ -229,10 +254,10 @@ integer per site is used.
 
 :line
 
-For on-lattice applications, you can initialize the values stored on
-each lattice site explicitly by using the {input} keyword.  This can
-be useful for restarting a simulation from the dump file generated by
-a previous simulation.  See the "dump2input.py" script in the tools
+For on-lattice applications, the values stored on each lattice site
+can be initialized explicitly via the {input} keyword.  This can be
+useful for restarting a simulation from the dump file generated by a
+previous simulation.  See the "dump2input.py" script in the tools
 directory for a way to convert a dump file to the input format
 described below.
 
