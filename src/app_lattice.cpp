@@ -147,9 +147,9 @@ void AppLattice::init()
   // error checks
 
   if (solve == NULL && sweepflag == NOSWEEP)
-    error->all("Lattice app needs a KMC or rejection KMC solver");
+    error->all("App needs a KMC or rejection KMC solver");
   if (solve && sweepflag != NOSWEEP)
-    error->all("Lattice app cannot use both a KMC and rejection KMC solver");
+    error->all("App cannot use both a KMC and rejection KMC solver");
 
   if (solve && allow_kmc == 0)
     error->all("KMC events are not implemented in app");
@@ -167,8 +167,7 @@ void AppLattice::init()
   if (sectorflag && sweepflag == COLOR_STRICT)
     error->all("Cannot use color/strict rejection KMC with sectors");
 
-  if (sweepflag && dt_sweep == 0.0)
-    error->all("Lattice app did not set dt_sweep");
+  if (sweepflag && dt_sweep == 0.0) error->all("App did not set dt_sweep");
 
   // if sectors, set number of sectors
 
@@ -645,7 +644,7 @@ void AppLattice::iterate_rejection(double stoptime)
 	(this->*sweep)(nselect,sitelist);
 	nattempt += nselect;
 
-      // sectors but no colors, or no sectors with colors
+      // sectors but no colors, or colors but no sectors
       // sweep over all sites in iset
 
       } else if (bothflag == 0) {

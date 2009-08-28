@@ -88,7 +88,7 @@ class AppLattice : public App {
   int allow_rejection;         // 1 if app supports rejection KMC
   int allow_masking;           // 1 if app supports rKMC masking
 
-  int sweepflag;               // 1 if rejection KMC solver
+  int sweepflag;               // set if rejection KMC solver
   int sectorflag;              // 1 if partition my domain into sectors
   int nsector;                 // 1,2,4,8 = # of sectors
   int nsector_user;            // 0 if default, else 2,4,8
