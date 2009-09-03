@@ -52,12 +52,12 @@ help:
 .DEFAULT:
 	@test -f MAKE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
-	@cp -p $(SRC) $(INC) Obj_$@
+	@csh Make.csh style
+	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@cd Obj_$@; \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
-	@if [ -d Obj_$@ ]; then cd Obj_$@; rm $(SRC) $(INC) Makefile*; fi
-
+	@if [ -d Obj_$@ ]; then cd Obj_$@; rm *.cpp *.h Makefile*; fi
 
 # Remove machine-specific object files
 

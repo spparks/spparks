@@ -49,4 +49,22 @@ else if ($1 == "Makefile.list") then
   sed -i -e "s/INC =\t\(.*\)/INC =\t\1 $list4/" Makefile.list
   sed -i -e "s/INC =\t\(.*\)/INC =\t\1 $list5/" Makefile.list
 
+else if ($1 == "style") then
+
+  set list = `grep -l SolveClass solve_*.h`
+  if (-e style_solve.tmp) then
+    rm style_solve.tmp
+  endif
+  foreach file ($list)
+    set qfile = \"$file\"
+    echo "#include $qfile" >>! style_solve.tmp
+  end
+  if (! -e style_solve.h) then
+     mv style_solve.tmp style_solve.h
+  else if (`diff style_solve.h style_solve.tmp` != "") then
+     mv style_solve.tmp style_solve.h
+  else
+     rm style_solve.tmp
+  endif
+
 endif

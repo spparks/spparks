@@ -11,8 +11,13 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_SOLVE_TREE_H
-#define SPK_SOLVE_TREE_H
+#ifdef SolveClass
+SolveStyle(tree,SolveTree)
+
+#else
+
+  //#ifndef SPK_SOLVE_TREE_H
+  //#define SPK_SOLVE_TREE_H
 
 #include "solve.h"
 

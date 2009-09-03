@@ -49,18 +49,6 @@ AppStyle(test/group,AppTestGroup)
 CommandStyle(shell,Shell)
 #endif
 
-#ifdef SolveInclude
-#include "solve_group.h"
-#include "solve_linear.h"
-#include "solve_tree.h"
-#endif
-
-#ifdef SolveClass
-SolveStyle(group,SolveGroup)
-SolveStyle(linear,SolveLinear)
-SolveStyle(tree,SolveTree)
-#endif
-
 #ifdef DiagInclude
 #include "diag_cluster.h"
 #include "diag_diffusion.h"

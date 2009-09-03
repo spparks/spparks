@@ -27,15 +27,15 @@
 #include "error.h"
 #include "memory.h"
 
+#include "style_solve.h"
+
 #define AppInclude
 #define CommandInclude
 #define DiagInclude
-#define SolveInclude
 #include "style.h"
 #undef AppInclude
 #undef CommandInclude
 #undef DiagInclude
-#undef SolveInclude
 
 using namespace SPPARKS_NS;
 
@@ -725,7 +725,7 @@ void Input::solve_style()
 #define SolveClass
 #define SolveStyle(key,Class) \
   else if (strcmp(arg[0],#key) == 0) solve = new Class(spk,narg,arg);
-#include "style.h"
+#include "style_solve.h"
 #undef SolveClass
 
   else error->all("Illegal solve_style command");

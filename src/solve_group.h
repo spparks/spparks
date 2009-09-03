@@ -11,8 +11,13 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_SOLVE_GROUP_H
-#define SPK_SOLVE_GROUP_H
+#ifdef SolveClass
+SolveStyle(group,SolveGroup)
+
+#else
+
+  //#ifndef SPK_SOLVE_GROUP_H
+  //#define SPK_SOLVE_GROUP_H
 
 #include "solve.h"
 
