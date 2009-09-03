@@ -11,9 +11,6 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_CLUSTER_H
-#define SPK_CLUSTER_H
-
 namespace SPPARKS_NS {
 
 class Cluster {
@@ -38,5 +35,3 @@ class Cluster {
 };
 
 }
-
-#endif

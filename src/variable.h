@@ -11,9 +11,6 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_VARIABLE_H
-#define SPK_VARIABLE_H
-
 #include "pointers.h"
 
 namespace SPPARKS_NS {
@@ -47,5 +44,3 @@ class Variable : protected Pointers {
 };
 
 }
-
-#endif

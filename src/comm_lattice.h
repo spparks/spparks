@@ -11,9 +11,6 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_COMM_LATTICE_H
-#define SPK_COMM_LATTICE_H
-
 #include "mpi.h"
 #include "pointers.h"
 
@@ -86,5 +83,3 @@ class CommLattice : protected Pointers {
 };
 
 }
-
-#endif

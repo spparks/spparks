@@ -11,9 +11,6 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_TIMER_H
-#define SPK_TIMER_H
-
 #include "pointers.h"
 
 namespace SPPARKS_NS {
@@ -38,5 +35,3 @@ class Timer : protected Pointers {
 };
 
 }
-
-#endif
