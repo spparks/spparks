@@ -74,15 +74,6 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   dt_sweep = 0.0;
   naccept = nattempt = 0;
   nsweeps = 0;
-
-  // app can override these values in its constructor
-
-  delpropensity = 1;
-  delevent = 0;
-  numrandom = 1;
-  allow_kmc = 1;
-  allow_rejection = 1;
-  allow_masking = 1;
 }
 
 /* ---------------------------------------------------------------------- */

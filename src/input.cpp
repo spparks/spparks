@@ -20,20 +20,22 @@
 #include "variable.h"
 #include "app.h"
 #include "solve.h"
+#include "potential.h"
+#include "pair.h"
+#include "output.h"
 #include "random_mars.h"
 #include "error.h"
 #include "memory.h"
-#include "output.h"
 
 #define AppInclude
 #define CommandInclude
-#define SolveInclude
 #define DiagInclude
+#define SolveInclude
 #include "style.h"
 #undef AppInclude
 #undef CommandInclude
-#undef SolveInclude
 #undef DiagInclude
+#undef SolveInclude
 
 using namespace SPPARKS_NS;
 
@@ -397,6 +399,8 @@ int Input::execute_command()
 
   else if (!strcmp(command,"app_style")) app_style();
   else if (!strcmp(command,"diag_style")) diag_style();
+  else if (!strcmp(command,"pair_coeff")) pair_coeff();
+  else if (!strcmp(command,"pair_style")) pair_style();
   else if (!strcmp(command,"reset_time")) reset_time();
   else if (!strcmp(command,"run")) run();
   else if (!strcmp(command,"seed")) seed();
@@ -657,6 +661,24 @@ void Input::diag_style()
 #undef DiagClass
 
   else error->all("Illegal diag_style command");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::pair_coeff()
+{
+  if (potential->pair == NULL) 
+    error->all("Pair_coeff command before pair_style is defined");
+  potential->pair->coeff(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::pair_style()
+{
+  if (narg < 1) error->all("Illegal pair_style command");
+  potential->create_pair(arg[0]);
+  potential->pair->settings(narg-1,&arg[1]);
 }
 
 /* ---------------------------------------------------------------------- */

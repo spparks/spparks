@@ -22,6 +22,7 @@
 #include "app_potts_neighonly.h"
 #include "app_potts_pin.h"
 #include "app_potts_variable.h"
+#include "app_relax.h"
 #include "app_test_group.h"
 #endif
 
@@ -36,6 +37,7 @@ AppStyle(potts/neigh,AppPottsNeigh)
 AppStyle(potts/neighonly,AppPottsNeighOnly)
 AppStyle(potts/pin,AppPottsPin)
 AppStyle(potts/variable,AppPottsVariable)
+AppStyle(relax,AppRelax)
 AppStyle(test/group,AppTestGroup)
 #endif
 
@@ -71,6 +73,14 @@ DiagStyle(cluster,DiagCluster)
 DiagStyle(diffusion,DiagDiffusion)
 DiagStyle(energy,DiagEnergy)
 DiagStyle(propensity,DiagPropensity)
+#endif
+
+#ifdef PairInclude
+#include "pair_lj_cut.h"
+#endif
+
+#ifdef PairClass
+PairStyle(lj/cut,PairLJCut)
 #endif
 
 // packages

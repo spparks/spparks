@@ -29,12 +29,18 @@ using namespace SPPARKS_NS;
 AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
+  delpropensity = 1;
+  delevent = 0;
+  allow_kmc = 1;
+  allow_rejection = 1;
+  allow_masking = 1;
+  numrandom = 1;
+
   // parse arguments
 
   if (narg < 2) error->all("Illegal app_style command");
 
   nspins = atoi(arg[1]);
-
   dt_sweep = 1.0/nspins;
 
   options(narg-2,&arg[2]);

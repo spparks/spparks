@@ -11,40 +11,31 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-// add new include files in appropriate Include ifdef
-// add new style keywords and class names in appropriate Class ifdef
-// see style.h for examples
+#ifndef SPK_PAIR_LJ_CUT_H
+#define SPK_PAIR_LJ_CUT_H
 
-#ifdef AppInclude
-//#include "app_erbium.h"
-#endif
+#include "pair.h"
 
-#ifdef AppClass
-//AppStyle(erbium,AppErbium)
-#endif
+namespace SPPARKS_NS {
 
-#ifdef CommandInclude
-#endif
+class PairLJCut : public Pair {
+ public:
+  PairLJCut(class SPPARKS *);
+  ~PairLJCut();
+  double energy(int, int, int *, double **, int *);
+  void settings(int, char **);
+  void coeff(int, char **);
+  double init_one(int, int);
 
-#ifdef CommandClass
-#endif
+ protected:
+  double cut_global;
+  double **cut;
+  double **epsilon,**sigma;
+  double **lj1,**lj2,**lj3,**lj4,**offset;
 
-#ifdef SolveInclude
-#endif
+  void allocate();
+};
 
-#ifdef SolveClass
-#endif
+}
 
-#ifdef DiagInclude
-//#include "diag_erbium.h"
-#endif
-
-#ifdef DiagClass
-//DiagStyle(erbium,DiagErbium)
-#endif
-
-#ifdef PairInclude
-#endif
-
-#ifdef PairClass
 #endif

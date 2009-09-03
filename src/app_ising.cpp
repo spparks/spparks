@@ -29,9 +29,16 @@ using namespace SPPARKS_NS;
 AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
-  // parse arguments
+  delpropensity = 1;
+  delevent = 0;
+  allow_kmc = 1;
+  allow_rejection = 1;
+  allow_masking = 1;
+  numrandom = 1;
 
   dt_sweep = 1.0/2.0;
+
+  // parse arguments
 
   if (narg < 1) error->all("Illegal app_style command");
 

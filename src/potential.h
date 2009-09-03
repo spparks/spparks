@@ -11,40 +11,28 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-// add new include files in appropriate Include ifdef
-// add new style keywords and class names in appropriate Class ifdef
-// see style.h for examples
+#ifndef SPK_POTENTIAL_H
+#define SPK_POTENTIAL_H
 
-#ifdef AppInclude
-//#include "app_erbium.h"
-#endif
+#include "pointers.h"
 
-#ifdef AppClass
-//AppStyle(erbium,AppErbium)
-#endif
+namespace SPPARKS_NS {
 
-#ifdef CommandInclude
-#endif
+class Potential : protected Pointers {
+ public:
+  char *pair_style;
+  class Pair *pair;
 
-#ifdef CommandClass
-#endif
+  Potential(class SPPARKS *);
+  ~Potential();
+  void init();
+  void create_pair(const char *);
+  void bounds(char *, int, int &, int &);
 
-#ifdef SolveInclude
-#endif
+ private:
+  class Pair *new_pair(const char *);
+};
 
-#ifdef SolveClass
-#endif
+}
 
-#ifdef DiagInclude
-//#include "diag_erbium.h"
-#endif
-
-#ifdef DiagClass
-//DiagStyle(erbium,DiagErbium)
-#endif
-
-#ifdef PairInclude
-#endif
-
-#ifdef PairClass
 #endif

@@ -28,6 +28,7 @@ class SPPARKS {
 
   class App *app;                // application
   class Solve *solve;            // solver
+  class Potential *potential;    // interatomic potentials
   class RanMars *ranmaster;      // master random number generator
   class Output *output;          // output
   class Timer *timer;            // timer

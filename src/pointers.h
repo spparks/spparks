@@ -37,6 +37,7 @@ public:
     error(ptr->error),
     app(ptr->app),
     solve(ptr->solve),
+    potential(ptr->potential),
     ranmaster(ptr->ranmaster),
     output(ptr->output),
     timer(ptr->timer),
@@ -55,6 +56,7 @@ public:
 
   App *&app;
   Solve *&solve;
+  Potential *&potential;
   RanMars *&ranmaster;
   Output *&output;
   Timer *&timer;

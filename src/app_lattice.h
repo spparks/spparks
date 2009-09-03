@@ -79,14 +79,15 @@ class AppLattice : public App {
   double cutoff;
   char *latfile;
   char *infile;
+
   int px_user,py_user,pz_user;
 
   int delpropensity;           // # of sites away needed to compute propensity
   int delevent;                // # of sites away affected by an event
-  int numrandom;               // # of RN used by rejection routine
   int allow_kmc;               // 1 if app supports KMC
   int allow_rejection;         // 1 if app supports rejection KMC
   int allow_masking;           // 1 if app supports rKMC masking
+  int numrandom;               // # of RN used by rejection routine
 
   int sweepflag;               // set if rejection KMC solver
   int sectorflag;              // 1 if partition my domain into sectors
@@ -170,7 +171,7 @@ class AppLattice : public App {
   void iterate_rejection(double);
 
   typedef void (AppLattice::*FnPtrSweep)(int, int *);
-  FnPtrSweep sweep;                         // ptr to sweep functions
+  FnPtrSweep sweep;                         // ptr to< sweep functions
   void sweep_nomask_nostrict(int, int *);
   void sweep_mask_nostrict(int, int *);
   void sweep_nomask_strict(int, int *);

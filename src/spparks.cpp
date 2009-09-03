@@ -20,6 +20,7 @@
 #include "input.h"
 #include "app.h"
 #include "solve.h"
+#include "potential.h"
 #include "random_mars.h"
 #include "timer.h"
 #include "output.h"
@@ -276,6 +277,7 @@ void SPPARKS::create()
 {
   app = NULL;
   solve = NULL;
+  potential = new Potential(this);
   ranmaster = new RanMars(this);
   output = new Output(this);
   timer = new Timer(this);
@@ -290,6 +292,7 @@ void SPPARKS::destroy()
 {
   delete app;
   delete solve;
+  delete potential;
   delete ranmaster;
   delete output;
   delete timer;

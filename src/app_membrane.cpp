@@ -32,6 +32,13 @@ enum{NONE,LIPID,FLUID,PROTEIN};
 AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
+  delpropensity = 1;
+  delevent = 0;
+  allow_kmc = 1;
+  allow_rejection = 1;
+  allow_masking = 0;
+  numrandom = 1;
+
   dt_sweep = 1.0/2.0;
 
   // parse arguments
