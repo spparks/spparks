@@ -20,7 +20,7 @@ namespace SPPARKS_NS {
   
 class App : protected Pointers {
  public:
-  enum AppClasses {GENERAL,LATTICE,OFF_LATTICE};
+  enum APP_CLASSes {GENERAL,LATTICE,OFF_LATTICE};
 
   int appclass;           // one of the enum values
   char *style;            // style name of app

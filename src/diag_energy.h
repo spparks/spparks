@@ -11,7 +11,7 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef DiagClass
+#ifdef DIAG_CLASS
 DiagStyle(energy,DiagEnergy)
 
 #else

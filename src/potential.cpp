@@ -69,11 +69,11 @@ Pair *Potential::new_pair(const char *style)
 {
   if (strcmp(style,"none") == 0) return NULL;
 
-#define PairClass
+#define PAIR_CLASS
 #define PairStyle(key,Class) \
   else if (strcmp(style,#key) == 0) return new Class(spk);
 #include "style_pair.h"
-#undef PairClass
+#undef PAIR_CLASS
 
   else error->all("Invalid pair style");
   return NULL;

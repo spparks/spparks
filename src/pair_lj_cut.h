@@ -11,7 +11,7 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PairClass
+#ifdef PAIR_CLASS
 PairStyle(lj/cut,PairLJCut)
 
 #else

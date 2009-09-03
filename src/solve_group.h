@@ -11,7 +11,7 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef SolveClass
+#ifdef SOLVE_CLASS
 SolveStyle(group,SolveGroup)
 
 #else

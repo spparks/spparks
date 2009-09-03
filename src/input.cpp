@@ -411,7 +411,7 @@ int Input::execute_command()
 
   if (0) return 0;      // dummy line to enable else-if macro expansion
 
-#define CommandClass
+#define COMMAND_CLASS
 #define CommandStyle(key,Class)         \
   else if (strcmp(command,#key) == 0) { \
     Class key(spk);                     \
@@ -419,7 +419,7 @@ int Input::execute_command()
     return 0;                           \
   }
 #include "style_command.h"
-#undef CommandClass
+#undef COMMAND_CLASS
 
   // assume command is application-specific
 
@@ -626,11 +626,11 @@ void Input::app_style()
 
   if (strcmp(arg[0],"none") == 0) error->all("Illegal app_style command");
 
-#define AppClass
+#define APP_CLASS
 #define AppStyle(key,Class) \
   else if (strcmp(arg[0],#key) == 0) app = new Class(spk,narg,arg);
 #include "style_app.h"
-#undef AppClass
+#undef APP_CLASS
 
   else error->all("Illegal app_style command");
 }
@@ -645,14 +645,14 @@ void Input::diag_style()
 
   if (strcmp(arg[0],"none") == 0) error->all("Illegal diag_style command");
 
-#define DiagClass
+#define DIAG_CLASS
 #define DiagStyle(key,Class) \
   else if (strcmp(arg[0],#key) == 0) { \
     Diag *diagtmp = new Class(spk,narg,arg); \
     output->add_diag(diagtmp); \
   }
 #include "style_diag.h"
-#undef DiagClass
+#undef DIAG_CLASS
 
   else error->all("Illegal diag_style command");
 }
@@ -716,11 +716,11 @@ void Input::solve_style()
 
   if (strcmp(arg[0],"none") == 0) solve = NULL;
 
-#define SolveClass
+#define SOLVE_CLASS
 #define SolveStyle(key,Class) \
   else if (strcmp(arg[0],#key) == 0) solve = new Class(spk,narg,arg);
 #include "style_solve.h"
-#undef SolveClass
+#undef SOLVE_CLASS
 
   else error->all("Illegal solve_style command");
 }

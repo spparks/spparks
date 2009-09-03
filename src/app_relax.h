@@ -11,7 +11,7 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef AppClass
+#ifdef APP_CLASS
 AppStyle(relax,AppRelax)
 
 #else

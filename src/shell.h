@@ -11,7 +11,7 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef CommandClass
+#ifdef COMMAND_CLASS
 CommandStyle(shell,Shell)
 
 #else

@@ -51,7 +51,7 @@ else if ($1 == "Makefile.list") then
 
 else if ($1 == "style") then
 
-  set list = `grep -l AppClass app_*.h`
+  set list = `grep -l APP_CLASS app_*.h`
   if (-e style_app.tmp) then
     rm style_app.tmp
   endif
@@ -69,7 +69,7 @@ else if ($1 == "style") then
      rm style_app.tmp
   endif
 
-  set list = `grep -l CommandClass *.h`
+  set list = `grep -l COMMAND_CLASS *.h`
   if (-e style_command.tmp) then
     rm style_command.tmp
   endif
@@ -87,7 +87,7 @@ else if ($1 == "style") then
      rm style_command.tmp
   endif
 
-  set list = `grep -l DiagClass diag_*.h`
+  set list = `grep -l DIAG_CLASS diag_*.h`
   if (-e style_diag.tmp) then
     rm style_diag.tmp
   endif
@@ -105,7 +105,7 @@ else if ($1 == "style") then
      rm style_diag.tmp
   endif
 
-  set list = `grep -l PairClass pair_*.h`
+  set list = `grep -l PAIR_CLASS pair_*.h`
   if (-e style_pair.tmp) then
     rm style_pair.tmp
   endif
@@ -123,7 +123,7 @@ else if ($1 == "style") then
      rm style_pair.tmp
   endif
 
-  set list = `grep -l SolveClass solve_*.h`
+  set list = `grep -l SOLVE_CLASS solve_*.h`
   if (-e style_solve.tmp) then
     rm style_solve.tmp
   endif
