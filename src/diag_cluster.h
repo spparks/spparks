@@ -11,12 +11,13 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_DIAG_CLUSTER_H
-#define SPK_DIAG_CLUSTER_H
+#ifdef DiagClass
+DiagStyle(cluster,DiagCluster)
+
+#else
 
 #include "stdio.h"
 #include <stack>
-#include "cluster.h"
 #include "diag.h"
 
 namespace SPPARKS_NS {
@@ -34,7 +35,7 @@ class DiagCluster : public Diag {
   int* cluster_ids;
   int ncluster, ncluster_reduced;
   double vav,rav;
-  Cluster* clustlist;
+  class Cluster *clustlist;
   std::stack<int> cluststack;      // stack for performing cluster analysis
 
   FILE *fp, *fpdump;

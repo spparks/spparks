@@ -15,15 +15,16 @@
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
-#include "output.h"
-#include "memory.h"
-#include "app.h"
-#include "error.h"
-#include "timer.h"
 #include "diag_cluster.h"
+#include "cluster.h"
+#include "app.h"
 #include "app_lattice.h"
+#include "output.h"
 #include "comm_lattice.h"
 #include "random_park.h"
+#include "timer.h"
+#include "error.h"
+#include "memory.h"
 
 using namespace SPPARKS_NS;
 

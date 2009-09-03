@@ -11,8 +11,10 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_APP_ISING_SINGLE_H
-#define SPK_APP_ISING_SINGLE_H
+#ifdef AppClass
+AppStyle(ising/single,AppIsingSingle)
+
+#else
 
 #include "app_ising.h"
 

@@ -11,8 +11,10 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_PAIR_LJ_CUT_H
-#define SPK_PAIR_LJ_CUT_H
+#ifdef PairClass
+PairStyle(lj/cut,PairLJCut)
+
+#else
 
 #include "pair.h"
 

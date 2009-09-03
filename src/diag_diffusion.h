@@ -11,8 +11,10 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_DIAG_DIFFUSION_H
-#define SPK_DIAG_DIFFUSION_H
+#ifdef DiagClass
+DiagStyle(diffusion,DiagDiffusion)
+
+#else
 
 #include "stdio.h"
 #include "diag.h"

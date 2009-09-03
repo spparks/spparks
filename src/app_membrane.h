@@ -11,8 +11,10 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_APP_MEMBRANE_H
-#define SPK_APP_MEMBRANE_H
+#ifdef AppClass
+AppStyle(membrane,AppMembrane)
+
+#else
 
 #include "app_lattice.h"
 

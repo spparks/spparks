@@ -11,8 +11,10 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_SHELL_H
-#define SPK_SHELL_H
+#ifdef CommandClass
+CommandStyle(shell,Shell)
+
+#else
 
 #include "pointers.h"
 

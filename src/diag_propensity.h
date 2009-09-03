@@ -11,8 +11,10 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_DIAG_PROPENSITY_H
-#define SPK_DIAG_PROPENSITY_H
+#ifdef DiagClass
+DiagStyle(propensity,DiagPropensity)
+
+#else
 
 #include "stdio.h"
 #include "diag.h"

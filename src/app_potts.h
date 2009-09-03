@@ -11,6 +11,11 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef AppClass
+AppStyle(potts,AppPotts)
+
+#else
+
 #ifndef SPK_APP_POTTS_H
 #define SPK_APP_POTTS_H
 
@@ -35,4 +40,5 @@ class AppPotts : public AppLattice {
 
 }
 
+#endif
 #endif

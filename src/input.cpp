@@ -27,15 +27,10 @@
 #include "error.h"
 #include "memory.h"
 
+#include "style_app.h"
+#include "style_command.h"
+#include "style_diag.h"
 #include "style_solve.h"
-
-#define AppInclude
-#define CommandInclude
-#define DiagInclude
-#include "style.h"
-#undef AppInclude
-#undef CommandInclude
-#undef DiagInclude
 
 using namespace SPPARKS_NS;
 
@@ -423,7 +418,7 @@ int Input::execute_command()
     key.command(narg,arg);              \
     return 0;                           \
   }
-#include "style.h"
+#include "style_command.h"
 #undef CommandClass
 
   // assume command is application-specific
@@ -634,7 +629,7 @@ void Input::app_style()
 #define AppClass
 #define AppStyle(key,Class) \
   else if (strcmp(arg[0],#key) == 0) app = new Class(spk,narg,arg);
-#include "style.h"
+#include "style_app.h"
 #undef AppClass
 
   else error->all("Illegal app_style command");
@@ -656,8 +651,7 @@ void Input::diag_style()
     Diag *diagtmp = new Class(spk,narg,arg); \
     output->add_diag(diagtmp); \
   }
-  
-#include "style.h"
+#include "style_diag.h"
 #undef DiagClass
 
   else error->all("Illegal diag_style command");

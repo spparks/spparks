@@ -11,6 +11,11 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef AppClass
+AppStyle(ising,AppIsing)
+
+#else
+
 #ifndef SPK_APP_ISING_H
 #define SPK_APP_ISING_H
 
@@ -34,4 +39,5 @@ class AppIsing : public AppLattice {
 
 }
 
+#endif
 #endif

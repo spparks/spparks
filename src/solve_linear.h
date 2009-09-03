@@ -16,9 +16,6 @@ SolveStyle(linear,SolveLinear)
 
 #else
 
-  //#ifndef SPK_SOLVE_LINEAR_H
-  //#define SPK_SOLVE_LINEAR_H
-
 #include "solve.h"
 
 namespace SPPARKS_NS {

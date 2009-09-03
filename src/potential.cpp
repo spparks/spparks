@@ -16,9 +16,7 @@
 #include "potential.h"
 #include "error.h"
 
-#define PairInclude
-#include "style.h"
-#undef PairInclude
+#include "style_pair.h"
 
 using namespace SPPARKS_NS;
 
@@ -74,7 +72,7 @@ Pair *Potential::new_pair(const char *style)
 #define PairClass
 #define PairStyle(key,Class) \
   else if (strcmp(style,#key) == 0) return new Class(spk);
-#include "style.h"
+#include "style_pair.h"
 #undef PairClass
 
   else error->all("Invalid pair style");

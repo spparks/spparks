@@ -11,8 +11,10 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_APP_DIFFUSION_H
-#define SPK_APP_DIFFUSION_H
+#ifdef AppClass
+AppStyle(diffusion,AppDiffusion)
+
+#else
 
 #include "app_lattice.h"
 
