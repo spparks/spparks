@@ -61,8 +61,10 @@ else if ($1 == "style") then
   end
   if (! -e style_solve.h) then
      mv style_solve.tmp style_solve.h
+     rm Obj_*/input.d
   else if (`diff style_solve.h style_solve.tmp` != "") then
      mv style_solve.tmp style_solve.h
+     rm Obj_*/input.d
   else
      rm style_solve.tmp
   endif
