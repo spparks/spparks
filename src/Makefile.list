@@ -7,9 +7,9 @@ SHELL = /bin/sh
 ROOT =	spk
 EXE =	$(ROOT)_$@
 
-SRC =	input.cpp lammps.cpp system.cpp universe.cpp variable.cpp
+SRC =	app.cpp app_chemistry.cpp app_diffusion.cpp app_ising.cpp app_ising_single.cpp app_lattice.cpp app_lattice_create.cpp app_membrane.cpp app_off_lattice.cpp app_off_lattice_create.cpp app_potts.cpp app_potts_neigh.cpp app_potts_neighonly.cpp app_potts_pin.cpp app_potts_variable.cpp app_relax.cpp app_test_group.cpp cluster.cpp comm_lattice.cpp comm_off_lattice.cpp diag.cpp diag_cluster.cpp diag_diffusion.cpp diag_energy.cpp diag_propensity.cpp dump.cpp error.cpp finish.cpp groups.cpp input.cpp library.cpp main.cpp memory.cpp output.cpp pair.cpp pair_lj_cut.cpp potential.cpp random_mars.cpp random_park.cpp shell.cpp solve.cpp solve_group.cpp solve_linear.cpp solve_tree.cpp spparks.cpp timer.cpp universe.cpp variable.cpp
 
-INC =	input.h lammps.h system.h universe.h variable.h
+INC =	app.h app_chemistry.h app_diffusion.h app_ising.h app_ising_single.h app_lattice.h app_membrane.h app_off_lattice.h app_potts.h app_potts_neigh.h app_potts_neighonly.h app_potts_pin.h app_potts_variable.h app_relax.h app_test_group.h cluster.h comm_lattice.h comm_off_lattice.h diag.h diag_cluster.h diag_diffusion.h diag_energy.h diag_propensity.h dump.h error.h finish.h groups.h input.h library.h memory.h output.h pair.h pair_lj_cut.h pointers.h potential.h random_mars.h random_park.h shell.h solve.h solve_group.h solve_linear.h solve_tree.h spparks.h style_app.h style_command.h style_diag.h style_pair.h style_solve.h timer.h universe.h variable.h
 
 OBJ = 	$(SRC:.cpp=.o)
 
