@@ -17,6 +17,7 @@
 #include "dump.h"
 #include "app.h"
 #include "app_lattice.h"
+#include "app_off_lattice.h"
 #include "memory.h"
 #include "error.h"
 
@@ -24,12 +25,12 @@ using namespace SPPARKS_NS;
 
 // customize by adding keyword to 1st enum
 
-enum{ID,LATTICE,X,Y,Z,ENERGY,PROPENSITY,IARRAY,DARRAY};
+enum{ID,SITE,X,Y,Z,ENERGY,PROPENSITY,IARRAY,DARRAY};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
 
 #define MAXLINE 1024
-#define DEFAULT "id lattice x y z"
+#define DEFAULT "id site x y z"
 
 /* ---------------------------------------------------------------------- */
 
@@ -86,7 +87,14 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   suffix = filename + strlen(filename) - strlen(".gz");
   if (suffix > filename && strcmp(suffix,".gz") == 0) compressed = 1;
 
-  applattice = (AppLattice *) app;
+  if (app->appclass == App::LATTICE) {
+    applattice = (AppLattice *) app;
+    latticeflag = 1;
+  } else if (app->appclass == App::OFF_LATTICE) {
+    appofflattice = (AppOffLattice *) app;
+    latticeflag = 0;
+  } else
+    error->all("Dump command can only be used for spatial applications");
 
   // parse fields
   // use DEFAULT if fields not listed
@@ -124,10 +132,12 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
     if (strcmp(word,"id") == 0) {
       pack_choice[i] = &Dump::pack_id;
       vtype[i] = INT;
-    } else if (strcmp(word,"lattice") == 0) {
-      pack_choice[i] = &Dump::pack_lattice;
+    } else if (strcmp(word,"site") == 0) {
+      pack_choice[i] = &Dump::pack_site;
       vtype[i] = INT;
-      if (applattice->lattice == NULL)
+      if (latticeflag && applattice->lattice == NULL)
+	error->all("Dumping a quantity application does not support");
+      if (latticeflag == 0 && appofflattice->site == NULL)
 	error->all("Dumping a quantity application does not support");
     } else if (strcmp(word,"x") == 0) {
       pack_choice[i] = &Dump::pack_x;
@@ -152,18 +162,22 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
       pack_choice[i] = &Dump::pack_iarray;
       vtype[i] = INT;
       vindex[i] = atoi(&word[1]);
-      if (app->appclass != LATTICE)
+      if (latticeflag && 
+	  (vindex[i] < 1 || vindex[i] > applattice->ninteger))
 	error->all("Invalid keyword in dump command");
-      if (vindex[i] < 1 || vindex[i] > applattice->ninteger)
+      if (latticeflag == 0 && 
+	  (vindex[i] < 1 || vindex[i] > appofflattice->ninteger))
 	error->all("Invalid keyword in dump command");
       vindex[i]--;
     } else if (word[0] == 'd') {
       pack_choice[i] = &Dump::pack_darray;
       vtype[i] = DOUBLE;
       vindex[i] = atoi(&word[1]) - 1;
-      if (app->appclass != LATTICE)
+      if (latticeflag && 
+	  (vindex[i] < 1 || vindex[i] > applattice->ndouble))
 	error->all("Invalid keyword in dump command");
-      if (vindex[i] < 1 || vindex[i] > applattice->ndouble)
+      if (latticeflag == 0 && 
+	  (vindex[i] < 1 || vindex[i] > appofflattice->ndouble))
 	error->all("Invalid keyword in dump command");
       vindex[i]--;
 
@@ -186,25 +200,36 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
     strcpy(vformat[i],format);
   }
 
-  // in columns, have to change "lattice" to "type" to be LAMMPS compatible
+  // in columns, change "site" to "type" to be LAMMPS compatible
 
-  if (strstr(columns,"lattice")) {
-    char *ptr1 = strstr(columns,"lattice");
-    char *ptr2 = ptr1 + strlen("lattice");
+  if (strstr(columns,"site")) {
+    char *ptr1 = strstr(columns,"site");
+    char *ptr2 = ptr1 + strlen("site");
     *ptr1 = '\0';
     sprintf(columns,"%s%s%s",columns,"type",ptr2);
   }
 
   // dump params
 
-  nglobal = applattice->nglobal;
-  nlocal = applattice->nlocal;
-  boxxlo = applattice->boxxlo;
-  boxxhi = applattice->boxxhi;
-  boxylo = applattice->boxylo;
-  boxyhi = applattice->boxyhi;
-  boxzlo = applattice->boxzlo;
-  boxzhi = applattice->boxzhi;
+  if (latticeflag) {
+    nglobal = applattice->nglobal;
+    nlocal = applattice->nlocal;
+    boxxlo = applattice->boxxlo;
+    boxxhi = applattice->boxxhi;
+    boxylo = applattice->boxylo;
+    boxyhi = applattice->boxyhi;
+    boxzlo = applattice->boxzlo;
+    boxzhi = applattice->boxzhi;
+  } else {
+    nglobal = appofflattice->nglobal;
+    nlocal = appofflattice->nlocal;
+    boxxlo = appofflattice->boxxlo;
+    boxxhi = appofflattice->boxxhi;
+    boxylo = appofflattice->boxylo;
+    boxyhi = appofflattice->boxyhi;
+    boxzlo = appofflattice->boxzlo;
+    boxzhi = appofflattice->boxzhi;
+  }
 
   flush_flag = 1;
   logfreq = 0;
@@ -380,10 +405,12 @@ void Dump::modify_params(int narg, char **arg)
       
       if (strcmp(arg[iarg+1],"id") == 0) thresh_array[nthresh] = ID;
 
-      else if (strcmp(arg[iarg+1],"lattice") == 0) {
-	if (applattice->lattice == NULL)
+      else if (strcmp(arg[iarg+1],"site") == 0) {
+	if (latticeflag && applattice->lattice == NULL)
 	  error->all("Threshold for a quantity application does not support");
-	thresh_array[nthresh] = LATTICE;
+	if (latticeflag == 0 && appofflattice->site == NULL)
+	  error->all("Threshold for a quantity application does not support");
+	thresh_array[nthresh] = SITE;
       }
 
       else if (strcmp(arg[iarg+1],"x") == 0) thresh_array[nthresh] = X;
@@ -401,15 +428,23 @@ void Dump::modify_params(int narg, char **arg)
       else if (arg[iarg+1][0] == 'i') {
 	thresh_array[nthresh] = IARRAY;
 	thresh_index[nthresh] = atoi(&arg[iarg+1][1]);
-	if (thresh_index[nthresh] < 1 || 
-	    thresh_index[nthresh] > applattice->ninteger)
+	if (latticeflag && (thresh_index[nthresh] < 1 || 
+			    thresh_index[nthresh] > applattice->ninteger))
+	  error->all("Threshold for a quantity application does not support");
+	if (latticeflag == 0 && (thresh_index[nthresh] < 1 || 
+				 thresh_index[nthresh] > 
+				 appofflattice->ninteger))
 	  error->all("Threshold for a quantity application does not support");
 	thresh_index[nthresh]--;
       } else if (arg[iarg+1][0] == 'd') {
 	thresh_array[nthresh] = DARRAY;
 	thresh_index[nthresh] = atoi(&arg[iarg+1][1]);
-	if (thresh_index[nthresh] < 1 || 
-	    thresh_index[nthresh] > applattice->ndouble)
+	if (latticeflag && (thresh_index[nthresh] < 1 || 
+			    thresh_index[nthresh] > applattice->ndouble))
+	  error->all("Threshold for a quantity application does not support");
+	if (latticeflag == 0 && (thresh_index[nthresh] < 1 || 
+				 thresh_index[nthresh] > 
+				 appofflattice->ndouble))
 	  error->all("Threshold for a quantity application does not support");
 	thresh_index[nthresh]--;
 
@@ -436,7 +471,7 @@ void Dump::modify_params(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   dump a snapshot of lattice values as atom coords
+   dump a snapshot of site values as atom coords
 ------------------------------------------------------------------------- */
 
 void Dump::write(double time)
@@ -540,42 +575,62 @@ int Dump::count()
     // customize by adding to if statement
 
     if (thresh_array[ithresh] == ID) {
-      int *id = applattice->id;
+      int *id;
+      if (latticeflag) id = applattice->id;
+      else id = appofflattice->id;
       for (i = 0; i < nlocal; i++) dchoose[i] = id[i];
       ptr = dchoose;
       nstride = 1;
-    } else if (thresh_array[ithresh] == LATTICE) {
-      int *lattice = applattice->lattice;
-      for (i = 0; i < nlocal; i++) dchoose[i] = lattice[i];
+    } else if (thresh_array[ithresh] == SITE) {
+      int *site;
+      if (latticeflag) site = applattice->lattice;
+      else site = appofflattice->site;
+      for (i = 0; i < nlocal; i++) dchoose[i] = site[i];
       ptr = dchoose;
       nstride = 1;
     } else if (thresh_array[ithresh] == X) {
-      ptr = &applattice->xyz[0][0];
+      if (latticeflag) ptr = &applattice->xyz[0][0];
+      else ptr = &appofflattice->xyz[0][0];
       nstride = 3;
     } else if (thresh_array[ithresh] == Y) {
-      ptr = &applattice->xyz[0][1];
+      if (latticeflag) ptr = &applattice->xyz[0][1];
+      else ptr = &appofflattice->xyz[0][1];
       nstride = 3;
     } else if (thresh_array[ithresh] == Z) {
-      ptr = &applattice->xyz[0][2];
+      if (latticeflag) ptr = &applattice->xyz[0][2];
+      else ptr = &appofflattice->xyz[0][2];
       nstride = 3;
     } else if (thresh_array[ithresh] == ENERGY) {
-      for (i = 0; i < nlocal; i++)
-	dchoose[i] = applattice->site_energy(i);
+      if (latticeflag)
+	for (i = 0; i < nlocal; i++)
+	  dchoose[i] = applattice->site_energy(i);
+      else
+	for (i = 0; i < nlocal; i++)
+	  dchoose[i] = appofflattice->site_energy(i);
       ptr = dchoose;
       nstride = 1;
     } else if (thresh_array[ithresh] == PROPENSITY) {
-      for (i = 0; i < nlocal; i++)
-	dchoose[i] = applattice->site_propensity(i);
+      if (latticeflag)
+	for (i = 0; i < nlocal; i++)
+	  dchoose[i] = applattice->site_propensity(i);
+      else
+	for (i = 0; i < nlocal; i++)
+	  dchoose[i] = appofflattice->site_propensity(i);
       ptr = dchoose;
       nstride = 1;
     } else if (thresh_array[ithresh] == IARRAY) {
       int index = thresh_index[ithresh];
-      for (i = 0; i < nlocal; i++)
-	dchoose[i] = applattice->iarray[index][i];
+      if (latticeflag)
+	for (i = 0; i < nlocal; i++)
+	  dchoose[i] = applattice->iarray[index][i];
+      else
+	for (i = 0; i < nlocal; i++)
+	  dchoose[i] = appofflattice->iarray[index][i];
       ptr = dchoose;
       nstride = 1;
     } else if (thresh_array[ithresh] == DARRAY) {
-      ptr = applattice->darray[thresh_index[ithresh]];
+      if (latticeflag) ptr = applattice->darray[thresh_index[ithresh]];
+      else ptr = appofflattice->darray[thresh_index[ithresh]];
       nstride = 1;
     }
 
@@ -763,7 +818,8 @@ void Dump::openfile()
 void Dump::pack_id(int n)
 {
   int *id;
-  id = applattice->id;
+  if (latticeflag) id = applattice->id;
+  else id = appofflattice->id;
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {
@@ -775,14 +831,15 @@ void Dump::pack_id(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void Dump::pack_lattice(int n)
+void Dump::pack_site(int n)
 {
-  int i,j,k;
-  int *lattice = applattice->lattice;
+  int *site;
+  if (latticeflag) site = applattice->lattice;
+  else site = appofflattice->site;
 
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {
-      buf[n] = lattice[i];
+      buf[n] = site[i];
       n += size_one;
     }
   }
@@ -792,7 +849,9 @@ void Dump::pack_lattice(int n)
 
 void Dump::pack_x(int n)
 {
-  double **xyz = applattice->xyz;
+  double **xyz;
+  if (latticeflag) xyz = applattice->xyz;
+  else xyz = appofflattice->xyz;
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {
@@ -806,7 +865,9 @@ void Dump::pack_x(int n)
 
 void Dump::pack_y(int n)
 {
-  double **xyz = applattice->xyz;
+  double **xyz;
+  if (latticeflag) xyz = applattice->xyz;
+  else xyz = appofflattice->xyz;
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {
@@ -820,7 +881,9 @@ void Dump::pack_y(int n)
 
 void Dump::pack_z(int n)
 {
-  double **xyz = applattice->xyz;
+  double **xyz;
+  if (latticeflag) xyz = applattice->xyz;
+  else xyz = appofflattice->xyz;
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {
@@ -834,12 +897,19 @@ void Dump::pack_z(int n)
 
 void Dump::pack_energy(int n)
 {
-  int i,j,k;
-
-  for (i = 0; i < nlocal; i++) {
-    if (choose[i]) {
-      buf[n] = applattice->site_energy(i);
-      n += size_one;
+  if (latticeflag) {
+    for (int i = 0; i < nlocal; i++) {
+      if (choose[i]) {
+	buf[n] = applattice->site_energy(i);
+	n += size_one;
+      }
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (choose[i]) {
+	buf[n] = appofflattice->site_energy(i);
+	n += size_one;
+      }
     }
   }
 }
@@ -848,12 +918,19 @@ void Dump::pack_energy(int n)
 
 void Dump::pack_propensity(int n)
 {
-  int i,j,k;
-
-  for (i = 0; i < nlocal; i++) {
-    if (choose[i]) {
-      buf[n] = applattice->site_propensity(i);
-      n += size_one;
+  if (latticeflag) {
+    for (int i = 0; i < nlocal; i++) {
+      if (choose[i]) {
+	buf[n] = applattice->site_propensity(i);
+	n += size_one;
+      }
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (choose[i]) {
+	buf[n] = appofflattice->site_propensity(i);
+	n += size_one;
+      }
     }
   }
 }
@@ -862,7 +939,9 @@ void Dump::pack_propensity(int n)
 
 void Dump::pack_iarray(int n)
 {
-  int *ivec = applattice->iarray[vindex[n]];
+  int *ivec;
+  if (latticeflag) ivec = applattice->iarray[vindex[n]];
+  else ivec = appofflattice->iarray[vindex[n]];
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {
@@ -876,7 +955,9 @@ void Dump::pack_iarray(int n)
 
 void Dump::pack_darray(int n)
 {
-  double *dvec = applattice->darray[n];
+  double *dvec;
+  if (latticeflag) dvec = applattice->darray[n];
+  else dvec = appofflattice->darray[n];
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {

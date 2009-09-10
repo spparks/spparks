@@ -21,6 +21,7 @@ namespace SPPARKS_NS {
 
 class AppOffLattice : public App {
   friend class CommOffLattice;
+  friend class Dump;
 
  public:
   int nglobal;                 // global # of sites
@@ -93,12 +94,15 @@ class AppOffLattice : public App {
   double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;    // my portion of box
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
 
+  int nmax;                    // max # of sites per-site arrays can store
   int nghost;                  // # of ghost sites I store
 
                                // these arrays stored for owned + ghost sites
   int *id;                     // global ID (1-N) of site
-  int *owner;                  // proc who owns the site
   double **xyz;                // coords of site
+  int *bin;                    // bin the site is in
+  int *next,*prev;             // ptrs to next,previous site in bin, -1 if none
+  int *nextimage;              // index of next image of site, -1 if none
 
                                // per-site storage for owned + ghost sites
   int sitecustom;              // 0/1 for default or customized
@@ -113,30 +117,53 @@ class AppOffLattice : public App {
                                // neighbor list info
   int numneigh;
   int *neighs;
-
-  int nbasis;                  // basis atoms for regular lattices
+  int nstencil;                // # of surrounding bins
+  int *stencil;                // offsets for surrounding bins
 
   struct Set {                 // subset of particles I own
     int nlocal;                // # of owned sites in set
-    int nborder;               // # of sites with non-set site as neighbor
     int nselect;               // # of selections from set for rKMC
     int nloop;                 // # of loops over set for rKMC
-    int *border;               // lattice index for each border site
-    int *bsites;               // list of border sites to pass to solver
     class Solve *solve;        // KMC solver
     double *propensity;
     int *site2i;               // map from set sites to lattice index
     int *i2site;               // map from lattice index to set sites
   };
   Set *set;                    // list of subsets
-  int nset;                    // # of subsets of lattice sites
+  int nset;                    // # of subsets of sites
 
+                               // bin info
+  int nbins;                   // total # of bins on this proc
+  int nbinx,nbiny,nbinz;       // # of bins in each dim on this proc w/ ghosts
+  int *binhead;                // index of 1st particle in bin, -1 if none
+  int *binflag;                // 0 if interior, 1 if edge, 2 if ghost
+  int **binoffset;             // periodic offsets of each ghost bin in 3 dims
+  int *nbinimages;             // # of periodic images of each edge bin
+  int **binimage;              // list of periodic images of each bin
+  double binx,biny,binz;       // bin sizes
+  double invbinx,invbiny,invbinz;  // inverse bin sizes
+
+  int nfree;
+  int freehead;                // 1st free ghost particle, -1 if none
 
   void iterate_kmc_global(double);
   void iterate_kmc_sector(double);
   void iterate_rejection(double);
 
-  void neighbor(int, double) {}
+  void neighbor(int, double);
+  void move(int);
+  int site2bin(int);
+  void delete_from_bin(int, int);
+  void add_to_bin(int, int);
+  void delete_images(int);
+  void add_images(int, int);
+  void add_to_free(int);
+  void delete_all_ghosts();
+  int new_ghost();
+  void add_free(int);
+  void add_image_bins(int, int, int, int);
+  void bin_sites();
+  void grow(int);
 
   void options(int, char **);
   void create_domain();

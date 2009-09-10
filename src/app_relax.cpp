@@ -27,8 +27,6 @@ using namespace SPPARKS_NS;
 AppRelax::AppRelax(SPPARKS *spk, int narg, char **arg) : 
   AppOffLattice(spk,narg,arg)
 {
-  delpropensity = 0.0;
-  delevent = 0.0;
   allow_kmc = 1;
   allow_rejection = 1;
 
@@ -46,6 +44,11 @@ AppRelax::AppRelax(SPPARKS *spk, int narg, char **arg) :
   // define domain and partition it across processors
 
   create_domain();
+
+  // initialize my portion of lattice
+
+  if (infile) read_file();
+  else for (int i = 0; i < nlocal; i++) site[i] = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,6 +62,9 @@ void AppRelax::init_app()
   potential->init();
   pair = potential->pair;
   if (pair == NULL) error->all("App relax requires a pair potential");
+
+  delpropensity = pair->cutoff;
+  delevent = delta;
 }
 
 /* ----------------------------------------------------------------------
@@ -104,7 +110,8 @@ void AppRelax::site_event_rejection(int i, RandomPark *random)
   while (rsq > deltasq) {
     dx = delta * (random->uniform() - 0.5);
     dy = delta * (random->uniform() - 0.5);
-    dz = delta * (random->uniform() - 0.5);
+    if (dimension == 3) dz = delta * (random->uniform() - 0.5);
+    else dz = 0.0;
     rsq = dx*dx + dy*dy + dz*dz;
   }
   xyz[i][0] += dx;
@@ -126,7 +133,10 @@ void AppRelax::site_event_rejection(int i, RandomPark *random)
     xyz[i][0] = xold[0];
     xyz[i][1] = xold[1];
     xyz[i][2] = xold[2];
-  }
+  } else success = 1;
 
-  if (success) naccept++;
+  if (success) {
+    move(i);
+    naccept++;
+  }
 }

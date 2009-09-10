@@ -182,12 +182,11 @@ void AppOffLattice::create_domain()
   }
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %d lattice sites\n",nglobal);
-    if (logfile) fprintf(logfile,"  %d lattice sites\n",nglobal);
+    if (screen) fprintf(screen,"  %d sites\n",nglobal);
+    if (logfile) fprintf(logfile,"  %d sites\n",nglobal);
   }
 
-  if (sitecustom == 0) site = NULL;
-  else {
+  if (sitecustom) {
     if (ninteger) iarray = new int*[ninteger];
     for (int i = 0; i < ninteger; i++) iarray[i] = NULL;
     if (ndouble) darray = new double*[ndouble];
@@ -257,6 +256,7 @@ void AppOffLattice::structured_lattice()
 
   // basis sites of each unit cell depend on lattice
 
+  int nbasis;
   double **basis;
   memory->create_2d_T_array(basis,16,3,"app:basis");
 
@@ -354,8 +354,7 @@ void AppOffLattice::structured_lattice()
 	  nlocal++;
 	}
 
-  id = (int *) memory->smalloc(nlocal*sizeof(int),"app:id");
-  memory->create_2d_T_array(xyz,nlocal,3,"app:xyz");
+  grow(nlocal);
 
   nlocal = 0;
   int count = 0;
@@ -378,6 +377,8 @@ void AppOffLattice::structured_lattice()
 	  xyz[nlocal][2] = z;
 	  nlocal++;
 	}
+
+  memory->destroy_2d_T_array(basis);
 }
 
 /* ----------------------------------------------------------------------
@@ -464,8 +465,7 @@ void AppOffLattice::random_lattice()
   delete random;
   random = new RandomPark(seed);
 
-  id = (int *) memory->smalloc(nlocal*sizeof(int),"app:id");
-  memory->create_2d_T_array(xyz,nlocal,3,"app:xyz");
+  grow(nlocal);
 
   nlocal = 0;
 
@@ -593,9 +593,6 @@ void AppOffLattice::file_lattice()
     eof = fgets(line,MAXLINE,fp);
   }
 
-  id = NULL;
-  xyz = NULL;
-  int max = 0;
   nlocal = 0;
   
   int idone,tmp,tmpall;
@@ -642,11 +639,7 @@ void AppOffLattice::file_lattice()
       if (xone[1] == subyhi && subyhi != boxyhi) continue;
       if (xone[2] == subzhi && subzhi != boxzhi) continue;
 
-      if (nlocal == max) {
-	max += DELTA;
-	id = (int *) memory->srealloc(id,max*sizeof(int),"app:id");
-	memory->grow_2d_T_array(xyz,max,3,"app:xyz");
-      }
+      if (nlocal == nmax) grow(0);
 
       id[nlocal] = idone;
       xyz[nlocal][0] = xone[0];

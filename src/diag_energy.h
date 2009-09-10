@@ -32,7 +32,9 @@ class DiagEnergy : public Diag {
   void stats_header(char *);
 
  private:
+  int latticeflag;
   class AppLattice *applattice;
+  class AppOffLattice *appofflattice;
   int nlocal;
   double energy;
 };

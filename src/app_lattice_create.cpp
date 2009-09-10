@@ -24,14 +24,14 @@
 
 using namespace SPPARKS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define DELTA 100000
 #define DELTABUF 10000
 #define MAXLINE 512
 #define CHUNK 1024
 #define EPSILON 0.0001
+
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 

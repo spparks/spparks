@@ -55,23 +55,24 @@ PairLJCut::~PairLJCut()
 double PairLJCut::energy(int i, int numneigh, int *neighs,
 			 double **x, int *type)
 {
-  int itype,jtype;
+  int j,jj,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,r2inv,r6inv;
   double phi;
 
+  itype = type[i];
   xtmp = x[i][0];
   ytmp = x[i][1];
   ztmp = x[i][2];
-  itype = type[i];
 
   double eng = 0.0;
-  for (int j = 0; j < numneigh; j++) {
+  for (jj = 0; jj < numneigh; jj++) {
+    j = neighs[jj];
+    jtype = type[j];
     delx = xtmp - x[j][0];
     dely = ytmp - x[j][1];
     delz = ztmp - x[j][2];
     rsq = delx*delx + dely*dely + delz*delz;
-    jtype = type[j];
 
     if (rsq < cutsq[itype][jtype]) {
       r2inv = 1.0/rsq;

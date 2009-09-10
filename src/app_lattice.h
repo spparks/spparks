@@ -22,8 +22,8 @@
 namespace SPPARKS_NS {
 
 class AppLattice : public App {
-  friend class Dump;
   friend class CommLattice;
+  friend class Dump;
   friend class DiagEnergy;
   friend class DiagErbium;
   friend class DiagCluster;

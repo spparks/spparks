@@ -32,25 +32,17 @@ class CommOffLattice : protected Pointers {
   struct Swap {
     int nsend,nrecv;               // number of messages to send/recv
     int *sproc;                    // proc for each send message
-    int *scount;                   // size of each send message in sites
-    int *smax;                     // max size of each send message in sites
-    int **sindex;                  // list of my lattice indices for each send
-    int *sibuf;                    // biggest int send message
-    double *sdbuf;                 // biggest double send message
+    int *scount;                   // size of each send message in bins
+    int **sindex;                  // list of my bin indices for each send
     int *rproc;                    // proc for each recv message
-    int *rcount;                   // size of each recv message in sites
-    int *rmax;                     // max size of each recv message in sites
-    int **rindex;                  // list of my lattice indices for each recv
-    int **ribuf;                   // each int recv message
-    double **rdbuf;                // each double recv message
+    int *rcount;                   // size of each recv message in bins
+    int **rindex;                  // list of my bin indices for each recv
+    int ncopy;                     // 1 if copy bins to self, 0 if not
+    int ccount;                    // size of copy message in bins
+    int *cbinsrc;                  // list of my bin indices to copy from
+    int *cbindest;                 // list of my bin indices to copy to
     MPI_Request *request;          // MPI datums for each recv message
     MPI_Status *status;
-  };
-
-  struct Site {
-    int id_global;
-    int index_local;
-    int proc;
   };
 
   Swap *allswap;
@@ -59,10 +51,12 @@ class CommOffLattice : protected Pointers {
   Swap **sectorreverseswap;
   int nsector;
 
+  class AppOffLattice *appoff;
+
   int sitecustom;
   int ninteger,ndouble;
-  int **iarray;
-  double **darray;
+
+  double xprd,yprd,zprd;
 
   Swap *create_swap_all();
   Swap *create_swap_all_reverse();
@@ -70,14 +64,7 @@ class CommOffLattice : protected Pointers {
   Swap *create_swap_sector_reverse(int, int *);
   void free_swap(Swap *);
 
-  void create_send_from_list(int, Site *, Swap *);
-  void create_send_from_recv(int, int, Site *, Swap *);
-  void create_recv_from_send(int, int, Site *, Swap *);
-  void create_recv_from_list(int, Site *, Swap *);
-
-  void perform_swap_int(Swap *);
-  void perform_swap_double(Swap *);
-  void perform_swap_general(Swap *);
+  void perform_swap(Swap *);
 };
 
 }
