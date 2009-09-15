@@ -159,6 +159,7 @@ CommOffLattice::Swap *CommOffLattice::create_swap_all()
 
   // add all image bins to list
 
+  n = 0;
   for (m = 0; m < nbins; m++)
     if (binflag[m] == EDGE) n += nimages[m];
 
@@ -210,6 +211,7 @@ CommOffLattice::Swap *CommOffLattice::create_swap_sector(int isector)
 
   // add only image bins to list needed for isector
 
+  n = 0;
   for (m = 0; m < nbins; m++)
     if (binflag[m] == EDGE)
       for (i = 0; i < nimages[m]; i++)
@@ -256,41 +258,34 @@ CommOffLattice::Swap *CommOffLattice::create_swap_sector_reverse(int isector)
 }
 
 /* ----------------------------------------------------------------------
-   create send portion of a Swap communication pattern
-   create from list of bins I send
+   create send and copy portions of a Swap communication pattern
+   generated from list of bins I send to others or self
 ------------------------------------------------------------------------- */
 
-void CommOffLattice::create_send_from_list(int n, int **list, Swap *swap)
+void CommOffLattice::create_send_from_list(int nlist, int **list, Swap *swap)
 {
-  int i,isend;
+  int i,j,isend;
 
   int nbins = appoff->nbins;
   int *binflag = appoff->binflag;
   int *nimages = appoff->nimages;
   int **imageindex = appoff->imageindex;
 
+  // proc[i] = count of bins I send to proc I, including self
+
   int *proc = new int[nprocs];
   for (i = 0; i < nprocs; i++) proc[i] = 0;
-  for (i = 0; i < n; i++) proc[list[i][2]]++;
+  for (i = 0; i < nlist; i++) proc[list[i][2]]++;
+
+  // nsend = # of procs I send to, excluding self
 
   int nsend = 0;
   for (i = 0; i < nprocs; i++)
     if (proc[i]) nsend++;
   if (proc[me]) nsend--;
 
-  // should this loop stagger the proc order
-
-  int *sproc = new int[nsend];
-  int *scount = new int[nsend];
-  for (isend = 0; isend < nsend; isend++) scount[isend] = 0;
-  int *stotal = new int[nsend];
-
-  nsend = 0;
-  for (i = 0; i < nprocs; i++)
-    if (proc[i] && i != me) {
-      proc[i] = nsend;
-      sproc[nsend++] = i;
-    }
+  // ccount = # of bins I copy to myself
+  // cbinsrc,cbindest = list of bins copied from src to dest
 
   int ccount = proc[me];
   int *cbinsrc = NULL;
@@ -301,16 +296,41 @@ void CommOffLattice::create_send_from_list(int n, int **list, Swap *swap)
   }
 
   ccount = 0;
-  for (i = 0; i < n; i++) {
+  for (i = 0; i < nlist; i++) {
     if (list[i][2] == me) {
       cbinsrc[ccount] = list[i][0];
       cbindest[ccount] = list[i][1];
       ccount++;
-    } else {
-      isend = proc[list[i][2]];
-      scount[isend]++;
     }
   }
+
+  // setup send lists
+  // sproc = list of procs I send to, excluding self
+  // scount = # of bins I send to each proc
+  // start sproc with procs beyond me, so comm is more staggered
+
+  int *sproc = new int[nsend];
+  int *scount = new int[nsend];
+  int *stotal = new int[nsend];
+
+  i = me;
+  nsend = 0;
+  for (j = 0; j < nprocs-1; j++) {
+    i++;
+    if (i == nprocs) i = 0;
+    if (proc[i]) {
+      sproc[nsend] = i;
+      scount[nsend] = proc[i];
+      proc[i] = nsend;
+      nsend++;
+    }
+  }
+
+  // allocate and setup ragged arrays: sindex and ssite
+  // sindex = list of bins to send
+  // ssite = messages to send with IDs of bins for receiving procs
+  // ssite will actually be sent in create_recv()
+  // use proc[] to convert proc ID to isend
 
   int **sindex = 
     memory->create_2d_int_ragged_array(nsend,scount,"commoff:sindex");
@@ -319,7 +339,7 @@ void CommOffLattice::create_send_from_list(int n, int **list, Swap *swap)
 
   for (isend = 0; isend < nsend; isend++) scount[isend] = 0;
 
-  for (i = 0; i < n; i++) {
+  for (i = 0; i < nlist; i++) {
     if (list[i][2] != me) {
       isend = proc[list[i][2]];
       sindex[isend][scount[isend]] = list[i][0];
@@ -327,6 +347,8 @@ void CommOffLattice::create_send_from_list(int n, int **list, Swap *swap)
       scount[isend]++;
     }
   }
+
+  // clean up
 
   delete [] proc;
 
@@ -339,34 +361,91 @@ void CommOffLattice::create_send_from_list(int n, int **list, Swap *swap)
   swap->ssite = ssite;
   swap->stotal = stotal;
 
-  if (ccount) {
-    swap->ncopy = 1;
-    swap->ccount = ccount;
-    swap->cbinsrc = cbinsrc;
-    swap->cbindest = cbindest;
-  } else swap->ncopy = 0;
+  if (ccount) swap->ncopy = 1;
+  else swap->ncopy = 0;
+  swap->ccount = ccount;
+  swap->cbinsrc = cbinsrc;
+  swap->cbindest = cbindest;
 }
 
 /* ----------------------------------------------------------------------
    create recv portion of a Swap communication pattern
-   start with list of sites I will send
-   circulate list to all procs
+   communicate site list from sending procs to populate recv lists
 ------------------------------------------------------------------------- */
 
 void CommOffLattice::create_recv_from_send(Swap *swap)
 {
-  int i;
+  int i,isend,irecv;
 
-  int nrecv = 0;
+  // swap params
+
+  int nsend = swap->nsend;
+  int *sproc = swap->sproc;
+  int *scount = swap->scount;
+  int **ssite = swap->ssite;
+
+  // nrecv = # of procs I receive from
+
+  int *proc = new int[nprocs];
+  int *count = new int[nprocs];
+
+  for (i = 0; i < nprocs; i++) {
+    proc[i] = 0;
+    count[i] = 1;
+  }
+  for (isend = 0; isend < nsend; isend++) proc[sproc[isend]] = 1;
+
+  int nrecv;
+  MPI_Reduce_scatter(proc,&nrecv,count,MPI_INT,MPI_SUM,world);
+
+  // setup recv lists
 
   int *rproc = new int[nrecv];
   int *rcount = new int[nrecv];
   int *rtotal = new int[nrecv];
+  MPI_Request *request = new MPI_Request[nrecv];
+  MPI_Status *status = new MPI_Status[nrecv];
+
+  // rproc = list of procs I receive from
+  // rcount = list of procs I receive from
+  // rcount = # of bins I recv from each proc
+  // fill these by telling receivers how many bins I send
+
+  for (i = 0; i < nsend; i++)
+    MPI_Send(&scount[i],1,MPI_INT,sproc[i],0,world);
+
+  for (i = 0; i < nrecv; i++) {
+    MPI_Recv(&rcount[i],1,MPI_INT,MPI_ANY_SOURCE,0,world,status);
+    rproc[i] = status->MPI_SOURCE;
+  }
+
+  MPI_Barrier(world);
+
+  // allocate and setup ragged arrays: rindex and rsite
+  // rindex = list of bins to receive
+  // fill rindex by sending ssite to receivers
 
   int **rindex = 
     memory->create_2d_int_ragged_array(nrecv,rcount,"commoff:rindex");
   int **rsite = 
     memory->create_2d_int_ragged_array(nrecv,rcount,"commoff:rsite");
+
+  for (int irecv = 0; irecv < nrecv; irecv++)
+    MPI_Irecv(rindex[irecv],rcount[irecv],MPI_INT,
+	      rproc[irecv],0,world,&request[irecv]);
+
+  MPI_Barrier(world);
+
+  for (int isend = 0; isend < nsend; isend++)
+    MPI_Send(ssite[isend],scount[isend],MPI_INT,
+	     sproc[isend],0,world);
+
+  if (nrecv) MPI_Waitall(nrecv,request,status);
+
+  // clean up
+
+  delete [] proc;
+  delete [] count;
 
   // fill in swap data structure with recv info
 
@@ -376,6 +455,8 @@ void CommOffLattice::create_recv_from_send(Swap *swap)
   swap->rindex = rindex;
   swap->rsite = rsite;
   swap->rtotal = rtotal;
+  swap->request = request;
+  swap->status = status;
 }
 
 /* ----------------------------------------------------------------------
@@ -414,6 +495,27 @@ void CommOffLattice::perform_swap(Swap *swap)
 {
   int i,j,m,n,ibin,jbin,oldmax,count,total;
 
+  // swap info
+
+  int nsend = swap->nsend;
+  int nrecv = swap->nrecv;
+  int *sproc = swap->sproc;
+  int *scount = swap->scount;
+  int **sindex = swap->sindex;
+  int **ssite = swap->ssite;
+  int *stotal = swap->stotal;
+  int *rproc = swap->rproc;
+  int *rcount = swap->rcount;
+  int **rindex = swap->rindex;
+  int **rsite = swap->rsite;
+  int *rtotal = swap->rtotal;
+  int ncopy = swap->ncopy;
+  int ccount = swap->ccount;
+  int *cbinsrc = swap->cbinsrc;
+  int *cbindest = swap->cbindest;
+  MPI_Request *request = swap->request;
+  MPI_Status *status = swap->status;
+
   // app info
 
   int *binhead = appoff->binhead;
@@ -433,9 +535,9 @@ void CommOffLattice::perform_swap(Swap *swap)
 
   // post receives for bin counts
 
-  for (int irecv = 0; irecv < swap->nrecv; irecv++)
-    MPI_Irecv(swap->rsite[irecv],swap->rcount[irecv],MPI_INT,
-	      swap->rproc[irecv],0,world,&swap->request[irecv]);
+  for (int irecv = 0; irecv < nrecv; irecv++)
+    MPI_Irecv(rsite[irecv],rcount[irecv],MPI_INT,
+	      rproc[irecv],0,world,&request[irecv]);
 
   // barrier to insure receives are posted
 
@@ -446,35 +548,35 @@ void CommOffLattice::perform_swap(Swap *swap)
 
   int sendmax = 0;
 
-  for (int isend = 0; isend < swap->nsend; isend++) {
+  for (int isend = 0; isend < nsend; isend++) {
     total = 0;
-    for (n = 0; n < swap->scount[isend]; n++) {
+    for (n = 0; n < scount[isend]; n++) {
       count = 0;
-      m = binhead[swap->sindex[isend][n]];
+      m = binhead[sindex[isend][n]];
       while (m >= 0) {
 	count++;
 	m = next[m];
       }
-      swap->ssite[isend][n] = count;
+      ssite[isend][n] = count;
       total += count;
     }
-    swap->stotal[isend] = total;
+    stotal[isend] = total;
     sendmax = MAX(sendmax,total);
   }
 
   // send bin counts
 
-  for (int isend = 0; isend < swap->nsend; isend++)
-    MPI_Send(swap->ssite[isend],swap->scount[isend],MPI_INT,
-	     swap->sproc[isend],0,world);
+  for (int isend = 0; isend < nsend; isend++)
+    MPI_Send(ssite[isend],scount[isend],MPI_INT,
+	     sproc[isend],0,world);
 
   // copycount = # of ghosts generated via copying from my own bins
 
   int copycount = 0;
 
-  if (swap->ncopy)
-    for (n = 0; n < swap->ccount; n++) {
-      m = binhead[swap->cbinsrc[n]];
+  if (ncopy)
+    for (n = 0; n < ccount; n++) {
+      m = binhead[cbinsrc[n]];
       while (m >= 0) {
 	copycount++;
 	m = next[m];
@@ -483,17 +585,17 @@ void CommOffLattice::perform_swap(Swap *swap)
 
   // wait on all incoming bin counts
 
-  if (swap->nrecv) MPI_Waitall(swap->nrecv,swap->request,swap->status);
+  if (nrecv) MPI_Waitall(nrecv,request,status);
 
   // recvcount = # of ghosts received from other procs
 
   int recvcount = 0;
 
-  for (int irecv = 0; irecv < swap->nrecv; irecv++) {
+  for (int irecv = 0; irecv < nrecv; irecv++) {
     total = 0;
-    for (n = 0; n < swap->rcount[irecv]; n++)
-      total += swap->rsite[irecv][n];
-    swap->rtotal[irecv] = total;
+    for (n = 0; n < rcount[irecv]; n++)
+      total += rsite[irecv][n];
+    rtotal[irecv] = total;
     recvcount += total;
   }
 
@@ -534,10 +636,10 @@ void CommOffLattice::perform_swap(Swap *swap)
   // post receives for sites
 
   int offset = 0;
-  for (int irecv = 0; irecv < swap->nrecv; irecv++) {
-    MPI_Irecv(&rbuf[offset],swap->rtotal[irecv],MPI_INT,
-	      swap->rproc[irecv],0,world,&swap->request[irecv]);
-    offset += swap->rtotal[irecv];
+  for (int irecv = 0; irecv < nrecv; irecv++) {
+    MPI_Irecv(&rbuf[offset],size_one*rtotal[irecv],MPI_DOUBLE,
+	      rproc[irecv],0,world,&request[irecv]);
+    offset += size_one*rtotal[irecv];
   }
 
   // barrier to insure receives are posted
@@ -546,10 +648,10 @@ void CommOffLattice::perform_swap(Swap *swap)
 
   // send sites
 
-  for (int isend = 0; isend < swap->nsend; isend++) {
+  for (int isend = 0; isend < nsend; isend++) {
     i = 0;
-    for (n = 0; n < swap->scount[isend]; n++) {
-      m = binhead[swap->sindex[isend][n]];
+    for (n = 0; n < scount[isend]; n++) {
+      m = binhead[sindex[isend][n]];
       while (m >= 0) {
 	sbuf[i++] = id[m];
 	sbuf[i++] = xyz[m][0];
@@ -560,17 +662,17 @@ void CommOffLattice::perform_swap(Swap *swap)
       }
     }
 
-    MPI_Send(sbuf,swap->stotal[isend],MPI_INT,swap->sproc[isend],0,world);
+    MPI_Send(sbuf,size_one*stotal[isend],MPI_DOUBLE,sproc[isend],0,world);
   }
 
   // perform on-processor copies across PBCs
   // add ghost sites one at a time
   // if needed, setup nextimage chain of ptrs for these sites
 
-  if (swap->ncopy)
-    for (m = 0; m < swap->ccount; m++) {
-      ibin = swap->cbinsrc[m];
-      jbin = swap->cbindest[m];
+  if (ncopy)
+    for (m = 0; m < ccount; m++) {
+      ibin = cbinsrc[m];
+      jbin = cbindest[m];
       i = binhead[ibin];
       while (i >= 0) {
 	j = appoff->new_ghost();
@@ -591,17 +693,17 @@ void CommOffLattice::perform_swap(Swap *swap)
 
   // wait on all incoming sites
 
-  if (swap->nrecv) MPI_Waitall(swap->nrecv,swap->request,swap->status);
+  if (nrecv) MPI_Waitall(nrecv,request,status);
 
   // unpack received sites from each proc
   // add sites to my bins, adding in PBC if necessary
 
   m = 0;
-  for (int irecv = 0; irecv < swap->nrecv; irecv++) {
-    for (n = 0; n < swap->rcount[irecv]; n++) {
-      for (i = 0; i < swap->rsite[irecv][n]; i++) {
+  for (int irecv = 0; irecv < nrecv; irecv++) {
+    for (n = 0; n < rcount[irecv]; n++) {
+      for (i = 0; i < rsite[irecv][n]; i++) {
 	j = appoff->new_ghost();
-	jbin = swap->rindex[irecv][n];
+	jbin = rindex[irecv][n];
 	id[j] = static_cast<int> (rbuf[m++]);
 	xyz[j][0] = rbuf[m++] + pbcoffset[jbin][0]*xprd;
 	xyz[j][1] = rbuf[m++] + pbcoffset[jbin][1]*yprd;

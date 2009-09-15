@@ -150,7 +150,7 @@ class AppOffLattice : public App {
   int freehead;                // 1st free location, -1 if none
 
   int *site2i;                 // list of site indices that are in sector
-  int *insector;               // 1 if site in sector, 0 if not
+  int *in_sector;              // 1 if site is in sector, 0 if not
 
   void iterate_kmc_global(double);
   void iterate_kmc_sector(double);

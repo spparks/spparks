@@ -31,6 +31,7 @@ using namespace SPPARKS_NS;
 
 #define DELTA 100
 #define MAXNEIGH 1000
+#define EPSILON 1.0e-8
 
 enum{NOSWEEP,RANDOM,RASTER};
 enum{INTERIOR,EDGE,GHOST};            // same as in comm_off_lattice.cpp
@@ -54,6 +55,8 @@ AppOffLattice::AppOffLattice(SPPARKS *spk, int narg, char **arg) :
   sweepflag = NOSWEEP;
   ranapp = NULL;
   sitelist = NULL;
+  site2i = NULL;
+  in_sector = NULL;
 
   temperature = 0.0;
   
@@ -95,6 +98,8 @@ AppOffLattice::~AppOffLattice()
 
   delete ranapp;
   memory->sfree(sitelist);
+  memory->sfree(site2i);
+  memory->sfree(in_sector);
 
   memory->sfree(site);
   for (int i = 0; i < ninteger; i++) memory->sfree(iarray[i]);
@@ -244,20 +249,20 @@ void AppOffLattice::init()
   if (nbinx < 1 || nbiny < 1 || nbinz < 1)
     error->all("Application cutoff is too big for processor sub-domain");
 
-  binx = xprd / nbinx;
-  biny = yprd / nbiny;
-  binz = zprd / nbinz;
+  binx = xprd/nx_procs / nbinx;
+  biny = yprd/ny_procs / nbiny;
+  binz = zprd/nz_procs / nbinz;
   invbinx = 1.0 / binx;
   invbiny = 1.0 / biny;
   invbinz = 1.0 / binz;
 
   if (me == 0) {
     if (screen) {
-      fprintf(screen,"  Bins: %d %d %d\n",nbinx,nbiny,nbinz);
+      fprintf(screen,"  Bins/proc: %d %d %d\n",nbinx,nbiny,nbinz);
       fprintf(screen,"  Bin sizes: %g %g %g\n",binx,biny,binz);
     }
     if (logfile) {
-      fprintf(logfile,"  Bins: %d %d %d\n",nbinx,nbiny,nbinz);
+      fprintf(logfile,"  Bins/proc: %d %d %d\n",nbinx,nbiny,nbinz);
       fprintf(logfile,"  Bin sizes: %g %g %g\n",binx,biny,binz);
     }
   }
@@ -458,6 +463,14 @@ void AppOffLattice::setup()
     sitelist = (int *) memory->smalloc(n*sizeof(int),"app:sitelist");
   }
 
+  // setup site2i and in_sector lists
+  // do this every run in case nlocal has changed
+
+  memory->sfree(site2i);
+  memory->sfree(in_sector);
+  site2i = (int *) memory->smalloc(nlocal*sizeof(int),"app:site2i");
+  in_sector = (int *) memory->smalloc(nlocal*sizeof(int),"app:in_sector");
+
   // setup future output
 
   nextoutput = output->setup(time);
@@ -635,11 +648,12 @@ void AppOffLattice::iterate_rejection(double stoptime)
 {
   int i,nselect,nrange;
 
-  // 1 processor, no sector case
+  // setup in_sector and site2i as if 1 processor with no sectors
+  // will be reset in loop if there are sectors
 
   int nlocal_sector = nlocal;
   for (i = 0; i < nlocal; i++) {
-    insector[i] = 1;
+    in_sector[i] = 1;
     site2i[i] = i;
   }
   
@@ -654,17 +668,28 @@ void AppOffLattice::iterate_rejection(double stoptime)
 	timer->stamp();
 	comm->sector(iset);
 	timer->stamp(TIME_COMM);
+
+	/*
+	MPI_Barrier(world);
+	MPI_Barrier(world);
+	printf("NGHOST %d %d\n",me,nghost);
+	for (i = nlocal; i < nlocal+nghost; i++)
+	  printf("%d %d %g %g %g\n",
+		 id[i],site[i],xyz[i][0],xyz[i][1],xyz[i][2]);
+	MPI_Barrier(world);
+	MPI_Barrier(world);
+	*/
       }
 
       timer->stamp();
 
-      // flag sites in sector
+      // determine which sites are currently in sector
 
       if (sectorflag) {
 	nlocal_sector = 0;
 	for (i = 0; i < nlocal; i++) {
-	  insector[i] = inside_sector(i);
-	  if (insector[i]) site2i[nlocal_sector++] = i;
+	  in_sector[i] = inside_sector(i);
+	  if (in_sector[i]) site2i[nlocal_sector++] = i;
 	}
       }
 
@@ -679,7 +704,7 @@ void AppOffLattice::iterate_rejection(double stoptime)
 	for (i = 0; i < nselect; i++) 
 	  sitelist[i] = site2i[ranapp->irandom(nrange) - 1];
 	for (int m = 0; m < nselect; m++) {
-	  if (insector[sitelist[m]] == 0) continue;
+	  if (in_sector[sitelist[m]] == 0) continue;
 	  site_event_rejection(sitelist[m],ranapp);
 	}
 	nattempt += nselect;
@@ -689,7 +714,7 @@ void AppOffLattice::iterate_rejection(double stoptime)
       } else {
 	for (i = 0; i < set[iset].nloop; i++)
 	  for (int m = 0; m < nlocal_sector; m++) {
-	    if (i && insector[site2i[m]] == 0) continue;
+	    if (i && in_sector[site2i[m]] == 0) continue;
 	    site_event_rejection(site2i[m],ranapp);
 	  }
 	nattempt += set[iset].nselect;
@@ -827,21 +852,29 @@ void AppOffLattice::create_set(int iset, int isector)
       set[iset].xlo = subxlo;
       set[iset].xhi = 0.5 * (subxlo + subxhi);
     } else {
-      set[iset].xhi = 0.5 * (subxlo + subxhi);
+      set[iset].xlo = 0.5 * (subxlo + subxhi);
       set[iset].xhi = subxhi;
     }
-    if (iy == 0) {
+
+    if (dimension == 1) {
+      set[iset].ylo = subylo;
+      set[iset].yhi = subyhi;
+    } else if (iy == 0) {
       set[iset].ylo = subylo;
       set[iset].yhi = 0.5 * (subylo + subyhi);
     } else {
-      set[iset].yhi = 0.5 * (subylo + subyhi);
+      set[iset].ylo = 0.5 * (subylo + subyhi);
       set[iset].yhi = subyhi;
     }
-    if (iz == 0) {
+
+    if (dimension <= 2) {
+      set[iset].zlo = subzlo;
+      set[iset].zhi = subzhi;
+    } else if (iz == 0) {
       set[iset].zlo = subzlo;
       set[iset].zhi = 0.5 * (subzlo + subzhi);
     } else {
-      set[iset].zhi = 0.5 * (subzlo + subzhi);
+      set[iset].zlo = 0.5 * (subzlo + subzhi);
       set[iset].zhi = subzhi;
     }
   }
@@ -928,13 +961,13 @@ void AppOffLattice::move(int i)
     delete_from_bin(i,oldbin);
     add_to_bin(i,newbin);
     bin[i] = newbin;
-    insector[i] = inside_sector(i);
+    in_sector[i] = inside_sector(i);
     return;
   }
 
   // remaining logic is all for 1 processor with no sectors
   // complicated due to ghost images and PBC
-  // site is never flagged as out of sector
+  // site is remapped for PBC, so is never flagged as out of sector
   // 6 different cases to consider: A-F
 
   // (A) site stays in same bin
@@ -1027,6 +1060,18 @@ void AppOffLattice::move(int i)
 
 int AppOffLattice::site2bin(int i)
 {
+  // DEBUG check - can delete eventually
+
+  if (xyz[i][0] < subxlo-binx-EPSILON || xyz[i][0] >= subxhi+binx+EPSILON ||
+      xyz[i][1] < subylo-biny-EPSILON || xyz[i][1] >= subyhi+biny+EPSILON ||
+      xyz[i][2] < subzlo-binz-EPSILON || xyz[i][2] >= subzhi+binz+EPSILON) {
+    printf("BAD PARTICLE: %d %d %d: %g %g %g\n",me,i,nlocal,
+	   xyz[i][0],xyz[i][1],xyz[i][2]);
+    printf("MY DOMAIN: %g %g %g: %g %g %g\n",subxlo,subylo,subzlo,
+	   subxhi,subyhi,subzhi);
+    error->one("Particle not in my bin domain");
+  }
+
   int ix,iy,iz;
 
   if (xyz[i][0] >= subxhi) ix = nbinx-1;
@@ -1068,6 +1113,18 @@ void AppOffLattice::delete_from_bin(int i, int ibin)
 
 void AppOffLattice::add_to_bin(int i, int ibin)
 {
+  // DEBUG check that I is in IBIN - can delete eventually
+
+  if (ibin < 0 || ibin >= nbins)
+    error->one("Adding particle to illegal bin");
+
+  if (site2bin(i) != ibin) {
+    printf("PARTICLE: %d %d %d: %g %g %g\n",
+	   me,i,nlocal,xyz[i][0],xyz[i][1],xyz[i][2]);
+    printf("IBIN: %d\n",ibin);
+    error->one("Adding particle to bin it is not in");
+  }
+
   if (binhead[ibin] < 0) {
     binhead[ibin] = i;
     prev[i] = next[i] = -1;
@@ -1227,8 +1284,9 @@ void AppOffLattice::add_image_bins(int m, int i, int j, int k)
     for (n = 0; n < nimages[m]; n++)
       if (imageindex[m][n] == newbin) break;
     if (n == nimages[m]) {
-      imageindex[m][nimages[m]++] = newbin;
+      imageindex[m][nimages[m]] = newbin;
       imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+      nimages[m]++;
     }
     add_image_bins(m,inew,jnew,knew);
   }
@@ -1241,8 +1299,9 @@ void AppOffLattice::add_image_bins(int m, int i, int j, int k)
     for (n = 0; n < nimages[m]; n++)
       if (imageindex[m][n] == newbin) break;
     if (n == nimages[m]) {
-      imageindex[m][nimages[m]++] = newbin;
+      imageindex[m][nimages[m]] = newbin;
       imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+      nimages[m]++;
     }
     add_image_bins(m,inew,jnew,knew);
   }
@@ -1254,8 +1313,9 @@ void AppOffLattice::add_image_bins(int m, int i, int j, int k)
     for (n = 0; n < nimages[m]; n++)
       if (imageindex[m][n] == newbin) break;
     if (n == nimages[m]) {
-      imageindex[m][nimages[m]++] = newbin;
+      imageindex[m][nimages[m]] = newbin;
       imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+      nimages[m]++;
     }
     add_image_bins(m,inew,jnew,knew);
   }
@@ -1268,8 +1328,9 @@ void AppOffLattice::add_image_bins(int m, int i, int j, int k)
     for (n = 0; n < nimages[m]; n++)
       if (imageindex[m][n] == newbin) break;
     if (n == nimages[m]) {
-      imageindex[m][nimages[m]++] = newbin;
+      imageindex[m][nimages[m]] = newbin;
       imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+      nimages[m]++;
     }
     add_image_bins(m,inew,jnew,knew);
   }
@@ -1281,8 +1342,9 @@ void AppOffLattice::add_image_bins(int m, int i, int j, int k)
     for (n = 0; n < nimages[m]; n++)
       if (imageindex[m][n] == newbin) break;
     if (n == nimages[m]) {
-      imageindex[m][nimages[m]++] = newbin;
+      imageindex[m][nimages[m]] = newbin;
       imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+      nimages[m]++;
     }
     add_image_bins(m,inew,jnew,knew);
   }
@@ -1347,6 +1409,9 @@ int AppOffLattice::neighproc(int inew, int jnew, int knew)
   else if (knew == 0) kdelta = 1;
   else kdelta = 0;
 
+  if (dimension == 1) jdelta = kdelta = 0;
+  if (dimension == 2) kdelta = 0;
+
   // i,j,k = indices of neighbor proc in 3d grid of procs
 
   i += idelta;
@@ -1370,11 +1435,11 @@ int AppOffLattice::neighproc(int inew, int jnew, int knew)
 
 int AppOffLattice::inside_sector(int i)
 {
-  if (xyz[i][0] < set[activeset].xlo) return 1;
-  if (xyz[i][0] >= set[activeset].xhi) return 1;
-  if (xyz[i][1] < set[activeset].ylo) return 1;
-  if (xyz[i][1] >= set[activeset].yhi) return 1;
-  if (xyz[i][2] < set[activeset].zlo) return 1;
-  if (xyz[i][2] >= set[activeset].zhi) return 1;
-  return 0;
+  if (xyz[i][0] < set[activeset].xlo) return 0;
+  if (xyz[i][0] >= set[activeset].xhi) return 0;
+  if (xyz[i][1] < set[activeset].ylo) return 0;
+  if (xyz[i][1] >= set[activeset].yhi) return 0;
+  if (xyz[i][2] < set[activeset].zlo) return 0;
+  if (xyz[i][2] >= set[activeset].zhi) return 0;
+  return 1;
 }

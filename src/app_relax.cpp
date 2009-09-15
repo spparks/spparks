@@ -132,8 +132,9 @@ void AppRelax::site_event_rejection(int i, RandomPark *random)
     xyz[i][0] = xold[0];
     xyz[i][1] = xold[1];
     xyz[i][2] = xold[2];
-
   } else if (efinal <= einitial) {
+    //if (efinal <= einitial) {
+
     success = 1;
   } else if (temperature == 0.0) {
     xyz[i][0] = xold[0];
@@ -144,6 +145,15 @@ void AppRelax::site_event_rejection(int i, RandomPark *random)
     xyz[i][1] = xold[1];
     xyz[i][2] = xold[2];
   } else success = 1;
+
+  /*
+  if (success == 1) printf("EEE %d: %g %g %g: %g %g\n",me,
+			   dx,dy,dz,einitial,efinal);
+  success = 0;
+  xyz[i][0] = xold[0];
+  xyz[i][1] = xold[1];
+  xyz[i][2] = xold[2];
+  */
 
   if (success) {
     move(i);

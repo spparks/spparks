@@ -128,6 +128,8 @@ void App::procs2domain_1d(int px_user, int py_user, int pz_user,
     nx_procs = nprocs;
   }
 
+  ny_procs = nz_procs = 1;
+
   iprocx = me;
   iprocy = iprocz = 0;
 
@@ -197,8 +199,10 @@ void App::procs2domain_2d(int px_user, int py_user, int pz_user,
     }
   }
 
-  iprocx = me/ny_procs;
-  iprocy = me % ny_procs;
+  nz_procs = 1;
+
+  iprocx = me % nx_procs;
+  iprocy = me/nx_procs;
   iprocz = 0;
 
   subxlo = boxxlo + iprocx * xprd/nx_procs;
@@ -277,11 +281,9 @@ void App::procs2domain_3d(int px_user, int py_user, int pz_user,
     }
   }
 
-  int nyz_procs = ny_procs * nz_procs;
-
-  iprocx = (me/(nyz_procs)) % nx_procs;
-  iprocy = (me/nz_procs) % ny_procs;
-  iprocz = (me/1) % nz_procs;
+  iprocx = me % nx_procs;
+  iprocy = (me/nx_procs) % ny_procs;
+  iprocz = me / (nx_procs*ny_procs);
 
   subxlo = boxxlo + iprocx * xprd/nx_procs;
   if (iprocx < nx_procs-1) subxhi = boxxlo + (iprocx+1) * xprd/nx_procs;
