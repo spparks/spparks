@@ -92,7 +92,6 @@ class AppOffLattice : public App {
   double xprd,yprd,zprd;
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // simulation box bounds
   double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;    // my portion of box
-  int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
 
   int nmax;                    // max # of sites per-site arrays can store
   int nghost;                  // # of ghost sites I store
@@ -112,7 +111,6 @@ class AppOffLattice : public App {
   double **darray;             // one or more doubles per site
 
   double *propensity;          // probabilities for each owned site
-  int *i2site;                 // mapping of owned lattice to site index
 
                                // neighbor list info
   int numneigh;
@@ -121,30 +119,38 @@ class AppOffLattice : public App {
   int *stencil;                // offsets for surrounding bins
 
   struct Set {                 // subset of particles I own
-    int nlocal;                // # of owned sites in set
     int nselect;               // # of selections from set for rKMC
     int nloop;                 // # of loops over set for rKMC
-    class Solve *solve;        // KMC solver
-    double *propensity;
-    int *site2i;               // map from set sites to lattice index
-    int *i2site;               // map from lattice index to set sites
+    double xlo,xhi;            // sector bounds
+    double ylo,yhi;
+    double zlo,zhi;
   };
   Set *set;                    // list of subsets
   int nset;                    // # of subsets of sites
+  int activeset;               // which set is currently being looped over
 
                                // bin info
   int nbins;                   // total # of bins on this proc
   int nbinx,nbiny,nbinz;       // # of bins in each dim on this proc w/ ghosts
-  int *binhead;                // index of 1st particle in bin, -1 if none
-  int *binflag;                // 0 if interior, 1 if edge, 2 if ghost
-  int **binoffset;             // periodic offsets of each ghost bin in 3 dims
-  int *nbinimages;             // # of periodic images of each edge bin
-  int **binimage;              // list of periodic images of each bin
   double binx,biny,binz;       // bin sizes
   double invbinx,invbiny,invbinz;  // inverse bin sizes
 
-  int nfree;
-  int freehead;                // 1st free ghost particle, -1 if none
+  int *binhead;                // index of 1st particle in bin, -1 if none
+  int *binflag;                // 0 if interior bin, 1 if edge, 2 if ghost
+
+  int *nimages;                // # of images of each edge bin
+  int **imageindex;            // index of image bin for each edge bin & image
+  int **imageproc;             // owning proc for each edge bin & image
+
+  int **pbcoffset;             // periodic offsets of each ghost bin in 3 dims
+                               // offset to add to original site -> ghost site
+                               // is 0 if ghost bin is not across PBC
+
+  int nfree;                   // # of free locations in ghost particle list
+  int freehead;                // 1st free location, -1 if none
+
+  int *site2i;                 // list of site indices that are in sector
+  int *insector;               // 1 if site in sector, 0 if not
 
   void iterate_kmc_global(double);
   void iterate_kmc_sector(double);
@@ -164,6 +170,8 @@ class AppOffLattice : public App {
   void add_image_bins(int, int, int, int);
   void bin_sites();
   void grow(int);
+  int neighproc(int, int, int);
+  int inside_sector(int);
 
   void options(int, char **);
   void create_domain();

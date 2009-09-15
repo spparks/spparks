@@ -170,6 +170,30 @@ int **Memory::create_2d_int_array(int n1, int n2, const char *name)
 }
 
 /* ----------------------------------------------------------------------
+   create ragged 2d int array
+   if either dim is 0, return NULL 
+------------------------------------------------------------------------- */
+
+int **Memory::create_2d_int_ragged_array(int n1, int *n2, const char *name)
+
+{
+  if (n1 == 0 || n2 == NULL) return NULL;
+
+  int n2sum = 0;
+  for (int i = 0; i < n1; i++) n2sum += n2[i];
+  int *data = (int *) smalloc(n1*n2sum*sizeof(int),name);
+  int **array = (int **) smalloc(n1*sizeof(int *),name);
+
+  int n = 0;
+  for (int i = 0; i < n1; i++) {
+    array[i] = &data[n];
+    n += n2[i];
+  }
+
+  return array;
+}
+
+/* ----------------------------------------------------------------------
    free a 2d int array 
 ------------------------------------------------------------------------- */
 

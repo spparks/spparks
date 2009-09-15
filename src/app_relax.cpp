@@ -123,7 +123,17 @@ void AppRelax::site_event_rejection(int i, RandomPark *random)
   // accept or reject via Boltzmann criterion
 
   int success = 0;
-  if (efinal <= einitial) {
+
+  // NOTE: DEBUG code for no reverse comm w/ sectors
+
+  if (xyz[i][0] < subxlo || xyz[i][0] >= subxhi ||
+      xyz[i][1] < subylo || xyz[i][1] >= subyhi ||
+      xyz[i][2] < subzlo || xyz[i][2] >= subzhi) {
+    xyz[i][0] = xold[0];
+    xyz[i][1] = xold[1];
+    xyz[i][2] = xold[2];
+
+  } else if (efinal <= einitial) {
     success = 1;
   } else if (temperature == 0.0) {
     xyz[i][0] = xold[0];

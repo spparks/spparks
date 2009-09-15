@@ -111,7 +111,6 @@ class AppLattice : public App {
   double xprd,yprd,zprd;
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // simulation box bounds
   double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;    // my portion of box
-  int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
 
   int nghost;                  // # of ghost sites I store
 

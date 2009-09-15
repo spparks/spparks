@@ -624,7 +624,8 @@ void AppLattice::iterate_rejection(double stoptime)
       timer->stamp();
 
       // sectors but no colors (could be no sectors)
-      // sweep over random selection of sites in iset
+
+      // random selection of sites in iset
 
       if (sweepflag == RANDOM) {
 	site2i = set[iset].site2i;
@@ -636,7 +637,7 @@ void AppLattice::iterate_rejection(double stoptime)
 	nattempt += nselect;
 
       // sectors but no colors, or colors but no sectors
-      // sweep over all sites in iset
+      // ordered sweep over all sites in iset
 
       } else if (bothflag == 0) {
 	for (i = 0; i < set[iset].nloop; i++)
@@ -645,7 +646,7 @@ void AppLattice::iterate_rejection(double stoptime)
 
       // sectors and colors, so nset = nsector*ncolors
       // increment iset here to make outer loop be over sectors,
-      // inner loop here is over colors, sweep over all sites in iset
+      // inner loop here is over colors, ordered sweep over all sites in iset
 
       } else {
 	for (icolor = 0; icolor < ncolors; icolor++) {

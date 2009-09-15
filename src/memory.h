@@ -31,6 +31,7 @@ class Memory : protected Pointers {
   double **grow_2d_double_array(double **, int, int, const char *);
 
   int **create_2d_int_array(int, int, const char *);
+  int **create_2d_int_ragged_array(int, int *, const char *);
   void destroy_2d_int_array(int **);
   int **grow_2d_int_array(int **, int, int, const char *);
 

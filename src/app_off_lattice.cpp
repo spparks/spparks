@@ -72,12 +72,11 @@ AppOffLattice::AppOffLattice(SPPARKS *spk, int narg, char **arg) :
   next = prev = nextimage = NULL;
 
   comm = NULL;
-  //sweep = NULL;
 
   binhead = binflag = NULL;
-  binoffset = NULL;
-  nbinimages = NULL;
-  binimage = NULL;
+  pbcoffset = NULL;
+  nimages = NULL;
+  imageindex = imageproc = NULL;
 
   nstencil = 0;
   stencil = NULL;
@@ -92,12 +91,6 @@ AppOffLattice::AppOffLattice(SPPARKS *spk, int narg, char **arg) :
 
 AppOffLattice::~AppOffLattice()
 {
-  for (int i = 0; i < nset; i++) {
-    delete set[i].solve;
-    memory->sfree(set[i].propensity);
-    memory->sfree(set[i].site2i);
-    memory->sfree(set[i].i2site);
-  }
   delete [] set;
 
   delete ranapp;
@@ -120,9 +113,10 @@ AppOffLattice::~AppOffLattice()
 
   memory->sfree(binhead);
   memory->sfree(binflag);
-  memory->destroy_2d_int_array(binoffset);
-  memory->sfree(nbinimages);
-  memory->destroy_2d_int_array(binimage);
+  memory->destroy_2d_int_array(pbcoffset);
+  memory->sfree(nimages);
+  memory->destroy_2d_int_array(imageindex);
+  memory->destroy_2d_int_array(imageproc);
 
   delete [] stencil;
   delete [] neighs;
@@ -203,7 +197,7 @@ void AppOffLattice::init()
       nset = 1;
       set = new Set[nset];
       create_set(0,0);
-    } else if (nsector > 1) {
+    } else {
       nset = nsector;
       set = new Set[nset];
       for (int i = 0; i < nset; i++) create_set(i,i+1);
@@ -276,20 +270,24 @@ void AppOffLattice::init()
 
   memory->sfree(binhead);
   memory->sfree(binflag);
-  memory->destroy_2d_int_array(binoffset);
-  memory->sfree(nbinimages);
-  memory->destroy_2d_int_array(binimage);
+  memory->destroy_2d_int_array(pbcoffset);
+  memory->sfree(nimages);
+  memory->destroy_2d_int_array(imageindex);
 
   binhead = (int *) memory->smalloc(nbins*sizeof(int),"app:binhead");
   binflag = (int *) memory->smalloc(nbins*sizeof(int),"app:binflag");
-  binoffset = memory->create_2d_int_array(nbins,3,"app:binoffset");
-  nbinimages = (int *) memory->smalloc(nbins*sizeof(int),"app:nbinimages");
-  if (dimension == 3)
-    binimage = memory->create_2d_int_array(nbins,7,"app:binimage");
-  else if (dimension == 2)
-    binimage = memory->create_2d_int_array(nbins,3,"app:binimage");
-  else
-    binimage = memory->create_2d_int_array(nbins,1,"app:binimage");
+  pbcoffset = memory->create_2d_int_array(nbins,3,"app:pbcoffset");
+  nimages = (int *) memory->smalloc(nbins*sizeof(int),"app:nimages");
+  if (dimension == 3) {
+    imageindex = memory->create_2d_int_array(nbins,7,"app:imageindex");
+    imageproc = memory->create_2d_int_array(nbins,7,"app:imageproc");
+  } else if (dimension == 2) {
+    imageindex = memory->create_2d_int_array(nbins,3,"app:imageindex");
+    imageproc = memory->create_2d_int_array(nbins,3,"app:imageproc");
+  } else {
+    imageindex = memory->create_2d_int_array(nbins,1,"app:imageindex");
+    imageproc = memory->create_2d_int_array(nbins,1,"app:imageproc");
+  }
 
   if (dimension == 3) {
     for (i = 0; i < nbinx; i++) 
@@ -330,25 +328,28 @@ void AppOffLattice::init()
       ix = m % nbinx;
       iy = (m/nbinx) % nbiny;
       iz = m / (nbinx*nbiny);
-      if (ix == 0) binoffset[m][0] = -1;
-      else if (ix == nbinx-1) binoffset[m][0] = 1;
-      else binoffset[m][0] = 0;
+
+      if (ix == 0 && iprocx == 0) pbcoffset[m][0] = -1;
+      else if (ix == nbinx-1 && iprocx == nx_procs-1) pbcoffset[m][0] = 1;
+      else pbcoffset[m][0] = 0;
+
       if (dimension >= 2) {
-	if (iy == 0) binoffset[m][1] = -1;
-	else if (iy == nbiny-1) binoffset[m][1] = 1;
-	else binoffset[m][1] = 0;
-      } else binoffset[m][1] = 0;
+	if (iy == 0 && iprocy == 0) pbcoffset[m][1] = -1;
+	else if (iy == nbiny-1 && iprocy == ny_procs-1) pbcoffset[m][1] = 1;
+	else pbcoffset[m][1] = 0;
+      } else pbcoffset[m][1] = 0;
+
       if (dimension == 3) {
-	if (iz == 0) binoffset[m][2] = -1;
-	else if (iz == nbinz-1) binoffset[m][2] = 1;
-	else binoffset[m][2] = 0;
-      } else binoffset[m][2] = 0;
+	if (iz == 0 && iprocz == 0) pbcoffset[m][2] = -1;
+	else if (iz == nbinz-1 && iprocz == nz_procs-1) pbcoffset[m][2] = 1;
+	else pbcoffset[m][2] = 0;
+      } else pbcoffset[m][2] = 0;
 
     } else if (binflag[m] == EDGE) {
-      nbinimages[m] = 0;
       ix = m % nbinx;
       iy = (m/nbinx) % nbiny;
       iz = m / (nbinx*nbiny);
+      nimages[m] = 0;
       add_image_bins(m,ix,iy,iz);
     }
   }
@@ -415,14 +416,14 @@ void AppOffLattice::setup()
       if (nstop > 0.0) {
 	for (int i = 0; i < nset; i++) {
 	  set[i].nloop = 0;
-	  set[i].nselect = static_cast<int> (nstop*set[i].nlocal);
+	  set[i].nselect = static_cast<int> (nstop*nlocal);
 	}
       }
       if (tstop > 0.0) {
 	double n = tstop / (dt_sweep/nglobal);
 	for (int i = 0; i < nset; i++) {
 	  set[i].nloop = 0;
-	  set[i].nselect = static_cast<int> (n/nglobal * set[i].nlocal);
+	  set[i].nselect = static_cast<int> (n/nglobal * nlocal);
 	}
       }
 
@@ -432,7 +433,7 @@ void AppOffLattice::setup()
       if (tstop > 0.0) n = static_cast<int> (tstop/dt_sweep);
       for (int i = 0; i < nset; i++) {
 	set[i].nloop = n;
-	set[i].nselect = n * set[i].nlocal;
+	set[i].nselect = n * nlocal;
       }
     }
 
@@ -483,6 +484,7 @@ void AppOffLattice::iterate()
 
 void AppOffLattice::iterate_kmc_global(double stoptime)
 {
+  /*
   int isite;
   double dt;
   
@@ -523,6 +525,7 @@ void AppOffLattice::iterate_kmc_global(double stoptime)
   // restore system solver
 
   solve = hold_solve;
+  */
 }
 
 /* ----------------------------------------------------------------------
@@ -532,6 +535,7 @@ void AppOffLattice::iterate_kmc_global(double stoptime)
 
 void AppOffLattice::iterate_kmc_sector(double stoptime)
 {
+  /*
   int i,isite,done;
   double dt,timesector;
   double pmax,pmaxall;
@@ -620,6 +624,7 @@ void AppOffLattice::iterate_kmc_sector(double stoptime)
   // restore system solver
 
   solve = hold_solve;
+  */
 }
 
 /* ----------------------------------------------------------------------
@@ -629,55 +634,75 @@ void AppOffLattice::iterate_kmc_sector(double stoptime)
 void AppOffLattice::iterate_rejection(double stoptime)
 {
   int i,nselect,nrange;
-  int *site2i;
 
+  // 1 processor, no sector case
+
+  int nlocal_sector = nlocal;
+  for (i = 0; i < nlocal; i++) {
+    insector[i] = 1;
+    site2i[i] = i;
+  }
+  
   int done = 0;
   while (!done) {
     for (int iset = 0; iset < nset; iset++) {
-      /*
-      if (nprocs > 1) {
+      activeset = iset;
+
+      // acquire ghost sites for current sector
+
+      if (sectorflag) {
 	timer->stamp();
-	if (bothflag) comm->sector(iset/ncolors);
-	else if (sectorflag) comm->sector(iset);
-	else comm->all();
+	comm->sector(iset);
 	timer->stamp(TIME_COMM);
       }
-      */
 
       timer->stamp();
 
-      // sweep over random selection of sites in iset
+      // flag sites in sector
+
+      if (sectorflag) {
+	nlocal_sector = 0;
+	for (i = 0; i < nlocal; i++) {
+	  insector[i] = inside_sector(i);
+	  if (insector[i]) site2i[nlocal_sector++] = i;
+	}
+      }
+
+      // sweep over sites in sector (could be no sectors)
+      // skip site if not currently in sector
+
+      // random selection of sites in iset
 
       if (sweepflag == RANDOM) {
-	site2i = set[iset].site2i;
-	nrange = set[iset].nlocal;
+	nrange = nlocal_sector;
 	nselect = set[iset].nselect;
 	for (i = 0; i < nselect; i++) 
 	  sitelist[i] = site2i[ranapp->irandom(nrange) - 1];
-	for (int m = 0; m < nselect; m++)
+	for (int m = 0; m < nselect; m++) {
+	  if (insector[sitelist[m]] == 0) continue;
 	  site_event_rejection(sitelist[m],ranapp);
-
+	}
 	nattempt += nselect;
 
-      // ordered sweep
+      // ordered sweep over all sites in iset
 
       } else {
 	for (i = 0; i < set[iset].nloop; i++)
-	  for (int m = 0; m < set[iset].nlocal; m++)
-	    site_event_rejection(set[iset].site2i[m],ranapp);
+	  for (int m = 0; m < nlocal_sector; m++) {
+	    if (i && insector[site2i[m]] == 0) continue;
+	    site_event_rejection(site2i[m],ranapp);
+	  }
 	nattempt += set[iset].nselect;
       }
 
       timer->stamp(TIME_SOLVE);
 
-      /*
-      if (nprocs > 1) {
-	if (bothflag) comm->reverse_sector(iset/ncolors);
-	else if (sectorflag) comm->reverse_sector(iset);
-	else comm->all_reverse();
+      // migrate sites that moved out of sector
+
+      if (sectorflag) {
+	comm->reverse_sector(iset);
 	timer->stamp(TIME_COMM);
       }
-      */
     }
 
     nsweeps++;
@@ -778,74 +803,48 @@ void AppOffLattice::stats_header(char *strtmp)
 }
 
 /* ----------------------------------------------------------------------
-   create a subset of owned sites
-   insure all ptrs in Set data struct are allocated or NULL
+   create a subset geometry within my sub-domain
    isector = 0 = all sites (no sector)
-   isector > 1 = sites within a sector
+   isector >= 1 = sites within a sector
  ------------------------------------------------------------------------- */
 
 void AppOffLattice::create_set(int iset, int isector)
 {
-  // sector boundaries
+  if (isector == 0) {
+    set[iset].xlo = subxlo;
+    set[iset].xhi = subxhi;
+    set[iset].ylo = subylo;
+    set[iset].yhi = subyhi;
+    set[iset].zlo = subzlo;
+    set[iset].zhi = subzhi;
 
-  double xmid = 0.5 * (subxlo + subxhi);
-  double ymid = 0.5 * (subylo + subyhi);
-  double zmid = 0.5 * (subzlo + subzhi);
+  } else {
+    int ix = (isector-1) % 2;
+    int iy = ((isector-1)/2) % 2;
+    int iz = (isector-1) / 4;
 
-  // NOTE: assume single proc for now
-
-  int flag,iwhich,jwhich,kwhich,msector;
-
-  int n = nlocal;
-  set[iset].nlocal = n;
-
-  // setup site2i for sites in set
-
-  set[iset].site2i =
-    (int *) memory->smalloc(n*sizeof(int),"app:site2i");
-
-  n = 0;
-  for (int i = 0; i < nlocal; i++) {
-    flag = 1;
-
-    if (isector > 0) {
-      if (xyz[i][0] < xmid) iwhich = 0;
-      else iwhich = 1;
-      if (xyz[i][1] < ymid) jwhich = 0;
-      else jwhich = 1;
-      if (xyz[i][2] < zmid) kwhich = 0;
-      else kwhich = 1;
-
-      if (nsector == 2) msector = iwhich + 1;
-      else if (nsector == 4) msector = 2*iwhich + jwhich + 1;
-      else msector = 4*iwhich + 2*jwhich + kwhich + 1;
-
-      if (isector != msector) flag = 0;
+    if (ix == 0) {
+      set[iset].xlo = subxlo;
+      set[iset].xhi = 0.5 * (subxlo + subxhi);
+    } else {
+      set[iset].xhi = 0.5 * (subxlo + subxhi);
+      set[iset].xhi = subxhi;
     }
-
-    if (flag) set[iset].site2i[n++] = i;
+    if (iy == 0) {
+      set[iset].ylo = subylo;
+      set[iset].yhi = 0.5 * (subylo + subyhi);
+    } else {
+      set[iset].yhi = 0.5 * (subylo + subyhi);
+      set[iset].yhi = subyhi;
+    }
+    if (iz == 0) {
+      set[iset].zlo = subzlo;
+      set[iset].zhi = 0.5 * (subzlo + subzhi);
+    } else {
+      set[iset].zhi = 0.5 * (subzlo + subzhi);
+      set[iset].zhi = subzhi;
+    }
   }
-
-  // setup i2site for sites in set, only for KMC solver
-  // i2site = 0 to nsite-1 for owned points in set, else -1
-
-  if (solve) {
-    set[iset].i2site =
-      (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:i2site");
-      for (int i = 0; i < nlocal+nghost; i++) set[iset].i2site[i] = -1;
-      for (int i = 0; i < set[iset].nlocal; i++) 
-	set[iset].i2site[set[iset].site2i[i]] = i;
-  } else set[iset].i2site = NULL;
-
-  // allocate propensity array for set
-
-  set[iset].propensity =
-    (double *) memory->smalloc(n*sizeof(double),"app:propensity");
-
-  // allocate KMC solver for set
-
-  if (solve) set[iset].solve = solve->clone();
-  else set[iset].solve = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -919,22 +918,41 @@ void AppOffLattice::move(int i)
   int oldbin = bin[i];
   int newbin = site2bin(i);
 
-  // site stays in same bin
+  // if sectoring (1 or more procs), then move is simple
+  // if stays in same bin, done
+  // else delete it from old bin, add it to new bin
+  // also flag site if moves out of sector
+
+  if (sectorflag) {
+    if (newbin == oldbin) return;
+    delete_from_bin(i,oldbin);
+    add_to_bin(i,newbin);
+    bin[i] = newbin;
+    insector[i] = inside_sector(i);
+    return;
+  }
+
+  // remaining logic is all for 1 processor with no sectors
+  // complicated due to ghost images and PBC
+  // site is never flagged as out of sector
+  // 6 different cases to consider: A-F
+
+  // (A) site stays in same bin
   // update its ghost image coords if necessary
 
   if (newbin == oldbin) {
     j = nextimage[i];
     while (j >= 0) {
       oldbin = bin[j];
-      xyz[j][0] = xyz[i][0] + binoffset[oldbin][0]*xprd;
-      xyz[j][1] = xyz[i][1] + binoffset[oldbin][1]*yprd;
-      xyz[j][2] = xyz[i][2] + binoffset[oldbin][2]*zprd;
+      xyz[j][0] = xyz[i][0] + pbcoffset[oldbin][0]*xprd;
+      xyz[j][1] = xyz[i][1] + pbcoffset[oldbin][1]*yprd;
+      xyz[j][2] = xyz[i][2] + pbcoffset[oldbin][2]*zprd;
       j = nextimage[j];
     }
     return;
   }
 
-  // site stays in INTERIOR
+  // (B) site stays in INTERIOR
   // delete it from old bin, add it to new bin
 
   if (binflag[oldbin] == INTERIOR && binflag[newbin] == INTERIOR) {
@@ -944,7 +962,7 @@ void AppOffLattice::move(int i)
     return;
   }
 
-  // site stays in EDGE
+  // (C) site stays in EDGE
   // delete it from old bin, add it to new bin
   // delete ghost images
   // create new ghost images
@@ -958,7 +976,7 @@ void AppOffLattice::move(int i)
     return;
   }
 
-  // site moves from INTERIOR to EDGE
+  // (D) site moves from INTERIOR to EDGE
   // delete it from old bin, add it to new bin
   // create new ghost images
 
@@ -970,7 +988,7 @@ void AppOffLattice::move(int i)
     return;
   }
 
-  // site moves from EDGE to INTERIOR
+  // (E) site moves from EDGE to INTERIOR
   // delete it from old bin, add it to new bin
   // delete ghost images
 
@@ -982,16 +1000,16 @@ void AppOffLattice::move(int i)
     return;
   }
 
-  // site moves from EDGE to GHOST
+  // (F) site moves from EDGE to GHOST
   // map it back into simulation box via PBC, then is same as EDGE to EDGE
   // delete it from old bin, add it to new bin
   // delete ghost images
   // create new ghost images
 
   if (binflag[oldbin] == EDGE && binflag[newbin] == GHOST) {
-    xyz[i][0] -= binoffset[newbin][0]*xprd;
-    xyz[i][1] -= binoffset[newbin][1]*yprd;
-    xyz[i][2] -= binoffset[newbin][2]*zprd;
+    xyz[i][0] -= pbcoffset[newbin][0]*xprd;
+    xyz[i][1] -= pbcoffset[newbin][1]*yprd;
+    xyz[i][2] -= pbcoffset[newbin][2]*zprd;
     newbin = site2bin(i);
     if (binflag[newbin] != EDGE) error->one("PBC remap of site failed");
     delete_from_bin(i,oldbin);
@@ -1091,13 +1109,13 @@ void AppOffLattice::add_images(int i, int ibin)
   int j,jbin;
 
   nextimage[i] = -1;
-  int n = nbinimages[ibin];
+  int n = nimages[ibin];
   for (int m = 0; m < n; m++) {
-    jbin = binimage[ibin][m];
+    jbin = imageindex[ibin][m];
     j = new_ghost();
-    xyz[j][0] = xyz[i][0] + binoffset[jbin][0]*xprd;
-    xyz[j][1] = xyz[i][1] + binoffset[jbin][1]*yprd;
-    xyz[j][2] = xyz[i][2] + binoffset[jbin][2]*zprd;
+    xyz[j][0] = xyz[i][0] + pbcoffset[jbin][0]*xprd;
+    xyz[j][1] = xyz[i][1] + pbcoffset[jbin][1]*yprd;
+    xyz[j][2] = xyz[i][2] + pbcoffset[jbin][2]*zprd;
     id[j] = id[i];
     bin[j] = jbin;
     add_to_bin(j,jbin);
@@ -1173,57 +1191,100 @@ void AppOffLattice::add_free(int oldmax)
 }
 
 /* ----------------------------------------------------------------------
-   add periodic images of bin I,J,K to bin M
-   calls add_images() recursively for image bins
-   only add image bin if not already in binimage[] list
-   can add up to 3 images in 2d, 7 in 3d
+   generate image bins of edge bin M, which is at local indices I,J,K
+   called recursively with ghost bins to generate all images
+   image = same bin stored as ghost bin by some proc
+   imageindex = local bin index of ghost bin on owning proc
+   imageproc = proc that owns ghost bin, could be self
+   inew,jnew,knew = ghost bin indices on proc that owns it
+   do not add image bin if already in image[] list
+   can add up to 3 image bins in 2d, 7 in 3d
 ------------------------------------------------------------------------- */
 
 void AppOffLattice::add_image_bins(int m, int i, int j, int k)
 {
-  int n;
+  int n,inew,jnew,knew,newbin;
 
   if (i == 1) {
-    int ibin = k*nbinx*nbiny + j*nbinx + nbinx-1;
-    for (n = 0; n < nbinimages[m]; n++)
-      if (binimage[m][n] == ibin) break;
-    if (n == nbinimages[m]) binimage[m][nbinimages[m]++] = ibin;
-    add_image_bins(m,nbinx-1,j,k);
+    inew = nbinx-1;
+    jnew = j;
+    knew = k;
+    newbin = knew*nbinx*nbiny + jnew*nbinx + inew;
+    for (n = 0; n < nimages[m]; n++)
+      if (imageindex[m][n] == newbin) break;
+    if (n == nimages[m]) {
+      imageindex[m][nimages[m]] = newbin;
+      imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+      nimages[m]++;
+    }
+    add_image_bins(m,inew,jnew,knew);
   }
   if (i == nbinx-2) {
-    int ibin = k*nbinx*nbiny + j*nbinx;
-    for (n = 0; n < nbinimages[m]; n++)
-      if (binimage[m][n] == ibin) break;
-    if (n == nbinimages[m]) binimage[m][nbinimages[m]++] = ibin;
-    add_image_bins(m,0,j,k);
+    inew = 0;
+    jnew = j;
+    knew = k;
+    newbin = knew*nbinx*nbiny + jnew*nbinx + inew;
+    for (n = 0; n < nimages[m]; n++)
+      if (imageindex[m][n] == newbin) break;
+    if (n == nimages[m]) {
+      imageindex[m][nimages[m]++] = newbin;
+      imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+    }
+    add_image_bins(m,inew,jnew,knew);
   }
+
   if (j == 1) {
-    int ibin = k*nbinx*nbiny + (nbiny-1)*nbinx + i;
-    for (n = 0; n < nbinimages[m]; n++)
-      if (binimage[m][n] == ibin) break;
-    if (n == nbinimages[m]) binimage[m][nbinimages[m]++] = ibin;
-    add_image_bins(m,i,nbiny-1,k);
+    inew = i;
+    jnew = nbiny-1;
+    knew = k;
+    newbin = knew*nbinx*nbiny + jnew*nbinx + inew;
+    for (n = 0; n < nimages[m]; n++)
+      if (imageindex[m][n] == newbin) break;
+    if (n == nimages[m]) {
+      imageindex[m][nimages[m]++] = newbin;
+      imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+    }
+    add_image_bins(m,inew,jnew,knew);
   }
   if (j == nbiny-2) {
-    int ibin = k*nbinx*nbiny + i;
-    for (n = 0; n < nbinimages[m]; n++)
-      if (binimage[m][n] == ibin) break;
-    if (n == nbinimages[m]) binimage[m][nbinimages[m]++] = ibin;
-    add_image_bins(m,i,0,k);
+    inew = i;
+    jnew = 0;
+    knew = k;
+    newbin = knew*nbinx*nbiny + jnew*nbinx + inew;
+    for (n = 0; n < nimages[m]; n++)
+      if (imageindex[m][n] == newbin) break;
+    if (n == nimages[m]) {
+      imageindex[m][nimages[m]++] = newbin;
+      imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+    }
+    add_image_bins(m,inew,jnew,knew);
   }
+
   if (k == 1) {
-    int ibin = (nbinz-1)*nbinx*nbiny + j*nbinx + i;
-    for (n = 0; n < nbinimages[m]; n++)
-      if (binimage[m][n] == ibin) break;
-    if (n == nbinimages[m]) binimage[m][nbinimages[m]++] = ibin;
-    add_image_bins(m,i,j,nbinz-1);
+    inew = i;
+    jnew = j;
+    knew = nbinz-1;
+    newbin = knew*nbinx*nbiny + jnew*nbinx + inew;
+    for (n = 0; n < nimages[m]; n++)
+      if (imageindex[m][n] == newbin) break;
+    if (n == nimages[m]) {
+      imageindex[m][nimages[m]++] = newbin;
+      imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+    }
+    add_image_bins(m,inew,jnew,knew);
   }
   if (k == nbinz-2) {
-    int ibin = j*nbinx + i;
-    for (n = 0; n < nbinimages[m]; n++)
-      if (binimage[m][n] == ibin) break;
-    if (n == nbinimages[m]) binimage[m][nbinimages[m]++] = ibin;
-    add_image_bins(m,i,j,0);
+    inew = i;
+    jnew = j;
+    knew = 0;
+    newbin = knew*nbinx*nbiny + jnew*nbinx + inew;
+    for (n = 0; n < nimages[m]; n++)
+      if (imageindex[m][n] == newbin) break;
+    if (n == nimages[m]) {
+      imageindex[m][nimages[m]++] = newbin;
+      imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+    }
+    add_image_bins(m,inew,jnew,knew);
   }
 }
 
@@ -1259,3 +1320,61 @@ void AppOffLattice::grow(int n)
   }
 }
 
+/* ----------------------------------------------------------------------
+   return ID of my neighbor proc in 3d grid of procs
+   inew,jnew,knew = indices of ghost bin
+------------------------------------------------------------------------- */
+
+int AppOffLattice::neighproc(int inew, int jnew, int knew)
+{
+  int i,j,k,idelta,jdelta,kdelta;
+
+  // i,j,k = indices of me in 3d grid of procs
+
+  i = me % nx_procs;
+  j = (me/nx_procs) % ny_procs;
+  k = me / (nx_procs*ny_procs);
+
+  // idelta,jdelta,kdelta = which of my neighbors the ghost bin maps to
+
+  if (inew == nbinx-1) idelta = -1;
+  else if (inew == 0) idelta = 1;
+  else idelta = 0;
+  if (jnew == nbiny-1) jdelta = -1;
+  else if (jnew == 0) jdelta = 1;
+  else jdelta = 0;
+  if (knew == nbinz-1) kdelta = -1;
+  else if (knew == 0) kdelta = 1;
+  else kdelta = 0;
+
+  // i,j,k = indices of neighbor proc in 3d grid of procs
+
+  i += idelta;
+  if (i < 0) i = nx_procs-1;
+  if (i == nx_procs) i = 0;
+  j += jdelta;
+  if (j < 0) j = ny_procs-1;
+  if (j == ny_procs) j = 0;
+  k += kdelta;
+  if (k < 0) k = nz_procs-1;
+  if (k == nz_procs) k = 0;
+
+  int newproc = k*nx_procs*ny_procs + j*nx_procs + i;
+  return newproc;
+}
+
+/* ----------------------------------------------------------------------
+   return 1 if site I is inside activeset sector, else return 0
+   activeset could be entire proc sub-domain (no sectors)
+------------------------------------------------------------------------- */
+
+int AppOffLattice::inside_sector(int i)
+{
+  if (xyz[i][0] < set[activeset].xlo) return 1;
+  if (xyz[i][0] >= set[activeset].xhi) return 1;
+  if (xyz[i][1] < set[activeset].ylo) return 1;
+  if (xyz[i][1] >= set[activeset].yhi) return 1;
+  if (xyz[i][2] < set[activeset].zlo) return 1;
+  if (xyz[i][2] >= set[activeset].zhi) return 1;
+  return 0;
+}

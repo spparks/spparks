@@ -49,6 +49,10 @@ class App : protected Pointers {
   int first_run;
   double nextoutput;
 
+  int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
+  int iprocx,iprocy,iprocz;         // index of me in 3d grid of procs
+
+
   void procs2domain_1d(int, int, int,
 		       double, double, double, int &,
 		       double &, double &, double &, 
