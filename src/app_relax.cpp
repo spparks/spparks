@@ -126,6 +126,7 @@ void AppRelax::site_event_rejection(int i, RandomPark *random)
 
   // NOTE: DEBUG code for no reverse comm w/ sectors
 
+  /*
   if (xyz[i][0] < subxlo || xyz[i][0] >= subxhi ||
       xyz[i][1] < subylo || xyz[i][1] >= subyhi ||
       xyz[i][2] < subzlo || xyz[i][2] >= subzhi) {
@@ -134,7 +135,9 @@ void AppRelax::site_event_rejection(int i, RandomPark *random)
     xyz[i][2] = xold[2];
   } else if (efinal <= einitial) {
     //if (efinal <= einitial) {
+    */
 
+  if (efinal <= einitial) {
     success = 1;
   } else if (temperature == 0.0) {
     xyz[i][0] = xold[0];

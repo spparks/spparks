@@ -107,10 +107,10 @@ void CommOffLattice::init(int nsector_request)
   if (nsector > 1) {
     setup_sector_chunks(appoff->nbinx,appoff->nbiny,appoff->nbinz);
     sectorswap = new Swap*[nsector];
-    //sectorreverseswap = new Swap*[nsector];
+    sectorreverseswap = new Swap*[nsector];
     for (int i = 0; i < nsector; i++) {
       sectorswap[i] = create_swap_sector(i);
-      //sectorreverseswap[i] = create_swap_sector_reverse(i);
+      sectorreverseswap[i] = create_swap_sector_reverse(i);
     }
   }
 }
@@ -139,7 +139,7 @@ void CommOffLattice::sector(int isector)
 
 void CommOffLattice::reverse_sector(int isector)
 {
-  //perform_swap(sectorreverseswap[isector]);
+  perform_swap_reverse(sectorreverseswap[isector]);
 }
 
 /* ----------------------------------------------------------------------
@@ -253,7 +253,49 @@ CommOffLattice::Swap *CommOffLattice::create_swap_sector(int isector)
 
 CommOffLattice::Swap *CommOffLattice::create_swap_sector_reverse(int isector)
 {
+  int i,m,n;
+
+  int nbins = appoff->nbins;
+  int nbinx = appoff->nbinx;
+  int nbiny = appoff->nbiny;
+  int nbinz = appoff->nbinz;
+  int *nimages = appoff->nimages;
+  int *binflag = appoff->binflag;
+  int *ghostindex = appoff->ghostindex;
+  int *ghostproc = appoff->ghostproc;
+
+  // add only ghost bins to list needed for isector
+
+  n = 0;
+  for (m = 0; m < nbins; m++)
+    if (binflag[m] == GHOST)
+      if (bin_sector_ghost(isector,m,nbinx,nbiny,nbinz)) n++;
+
+  // allocate list
+
+  int **list = memory->create_2d_int_array(n,3,"commoff:list");
+
+  // fill list with info on all ghost bins for isector
+
+  n = 0;
+  for (m = 0; m < nbins; m++)
+    if (binflag[m] == GHOST)
+      if (bin_sector_ghost(isector,m,nbinx,nbiny,nbinz)) {
+	list[n][0] = m;
+	list[n][1] = ghostindex[m];
+	list[n][2] = ghostproc[m];
+	n++;
+      }
+
+  // create swap based on list of bins to send
+
   Swap *swap = new Swap;
+
+  create_send_from_list(n,list,swap);
+  create_recv_from_send(swap);
+
+  memory->destroy_2d_int_array(list);
+
   return swap;
 }
 
@@ -268,8 +310,6 @@ void CommOffLattice::create_send_from_list(int nlist, int **list, Swap *swap)
 
   int nbins = appoff->nbins;
   int *binflag = appoff->binflag;
-  int *nimages = appoff->nimages;
-  int **imageindex = appoff->imageindex;
 
   // proc[i] = count of bins I send to proc I, including self
 
@@ -488,7 +528,8 @@ void CommOffLattice::free_swap(Swap *swap)
 
 /* ----------------------------------------------------------------------
    communicate site values via Swap instructions
-   setup per-site arrays for new ghost sites: bin,next,prev,nextimage
+   sites from owned bins will be communicated or copied
+   sites in ghost bins will be created
 ------------------------------------------------------------------------- */
 
 void CommOffLattice::perform_swap(Swap *swap)
@@ -612,10 +653,8 @@ void CommOffLattice::perform_swap(Swap *swap)
 
   int *id = appoff->id;
   double **xyz = appoff->xyz;
-  int *bin = appoff->bin;
-
   int *site = appoff->site;
-
+  int *bin = appoff->bin;
   next = appoff->next;
   nextimage = appoff->nextimage;
 
@@ -667,7 +706,7 @@ void CommOffLattice::perform_swap(Swap *swap)
 
   // perform on-processor copies across PBCs
   // add ghost sites one at a time
-  // if needed, setup nextimage chain of ptrs for these sites
+  // if no sectors on single proc, setup nextimage chain of ptrs
 
   if (ncopy)
     for (m = 0; m < ccount; m++) {
@@ -675,7 +714,7 @@ void CommOffLattice::perform_swap(Swap *swap)
       jbin = cbindest[m];
       i = binhead[ibin];
       while (i >= 0) {
-	j = appoff->new_ghost();
+	j = appoff->new_ghost_site();
 	id[j] = id[i];
 	xyz[j][0] = xyz[i][0] + pbcoffset[jbin][0]*xprd;
 	xyz[j][1] = xyz[i][1] + pbcoffset[jbin][1]*yprd;
@@ -702,7 +741,7 @@ void CommOffLattice::perform_swap(Swap *swap)
   for (int irecv = 0; irecv < nrecv; irecv++) {
     for (n = 0; n < rcount[irecv]; n++) {
       for (i = 0; i < rsite[irecv][n]; i++) {
-	j = appoff->new_ghost();
+	j = appoff->new_ghost_site();
 	jbin = rindex[irecv][n];
 	id[j] = static_cast<int> (rbuf[m++]);
 	xyz[j][0] = rbuf[m++] + pbcoffset[jbin][0]*xprd;
@@ -716,15 +755,229 @@ void CommOffLattice::perform_swap(Swap *swap)
   }
 }
 
-/*
-reverse_comm:
-  pre-store list of ghost bins in a sector
-  pre-store owning proc of each ghost bin
-  loop over those bins:
-    if an owned particle is in that bin, ship it to unique owning proc
-    have to add in PBC effect
-    error check that recv proc puts it correct bin
-*/
+/* ----------------------------------------------------------------------
+   communicate site values via Swap instructions
+   owned sites int ghost bins will be communicated or copied
+   sites in owned bins will be created
+------------------------------------------------------------------------- */
+
+void CommOffLattice::perform_swap_reverse(Swap *swap)
+{
+  int i,j,m,n,ibin,jbin,oldmax,count,total,nextptr;
+
+  // swap info
+
+  int nsend = swap->nsend;
+  int nrecv = swap->nrecv;
+  int *sproc = swap->sproc;
+  int *scount = swap->scount;
+  int **sindex = swap->sindex;
+  int **ssite = swap->ssite;
+  int *stotal = swap->stotal;
+  int *rproc = swap->rproc;
+  int *rcount = swap->rcount;
+  int **rindex = swap->rindex;
+  int **rsite = swap->rsite;
+  int *rtotal = swap->rtotal;
+  int ncopy = swap->ncopy;
+  int ccount = swap->ccount;
+  int *cbinsrc = swap->cbinsrc;
+  int *cbindest = swap->cbindest;
+  MPI_Request *request = swap->request;
+  MPI_Status *status = swap->status;
+
+  // app info
+
+  int *binhead = appoff->binhead;
+  int **pbcoffset = appoff->pbcoffset;
+  int *next = appoff->next;
+  int nlocal = appoff->nlocal;
+
+  // delete all ghosts, since are migrating owned sites to new procs
+
+  appoff->delete_all_ghosts();
+
+  // post receives for bin counts
+
+  for (int irecv = 0; irecv < nrecv; irecv++)
+    MPI_Irecv(rsite[irecv],rcount[irecv],MPI_INT,
+	      rproc[irecv],0,world,&request[irecv]);
+
+  // barrier to insure receives are posted
+
+  MPI_Barrier(world);
+
+  // count owned sites in each ghost bin I send
+  // sendmax = max # of sites to send to one proc
+  // sendcount = total # of sites I send
+
+  int sendmax = 0;
+  int sendcount = 0;
+
+  for (int isend = 0; isend < nsend; isend++) {
+    total = 0;
+    for (n = 0; n < scount[isend]; n++) {
+      count = 0;
+      m = binhead[sindex[isend][n]];
+      while (m >= 0) {
+	if (m < nlocal) count++;
+	m = next[m];
+      }
+      ssite[isend][n] = count;
+      total += count;
+    }
+    stotal[isend] = total;
+    sendmax = MAX(sendmax,total);
+    sendcount += total;
+  }
+
+  // send bin counts
+
+  for (int isend = 0; isend < nsend; isend++)
+    MPI_Send(ssite[isend],scount[isend],MPI_INT,
+	     sproc[isend],0,world);
+
+  // copycount = # of sites copied from my own bins
+
+  int copycount = 0;
+
+  if (ncopy)
+    for (n = 0; n < ccount; n++) {
+      m = binhead[cbinsrc[n]];
+      while (m >= 0) {
+	if (m < nlocal) copycount++;
+	m = next[m];
+      }
+    }
+
+  // wait on all incoming bin counts
+
+  if (nrecv) MPI_Waitall(nrecv,request,status);
+
+  // recvcount = # of owned sites received from other procs
+
+  int recvcount = 0;
+
+  for (int irecv = 0; irecv < nrecv; irecv++) {
+    total = 0;
+    for (n = 0; n < rcount[irecv]; n++)
+      total += rsite[irecv][n];
+    rtotal[irecv] = total;
+    recvcount += total;
+  }
+
+  // trigger app to grow per-site arrays if new owned sites exceed limit
+
+  int nmax = appoff->nlocal - sendcount + recvcount;
+  while (nmax > appoff->nmax) {
+    oldmax = appoff->nmax;
+    appoff->grow(0);
+    appoff->add_free(oldmax);
+  }
+
+  // reset site ptrs from app
+
+  int *id = appoff->id;
+  double **xyz = appoff->xyz;
+  int *site = appoff->site;
+  int *bin = appoff->bin;
+  next = appoff->next;
+
+  // grow send/receive buffers as needed
+
+  if (sendmax > smax) {
+    smax = static_cast<int> (BUFFACTOR*sendmax);
+    memory->sfree(sbuf);
+    sbuf = (double *) memory->smalloc(smax*size_one*sizeof(double),"app:sbuf");
+  }
+
+  if (recvcount > rmax) {
+    rmax = static_cast<int> (BUFFACTOR*recvcount);
+    memory->sfree(rbuf);
+    rbuf = (double *) memory->smalloc(rmax*size_one*sizeof(double),"app:rbuf");
+  }
+
+  // post receives for sites
+
+  int offset = 0;
+  for (int irecv = 0; irecv < nrecv; irecv++) {
+    MPI_Irecv(&rbuf[offset],size_one*rtotal[irecv],MPI_DOUBLE,
+	      rproc[irecv],0,world,&request[irecv]);
+    offset += size_one*rtotal[irecv];
+  }
+
+  // barrier to insure receives are posted
+
+  MPI_Barrier(world);
+
+  // send sites, subtracting PBC if necessary
+  // delete each owned site after packing it
+
+  for (int isend = 0; isend < nsend; isend++) {
+    i = 0;
+    for (n = 0; n < scount[isend]; n++) {
+      ibin = sindex[isend][n];
+      m = binhead[ibin];
+      while (m >= 0) {
+	if (m < nlocal) {
+	  sbuf[i++] = id[m];
+	  sbuf[i++] = xyz[m][0] - pbcoffset[ibin][0]*xprd;
+	  sbuf[i++] = xyz[m][1] - pbcoffset[ibin][1]*yprd;
+	  sbuf[i++] = xyz[m][2] - pbcoffset[ibin][2]*zprd;
+	  sbuf[i++] = site[m];
+	  m = appoff->delete_owned_site(m);
+	}
+      }
+    }
+
+    MPI_Send(sbuf,size_one*stotal[isend],MPI_DOUBLE,sproc[isend],0,world);
+  }
+
+  // perform on-processor copies across PBCs from ghost bin to edge bin
+
+  if (ncopy)
+    for (m = 0; m < ccount; m++) {
+      ibin = cbinsrc[m];
+      jbin = cbindest[m];
+      i = binhead[ibin];
+      while (i >= 0) {
+	if (i < nlocal) {
+	  nextptr = next[i];
+	  xyz[i][0] -= pbcoffset[ibin][0]*xprd;
+	  xyz[i][1] -= pbcoffset[ibin][1]*yprd;
+	  xyz[i][2] -= pbcoffset[ibin][2]*zprd;
+	  appoff->delete_from_bin(i,ibin);
+	  appoff->add_to_bin(i,jbin);
+	  bin[j] = jbin;
+	  i = nextptr;
+	}
+      }
+    }
+
+  // wait on all incoming sites
+
+  if (nrecv) MPI_Waitall(nrecv,request,status);
+
+  // unpack received sites from each proc
+  // add sites to my edge bins
+
+  m = 0;
+  for (int irecv = 0; irecv < nrecv; irecv++) {
+    for (n = 0; n < rcount[irecv]; n++) {
+      for (i = 0; i < rsite[irecv][n]; i++) {
+	j = appoff->new_owned_site();
+	jbin = rindex[irecv][n];
+	id[j] = static_cast<int> (rbuf[m++]);
+	xyz[j][0] = rbuf[m++];
+	xyz[j][1] = rbuf[m++];
+	xyz[j][2] = rbuf[m++];
+	site[j] = static_cast<int> (rbuf[m++]);
+	bin[j] = jbin;
+	appoff->add_to_bin(j,jbin);
+      }
+    }
+  }
+}
 
 /* ----------------------------------------------------------------------
    return 1 if ibin is a ghost of sector isector

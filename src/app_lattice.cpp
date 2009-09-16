@@ -861,8 +861,8 @@ void AppLattice::create_set(int iset, int isector, int icolor)
       else kwhich = 1;
 
       if (nsector == 2) msector = iwhich + 1;
-      else if (nsector == 4) msector = 2*iwhich + jwhich + 1;
-      else msector = 4*iwhich + 2*jwhich + kwhich + 1;
+      else if (nsector == 4) msector = 2*jwhich + iwhich + 1;
+      else msector = 4*kwhich + 2*jwhich + iwhich + 1;
 
       if (isector != msector) flag = 0;
     }
@@ -895,8 +895,8 @@ void AppLattice::create_set(int iset, int isector, int icolor)
       else kwhich = 1;
 
       if (nsector == 2) msector = iwhich + 1;
-      else if (nsector == 4) msector = 2*iwhich + jwhich + 1;
-      else msector = 4*iwhich + 2*jwhich + kwhich + 1;
+      else if (nsector == 4) msector = 2*jwhich + iwhich + 1;
+      else msector = 4*kwhich + 2*jwhich + iwhich + 1;
 
       if (isector != msector) flag = 0;
     }

@@ -76,6 +76,7 @@ class CommOffLattice : protected Pointers {
   void free_swap(Swap *);
 
   void perform_swap(Swap *);
+  void perform_swap_reverse(Swap *);
 
   int bin_sector_ghost(int, int, int, int, int);
   void setup_sector_chunks(int, int, int);

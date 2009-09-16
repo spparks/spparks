@@ -80,6 +80,7 @@ AppOffLattice::AppOffLattice(SPPARKS *spk, int narg, char **arg) :
   pbcoffset = NULL;
   nimages = NULL;
   imageindex = imageproc = NULL;
+  ghostindex = ghostproc = NULL;
 
   nstencil = 0;
   stencil = NULL;
@@ -122,7 +123,9 @@ AppOffLattice::~AppOffLattice()
   memory->sfree(nimages);
   memory->destroy_2d_int_array(imageindex);
   memory->destroy_2d_int_array(imageproc);
-
+  memory->sfree(ghostindex);
+  memory->sfree(ghostproc);
+  
   delete [] stencil;
   delete [] neighs;
 }
@@ -146,8 +149,6 @@ void AppOffLattice::input(char *command, int narg, char **arg)
 
 void AppOffLattice::init()
 {
-  int i,j,k,m,ix,iy,iz;
-
   // error checks
 
   if (solve == NULL && sweepflag == NOSWEEP)
@@ -224,162 +225,13 @@ void AppOffLattice::init()
 
   // create bins for sites
   // do this on every init in case cutoff changed
-  // bin size must be >= cutoff set by parameters in init_app()
-  // require 2 bins within sub-domain if sectoring in a dimension
-  // else require 1 bin within sub-domain
-  // require an even number of bins if sectoring in a dimension
-  // add 2 bins for ghost regions
-
-  double cutoff = delpropensity + delevent;
-  nbinx = static_cast<int> (xprd/nx_procs/cutoff);
-  nbiny = nbinz = 1;
-  if (dimension >= 2) nbiny = static_cast<int> (yprd/ny_procs/cutoff);
-  if (dimension == 3) nbinz = static_cast<int> (zprd/nz_procs/cutoff);
-
-  if (nsector >= 2) nbinx = nbinx/2 * 2;
-  if (nsector >= 4) nbiny = nbiny/2 * 2;
-  if (nsector == 8) nbinz = nbinz/2 * 2;
-
-  if (nsector >= 2 && nbinx < 2)
-    error->all("Application cutoff is too big for processor sub-domain");
-  if (nsector >= 4 && nbiny < 2)
-    error->all("Application cutoff is too big for processor sub-domain");
-  if (nsector == 8 && nbinz < 2)
-    error->all("Application cutoff is too big for processor sub-domain");
-  if (nbinx < 1 || nbiny < 1 || nbinz < 1)
-    error->all("Application cutoff is too big for processor sub-domain");
-
-  binx = xprd/nx_procs / nbinx;
-  biny = yprd/ny_procs / nbiny;
-  binz = zprd/nz_procs / nbinz;
-  invbinx = 1.0 / binx;
-  invbiny = 1.0 / biny;
-  invbinz = 1.0 / binz;
-
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"  Bins/proc: %d %d %d\n",nbinx,nbiny,nbinz);
-      fprintf(screen,"  Bin sizes: %g %g %g\n",binx,biny,binz);
-    }
-    if (logfile) {
-      fprintf(logfile,"  Bins/proc: %d %d %d\n",nbinx,nbiny,nbinz);
-      fprintf(logfile,"  Bin sizes: %g %g %g\n",binx,biny,binz);
-    }
-  }
-
-  nbinx += 2;
-  if (dimension >= 2) nbiny += 2;
-  if (dimension == 3) nbinz += 2;
-
-  nbins = nbinx*nbiny*nbinz;
-
-  memory->sfree(binhead);
-  memory->sfree(binflag);
-  memory->destroy_2d_int_array(pbcoffset);
-  memory->sfree(nimages);
-  memory->destroy_2d_int_array(imageindex);
-
-  binhead = (int *) memory->smalloc(nbins*sizeof(int),"app:binhead");
-  binflag = (int *) memory->smalloc(nbins*sizeof(int),"app:binflag");
-  pbcoffset = memory->create_2d_int_array(nbins,3,"app:pbcoffset");
-  nimages = (int *) memory->smalloc(nbins*sizeof(int),"app:nimages");
-  if (dimension == 3) {
-    imageindex = memory->create_2d_int_array(nbins,7,"app:imageindex");
-    imageproc = memory->create_2d_int_array(nbins,7,"app:imageproc");
-  } else if (dimension == 2) {
-    imageindex = memory->create_2d_int_array(nbins,3,"app:imageindex");
-    imageproc = memory->create_2d_int_array(nbins,3,"app:imageproc");
-  } else {
-    imageindex = memory->create_2d_int_array(nbins,1,"app:imageindex");
-    imageproc = memory->create_2d_int_array(nbins,1,"app:imageproc");
-  }
-
-  if (dimension == 3) {
-    for (i = 0; i < nbinx; i++) 
-      for (j = 0; j < nbiny; j++) 
-	for (k = 0; k < nbinz; k++) {
-	  m = k*nbiny*nbinx + j*nbinx + i;
-	  if (i == 0 || i == nbinx-1 || j == 0 || j == nbiny-1 || 
-	      k == 0 || k == nbinz-1) binflag[m] = GHOST;
-	  else if (i > 1 && i < nbinx-2 && j > 1 && j < nbiny-2 &&
-		   k > 1 && k < nbinz-2) binflag[m] = INTERIOR;
-	  else binflag[m] = EDGE;
-	}
-  } else if (dimension == 2) {
-    for (i = 0; i < nbinx; i++) 
-      for (j = 0; j < nbiny; j++) {
-	m = j*nbinx + i;
-	if (i == 0 || i == nbinx-1 || j == 0 || j == nbiny-1)
-	  binflag[m] = GHOST;
-	else if (i > 1 && i < nbinx-2 && j > 1 && j < nbiny-2)
-	  binflag[m] = INTERIOR;
-	else binflag[m] = EDGE;
-      }
-  } else {
-    for (i = 0; i < nbinx; i++) 
-      for (j = 0; j < nbiny; j++) {
-	m = j*nbinx + i;
-	if (i == 0 || i == nbinx-1 || j == 0 || j == nbiny-1)
-	  binflag[m] = GHOST;
-	else if (i > 1 && i < nbinx-2 && j > 1 && j < nbiny-2)
-	  binflag[m] = INTERIOR;
-	else binflag[m] = EDGE;
-      }
-  }
-
-  for (m = 0; m < nbins; m++) {
-    binhead[m] = -1;
-    if (binflag[m] == GHOST) {
-      ix = m % nbinx;
-      iy = (m/nbinx) % nbiny;
-      iz = m / (nbinx*nbiny);
-
-      if (ix == 0 && iprocx == 0) pbcoffset[m][0] = -1;
-      else if (ix == nbinx-1 && iprocx == nx_procs-1) pbcoffset[m][0] = 1;
-      else pbcoffset[m][0] = 0;
-
-      if (dimension >= 2) {
-	if (iy == 0 && iprocy == 0) pbcoffset[m][1] = -1;
-	else if (iy == nbiny-1 && iprocy == ny_procs-1) pbcoffset[m][1] = 1;
-	else pbcoffset[m][1] = 0;
-      } else pbcoffset[m][1] = 0;
-
-      if (dimension == 3) {
-	if (iz == 0 && iprocz == 0) pbcoffset[m][2] = -1;
-	else if (iz == nbinz-1 && iprocz == nz_procs-1) pbcoffset[m][2] = 1;
-	else pbcoffset[m][2] = 0;
-      } else pbcoffset[m][2] = 0;
-
-    } else if (binflag[m] == EDGE) {
-      ix = m % nbinx;
-      iy = (m/nbinx) % nbiny;
-      iz = m / (nbinx*nbiny);
-      nimages[m] = 0;
-      add_image_bins(m,ix,iy,iz);
-    }
-  }
+  
+  init_bins();
 
   // create stencil for neighbor finding
   // do this on every init in case cutoff and bins changed
 
-  delete [] stencil;
-  if (dimension == 3) nstencil = 27;
-  else nstencil = 9;
-  stencil = new int[nstencil];
-  nstencil = 0;
-  if (dimension == 3) {
-    for (k = -1; k <= 1; k++)
-      for (j = -1; j <= 1; j++)
-	for (i = -1; i <= 1; i++)
-	  stencil[nstencil++] = k*nbiny*nbinx + j*nbinx + i;
-  } else if (dimension == 2) {
-    for (j = -1; j <= 1; j++)
-      for (i = -1; i <= 1; i++)
-	stencil[nstencil++] = j*nbinx + i;
-  } else {
-    for (i = -1; i <= 1; i++)
-      stencil[nstencil++] = i;
-  }
+  init_stencil();
 
   // bin owned sites
   // loop in reverse order so linked list will be in forward order
@@ -903,6 +755,195 @@ void *AppOffLattice::extract(char *name)
   return NULL;
 }
 
+
+/* ---------------------------------------------------------------------- */
+
+void AppOffLattice::init_bins()
+{
+  int i,j,k,m,ix,iy,iz;
+
+  // bin size must be >= cutoff set by parameters in init_app()
+  // require 2 bins within sub-domain if sectoring in a dimension
+  // else require 1 bin within sub-domain
+  // require an even number of bins if sectoring in a dimension
+  // add 2 bins for ghost regions
+
+  double cutoff = delpropensity + delevent;
+  nbinx = static_cast<int> (xprd/nx_procs/cutoff);
+  nbiny = nbinz = 1;
+  if (dimension >= 2) nbiny = static_cast<int> (yprd/ny_procs/cutoff);
+  if (dimension == 3) nbinz = static_cast<int> (zprd/nz_procs/cutoff);
+
+  if (nsector >= 2) nbinx = nbinx/2 * 2;
+  if (nsector >= 4) nbiny = nbiny/2 * 2;
+  if (nsector == 8) nbinz = nbinz/2 * 2;
+
+  if (nsector >= 2 && nbinx < 2)
+    error->all("Application cutoff is too big for processor sub-domain");
+  if (nsector >= 4 && nbiny < 2)
+    error->all("Application cutoff is too big for processor sub-domain");
+  if (nsector == 8 && nbinz < 2)
+    error->all("Application cutoff is too big for processor sub-domain");
+  if (nbinx < 1 || nbiny < 1 || nbinz < 1)
+    error->all("Application cutoff is too big for processor sub-domain");
+
+  binx = xprd/nx_procs / nbinx;
+  biny = yprd/ny_procs / nbiny;
+  binz = zprd/nz_procs / nbinz;
+  invbinx = 1.0 / binx;
+  invbiny = 1.0 / biny;
+  invbinz = 1.0 / binz;
+
+  if (me == 0) {
+    if (screen) {
+      fprintf(screen,"  Bins/proc: %d %d %d\n",nbinx,nbiny,nbinz);
+      fprintf(screen,"  Bin sizes: %g %g %g\n",binx,biny,binz);
+    }
+    if (logfile) {
+      fprintf(logfile,"  Bins/proc: %d %d %d\n",nbinx,nbiny,nbinz);
+      fprintf(logfile,"  Bin sizes: %g %g %g\n",binx,biny,binz);
+    }
+  }
+
+  nbinx += 2;
+  if (dimension >= 2) nbiny += 2;
+  if (dimension == 3) nbinz += 2;
+
+  nbins = nbinx*nbiny*nbinz;
+
+  memory->sfree(binhead);
+  memory->sfree(binflag);
+  memory->destroy_2d_int_array(pbcoffset);
+  memory->sfree(nimages);
+  memory->destroy_2d_int_array(imageindex);
+  memory->sfree(ghostindex);
+  memory->sfree(ghostproc);
+
+  binhead = (int *) memory->smalloc(nbins*sizeof(int),"app:binhead");
+  binflag = (int *) memory->smalloc(nbins*sizeof(int),"app:binflag");
+  pbcoffset = memory->create_2d_int_array(nbins,3,"app:pbcoffset");
+  nimages = (int *) memory->smalloc(nbins*sizeof(int),"app:nimages");
+  if (dimension == 3) {
+    imageindex = memory->create_2d_int_array(nbins,7,"app:imageindex");
+    imageproc = memory->create_2d_int_array(nbins,7,"app:imageproc");
+  } else if (dimension == 2) {
+    imageindex = memory->create_2d_int_array(nbins,3,"app:imageindex");
+    imageproc = memory->create_2d_int_array(nbins,3,"app:imageproc");
+  } else {
+    imageindex = memory->create_2d_int_array(nbins,1,"app:imageindex");
+    imageproc = memory->create_2d_int_array(nbins,1,"app:imageproc");
+  }
+  ghostindex = (int *) memory->smalloc(nbins*sizeof(int),"app:ghostindex");
+  ghostproc = (int *) memory->smalloc(nbins*sizeof(int),"app:ghostproc");
+
+  // determine if each bin is INTERIOR or EDGE or GHOST
+
+  if (dimension == 3) {
+    for (i = 0; i < nbinx; i++) 
+      for (j = 0; j < nbiny; j++) 
+	for (k = 0; k < nbinz; k++) {
+	  m = k*nbiny*nbinx + j*nbinx + i;
+	  if (i == 0 || i == nbinx-1 || j == 0 || j == nbiny-1 || 
+	      k == 0 || k == nbinz-1) binflag[m] = GHOST;
+	  else if (i > 1 && i < nbinx-2 && j > 1 && j < nbiny-2 &&
+		   k > 1 && k < nbinz-2) binflag[m] = INTERIOR;
+	  else binflag[m] = EDGE;
+	}
+  } else if (dimension == 2) {
+    for (i = 0; i < nbinx; i++) 
+      for (j = 0; j < nbiny; j++) {
+	m = j*nbinx + i;
+	if (i == 0 || i == nbinx-1 || j == 0 || j == nbiny-1)
+	  binflag[m] = GHOST;
+	else if (i > 1 && i < nbinx-2 && j > 1 && j < nbiny-2)
+	  binflag[m] = INTERIOR;
+	else binflag[m] = EDGE;
+      }
+  } else {
+    for (i = 0; i < nbinx; i++) 
+      for (j = 0; j < nbiny; j++) {
+	m = j*nbinx + i;
+	if (i == 0 || i == nbinx-1 || j == 0 || j == nbiny-1)
+	  binflag[m] = GHOST;
+	else if (i > 1 && i < nbinx-2 && j > 1 && j < nbiny-2)
+	  binflag[m] = INTERIOR;
+	else binflag[m] = EDGE;
+      }
+  }
+
+  // set binhead to empty for all bins
+  // set pbcoffset, ghostindex, ghostproc, for each GHOST bin
+  // set nimages, imageindex, imageproc for each EDGE bin
+
+  for (m = 0; m < nbins; m++) {
+    binhead[m] = -1;
+    if (binflag[m] == GHOST) {
+      ix = m % nbinx;
+      iy = (m/nbinx) % nbiny;
+      iz = m / (nbinx*nbiny);
+
+      if (ix == 0 && iprocx == 0) pbcoffset[m][0] = -1;
+      else if (ix == nbinx-1 && iprocx == nx_procs-1) pbcoffset[m][0] = 1;
+      else pbcoffset[m][0] = 0;
+
+      if (dimension >= 2) {
+	if (iy == 0 && iprocy == 0) pbcoffset[m][1] = -1;
+	else if (iy == nbiny-1 && iprocy == ny_procs-1) pbcoffset[m][1] = 1;
+	else pbcoffset[m][1] = 0;
+      } else pbcoffset[m][1] = 0;
+
+      if (dimension == 3) {
+	if (iz == 0 && iprocz == 0) pbcoffset[m][2] = -1;
+	else if (iz == nbinz-1 && iprocz == nz_procs-1) pbcoffset[m][2] = 1;
+	else pbcoffset[m][2] = 0;
+      } else pbcoffset[m][2] = 0;
+
+      ghostproc[m] = neighproc(ix,iy,iz);
+      if (ix == 0) ix = nbinx-2;
+      if (ix == nbinx-1) ix = 1;
+      if (iy == 0) iy = nbiny-2;
+      if (iy == nbiny-1) iy = 1;
+      if (iz == 0) iz = nbinz-2;
+      if (iz == nbinz-1) iz = 1;
+      ghostindex[m] = iz*nbinx*nbiny + iy*nbinx + ix;
+
+    } else if (binflag[m] == EDGE) {
+      ix = m % nbinx;
+      iy = (m/nbinx) % nbiny;
+      iz = m / (nbinx*nbiny);
+      nimages[m] = 0;
+      add_image_bins(m,ix,iy,iz);
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AppOffLattice::init_stencil()
+{
+  int i,j,k;
+
+  delete [] stencil;
+  if (dimension == 3) nstencil = 27;
+  else nstencil = 9;
+  stencil = new int[nstencil];
+
+  nstencil = 0;
+  if (dimension == 3) {
+    for (k = -1; k <= 1; k++)
+      for (j = -1; j <= 1; j++)
+	for (i = -1; i <= 1; i++)
+	  stencil[nstencil++] = k*nbiny*nbinx + j*nbinx + i;
+  } else if (dimension == 2) {
+    for (j = -1; j <= 1; j++)
+      for (i = -1; i <= 1; i++)
+	stencil[nstencil++] = j*nbinx + i;
+  } else {
+    for (i = -1; i <= 1; i++)
+      stencil[nstencil++] = i;
+  }
+}
+
 /* ----------------------------------------------------------------------
    create list of neighbors of site I within distance cutoff
  ------------------------------------------------------------------------- */
@@ -1169,7 +1210,7 @@ void AppOffLattice::add_images(int i, int ibin)
   int n = nimages[ibin];
   for (int m = 0; m < n; m++) {
     jbin = imageindex[ibin][m];
-    j = new_ghost();
+    j = new_ghost_site();
     xyz[j][0] = xyz[i][0] + pbcoffset[jbin][0]*xprd;
     xyz[j][1] = xyz[i][1] + pbcoffset[jbin][1]*yprd;
     xyz[j][2] = xyz[i][2] + pbcoffset[jbin][2]*zprd;
@@ -1216,7 +1257,7 @@ void AppOffLattice::delete_all_ghosts()
    grow per-site arrays if free list is empty
  ------------------------------------------------------------------------- */
 
-int AppOffLattice::new_ghost()
+int AppOffLattice::new_ghost_site()
 {
   if (nfree == 0) {
     int oldmax = nmax;
@@ -1229,6 +1270,55 @@ int AppOffLattice::new_ghost()
   nfree--;
   nghost++;
   return index;
+}
+
+/* ----------------------------------------------------------------------
+   return index of a new owned site from free list
+   grow per-site arrays if free list is empty
+ ------------------------------------------------------------------------- */
+
+int AppOffLattice::new_owned_site()
+{
+  if (nfree == 0) {
+    int oldmax = nmax;
+    grow(0);
+    add_free(oldmax);
+  }
+
+  int index = freehead;
+  freehead = next[freehead];
+  nfree--;
+  nlocal++;
+  return index;
+}
+
+/* ----------------------------------------------------------------------
+   delete an owned site
+   keep owned list compact by copying last site into deleted site
+   add last site to free list
+   return next ptr from deleted site
+ ------------------------------------------------------------------------- */
+
+int AppOffLattice::delete_owned_site(int i)
+{
+  int nextptr = next[i];
+
+  id[i] = id[nlocal-1];
+  xyz[i][0] = xyz[nlocal-1][0];
+  xyz[i][1] = xyz[nlocal-1][1];
+  xyz[i][2] = xyz[nlocal-1][2];
+  site[i] = site[nlocal-1];
+  bin[i] = bin[nlocal-1];
+  next[i] = next[nlocal-1];
+  prev[i] = prev[nlocal-1];
+  nextimage[i] = nextimage[nlocal-1];
+
+  next[nlocal-1] = freehead;
+  freehead = nlocal-1;
+  nfree++;
+  nlocal--;
+
+  return nextptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1383,8 +1473,8 @@ void AppOffLattice::grow(int n)
 }
 
 /* ----------------------------------------------------------------------
-   return ID of my neighbor proc in 3d grid of procs
-   inew,jnew,knew = indices of ghost bin
+   return proc ID of owner of ghost bin with local indices inew,jnew,knew
+   returned proc ID could be self due to PBC
 ------------------------------------------------------------------------- */
 
 int AppOffLattice::neighproc(int inew, int jnew, int knew)

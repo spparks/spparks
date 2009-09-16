@@ -139,8 +139,11 @@ class AppOffLattice : public App {
   int *binflag;                // 0 if interior bin, 1 if edge, 2 if ghost
 
   int *nimages;                // # of images of each edge bin
-  int **imageindex;            // index of image bin for each edge bin & image
-  int **imageproc;             // owning proc for each edge bin & image
+  int **imageindex;            // index of image bin for each image bin
+  int **imageproc;             // owning proc for each image bin
+
+  int *ghostindex;             // index on owning proc of owned master bin
+  int *ghostproc;              // owning proc of owned master bin of a ghost
 
   int **pbcoffset;             // periodic offsets of each ghost bin in 3 dims
                                // offset to add to original site -> ghost site
@@ -156,6 +159,8 @@ class AppOffLattice : public App {
   void iterate_kmc_sector(double);
   void iterate_rejection(double);
 
+  void init_bins();
+  void init_stencil();
   void neighbor(int, double);
   void move(int);
   int site2bin(int);
@@ -165,13 +170,15 @@ class AppOffLattice : public App {
   void add_images(int, int);
   void add_to_free(int);
   void delete_all_ghosts();
-  int new_ghost();
+  int new_ghost_site();
   void add_free(int);
   void add_image_bins(int, int, int, int);
   void bin_sites();
   void grow(int);
   int neighproc(int, int, int);
   int inside_sector(int);
+  int delete_owned_site(int);
+  int new_owned_site();
 
   void options(int, char **);
   void create_domain();
