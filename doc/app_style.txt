@@ -17,7 +17,7 @@ args = arguments specific to an application, see application doc page for detail
 zero or more keyword/value pairs may be appended :l
 keyword = {input} or {lattice} or {procs} or {site} :l
   {input} value = infile
-    infile = filename for file containing initial state of all lattice sites
+    infile = filename for file containing initial state of all sites
   {lattice} values = type params
     type = {line/2n} or {sq/4n} or {sq/8n} or {tri} or {sc/6n} or {sc/26n} or {fcc} or {bcc} or {diamond} or {random/1d} or {random/2d} or {random/3d} or {file}
       {line/2n} params = a nx = 1d regular lattice with 2 neighbors per site
@@ -51,7 +51,7 @@ keyword = {input} or {lattice} or {procs} or {site} :l
       {file} param = filename = read lattice and connectivity from file
         filename = name of file (see file format below)
   {procs} values = Px Py Pz
-    Px,Py,Pz = # of processors assigned to each dimension of lattice
+    Px,Py,Pz = # of processors assigned to each dimension of simulation box
   {site} values = Nint Ndouble
     Nint = # of integer quantites to store per site
     Ndouble = # of double quantites to store per site :pre
@@ -70,38 +70,47 @@ app_style test/group ... :pre
 
 [Description:]
 
-This command defines what application and associated model SPPARKS
-will run.  There are 2 basic kinds of applications: general and
-on-lattice.
+This command defines what model or application SPPARKS will run.
+There are 3 kinds of applications: general, on-lattice, and
+off-lattice.
 
-Here is the list of general applications SPPARKS currently
-includes:
+General applications typically involve no spatial information.  Here
+is the list of general applications SPPARKS currently includes.  See
+the doc page for each application for details:
 
 "chemistry"_app_chemistry.html = biochemical reaction networks
 "test/group"_app_test_group.html = artificial chemical networks that test "solve_style"_solve_style.html :ul
 
-Here is the list of on-lattice applications SPPARKS currently
-includes:
+On-lattice applications define a lattice of points in space on which
+events occur.  Here is the list of on-lattice applications SPPARKS
+currently includes:
 
 "diffusion"_app_diffusion.html = vacancy exchange diffusion model
 "ising"_app_ising.html = Ising model
-"ising/single"_app_ising.html = Ising model with different rejection KMC algorithm
-"membrane"_app_membrane.html = membrane model of lipid/water/protein states
+"ising/single"_app_ising.html = variant Ising model
+"membrane"_app_membrane.html = membrane model of lipid,water,protein
 "potts"_app_potts.html = Potts model for grain growth
-"potts/neigh"_app_potts.html = Potts model for grain growth
-"potts/neighonly"_app_potts.html = Potts model for grain growth
+"potts/neigh"_app_potts.html = variant Potts model
+"potts/neighonly"_app_potts.html = variant Potts model
 "potts/pin"_app_potts_pin.html = Potts model with pinning sites
-"potts/variable"_app_potts.html = Potts model for grain growth :ul
+"potts/variable"_app_potts.html = variant Potts model :ul
+
+Off-lattice applications define points in space at which events occur,
+but the points are not on a regular lattice.  Here is the list of
+off-lattice applications SPPARKS currently includes.
+
+"relax"_app_relax.html = Metropolis Monte Carlo relaxation :ul
 
 The general applications in SPPARKS can only be evolved via a kinetic
 Monte Carlo (KMC) solver, specified by the
-"solve_style"_solve_style.html command.  On-lattice applications can
-be evolved by either a KMC solver or a rejection kinetic Monte Carlo
-(rKMC) method or a Metropolis method.  The latter two are specified by
-the "sweep"_sweep.html command.  Not all on-lattice applications
-support each option.
+"solve_style"_solve_style.html command.  On-lattice and off-lattice
+applications can be evolved by either a KMC solver or a rejection
+kinetic Monte Carlo (rKMC) method or a Metropolis method.  The rKMC
+and Metropolis methods are specified by the "sweep"_sweep.html
+command.  Not all on- and off-lattice applications support each
+option.
 
-The KMC method is sometimes called rejection-free KMC or the N-fold
+The KMC algorithm is sometimes called rejection-free KMC or the N-fold
 way or the Gillespie algorithm in the MC literature.  The application
 defines a list of "events" and associated rates for each event.  The
 solver chooses the next event, and the application updates the system
@@ -111,36 +120,38 @@ applications the definition of an "event" is arbitrary.  For
 on-lattice application zero or more possible events are typically
 defined for each lattice site.
 
-The rKMC method is sometimes called null-event KMC or null-event MC.
-Successive lattice sites are chosen via some method (see the
+The rKMC algorithm is sometimes called null-event KMC or null-event
+MC.  Successive lattice sites are chosen via some method (see the
 "sweep"_sweep.html command), and an event on that site is selected
-which is accepted or rejected.  The application again defines the
+which is accepted or rejected.  Again, the application defines the
 "events" for each site and associated rates which influence the
 acceptance or rejection.  It also defines the null event which is
-essentially an additional rejection probability.  The updating is
-time-accurate as with the KMC algorithm, since rates are again defined
-for each event, including the null event.
+essentially part of the rejection probability.  The updating is
+time-accurate as with the KMC algorithm, since rates are defined for
+each event, including the null event.
 
-The Metropolis method is similar to the rKMC method, except that it is
-not time-accurate.  It selects an event to perform and accepts or
+The Metropolis algorithm is similar to the rKMC method, except that it
+is not time-accurate.  It selects an event to perform and accepts or
 rejects it, typically based on an energy change in the system.  There
 is no rate associated with the event, and no requirement that events
 be chosen with relative probabilities corresponding to their rates.
 The effect of the Metropolis algorithm is to evolve the system towards
-a low energy state.  As with the rKMC method, the "sweep"_sweep.html
-command is used to determine how sites are selected.  It is up to the
-application to implement either a time-accurate rKMC method for event
-selection with a correct null-event or a Metropolis method.
+a low energy state.  As with the rKMC algorithm, the
+"sweep"_sweep.html command is used to determine how sites are
+selected.  It is up to the application to implement either a
+time-accurate rKMC method for event selection with a correct
+null-event or a Metropolis method.
 
-For all of these algorithms (KMC, rKMC, Metropolis) the rules for how
+For all three algorithms (KMC, rKMC, Metropolis) the rules for how
 events are defined and are accepted or rejected are discussed in the
 doc pages for the individual applications.
 
 Here is a table of the different kinds of solvers and sweeping options
-that can be used for on-lattice applications in SPPARKS.  Serial and
-parallel refer to running on one or many processors.  Sector vs
-no-sector is what is set by the "sector"_sector.html command.  The
-rKMC options are set by the "sweep"_sweep.html command.
+that can be used for on- and off-lattice applications in SPPARKS.
+Serial and parallel refer to running on one or many processors.
+Sector vs no-sector is what is set by the "sector"_sector.html
+command.  The rKMC options are set by the "sweep"_sweep.html command.
+The Metropolis options are the same as for rKMC.
 
 method,	serial/no-sectors, serial/sectors, parallel/no-sectors, parallel/sectors
 exact KMC, yes, yes, no, yes
@@ -151,20 +162,25 @@ rKMC color, yes, no, yes, no :tb(ea=c)
 Note that the choice of {color} can also be {color/strict} and that
 masking can also be turned on for rKMC algorithms via the
 "sweep"_sweep.html command if the application supports it.
+Off-lattice applications do not support the {color} option.
 
 :line
 
-For general applications, none of the optional app_style keyword/value
-pairs can be used.
+For general applications, none of the keyword/value pairs can be used
+as part of the app_style command.
 
-For on-lattice applications, there are several app_style keyword/value
-pairs that may be appended to the app_style command.  The {lattice}
-keyword must be specified.
+For on-lattice and off-lattice applications, the {lattice} keyword
+must be specified.  The {procs}, {site}, and {input} keywords are
+optional.
 
 :line
 
-The {lattice} keyword determines the kind and size of lattice used for
-on-lattice applications.  For example,
+The {lattice} keyword determines the initial set of sites used for on-
+and off-lattice applications.  In the on-lattice case, these sites are
+static.  In the off-lattice case, they represent particles which may
+move or disappear as the model evolves.  In the on-lattice case, the
+choice of lattice also defines the neighbors of each site.  In the
+off-lattice case, the neighbor information is ignored.  For example,
 
 app_style ising 12345 lattice sq/4n 100 100 :pre
 
@@ -182,7 +198,8 @@ lattice is more complex.  It is an fcc lattice with additional
 interstitial sites at octahedral and tetrahedral locations, which can
 be thought of as 3 inter-penetrating lattices.
 
-The connectivity of these lattice types is as follows:
+For on-lattice models, the connectivity of the various lattice types
+is as follows:
 
 line/2d = 1d regular lattice with 2 neighbors per site (nearest neighbors)
 sq/4n = 2d square lattice with 4 neighbors per site (nearest neighbors)
@@ -198,15 +215,16 @@ fcc/octa/tetra = 3d lattice with up to 26 neighbors per site, depending on the s
 The {random} lattice options generate a lattice of random points
 within a 1d, 2d, or 3d box of specified size (0-xbox,0-ybox,0-zbox).
 The {cutoff} criterion is used to assign lattice neighbors to each
-site.
+site for on-lattice models.
 
-The {file} lattice option reads in a lattice and neighbor connectivity
-from the specified {filename}.  The format of this file is as follows
-where the comments (#) are not included in the file, and "vertex" is a
-lattice site, and an "edge" is a neighbor connection from one site to
-another.  Typically neighbors should be geometrically close, but that
-is not required.  Note that a connection between two sites is listed
-twice, once as edge IJ, and once as edge JI.
+The {file} lattice option reads in a lattice and (optionally) neighbor
+connectivity from the specified {filename}.  The format of this file
+is as follows where the comments (#) are not included in the file, and
+"vertex" is a lattice site, and an "edge" is a neighbor connection
+from one site to another.  Typically neighbors should be geometrically
+close, but that is not required.  Note that a single connection
+between two sites is listed twice, once as edge IJ, and once as edge
+JI.
 
 comment              # 1st line is skipped
                      # skipped line
@@ -214,7 +232,7 @@ Ndim dimension       # Ndim = 1 or 2 or 3
 N vertices           # N = number of vertices
 M max connectivity   # M = maximum number of edges for any vertex
 X1 X2 xlo xhi        # X1,X2 = x bounds of box that encloses lattice
-Y1 Y2 xlo xhi        # y bounds (only if Ndim > 1)
+Y1 Y2 ylo yhi        # y bounds (only if Ndim = 2 or 3)
 Z1 Z2 zlo zhi        # z bounds (only if Ndim = 3)
                      # skipped line
 Vertices
@@ -231,30 +249,36 @@ Edges
 ...
 N n1 n2 n3 ...       # N lines in this section :pre
 
-:line
-
-For on-lattice applications, by default SPPARKS will decide how to
-partition the simulation domain across processors in order to minimize
-communication of lattice sites.  Typically this will create a 2d grid
-of processors for 2d lattices, and a 3d grid of processors for 3d
-lattices.  You can override the default and specify your own grid of
-Px by Py by Pz processors using the {procs} keyword.  For 2d lattices,
-Pz must be 1.  For 1d lattices Py and Pz must be 1.  If {procs 0 0 0}
-is specified, then SPPARKS will decide the partitioning.
+For on-lattice applications, all of this information is required to be
+in the file.  For off-lattice applications, the "Edges" section is
+ignored and can be omitted.  The "connectivity" count of max edges is
+required, but is ignored, so it can be listed as 0.
 
 :line
 
-For on-lattice applications, by default each lattice site stores a
+For on- and off-lattice applications, by default SPPARKS will decide
+how to partition the simulation domain across processors in order to
+minimize communication of site information.  Typically this will
+create a 2d grid of processors for 2d problems, and a 3d grid of
+processors for 3d problems.  You can override the default and specify
+your own grid of Px by Py by Pz processors using the {procs} keyword.
+For 2d problems, Pz must be 1.  For 1d problems Py and Pz must be 1.
+If {procs 0 0 0} is specified, then SPPARKS will decide the
+partitioning.
+
+:line
+
+For on- and off-lattice applications, by default each site stores a
 single integer value.  By specifying {site}, multiple integer and or
 double values can be stored on each site and accessed/updated by your
 application.  For example, an integer flag could be stored for the
-type of lattice site and one or more doubles could store the state of
+"type" of the site and one or more doubles could store the state of
 the site.  If {site 0 0} is specified, then the default of a single
 integer per site is used.
 
 :line
 
-For on-lattice applications, the values stored on each lattice site
+For on- and off-lattice applications, the values stored on each site
 can be initialized explicitly via the {input} keyword.  This can be
 useful for restarting a simulation from the dump file generated by a
 previous simulation.  See the "dump2input.py" script in the tools
@@ -262,24 +286,24 @@ directory for a way to convert a dump file to the input format
 described below.
 
 Normally, if the {input} keyword is not used, the application will
-initialize the lattice in some random manner.
+initialize the sites in some random manner.
 
 The file specified with the {input} keyword should have the following
 format.  As before, the comments (#) need not be included in the file.
 
 comment              # 1st line is skipped
-Nsite nvalue         # Nsite = total # of lattice sites, nvalue = values/site
+Nsite nvalue         # Nsite = total # of sites, nvalue = values/site
                      # skipped line
 1 value1 value2 ...
 2 value1 value2 ...
 ...
 Nsites value1 value2 ...   # Nsite lines :pre
 
-In the body of the file, there is one line per lattice site.  These
-lines can be in any order.  The first field on the line is the ID of
-the site, which should be an integer from 1 to Nsite.  There should be
-"nvalue" remaining fields on each line.  These values are assigned to
-that site.  How many values there should be (nvalue) depends on the
+In the body of the file, there is one line per site.  These lines can
+be in any order.  The first field on the line is the ID of the site,
+which should be an integer from 1 to Nsite.  There should be "nvalue"
+remaining fields on each line.  These values are assigned to that
+site.  How many values there should be (nvalue) depends on the
 application.  For those with a single integer value (Nint = Ndouble =
 0, nvalue = 1), just list that value.  If the {site} keyword is used
 (Nint and/or Ndouble != 0, nvalue = Nint+Ndouble), then list the
@@ -294,5 +318,6 @@ integer value(s) first, followed by the double value(s).
 [Default:]
 
 There is no default for the {lattice} keyword.  It must be specified
-for on-lattice applications.  The default value for the {procs}
-keyword are 0 0 0.  The default values for the {site} keyword are 0 0.
+for on- and off-lattice applications.  The default values for the
+{procs} keyword are 0 0 0.  The default values for the {site} keyword
+are 0 0.
