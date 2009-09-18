@@ -44,13 +44,9 @@ DiagEnergy::DiagEnergy(SPPARKS *spk, int narg, char **arg) :
 
 void DiagEnergy::init()
 {
-  if (latticeflag) {
-    applattice = (AppLattice *) app;
-    nlocal = applattice->nlocal;
-  } else {
-    appofflattice = (AppOffLattice *) app;
-    nlocal = appofflattice->nlocal;
-  }
+  if (latticeflag) applattice = (AppLattice *) app;
+  else appofflattice = (AppOffLattice *) app;
+
   energy = 0.0;
 }
 
@@ -58,14 +54,22 @@ void DiagEnergy::init()
 
 void DiagEnergy::compute()
 {
-  if (latticeflag) applattice->comm->all();
-  else appofflattice->comm->all();
+  int nlocal;
+
+  if (latticeflag) {
+    applattice->comm->all();
+    nlocal = applattice->nlocal;
+  } else {
+    appofflattice->comm->all();
+    nlocal = appofflattice->nlocal;
+  }
 
   double etmp = 0.0;
   if (latticeflag)
     for (int i = 0; i < nlocal; i++) etmp += applattice->site_energy(i);
   else
     for (int i = 0; i < nlocal; i++) etmp += appofflattice->site_energy(i);
+
   MPI_Allreduce(&etmp,&energy,1,MPI_DOUBLE,MPI_SUM,world);
 }
 

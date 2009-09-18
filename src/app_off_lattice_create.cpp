@@ -38,7 +38,6 @@ void AppOffLattice::options(int narg, char **arg)
   latfile = NULL;
   px_user = py_user = pz_user = 0;
   px_user = py_user = pz_user = 0;
-  sitecustom = 0;
   infile = NULL;
 
   int iarg = 0;
@@ -135,14 +134,6 @@ void AppOffLattice::options(int narg, char **arg)
       }
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"site") == 0) {
-      if (iarg+3 > narg) error->all("Illegal app_style command");
-      ninteger = atoi(arg[iarg+1]);
-      ndouble = atoi(arg[iarg+2]);
-      if (ninteger == 0 && ndouble == 0) sitecustom = 0;
-      else sitecustom = 1;
-      iarg += 3;
-
     } else if (strcmp(arg[iarg],"input") == 0) {
       if (iarg+2 > narg) error->all("Illegal app_style command");
       int n = strlen(arg[iarg+1]) + 1;
@@ -158,7 +149,7 @@ void AppOffLattice::options(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    generate processor decomposition and initialize particles
-   allocate per-particle memory: single site value or customized arrays
+   allocate per-particle memory arrays
  ------------------------------------------------------------------------- */
 
 void AppOffLattice::create_domain()
@@ -167,6 +158,11 @@ void AppOffLattice::create_domain()
     if (screen) fprintf(screen,"Creating domain ...\n");
     if (logfile) fprintf(logfile,"Creating domain ...\n");
   }
+
+  if (ninteger) iarray = new int*[ninteger];
+  for (int i = 0; i < ninteger; i++) iarray[i] = NULL;
+  if (ndouble) darray = new double*[ndouble];
+  for (int i = 0; i < ndouble; i++) darray[i] = NULL;
 
   if (latstyle == LINE_2N ||
       latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI || 
@@ -184,13 +180,6 @@ void AppOffLattice::create_domain()
   if (me == 0) {
     if (screen) fprintf(screen,"  %d sites\n",nglobal);
     if (logfile) fprintf(logfile,"  %d sites\n",nglobal);
-  }
-
-  if (sitecustom) {
-    if (ninteger) iarray = new int*[ninteger];
-    for (int i = 0; i < ninteger; i++) iarray[i] = NULL;
-    if (ndouble) darray = new double*[ndouble];
-    for (int i = 0; i < ndouble; i++) darray[i] = NULL;
   }
 }
 

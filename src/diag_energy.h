@@ -35,7 +35,6 @@ class DiagEnergy : public Diag {
   int latticeflag;
   class AppLattice *applattice;
   class AppOffLattice *appofflattice;
-  int nlocal;
   double energy;
 };
 

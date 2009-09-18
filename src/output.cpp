@@ -162,7 +162,7 @@ double Output::compute(double time, int done)
   }
   
   // stats output, after diagnostics compute any needed quantities
-  
+
   if (sflag) {
     stats(1);
     stats_time = app->stoptime;

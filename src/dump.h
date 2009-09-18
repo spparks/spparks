@@ -61,6 +61,7 @@ class Dump : protected Pointers {
 
   int *choose;               // lists of sites chosen for output
   double *dchoose;
+  int maxlocal;              // size of choose arrays
 
   int latticeflag;           // 1 for on-lattice, 0 for off-lattice app
   class AppLattice *applattice;

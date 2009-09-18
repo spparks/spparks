@@ -27,9 +27,10 @@ using namespace SPPARKS_NS;
 AppRelax::AppRelax(SPPARKS *spk, int narg, char **arg) : 
   AppOffLattice(spk,narg,arg)
 {
+  ninteger = 1;
+  ndouble = 0;
   allow_kmc = 1;
   allow_rejection = 1;
-
   dt_sweep = 1.0;
 
   // parse arguments
@@ -124,19 +125,6 @@ void AppRelax::site_event_rejection(int i, RandomPark *random)
 
   int success = 0;
 
-  // NOTE: DEBUG code for no reverse comm w/ sectors
-
-  /*
-  if (xyz[i][0] < subxlo || xyz[i][0] >= subxhi ||
-      xyz[i][1] < subylo || xyz[i][1] >= subyhi ||
-      xyz[i][2] < subzlo || xyz[i][2] >= subzhi) {
-    xyz[i][0] = xold[0];
-    xyz[i][1] = xold[1];
-    xyz[i][2] = xold[2];
-  } else if (efinal <= einitial) {
-    //if (efinal <= einitial) {
-    */
-
   if (efinal <= einitial) {
     success = 1;
   } else if (temperature == 0.0) {
@@ -148,15 +136,6 @@ void AppRelax::site_event_rejection(int i, RandomPark *random)
     xyz[i][1] = xold[1];
     xyz[i][2] = xold[2];
   } else success = 1;
-
-  /*
-  if (success == 1) printf("EEE %d: %g %g %g: %g %g\n",me,
-			   dx,dy,dz,einitial,efinal);
-  success = 0;
-  xyz[i][0] = xold[0];
-  xyz[i][1] = xold[1];
-  xyz[i][2] = xold[2];
-  */
 
   if (success) {
     move(i);

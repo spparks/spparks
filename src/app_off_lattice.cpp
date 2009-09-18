@@ -102,7 +102,6 @@ AppOffLattice::~AppOffLattice()
   memory->sfree(site2i);
   memory->sfree(in_sector);
 
-  memory->sfree(site);
   for (int i = 0; i < ninteger; i++) memory->sfree(iarray[i]);
   for (int i = 0; i < ndouble; i++) memory->sfree(darray[i]);
   delete [] iarray;
@@ -265,35 +264,13 @@ void AppOffLattice::setup()
 
   if (nprocs == 1 && sectorflag == 0) comm->all();
 
-  // convert rejection info to rKMC params
-  // nloop and nselect are set whether sectoring is used or not
+  // NOTE: dt_rkmc needs to be set appropriately
+  // NOTE: test for bad choice of sector stop needs to be done
 
+  dt_rkmc = dt_sweep;
+
+  /*
   if (sweepflag != NOSWEEP) {
-    if (sweepflag == RANDOM) {
-      if (nstop > 0.0) {
-	for (int i = 0; i < nset; i++) {
-	  set[i].nloop = 0;
-	  set[i].nselect = static_cast<int> (nstop*nlocal);
-	}
-      }
-      if (tstop > 0.0) {
-	double n = tstop / (dt_sweep/nglobal);
-	for (int i = 0; i < nset; i++) {
-	  set[i].nloop = 0;
-	  set[i].nselect = static_cast<int> (n/nglobal * nlocal);
-	}
-      }
-
-    } else if (sweepflag == RASTER) {
-      int n;
-      if (nstop > 0.0) n = static_cast<int> (nstop);
-      if (tstop > 0.0) n = static_cast<int> (tstop/dt_sweep);
-      for (int i = 0; i < nset; i++) {
-	set[i].nloop = n;
-	set[i].nselect = n * nlocal;
-      }
-    }
-
     double nme = 0.0;
     for (int i = 0; i < nset; i++) nme += set[i].nselect;
     double ntotal;
@@ -304,14 +281,17 @@ void AppOffLattice::setup()
       error->all("Choice of sector stop led to no rKMC events");
     dt_rkmc = MIN(dt_rkmc,stoptime-time);
   }
+  */
+
+  // NOTE: sitelist needs to be dynamically allocated inside iter loop
+  // ditto for site2i,etc ??  since nlocal can change dynamically
 
   // setup sitelist if sweepflag = RANDOM
   // do this every run since sector timestep could have changed
 
   if (sweepflag == RANDOM) {
     memory->sfree(sitelist);
-    int n = 0;
-    for (int i = 0; i < nset; i++) n = MAX(n,set[i].nselect);
+    int n = nlocal;
     sitelist = (int *) memory->smalloc(n*sizeof(int),"app:sitelist");
   }
 
@@ -498,7 +478,7 @@ void AppOffLattice::iterate_kmc_sector(double stoptime)
 
 void AppOffLattice::iterate_rejection(double stoptime)
 {
-  int i,nselect,nrange;
+  int i,nloop,nselect,nrange;
 
   // setup in_sector and site2i as if 1 processor with no sectors
   // will be reset in loop if there are sectors
@@ -516,22 +496,15 @@ void AppOffLattice::iterate_rejection(double stoptime)
 
       // acquire ghost sites for current sector
 
+      //check("Before forward",0,iset);
+
       if (sectorflag) {
 	timer->stamp();
 	comm->sector(iset);
 	timer->stamp(TIME_COMM);
-
-	/*
-	MPI_Barrier(world);
-	MPI_Barrier(world);
-	printf("NGHOST %d %d\n",me,nghost);
-	for (i = nlocal; i < nlocal+nghost; i++)
-	  printf("%d %d %g %g %g\n",
-		 id[i],site[i],xyz[i][0],xyz[i][1],xyz[i][2]);
-	MPI_Barrier(world);
-	MPI_Barrier(world);
-	*/
       }
+
+      //check("After forward",1,iset);
 
       timer->stamp();
 
@@ -545,6 +518,8 @@ void AppOffLattice::iterate_rejection(double stoptime)
 	}
       }
 
+      rkmc_params(nlocal_sector,nloop,nselect);
+
       // sweep over sites in sector (could be no sectors)
       // skip site if not currently in sector
 
@@ -552,7 +527,6 @@ void AppOffLattice::iterate_rejection(double stoptime)
 
       if (sweepflag == RANDOM) {
 	nrange = nlocal_sector;
-	nselect = set[iset].nselect;
 	for (i = 0; i < nselect; i++) 
 	  sitelist[i] = site2i[ranapp->irandom(nrange) - 1];
 	for (int m = 0; m < nselect; m++) {
@@ -564,22 +538,26 @@ void AppOffLattice::iterate_rejection(double stoptime)
       // ordered sweep over all sites in iset
 
       } else {
-	for (i = 0; i < set[iset].nloop; i++)
+	for (i = 0; i < nloop; i++)
 	  for (int m = 0; m < nlocal_sector; m++) {
 	    if (i && in_sector[site2i[m]] == 0) continue;
 	    site_event_rejection(site2i[m],ranapp);
 	  }
-	nattempt += set[iset].nselect;
+	nattempt += nselect;
       }
 
       timer->stamp(TIME_SOLVE);
 
-      // migrate sites that moved out of sector
+      // migrate sites that moved into ghost bins
+
+      //check("Before reverse",1,iset);
 
       if (sectorflag) {
 	comm->reverse_sector(iset);
 	timer->stamp(TIME_COMM);
       }
+
+      //check("After reverse",0,iset);
     }
 
     nsweeps++;
@@ -588,6 +566,139 @@ void AppOffLattice::iterate_rejection(double stoptime)
     if (done || time >= nextoutput) nextoutput = output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
   }
+}
+
+/* ----------------------------------------------------------------------
+  convert rejection info to rKMC params
+ ------------------------------------------------------------------------- */
+
+void AppOffLattice::rkmc_params(int nlocal_sector, int &nloop, int &nselect)
+{
+  if (sweepflag == RANDOM) {
+    if (nstop > 0.0) {
+      nloop = 0;
+      nselect = static_cast<int> (nstop*nlocal_sector);
+    }
+    if (tstop > 0.0) {
+      double n = tstop / (dt_sweep/nglobal);
+      nloop = 0;
+      nselect = static_cast<int> (n/nglobal * nlocal_sector);
+    }
+    
+  } else if (sweepflag == RASTER) {
+    int n;
+    if (nstop > 0.0) n = static_cast<int> (nstop);
+    if (tstop > 0.0) n = static_cast<int> (tstop/dt_sweep);
+    nloop = n;
+    nselect = n * nlocal_sector;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   debug check that bin data structures are self-consistent
+ ------------------------------------------------------------------------- */
+
+void AppOffLattice::check(char *str, int flag, int iset)
+{
+  int nall = nlocal;
+  if (flag) nall = nlocal+nghost;
+
+  // set pflag to 1 if want success output every step
+  // set maxcount to reasonable number of sites per bin
+
+  int pflag = 0;
+  int maxcount = 40;
+
+  MPI_Barrier(world);
+
+  // test that bin index of every site is correct and within bin bounds
+
+  for (int i = 0; i < nall; i++) {
+    if (site2bin(i) != bin[i] || bin[i] < 0 || bin[i] > nbins-1) {
+      printf("%s SITE %d: %d %d %d: %g %g %g\n",
+	     str,me,i,id[i],bin[i],xyz[i][0],xyz[i][1],xyz[i][2]);
+      error->one("SITE MISMATCH\n");
+    }
+  }
+
+  // test that owned bins only contain owned sites
+
+  for (int i = 0; i < nbins; i++) {
+    if (binflag[i] == GHOST) continue;
+    int m = binhead[i];
+    while (m >= 0) {
+      if (m >= nlocal) {
+	printf("%s GHOST %d: %d %d %d\n",str,me,m,nlocal,i);
+	error->one("GHOST IN OWNED BIN");
+      }
+      m = next[m];
+    }
+  }
+
+  // test that each bin's linked list is consistent
+
+  for (int i = 0; i < nbins; i++) {
+    int m = binhead[i];
+    int mprev = -1;
+    while (m >= 0) {
+      if (prev[m] != mprev) {
+	printf("%s LINK me %d: m %d id %d bin %d prev %d mprev %d nloc %d\n",
+	       str,me,m,id[m],bin[m],prev[m],mprev,nlocal);
+	error->one("LINK MISMATCH");
+      }
+      mprev = m;
+      m = next[m];
+    }
+  }
+
+  // test that site bin matches bin linked list it is in
+
+  for (int i = 0; i < nbins; i++) {
+    int m = binhead[i];
+    while (m >= 0) {
+      if (bin[m] != i) {
+	printf("%s BIN %d: %d %d %d %d %d\n",
+	       str,me,m,id[m],bin[m],i,site2bin(m));
+	error->one("BIN MISMATCH");
+      }
+      m = next[m];
+    }
+  }
+
+  // test that walking lists of all bins sums to total site count
+
+  int count = 0;
+  for (int i = 0; i < nbins; i++) {
+    if (!flag && binflag[i] == GHOST) continue;
+    int m = binhead[i];
+    while (m >= 0) {
+      count++;
+      m = next[m];
+    }
+  }
+  if (count != nall) {
+    printf("SITES NOT IN BINS %d %d %d %d %d\n",
+	   count,nlocal,nghost,nall,flag);
+    error->one("SITES NOT IN BINS");
+  }
+
+  // test that no bin has too many sites
+  
+  for (int i = 0; i < nbins; i++) {
+    count = 0;
+    int m = binhead[i];
+    while (m >= 0) {
+      count++;
+      m = next[m];
+    }
+    if (count > maxcount) {
+      printf("%s COUNT %d %d %d\n",str,me,i,count);
+      error->one("COUNT MISMATCH\n");
+    }
+  }
+
+  if (pflag && me == 0) printf("OK %d %g %s %d\n",me,time,str,iset);
+  MPI_Barrier(world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -898,13 +1009,21 @@ void AppOffLattice::init_bins()
 	else pbcoffset[m][2] = 0;
       } else pbcoffset[m][2] = 0;
 
-      ghostproc[m] = neighproc(ix,iy,iz);
+      ghostproc[m] = neighproc(1,ix,iy,iz);
+
       if (ix == 0) ix = nbinx-2;
       if (ix == nbinx-1) ix = 1;
-      if (iy == 0) iy = nbiny-2;
-      if (iy == nbiny-1) iy = 1;
-      if (iz == 0) iz = nbinz-2;
-      if (iz == nbinz-1) iz = 1;
+
+      if (dimension >= 2) {
+	if (iy == 0) iy = nbiny-2;
+	if (iy == nbiny-1) iy = 1;
+      } else iy = 0;
+
+      if (dimension == 3) {
+	if (iz == 0) iz = nbinz-2;
+	if (iz == nbinz-1) iz = 1;
+      } else iz = 0;
+
       ghostindex[m] = iz*nbinx*nbiny + iy*nbinx + ix;
 
     } else if (binflag[m] == EDGE) {
@@ -964,15 +1083,25 @@ void AppOffLattice::neighbor(int i, double cut)
   int ibin = bin[i];
 
   for (int k = 0; k < nstencil; k++) {
+
+    // DEBUG CHECK - can remove
+    if (ibin+stencil[k] < 0 || ibin+stencil[k] >= nbins) {
+      printf("BAD STENCIL %d %d %d\n",i,ibin,ibin+stencil[k]);
+      error->one("BAD STENCIL");
+    }
+
     for (j = binhead[ibin+stencil[k]]; j >= 0; j = next[j]) {
       delx = xtmp - xyz[j][0];
       dely = ytmp - xyz[j][1];
       delz = ztmp - xyz[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
-      if (numneigh == MAXNEIGH) {   // delete this test eventually
+
+      // SHOULD DELETE THIS TEST eventually
+      if (numneigh == MAXNEIGH) {
 	printf("NEIGH %d %d %d\n",i,ibin,numneigh);
 	error->one("Too many neighbors per site");
       }
+
       if (rsq <= cutsq && i != j) neighs[numneigh++] = j;
     }
   }
@@ -1106,11 +1235,11 @@ int AppOffLattice::site2bin(int i)
   if (xyz[i][0] < subxlo-binx-EPSILON || xyz[i][0] >= subxhi+binx+EPSILON ||
       xyz[i][1] < subylo-biny-EPSILON || xyz[i][1] >= subyhi+biny+EPSILON ||
       xyz[i][2] < subzlo-binz-EPSILON || xyz[i][2] >= subzhi+binz+EPSILON) {
-    printf("BAD PARTICLE: %d %d %d: %g %g %g\n",me,i,nlocal,
-	   xyz[i][0],xyz[i][1],xyz[i][2]);
+    printf("BAD SITE: %d %d %d %d: %g %g %g %d\n",me,i,bin[i],nlocal,
+	   xyz[i][0],xyz[i][1],xyz[i][2],id[i]);
     printf("MY DOMAIN: %g %g %g: %g %g %g\n",subxlo,subylo,subzlo,
 	   subxhi,subyhi,subzhi);
-    error->one("Particle not in my bin domain");
+    error->one("Site not in my bin domain");
   }
 
   int ix,iy,iz;
@@ -1149,7 +1278,7 @@ void AppOffLattice::delete_from_bin(int i, int ibin)
 }
 
 /* ----------------------------------------------------------------------
-   add site I to bin IBIN
+   add site I to beginning of bin IBIN
  ------------------------------------------------------------------------- */
 
 void AppOffLattice::add_to_bin(int i, int ibin)
@@ -1157,13 +1286,13 @@ void AppOffLattice::add_to_bin(int i, int ibin)
   // DEBUG check that I is in IBIN - can delete eventually
 
   if (ibin < 0 || ibin >= nbins)
-    error->one("Adding particle to illegal bin");
+    error->one("Adding site to illegal bin");
 
   if (site2bin(i) != ibin) {
-    printf("PARTICLE: %d %d %d: %g %g %g\n",
+    printf("BAD BIN: %d %d %d: %g %g %g\n",
 	   me,i,nlocal,xyz[i][0],xyz[i][1],xyz[i][2]);
     printf("IBIN: %d\n",ibin);
-    error->one("Adding particle to bin it is not in");
+    error->one("Adding site to bin it is not in");
   }
 
   if (binhead[ibin] < 0) {
@@ -1200,6 +1329,7 @@ void AppOffLattice::delete_images(int i)
 
 /* ----------------------------------------------------------------------
    add ghost sites which are periodic images of site I in bin IBIN
+   only called when 1 proc and no sectors, so all images are owned by proc 0
  ------------------------------------------------------------------------- */
 
 void AppOffLattice::add_images(int i, int ibin)
@@ -1296,12 +1426,16 @@ int AppOffLattice::new_owned_site()
    delete an owned site
    keep owned list compact by copying last site into deleted site
    add last site to free list
-   return next ptr from deleted site
+   return next ptr of deleted site
  ------------------------------------------------------------------------- */
 
 int AppOffLattice::delete_owned_site(int i)
 {
   int nextptr = next[i];
+  if (nextptr == nlocal-1) nextptr = i;
+
+  int ibin = bin[i];
+  delete_from_bin(i,bin[i]);
 
   id[i] = id[nlocal-1];
   xyz[i][0] = xyz[nlocal-1][0];
@@ -1312,6 +1446,15 @@ int AppOffLattice::delete_owned_site(int i)
   next[i] = next[nlocal-1];
   prev[i] = prev[nlocal-1];
   nextimage[i] = nextimage[nlocal-1];
+
+  // reset next/prev ptrs of adjacent linked sites
+  // do not call delete_from_bin() and add_to_bin() because
+  //   are looping over sites in I's bin,
+  //   and loop will be messed up if nlocal-1 site is also in the bin
+
+  if (prev[i] < 0) binhead[bin[i]] = i;
+  else next[prev[i]] = i;
+  if (next[i] >= 0) prev[next[i]] = i;
 
   next[nlocal-1] = freehead;
   freehead = nlocal-1;
@@ -1340,9 +1483,9 @@ void AppOffLattice::add_free(int oldmax)
 /* ----------------------------------------------------------------------
    generate image bins of edge bin M, which is at local indices I,J,K
    called recursively with ghost bins to generate all images
-   image = same bin stored as ghost bin by some proc
-   imageindex = local bin index of ghost bin on owning proc
+   image = same bin as M, stored as ghost bin by some proc
    imageproc = proc that owns ghost bin, could be self
+   imageindex = local index of ghost bin on owning proc
    inew,jnew,knew = ghost bin indices on proc that owns it
    do not add image bin if already in image[] list
    can add up to 3 image bins in 2d, 7 in 3d
@@ -1361,7 +1504,7 @@ void AppOffLattice::add_image_bins(int m, int i, int j, int k)
       if (imageindex[m][n] == newbin) break;
     if (n == nimages[m]) {
       imageindex[m][nimages[m]] = newbin;
-      imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+      imageproc[m][nimages[m]] = neighproc(-1,inew,jnew,knew);
       nimages[m]++;
     }
     add_image_bins(m,inew,jnew,knew);
@@ -1375,7 +1518,7 @@ void AppOffLattice::add_image_bins(int m, int i, int j, int k)
       if (imageindex[m][n] == newbin) break;
     if (n == nimages[m]) {
       imageindex[m][nimages[m]] = newbin;
-      imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+      imageproc[m][nimages[m]] = neighproc(-1,inew,jnew,knew);
       nimages[m]++;
     }
     add_image_bins(m,inew,jnew,knew);
@@ -1390,7 +1533,7 @@ void AppOffLattice::add_image_bins(int m, int i, int j, int k)
       if (imageindex[m][n] == newbin) break;
     if (n == nimages[m]) {
       imageindex[m][nimages[m]] = newbin;
-      imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+      imageproc[m][nimages[m]] = neighproc(-1,inew,jnew,knew);
       nimages[m]++;
     }
     add_image_bins(m,inew,jnew,knew);
@@ -1404,7 +1547,7 @@ void AppOffLattice::add_image_bins(int m, int i, int j, int k)
       if (imageindex[m][n] == newbin) break;
     if (n == nimages[m]) {
       imageindex[m][nimages[m]] = newbin;
-      imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+      imageproc[m][nimages[m]] = neighproc(-1,inew,jnew,knew);
       nimages[m]++;
     }
     add_image_bins(m,inew,jnew,knew);
@@ -1419,7 +1562,7 @@ void AppOffLattice::add_image_bins(int m, int i, int j, int k)
       if (imageindex[m][n] == newbin) break;
     if (n == nimages[m]) {
       imageindex[m][nimages[m]] = newbin;
-      imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+      imageproc[m][nimages[m]] = neighproc(-1,inew,jnew,knew);
       nimages[m]++;
     }
     add_image_bins(m,inew,jnew,knew);
@@ -1433,7 +1576,7 @@ void AppOffLattice::add_image_bins(int m, int i, int j, int k)
       if (imageindex[m][n] == newbin) break;
     if (n == nimages[m]) {
       imageindex[m][nimages[m]] = newbin;
-      imageproc[m][nimages[m]] = neighproc(inew,jnew,knew);
+      imageproc[m][nimages[m]] = neighproc(-1,inew,jnew,knew);
       nimages[m]++;
     }
     add_image_bins(m,inew,jnew,knew);
@@ -1460,16 +1603,20 @@ void AppOffLattice::grow(int n)
 
   xyz = memory->grow_2d_double_array(xyz,nmax,3,"app:xyz");
 
-  if (sitecustom == 0)
-    site = (int *) memory->srealloc(site,nmax*sizeof(int),"app:site");
-  else {
-    for (int i = 0; i < ninteger; i++)
-      iarray[i] = (int *) 
-	memory->srealloc(iarray[i],nmax*sizeof(int),"app:iarray");
-    for (int i = 0; i < ndouble; i++)
-      darray[i] = (double *) 
-	memory->srealloc(darray[i],nmax*sizeof(double),"app:darray");
-  }
+  site2i = (int *) memory->srealloc(site2i,nmax*sizeof(int),"app:site2i");
+  in_sector = (int *) memory->srealloc(in_sector,nmax*sizeof(int),
+				       "app:in_sector");
+
+  for (int i = 0; i < ninteger; i++)
+    iarray[i] = (int *) 
+      memory->srealloc(iarray[i],nmax*sizeof(int),"app:iarray");
+  for (int i = 0; i < ndouble; i++)
+    darray[i] = (double *) 
+      memory->srealloc(darray[i],nmax*sizeof(double),"app:darray");
+
+  // temporary for now
+
+  site = iarray[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -1477,7 +1624,7 @@ void AppOffLattice::grow(int n)
    returned proc ID could be self due to PBC
 ------------------------------------------------------------------------- */
 
-int AppOffLattice::neighproc(int inew, int jnew, int knew)
+int AppOffLattice::neighproc(int offset, int inew, int jnew, int knew)
 {
   int i,j,k,idelta,jdelta,kdelta;
 
@@ -1489,14 +1636,14 @@ int AppOffLattice::neighproc(int inew, int jnew, int knew)
 
   // idelta,jdelta,kdelta = which of my neighbors the ghost bin maps to
 
-  if (inew == nbinx-1) idelta = -1;
-  else if (inew == 0) idelta = 1;
+  if (inew == nbinx-1) idelta = offset;
+  else if (inew == 0) idelta = -offset;
   else idelta = 0;
-  if (jnew == nbiny-1) jdelta = -1;
-  else if (jnew == 0) jdelta = 1;
+  if (jnew == nbiny-1) jdelta = offset;
+  else if (jnew == 0) jdelta = -offset;
   else jdelta = 0;
-  if (knew == nbinz-1) kdelta = -1;
-  else if (knew == 0) kdelta = 1;
+  if (knew == nbinz-1) kdelta = offset;
+  else if (knew == 0) kdelta = -offset;
   else kdelta = 0;
 
   if (dimension == 1) jdelta = kdelta = 0;

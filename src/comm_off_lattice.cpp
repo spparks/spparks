@@ -18,12 +18,8 @@
 
 using namespace SPPARKS_NS;
 
-#include <map>
-
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
-
-#define DELTA 16384
 
 #define BUFFACTOR 1.5
 
@@ -459,6 +455,24 @@ void CommOffLattice::create_recv_from_send(Swap *swap)
     rproc[i] = status->MPI_SOURCE;
   }
 
+  // sort rproc and rcount in ascending rproc order
+  // this insures same answer from run to run (on same # of procs)
+  // else random ordering of MPI_ANY_SOURCE could induce different
+  //   ordering of my owned sites as reverse comm occurs
+
+  int j,tmp;
+  for (i = 0; i < nrecv; i++)
+    for (j = i+1; j < nrecv; j++) {
+      if (rproc[j] < rproc[i]) {
+	tmp = rproc[j];
+	rproc[j] = rproc[i];
+	rproc[i] = tmp;
+	tmp = rcount[j];
+	rcount[j] = rcount[i];
+	rcount[i] = tmp;
+      }
+    }
+
   MPI_Barrier(world);
 
   // allocate and setup ragged arrays: rindex and rsite
@@ -642,7 +656,7 @@ void CommOffLattice::perform_swap(Swap *swap)
 
   // trigger app to grow per-site arrays if new ghosts exceed limit
 
-  int nmax = appoff->nlocal + recvcount + copycount;
+  int nmax = nlocal + recvcount + copycount;
   while (nmax > appoff->nmax) {
     oldmax = appoff->nmax;
     appoff->grow(0);
@@ -793,10 +807,6 @@ void CommOffLattice::perform_swap_reverse(Swap *swap)
   int *next = appoff->next;
   int nlocal = appoff->nlocal;
 
-  // delete all ghosts, since are migrating owned sites to new procs
-
-  appoff->delete_all_ghosts();
-
   // post receives for bin counts
 
   for (int irecv = 0; irecv < nrecv; irecv++)
@@ -912,6 +922,7 @@ void CommOffLattice::perform_swap_reverse(Swap *swap)
 
   // send sites, subtracting PBC if necessary
   // delete each owned site after packing it
+  // update nlocal since delete_owned_site() will decrement it
 
   for (int isend = 0; isend < nsend; isend++) {
     i = 0;
@@ -926,14 +937,15 @@ void CommOffLattice::perform_swap_reverse(Swap *swap)
 	  sbuf[i++] = xyz[m][2] - pbcoffset[ibin][2]*zprd;
 	  sbuf[i++] = site[m];
 	  m = appoff->delete_owned_site(m);
-	}
+	  nlocal = appoff->nlocal;
+	} else m = next[m];
       }
     }
 
     MPI_Send(sbuf,size_one*stotal[isend],MPI_DOUBLE,sproc[isend],0,world);
   }
 
-  // perform on-processor copies across PBCs from ghost bin to edge bin
+  // perform on-processor copies across PBC from ghost bin to edge bin
 
   if (ncopy)
     for (m = 0; m < ccount; m++) {
@@ -948,11 +960,15 @@ void CommOffLattice::perform_swap_reverse(Swap *swap)
 	  xyz[i][2] -= pbcoffset[ibin][2]*zprd;
 	  appoff->delete_from_bin(i,ibin);
 	  appoff->add_to_bin(i,jbin);
-	  bin[j] = jbin;
+	  bin[i] = jbin;
 	  i = nextptr;
-	}
+	} else i = next[i];
       }
     }
+
+  // delete all ghosts, since have finished looping over ghost bin sites
+
+  appoff->delete_all_ghosts();
 
   // wait on all incoming sites
 
@@ -1107,6 +1123,7 @@ void CommOffLattice::setup_sector_chunks(int nbinx, int nbiny, int nbinz)
 }
 
 /* ----------------------------------------------------------------------
+   set bounds of a single chunk
 ------------------------------------------------------------------------- */
 
 void CommOffLattice::fill_chunk(int isector, int ichunk,

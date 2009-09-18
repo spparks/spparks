@@ -104,11 +104,13 @@ class AppOffLattice : public App {
   int *nextimage;              // index of next image of site, -1 if none
 
                                // per-site storage for owned + ghost sites
-  int sitecustom;              // 0/1 for default or customized
   int ninteger,ndouble;        // # of int/double per site, 0,0 = just lattice
   int *site;                   // default = single int value
   int **iarray;                // one or more ints per site
   double **darray;             // one or more doubles per site
+
+  int *site2i;                 // list of site indices that are in sector
+  int *in_sector;              // 1 if site is in sector, 0 if not
 
   double *propensity;          // probabilities for each owned site
 
@@ -119,8 +121,6 @@ class AppOffLattice : public App {
   int *stencil;                // offsets for surrounding bins
 
   struct Set {                 // subset of particles I own
-    int nselect;               // # of selections from set for rKMC
-    int nloop;                 // # of loops over set for rKMC
     double xlo,xhi;            // sector bounds
     double ylo,yhi;
     double zlo,zhi;
@@ -138,12 +138,16 @@ class AppOffLattice : public App {
   int *binhead;                // index of 1st particle in bin, -1 if none
   int *binflag;                // 0 if interior bin, 1 if edge, 2 if ghost
 
-  int *nimages;                // # of images of each edge bin
-  int **imageindex;            // index of image bin for each image bin
-  int **imageproc;             // owning proc for each image bin
+                               // image bins are the ghost copies of
+                               // an edge bin, can be several per edge bin
+  int *nimages;                // # of image bins for each edge bin
+  int **imageproc;             // proc that owns the edge's ghost image bin
+  int **imageindex;            // index of ghost image bin on owning proc
 
-  int *ghostindex;             // index on owning proc of owned master bin
-  int *ghostproc;              // owning proc of owned master bin of a ghost
+                               // master bin is the unique owned bin
+                               // that corresponds to a ghost bin
+  int *ghostproc;              // proc that owns a ghost's master bin
+  int *ghostindex;             // index of master bin on owning proc
 
   int **pbcoffset;             // periodic offsets of each ghost bin in 3 dims
                                // offset to add to original site -> ghost site
@@ -152,12 +156,10 @@ class AppOffLattice : public App {
   int nfree;                   // # of free locations in ghost particle list
   int freehead;                // 1st free location, -1 if none
 
-  int *site2i;                 // list of site indices that are in sector
-  int *in_sector;              // 1 if site is in sector, 0 if not
-
   void iterate_kmc_global(double);
   void iterate_kmc_sector(double);
   void iterate_rejection(double);
+  void rkmc_params(int, int &, int &);
 
   void init_bins();
   void init_stencil();
@@ -175,7 +177,7 @@ class AppOffLattice : public App {
   void add_image_bins(int, int, int, int);
   void bin_sites();
   void grow(int);
-  int neighproc(int, int, int);
+  int neighproc(int, int, int, int);
   int inside_sector(int);
   int delete_owned_site(int);
   int new_owned_site();
@@ -186,6 +188,8 @@ class AppOffLattice : public App {
   void random_lattice();
   void file_lattice();
   void read_file();
+
+  void check(char *, int, int);
 
   void create_set(int, int);
 

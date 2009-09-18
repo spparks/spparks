@@ -212,7 +212,6 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   // dump params
 
   if (latticeflag) {
-    nglobal = applattice->nglobal;
     nlocal = applattice->nlocal;
     boxxlo = applattice->boxxlo;
     boxxhi = applattice->boxxhi;
@@ -221,8 +220,6 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
     boxzlo = applattice->boxzlo;
     boxzhi = applattice->boxzhi;
   } else {
-    nglobal = appofflattice->nglobal;
-    nlocal = appofflattice->nlocal;
     boxxlo = appofflattice->boxxlo;
     boxxhi = appofflattice->boxxhi;
     boxylo = appofflattice->boxylo;
@@ -243,15 +240,12 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   thresh_value = NULL;
   thresh_index = NULL;
 
+  maxlocal = 0;
   choose = NULL;
   dchoose = NULL;
 
-  // allocate buffer for dump output from all sites
-  // size if for max output from any proc
-
-  int nbuf = nlocal*size_one;
-  MPI_Allreduce(&nbuf,&maxbuf,1,MPI_INT,MPI_MAX,world);
-  buf = (double *) memory->smalloc(maxbuf*sizeof(double),"dump:buf");
+  maxbuf = 0;
+  buf = NULL;
 
   // one-time file open
 
@@ -314,23 +308,6 @@ void Dump::init()
     if (thresh_array[i] == PROPENSITY) flag = 1;
   if (flag && !solve)
     error->all("Dump requires propensity but no KMC solve performed");
-
-  // by default choose all atoms for output
-  // thresholding will override it
-  // allocate dchoose if thresholds exist
-
-  if (choose == NULL)
-    choose = (int *) memory->smalloc(nlocal*sizeof(int),"dump:choose");
-  for (int i = 0; i < nlocal; i++) choose[i] = 1;
-
-  if (nthresh) {
-    if (dchoose == NULL)
-      dchoose = (double *) 
-	memory->smalloc(nlocal*sizeof(double),"dump:dchoose");
-  } else {
-    memory->sfree(dchoose);
-    dchoose = NULL;
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -500,6 +477,14 @@ void Dump::write(double time)
 
   idump++;
 
+  // grow communication buffer if necessary
+
+  if (nmax*size_one > maxbuf) {
+    maxbuf = nmax*size_one;
+    memory->sfree(buf);
+    buf = (double *) memory->smalloc(maxbuf*sizeof(double),"dump:buf");
+  }
+
   // pack my data into buf
 
   pack();
@@ -554,14 +539,30 @@ int Dump::count()
 {
   int i;
 
+  // update nlocal if off-lattice app
+
+  if (latticeflag == 0) nlocal = appofflattice->nlocal;
+
+  // insure choose arrays are big enough
+  // initialize choose[] to select all sites if reallocate
+
+  if (nlocal > maxlocal) {
+    maxlocal = nlocal;
+
+    memory->sfree(choose);
+    choose = (int *) memory->smalloc(maxlocal*sizeof(int),"dump:choose");
+    for (int i = 0; i < nlocal; i++) choose[i] = 1;
+
+    if (nthresh) {
+      memory->sfree(dchoose);
+      dchoose = (double *) 
+	memory->smalloc(maxlocal*sizeof(double),"dump:dchoose");
+    }
+  }
+
   // no thresholds, select all sites
 
   if (nthresh == 0) return nlocal;
-
-  // initially flag all sites for output
-
-  for (i = 0; i < nlocal; i++) choose[i] = 1;
-  int nmine = nlocal;
 
   // unselect a site if any threshold criterion isn't met
   // dchoose stores the site value to compare threshold value to
@@ -569,6 +570,8 @@ int Dump::count()
   double *ptr;
   double value;
   int nstride;
+
+  int nmine = nlocal;
     
   for (int ithresh = 0; ithresh < nthresh; ithresh++) {
 
