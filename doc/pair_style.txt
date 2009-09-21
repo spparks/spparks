@@ -26,9 +26,7 @@ interaction between sites or particles in an off-lattice application.
 
 The coefficients associated with a pair style are typically set for
 each pair of particle types, and are specified by the
-"pair_coeff"_pair_coeff.html command or read from a file by the
-"read_data"_read_data.html or "read_restart"_read_restart.html
-commands.
+"pair_coeff"_pair_coeff.html command.
 
 Here is the list of pair styles defined in SPPARKS.  More will be
 added as new applications are developed.  Click on the style to
