@@ -28,13 +28,16 @@ the funding and people who have contributed to SPPARKS.
 </H4>
 <P>SPPARKS is a Monte Carlo code that has algorithms for kinetic Monte
 Carlo (KMC), rejection KMC (rKMC), and Metropolis Monte Carlo (MMC).
-KMC is also called true KMC or rejection-free KMC.  rKMC is also
+On-lattice and off-lattice applications with spatial sites on which
+"events" occur can be simulated in parallel.
+</P>
+<P>KMC is also called true KMC or rejection-free KMC.  rKMC is also
 called null-event MC.  In a generic sense the code's KMC and rKMC
-solvers catalog a list of "events", each with an associated
-"probability", choose a single event to perform, and advance time by
-the correct amount.  Events may be chosen individually at random, or a
-sweep of enumarated sites can be performed to select possible events
-in a more ordered fashion.
+solvers catalog a list of events, each with an associated probability,
+choose a single event to perform, and advance time by the correct
+amount.  Events may be chosen individually at random, or a sweep of
+enumarated sites can be performed to select possible events in a more
+ordered fashion.
 </P>
 <P>Note that rKMC is different from Metropolis MC, which is sometimes
 called thermodynamic-equilibrium MC or barrier-free MC, in that rKMC
@@ -125,9 +128,9 @@ spatial component.
 <P>These are the KMC solvers currently available in SPPARKS and their
 scaling properties:
 </P>
-<UL><LI>linear, O(N)
-<LI>tree, O(logN)
-<LI>group, O(1) 
+<UL><LI>linear search, O(N)
+<LI>tree search, O(logN)
+<LI>composition-rejection search, O(1) 
 </UL>
 <H4>Pre- and post-processing: 
 </H4>
