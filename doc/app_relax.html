@@ -1,0 +1,73 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style relax command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style relax delta keyword values ... 
+</PRE>
+<UL><LI>relax = style name of this application
+<LI>delta = maximum displacement distance of a particle (distance units)
+<LI>see the <A HREF = "app_style.html">app_style</A> command for additional keywords that can be appended 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style relax 0.5 lattice sq/4n 1.0 50 50 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This is an off-lattice application which treats sites as particles
+which interact through a pair potential and whose collective energy is
+relaxed via Metropolis Monte Carlo translational moves.
+</P>
+<P>The energy of a particle I is as follows:
+</P>
+<PRE>Ei = Sum_j phi(Rij) 
+</PRE>
+<P>where Sum_j is a sum over all the neighbor of pariticle I within some
+cutoff distance, phi() is the potential energy function defined by the
+<A HREF = "pair_style.html">pair_style</A> command, and Rij is the distance between
+particles I and J.  The energy of the entire system is the sum of Ei
+over all particles.  The <A HREF = "pair_style.html">pair_style</A> command also
+defines the cutoff distance.
+</P>
+<P>As explained on <A HREF = "app_style.html">this page</A>, this application is
+evolved by a Metroplis Monte Carlo (MMC) algorithm.  You must thus
+define a sweeping method to be used with the application via the
+<A HREF = "sweep.html">sweep</A> command.
+</P>
+<P>For solution by the MMC algorithm, once a particle is chosen, a
+translational move of the particle is made, by choosing a random
+location within a sphere of radius <I>delta</I> surrounding the particle.
+The energy of the particle before and after the move is calculated, to
+give dE = Efinal - Einitial.  The move is accepted if R <
+min[1,exp(-dE/kT)], else it is rejected, where R is a uniform random
+number R between 0 and 1.
+</P>
+<P>The following additional commands are defined by these applications:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "dump.html">dump</A> </TD><TD > output of particle snapshots</TD></TR>
+<TR><TD ><A HREF = "dump_one.html">dump_one</A> </TD><TD > one snapshot of particle coords</TD></TR>
+<TR><TD ><A HREF = "stats.html">stats</A> </TD><TD > output of system info</TD></TR>
+<TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

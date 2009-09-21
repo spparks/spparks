@@ -1,0 +1,66 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style relax command :h3
+
+[Syntax:]
+
+app_style relax delta keyword values ... :pre
+
+relax = style name of this application
+delta = maximum displacement distance of a particle (distance units)
+see the "app_style"_app_style.html command for additional keywords that can be appended :ul
+
+[Examples:]
+
+app_style relax 0.5 lattice sq/4n 1.0 50 50 :pre
+
+[Description:]
+
+This is an off-lattice application which treats sites as particles
+which interact through a pair potential and whose collective energy is
+relaxed via Metropolis Monte Carlo translational moves.
+
+The energy of a particle I is as follows:
+
+Ei = Sum_j phi(Rij) :pre
+
+where Sum_j is a sum over all the neighbor of pariticle I within some
+cutoff distance, phi() is the potential energy function defined by the
+"pair_style"_pair_style.html command, and Rij is the distance between
+particles I and J.  The energy of the entire system is the sum of Ei
+over all particles.  The "pair_style"_pair_style.html command also
+defines the cutoff distance.
+
+As explained on "this page"_app_style.html, this application is
+evolved by a Metroplis Monte Carlo (MMC) algorithm.  You must thus
+define a sweeping method to be used with the application via the
+"sweep"_sweep.html command.
+
+For solution by the MMC algorithm, once a particle is chosen, a
+translational move of the particle is made, by choosing a random
+location within a sphere of radius {delta} surrounding the particle.
+The energy of the particle before and after the move is calculated, to
+give dE = Efinal - Einitial.  The move is accepted if R <
+min\[1,exp(-dE/kT)\], else it is rejected, where R is a uniform random
+number R between 0 and 1.
+
+The following additional commands are defined by these applications:
+
+"dump"_dump.html : output of particle snapshots
+"dump_one"_dump_one.html : one snapshot of particle coords
+"stats"_stats.html : output of system info
+"temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
+
+:line
+
+[Restrictions:] none
+
+[Related commands:]
+
+[Default:] none
