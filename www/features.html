@@ -7,40 +7,57 @@
 
 <H3>SPPARKS Features 
 </H3>
-<P>SPPARKS is a kinetic Monte Carlo (KMC) code that has algorithms for
-both rejection-free KMC and null-event or rejection KMC (rKMC).  In a
-generic sense its KMC and rKMC solvers catalog a list of "events",
-each with an associated "probability", choose a single event to
-perform, and advance time by the correct amount.  Events may be chosen
-indivudually at random or a sweep of a geometric lattice can be
-performed to select possible events in a more ordered fashion.
+<P>SPPARKS is a Monte Carlo code that has algorithms for kinetic Monte
+Carlo (KMC), rejection KMC (rKMC), and Metropolis Monte Carlo (MMC).
+On-lattice and off-lattice applications with spatial sites on which
+"events" occur can be simulated in parallel.
+</P>
+<P>KMC is also called true KMC or rejection-free KMC.  rKMC is also
+called null-event MC.  In a generic sense the code's KMC and rKMC
+solvers catalog a list of events, each with an associated probability,
+choose a single event to perform, and advance time by the correct
+amount.  Events may be chosen individually at random, or a sweep of
+enumarated sites can be performed to select possible events in a more
+ordered fashion.
 </P>
 <P>Applications are implemented in SPPARKS which define events and their
 probabilities and acceptance/rejection criteria.  They are coupled to
-solvers or sweepers to perform KMC or rKMC simulations.  The KMC or
-rKMC options for an application in SPPARKS can be written to define
-rates based on energy differences between the initial and final state
-of an event and a Metropolis-style accept/reject criterion based on
-the Boltzmann factor SPPARKS will then perform a Metropolis-style
-Monte Carlo simulation.
+solvers or sweepers to perform KMC or rKMC or MMC simulations.
 </P>
-<H4>On-lattice applications 
-</H4>
-<UL><LI>  Ising model
-<LI>  various Potts models (Glauber and Kawasaki dynamics)
-<LI>  pore and surface diffusion models
-<LI>  membrane dynamics model 
+<P>These are three kinds of applications in SPPARKS:
+</P>
+<UL><LI>on-lattice
+<LI>off-lattice
+<LI>general 
 </UL>
-<H4>Off-lattice applications 
-</H4>
-<UL><LI>  reaction chemistry model
-<LI>  test model for constant-time KMC solver 
+<P>On-lattice applications define static event sites with a fixed
+neighbor connectivity.  Off-lattice applications define mobile event
+sites such as particles.  A particle's neighbors are typically
+specified by a cutoff distance.  General applications have no
+spatial component.
+</P>
+<P>The set of on-lattice applications currently in SPPARKS are:
+</P>
+<UL><LI>diffusion model
+<LI>Ising model
+<LI>Potts model
+<LI>membrane model 
 </UL>
-<H4>KMC solvers 
-</H4>
-<UL><LI>  linear search, O(N)
-<LI>  tree search, O(NlogN)
-<LI>  composition-rejection search, O(1) 
+<P>The set of off-lattice applications currently in SPPARKS are:
+</P>
+<UL><LI>Metropolis atomic relaxation model 
+</UL>
+<P>The set of general applications currently in SPPARKS are:
+</P>
+<UL><LI>biochemcial reaction network model
+<LI>test driver for solvers using a synthetic biochemical network 
+</UL>
+<P>These are the KMC solvers currently available in SPPARKS and their
+scaling properties:
+</P>
+<UL><LI>linear search, O(N)
+<LI>tree search, O(logN)
+<LI>composition-rejection search, O(1) 
 </UL>
 <H4>Code details 
 </H4>
