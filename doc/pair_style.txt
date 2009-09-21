@@ -1,0 +1,47 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+pair_style command :h3
+
+[Syntax:]
+
+pair_style style args ... :pre
+
+style = one of the styles from the list below
+args = arguments used by a particular style :ul
+
+[Examples:]
+
+pair_style lj 1 2.5 :pre
+
+[Description:]
+
+Set the formula(s) SPPARKS uses to compute pairwise energy of
+interaction between sites or particles in an off-lattice application.
+
+The coefficients associated with a pair style are typically set for
+each pair of particle types, and are specified by the
+"pair_coeff"_pair_coeff.html command or read from a file by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands.
+
+Here is the list of pair styles defined in SPPARKS.  More will be
+added as new applications are developed.  Click on the style to
+display the formula it computes, arguments specified in the pair_style
+command, and coefficients specified by the associated
+"pair_coeff"_pair_coeff.html command:
+
+"pair_style lj/cut"_pair_lj.html - cutoff Lennard-Jones potential :ul
+
+[Restrictions:] none
+
+[Related commands:]
+
+"pair_style"_pair_style.html
+
+[Default:] none

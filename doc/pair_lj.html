@@ -1,0 +1,78 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style lj command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style lj Ntypes cutoff 
+</PRE>
+<UL><LI>lj = style name of this pair style
+<LI>Ntypes = # of particle types
+<LI>cutoff = global cutoff for pairwise interactions (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style lj 1 2.5
+pair_style lj 3 3.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>lj/cut</I> styles compute the standard 12/6 Lennard-Jones potential,
+given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_lj.jpg">
+</CENTER>
+<P>Rc is the cutoff.
+</P>
+<P>The following coefficients must be defined for each pair of particle
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command:
+</P>
+<UL><LI>epsilon (energy units)
+<LI>sigma (distance units)
+<LI>cutoff1 (distance units)
+<LI>cutoff2 (distance units) 
+</UL>
+<P>Note that sigma is defined in the LJ formula as the zero-crossing
+distance for the potential, not as the energy minimum at 2^(1/6)
+sigma.
+</P>
+<P>The latter 2 coefficients are optional.  If not specified, the global
+LJ and Coulombic cutoffs specified in the pair_style command are used.
+If only one cutoff is specified, it is used as the cutoff for both LJ
+and Coulombic interactions for this type pair.  If both coefficients
+are specified, they are used as the LJ and Coulombic cutoffs for this
+type pair.  You cannot specify 2 cutoffs for style <I>lj/cut</I>, since it
+has no Coulombic terms.
+</P>
+<P>For <I>lj/cut/coul/long</I> and <I>lj/cut/coul/long/tip4p</I> only the LJ cutoff
+can be specified since a Coulombic cutoff cannot be specified for an
+individual I,J type pair.  All type pairs use the same global
+Coulombic cutoff specified in the pair_style command.
+</P>
+<HR>
+
+<P><B>Mixing info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for all of the lj/cut pair styles can be mixed.
+The default mix value is <I>geometric</I>.  See the "pair_modify" command
+for details.
+</P>
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

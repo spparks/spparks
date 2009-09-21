@@ -40,12 +40,12 @@ app_style diffusion off hop pore 10 10 10 5 15 &
 
 [Description:]
 
-This application performs diffusive hops on a lattice whose sites are
-partially occupied and partially unoccupied (vacancies).  It can be
-used to model surface diffusion or bulk diffusion on 2d or 3d
-lattices.  It is equivalent to a 2-state Ising model performing
-Kawasaki dynamics where neighboring sites exchange their spins as the
-model evolves.
+This is an on-lattice application which performs diffusive hops on a
+lattice whose sites are partially occupied and partially unoccupied
+(vacancies).  It can be used to model surface diffusion or bulk
+diffusion on 2d or 3d lattices.  It is equivalent to a 2-state Ising
+model performing Kawasaki dynamics where neighboring sites exchange
+their spins as the model evolves.
 
 The {estyle} setting determines how energy is used in computing the
 probability of hop events, which is related to the Hamiltonian for the

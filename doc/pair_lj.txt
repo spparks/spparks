@@ -1,0 +1,73 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+pair_style lj command :h3
+
+[Syntax:]
+
+pair_style lj Ntypes cutoff :pre
+
+lj = style name of this pair style
+Ntypes = # of particle types
+cutoff = global cutoff for pairwise interactions (distance units) :ul
+
+[Examples:]
+
+pair_style lj 1 2.5
+pair_style lj 3 3.0 :pre
+
+[Description:]
+
+The {lj/cut} styles compute the standard 12/6 Lennard-Jones potential,
+given by
+
+:c,image(Eqs/pair_lj.jpg)
+
+Rc is the cutoff.
+
+The following coefficients must be defined for each pair of particle
+types via the "pair_coeff"_pair_coeff.html command:
+
+epsilon (energy units)
+sigma (distance units)
+cutoff1 (distance units)
+cutoff2 (distance units) :ul
+
+Note that sigma is defined in the LJ formula as the zero-crossing
+distance for the potential, not as the energy minimum at 2^(1/6)
+sigma.
+
+The latter 2 coefficients are optional.  If not specified, the global
+LJ and Coulombic cutoffs specified in the pair_style command are used.
+If only one cutoff is specified, it is used as the cutoff for both LJ
+and Coulombic interactions for this type pair.  If both coefficients
+are specified, they are used as the LJ and Coulombic cutoffs for this
+type pair.  You cannot specify 2 cutoffs for style {lj/cut}, since it
+has no Coulombic terms.
+
+For {lj/cut/coul/long} and {lj/cut/coul/long/tip4p} only the LJ cutoff
+can be specified since a Coulombic cutoff cannot be specified for an
+individual I,J type pair.  All type pairs use the same global
+Coulombic cutoff specified in the pair_style command.
+
+:line
+
+[Mixing info]:
+
+For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for all of the lj/cut pair styles can be mixed.
+The default mix value is {geometric}.  See the "pair_modify" command
+for details.
+
+:line
+
+[Restrictions:] none
+
+[Related commands:] none
+
+[Default:] none

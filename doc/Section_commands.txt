@@ -173,7 +173,8 @@ documentation.
 Initialization commands:
 
 "app_style"_app_style.html, "solve_style"_solve_style.html,
-"sweep"_sweep.html, "seed"_seed.html
+"sweep"_sweep.html, "pair_style"_pair_style.html,
+"pair_coeff"_pair_coeff.html, "seed"_seed.html
 
 Application-specific commands:
 
@@ -231,6 +232,8 @@ Restrictions in the command's documentation.
 "label"_label.html,
 "log"_log.html,
 "next"_next.html,
+"pair_coeff"_pair_coeff.html,
+"pair_style"_pair_style.html,
 "pin"_pin.html,
 "print"_print.html,
 "reset_time"_reset_time.html,
@@ -261,7 +264,7 @@ full description:
 "potts/neigh"_app_potts.html,
 "potts/neighonly"_app_potts.html,
 "potts/pin"_app_potts_pin.html,
-"potts/variable"_app_potts.html,
+"relax"_app_relax.html,
 "test/group"_app_test_group.html :tb(c=8,ea=c)
 
 :line
@@ -273,6 +276,14 @@ full description:
 "group"_solve_group.html,
 "linear"_solve_linear.html,
 "tree"_solve_tree.html :tb(c=6,ea=c)
+
+:line
+
+Pair styles.  See the "pair_style"_solve_style.html command for
+one-line descriptions of each style or click on the style itself for a
+full description:
+
+"lj/cut"_pair_lj.html :tb(c=6,ea=c)
 
 :line
 

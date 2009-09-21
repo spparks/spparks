@@ -9,27 +9,25 @@
 app_style potts command :h3
 app_style potts/neigh command :h3
 app_style potts/neighonly command :h3
-app_style potts/variable command :h3
 
 [Syntax:]
 
 app_style style Q keyword values ... :pre
 
-style = {potts} or {potts/neigh} or {potts/neighonly} or {potts/variable}
+style = {potts} or {potts/neigh} or {potts/neighonly}
 Q = number of spin states
 see the "app_style"_app_style.html command for additional keywords that can be appended :ul
 
 [Examples:]
 
 app_style potts 100 lattice sq/4n 1.0 50 50
-app_style potts/neigh 20 lattice sq/4n 1.0 50 50
-app_style potts/variable 100 lattice sq/4n 1.0 50 50 site 1 1 :pre
+app_style potts/neigh 20 lattice sq/4n 1.0 50 50 :pre
 
 [Description:]
 
-These applications evolve a Q-state Ising model or Potts model, where
-each lattice site has a spin value from 1 to Q.  Sites flip their spin
-as the model evolves.
+These are on-lattice applications which evolve a Q-state Ising model
+or Potts model, where each lattice site has a spin value from 1 to Q.
+Sites flip their spin as the model evolves.
 
 The Hamiltonian representing the energy of site I is as follows:
 
@@ -45,13 +43,6 @@ flipped on a single site.  See "app_style
 diffusion"_app_diffusion.html for an Ising model which performs
 Kawasaki dynamics, meaning the spins on two neighboring sites are
 swapped.
-
-The {potts/variable} application is identical to the {potts}
-application except that the {site} keyword must be used to define the
-per-site quantities stored on the lattice.  The {site} keyword is
-described with the "app_style"_app_style.html command.  This
-application is provided to illustrate how an application is written
-using user-defined sites via the {site} keyword.
 
 As explained on "this page"_app_style.html, these applications can be
 evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
@@ -69,19 +60,19 @@ known as "wild" flips, even at finite temperature.  These are flips to
 values that are not equal to any neighbor site value.
 
 For solution by a rKMC algorithm, the various styles use different
-rejection-based algorithms.  For the {potts} and {potts/variable}
-styles, a random spin from 1 to Q is chosen.  For the {potts/neigh}
-style, a spin is chosen randomly from the values held by neighbor
-sites and a null-bin of a size which extends the possible events up to
-the maximum number of neighbors.  For example, imagine a site has 12
-neighbors and the 12 sites have 4 different spin values.  Then each of
-the 4 neighbor spin values will be chosen with 1/12 probability and
-the null bin will be chosen with 8/12 probability.  For the
-{potts/neighonly} style, the null bin is discarded, so in this case
-each of the 4 spin values will be chosen with 1/4 probability.  In all
-the cases, dE = Efinal - Einitial is calculated, as is a uniform
-random number R between 0 and 1.  The new state is accepted if R <
-min\[1,exp(-dE/kT)\], else it is rejected.
+rejection-based algorithms.  For the {potts} style, a random spin from
+1 to Q is chosen.  For the {potts/neigh} style, a spin is chosen
+randomly from the values held by neighbor sites and a null-bin of a
+size which extends the possible events up to the maximum number of
+neighbors.  For example, imagine a site has 12 neighbors and the 12
+sites have 4 different spin values.  Then each of the 4 neighbor spin
+values will be chosen with 1/12 probability and the null bin will be
+chosen with 8/12 probability.  For the {potts/neighonly} style, the
+null bin is discarded, so in this case each of the 4 spin values will
+be chosen with 1/4 probability.  In all the cases, dE = Efinal -
+Einitial is calculated, as is a uniform random number R between 0 and
+1.  The new state is accepted if R < min\[1,exp(-dE/kT)\], else it is
+rejected.
 
 The rKMC algorithm for the {potts} style does allow spin flips known
 as "wild" flips.  These are flips to values that are not equal to any

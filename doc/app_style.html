@@ -21,7 +21,7 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>input</I> or <I>lattice</I> or <I>procs</I> or <I>site</I> 
+<LI>keyword = <I>input</I> or <I>lattice</I> or <I>procs</I> 
 
 <PRE>  <I>input</I> value = infile
     infile = filename for file containing initial state of all sites
@@ -58,10 +58,7 @@
       <I>file</I> param = filename = read lattice and connectivity from file
         filename = name of file (see file format below)
   <I>procs</I> values = Px Py Pz
-    Px,Py,Pz = # of processors assigned to each dimension of simulation box
-  <I>site</I> values = Nint Ndouble
-    Nint = # of integer quantites to store per site
-    Ndouble = # of double quantites to store per site 
+    Px,Py,Pz = # of processors assigned to each dimension of simulation box 
 </PRE>
 
 </UL>
@@ -71,7 +68,6 @@
 app_style ising ... lattice sq/4n 1.0 100 100
 app_style ising ... lattice sq/4n 1.0 100 100 input restart.state
 app_style potts ... lattice file tmp.latttice
-app_style potts/variable ... lattice random/2d 1000 10.0 10.0 3.0 site 1 0
 app_style membrane ... lattice tri 1.0 100 50
 app_style chemistry ...
 app_style test/group ... 
@@ -79,19 +75,14 @@ app_style test/group ...
 <P><B>Description:</B>
 </P>
 <P>This command defines what model or application SPPARKS will run.
-There are 3 kinds of applications: general, on-lattice, and
-off-lattice.
+There are 3 kinds of applications: on-lattice, off-lattice, and
+general.
 </P>
-<P>General applications typically involve no spatial information.  Here
-is the list of general applications SPPARKS currently includes.  See
-the doc page for each application for details:
-</P>
-<UL><LI><A HREF = "app_chemistry.html">chemistry</A> = biochemical reaction networks
-<LI><A HREF = "app_test_group.html">test/group</A> = artificial chemical networks that test <A HREF = "solve_style.html">solve_style</A> 
-</UL>
-<P>On-lattice applications define a lattice of points in space on which
-events occur.  Here is the list of on-lattice applications SPPARKS
-currently includes:
+<P>On-lattice applications define a set of static sites in space on which
+events occur.  The sites can represent a crystalline lattice, or be
+more disordered.  The key point is that they are immobile and that
+each site's neighborhood of nearby sites can be specified.  Here is
+the list of on-lattice applications SPPARKS currently includes:
 </P>
 <UL><LI><A HREF = "app_diffusion.html">diffusion</A> = vacancy exchange diffusion model
 <LI><A HREF = "app_ising.html">ising</A> = Ising model
@@ -100,66 +91,72 @@ currently includes:
 <LI><A HREF = "app_potts.html">potts</A> = Potts model for grain growth
 <LI><A HREF = "app_potts.html">potts/neigh</A> = variant Potts model
 <LI><A HREF = "app_potts.html">potts/neighonly</A> = variant Potts model
-<LI><A HREF = "app_potts_pin.html">potts/pin</A> = Potts model with pinning sites
-<LI><A HREF = "app_potts.html">potts/variable</A> = variant Potts model 
+<LI><A HREF = "app_potts_pin.html">potts/pin</A> = Potts model with pinning sites 
 </UL>
-<P>Off-lattice applications define points in space at which events occur,
-but the points are not on a regular lattice.  Here is the list of
-off-lattice applications SPPARKS currently includes.
+<P>Off-lattice applications define a set of mobile sites in space on
+which events occur.  The sites typically represent particles.  Each
+site's neighborhood of nearby sites is defined by a cutoff distance.
+Here is the list of off-lattice applications SPPARKS currently
+includes.
 </P>
 <UL><LI><A HREF = "app_relax.html">relax</A> = Metropolis Monte Carlo relaxation 
+</UL>
+<P>General applications require no spatial information.  Events are
+defined by the application, as well as the influence of each event on
+others.  Here is the list of general applications SPPARKS currently
+includes.
+</P>
+<UL><LI><A HREF = "app_chemistry.html">chemistry</A> = biochemical reaction networks
+<LI><A HREF = "app_test_group.html">test/group</A> = artificial chemical networks that test <A HREF = "solve_style.html">solve_style</A> 
 </UL>
 <P>The general applications in SPPARKS can only be evolved via a kinetic
 Monte Carlo (KMC) solver, specified by the
 <A HREF = "solve_style.html">solve_style</A> command.  On-lattice and off-lattice
 applications can be evolved by either a KMC solver or a rejection
-kinetic Monte Carlo (rKMC) method or a Metropolis method.  The rKMC
-and Metropolis methods are specified by the <A HREF = "sweep.html">sweep</A>
-command.  Not all on- and off-lattice applications support each
-option.
+kinetic Monte Carlo (rKMC) method or a Metropolis (MMC) method.  The
+rKMC and MMC methods are specified by the <A HREF = "sweep.html">sweep</A> command.
+Not all on- and off-lattice applications support each option.
 </P>
-<P>The KMC algorithm is sometimes called rejection-free KMC or the N-fold
-way or the Gillespie algorithm in the MC literature.  The application
+<P>KMC models are sometimes called rejection-free KMC or the N-fold way
+or the Gillespie algorithm in the MC literature.  The application
 defines a list of "events" and associated rates for each event.  The
 solver chooses the next event, and the application updates the system
 accordingly.  This includes updating of the time, which is done
 accurately since rates are defined for each event.  For general
 applications the definition of an "event" is arbitrary.  For
 on-lattice application zero or more possible events are typically
-defined for each lattice site.
+defined for each site.
 </P>
-<P>The rKMC algorithm is sometimes called null-event KMC or null-event
-MC.  Successive lattice sites are chosen via some method (see the
-<A HREF = "sweep.html">sweep</A> command), and an event on that site is selected
-which is accepted or rejected.  Again, the application defines the
-"events" for each site and associated rates which influence the
-acceptance or rejection.  It also defines the null event which is
-essentially part of the rejection probability.  The updating is
-time-accurate as with the KMC algorithm, since rates are defined for
-each event, including the null event.
+<P>rKMC models are sometimes called null-event KMC or null-event MC.
+Sites are chosen via some method (see the <A HREF = "sweep.html">sweep</A> command),
+and an event on that site is then selected which is accepted or
+rejected.  Again, the application defines the "events" for each site
+and associated rates which influence the acceptance or rejection.  It
+also defines the null event which is essentially part of the rejection
+probability.
 </P>
-<P>The Metropolis algorithm is similar to the rKMC method, except that it
-is not time-accurate.  It selects an event to perform and accepts or
-rejects it, typically based on an energy change in the system.  There
-is no rate associated with the event, and no requirement that events
-be chosen with relative probabilities corresponding to their rates.
-The effect of the Metropolis algorithm is to evolve the system towards
-a low energy state.  As with the rKMC algorithm, the
-<A HREF = "sweep.html">sweep</A> command is used to determine how sites are
-selected.  It is up to the application to implement either a
-time-accurate rKMC method for event selection with a correct
-null-event or a Metropolis method.
+<P>For KMC and rKMC models, a time is associated with each event
+(including the null event) by rates that the user defines.  Thus event
+selection induces a time-accurate simulation.  The MMC method is
+similar to the rKMC method, except that it is not time-accurate.  It
+selects an event to perform and accepts or rejects it, typically based
+on an energy change in the system.  There is no rate associated with
+the event, and no requirement that events be chosen with relative
+probabilities corresponding to their rates.  The Metropolis method
+tends to evolve the system towards a low energy state.  As with the
+rKMC method, the <A HREF = "sweep.html">sweep</A> command is used to determine how
+sites are selected.
 </P>
-<P>For all three algorithms (KMC, rKMC, Metropolis) the rules for how
-events are defined and are accepted or rejected are discussed in the
-doc pages for the individual applications.
+<P>For all three methods (KMC, rKMC, MMC) the rules for how events are
+defined and are accepted or rejected are discussed in the doc pages
+for the individual applications.
 </P>
 <P>Here is a table of the different kinds of solvers and sweeping options
 that can be used for on- and off-lattice applications in SPPARKS.
 Serial and parallel refer to running on one or many processors.
 Sector vs no-sector is what is set by the <A HREF = "sector.html">sector</A>
 command.  The rKMC options are set by the <A HREF = "sweep.html">sweep</A> command.
-The Metropolis options are the same as for rKMC.
+The MMC options are the same as for rKMC.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR ALIGN="center"><TD >method</TD><TD >	serial/no-sectors</TD><TD > serial/sectors</TD><TD > parallel/no-sectors</TD><TD > parallel/sectors</TD></TR>
@@ -172,7 +169,8 @@ The Metropolis options are the same as for rKMC.
 <P>Note that the choice of <I>color</I> can also be <I>color/strict</I> and that
 masking can also be turned on for rKMC algorithms via the
 <A HREF = "sweep.html">sweep</A> command if the application supports it.
-Off-lattice applications do not support the <I>color</I> option.
+Off-lattice applications do not support the <I>color</I> or <I>masking</I>
+options.
 </P>
 <HR>
 
@@ -180,8 +178,7 @@ Off-lattice applications do not support the <I>color</I> option.
 as part of the app_style command.
 </P>
 <P>For on-lattice and off-lattice applications, the <I>lattice</I> keyword
-must be specified.  The <I>procs</I>, <I>site</I>, and <I>input</I> keywords are
-optional.
+must be specified.  The <I>procs</I> and <I>input</I> keywords are optional.
 </P>
 <HR>
 
@@ -278,16 +275,6 @@ partitioning.
 </P>
 <HR>
 
-<P>For on- and off-lattice applications, by default each site stores a
-single integer value.  By specifying <I>site</I>, multiple integer and or
-double values can be stored on each site and accessed/updated by your
-application.  For example, an integer flag could be stored for the
-"type" of the site and one or more doubles could store the state of
-the site.  If <I>site 0 0</I> is specified, then the default of a single
-integer per site is used.
-</P>
-<HR>
-
 <P>For on- and off-lattice applications, the values stored on each site
 can be initialized explicitly via the <I>input</I> keyword.  This can be
 useful for restarting a simulation from the dump file generated by a
@@ -329,7 +316,6 @@ integer value(s) first, followed by the double value(s).
 </P>
 <P>There is no default for the <I>lattice</I> keyword.  It must be specified
 for on- and off-lattice applications.  The default values for the
-<I>procs</I> keyword are 0 0 0.  The default values for the <I>site</I> keyword
-are 0 0.
+<I>procs</I> keyword are 0 0 0.
 </P>
 </HTML>

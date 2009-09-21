@@ -1,0 +1,73 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+pair_coeff command :h3
+
+[Syntax:]
+
+pair_coeff I J args ... :pre
+
+I,J = atom types (see asterisk form below)
+args = coefficients for one or more pairs of atom types :ul
+
+[Examples:]
+
+[Examples:]
+
+pair_coeff 1 2 1.0 1.0 2.5
+pair_coeff 2 * 1.0 1.0 :pre
+
+[Description:]
+
+Specify the pairwise force field coefficients for one or more pairs of
+atom types.  The number and meaning of the coefficients depends on the
+pair style.
+
+I and J can be specified in one of two ways.  Explicit numeric values
+can be used for each, as in the 1st example above.  I <= J is
+required.  SPPARKS sets the coefficients for the symmetric J,I
+interaction to the same values.
+
+A wild-card asterisk can be used in place of or in conjunction with the
+I,J arguments to set the coefficients for multiple pairs of atom
+types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+number of atom types, then an asterisk with no numeric values means all
+types from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).  Note that only type pairs with I <= J are considered; if
+asterisks imply type pairs where J < I, they are ignored.
+
+Note that a pair_coeff command can override a previous setting for the
+same I,J pair.  For example, these commands set the coeffs for all I,J
+pairs, then overwrite the coeffs for just the I,J = 2,3 pair:
+
+pair_coeff * * 1.0 1.0 2.5
+pair_coeff 2 3 2.0 1.0 1.12 :pre
+
+For many potentials, if coefficients for type pairs with I != J are
+not set explicitly by a pair_coeff command, the values are inferred
+from the I,I and J,J settings by mixing rules.  Details on the mixing
+as it pertains to individual potentials are described on the doc page
+for the potential.
+
+Here is the list of pair styles defined in SPPARKS.  More will be
+added as new applications are developed.  Click on the style to
+display the formula it computes, arguments specified in the pair_style
+command, and coefficients specified by the associated
+"pair_coeff"_pair_coeff.html command:
+
+"pair_style lj/cut"_pair_lj.html - cutoff Lennard-Jones potential :ul
+
+[Restrictions:] none
+
+[Related commands:]
+
+"pair_style"_pair_style.html
+
+[Default:] none

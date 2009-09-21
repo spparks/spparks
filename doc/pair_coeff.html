@@ -1,0 +1,78 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_coeff command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_coeff I J args ... 
+</PRE>
+<UL><LI>I,J = atom types (see asterisk form below)
+<LI>args = coefficients for one or more pairs of atom types 
+</UL>
+<P><B>Examples:</B>
+</P>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_coeff 1 2 1.0 1.0 2.5
+pair_coeff 2 * 1.0 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Specify the pairwise force field coefficients for one or more pairs of
+atom types.  The number and meaning of the coefficients depends on the
+pair style.
+</P>
+<P>I and J can be specified in one of two ways.  Explicit numeric values
+can be used for each, as in the 1st example above.  I <= J is
+required.  SPPARKS sets the coefficients for the symmetric J,I
+interaction to the same values.
+</P>
+<P>A wild-card asterisk can be used in place of or in conjunction with the
+I,J arguments to set the coefficients for multiple pairs of atom
+types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+number of atom types, then an asterisk with no numeric values means all
+types from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).  Note that only type pairs with I <= J are considered; if
+asterisks imply type pairs where J < I, they are ignored.
+</P>
+<P>Note that a pair_coeff command can override a previous setting for the
+same I,J pair.  For example, these commands set the coeffs for all I,J
+pairs, then overwrite the coeffs for just the I,J = 2,3 pair:
+</P>
+<PRE>pair_coeff * * 1.0 1.0 2.5
+pair_coeff 2 3 2.0 1.0 1.12 
+</PRE>
+<P>For many potentials, if coefficients for type pairs with I != J are
+not set explicitly by a pair_coeff command, the values are inferred
+from the I,I and J,J settings by mixing rules.  Details on the mixing
+as it pertains to individual potentials are described on the doc page
+for the potential.
+</P>
+<P>Here is the list of pair styles defined in SPPARKS.  More will be
+added as new applications are developed.  Click on the style to
+display the formula it computes, arguments specified in the pair_style
+command, and coefficients specified by the associated
+<A HREF = "pair_coeff.html">pair_coeff</A> command:
+</P>
+<UL><LI><A HREF = "pair_lj.html">pair_style lj/cut</A> - cutoff Lennard-Jones potential 
+</UL>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_style.html">pair_style</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>
