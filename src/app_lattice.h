@@ -121,7 +121,6 @@ class AppLattice : public App {
   double **xyz;                // coords of site
 
                                // per-site storage for owned + ghost sites
-  int sitecustom;              // 0/1 for default or customized
   int ninteger,ndouble;        // # of int/double per site, 0,0 = just lattice
   int *lattice;                // default = single int value
   int **iarray;                // one or more ints per site

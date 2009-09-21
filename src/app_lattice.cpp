@@ -96,7 +96,6 @@ AppLattice::~AppLattice()
   memory->sfree(sitelist);
   memory->sfree(mask);
 
-  memory->sfree(lattice);
   for (int i = 0; i < ninteger; i++) memory->sfree(iarray[i]);
   for (int i = 0; i < ndouble; i++) memory->sfree(darray[i]);
   delete [] iarray;

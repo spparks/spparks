@@ -45,12 +45,14 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
 {
   // these can be changed by model choice, see below
 
-  delpropensity = 2;
-  delevent = 1;
+  ninteger = 1;
+  ndouble = 0;
   allow_kmc = 1;
   allow_rejection = 0;
   allow_masking = 0;
   numrandom = 1;
+  delpropensity = 2;
+  delevent = 1;
 
   // parse arguments
 

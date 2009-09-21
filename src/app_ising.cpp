@@ -29,6 +29,8 @@ using namespace SPPARKS_NS;
 AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg)
 {
+  ninteger = 1;
+  ndouble = 0;
   delpropensity = 1;
   delevent = 0;
   allow_kmc = 1;

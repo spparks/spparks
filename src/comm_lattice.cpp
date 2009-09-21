@@ -76,14 +76,15 @@ void CommLattice::init(int nsector_request, int delpropensity, int delevent,
 
   AppLattice *applattice = (AppLattice *) app;
 
-  sitecustom = applattice->sitecustom;
   ninteger = applattice->ninteger;
   ndouble = applattice->ndouble;
 
-  if (array) lattice = array;
-  else lattice = applattice->lattice;
   iarray = applattice->iarray;
   darray = applattice->darray;
+
+  if (array) lattice = array;
+  else if (iarray) lattice = iarray[0];
+  else lattice = NULL;
 
   // clear out old swaps
 
@@ -129,9 +130,9 @@ void CommLattice::init(int nsector_request, int delpropensity, int delevent,
 
 void CommLattice::all()
 {
-  if (sitecustom == 0) perform_swap_lattice(allswap);
-  else if (ninteger && !ndouble) perform_swap_int(allswap);
-  else if (ndouble && !ninteger) perform_swap_double(allswap);
+  if (ninteger == 1 && ndouble == 0) perform_swap_lattice(allswap);
+  else if (ndouble == 0) perform_swap_int(allswap);
+  else if (ninteger == 0) perform_swap_double(allswap);
   else perform_swap_general(allswap);
 }
 
@@ -142,9 +143,10 @@ void CommLattice::all()
 void CommLattice::all_reverse()
 {
   if (delreverse == 0) return;
-  if (sitecustom == 0) perform_swap_lattice(reverseswap);
-  else if (ninteger && !ndouble) perform_swap_int(reverseswap);
-  else if (ndouble && !ninteger) perform_swap_double(reverseswap);
+
+  if (ninteger == 1 && ndouble == 0) perform_swap_lattice(reverseswap);
+  else if (ndouble == 0) perform_swap_int(reverseswap);
+  else if (ninteger == 0) perform_swap_double(reverseswap);
   else perform_swap_general(reverseswap);
 }
 
@@ -154,9 +156,9 @@ void CommLattice::all_reverse()
 
 void CommLattice::sector(int isector)
 {
-  if (sitecustom == 0) perform_swap_lattice(sectorswap[isector]);
-  else if (ninteger && !ndouble) perform_swap_int(sectorswap[isector]);
-  else if (ndouble && !ninteger) perform_swap_double(sectorswap[isector]);
+  if (ninteger == 1 && ndouble == 0) perform_swap_lattice(sectorswap[isector]);
+  else if (ndouble == 0) perform_swap_int(sectorswap[isector]);
+  else if (ninteger == 0) perform_swap_double(sectorswap[isector]);
   else perform_swap_general(sectorswap[isector]);
 }
 
@@ -167,9 +169,11 @@ void CommLattice::sector(int isector)
 void CommLattice::reverse_sector(int isector)
 {
   if (delreverse == 0) return;
-  if (sitecustom == 0) perform_swap_lattice(sectorreverseswap[isector]);
-  else if (ninteger && !ndouble) perform_swap_int(sectorreverseswap[isector]);
-  else if (ndouble && !ninteger) perform_swap_double(sectorreverseswap[isector]);
+
+  if (ninteger == 1 && ndouble == 0) 
+    perform_swap_lattice(sectorreverseswap[isector]);
+  else if (ndouble == 0) perform_swap_int(sectorreverseswap[isector]);
+  else if (ninteger == 0) perform_swap_double(sectorreverseswap[isector]);
   else perform_swap_general(sectorreverseswap[isector]);
 }
 

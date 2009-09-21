@@ -22,7 +22,7 @@ using namespace SPPARKS_NS;
 AppPottsNeighOnly::AppPottsNeighOnly(SPPARKS *spk, int narg, char **arg) : 
   AppPotts(spk,narg,arg)
 {
- dt_sweep = 1.0/maxneigh;
+  dt_sweep = 1.0/maxneigh;
 }
 
 /* ----------------------------------------------------------------------

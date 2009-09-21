@@ -42,7 +42,6 @@ void AppLattice::options(int narg, char **arg)
   latstyle = NONE;
   latfile = NULL;
   px_user = py_user = pz_user = 0;
-  sitecustom = 0;
   infile = NULL;
 
   int iarg = 0;
@@ -139,14 +138,6 @@ void AppLattice::options(int narg, char **arg)
       }
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"site") == 0) {
-      if (iarg+3 > narg) error->all("Illegal app_style command");
-      ninteger = atoi(arg[iarg+1]);
-      ndouble = atoi(arg[iarg+2]);
-      if (ninteger == 0 && ndouble == 0) sitecustom = 0;
-      else sitecustom = 1;
-      iarg += 3;
-
     } else if (strcmp(arg[iarg],"input") == 0) {
       if (iarg+2 > narg) error->all("Illegal app_style command");
       int n = strlen(arg[iarg+1]) + 1;
@@ -193,19 +184,18 @@ void AppLattice::create_lattice()
 
   ghosts_from_connectivity();
 
-  if (sitecustom == 0)
-    lattice =
-      (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:lattice");
-  else {
-    if (ninteger) iarray = new int*[ninteger];
-    for (int i = 0; i < ninteger; i++)
-      iarray[i] = (int *)
-	memory->smalloc((nlocal+nghost)*sizeof(int),"app:iarray");
-    if (ndouble) darray = new double*[ndouble];
-    for (int i = 0; i < ndouble; i++)
-      darray[i] = (double *)
-	memory->smalloc((nlocal+nghost)*sizeof(double),"app:darray");
-  }
+  if (ninteger) iarray = new int*[ninteger];
+  for (int i = 0; i < ninteger; i++)
+    iarray[i] = (int *)
+      memory->smalloc((nlocal+nghost)*sizeof(int),"app:iarray");
+  if (ndouble) darray = new double*[ndouble];
+  for (int i = 0; i < ndouble; i++)
+    darray[i] = (double *)
+      memory->smalloc((nlocal+nghost)*sizeof(double),"app:darray");
+
+  // temporary for now
+
+  lattice = iarray[0];
 }
 
 /* ----------------------------------------------------------------------
