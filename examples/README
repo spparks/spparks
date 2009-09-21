@@ -24,6 +24,7 @@ groups:     test of tree and group KMC solvers on a reaction network
 ising:      2d Ising model
 membrane:   2d membrane model of lipid, fluid, protein states
 potts:      3d Potts model
+relax:      2d Metropolis atomic relaxation
 
 Here is how you might run and visualize one of the sample problems:
 
