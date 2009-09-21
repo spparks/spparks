@@ -23,7 +23,7 @@ pair_style lj 3 3.0 :pre
 
 [Description:]
 
-The {lj/cut} styles compute the standard 12/6 Lennard-Jones potential,
+The {lj/cut} style computes the standard 12/6 Lennard-Jones potential,
 given by
 
 :c,image(Eqs/pair_lj.jpg)
@@ -31,29 +31,19 @@ given by
 Rc is the cutoff.
 
 The following coefficients must be defined for each pair of particle
-types via the "pair_coeff"_pair_coeff.html command:
+types via the "pair_coeff"_pair_coeff.html command, or by mixing as
+described below:
 
 epsilon (energy units)
 sigma (distance units)
-cutoff1 (distance units)
-cutoff2 (distance units) :ul
+cutoff (distance units) :ul
 
 Note that sigma is defined in the LJ formula as the zero-crossing
 distance for the potential, not as the energy minimum at 2^(1/6)
 sigma.
 
-The latter 2 coefficients are optional.  If not specified, the global
-LJ and Coulombic cutoffs specified in the pair_style command are used.
-If only one cutoff is specified, it is used as the cutoff for both LJ
-and Coulombic interactions for this type pair.  If both coefficients
-are specified, they are used as the LJ and Coulombic cutoffs for this
-type pair.  You cannot specify 2 cutoffs for style {lj/cut}, since it
-has no Coulombic terms.
-
-For {lj/cut/coul/long} and {lj/cut/coul/long/tip4p} only the LJ cutoff
-can be specified since a Coulombic cutoff cannot be specified for an
-individual I,J type pair.  All type pairs use the same global
-Coulombic cutoff specified in the pair_style command.
+The last coefficients is optional.  If not specified, the global LJ
+cutoff specified in the pair_style command is used.
 
 :line
 
@@ -61,8 +51,10 @@ Coulombic cutoff specified in the pair_style command.
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
-The default mix value is {geometric}.  See the "pair_modify" command
-for details.
+The style of mixing is {geometric}, which means that
+
+epsilon_ij = sqrt(epsilon_i * epsilon_j)
+sigma_ij = sqrt(sigma_i * sigma_j) :pre
 
 :line
 
