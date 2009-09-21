@@ -50,7 +50,7 @@ give dE = Efinal - Einitial.  The move is accepted if R <
 min\[1,exp(-dE/kT)\], else it is rejected, where R is a uniform random
 number R between 0 and 1.
 
-The following additional commands are defined by these applications:
+The following additional commands are defined by this application:
 
 "dump"_dump.html : output of particle snapshots
 "dump_one"_dump_one.html : one snapshot of particle coords
