@@ -105,6 +105,7 @@ class AppOffLattice : public App {
 
                                // per-site storage for owned + ghost sites
   int ninteger,ndouble;        // # of int/double per site, 0,0 = just lattice
+  int size_one;                // quantities to comm per site
   int *site;                   // default = single int value
   int **iarray;                // one or more ints per site
   double **darray;             // one or more doubles per site

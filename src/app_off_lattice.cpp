@@ -29,7 +29,7 @@ using namespace SPPARKS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define DELTA 100
+#define DELTA 10000
 #define MAXNEIGH 1000
 #define EPSILON 1.0e-8
 
@@ -168,6 +168,10 @@ void AppOffLattice::init()
     error->all("Cannot use raster rejection KMC in parallel with no sectors");
 
   if (sweepflag && dt_sweep == 0.0) error->all("App did not set dt_sweep");
+
+  // total size of a site = id + xyz + per-site quantities
+
+  size_one = 4 + ninteger + ndouble;
 
   // if sectors, set number of sectors
 
