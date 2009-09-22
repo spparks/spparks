@@ -34,6 +34,7 @@ class AppIsing : public AppLattice {
   void site_event(int, class RandomPark *);
 
  protected:
+  int *lattice;
   int *sites;
 };
 

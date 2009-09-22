@@ -59,11 +59,6 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   mask = NULL;
 
   temperature = 0.0;
-  
-  lattice = NULL;
-  iarray = NULL;
-  darray = NULL;
-  ninteger = ndouble = 0;
 
   propensity = NULL;
   i2site = NULL;
@@ -96,20 +91,13 @@ AppLattice::~AppLattice()
   memory->sfree(sitelist);
   memory->sfree(mask);
 
-  for (int i = 0; i < ninteger; i++) memory->sfree(iarray[i]);
-  for (int i = 0; i < ndouble; i++) memory->sfree(darray[i]);
-  delete [] iarray;
-  delete [] darray;
-
   delete comm;
 
   delete [] latfile;
   delete [] infile;
 
-  memory->sfree(id);
   memory->sfree(owner);
   memory->sfree(index);
-  memory->destroy_2d_T_array(xyz);
 
   memory->sfree(numneigh);
   memory->destroy_2d_T_array(neighbor);
@@ -1085,7 +1073,7 @@ void AppLattice::push_new_site(int i, int* cluster_ids, int id,
 					  std::stack<int>* cluststack)
 {
   // This can be used to screen out unwanted spin values
-  // int isite = lattice[i];
+  // int isite = iarray[0][i];
 
   cluststack->push(i);
   cluster_ids[i] = id;
@@ -1102,11 +1090,11 @@ void AppLattice::push_connected_neighbors(int i, int* cluster_ids, int id,
 					  std::stack<int>* cluststack)
 {
   int ii;
-  int isite = lattice[i];
+  int isite = iarray[0][i];
 
   for (int j = 0; j < numneigh[i]; j++) {
     ii = neighbor[i][j];
-    if (lattice[ii] == isite && cluster_ids[ii] == 0) {
+    if (iarray[0][ii] == isite && cluster_ids[ii] == 0) {
       cluststack->push(ii);
       cluster_ids[ii] = id;
     }
@@ -1122,7 +1110,7 @@ void AppLattice::connected_ghosts(int i, int* cluster_ids,
 {
   int iclust;
   int ii;
-  int isite = lattice[i];
+  int isite = iarray[0][i];
 
   // Check if this was a site that was ignored
   if (cluster_ids[i] == 0) return;
@@ -1131,7 +1119,7 @@ void AppLattice::connected_ghosts(int i, int* cluster_ids,
 
   for (int j = 0; j < numneigh[i]; j++) {
     ii = neighbor[i][j];
-    if (lattice[ii] == isite && ii >= nlocal) {
+    if (iarray[0][ii] == isite && ii >= nlocal) {
       // Add ghost cluster to neighbors of local cluster
       clustlist[iclust].add_neigh(cluster_ids[ii]);
     }
@@ -1157,8 +1145,12 @@ void *AppLattice::extract(char *name)
   if (strcmp(name,"boxzhi") == 0) return (void *) &boxzhi;
 
   if (strcmp(name,"id") == 0) return (void *) id;
-  if (strcmp(name,"lattice") == 0) return (void *) lattice;
   if (strcmp(name,"xyz") == 0) return (void *) xyz;
+
+  if (strcmp(name,"site") == 0) {
+    if (ninteger < 1) return NULL;
+    return (void *) iarray[0];
+  }
 
   if (strstr(name,"iarray") == name) {
     int n = atoi(&name[6]);

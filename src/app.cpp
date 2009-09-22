@@ -16,6 +16,7 @@
 #include "app.h"
 #include "timer.h"
 #include "finish.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace SPPARKS_NS;
@@ -31,6 +32,12 @@ App::App(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   appclass = GENERAL;
   time = 0.0;
   first_run = 1;
+
+  ninteger = ndouble = 0;
+  id = NULL;
+  xyz = NULL;
+  iarray = NULL;
+  darray = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -38,6 +45,13 @@ App::App(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 App::~App()
 {
   delete [] style;
+
+  memory->sfree(id);
+  memory->destroy_2d_T_array(xyz);
+  for (int i = 0; i < ninteger; i++) memory->sfree(iarray[i]);
+  for (int i = 0; i < ndouble; i++) memory->sfree(darray[i]);
+  delete [] iarray;
+  delete [] darray;
 }
 
 /* ---------------------------------------------------------------------- */

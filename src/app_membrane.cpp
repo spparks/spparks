@@ -56,6 +56,7 @@ AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) :
   // define lattice and partition it across processors
 
   create_lattice();
+  lattice = iarray[0];
   sites = new int[1 + maxneigh];
 
   // setup interaction energy matrix

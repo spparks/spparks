@@ -70,15 +70,15 @@ void CommOffLattice::init(int nsector_request)
 
   // size_one = # of quantities per site = id + xyz + ninteger + ndouble
 
-  ninteger = appoff->ninteger;
-  ndouble = appoff->ndouble;
+  ninteger = app->ninteger;
+  ndouble = app->ndouble;
   size_one = 4 + ninteger + ndouble;
   if (ninteger == 1 && ndouble == 0) site_only = 1;
   else site_only = 0;
 
-  xprd = appoff->xprd;
-  yprd = appoff->yprd;
-  zprd = appoff->zprd;
+  xprd = app->xprd;
+  yprd = app->yprd;
+  zprd = app->zprd;
 
   // clear out old swaps
 
@@ -666,10 +666,10 @@ void CommOffLattice::perform_swap(Swap *swap)
 
   // reset site ptrs from app
 
-  int *id = appoff->id;
-  double **xyz = appoff->xyz;
-  int **iarray = appoff->iarray;
-  double **darray = appoff->darray;
+  int *id = app->id;
+  double **xyz = app->xyz;
+  int **iarray = app->iarray;
+  double **darray = app->darray;
   if (site_only) site = iarray[0];
   int *bin = appoff->bin;
   next = appoff->next;
@@ -904,10 +904,10 @@ void CommOffLattice::perform_swap_reverse(Swap *swap)
 
   // reset site ptrs from app
 
-  int *id = appoff->id;
-  double **xyz = appoff->xyz;
-  int **iarray = appoff->iarray;
-  double **darray = appoff->darray;
+  int *id = app->id;
+  double **xyz = app->xyz;
+  int **iarray = app->iarray;
+  double **darray = app->darray;
   if (site_only) site = iarray[0];
   int *bin = appoff->bin;
   next = appoff->next;

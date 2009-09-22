@@ -108,23 +108,11 @@ class AppLattice : public App {
   double tstop;                // requested time increment in sector
   double nstop;                // requested events per site in sector
 
-  double xprd,yprd,zprd;
-  double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // simulation box bounds
-  double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;    // my portion of box
-
   int nghost;                  // # of ghost sites I store
 
-                               // these arrays stored for owned + ghost sites
-  int *id;                     // global ID (1-N) of site
+                               // arrays for owned + ghost sites
   int *owner;                  // proc who owns the site
   int *index;                  // index of site on owning proc
-  double **xyz;                // coords of site
-
-                               // per-site storage for owned + ghost sites
-  int ninteger,ndouble;        // # of int/double per site, 0,0 = just lattice
-  int *lattice;                // default = single int value
-  int **iarray;                // one or more ints per site
-  double **darray;             // one or more doubles per site
 
   double *propensity;          // probabilities for each owned site
   int *i2site;                 // mapping of owned lattice to site index

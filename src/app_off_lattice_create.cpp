@@ -712,6 +712,10 @@ void AppOffLattice::read_file()
   char **values = new char*[nvalues];
   std::map<int,int>::iterator loc;
 
+  int site_only;
+  if (ninteger == 1 && ndouble == 0) site_only = 1;
+  else site_only = 0;
+
   while (nread < nglobal) {
     if (nglobal-nread > CHUNK) nchunk = CHUNK;
     else nchunk = nglobal - nread;
@@ -737,7 +741,7 @@ void AppOffLattice::read_file()
       loc = hash.find(idsite);
       if (loc != hash.end()) {
 	m = loc->second;
-	if (ninteger == 0 && ndouble == 0) site[m] = atoi(values[1]);
+	if (site_only) iarray[0][m] = atoi(values[1]);
 	else {
 	  n = 1;
 	  for (k = 0; k < ninteger; k++) iarray[k][m] = atoi(values[n++]);

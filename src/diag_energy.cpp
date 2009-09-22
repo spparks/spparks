@@ -32,12 +32,9 @@ using namespace SPPARKS_NS;
 DiagEnergy::DiagEnergy(SPPARKS *spk, int narg, char **arg) : 
   Diag(spk,narg,arg)
 {
-  if (app->appclass == App::LATTICE)
-    latticeflag = 1;
-  else if (app->appclass == App::OFF_LATTICE)
-    latticeflag = 0;
-  else
-    error->all("Diag style incompatible with app style");
+  if (app->appclass == App::LATTICE) latticeflag = 1;
+  else if (app->appclass == App::OFF_LATTICE) latticeflag = 0;
+  else error->all("Diag style incompatible with app style");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -59,11 +59,11 @@ class CommLattice : protected Pointers {
   Swap **sectorreverseswap;
   int nsector;
 
-  int sitecustom;
   int ninteger,ndouble;
-  int *lattice;
+  int site_only;                     // only 1 int, no doubles
   int **iarray;
   double **darray;
+  int *site;                         // simply points to iarray[0]
 
   Swap *create_swap_all();
   Swap *create_swap_all_reverse();
@@ -76,7 +76,7 @@ class CommLattice : protected Pointers {
   void create_recv_from_send(int, int, Site *, Swap *);
   void create_recv_from_list(int, Site *, Swap *);
 
-  void perform_swap_lattice(Swap *);
+  void perform_swap_site(Swap *);
   void perform_swap_int(Swap *);
   void perform_swap_double(Swap *);
   void perform_swap_general(Swap *);

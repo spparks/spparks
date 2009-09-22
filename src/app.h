@@ -19,6 +19,11 @@
 namespace SPPARKS_NS {
   
 class App : protected Pointers {
+  friend class CommLattice;
+  friend class CommOffLattice;
+  friend class DiagCluster;
+  friend class Dump;
+
  public:
   enum APP_CLASSES{GENERAL,LATTICE,OFF_LATTICE};
 
@@ -52,6 +57,17 @@ class App : protected Pointers {
   int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
   int iprocx,iprocy,iprocz;         // index of me in 3d grid of procs
 
+  double xprd,yprd,zprd;                               // global domain
+  double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // global box bounds
+  double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;    // my portion of box
+
+  // arrays for owned + ghost sites
+
+  int ninteger,ndouble;        // # of ints and doubles per site
+  int *id;                     // global ID (1-N) of site
+  double **xyz;                // coords of site
+  int **iarray;                // one or more ints per site
+  double **darray;             // one or more doubles per site
 
   void procs2domain_1d(int, int, int,
 		       double, double, double, int &,

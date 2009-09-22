@@ -35,6 +35,7 @@ class AppPotts : public AppLattice {
 
  protected:
   int nspins;
+  int *lattice;
   int *sites,*unique;
 };
 

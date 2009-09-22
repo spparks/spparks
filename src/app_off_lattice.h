@@ -21,7 +21,6 @@ namespace SPPARKS_NS {
 
 class AppOffLattice : public App {
   friend class CommOffLattice;
-  friend class Dump;
 
  public:
   int nglobal;                 // global # of sites
@@ -38,6 +37,7 @@ class AppOffLattice : public App {
 
   // pure virtual functions, must be defined in child class
 
+  virtual void grow_app() = 0;
   virtual double site_energy(int) = 0;
   virtual void site_event_rejection(int, class RandomPark *) = 0;
   virtual double site_propensity(int) = 0;
@@ -89,26 +89,14 @@ class AppOffLattice : public App {
   double tstop;                // requested time increment in sector
   double nstop;                // requested events per site in sector
 
-  double xprd,yprd,zprd;
-  double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // simulation box bounds
-  double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;    // my portion of box
-
   int nmax;                    // max # of sites per-site arrays can store
   int nghost;                  // # of ghost sites I store
+  int size_one;                // quantities to comm per site
 
-                               // these arrays stored for owned + ghost sites
-  int *id;                     // global ID (1-N) of site
-  double **xyz;                // coords of site
+                               // arrays for owned + ghost sites
   int *bin;                    // bin the site is in
   int *next,*prev;             // ptrs to next,previous site in bin, -1 if none
   int *nextimage;              // index of next image of site, -1 if none
-
-                               // per-site storage for owned + ghost sites
-  int ninteger,ndouble;        // # of int/double per site, 0,0 = just lattice
-  int size_one;                // quantities to comm per site
-  int *site;                   // default = single int value
-  int **iarray;                // one or more ints per site
-  double **darray;             // one or more doubles per site
 
   int *site2i;                 // list of site indices that are in sector
   int *in_sector;              // 1 if site is in sector, 0 if not
@@ -164,8 +152,10 @@ class AppOffLattice : public App {
 
   void init_bins();
   void init_stencil();
+
   void neighbor(int, double);
   void move(int);
+
   int site2bin(int);
   void delete_from_bin(int, int);
   void add_to_bin(int, int);
@@ -174,14 +164,13 @@ class AppOffLattice : public App {
   void add_to_free(int);
   void delete_all_ghosts();
   int new_ghost_site();
+  int new_owned_site();
+  int delete_owned_site(int);
   void add_free(int);
   void add_image_bins(int, int, int, int);
-  void bin_sites();
-  void grow(int);
   int neighproc(int, int, int, int);
+  void grow(int);
   int inside_sector(int);
-  int delete_owned_site(int);
-  int new_owned_site();
 
   void options(int, char **);
   void create_domain();

@@ -59,18 +59,11 @@ AppOffLattice::AppOffLattice(SPPARKS *spk, int narg, char **arg) :
   in_sector = NULL;
 
   temperature = 0.0;
-  
-  site = NULL;
-  iarray = NULL;
-  darray = NULL;
-  ninteger = ndouble = 0;
 
   nlocal = nghost = nmax = 0;
   nfree = 0;
   freehead = -1;
 
-  id = NULL;
-  xyz = NULL;
   bin = NULL;
   next = prev = nextimage = NULL;
 
@@ -102,13 +95,6 @@ AppOffLattice::~AppOffLattice()
   memory->sfree(site2i);
   memory->sfree(in_sector);
 
-  for (int i = 0; i < ninteger; i++) memory->sfree(iarray[i]);
-  for (int i = 0; i < ndouble; i++) memory->sfree(darray[i]);
-  delete [] iarray;
-  delete [] darray;
-
-  memory->sfree(id);
-  memory->destroy_2d_T_array(xyz);
   memory->sfree(bin);
   memory->sfree(next);
   memory->sfree(prev);
@@ -1445,7 +1431,9 @@ int AppOffLattice::delete_owned_site(int i)
   xyz[i][0] = xyz[nlocal-1][0];
   xyz[i][1] = xyz[nlocal-1][1];
   xyz[i][2] = xyz[nlocal-1][2];
-  site[i] = site[nlocal-1];
+  for (int k = 0; k < ninteger; k++) iarray[k][i] = iarray[k][nlocal-1];
+  for (int k = 0; k < ndouble; k++) darray[k][i] = darray[k][nlocal-1];
+
   bin[i] = bin[nlocal-1];
   next[i] = next[nlocal-1];
   prev[i] = prev[nlocal-1];
@@ -1618,9 +1606,7 @@ void AppOffLattice::grow(int n)
     darray[i] = (double *) 
       memory->srealloc(darray[i],nmax*sizeof(double),"app:darray");
 
-  // temporary for now
-
-  site = iarray[0];
+  grow_app();
 }
 
 /* ----------------------------------------------------------------------

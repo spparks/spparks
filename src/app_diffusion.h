@@ -41,6 +41,8 @@ class AppDiffusion : public AppLattice {
   int *echeck,*pcheck;
   double *ecoord;
 
+  int *lattice;
+
   struct Event {           // one event for an owned site
     double propensity;     // propensity of this event
     int destination;       // local ID of destination site

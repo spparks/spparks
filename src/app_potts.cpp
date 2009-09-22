@@ -50,6 +50,7 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
   // define lattice and partition it across processors
   
   create_lattice();
+  lattice = iarray[0];
   sites = new int[1 + maxneigh];
   unique = new int[1 + maxneigh];
 

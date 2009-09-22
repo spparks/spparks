@@ -91,7 +91,7 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
     applattice = (AppLattice *) app;
     latticeflag = 1;
   } else if (app->appclass == App::OFF_LATTICE) {
-    appofflattice = (AppOffLattice *) app;
+    appoff = (AppOffLattice *) app;
     latticeflag = 0;
   } else
     error->all("Dump command can only be used for spatial applications");
@@ -135,9 +135,7 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
     } else if (strcmp(word,"site") == 0) {
       pack_choice[i] = &Dump::pack_site;
       vtype[i] = INT;
-      if (latticeflag && applattice->lattice == NULL)
-	error->all("Dumping a quantity application does not support");
-      if (latticeflag == 0 && appofflattice->site == NULL)
+      if (app->iarray == NULL)
 	error->all("Dumping a quantity application does not support");
     } else if (strcmp(word,"x") == 0) {
       pack_choice[i] = &Dump::pack_x;
@@ -162,22 +160,14 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
       pack_choice[i] = &Dump::pack_iarray;
       vtype[i] = INT;
       vindex[i] = atoi(&word[1]);
-      if (latticeflag && 
-	  (vindex[i] < 1 || vindex[i] > applattice->ninteger))
-	error->all("Invalid keyword in dump command");
-      if (latticeflag == 0 && 
-	  (vindex[i] < 1 || vindex[i] > appofflattice->ninteger))
+      if (latticeflag && (vindex[i] < 1 || vindex[i] > app->ninteger))
 	error->all("Invalid keyword in dump command");
       vindex[i]--;
     } else if (word[0] == 'd') {
       pack_choice[i] = &Dump::pack_darray;
       vtype[i] = DOUBLE;
       vindex[i] = atoi(&word[1]) - 1;
-      if (latticeflag && 
-	  (vindex[i] < 1 || vindex[i] > applattice->ndouble))
-	error->all("Invalid keyword in dump command");
-      if (latticeflag == 0 && 
-	  (vindex[i] < 1 || vindex[i] > appofflattice->ndouble))
+      if (latticeflag && (vindex[i] < 1 || vindex[i] > app->ndouble))
 	error->all("Invalid keyword in dump command");
       vindex[i]--;
 
@@ -211,22 +201,14 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 
   // dump params
 
-  if (latticeflag) {
-    nlocal = applattice->nlocal;
-    boxxlo = applattice->boxxlo;
-    boxxhi = applattice->boxxhi;
-    boxylo = applattice->boxylo;
-    boxyhi = applattice->boxyhi;
-    boxzlo = applattice->boxzlo;
-    boxzhi = applattice->boxzhi;
-  } else {
-    boxxlo = appofflattice->boxxlo;
-    boxxhi = appofflattice->boxxhi;
-    boxylo = appofflattice->boxylo;
-    boxyhi = appofflattice->boxyhi;
-    boxzlo = appofflattice->boxzlo;
-    boxzhi = appofflattice->boxzhi;
-  }
+  if (latticeflag) nlocal = applattice->nlocal;
+
+  boxxlo = app->boxxlo;
+  boxxhi = app->boxxhi;
+  boxylo = app->boxylo;
+  boxyhi = app->boxyhi;
+  boxzlo = app->boxzlo;
+  boxzhi = app->boxzhi;
 
   flush_flag = 1;
   logfreq = 0;
@@ -383,9 +365,7 @@ void Dump::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"id") == 0) thresh_array[nthresh] = ID;
 
       else if (strcmp(arg[iarg+1],"site") == 0) {
-	if (latticeflag && applattice->lattice == NULL)
-	  error->all("Threshold for a quantity application does not support");
-	if (latticeflag == 0 && appofflattice->site == NULL)
+	if (app->iarray == NULL)
 	  error->all("Threshold for a quantity application does not support");
 	thresh_array[nthresh] = SITE;
       }
@@ -405,23 +385,15 @@ void Dump::modify_params(int narg, char **arg)
       else if (arg[iarg+1][0] == 'i') {
 	thresh_array[nthresh] = IARRAY;
 	thresh_index[nthresh] = atoi(&arg[iarg+1][1]);
-	if (latticeflag && (thresh_index[nthresh] < 1 || 
-			    thresh_index[nthresh] > applattice->ninteger))
-	  error->all("Threshold for a quantity application does not support");
-	if (latticeflag == 0 && (thresh_index[nthresh] < 1 || 
-				 thresh_index[nthresh] > 
-				 appofflattice->ninteger))
+	if (thresh_index[nthresh] < 1 || 
+	    thresh_index[nthresh] > app->ninteger)
 	  error->all("Threshold for a quantity application does not support");
 	thresh_index[nthresh]--;
       } else if (arg[iarg+1][0] == 'd') {
 	thresh_array[nthresh] = DARRAY;
 	thresh_index[nthresh] = atoi(&arg[iarg+1][1]);
-	if (latticeflag && (thresh_index[nthresh] < 1 || 
-			    thresh_index[nthresh] > applattice->ndouble))
-	  error->all("Threshold for a quantity application does not support");
-	if (latticeflag == 0 && (thresh_index[nthresh] < 1 || 
-				 thresh_index[nthresh] > 
-				 appofflattice->ndouble))
+	if (thresh_index[nthresh] < 1 || 
+	    thresh_index[nthresh] > app->ndouble)
 	  error->all("Threshold for a quantity application does not support");
 	thresh_index[nthresh]--;
 
@@ -541,7 +513,7 @@ int Dump::count()
 
   // update nlocal if off-lattice app
 
-  if (latticeflag == 0) nlocal = appofflattice->nlocal;
+  if (latticeflag == 0) nlocal = appoff->nlocal;
 
   // insure choose arrays are big enough
   // initialize choose[] to select all sites if reallocate
@@ -578,30 +550,23 @@ int Dump::count()
     // customize by adding to if statement
 
     if (thresh_array[ithresh] == ID) {
-      int *id;
-      if (latticeflag) id = applattice->id;
-      else id = appofflattice->id;
+      int *id = app->id;
       for (i = 0; i < nlocal; i++) dchoose[i] = id[i];
       ptr = dchoose;
       nstride = 1;
     } else if (thresh_array[ithresh] == SITE) {
-      int *site;
-      if (latticeflag) site = applattice->lattice;
-      else site = appofflattice->site;
+      int *site = app->iarray[0];
       for (i = 0; i < nlocal; i++) dchoose[i] = site[i];
       ptr = dchoose;
       nstride = 1;
     } else if (thresh_array[ithresh] == X) {
-      if (latticeflag) ptr = &applattice->xyz[0][0];
-      else ptr = &appofflattice->xyz[0][0];
+      ptr = &app->xyz[0][0];
       nstride = 3;
     } else if (thresh_array[ithresh] == Y) {
-      if (latticeflag) ptr = &applattice->xyz[0][1];
-      else ptr = &appofflattice->xyz[0][1];
+      ptr = &app->xyz[0][1];
       nstride = 3;
     } else if (thresh_array[ithresh] == Z) {
-      if (latticeflag) ptr = &applattice->xyz[0][2];
-      else ptr = &appofflattice->xyz[0][2];
+      ptr = &app->xyz[0][2];
       nstride = 3;
     } else if (thresh_array[ithresh] == ENERGY) {
       if (latticeflag)
@@ -609,7 +574,7 @@ int Dump::count()
 	  dchoose[i] = applattice->site_energy(i);
       else
 	for (i = 0; i < nlocal; i++)
-	  dchoose[i] = appofflattice->site_energy(i);
+	  dchoose[i] = appoff->site_energy(i);
       ptr = dchoose;
       nstride = 1;
     } else if (thresh_array[ithresh] == PROPENSITY) {
@@ -618,22 +583,21 @@ int Dump::count()
 	  dchoose[i] = applattice->site_propensity(i);
       else
 	for (i = 0; i < nlocal; i++)
-	  dchoose[i] = appofflattice->site_propensity(i);
+	  dchoose[i] = appoff->site_propensity(i);
       ptr = dchoose;
       nstride = 1;
     } else if (thresh_array[ithresh] == IARRAY) {
       int index = thresh_index[ithresh];
       if (latticeflag)
 	for (i = 0; i < nlocal; i++)
-	  dchoose[i] = applattice->iarray[index][i];
+	  dchoose[i] = app->iarray[index][i];
       else
 	for (i = 0; i < nlocal; i++)
-	  dchoose[i] = appofflattice->iarray[index][i];
+	  dchoose[i] = app->iarray[index][i];
       ptr = dchoose;
       nstride = 1;
     } else if (thresh_array[ithresh] == DARRAY) {
-      if (latticeflag) ptr = applattice->darray[thresh_index[ithresh]];
-      else ptr = appofflattice->darray[thresh_index[ithresh]];
+      ptr = app->darray[thresh_index[ithresh]];
       nstride = 1;
     }
 
@@ -820,9 +784,7 @@ void Dump::openfile()
 
 void Dump::pack_id(int n)
 {
-  int *id;
-  if (latticeflag) id = applattice->id;
-  else id = appofflattice->id;
+  int *id = app->id;
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {
@@ -836,9 +798,7 @@ void Dump::pack_id(int n)
 
 void Dump::pack_site(int n)
 {
-  int *site;
-  if (latticeflag) site = applattice->lattice;
-  else site = appofflattice->site;
+  int *site = app->iarray[0];
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {
@@ -852,9 +812,7 @@ void Dump::pack_site(int n)
 
 void Dump::pack_x(int n)
 {
-  double **xyz;
-  if (latticeflag) xyz = applattice->xyz;
-  else xyz = appofflattice->xyz;
+  double **xyz = app->xyz;
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {
@@ -868,9 +826,7 @@ void Dump::pack_x(int n)
 
 void Dump::pack_y(int n)
 {
-  double **xyz;
-  if (latticeflag) xyz = applattice->xyz;
-  else xyz = appofflattice->xyz;
+  double **xyz = app->xyz;
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {
@@ -884,9 +840,7 @@ void Dump::pack_y(int n)
 
 void Dump::pack_z(int n)
 {
-  double **xyz;
-  if (latticeflag) xyz = applattice->xyz;
-  else xyz = appofflattice->xyz;
+  double **xyz = app->xyz;
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {
@@ -910,7 +864,7 @@ void Dump::pack_energy(int n)
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (choose[i]) {
-	buf[n] = appofflattice->site_energy(i);
+	buf[n] = appoff->site_energy(i);
 	n += size_one;
       }
     }
@@ -931,7 +885,7 @@ void Dump::pack_propensity(int n)
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (choose[i]) {
-	buf[n] = appofflattice->site_propensity(i);
+	buf[n] = appoff->site_propensity(i);
 	n += size_one;
       }
     }
@@ -942,9 +896,7 @@ void Dump::pack_propensity(int n)
 
 void Dump::pack_iarray(int n)
 {
-  int *ivec;
-  if (latticeflag) ivec = applattice->iarray[vindex[n]];
-  else ivec = appofflattice->iarray[vindex[n]];
+  int *ivec = app->iarray[vindex[n]];
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {
@@ -958,9 +910,7 @@ void Dump::pack_iarray(int n)
 
 void Dump::pack_darray(int n)
 {
-  double *dvec;
-  if (latticeflag) dvec = applattice->darray[n];
-  else dvec = appofflattice->darray[n];
+  double *dvec = app->darray[vindex[n]];
 
   for (int i = 0; i < nlocal; i++) {
     if (choose[i]) {

@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "comm_lattice.h"
+#include "app.h"
 #include "app_lattice.h"
 #include "memory.h"
 #include "error.h"
@@ -64,7 +65,7 @@ CommLattice::~CommLattice()
    3 kinds of patterns: all ghosts, sector ghosts, sector reverse
    if sectorflag = 0, just ghosts for entire proc domain 
    if sectorflag = 1, do all and sector ghosts, reverse if needed
-   array = NULL = communicate lattice or iarray/darray from app
+   array = NULL = communicate iarray/darray from app
    array = non-NULL = communicate passed-in array (from diagnostic)
 ------------------------------------------------------------------------- */
 
@@ -76,15 +77,15 @@ void CommLattice::init(int nsector_request, int delpropensity, int delevent,
 
   AppLattice *applattice = (AppLattice *) app;
 
-  ninteger = applattice->ninteger;
-  ndouble = applattice->ndouble;
+  ninteger = app->ninteger;
+  ndouble = app->ndouble;
+  iarray = app->iarray;
+  darray = app->darray;
 
-  iarray = applattice->iarray;
-  darray = applattice->darray;
-
-  if (array) lattice = array;
-  else if (iarray) lattice = iarray[0];
-  else lattice = NULL;
+  if (array) site_only = 1;
+  else if (ninteger == 1 && ndouble == 0) site_only = 1;
+  else site_only = 0;
+  if (site_only) site = iarray[0];
 
   // clear out old swaps
 
@@ -130,7 +131,7 @@ void CommLattice::init(int nsector_request, int delpropensity, int delevent,
 
 void CommLattice::all()
 {
-  if (ninteger == 1 && ndouble == 0) perform_swap_lattice(allswap);
+  if (site_only) perform_swap_site(allswap);
   else if (ndouble == 0) perform_swap_int(allswap);
   else if (ninteger == 0) perform_swap_double(allswap);
   else perform_swap_general(allswap);
@@ -144,7 +145,7 @@ void CommLattice::all_reverse()
 {
   if (delreverse == 0) return;
 
-  if (ninteger == 1 && ndouble == 0) perform_swap_lattice(reverseswap);
+  if (site_only) perform_swap_site(reverseswap);
   else if (ndouble == 0) perform_swap_int(reverseswap);
   else if (ninteger == 0) perform_swap_double(reverseswap);
   else perform_swap_general(reverseswap);
@@ -156,7 +157,7 @@ void CommLattice::all_reverse()
 
 void CommLattice::sector(int isector)
 {
-  if (ninteger == 1 && ndouble == 0) perform_swap_lattice(sectorswap[isector]);
+  if (site_only) perform_swap_site(sectorswap[isector]);
   else if (ndouble == 0) perform_swap_int(sectorswap[isector]);
   else if (ninteger == 0) perform_swap_double(sectorswap[isector]);
   else perform_swap_general(sectorswap[isector]);
@@ -170,8 +171,7 @@ void CommLattice::reverse_sector(int isector)
 {
   if (delreverse == 0) return;
 
-  if (ninteger == 1 && ndouble == 0) 
-    perform_swap_lattice(sectorreverseswap[isector]);
+  if (site_only) perform_swap_site(sectorreverseswap[isector]);
   else if (ndouble == 0) perform_swap_int(sectorreverseswap[isector]);
   else if (ninteger == 0) perform_swap_double(sectorreverseswap[isector]);
   else perform_swap_general(sectorreverseswap[isector]);
@@ -191,7 +191,7 @@ CommLattice::Swap *CommLattice::create_swap_all()
   int nghost = applattice->nghost;
   int ntotal = nlocal + nghost;
 
-  int *id = applattice->id;
+  int *id = app->id;
 
   // buf = list of global IDs I need to receive
 
@@ -238,7 +238,7 @@ CommLattice::Swap *CommLattice::create_swap_all_reverse()
   int nghost = applattice->nghost;
   int ntotal = nlocal + nghost;
 
-  int *id = applattice->id;
+  int *id = app->id;
   int *owner = applattice->owner;
   int *numneigh = applattice->numneigh;
   int **neighbor = applattice->neighbor;
@@ -311,7 +311,7 @@ CommLattice::Swap *CommLattice::create_swap_sector(int nsites, int *site2i)
   int nghost = applattice->nghost;
   int ntotal = nlocal + nghost;
 
-  int *id = applattice->id;
+  int *id = app->id;
   int *numneigh = applattice->numneigh;
   int **neighbor = applattice->neighbor;
 
@@ -384,7 +384,7 @@ CommLattice::Swap *CommLattice::create_swap_sector_reverse(int nsites,
   int nghost = applattice->nghost;
   int ntotal = nlocal + nghost;
 
-  int *id = applattice->id;
+  int *id = app->id;
   int *owner = applattice->owner;
   int *numneigh = applattice->numneigh;
   int **neighbor = applattice->neighbor;
@@ -456,8 +456,8 @@ void CommLattice::create_send_from_recv(int nsite, int maxsite,
   int i,isend;
 
   AppLattice *applattice = (AppLattice *) app;
+  int *id = app->id;
   int nlocal = applattice->nlocal;
-  int *id = applattice->id;
 
   Site *bufcopy = (Site *) 
     memory->smalloc(maxsite*sizeof(Site),"comm:bufcopy");
@@ -551,9 +551,9 @@ void CommLattice::create_send_from_recv(int nsite, int maxsite,
   int *sibuf = NULL;
   double *sdbuf = NULL;
   if (max) {
-    if (sitecustom == 0) sibuf = new int[max];
-    else if (ninteger && !ndouble) sibuf = new int[ninteger*max];
-    else if (ndouble && !ninteger) sdbuf = new double[ndouble*max];
+    if (site_only) sibuf = new int[max];
+    else if (ndouble == 0) sibuf = new int[ninteger*max];
+    else if (ninteger == 0) sdbuf = new double[ndouble*max];
     else sdbuf = new double[(ninteger+ndouble)*max];
   }
 
@@ -634,9 +634,9 @@ void CommLattice::create_send_from_list(int nsite, Site *buf, Swap *swap)
   int *sibuf = NULL;
   double *sdbuf = NULL;
   if (max) {
-    if (sitecustom == 0) sibuf = new int[max];
-    else if (ninteger && !ndouble) sibuf = new int[ninteger*max];
-    else if (ndouble && !ninteger) sdbuf = new double[ndouble*max];
+    if (site_only) sibuf = new int[max];
+    else if (ndouble == 0) sibuf = new int[ninteger*max];
+    else if (ninteger == 0) sdbuf = new double[ndouble*max];
     else sdbuf = new double[(ninteger+ndouble)*max];
   }
 
@@ -663,8 +663,8 @@ void CommLattice::create_recv_from_send(int nsite, int maxsite,
   int i,irecv;
 
   AppLattice *applattice = (AppLattice *) app;
+  int *id = app->id;
   int nlocal = applattice->nlocal;
-  int *id = applattice->id;
 
   Site *bufcopy = (Site *) 
     memory->smalloc(maxsite*sizeof(Site),"comm:bufcopy");
@@ -755,9 +755,9 @@ void CommLattice::create_recv_from_send(int nsite, int maxsite,
   // sizes depend on number of ints and doubles stored per site
 
   for (i = 0; i < nrecv; i++) {
-    if (sitecustom == 0) ribuf[i] = new int[rcount[i]];
-    else if (ninteger && !ndouble) ribuf[i] = new int[ninteger*rcount[i]];
-    else if (ndouble && !ninteger) rdbuf[i] = new double[ndouble*rcount[i]];
+    if (site_only) ribuf[i] = new int[rcount[i]];
+    else if (ndouble == 0) ribuf[i] = new int[ninteger*rcount[i]];
+    else if (ninteger == 0) rdbuf[i] = new double[ndouble*rcount[i]];
     else rdbuf[i] = new double[(ninteger+ndouble)*rcount[i]];
   }
 
@@ -848,9 +848,9 @@ void CommLattice::create_recv_from_list(int nsite, Site *buf, Swap *swap)
   // sizes depend on number of ints and doubles stored per site
 
   for (i = 0; i < nrecv; i++) {
-    if (sitecustom == 0) ribuf[i] = new int[rcount[i]];
-    else if (ninteger && !ndouble) ribuf[i] = new int[ninteger*rcount[i]];
-    else if (ndouble && !ninteger) rdbuf[i] = new double[ndouble*rcount[i]];
+    if (site_only) ribuf[i] = new int[rcount[i]];
+    else if (ndouble == 0) ribuf[i] = new int[ninteger*rcount[i]];
+    else if (ninteger == 0) rdbuf[i] = new double[ndouble*rcount[i]];
     else rdbuf[i] = new double[(ninteger+ndouble)*rcount[i]];
   }
 
@@ -905,10 +905,10 @@ void CommLattice::free_swap(Swap *swap)
 
 /* ----------------------------------------------------------------------
    communicate site values via Swap instructions
-   use lattice array as source/destination
+   use site array = iarray[0] as source/destination
 ------------------------------------------------------------------------- */
 
-void CommLattice::perform_swap_lattice(Swap *swap)
+void CommLattice::perform_swap_site(Swap *swap)
 {
   int i,j;
   int *index;
@@ -926,7 +926,7 @@ void CommLattice::perform_swap_lattice(Swap *swap)
     index = swap->sindex[i];
     buf = swap->sibuf;
     for (j = 0; j < swap->scount[i]; j++)
-      buf[j] = lattice[index[j]];
+      buf[j] = site[index[j]];
     MPI_Send(buf,swap->scount[i],MPI_INT,swap->sproc[i],0,world);
   }
 
@@ -940,7 +940,7 @@ void CommLattice::perform_swap_lattice(Swap *swap)
     index = swap->rindex[i];
     buf = swap->ribuf[i];
     for (j = 0; j < swap->rcount[i]; j++)
-      lattice[index[j]] = buf[j];
+      site[index[j]] = buf[j];
   }
 }
 

@@ -65,7 +65,7 @@ class Dump : protected Pointers {
 
   int latticeflag;           // 1 for on-lattice, 0 for off-lattice app
   class AppLattice *applattice;
-  class AppOffLattice *appofflattice;
+  class AppOffLattice *appoff;
 
   int nglobal,nlocal,nx_local,ny_local,nz_local;
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;

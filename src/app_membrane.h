@@ -34,6 +34,7 @@ class AppMembrane : public AppLattice {
  private:
   double w01,w11,mu;
   double interact[4][4];
+  int *lattice;
   int *sites;
 };
 

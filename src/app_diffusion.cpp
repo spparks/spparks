@@ -120,6 +120,7 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
   // define lattice and partition it across processors
 
   create_lattice();
+  lattice = iarray[0];
 
   // for no_energy or linear:
   // make sites large enough for 2 sites and 1st/2nd nearest neighbors

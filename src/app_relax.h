@@ -24,6 +24,7 @@ class AppRelax : public AppOffLattice {
  public:
   AppRelax(class SPPARKS *, int, char **);
   ~AppRelax();
+  void grow_app();
   void init_app();
 
   double site_energy(int);
@@ -33,8 +34,9 @@ class AppRelax : public AppOffLattice {
 
  private:
   double delta,deltasq;
+  int *site;
   class Pair *pair;
-
+  
   double site_energy_neighbor(int);
 };
 

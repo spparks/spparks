@@ -56,23 +56,24 @@ class CommOffLattice : protected Pointers {
 
   class AppOffLattice *appoff;
 
-  int nchunk;
-  int chunklo[8][5][3],chunkhi[8][5][3];
-
   int size_one;
   int smax,rmax;
   double *sbuf,*rbuf;
 
   int ninteger,ndouble;
-  int site_only;
+  int site_only;                    // only 1 int, no doubles
   double xprd,yprd,zprd;
+
+  int nchunk;
+  int chunklo[8][5][3],chunkhi[8][5][3];
 
   Swap *create_swap_all();
   Swap *create_swap_sector(int);
   Swap *create_swap_sector_reverse(int);
+  void free_swap(Swap *);
+
   void create_send_from_list(int, int **, Swap *);
   void create_recv_from_send(Swap *);
-  void free_swap(Swap *);
 
   void perform_swap(Swap *);
   void perform_swap_reverse(Swap *);

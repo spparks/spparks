@@ -113,18 +113,19 @@ void DiagCluster::init()
   nglobal = applattice->nglobal;
   nlocal = applattice->nlocal;
   nghost = applattice->nghost;
-  boxxlo = applattice->boxxlo;
-  boxxhi = applattice->boxxhi;
-  boxylo = applattice->boxylo;
-  boxyhi = applattice->boxyhi;
-  boxzlo = applattice->boxzlo;
-  boxzhi = applattice->boxzhi;
-  xyz = applattice->xyz;
-  id = applattice->id;
 
-  if (nglobal > 2.1474e9) {
+  xyz = app->xyz;
+  id = app->id;
+
+  boxxlo = app->boxxlo;
+  boxxhi = app->boxxhi;
+  boxylo = app->boxylo;
+  boxyhi = app->boxyhi;
+  boxzlo = app->boxzlo;
+  boxzhi = applattice->boxzhi;
+
+  if (nglobal > 2.1474e9)
     error->all("Diag dump_style does not work if ncluster > 2^31");
-  }
 
   memory->destroy_1d_T_array(cluster_ids,0);
   memory->create_1d_T_array(cluster_ids,0,nlocal+nghost-1,
@@ -249,19 +250,17 @@ void DiagCluster::generate_clusters()
   int iv;
   double dv;
 
-  // Update ghost spins
-    applattice->comm->all();
+  // update ghost spins
 
+  applattice->comm->all();
 
-  // Set ghost site ids to -1
-  for (int i = nlocal; i < nlocal+nghost; i++) {
-    cluster_ids[i] = -1;
-  }
+  // set ghost site ids to -1
+  // set local site ids to zero 
 
-  // Set local site ids to zero 
-  for (int i = 0; i < nlocal; i++) {
-    cluster_ids[i] = 0;
-  }
+  for (int i = nlocal; i < nlocal+nghost; i++) cluster_ids[i] = -1;
+  for (int i = 0; i < nlocal; i++) cluster_ids[i] = 0;
+
+  int *site = app->iarray[0];
 
   int nclustertot,ii,jj,kk,id;
   double vol,volsum,voltot;
@@ -270,28 +269,30 @@ void DiagCluster::generate_clusters()
   volsum = 0.0;
 
   // loop over all owned sites
+
   for (int i = 0; i < nlocal; i++) {
-    // If already visited, skip
-    if (cluster_ids[i] != 0) {
-      continue;
-    }
+    if (cluster_ids[i] != 0) continue;
     
-    // Ask App to push first site onto stack
-    // If it does not, do nothing
+    // ask App to push first site onto stack
+    // if it does not, do nothing
+
     id = ncluster+1;
     applattice->push_new_site(i,cluster_ids,id,&cluststack);
     if (cluststack.size()) {
-      iv = applattice->lattice[i];
+      iv = site[i];
       dv = 0.0;
       vol = 0.0;
       add_cluster(id,iv,dv,vol,0,NULL);
 
       while (cluststack.size()) {
+
 	// First top then pop
+
 	ii = cluststack.top();
 	cluststack.pop();
 	vol++;
-	applattice->push_connected_neighbors(ii,cluster_ids,ncluster,&cluststack);
+	applattice->push_connected_neighbors(ii,cluster_ids,
+					     ncluster,&cluststack);
       }
       clustlist[ncluster-1].volume = vol;
       volsum+=vol;
@@ -308,18 +309,19 @@ void DiagCluster::generate_clusters()
   }
 
   // change site ids to global ids
-  for (int i = 0; i < nlocal; i++) {
+
+  for (int i = 0; i < nlocal; i++)
     if (cluster_ids[i] != 0)
       cluster_ids[i] = clustlist[cluster_ids[i]-1].global_id;
-  }
 
-  // Communicate side ids
+  // communicate side ids
+
   comm->all();
 
   // loop over all owned sites adjacent to boundary
-  for (int i = 0; i < nlocal; i++) {
+
+  for (int i = 0; i < nlocal; i++)
     applattice->connected_ghosts(i,cluster_ids,clustlist,idoffset);
-  }
 
   // pack my clusters into buffer
 
