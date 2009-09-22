@@ -17,6 +17,15 @@ The current version of SPPARKS is 13 April 2009.
 
 :line
 
+[22 Sept 2009]
+
+:line
+
+Made various bookkeeping changes internal to SPPARKS.
+
+This is the "list of changed files"_patches/files.22Sep09 from the 21
+Sept 2009 version.
+
 [21 Sept 2009]
 
 Added the first off-lattice application to SPPARKS to perform
