@@ -33,14 +33,15 @@ particles, so that grain growth cannot proceed.  However, occasionally
 one grain breaks free and is able to grow at the expense of others,
 leading to abnormal growth.
 
-The SPPARKS application ("app_style potts/pin"_doc/app_potts_pin.html)
-that runs this mode implements a Potts model of grain growth and also
-allows for inert pinning particles.  The pinning particles can be
-inserted preferentially at grain boundaries or throughtout the system.
-Several hundred independent runs were made on 300x300x300 lattices,
-each of at least a million Monte Carlo steps (sweep over all lattice
-sites) at finite simulation temperature, to acquire enough data for
-statistical analysis.
+The on-lattice SPPARKS application ("app_style
+potts/pin"_doc/app_potts_pin.html) that runs this model implements a
+Potts model of grain growth and also allows for inert pinning
+particles.  The pinning particles can be inserted preferentially at
+grain boundaries or throughtout the system.  Several hundred
+independent runs were made on 300x300x300 lattices, each of at least a
+million Monte Carlo steps (sweep over all lattice sites) at finite
+simulation temperature, to acquire enough data for statistical
+analysis.
 
 The images and movies show typical results for systems with 5 volume
 percent pinning particles, inserted when the average grain radius was
@@ -58,7 +59,31 @@ Two images and two 1.5 Mb AVI movies
 
 Erbium hydrides :h4,link(erbium)
 
-Coming soon.
+This is work by Corbett Battaile and Steve Plimpton at Sandia, to
+model the mobility of gaseous species such as tritium and helium in
+metal hydrides, like erbium.  Such hydrides are commonly used for
+neutron generation in many applications in industry, medicine, and
+national security, including petroleum exploration, explosives
+detection, toxic waste analysis, and boron neutron capture therapy.
+As tritium decays into helium, the helium gas clusters to form
+bubbles, often found to be preferentially oriented along \{111\}
+planes in the erbium lattice.
+
+The on-lattice SPPARKS application that runs this model uses an fcc
+lattice with additional tetrahedral and octrahedral interstitial
+sites.  Both the tritium and helium can diffuse through the lattice on
+the interstitial sites.
+
+The image is a snapshot from a simulation on 1024 processors of a
+500x500x500 unit-cell model (2 billion sites) which encodes the list
+of 1-, 2-, and 3-site migration mechanisms for the two mobile species.
+The helium (red) diffuses but is not yet aggregating due to a lack of
+appropriate binding and barrier energies for the various event
+configurations.  These values (inputs to SPPARKS) are currently being
+calculated via density functional theory in the electronic structure
+code "SeqQuest"_http://dft.sandia.gov/Quest.
+
+:image(images/erbium_small.png,images/erbium.png)
 
 :line
 
