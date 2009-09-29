@@ -59,14 +59,14 @@ Two images and two 1.5 Mb AVI movies
 
 Erbium hydrides :h4,link(erbium)
 
-This is work by Corbett Battaile and Steve Plimpton at Sandia, to
-model the mobility of gaseous species such as tritium and helium in
-metal hydrides, like erbium.  Such hydrides are commonly used for
-neutron generation in many applications in industry, medicine, and
-national security, including petroleum exploration, explosives
-detection, toxic waste analysis, and boron neutron capture therapy.
-As tritium decays into helium, the helium gas clusters to form
-bubbles, often found to be preferentially oriented along \{111\}
+This is work by Corbett Battaile (ccbatta at sandia.gov) and Steve
+Plimpton at Sandia, to model the mobility of gaseous species such as
+tritium and helium in metal hydrides, like erbium.  Such hydrides are
+commonly used for neutron generation in many applications in industry,
+medicine, and national security, including petroleum exploration,
+explosives detection, toxic waste analysis, and boron neutron capture
+therapy.  As tritium decays into helium, the helium gas clusters to
+form bubbles, often found to be preferentially oriented along \{111\}
 planes in the erbium lattice.
 
 The on-lattice SPPARKS application that runs this model uses an fcc
