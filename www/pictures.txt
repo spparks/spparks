@@ -21,18 +21,19 @@ animation.
 Abnormal grain growth :h4,link(abnormal)
 
 This is work by Liz Holm (eaholm at sandia.gov) at Sandia and Todd
-Hoffman (now at ASU) and his advisor at Carnegie Mellon, to study the
-mechanisms and statistics associated with abnormal grain growth. In
-grain growth, when the system is annealed, grain boundaries will move
-and rearrange so as to increase the average grain size and decrease
-the grain boundary area per unit volume. In normal grain growth, this
-occurs relatively uniformly, but in abnormal grain growth, one grain
-grows at the expense of the others. Abnormal grain growth can have
-many causes. Here the effects of static particle dispersions on grain
-growth are studied. Particles should pin grain boundaries in positions
-that maximize their contact with the particles, so that grain growth
-cannot proceed. However, occasionally one grain breaks free and is
-able to grow at the expense of others, leading to abnormal growth.
+Hoffmann (todd.hoffmann at asu.edu) and his advisor at Carnegie
+Mellon, to study the mechanisms and statistics associated with
+abnormal grain growth. In grain growth, when the system is annealed,
+grain boundaries will move and rearrange so as to increase the average
+grain size and decrease the grain boundary area per unit volume. In
+normal grain growth, this occurs relatively uniformly, but in abnormal
+grain growth, one grain grows at the expense of the others. Abnormal
+grain growth can have many causes. Here the effects of static particle
+dispersions on grain growth are studied. Particles should pin grain
+boundaries in positions that maximize their contact with the
+particles, so that grain growth cannot proceed. However, occasionally
+one grain breaks free and is able to grow at the expense of others,
+leading to abnormal growth.
 
 The on-lattice SPPARKS application ("app_style
 potts/pin"_doc/app_potts_pin.html) that runs this model implements a
