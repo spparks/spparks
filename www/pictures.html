@@ -98,12 +98,114 @@ code <A HREF = "http://dft.sandia.gov/Quest">SeqQuest</A>.
 
 <H4><A NAME = "thinfilm"></A>Thin film growth 
 </H4>
-<P>Coming soon.
+<P>This is work by Ed Webb (ebwebb at sandia.gov), Xiaowang Zhou (xzhou
+at sandia.gov), and Steve Plimpton (sjplimp at sandia.gov) at Sandia,
+to model thin film deposition and growth.  For many thin film
+applications, a high degree of control is desired over film properties
+including surface/interface roughness, film texture, grain structure,
+and defect content.  For example, controlling void content is critical
+to a number of applications where voids created during deposition lead
+to shortened device lifetimes.  Interface roughness is also important
+to many photovoltaic, microelectronic, and optical thin film
+applications when multilayered films are deposited.  On-lattice KMC
+models can be used to study many of these effects, though they cannot
+capture effects like dislocation formation in the depositing crystal.
+</P>
+<P>The on-lattice SPPARKS application (<A HREF = "doc/app_diffusion.html">app_style
+diffusion</A>) used to run these models for Ni
+used an underlying triangular lattice (2d) or fcc lattice (3d) and
+defines two types of events (deposition and diffusion) whose relative
+rates can be adjusted.  Nearest-neighbor and/or 2nd nearest-neighbor
+(Schwoebel) hops can be enabled or disabled.  In these cases, all
+deposition was performend at normal incidence.
+</P>
+<P>The first 3 images and accompanying movies are of 2d growth under 3
+conditions.  The first is with no Schwoebel hops (which might be
+suppressed experimentally by adding impurities to the system) and
+results in a thin film with high porosity.  The 2nd and 3rd are with
+Schwoebel hops at low and high temperatures (250 and 600K).  In the
+low-temperature case there are about 3 diffusive hops per deposition
+event.  In the high-temperature case, the ratio is 72000, resulting in
+a much smoother film.
+</P>
+<P>The next 3 images are 3d growth (on a 2d surface), again under 3
+conditions.  The first two are with no Schwoebel hops at low and high
+temperatures (300 and 400K).  The third is with Schwoebel hops at
+300K.  Similar effects as in the 2d case are observed, though the
+system is harder to visualize.
+</P>
+<P>Finally, a rough surface (sinusoidal hillocks) was annealed at 500K
+for 10,000 seconds with a diffusion-only model in a fcc model, both
+with and without Schwoebel events.  In both case the unstable surface
+asperities turned 45 degrees to a <I>111</I> orientation to maximize the
+stablility or the surface However, without Schwoebel hops, the system
+lacks the ability to anneal out terraces.  With Schwoebel hops,
+terraces were all annealed out and clear <I>111</I> and <I>100</I> facets
+developed.
+</P>
+<A HREF = "images/thin_2d_no_schwoebel.jpg"><IMG SRC = "images/thin_2d_no_schwoebel_small.jpg"></A>
+
+<A HREF = "images/thin_2d_schwoebel_lotemp.jpg"><IMG SRC = "images/thin_2d_schwoebel_lotemp_small.jpg"></A>
+
+<A HREF = "images/thin_2d_schwoebel_hitemp.jpg"><IMG SRC = "images/thin_2d_schwoebel_hitemp_small.jpg"></A>
+
+<A HREF = "movies/thin_2d_no_schwoebel.mov"><IMG SRC = "images/thin_2d_no_schwoebel_small.jpg"></A>
+
+<A HREF = "movies/thin_2d_schwoebel_lotemp.mov"><IMG SRC = "images/thin_2d_schwoebel_lotemp_small.jpg"></A>
+
+<A HREF = "movies/thin_2d_schwoebel_hitemp.mov"><IMG SRC = "images/thin_2d_schwoebel_hitemp_small.jpg"></A>
+
+<A HREF = "images/thin_3d_no_schwoebel_lotemp.jpg"><IMG SRC = "images/thin_3d_no_schwoebel_lotemp_small.jpg"></A>
+
+<A HREF = "images/thin_3d_no_schwoebel_hitemp.jpg"><IMG SRC = "images/thin_3d_no_schwoebel_hitemp_small.jpg"></A>
+
+<A HREF = "images/thin_3d_schwoebel.jpg"><IMG SRC = "images/thin_3d_schwoebel_small.jpg"></A>
+
+<A HREF = "images/surf_evolution.png"><IMG SRC = "images/surf_evolution_small.png"></A>
+
+<P>Three images and three 10 Mb QuickTime movies of 2d thin film growth.
+Three images of 3d film growth.  One image (yellow atoms) of hillock
+rearrangement on a 2d surface.
 </P>
 <HR>
 
 <H4><A NAME = "nanoporous"></A>Diffusion in nanoporous metals 
 </H4>
-<P>Coming soon.
+<P>This is work by Greg Wagner (gjwagne at sandia.gov) at Sandia, to
+model diffusion in nanoporous metals.  Such materials have a range of
+applications based on their very large surface-to-volume ratios.  At
+Sandida nanoporous palladium particles are being studied for use as a
+hydrogen storage medium, and nanoporous gold wires are being tested
+for use as electrodes in super-capacitors.  As these complex materials
+age, especially at elevated temperatures, the evolution of their
+nanostructures with time can greatly affect material properties and
+performance.  KMC can model this aging over long timescales.
+</P>
+<P>The on-lattice SPPARKS application (<A HREF = "doc/app_diffusion.html">app_style
+diffusion</A>) that runs this model uses an fcc
+lattice and energies and barrier heights calcaluted from atomistic
+simulations using embedded atom method (EAM) potentials.  Diffusion in
+the KMC model is described by Kawasaki dynamics, in which each event
+is the motion of an individual atom.  A basic atom hop is defined as
+movement to any vacant neighboring site.  Special consideration is
+given to Schwoebel barriers, in which an atom diffuses up or down a
+ledge between atomic monolayers, which is effectively a hop to a
+lattice location two sites away.
+</P>
+<P>The images and associated movies are a bulk diffusion model with
+60x60x60 unit cells (0.864 million sites) and a 50% porosity factor.
+If we define the length scale of the system as the inverse of the
+surface-to-volume ratio, then we observe the fourth power of this
+quantity grows linearly with time, in agreement with theory.
+</P>
+<A HREF = "images/porous1.jpg"><IMG SRC = "images/porous1_small.jpg"></A>
+
+<A HREF = "images/porous2.jpg"><IMG SRC = "images/porous2_small.jpg"></A>
+
+<A HREF = "movies/porous1.mov"><IMG SRC = "images/porous1_small.jpg"></A>
+
+<A HREF = "movies/porous2.mov"><IMG SRC = "images/porous2_small.jpg"></A>
+
+<P>Two images and two QuickTime movies (6 and 2 Mb)
 </P>
 </HTML>
