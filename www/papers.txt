@@ -10,7 +10,7 @@ its applications and algorithms.  Please cite this report and the
 "SPPARKS WWW page"_sws, if you use SPPARKS in a paper.
 
 [Crossing the Mesoscale No-Man's Land via Parallel Kinetic Monte
-Carlo], S. J. Plimpton, C. Battaile, M. Chandross, L. Holm,
+Carlo], S. Plimpton, C. Battaile, M. Chandross, L. Holm,
 A. Thompson, V. Tikare, G. Wagner, E. Webb, X. Zhou, C. Garcia
 Cardona, A. Slepoy, Sandia report SAND2009-6226, October
 2009. ("abstract"_../abstracts/sand09.html)
