@@ -5,10 +5,20 @@
 
 SPPARKS Papers :h3
 
-We don't yet have a general paper that describes SPPARKS and its
-applications and algorithms.  We'll post one here when it's available.
-Until then, please cite the "SPPARKS WWW page"_sws, if you use SPPARKS
-in a paper.
+This technical report is the best overall description of SPPARKS and
+its applications and algorithms.  Please cite this report and the
+"SPPARKS WWW page"_sws, if you use SPPARKS in a paper.
+
+[Crossing the Mesoscale No-Man's Land via Parallel Kinetic Monte
+Carlo], S. J. Plimpton, C. Battaile, M. Chandross, L. Holm,
+A. Thompson, V. Tikare, G. Wagner, E. Webb, X. Zhou, C. Garcia
+Cardona, A. Slepoy, Sandia report SAND2009-6226, October
+2009. ("abstract"_../abstracts/sand09.html)
+
+You can download the entire report via "this
+link"_../papers/sand09.pdf, but note that it is a 45 Mb file!
+
+:line
 
 This paper describes the most novel KMC or event-selection algorithm
 in SPPARKS, a constant-time composition-rejection algorithm, whose
