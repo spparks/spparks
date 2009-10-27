@@ -11,7 +11,8 @@
 <TR><TD ><A HREF = "#abnormal">abnormal</A></TD><TD >       abnormal grain growth</TD></TR>
 <TR><TD ><A HREF = "#erbium">erbium hydrides</A></TD><TD >  Erbium hydride</TD></TR>
 <TR><TD ><A HREF = "#thinfilm">thin film growth</A></TD><TD > thin film growth</TD></TR>
-<TR><TD ><A HREF = "#nanoporous">nanoporous metals</A></TD><TD > diffusion in nanoporous metals 
+<TR><TD ><A HREF = "#nanoporous">nanoporous metals</A></TD><TD > diffusion in nanoporous metals</TD></TR>
+<TR><TD ><A HREF = "#nuclear_fuel">nuclear fuel</A></TD><TD > bubble formation and sintering in nuclear fuel 
 </TD></TR></TABLE></DIV>
 
 <P>Pictures on this page are shown in small size.  Click on the image to
@@ -207,4 +208,48 @@ quantity grows linearly with time, in agreement with theory.
 
 <P>Two images and two QuickTime movies (6 and 2 Mb)
 </P>
+<HR>
+
+<H4><A NAME = "nuclear_fuel"></A>Nuclear fuel 
+</H4>
+<P>This is work by Veena Tikare (vtikare at sandia.gov) at Sandia and
+Cristina Garcia Cardona (cgarcia at sciences.sdsu.edu) at San Diego
+State Univ, to study mechanisms of microstructural morphology change
+in nuclear fuel pins, due to aging and thermal cycling.  They
+augmented the usual Potts model of grain growth with two additional
+physical effects.  Gas molecules are created via nuclear reactions and
+can aggregate to form bubbles.  This aggregation occurs preferentially
+at grain boundary planes due to favorable energetics, in agreement
+with experiment.  Over time a significant fraction of the material
+volume becomes void.  A sintering process takes place due to thermal
+cycling which results in voids being pushed to the outer surface of
+the material, and compaction of the remaining granular microstructure.
+The algorithm for doing this in SPPARKS was non-trivial, since in
+parallel it involves projecting an interior point of the lattice to an
+external boundary site, requiring interprocessor communication.
+</P>
+<P>The first image shows accumulate bubble formation at planar boundaries
+between 2 grains.  The remaining images are from a simulation of the
+sintering process for a powder of Cu particles.  The first pair of
+images are for an initial material density of 69%.  As it compacts, an
+intermediate density of 79% is shown.  The final pair of images are
+for a compacted density at the end of the simulation of 83%.  Both 3d
+pictures of the full model and 2d slices are shown.  The density
+versus time profiles for this system are in good agreement with
+experiment.
+</P>
+<A HREF = "images/bubble.png"><IMG SRC = "images/bubble_small.png"></A>
+
+<A HREF = "images/sinter_bulk0.png"><IMG SRC = "images/sinter_bulk0_small.png"></A>
+
+<A HREF = "images/sinter_slice0.png"><IMG SRC = "images/sinter_slice0_small.png"></A>
+
+<A HREF = "images/sinter_bulk1.png"><IMG SRC = "images/sinter_bulk1_small.png"></A>
+
+<A HREF = "images/sinter_slice1.png"><IMG SRC = "images/sinter_slice1_small.png"></A>
+
+<A HREF = "images/sinter_bulk2.png"><IMG SRC = "images/sinter_bulk2_small.png"></A>
+
+<A HREF = "images/sinter_slice2.png"><IMG SRC = "images/sinter_slice2_small.png"></A>
+
 </HTML>

@@ -8,7 +8,8 @@ Pictures & Movies from SPPARKS Simulations :h3
 "abnormal"_#abnormal:       abnormal grain growth
 "erbium hydrides"_#erbium:  Erbium hydride
 "thin film growth"_#thinfilm: thin film growth
-"nanoporous metals"_#nanoporous: diffusion in nanoporous metals :tb(s=:)
+"nanoporous metals"_#nanoporous: diffusion in nanoporous metals
+"nuclear fuel"_#nuclear_fuel: bubble formation and sintering in nuclear fuel :tb(s=:)
 
 Pictures on this page are shown in small size.  Click on the image to
 view a larger version.
@@ -191,4 +192,43 @@ quantity grows linearly with time, in agreement with theory.
 
 Two images and two QuickTime movies (6 and 2 Mb)
 
+:line
 
+Nuclear fuel :h4,link(nuclear_fuel)
+
+This is work by Veena Tikare (vtikare at sandia.gov) at Sandia and
+Cristina Garcia Cardona (cgarcia at sciences.sdsu.edu) at San Diego
+State Univ, to study mechanisms of microstructural morphology change
+in nuclear fuel pins, due to aging and thermal cycling.  They
+augmented the usual Potts model of grain growth with two additional
+physical effects.  Gas molecules are created via nuclear reactions and
+can aggregate to form bubbles.  This aggregation occurs preferentially
+at grain boundary planes due to favorable energetics, in agreement
+with experiment.  Over time a significant fraction of the material
+volume becomes void.  A sintering process takes place due to thermal
+cycling which results in voids being pushed to the outer surface of
+the material, and compaction of the remaining granular microstructure.
+The algorithm for doing this in SPPARKS was non-trivial, since in
+parallel it involves projecting an interior point of the lattice to an
+external boundary site, requiring interprocessor communication.
+
+The first image shows accumulate bubble formation at planar boundaries
+between 2 grains.  The remaining images are from a simulation of the
+sintering process for a powder of Cu particles.  The first pair of
+images are for an initial material density of 69%.  As it compacts, an
+intermediate density of 79% is shown.  The final pair of images are
+for a compacted density at the end of the simulation of 83%.  Both 3d
+pictures of the full model and 2d slices are shown.  The density
+versus time profiles for this system are in good agreement with
+experiment.
+
+:image(images/bubble_small.png,images/bubble.png)
+
+:image(images/sinter_bulk0_small.png,images/sinter_bulk0.png)
+:image(images/sinter_slice0_small.png,images/sinter_slice0.png)
+
+:image(images/sinter_bulk1_small.png,images/sinter_bulk1.png)
+:image(images/sinter_slice1_small.png,images/sinter_slice1.png)
+
+:image(images/sinter_bulk2_small.png,images/sinter_bulk2.png)
+:image(images/sinter_slice2_small.png,images/sinter_slice2.png)
