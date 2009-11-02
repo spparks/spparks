@@ -31,6 +31,8 @@ event selection decreases as processor count increases.
 
 :c,image(images/pareff_small.jpg,images/pareff.jpg)
 
+Click on plot for larger version :c
+
 The smallest problem (1 million lattice sites) was run in two
 different modes, with DeltaN = 0.125 and 1.25.  DeltaN is the nstop
 parameter in the "sector"_doc/sector.html command and determines how
