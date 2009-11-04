@@ -253,9 +253,9 @@ percolation of the intragranular gas bubbles in LWR fuels.  Images
 from such a simulation are shown below; the first image shows only the
 gas bubbles in a two-grain microstructure with periodic boundary
 conditions.  The inter- and intra-granular bubbles are clearly shown.
-The next 2 images show gas bubble growth at a grain boundary during
-the simulation.  The final image shows the percolating bubble in dark
-blue at the end of the simulation.
+The next 2 images show gas bubble growth at the planar grain boundary
+during the simulation.  The final image shows the percolating bubble,
+in dark blue, at the end of the simulation.
 
 :image(images/bubble1_small.png,images/bubble1.png)
 :image(images/bubble2_small.png,images/bubble2.png)
