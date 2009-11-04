@@ -9,10 +9,11 @@
 </H3>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD ><A HREF = "#abnormal">abnormal</A></TD><TD >       abnormal grain growth</TD></TR>
-<TR><TD ><A HREF = "#erbium">erbium hydrides</A></TD><TD >  Erbium hydride</TD></TR>
+<TR><TD ><A HREF = "#erbium">erbium hydrides</A></TD><TD >  diffusion in Erbium hydrides</TD></TR>
 <TR><TD ><A HREF = "#thinfilm">thin film growth</A></TD><TD > thin film growth</TD></TR>
 <TR><TD ><A HREF = "#nanoporous">nanoporous metals</A></TD><TD > diffusion in nanoporous metals</TD></TR>
-<TR><TD ><A HREF = "#nuclear_fuel">nuclear fuel</A></TD><TD > bubble formation and sintering in nuclear fuel 
+<TR><TD ><A HREF = "#sintering">nuclear fuel sintering</A></TD><TD > microstructural evolution due to sintering in a nuclear fuel</TD></TR>
+<TR><TD ><A HREF = "#bubble">nuclear fuel gas transport</A></TD><TD > fission gas transport in a nuclear fuel 
 </TD></TR></TABLE></DIV>
 
 <P>Pictures on this page are shown in small size.  Click on the image to
@@ -67,7 +68,7 @@ the second case, abnormal growth eventually occurs.
 </P>
 <HR>
 
-<H4><A NAME = "erbium"></A>Erbium hydrides 
+<H4><A NAME = "erbium"></A>Diffusion in Erbium hydrides 
 </H4>
 <P>This is work by Corbett Battaile (ccbatta at sandia.gov) and Steve
 Plimpton at Sandia, to model the mobility of gaseous species such as
@@ -210,36 +211,30 @@ quantity grows linearly with time, in agreement with theory.
 </P>
 <HR>
 
-<H4><A NAME = "nuclear_fuel"></A>Nuclear fuel 
+<H4><A NAME = "sintering"></A>Microstructural evolution due to sintering in a nuclear fuel 
 </H4>
 <P>This is work by Veena Tikare (vtikare at sandia.gov) at Sandia and
 Cristina Garcia Cardona (cgarcia at sciences.sdsu.edu) at San Diego
-State Univ, to study mechanisms of microstructural morphology change
-in nuclear fuel pins, due to aging and thermal cycling.  They
-augmented the usual Potts model of grain growth with two additional
-physical effects.  Gas molecules are created via nuclear reactions and
-can aggregate to form bubbles.  This aggregation occurs preferentially
-at grain boundary planes due to favorable energetics, in agreement
-with experiment.  Over time a significant fraction of the material
-volume becomes void.  A sintering process takes place due to thermal
-cycling which results in voids being pushed to the outer surface of
-the material, and compaction of the remaining granular microstructure.
-The algorithm for doing this in SPPARKS was non-trivial, since in
-parallel it involves projecting an interior point of the lattice to an
-external boundary site, requiring interprocessor communication.
+State Univ, to simulate microstructural evolution during sintering.
+They augmented a Potts model of grain growth with three additional
+physical effects: surface diffusion, vacancy diffusion, and vacancy
+annihilation.  The implementation of the annihilation algorithm in
+SPPARKS was non-trivial as an internal vacancy is annihilated by
+collapsing all the sites along a line from it to an external surface.
+In parallel this involves moving all the sites along that line towards
+the vacancy, requiring interprocessor communication.  This sintering
+model is able to capture all the necessary mechanism to simulate
+simple solid-state sintering correctly.  It was demonstrated by
+comparing it to 3D, in-situ images taken in a high-energy synchrotron
+during the sintering of Cu particles. The images below are from a
+simulation of the sintering process for a powder of Cu particles.  The
+first pair of images are for an initial material density of 69%.  As
+it compacts, an intermediate density of 79% is shown.  The final pair
+of images are for a compacted density at the end of the simulation of
+83%.  Both 3d pictures of the full model and 2d slices are shown. The
+density versus time profiles, microstructural images and grain size
+distributions for this system are in good agreement with experiment.
 </P>
-<P>The first image shows accumulate bubble formation at planar boundaries
-between 2 grains.  The remaining images are from a simulation of the
-sintering process for a powder of Cu particles.  The first pair of
-images are for an initial material density of 69%.  As it compacts, an
-intermediate density of 79% is shown.  The final pair of images are
-for a compacted density at the end of the simulation of 83%.  Both 3d
-pictures of the full model and 2d slices are shown.  The density
-versus time profiles for this system are in good agreement with
-experiment.
-</P>
-<A HREF = "images/bubble.png"><IMG SRC = "images/bubble_small.png"></A>
-
 <A HREF = "images/sinter_bulk0.png"><IMG SRC = "images/sinter_bulk0_small.png"></A>
 
 <A HREF = "images/sinter_slice0.png"><IMG SRC = "images/sinter_slice0_small.png"></A>
@@ -251,5 +246,42 @@ experiment.
 <A HREF = "images/sinter_bulk2.png"><IMG SRC = "images/sinter_bulk2_small.png"></A>
 
 <A HREF = "images/sinter_slice2.png"><IMG SRC = "images/sinter_slice2_small.png"></A>
+
+<HR>
+
+<H4><A NAME = "bubble"></A>Fission gas transport in a nuclear fuel 
+</H4>
+<P>This is work by Veena Tikare (vtikare at sandia.gov) at Sandia to
+study fission gas bubble transport in Light Water Reactor (LWR) fuel.
+During operation, Xe and Kr gas atoms are produced as fission
+by-products.  They are highly insoluble in the fuel matrix and
+precipitate to form two types of bubbles, small (~10 nm) intragranular
+bubbles and larger (~500 nm) intergranular bubbles.  As the gas
+accumulates, it eventually finds it way to grain boundaries by
+diffusion and the intergranular bubbles grow, initially by gas
+accumulation and later by coalescence.  Eventually coalescence of the
+intergranular bubbles progress to the point that they percolate,
+releasing the pressurized gas to the external surface.  The bubbles
+sinter back and the process repeats itself.  This process of
+percolation and gas release has important implications for fuel
+performance and longevity.  To model these effects, a Potts model of
+grain growth was augmented to incorporate gas generation, gas atom
+diffusion, precipitation to form bubbles, and surface diffusion of the
+gas bubbles.  This model was used to study the formation, growth and
+percolation of the intragranular gas bubbles in LWR fuels.  Images
+from such a simulation are shown below; the first image shows only the
+gas bubbles in a two-grain microstructure with periodic boundary
+conditions.  The inter- and intra-granular bubbles are clearly shown.
+The next 2 images show gas bubble growth at a grain boundary during
+the simulation.  The final image shows the percolating bubble in dark
+blue at the end of the simulation.
+</P>
+<A HREF = "images/bubble1.png"><IMG SRC = "images/bubble1_small.png"></A>
+
+<A HREF = "images/bubble2.png"><IMG SRC = "images/bubble2_small.png"></A>
+
+<A HREF = "images/bubble3.png"><IMG SRC = "images/bubble3_small.png"></A>
+
+<A HREF = "images/bubble4.png"><IMG SRC = "images/bubble4_small.png"></A>
 
 </HTML>

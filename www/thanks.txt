@@ -12,7 +12,7 @@ Energy"_doe (DOE), through its LDRD program.
 
 :line
 
-The authors of SPPARKS are "Steve Plimpton"_sjp and Aidan Thompson and
+The chief authors of SPPARKS are "Steve Plimpton"_sjp and Aidan Thompson and
 Alex Slepoy who can be contacted at sjplimp at sandia.gov, athomps at
 sandia.gov, and alexander.slepoy at nnsa.doe.gov, respectively.
 
