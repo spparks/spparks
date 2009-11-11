@@ -21,6 +21,9 @@ sandia.gov, and alexander.slepoy at nnsa.doe.gov, respectively.
 Several materials scientists at Sandia also helped in the design
 of the code and implementation of specific models:
 
-Liz Holm
 Corbett Battaile
-Ed Webb :ul
+Liz Holm
+Veena Tikare
+Greg Wagner
+Ed Webb
+Xiaowang Zhou :ul
