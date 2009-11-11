@@ -4,6 +4,28 @@ These are all part of the 11 Nov 2009 release, as discussed
 
 :line
 
+[10 Nov 2009]
+
+Major re-working of internal structure of SPPARKS to
+separate site creation and setting of site values from
+the applications themselves.  This affords greater flexibility
+in setting up problems.
+
+New commands include:
+
+"create_box"_doc/create_box.html
+"create_sites"_doc/create_sites.html
+"dimension"_doc/dimension.html
+"lattice"_doc/lattice.html
+"processors"_doc/processors.html
+"read_sites"_doc/read_sites.html
+"region"_doc/region.html
+"set"_doc/set.html :ul
+
+These changes will be part of the 11 Nov 2009 major release.
+
+:line
+
 [22 Sept 2009]
 
 Made various bookkeeping changes internal to SPPARKS.
