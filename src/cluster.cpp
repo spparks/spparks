@@ -17,7 +17,8 @@
 
 using namespace SPPARKS_NS;
 
-Cluster::Cluster(int id, int iv, double dv, double vol, int nn, double* neighs) {
+Cluster::Cluster(int id, int iv, double dv, double vol,
+		 int nn, double* neighs) {
   global_id = id;
   ivalue = iv;
   dvalue = dv;
@@ -36,6 +37,7 @@ Cluster::Cluster(int id, int iv, double dv, double vol, int nn, double* neighs) 
 // Define assigment operator.
 // Because memory is allocated before
 // the object is initialized, can not use constructor.
+
 Cluster& Cluster::operator=(const Cluster& c) {
   global_id = c.global_id;
   ivalue = c.ivalue;
@@ -72,6 +74,5 @@ void Cluster::print(FILE* fp) {
     fprintf(fp,"%d ",neighlist[ineigh]);
   }
   fprintf(fp,"\n");
-
 }
   

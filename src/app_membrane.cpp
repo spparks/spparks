@@ -44,7 +44,7 @@ AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  if (narg < 4) error->all("Illegal app_style command");
+  if (narg != 4) error->all("Illegal app_style command");
 
   w01 = atof(arg[1]);
   w11 = atof(arg[2]);
