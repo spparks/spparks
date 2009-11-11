@@ -82,10 +82,13 @@ void CommLattice::init(int nsector_request, int delpropensity, int delevent,
   iarray = app->iarray;
   darray = app->darray;
 
-  if (array) site_only = 1;
-  else if (ninteger == 1 && ndouble == 0) site_only = 1;
-  else site_only = 0;
-  if (site_only) site = iarray[0];
+  if (array) {
+    site_only = 1;
+    site = array;
+  } else if (ninteger == 1 && ndouble == 0) {
+    site_only = 1;
+    site = iarray[0];
+  } else site_only = 0;
 
   // clear out old swaps
 
