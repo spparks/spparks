@@ -879,7 +879,6 @@ void AppOffLattice::init_bins()
   // require 2 bins within sub-domain if sectoring in a dimension
   // else require 1 bin within sub-domain
   // require an even number of bins if sectoring in a dimension
-  // add 2 bins for ghost regions
 
   double cutoff = delpropensity + delevent;
   nbinx = static_cast<int> (xprd/procgrid[0]/cutoff);
@@ -917,6 +916,8 @@ void AppOffLattice::init_bins()
       fprintf(logfile,"Bin sizes: %g %g %g\n",binx,biny,binz);
     }
   }
+
+  // add 2 bins for ghost regions
 
   nbinx += 2;
   if (dimension >= 2) nbiny += 2;
