@@ -15,7 +15,7 @@
 </P>
 <PRE>sweep style keyword value ... 
 </PRE>
-<UL><LI>style = <I>random</I> or <I>raster</I> or <I>color</I> or <I>color/strict</I> 
+<UL><LI>style = <I>random</I> or <I>raster</I> or <I>color</I> or <I>color/strict</I> or <I>none</I> 
 
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -80,6 +80,10 @@ grains in a Potts grain-growth model may have no potential of flipping
 their value.  Masking can only be set to <I>yes</I> if the
 <A HREF = "temperature.html">temperature</A> is set to 0.0, since otherwise there is
 a finite probability of any site performing an event.
+</P>
+<P>The <I>none</I> style deletes any rKMC sweeping algorithm previously
+defined.  This may be useful for transitioning from a rKMC solver in
+one run to a <A HREF = "solve_style.html">KMC solver</A> in a subsequent run.
 </P>
 <P><B>Restrictions:</B>
 </P>

@@ -12,11 +12,12 @@ solve_style command :h3
 
 solve_style style args keyword value ... :pre
 
-style = {linear} or {tree} or {group} :ulb,l
+style = {{linear} or {tree} or {group} or {none} :ulb,l
   {linear} arg = none
   {tree} arg = none
   {group} args = hi lo 
-    hi,lo = range of allowed probabilities
+    hi,lo = range of allowed probabilities :pre
+  {none} arg = none
 zero or more keyword/value pairs may be appended :l
 keyword = {ngroup} :l
   {ngroup} value = N
@@ -74,6 +75,11 @@ groups to use between {lo} and {hi} and they will be equal in extent.
 E.g. for {ngroup} = 3, the first group is from lo to lo + (hi-lo)/3,
 the second group is from lo + 2*(hi-lo)/3, and the third group is from
 lo + 2*(hi-lo)/3 to hi.
+
+The {none} style deletes any KMC solver previously defined.  This may
+be useful for transitioning from a KMC solver in one run to a
+"sweeping method"_sweep.html with a rejection-KMC solver in a
+subsequent run.
 
 [Restrictions:]
 

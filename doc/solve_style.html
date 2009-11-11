@@ -15,12 +15,14 @@
 </P>
 <PRE>solve_style style args keyword value ... 
 </PRE>
-<UL><LI>style = <I>linear</I> or <I>tree</I> or <I>group</I> 
+<UL><LI>style = <I><I>linear</I> or <I>tree</I> or <I>group</I> or <I>none</I> 
 
-<LI>  <I>linear</I> arg = none
+<PRE>  <I>linear</I> arg = none
   <I>tree</I> arg = none
   <I>group</I> args = hi lo 
-    hi,lo = range of allowed probabilities
+    hi,lo = range of allowed probabilities 
+</PRE>
+<LI>  <I>none</I> arg = none
 zero or more keyword/value pairs may be appended 
 
 <LI>keyword = <I>ngroup</I> 
@@ -81,6 +83,11 @@ groups to use between <I>lo</I> and <I>hi</I> and they will be equal in extent.
 E.g. for <I>ngroup</I> = 3, the first group is from lo to lo + (hi-lo)/3,
 the second group is from lo + 2*(hi-lo)/3, and the third group is from
 lo + 2*(hi-lo)/3 to hi.
+</P>
+<P>The <I>none</I> style deletes any KMC solver previously defined.  This may
+be useful for transitioning from a KMC solver in one run to a
+<A HREF = "sweep.html">sweeping method</A> with a rejection-KMC solver in a
+subsequent run.
 </P>
 <P><B>Restrictions:</B>
 </P>

@@ -12,7 +12,7 @@ sweep command :h3
 
 sweep style keyword value ... :pre
 
-style = {random} or {raster} or {color} or {color/strict} :ulb,l
+style = {random} or {raster} or {color} or {color/strict} or {none} :ulb,l
 zero or more keyword/value pairs may be appended :l
 keyword = {mask} :l
   {mask} value = {yes} or {no}
@@ -73,6 +73,10 @@ grains in a Potts grain-growth model may have no potential of flipping
 their value.  Masking can only be set to {yes} if the
 "temperature"_temperature.html is set to 0.0, since otherwise there is
 a finite probability of any site performing an event.
+
+The {none} style deletes any rKMC sweeping algorithm previously
+defined.  This may be useful for transitioning from a rKMC solver in
+one run to a "KMC solver"_solve_style.html in a subsequent run.
 
 [Restrictions:]
 
