@@ -743,6 +743,7 @@ void AppLattice::set_sweep(int narg, char **arg)
   else if (strcmp(arg[0],"raster") == 0) sweepflag = RASTER;
   else if (strcmp(arg[0],"color") == 0) sweepflag = COLOR;
   else if (strcmp(arg[0],"color/strict") == 0) sweepflag = COLOR_STRICT;
+  else if (strcmp(arg[0],"none") == 0) sweepflag = NOSWEEP;
   else error->all("Illegal sweep command");
 
   Lmask = false;

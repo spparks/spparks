@@ -752,6 +752,7 @@ void AppOffLattice::set_sweep(int narg, char **arg)
   if (narg != 1) error->all("Illegal sweep command");
   if (strcmp(arg[0],"random") == 0) sweepflag = RANDOM;
   else if (strcmp(arg[0],"raster") == 0) sweepflag = RASTER;
+  else if (strcmp(arg[0],"none") == 0) sweepflag = NOSWEEP;
   else error->all("Illegal sweep command");
 }
 
