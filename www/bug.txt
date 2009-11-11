@@ -17,206 +17,36 @@ The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
-[22 Sept 2009]
-
-Made various bookkeeping changes internal to SPPARKS.
-
-This is the "list of changed files"_patches/files.22Sep09 from the 21
-Sept 2009 version.
-
-:line
-
-[21 Sept 2009]
-
-Added the first off-lattice application to SPPARKS to perform
-"Metropolis Monte Carlo relaxation"_doc/app_relax.html in parallel via
-simple translational moves of particles.  Off-lattice applications
-also require pair potentials to be defined via the
-"pair_style"_doc/pair_style.html and "pair_coeff"_doc/pair_coeff.html
-commands.
-
-This is the "list of changed files"_patches/files.21Sep09 from the 28
-Aug 2009 version.
-
-:line
-
-[28 Aug 2009]
-
-Fixed a bug with oblique incident angles in deposition with the
-"deposition"_doc/deposition.html and "app_style
-diffusion"_doc/app_diffusion.html commands.
-
-This is the "list of changed files"_patches/files.28Aug09 from the 27
-Aug 2009 version.
-
-Thanks to Ed Webb (Sandia) for flagging this issue as well.
-
-:line
-
-[27 Aug 2009]
-
-Deprecated the old app_style diffusion, diffusion/table,
-diffusion/nonlinear, diffusion/deposition, pore, and pore/nonlinear
-commands.  All of their functionality is replaced and extended by the
-app_style diffusion2 command, which is now just the "app_style
-diffusion"_doc/app_diffusion.html command.
-
-Fixed two bugs in the "app_style diffusion"_doc/app_diffusion.html
-command having to do with deposition in a 2d model and with using
-estyle off.
-
-This is the "list of changed files"_patches/files.27Aug09 from the 20
-Aug 2009 version.
-
-Thanks to Ed Webb (Sandia) for running into these problems.
-
-:line
-
-[20 Aug 2009]
-
-Fixed a bug in "app_style diffusion2"_doc/app_diffusion2.html with
-Schwoebel barriers that was preventing them from being calculated
-correctly when mixed with normal hop barriers.
-
-This is the "list of changed files"_patches/files.20Aug09 from the 19
-Aug 2009 version.
-
-:line
-
-[19 Aug 2009]
-
-Added a "diag_style propensity"_doc/diag_propensity.html command to
-enable total system propensity for KMC simulations to be output with
-"statistics"_doc/stats.html.
-
-This is the "list of changed files"_patches/files.19Aug09 from the 7
-Aug 2009 version.
-
-:line
-
-[7 Aug 2009]
-
-Added Schwoebel hops to "app_style diffusion2"_doc/app_diffusion2.html
-which are effectively 2nd nearest neighbor hops.  This also affected
-the syntax of the "barrier"_doc/barrier.html and the output of the
-"diag_style diffusion"_doc/diag_diffusion.html command.
-
-This is the "list of changed files"_patches/files.7Aug09 from the 23
-Jul 2009 version.
-
-:line
-
-[23 Jul 2009]
-
-Also needed to update the examples input scripts to reflect the
-changed syntax in "dump"_doc/dump.html commands due to the 22Jul09 patch.
-
-This is the "list of changed files"_patches/files.23Jul09 from the 22
-Jul 2009 version.
-
-:line
-
-[22 Jul 2009]
-
-Made some enhancements to the "dump"_doc/dump.html command.  There are
-now also "dump_modify"_doc/dump_modify.html,
-"dump_one"_doc/dump_one.html, and "undump"_doc/undump.html commands.
-All of them now take a dump ID, so that you can use multiple dump
-files during a simulation if desired.
-
-Additional features include changing output times via the
-"dump_modify"_doc/dump_modify.html command, sub-selecting sites to output
-via the "dump_modify thresh"_doc/dump_modify.html command, allowing
-for one file per snapshot and/or one file per processor via wildcards
-in the "dump"_doc/dump.html command filename, and allowing for
-output of binary or gzipped dump files.
-
-This is the "list of changed files"_patches/files.22Jul09 from the 20
-Jul 2009 version.
-
-:line
-
-[20 Jul 2009]
-
-Added a "app_style diffusion2"_doc/app_diffusion2.html application
-which will eventually replace all of the existing "app_style
-diffusion"_doc/app_diffusion.html and "app_style
-pore"_doc/app_pore.html variants, once we've done some more testing.
-
-As part of the new, more general diffusion application, new commands
-for defining energy "barrier"_doc/barrier.html and
-"deposition"_doc/deposition.html event parameters were also added.
-
-A new lattice option for the on-lattice "application
-styles"_doc/app_style.html was added.  It is {fcc/octa/tetra} and
-defines an FCC lattice with additional interstitial octahedral and
-tetrahedral sites.  It's useful for a new application we're developing
-and will release at some point.
-
-This patch also includes a new option to run with the "sweep
-color"_doc/sweep.html and "sector yes"_doc/sector.html settings
-together which was not previously allowed.  We think this will be
-useful for some rejection KMC applications to enable faster sweeping
-in parallel due to less communication, while still preserving the
-independence of site updating that coloring provides.
-
-This is the "list of changed files"_patches/files.20Jul09 from the 7
-Jul 2009 version.
-
-:line
-
-[7 Jul 2009]
-
-Added a "dump_one"_doc/dump_one.html command to force a shapshot of
-the lattice to be written to the file specified by the
-"dump"_doc/dump.html command.
-
-This is the "list of changed files"_patches/files.7Jul09 from the 26
-Jun 2009 version.
-
-:line
-
-[26 Jun 2009]
-
-Aidan Thompson (Sandia) fixed a bug in the recent "diag_style
-cluster"_doc/diag_cluster.html upgrade.
-
-This is the "list of changed files"_patches/files.26Jun09 from the 24
-Jun 2009 version.
-
-:line
-
-[24 Jun 2009]
-
-Enhanced the "pin"_doc/pin.html command for use by the "app_style
-potts/pin"_doc/app_potts_pin.html command.  Also enhanced the grain
-identification performed by the "diag_style
-cluster"_doc/diag_cluster.html command to not include pinned sites.
-
-This is the "list of changed files"_patches/files.24Jun09 from the 12
-May 2009 version.
-
-:line
-
-[12 May 2009]
-
-Fixed a dumb bug with the rejection method (rKMC) applied to
-"app_style diffusion"_doc/app_diffusion.html.
-
-This is the "list of changed files"_patches/files.12May09 from the 14
-Apr 2009 version.
-
-Thanks to Greg Wagner (Sandia) for identifying the problem.
-
-:line
-
-[14 Apr 2009]
-
-Removed an application from the distribution that is still
-a work-in-progress.  Wasn't meant to be released yet.
-
-This is the "list of changed files"_patches/files.14Apr09 from the 13
-Apr 2009 version.
+[11 Nov 2009] :link(11Nov09)
+
+New release of SPPARKS.  22,790 lines of code in src dir.
+
+These are the most significant features added or enhanced since the 13
+Apr 2009 version.  People who contributed to the features are listed
+in parentheses:
+
+"app_style diffusion"_doc/app_diffusion.html (Greg Wagner and Xiaowang Zhou, Sandia)
+"app_style relax"_doc/app_relax.html
+"barrier"_doc/barrier.html (Ed Webb, Sandia)
+"create_box"_doc/create_box.html
+"create_sites"_doc/create_sites.html
+"deposition"_doc/deposition.html (Ed Webb, Sandia)
+"diag_style propensity"_doc/diag_propensity.html
+"dimension"_doc/dimension.html
+"dump_modify"_doc/dump_modify.html
+"dump_one"_doc/dump_one.html
+"lattice"_doc/lattice.html
+"pair_coeff"_doc/pair_coeff.html
+"pair_style"_doc/pair_style.html
+"processors"_doc/processors.html
+"read_sites"_doc/read_sites.html
+"region"_doc/region.html
+Schwoebel hops in "app_style diffusion"_doc/app_diffusion.html
+"set"_doc/set.html
+"undump"_doc/undump.html :ul
+
+Descriptions of all these enhancements and other bug fixes can be
+viewed on "this page"_bug.13Apr09.html.
 
 :line
 
