@@ -2,7 +2,14 @@
 
 seed		12345
 
-app_style       membrane 1.25 1.0 -3.0 lattice tri 1.0 100 50
+app_style       membrane 1.25 1.0 -3.0
+
+dimension	 2
+lattice		 tri 1.0
+region		 box block 0 100 0 50 -0.5 0.5
+create_box	 box
+create_sites	 box
+set		 site value 1
 
 solve_style     tree
 sector		yes tstop 1.0
