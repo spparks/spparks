@@ -433,10 +433,10 @@ void DiagCluster::generate_clusters()
 	for (int j = 0; j < clustlist[ii].nneigh; j++) {
 	  jneigh = neighs[j]-idoffset;
 	  if (clustlist[jneigh].ivalue != iv) {
-	    error->one("DiagCluster:ivalue in neighboring clusters do not match");
+	    error->one("Diag cluster ivalue in neighboring clusters do not match");
 	  }
 	  if (clustlist[jneigh].dvalue != dv) {
-	    error->one("DiagCluster:dvalue in neighboring clusters do not match");
+	    error->one("Diag cluster dvalue in neighboring clusters do not match");
 	  }
 	  if (clustlist[jneigh].volume != 0.0) {
 	    cluststack.push(jneigh);

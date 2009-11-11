@@ -617,7 +617,7 @@ void AppOffLattice::check(char *str, int flag, int iset)
     if (site2bin(i) != bin[i] || bin[i] < 0 || bin[i] > nbins-1) {
       printf("%s SITE %d: %d %d %d: %g %g %g\n",
 	     str,me,i,id[i],bin[i],xyz[i][0],xyz[i][1],xyz[i][2]);
-      error->one("SITE MISMATCH\n");
+      error->one("SITE MISMATCH");
     }
   }
 
@@ -693,7 +693,7 @@ void AppOffLattice::check(char *str, int flag, int iset)
     }
     if (count > maxcount) {
       printf("%s COUNT %d %d %d\n",str,me,i,count);
-      error->one("COUNT MISMATCH\n");
+      error->one("COUNT MISMATCH");
     }
   }
 

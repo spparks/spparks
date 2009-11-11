@@ -137,7 +137,7 @@ void CreateSites::command(int narg, char **arg)
   if (app->appclass == App::LATTICE && style != BOX)
     error->all("Must use create_sites box for on-lattice applications");
   if (app->appclass == App::LATTICE && app->sites_exist)
-    error->all("Cannot create sites when sites already exist");
+    error->all("Cannot create sites after sites already exist");
 
   // create sites, either on-lattice or off-lattice
 

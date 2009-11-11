@@ -136,7 +136,7 @@ void Domain::procs2domain_1d()
 {
   if (user_procgrid[0] || user_procgrid[1] || user_procgrid[2]) {
     if (user_procgrid[1] != 1 || user_procgrid[2] != 1)
-      error->all("App style proc count is not valid");
+      error->all("App style proc count is not valid for 1d simulation");
     procgrid[0] = user_procgrid[0];
   } else {
     procgrid[0] = nprocs;
@@ -169,7 +169,7 @@ void Domain::procs2domain_2d()
 
   if (user_procgrid[0] || user_procgrid[1] || user_procgrid[2]) {
     if (user_procgrid[2] != 1)
-      error->all("App style proc count is not valid");
+      error->all("App style proc count is not valid for 2d simulation");
     procgrid[0] = user_procgrid[0];
     procgrid[1] = user_procgrid[1];
 
