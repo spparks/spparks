@@ -1,0 +1,188 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+read_sites command :h3
+
+[Syntax:]
+
+read_sites file :pre
+
+file = name of data file to read in :ul
+
+[Examples:]
+
+read_sites data.potts
+read_sites ../run7/data.potts.gz :pre
+
+[Description:]
+
+Read in a data file containing information SPPARKS needs to setup an
+"on-lattice or off-lattice application"_app_style.html.  The file can
+be ASCII text or a gzipped text file (detected by a .gz suffix).  This
+is one of 2 ways to specify event sites ; see the
+"create_sites"_create_sites.html command for another method.
+
+A data file has a header and a body, as described below.  The body of
+the file contains up to 3 sections: Sites, Neighbors, Values.  Sites
+defines the coordinates of event sites.  Neighbors define the
+neighbors of each site (only for on-lattice applications).  Values
+assign per-site values to each site, which can also be done via the
+"set"_set.html command.
+
+If a simulation box has not already been created, then the data file
+defines the box size (in the header), and it must define Sites and
+Neighbors (for on-lattice applications).  The Values section is
+optional.
+
+If a simulation box has already been defined (by the "create_box"
+command or a previous read_sites command), but no sites have previosly
+been defined, then the box size in the header must be the same, and
+the data file must define Sites and Neighbors (for on-lattice
+applications).  The Values section is optional.
+
+If a simulation box has already been defined, and sites have previosly
+been defined (by the "create_sites" command or a previous read_sites
+command), then the box size in the header must be the same, no Sites
+or Neighbors can be specfied, but the Values section may be used.
+This is a means of restarting a simulation using per-site info written
+out by the "dump"_dump.html command and reformatted so it can be input
+by this command.
+
+:line
+
+The first line of the header of the data file is always skipped; it
+typically contains a description of the file.  Then lines are read one
+at a time.  Lines can have a trailing comment starting with '#' that
+is ignored.  If the line is blank (only whitespace after comment is
+deleted), it is skipped.  If the line contains a header keyword, the
+corresponding value(s) is read from the line.  If it doesn't contain a
+header keyword, the line begins the body of the file.
+
+The body of the file contains zero or more sections.  The first line
+of a section has only a keyword.  The next line is skipped.  The
+remaining lines of the section contain values.  The number of lines
+depends on the section keyword as described below.  Zero or more blank
+lines can be used between sections.  Sections can appear in any order,
+with a few exceptions as noted below.
+
+The formatting of individual lines in the data file (indentation,
+spacing between words and numbers) is not important except that header
+and section keywords (e.g. dimension, xlo xhi, Sites, Values) must be
+capitalized as shown and can't have extra white space between their
+words - e.g. two spaces or a tab between "xlo and "xhi" is not valid.
+
+:line
+
+These are the recognized header keywords.  Header lines can come in
+any order.  The value(s) are read from the beginning of the line.
+Thus the keyword {sites} should be in a line like "1000 sites"; the
+keyword {ylo yhi} should be in a line like "-10.0 10.0 ylo yhi".  All
+these settings have a default value of 0, except the lo/hi box size
+defaults are -0.5 and 0.5.  A line need only appear if the value is
+different than the default.
+
+{dimension} = dimension of system = 1,2,3
+{sites} = number of sites
+{max neighbors} = max # of neighbors of any site
+{xlo xhi} = simulation box boundaries in x dimension
+{ylo yhi} = simulation box boundaries in y dimension
+{zlo zhi} = simulation box boundaries in z dimension :ul
+
+The {max neighbors} setting is only needed if the file contains a
+Neighbors section, which is only used for on-lattice applications.
+
+The simulation box size is determined by the lo/hi settings.  For 2d
+simulations, the {zlo zhi} values should be set to bound the z coords
+for atoms that appear in the file; the default of -0.5 0.5 is valid if
+all z coords are 0.0.  The same rules hold for {ylo and yhi} for 1d
+simulations.
+
+:line
+
+These are the possible section keywords for the body of the file:
+{Sites, Neighbors, Values}.
+
+Each section is listed below.  The format of each section is described
+including the number of lines it must contain and rules (if any) for
+where it can appear in the data file.
+
+Any individual line in the various sections can have a trailing
+comment starting with "#" for annotation purposes.  E.g. in the
+Sites section:
+
+10 10.0 5.0 6.0   # impuity site
+
+:line
+
+{Sites} section:
+
+one line per site :ulb,l
+line syntax: ID x y z :l
+ID = global site ID (1-N)
+x y z = coordinates of site :pre
+example: :l
+101 7.0 0.0 3.0 :pre
+:ule
+
+There must be N lines in this section where N = number of sites.  The
+lines can appear in any order.
+
+:line
+
+{Neighbors} section:
+
+one line per site :ulb,l
+line syntax: ID n1 n2 n3 ... :l
+ID = global site ID (1-N)
+n1 n2 n3 ... = IDs of neighbor sites :pre
+example: :l
+101 7 32 15 1004 ... :pre
+:ule
+
+There must be N lines in this section where N = number of sites.  The
+lines can appear in any order.
+
+The number of neighbors can vary from site to site, but there can be
+no more than {max neighbors} for any one site.  The neighbors of an
+individual site can be listed in any order.
+
+:line
+
+{Values} section:
+
+one line per site :ulb,l
+line syntax: ID i1 i2 ... iN d1 d2 ... dN :l
+ID = global site ID (1-N)
+i1,i2,...iN = integer values for the site
+d1,d2,...dN = floating point values for the site :pre
+example: :l
+101 1 3 4.0 :pre
+:ule
+
+There must be N lines in this section where N = number of sites.  The
+lines can appear in any order.
+
+The number of values per site that should be listed depends on the
+application which defines the number of integer and floating-point
+values per site.  These are listed in order, with the integer values
+first, followed by the floating-point values.
+
+:line
+
+[Restrictions:]
+
+To write gzipped dump files, you must compile SPPARKS with the
+-DSPPARKS_GZIP option - see the "Making
+SPPARKS"_Section_start.html#2_2 section of the documentation.
+
+[Related commands:]
+
+"create_box"_create_box.html, "create_sites"_create_sites.html,
+"set"_set.html
+
+[Default:] none

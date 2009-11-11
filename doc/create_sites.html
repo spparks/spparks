@@ -1,0 +1,134 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>create_sites command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>create_sites style arg keyword values ... 
+</PRE>
+<UL><LI>style = <I>box</I> or <I>region</I> 
+
+<PRE>  <I>box</I> arg = none
+  <I>region</I> arg = region-ID
+    region-ID = sites will only be created if contained in the region 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>value</I> or <I>basis</I> 
+
+<PRE>  <I>value</I> values = label nvalue
+    label = <I>site</I> or <I>iN</I> or <I>dN</I>
+    nvalue = specific value to set all created sites to
+  <I>basis</I> values = M nvalue
+    M = which basis site (see asterisk form below)
+    nvalue = specific value to set all created basis sites to 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>create_sites box
+create_sites region surf value site 1
+create_sites box value i2 0 basis 1 1 basis 2* 2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command creates "sites" on a lattice for on-lattice and
+off-lattice applications.  This is an alternative to reading in their
+coordinates via a <A HREF = "read_sites.html">read_sites</A> command.  A simulation
+box must already exist, which is typically created via the
+<A HREF = "create_box.html">create_box</A> command.  Before using this command, a
+lattice must also be defined using the <A HREF = "lattice.html">lattice</A> command.
+</P>
+<P>In SPPARKS, a "site" is a point in space at which an application, as
+defined by the <A HREF = "app_style.html">app_style</A> command can perform events.
+For on-lattice applications, the site is static and has a defined set
+of neighboring sites with which it interacts.  For off-lattice
+applications, a site is like a particle.  It moves and has a dynamic
+neighborhood of nearby particles with which it interacts.
+</P>
+<P>For the <I>box</I> style, the create_sites command fills the entire
+simulation box with sites on the lattice.  This is the only option
+allowed for on-lattice applications.
+</P>
+<P>In this case the simulation box size must be an integer multiple of
+the lattice constant in each dimension, to insure consitent placement
+of sites and neighbor interactions across periodic boundaries.
+SPPARKS is careful to put exactly one site at the boundary (on either
+side of the box), not zero or two.
+</P>
+<P>NOTE: The <I>region</I> style is not yet implemented but will be soon.  The
+following text explains how it will work.
+</P>
+<P>For the <I>region</I> style, the geometric volume is filled with sites on
+the lattice that are both inside the simulation box and also
+consistent with the region volume.  See the <A HREF = "region.html">region</A>
+command for details.  Note that a region can be specified so that its
+"volume" is either inside or outside a geometric boundary.  Also note
+that even if the region is the same size as a periodic simulation box
+(in some dimension), SPPARKS does not implement the same logic as with
+the <I>box</I> style, to insure exactly one site at the boundary.  If this
+is what you desire, you should either use the <I>box</I> style, or tweak
+the region size to get precisely the sites you want.
+</P>
+<HR>
+
+<P>Site IDs are assigned to created sites with consecutive values from 1
+to N, where N is the total number of sites that fill the simulation
+box.  The numbering is the same, independent of the number of
+processors.
+</P>
+<P>Depending on the <A HREF = "app_style.html">application</A>, each site stores zero
+of more integer and floating-point values.  By default these are set
+to zero when a site is created by this command.  The <I>value</I> and
+<I>basis</I> keywords can override the default.
+</P>
+<P>The <I>value</I> keyword specifies a per-site value that will be assigned
+to every site as it is created.  The <I>label</I> determines which per-site
+quantity is set.  <I>iN</I> and <I>dN</I> mean the Nth integer or floating-point
+quantity, with 1 <= N <= Nmax.  Nmax is defined by the application.
+If <I>label</I> is specified as <I>site</I> it is the same as <I>i1</I>.  The
+quantity is set to the specified <I>nvalue</I>, which should be either an
+integer or floating-point numeric value, depending on what kind of
+per-site quantity is being set.
+</P>
+<P>The <I>basis</I> keyword can be used to override the <I>value</I> keyword
+setting for individual basis sites as each unit cell is created.  The
+per-site quantity (e.g. i2) specified by the <I>value</I> keyword is set
+for basis sites <I>M</I>.  The quantity is set to the specified <I>nvalue</I>
+for the <I>basis</I> keyword, instead of the <I>nvalue</I> from the <I>value</I>
+keyword.  See the <A HREF = "lattice.html">lattice</A> command for specifics on how
+basis atoms and unit cells are defined for each lattice style.
+</P>
+<P>M can be specified in one of two ways.  An explicit numeric value can
+be used, such as 2.  A wild-card asterisk can also be used in place of
+or in conjunction with the M argument to specify multiple basis sites
+together.  This takes the form "*" or "*n" or "n*" or "m*n".  If N =
+the total number of basis sites, then an asterisk with no numeric
+values means all sites from 1 to N.  A leading asterisk means all
+sites from 1 to n (inclusive).  A trailing asterisk means all sites
+from n to N (inclusive).  A middle asterisk means all sites from m to
+n (inclusive).
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The <A HREF = "app_style.html">app_style</A> command must be used to define an
+application before using the create_box command.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "lattice.html">lattice</A>, <A HREF = "region.html">region</A>,
+<A HREF = "create_box.html">create_box</A>, <A HREF = "read_sites.html">read_sites</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,43 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dimension command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dimension N 
+</PRE>
+<UL><LI>N = 1 or 2 or 3 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>dimension 2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the dimensionality of the simulation for spatial on-lattice or
+off-lattice models.  By default SPPARKS runs 3d simulations.  To run a
+1d or 2d simulation, this command should be used prior to setting up a
+simulation box via the <A HREF = "create_box.html">create_box</A> or
+<A HREF = "read_sites.html">read_sites</A> commands.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command must be used before the simulation box is defined by a
+<A HREF = "read_sites.html">read_sites</A> or <A HREF = "create_box.html">create_box</A> command.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>dimension 3 
+</PRE>
+</HTML>

@@ -1,0 +1,38 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+dimension command :h3
+
+[Syntax:]
+
+dimension N :pre
+
+N = 1 or 2 or 3 :ul
+
+[Examples:]
+
+dimension 2 :pre
+
+[Description:]
+
+Set the dimensionality of the simulation for spatial on-lattice or
+off-lattice models.  By default SPPARKS runs 3d simulations.  To run a
+1d or 2d simulation, this command should be used prior to setting up a
+simulation box via the "create_box"_create_box.html or
+"read_sites"_read_sites.html commands.
+
+[Restrictions:]
+
+This command must be used before the simulation box is defined by a
+"read_sites"_read_sites.html or "create_box"_create_box.html command.
+
+[Related commands:] none
+
+[Default:]
+
+dimension 3 :pre

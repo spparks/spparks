@@ -1,0 +1,139 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>lattice command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>lattice style args 
+</PRE>
+<UL><LI>style = <I>line/2n</I> or <I>sq/4n</I> or <I>sq/8n</I> or <I>tri</I> or <I>sc/6n</I> or <I>sc/26n</I> or <I>bcc</I> or <I>fcc</I> or <I>diamond</I> or <I>fcc/octa/tetra</I> or <I>random/1d</I> or <I>random/2d or <I>random/3d</I></I> 
+
+<PRE>  arg for all styles except <I>random</I> = scale
+    scale = lattice constant (distance units) 
+</PRE>
+<PRE>  <I>random/1d</I> args = Nrandom cutoff
+  <I>random/2d</I> args = Nrandom cutoff
+  <I>random/3d</I> args = Nrandom cutoff
+    Nrandom = # of random sites
+    cutoff = distance within which sites are connected (distance units) 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>lattice sq/4n 1.0
+lattice fcc 3.52
+lattice random/3d 10000 2.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a lattice for use by other commands. In SPPARKS, a lattice is
+simply a set of points in space, determined by a unit cell with basis
+atoms, that is replicated infinitely in all dimensions. The arguments
+of the lattice command can be used to define a wide variety of
+crystallographic lattices.
+</P>
+<P>A lattice is used by SPPARKS in two ways. First, the
+<A HREF = "create_sites.html">create_sites</A> command creates "sites" on the
+lattice points inside the simulation box. Sites are used by an
+on-lattice or off-lattice application, specified by the
+<A HREF = "app_style.html">app_style</A> command, which define events that change
+the values associated with sites (e.g. a spin flip) or the coordinates
+of the site itself (for off-lattice applications).
+</P>
+<P>Second, the lattice spacing in the x,y,z dimensions is
+used by other commands such as the <A HREF = "region.html">region</A> command
+to define distance units and define geometric extents, for
+example in specifying the size of the simulation box via
+the <A HREF = "create_box.html">create_box</A> command.
+</P>
+<P>The lattice style must be consistent with the dimension of the
+simulation - see the <A HREF = "dimension.html">dimension</A> command and
+descriptions of each style below.
+</P>
+<P>A lattice consists of a unit cell, a set of basis sites within that
+cell. The vectors a1,a2,a3 are the edge vectors of the unit cell. This
+is the nomenclature for "primitive" vectors in solid-state
+crystallography, but in SPPARKS the unit cell they determine does not
+have to be a "primitive cell" of minimum volume.
+</P>
+<P>For on-lattice applications (see the <A HREF = "app_style.html">app_style</A>
+command), the lattice definition also infers a connectivity between
+lattice sites, which is used to generate the list of neighbors of each
+site.  This information is ignored for off-lattice applications.  This
+means that for a 2d off-lattice application, it makes no difference
+whether a <I>sq/4n</I> or <I>sq/8n</I> lattice is used; they both simply
+generate a square lattice of points.
+</P>
+<HR>
+
+<P>In the style descriptions that follow, a = the lattice constant
+defined by the lattice command.  Sites within a unit cell are defined
+as (x,y,z) where 0.0 <= x,y,z < 1.0.
+</P>
+<P>A lattice of style <I>line/2n</I> is a 1d lattice with a1 = a 0 0 and one
+basis site per unit cell at (0,0,0).  Each lattice point has 2
+neighbors.
+</P>
+<P>Lattices of style <I>sq/4n</I> and <I>sq/8n</I> are 2d lattices with a1 = a 0 0
+and a2 = 0 a 0, and one basis site per unit cell at (0,0,0).  The
+<I>sq/4n</I> style has 4 neighbors per site (east/west/north/south); the <I>sq/8n</I> style has 8 neighbors per site (same 4 as
+<I>sq/4n</I> plus 4 corner points).
+</P>
+<P>A lattice of style <I>tri</I> is a 2d lattice with a1 = a 0 0 and a2 = 0
+sqrt(3)*a 0, and two basis sites per unit cell at (0,0,0) and
+(0.5,0.5,0).  Each lattice points has 6 neighbors.
+</P>
+<P>Lattices of style <I>sc/6n</I> and <I>sc/26n</I> are 3d lattices with a1 = a 0 0
+and a2 = 0 a 0 and a3 = 0 0 a, and one basis site per unit cell at
+(0,0,0).  The <I>sc/6n</I> style has 6 neighbors per site
+(east/west/north/south/up/down); the <I>sc/26n</I> style has 26 neighbors per
+site (surrounding cube including edge and corner points).
+</P>
+<P>Lattices of style <I>bcc</I> and <I>fcc</I> and <I>diamond</I> are 3d lattice with a1
+= a 0 0 and a2 = 0 a 0 and a3 = 0 0 a.  There are two basis sites per
+unit cell for <I>bcc</I>, 4 basis sites for <I>fcc</I>, and 8 sites for
+<I>diamond</I>.  The location of the basis sites are defined in any
+solid-state physics or crystallography text.  The <I>bcc</I> style has 8
+neighbors per site, the <I>fcc</I> has 12, and the <I>diamond</I> has 4.
+</P>
+<P>A lattice of style <I>fcc/octa/tetra</I> is a 3d lattice with a1 = a 0 0
+and a2 = 0 a 0 and a3 = 0 0 a.  There are 16 basis sites per unit
+cell, which consist of 4 fcc sites plus 4 octahedral and 8 tetrahedral
+interstitial sites.  Again, these are defined in solid-state physics
+texts.  There are 26 neighbors per fcc and octahedral site, and 14
+neihbors per tetrahedral site.
+</P>
+<P>The <I>random</I> lattice styles are 1d, 2d, and 3d lattices with a1 = 1 0
+0 and a2 = 0 1 0 and a3 = 0 0 1.  Note that no <I>scale</I> parameter is
+defined and the unit cell is a unit cube, not a cube with side length
+<I>a</I>.  Thus a <A HREF = "region.html">region</A> command using one of these lattices
+will define its geometric region directly, not as multiples of the
+<I>scale</I> parameter.  When the <A HREF = "create_sites.html">create_sites</A> command
+is used, it will generate a collection of Nrandom points within the
+corresponding 1d, 2d, or 3d region or simulation box.  The number of
+neighbors per site is defined by the specified <I>cutoff</I> parameter.
+Two sites I,J will be neighbors of each other if they are closer than
+the <I>cutoff</I> distance apart.
+</P>
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dimension.html">dimension</A>, <A HREF = "create_sites.html">create_sites</A>,
+<A HREF = "region.html">region</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

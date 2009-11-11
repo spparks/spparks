@@ -16,23 +16,26 @@ dump-ID = user-assigned name for the dump :l
 delta = time increment between dumps (seconds) :l
 filename = name of file to dump snapshots to :l
 zero or more fields may be appended :l
-field = {id} or {lattice} or {x} or {y} or {z} or {energy} or {propensity} or {iN} or {dN} :l
+field = {id} or {site} or {x} or {y} or {z} or {energy} or {propensity} or {iN} or {dN} :l
 
 [Examples:]
 
 dump 1 0.25 tmp.dump
-dump mydump 5.0 snap.ising id lattice energy i1 :pre
+dump mydump 5.0 snap.ising id site energy i1 :pre
 
 [Description:]
 
-Dump snapshots of the state of the lattice to a file at time intervals
-of {delta} during a simulation.  As described below, the filename
-determines the kind of output (text or binary or gzipped, one big file
-or one per timestep, one big file or one per processor).  The
-quantities printed are obtained from the application.  Only
-lattice-based applications support dumps since one line per lattice
-site is output.  More that one dump command and file can be used
-during a simulation by giving each a unique dump-ID.
+Dump snapshots of site values to a file at time intervals of {delta}
+during a simulation.  As described below, the filename determines the
+kind of output (text or binary or gzipped, one big file or one per
+timestep, one big file or one per processor).  The quantities printed
+are obtained from the application.  Only "on-lattice and off-lattice
+applications"_app_style.html support dumps since they are spatial in
+nature.  More that one dump command and file can be used during a
+simulation by giving each a unique dump-ID.  Note that if written in
+appropriate format, a snapshot from a dump file can easily be
+converted into a data file suitable for input via the
+"read_sites"_read_sites.html command to restart a simulation.
 
 IMPORTANT NOTE: When running in parallel, the order of sites as
 printed to the dump file will be in chunks by processor, not ordered
@@ -60,25 +63,24 @@ ITEM: NUMBER OF ATOMS
 314159 :pre
 
 If fields are listed, then only those quantities will be printed for
-each lattice site.  If no fields are listed, then the default output
-values for each site are "id lattice x y z".  These are the possible
-field values which may be specified.
+each site.  If no fields are listed, then the default output values
+for each site are "id site x y z".  These are the possible field
+values which may be specified.
 
 The {id} is a unique integer ID for each site.
 
-The {lattice} value is typically the integer state of the lattice,
-e.g. the spin value, assuming the application uses the lattice array.
-Some applications store multiple values per lattice site; see the
-{site} option of the "app_style"_app_style.html command.  You can
-specify these values be dumped as {iN} or {dN}, where i = integer, d =
-double, and N = which value to print (1,2,3,...).
+The {site}, {iN}, and {dN} fields specify a per-site value.  {Site} is
+the same as {i1}.  {iN} fields are integer values; {dN} fields are
+floating-point value. The application defines how many integer and
+floating=point values are stored for each site.
 
-The {x}, {y}, {z} values are the coordinates assigned to the lattice
-site.  The {energy} value is what is computed by the energy() function
-in the application.  Likewise for the {propensity} value which can be
-thought of as the relative probablity for that site to perform a KMC
-event.  Note that if you are doing Metropolis MC and not kinetic MC,
-no propensity is defined.
+The {x}, {y}, {z} values are the coordinates of the site.
+
+The {energy} value is what is computed by the energy() function in the
+application.  Likewise for the {propensity} value which can be thought
+of as the relative probablity for that site to perform a KMC event.
+Note that if the application only performs rejection KMC or Metropolis
+MC, then no propensity is defined.
 
 :link(lammps,http://lammps.sandia.gov)
 :link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
@@ -123,9 +125,13 @@ longer to write.
 
 [Restrictions:]
 
-This command can only be used as part of the lattice-based
+This command can only be used as part of on-lattice or off-lattice
 applications.  See the "app_style"_app_style.html command for further
 details.
+
+To write gzipped dump files, you must compile SPPARKS with the
+-DSPPARKS_GZIP option - see the "Making
+SPPARKS"_Section_start.html#2_2 section of the documentation.
 
 [Related commands:]
 

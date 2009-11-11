@@ -1,0 +1,208 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>read_sites command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>read_sites file 
+</PRE>
+<UL><LI>file = name of data file to read in 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>read_sites data.potts
+read_sites ../run7/data.potts.gz 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Read in a data file containing information SPPARKS needs to setup an
+<A HREF = "app_style.html">on-lattice or off-lattice application</A>.  The file can
+be ASCII text or a gzipped text file (detected by a .gz suffix).  This
+is one of 2 ways to specify event sites ; see the
+<A HREF = "create_sites.html">create_sites</A> command for another method.
+</P>
+<P>A data file has a header and a body, as described below.  The body of
+the file contains up to 3 sections: Sites, Neighbors, Values.  Sites
+defines the coordinates of event sites.  Neighbors define the
+neighbors of each site (only for on-lattice applications).  Values
+assign per-site values to each site, which can also be done via the
+<A HREF = "set.html">set</A> command.
+</P>
+<P>If a simulation box has not already been created, then the data file
+defines the box size (in the header), and it must define Sites and
+Neighbors (for on-lattice applications).  The Values section is
+optional.
+</P>
+<P>If a simulation box has already been defined (by the "create_box"
+command or a previous read_sites command), but no sites have previosly
+been defined, then the box size in the header must be the same, and
+the data file must define Sites and Neighbors (for on-lattice
+applications).  The Values section is optional.
+</P>
+<P>If a simulation box has already been defined, and sites have previosly
+been defined (by the "create_sites" command or a previous read_sites
+command), then the box size in the header must be the same, no Sites
+or Neighbors can be specfied, but the Values section may be used.
+This is a means of restarting a simulation using per-site info written
+out by the <A HREF = "dump.html">dump</A> command and reformatted so it can be input
+by this command.
+</P>
+<HR>
+
+<P>The first line of the header of the data file is always skipped; it
+typically contains a description of the file.  Then lines are read one
+at a time.  Lines can have a trailing comment starting with '#' that
+is ignored.  If the line is blank (only whitespace after comment is
+deleted), it is skipped.  If the line contains a header keyword, the
+corresponding value(s) is read from the line.  If it doesn't contain a
+header keyword, the line begins the body of the file.
+</P>
+<P>The body of the file contains zero or more sections.  The first line
+of a section has only a keyword.  The next line is skipped.  The
+remaining lines of the section contain values.  The number of lines
+depends on the section keyword as described below.  Zero or more blank
+lines can be used between sections.  Sections can appear in any order,
+with a few exceptions as noted below.
+</P>
+<P>The formatting of individual lines in the data file (indentation,
+spacing between words and numbers) is not important except that header
+and section keywords (e.g. dimension, xlo xhi, Sites, Values) must be
+capitalized as shown and can't have extra white space between their
+words - e.g. two spaces or a tab between "xlo and "xhi" is not valid.
+</P>
+<HR>
+
+<P>These are the recognized header keywords.  Header lines can come in
+any order.  The value(s) are read from the beginning of the line.
+Thus the keyword <I>sites</I> should be in a line like "1000 sites"; the
+keyword <I>ylo yhi</I> should be in a line like "-10.0 10.0 ylo yhi".  All
+these settings have a default value of 0, except the lo/hi box size
+defaults are -0.5 and 0.5.  A line need only appear if the value is
+different than the default.
+</P>
+<UL><LI><I>dimension</I> = dimension of system = 1,2,3
+<LI><I>sites</I> = number of sites
+<LI><I>max neighbors</I> = max # of neighbors of any site
+<LI><I>xlo xhi</I> = simulation box boundaries in x dimension
+<LI><I>ylo yhi</I> = simulation box boundaries in y dimension
+<LI><I>zlo zhi</I> = simulation box boundaries in z dimension 
+</UL>
+<P>The <I>max neighbors</I> setting is only needed if the file contains a
+Neighbors section, which is only used for on-lattice applications.
+</P>
+<P>The simulation box size is determined by the lo/hi settings.  For 2d
+simulations, the <I>zlo zhi</I> values should be set to bound the z coords
+for atoms that appear in the file; the default of -0.5 0.5 is valid if
+all z coords are 0.0.  The same rules hold for <I>ylo and yhi</I> for 1d
+simulations.
+</P>
+<HR>
+
+<P>These are the possible section keywords for the body of the file:
+<I>Sites, Neighbors, Values</I>.
+</P>
+<P>Each section is listed below.  The format of each section is described
+including the number of lines it must contain and rules (if any) for
+where it can appear in the data file.
+</P>
+<P>Any individual line in the various sections can have a trailing
+comment starting with "#" for annotation purposes.  E.g. in the
+Sites section:
+</P>
+<P>10 10.0 5.0 6.0   # impuity site
+</P>
+<HR>
+
+<P><I>Sites</I> section:
+</P>
+<UL><LI>one line per site 
+
+<LI>line syntax: ID x y z 
+
+<PRE>ID = global site ID (1-N)
+x y z = coordinates of site 
+</PRE>
+<LI>example: 
+
+<PRE>101 7.0 0.0 3.0 
+</PRE>
+
+</UL>
+<P>There must be N lines in this section where N = number of sites.  The
+lines can appear in any order.
+</P>
+<HR>
+
+<P><I>Neighbors</I> section:
+</P>
+<UL><LI>one line per site 
+
+<LI>line syntax: ID n1 n2 n3 ... 
+
+<PRE>ID = global site ID (1-N)
+n1 n2 n3 ... = IDs of neighbor sites 
+</PRE>
+<LI>example: 
+
+<PRE>101 7 32 15 1004 ... 
+</PRE>
+
+</UL>
+<P>There must be N lines in this section where N = number of sites.  The
+lines can appear in any order.
+</P>
+<P>The number of neighbors can vary from site to site, but there can be
+no more than <I>max neighbors</I> for any one site.  The neighbors of an
+individual site can be listed in any order.
+</P>
+<HR>
+
+<P><I>Values</I> section:
+</P>
+<UL><LI>one line per site 
+
+<LI>line syntax: ID i1 i2 ... iN d1 d2 ... dN 
+
+<PRE>ID = global site ID (1-N)
+i1,i2,...iN = integer values for the site
+d1,d2,...dN = floating point values for the site 
+</PRE>
+<LI>example: 
+
+<PRE>101 1 3 4.0 
+</PRE>
+
+</UL>
+<P>There must be N lines in this section where N = number of sites.  The
+lines can appear in any order.
+</P>
+<P>The number of values per site that should be listed depends on the
+application which defines the number of integer and floating-point
+values per site.  These are listed in order, with the integer values
+first, followed by the floating-point values.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>To write gzipped dump files, you must compile SPPARKS with the
+-DSPPARKS_GZIP option - see the <A HREF = "Section_start.html#2_2">Making
+SPPARKS</A> section of the documentation.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "create_box.html">create_box</A>, <A HREF = "create_sites.html">create_sites</A>,
+<A HREF = "set.html">set</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

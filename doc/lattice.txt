@@ -1,0 +1,131 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+lattice command :h3
+
+[Syntax:]
+
+lattice style args :pre
+
+style = {line/2n} or {sq/4n} or {sq/8n} or {tri} or {sc/6n} or {sc/26n} or {bcc} or {fcc} or {diamond} or {fcc/octa/tetra} or {random/1d} or {random/2d or {random/3d}} :ulb,l
+  arg for all styles except {random} = scale
+    scale = lattice constant (distance units) :pre
+  {random/1d} args = Nrandom cutoff
+  {random/2d} args = Nrandom cutoff
+  {random/3d} args = Nrandom cutoff
+    Nrandom = # of random sites
+    cutoff = distance within which sites are connected (distance units) :pre
+:ule
+
+[Examples:]
+
+lattice sq/4n 1.0
+lattice fcc 3.52
+lattice random/3d 10000 2.0 :pre
+
+[Description:]
+
+Define a lattice for use by other commands. In SPPARKS, a lattice is
+simply a set of points in space, determined by a unit cell with basis
+atoms, that is replicated infinitely in all dimensions. The arguments
+of the lattice command can be used to define a wide variety of
+crystallographic lattices.
+
+A lattice is used by SPPARKS in two ways. First, the
+"create_sites"_create_sites.html command creates "sites" on the
+lattice points inside the simulation box. Sites are used by an
+on-lattice or off-lattice application, specified by the
+"app_style"_app_style.html command, which define events that change
+the values associated with sites (e.g. a spin flip) or the coordinates
+of the site itself (for off-lattice applications).
+
+Second, the lattice spacing in the x,y,z dimensions is
+used by other commands such as the "region"_region.html command
+to define distance units and define geometric extents, for
+example in specifying the size of the simulation box via
+the "create_box"_create_box.html command.
+
+The lattice style must be consistent with the dimension of the
+simulation - see the "dimension"_dimension.html command and
+descriptions of each style below.
+
+A lattice consists of a unit cell, a set of basis sites within that
+cell. The vectors a1,a2,a3 are the edge vectors of the unit cell. This
+is the nomenclature for "primitive" vectors in solid-state
+crystallography, but in SPPARKS the unit cell they determine does not
+have to be a "primitive cell" of minimum volume.
+
+For on-lattice applications (see the "app_style"_app_style.html
+command), the lattice definition also infers a connectivity between
+lattice sites, which is used to generate the list of neighbors of each
+site.  This information is ignored for off-lattice applications.  This
+means that for a 2d off-lattice application, it makes no difference
+whether a {sq/4n} or {sq/8n} lattice is used; they both simply
+generate a square lattice of points.
+
+:line
+
+In the style descriptions that follow, a = the lattice constant
+defined by the lattice command.  Sites within a unit cell are defined
+as (x,y,z) where 0.0 <= x,y,z < 1.0.
+
+A lattice of style {line/2n} is a 1d lattice with a1 = a 0 0 and one
+basis site per unit cell at (0,0,0).  Each lattice point has 2
+neighbors.
+
+Lattices of style {sq/4n} and {sq/8n} are 2d lattices with a1 = a 0 0
+and a2 = 0 a 0, and one basis site per unit cell at (0,0,0).  The
+{sq/4n} style has 4 neighbors per site (east/west/north/south); the {sq/8n} style has 8 neighbors per site (same 4 as
+{sq/4n} plus 4 corner points).
+
+A lattice of style {tri} is a 2d lattice with a1 = a 0 0 and a2 = 0
+sqrt(3)*a 0, and two basis sites per unit cell at (0,0,0) and
+(0.5,0.5,0).  Each lattice points has 6 neighbors.
+
+Lattices of style {sc/6n} and {sc/26n} are 3d lattices with a1 = a 0 0
+and a2 = 0 a 0 and a3 = 0 0 a, and one basis site per unit cell at
+(0,0,0).  The {sc/6n} style has 6 neighbors per site
+(east/west/north/south/up/down); the {sc/26n} style has 26 neighbors per
+site (surrounding cube including edge and corner points).
+
+Lattices of style {bcc} and {fcc} and {diamond} are 3d lattice with a1
+= a 0 0 and a2 = 0 a 0 and a3 = 0 0 a.  There are two basis sites per
+unit cell for {bcc}, 4 basis sites for {fcc}, and 8 sites for
+{diamond}.  The location of the basis sites are defined in any
+solid-state physics or crystallography text.  The {bcc} style has 8
+neighbors per site, the {fcc} has 12, and the {diamond} has 4.
+
+A lattice of style {fcc/octa/tetra} is a 3d lattice with a1 = a 0 0
+and a2 = 0 a 0 and a3 = 0 0 a.  There are 16 basis sites per unit
+cell, which consist of 4 fcc sites plus 4 octahedral and 8 tetrahedral
+interstitial sites.  Again, these are defined in solid-state physics
+texts.  There are 26 neighbors per fcc and octahedral site, and 14
+neihbors per tetrahedral site.
+
+The {random} lattice styles are 1d, 2d, and 3d lattices with a1 = 1 0
+0 and a2 = 0 1 0 and a3 = 0 0 1.  Note that no {scale} parameter is
+defined and the unit cell is a unit cube, not a cube with side length
+{a}.  Thus a "region"_region.html command using one of these lattices
+will define its geometric region directly, not as multiples of the
+{scale} parameter.  When the "create_sites"_create_sites.html command
+is used, it will generate a collection of Nrandom points within the
+corresponding 1d, 2d, or 3d region or simulation box.  The number of
+neighbors per site is defined by the specified {cutoff} parameter.
+Two sites I,J will be neighbors of each other if they are closer than
+the {cutoff} distance apart.
+
+:line
+
+[Restrictions:] none
+
+[Related commands:]
+
+"dimension"_dimension.html, "create_sites"_create_sites.html,
+"region"_region.html
+
+[Default:] none

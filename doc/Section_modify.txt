@@ -50,22 +50,15 @@ command like
 
 app_style foo 0.1 3.5 :pre
 
-you put your 2 files in the SPPARKS src directory, add 2 lines to the
-style_user.h file, and re-make the code.
+you put your 2 files in the SPPARKS src directory and re-make the
+code.  The app_foo.h file should have these lines at the top
 
-The first line added to style_user.h would be
+#ifdef APP_CLASS
+AppStyle(foo,AppFoo)
+#else :pre
 
-AppStyle(foo,AppFoo) :pre
-
-in the #ifdef AppClass section, where "foo" is the style keyword in
-the app_style command, and AppFoo is the class name in your C++ files.
-
-The 2nd line added to style_user.h would be
-
-#include "app_foo.h" :pre
-
-in the #ifdef AppInclude section, where app_foo.h is the name of your
-new include file.
+where "foo" is the style keyword to be used in the app_style command,
+and AppFoo is the class name in your C++ files.
 
 When you re-make SPPARKS, your new application becomes part of the
 executable and can be invoked with a app_style command like the
@@ -105,39 +98,30 @@ between on-lattice and off-lattice applications.  A new off-lattice
 application can be anything you wish.  On-lattice applications are
 derive from the AppLattice class.
 
-For off-lattice applications, here is a brief description of methods
-you define in your new derived class.  Some of them are required; some
-are optional.  See app.h for details.
+For on-lattice and off-lattice applications, here is a brief
+description of methods you define in your new derived class.  Some of
+them are required; some are optional.  See app.h for details.
 
-input: additional commands the application defines
-init: setup the application
-run: perform iterations or timestepping of the model
-dump_header: write header of dump file
-dump: write a snapshot of state of model
-set_stats: setup application-specific statistics
-set_dump: setup application-specific dump :tb(s=:)
-
-For off-lattice applications, here is a brief description of methods
-you define in your new derived class.  Some of them are required; some
-are optional.  See app_lattice.h for details.  Note that two of the
-methods are required if you want your application to perform kinetic
-Monte Carlo (KMC) with a "solver"_solve_style.html.  One of the
-methods is required if you want your application to perform rejection
-KMC (rKMC) with a "sweep method"_sweep.html.
-
-site_energy: compute energy of a lattice site
+input_app: additional commands the application defines
+grow_app: set pointers to per-site arrays used by the application
+init_app: initialize the application before a run
+site_energy: compute energy of a site
 site_event_rejection: peform an event with null-bin rejection (for rKMC)
 site_propensity: compute propensity of all events on a site (for KMC)
-site_event: perform a kinetic Monte Carlo event (for KMC)
-input_app: perform application-specific input
-init_app: perform application-specific initialization :tb(s=:)
+site_event: perform an event (for KMC) :tb(s=:)
 
-For an on-lattice application, you also need to define various flags
-in the constructor of your application, to insure proper operation
-with the "KMC solvers'_solve.html and rejection KMC "sweep
-methods"_sweep.html.  These are the flags, all of which have default
-values set in app_lattice.cpp:
+Note that two of the methods are required if you want your application
+to perform kinetic Monte Carlo (KMC) with a "solver"_solve_style.html.
+One of the methods is required if you want your application to perform
+rejection KMC (rKMC) with a "sweep method"_sweep.html.
 
+The constructor for your application class also needs to define, to
+insure proper operation with the "KMC solvers'_solve.html and
+rejection KMC "sweep methods"_sweep.html.  These are the flags, all of
+which have default values set in app_lattice.cpp:
+
+ninteger : how many integer values are defined per site
+ndouble: how many floating point values are defined per site
 delpropensity: how many neighbors away values are needed to compute propensity
 delevent: how many neighbors away may the value can be changed by an event
 allow_kmc: 1 if methods are provided for KMC

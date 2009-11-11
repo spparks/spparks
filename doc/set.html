@@ -1,0 +1,137 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>set command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>set label style args keyword values ... 
+</PRE>
+<UL><LI>label = <I>site</I> or <I>iN</I> or <I>dN</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>xyz</I> 
+
+<LI>style = <I>value</I> or <I>range</I> or <I>displace</I> 
+
+<PRE>  <I>value</I> arg = nvalue
+   nvalue = value to set sites to
+ <I>range</I> args = lo hi
+   lo,hi = range of values to set sites to
+ <I>displace</I> arg = delta
+    delta = max distance to displace the site 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>fraction</I> or <I>region</I> or <I>loop</I> or <I>if</I> 
+
+<PRE>  <I>fraction</I> value = frac
+    frac = fractional value > 0 and <= 1.0
+  <I>region</I> args = region-ID
+    region-ID = ID of region that sites must be part of
+  <I>loop</I> arg = <I>all</I> or <I>local</I>
+    all = loop over all sites
+    local = loop over only sites I own
+  <I>if</I> args = label2 op nvalue2
+    label2 = <I>id</I> or <I>iN</I> or <I>dN</I> or <I>x</I> or <I>y</I> or <I>z</I>
+    op = "<" or "<=" or ">" or "<=" or "=" or "!="
+    nvalue2 = value to compare site value to 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>set i1 value 2 fraction 0.5
+set d1 range 1.0 2.0 loop local
+set xyz displace 0.2
+set i1 range 1 50 if x < 20 if i2 = 3 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Reset a per-site value for one or more sites.  Each on-lattice or
+off-lattice application defines what per-site values are stored with
+each site in its model.  When sites are created by the
+<A HREF = "create_sites.html">create_sites</A> or <A HREF = "read_sites.html">read_sites</A>
+commands, their per-site values may be set to zero or to values
+specified by those commands.  This command enables the values to be
+changed, either before the first <A HREF = "run.html">run</A>, or between runs.
+</P>
+<P>The <I>label</I> determines which per-site quantity is set.  <I>iN</I> and <I>dN</I>
+mean the Nth integer or floating-point quantity, with 1 <= N <= Nmax.
+Nmax is defined by the application.  If <I>label</I> is specified as <I>site</I>
+it is the same as <I>i1</I>.  For off-lattice applications, the <I>x</I> or <I>y</I>
+or <I>z</I> or <I>xyz</I> coordinates of each site can be adjusted.
+</P>
+<P>For label <I>iN</I> or <I>dN</I> or <I>site</I>, the styles <I>value</I> or <I>range</I> can be used.
+</P>
+<P>For style <I>value</I>, the per-site quantity is set to the specified
+<I>nvalue</I>, which should be either an integer or floating-point numeric
+value, depending on what kind of per-site quantity is being set.
+</P>
+<P>For style <I>range</I>, the per-site quantity is set to a random value
+between <I>lo</I> and <I>hi</I> (inclusive).  Both <I>lo</I> and <I>hi</I> should be
+either integer or floating-point numeric values, depending on what kind
+of per-site quantity is being set.
+</P>
+<P>NOTE: The <I>displace</I> style is not yet implemented but will be soon.
+The following text explains how it will work for off-lattice
+applications.
+</P>
+<P>For label <I>x</I> or <I>y</I> or <I>z</I> or <I>xyz</I>, the style <I>displace</I> must be
+used.  For <I>x</I> or <I>y</I> or <I>z</I>, the corresponding coordinate of each
+site is displaced by a random distance between -<I>delta</I> and <I>delta</I>.
+For <I>xyz</I> the site is displaced to a new random point within a sphere
+of radius <I>delta</I> surrounding the site (or a circle for 2d models, or
+a line segement for 1d models).
+</P>
+<HR>
+
+<P>The optional keywords enables selection of sites whose <I>label</I>
+quantity will be reset to a new value.  Note that these optional
+keywords can be used in various combinations, and the <I>if</I> keyword can
+be used multiple times, to select desired sites.
+</P>
+<P>The keyword <I>fraction</I> means that only a fraction of the sites will
+be reset, where 0 < <I>frac</I> <= 1.0.  For each site a random number R is
+generated and the reset only occurs if R < <I>frac</I>.
+</P>
+<P>The keyword <I>region</I> means that only sites in the specified region
+will be reset.  Note that a defined region can be a union or
+intersection of several regions and can be either inside or outside a
+geometric boundary; see the <A HREF = "region.html">region</A> command for details.
+</P>
+<P>The keyword <I>loop</I> determines how sites in the simulation box are
+looped over when their per-site quantity is reset.  In general, each
+processor will own some subset Nlocal of the total number of sites
+Nglobal in the simulation box.  The entire set of sites are assumed to
+have IDs from 1 to Nglobal.  For <I>loop all</I>, each processor performs a
+loop from 1 to Nglobal and generates the new value for that site.  If
+it owns the site, then it resets its value.  This means that the
+changes to per-site values will be the same, independent of which
+processor owns which site.  For <I>loop local</I>, each processor loops
+over only its sites from 1 to Nlocal.  This may be faster, but if
+random numbers are used to determine new per-site values, it will give
+different answers depending on the the number of processors used.
+</P>
+<P>The keyword <I>if</I> sets a condition that must be met in order for the
+per-site quantity to be reset.  The per-site quantity specified by
+<I>label2</I> is compared to the numeric <I>nvalue2</I> and if the condition is
+not met, then the site is skipped.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "create_sites.html">create_sites</A>, <A HREF = "read_sites.html">read_sites</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The default values for the optional keywords is fraction 1.0 and loop
+all.  No region is defined by default nor are any if-tests.
+</P>
+</HTML>

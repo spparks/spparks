@@ -1,0 +1,126 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+set command :h3
+
+[Syntax:]
+
+set label style args keyword values ... :pre
+
+label = {site} or {iN} or {dN} or {x} or {y} or {z} or {xyz} :ulb,l
+style = {value} or {range} or {displace} :l
+  {value} arg = nvalue
+   nvalue = value to set sites to
+ {range} args = lo hi
+   lo,hi = range of values to set sites to
+ {displace} arg = delta
+    delta = max distance to displace the site :pre
+zero or more keyword/value pairs may be appended :l
+keyword = {fraction} or {region} or {loop} or {if} :l
+  {fraction} value = frac
+    frac = fractional value > 0 and <= 1.0
+  {region} args = region-ID
+    region-ID = ID of region that sites must be part of
+  {loop} arg = {all} or {local}
+    all = loop over all sites
+    local = loop over only sites I own
+  {if} args = label2 op nvalue2
+    label2 = {id} or {iN} or {dN} or {x} or {y} or {z}
+    op = "<" or "<=" or ">" or "<=" or "=" or "!="
+    nvalue2 = value to compare site value to :pre
+:ule
+
+[Examples:]
+
+set i1 value 2 fraction 0.5
+set d1 range 1.0 2.0 loop local
+set xyz displace 0.2
+set i1 range 1 50 if x < 20 if i2 = 3 :pre
+
+[Description:]
+
+Reset a per-site value for one or more sites.  Each on-lattice or
+off-lattice application defines what per-site values are stored with
+each site in its model.  When sites are created by the
+"create_sites"_create_sites.html or "read_sites"_read_sites.html
+commands, their per-site values may be set to zero or to values
+specified by those commands.  This command enables the values to be
+changed, either before the first "run"_run.html, or between runs.
+
+The {label} determines which per-site quantity is set.  {iN} and {dN}
+mean the Nth integer or floating-point quantity, with 1 <= N <= Nmax.
+Nmax is defined by the application.  If {label} is specified as {site}
+it is the same as {i1}.  For off-lattice applications, the {x} or {y}
+or {z} or {xyz} coordinates of each site can be adjusted.
+
+For label {iN} or {dN} or {site}, the styles {value} or {range} can be used.
+
+For style {value}, the per-site quantity is set to the specified
+{nvalue}, which should be either an integer or floating-point numeric
+value, depending on what kind of per-site quantity is being set.
+
+For style {range}, the per-site quantity is set to a random value
+between {lo} and {hi} (inclusive).  Both {lo} and {hi} should be
+either integer or floating-point numeric values, depending on what kind
+of per-site quantity is being set.
+
+NOTE: The {displace} style is not yet implemented but will be soon.
+The following text explains how it will work for off-lattice
+applications.
+
+For label {x} or {y} or {z} or {xyz}, the style {displace} must be
+used.  For {x} or {y} or {z}, the corresponding coordinate of each
+site is displaced by a random distance between -{delta} and {delta}.
+For {xyz} the site is displaced to a new random point within a sphere
+of radius {delta} surrounding the site (or a circle for 2d models, or
+a line segement for 1d models).
+
+:line
+
+The optional keywords enables selection of sites whose {label}
+quantity will be reset to a new value.  Note that these optional
+keywords can be used in various combinations, and the {if} keyword can
+be used multiple times, to select desired sites.
+
+The keyword {fraction} means that only a fraction of the sites will
+be reset, where 0 < {frac} <= 1.0.  For each site a random number R is
+generated and the reset only occurs if R < {frac}.
+
+The keyword {region} means that only sites in the specified region
+will be reset.  Note that a defined region can be a union or
+intersection of several regions and can be either inside or outside a
+geometric boundary; see the "region"_region.html command for details.
+
+The keyword {loop} determines how sites in the simulation box are
+looped over when their per-site quantity is reset.  In general, each
+processor will own some subset Nlocal of the total number of sites
+Nglobal in the simulation box.  The entire set of sites are assumed to
+have IDs from 1 to Nglobal.  For {loop all}, each processor performs a
+loop from 1 to Nglobal and generates the new value for that site.  If
+it owns the site, then it resets its value.  This means that the
+changes to per-site values will be the same, independent of which
+processor owns which site.  For {loop local}, each processor loops
+over only its sites from 1 to Nlocal.  This may be faster, but if
+random numbers are used to determine new per-site values, it will give
+different answers depending on the the number of processors used.
+
+The keyword {if} sets a condition that must be met in order for the
+per-site quantity to be reset.  The per-site quantity specified by
+{label2} is compared to the numeric {nvalue2} and if the condition is
+not met, then the site is skipped.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"create_sites"_create_sites.html, "read_sites"_read_sites.html
+
+[Default:]
+
+The default values for the optional keywords is fraction 1.0 and loop
+all.  No region is defined by default nor are any if-tests.

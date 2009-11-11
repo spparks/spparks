@@ -1,0 +1,47 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>create_box command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>create_box region-ID 
+</PRE>
+<UL><LI>region-ID = ID of region to use as simulation domain 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>create_box mybox 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command creates a simulation box based on the specified region
+for on-lattice and off-lattice spatial simulations.  Thus a
+<A HREF = "region.html">region</A> command must first be used to define a geometric
+domain.  SPPARKS encloses the region (block, sphere, etc) with an
+axis-aligned (orthogonal) box which becomes the simulation domain.
+</P>
+<P>The <A HREF = "read_sites.html">read_sites</A> command can also be used to define a
+simulation box.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The <A HREF = "app_style.html">app_style</A> command must be used to define an
+application before using the create_box command.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "create_atoms.html">create_sites</A>, <A HREF = "region.html">region</A>,
+<A HREF = "create_atoms.html">read_sites</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

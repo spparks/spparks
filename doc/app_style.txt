@@ -10,57 +10,18 @@ app_style command :h3
 
 [Syntax:]
 
-app_style style args keyword values keyword values ... :pre
+app_style style args :pre
 
 style = one of a list of possible style names (see below) :ulb,l
 args = arguments specific to an application, see application doc page for details :l
-zero or more keyword/value pairs may be appended :l
-keyword = {input} or {lattice} or {procs} :l
-  {input} value = infile
-    infile = filename for file containing initial state of all sites
-  {lattice} values = type params
-    type = {line/2n} or {sq/4n} or {sq/8n} or {tri} or {sc/6n} or {sc/26n} or {fcc} or {bcc} or {diamond} or {random/1d} or {random/2d} or {random/3d} or {file}
-      {line/2n} params = a nx = 1d regular lattice with 2 neighbors per site
-      {sq/4n} params = a nx ny = 2d square lattice with 4 neighbors per site
-      {sq/8n} params = a nx ny = 2d square lattice with 8 neighbors per site
-      {tri} params = a nx ny = 2d triangular lattice with 6 neighborrs per site
-        a = lattice constant
-        nx,ny = number of unit cells in each dimension
-      {sc/6n} params = a nx ny nz = 3d cubic lattice with 6 neighbors per site
-      {sc/26n} params = a nx ny nz = 3d cubic lattice with 26 neighbors per site
-      {fcc} params = a nx ny nz = 3d fcc lattice with 12 neighbors per site
-      {bcc} params = a nx ny nz = 3d bcc lattice with 8 neighbors per site
-      {diamond} params = a nx ny nz = 3d diamond lattice with 4 neighbors per site
-        a = lattice constant
-        nx,ny,nz = number of unit cells in each dimension
-      {fcc/octa/tetra} params = a nx ny nz = 3d fcc/octa/tetra lattice
-        a = lattice constant
-        nx,ny,nz = number of unit cells in each dimension
-      {random/1d} param = N xbox cutoff = lattice of random 1d points
-        N = # of lattice points
-	xbox = simulation extent in x
-        cutoff = distance cutoff for neighbor connectivity between sites 
-      {random/2d} param = N xbox ybox cutoff = lattice of random 2d points
-        N = # of lattice points
-	xbox,ybox = simulation extent in x,y
-        cutoff = distance cutoff for neighbor connectivity between sites 
-      {random/3d} param = N xbox ybox zbox cutoff = lattice of random 3d points
-        N = # of lattice points
-	xbox,ybox,zbox = simulation extent in x,y,z
-        cutoff = distance cutoff for neighbor connectivity between sites 
-      {file} param = filename = read lattice and connectivity from file
-        filename = name of file (see file format below)
-  {procs} values = Px Py Pz
-    Px,Py,Pz = # of processors assigned to each dimension of simulation box :pre
 :ule
 
 [Examples:]
 
-app_style diffusion ... lattice fcc 1.0 100 100 100
-app_style ising ... lattice sq/4n 1.0 100 100
-app_style ising ... lattice sq/4n 1.0 100 100 input restart.state
-app_style potts ... lattice file tmp.latttice
-app_style membrane ... lattice tri 1.0 100 50
+app_style diffusion ...
+app_style ising ...
+app_style potts ...
+app_style relax ...
 app_style chemistry ...
 app_style test/group ... :pre
 
@@ -143,7 +104,7 @@ For all three methods (KMC, rKMC, MMC) the rules for how events are
 defined and are accepted or rejected are discussed in the doc pages
 for the individual applications.
 
-Here is a table of the different kinds of solvers and sweeping options
+This table lists the different kinds of solvers and sweeping options
 that can be used for on- and off-lattice applications in SPPARKS.
 Serial and parallel refer to running on one or many processors.
 Sector vs no-sector is what is set by the "sector"_sector.html
@@ -162,148 +123,8 @@ masking can also be turned on for rKMC algorithms via the
 Off-lattice applications do not support the {color} or {masking}
 options.
 
-:line
-
-For general applications, none of the keyword/value pairs can be used
-as part of the app_style command.
-
-For on-lattice and off-lattice applications, the {lattice} keyword
-must be specified.  The {procs} and {input} keywords are optional.
-
-:line
-
-The {lattice} keyword determines the initial set of sites used for on-
-and off-lattice applications.  In the on-lattice case, these sites are
-static.  In the off-lattice case, they represent particles which may
-move or disappear as the model evolves.  In the on-lattice case, the
-choice of lattice also defines the neighbors of each site.  In the
-off-lattice case, the neighbor information is ignored.  For example,
-
-app_style ising 12345 lattice sq/4n 100 100 :pre
-
-means use a 2d square lattice of size 100x100 with 4 neighbors per
-lattice site.  A variety of lattice types and neighbor stencils can be
-given as options with the {lattice} keyword as described above.
-
-The {line} lattice type is a 1d regular lattice.  The {sq} and {sc}
-lattice types are 2d square and 3d cubic lattices.  The total number
-of lattice sites is one per unit cell, i.e. the product of {nx}, {ny},
-and {nz}.  The {fcc}, {bcc}, and {diamond} lattice types are 3d and
-generate multiple lattice sites per unit cell: 4 per fcc unit cell, 2
-per bcc unit cell, and 8 per diamond unit cell.  The {fcc/octa/tetra}
-lattice is more complex.  It is an fcc lattice with additional
-interstitial sites at octahedral and tetrahedral locations, which can
-be thought of as 3 inter-penetrating lattices.
-
-For on-lattice models, the connectivity of the various lattice types
-is as follows:
-
-line/2d = 1d regular lattice with 2 neighbors per site (nearest neighbors)
-sq/4n = 2d square lattice with 4 neighbors per site (nearest neighbors)
-sq/8n = 2d square lattice with 4 neighbors per site (1st and 2nd nearest neighbors)
-tri = 2d triangular lattice with 6 neighbors per site (nearest neighbors)
-sc/6n = 3d cubic lattice with 6 neighbors per site (nearest neighbors)
-sc/26n = 3d cubic lattice with 26 neighbors per site (1st,2nd,3rd nearest neighbors)
-fcc = 3d fcc lattice with 12 neighbors per site (nearest neighbors)
-bcc = 3d fcc lattice with 8 neighbors per site (nearest neighbors)
-diamond = 3d fcc lattice with 4 neighbors per site (nearest neighbors)
-fcc/octa/tetra = 3d lattice with up to 26 neighbors per site, depending on the site :ul
-
-The {random} lattice options generate a lattice of random points
-within a 1d, 2d, or 3d box of specified size (0-xbox,0-ybox,0-zbox).
-The {cutoff} criterion is used to assign lattice neighbors to each
-site for on-lattice models.
-
-The {file} lattice option reads in a lattice and (optionally) neighbor
-connectivity from the specified {filename}.  The format of this file
-is as follows where the comments (#) are not included in the file, and
-"vertex" is a lattice site, and an "edge" is a neighbor connection
-from one site to another.  Typically neighbors should be geometrically
-close, but that is not required.  Note that a single connection
-between two sites is listed twice, once as edge IJ, and once as edge
-JI.
-
-comment              # 1st line is skipped
-                     # skipped line
-Ndim dimension       # Ndim = 1 or 2 or 3
-N vertices           # N = number of vertices
-M max connectivity   # M = maximum number of edges for any vertex
-X1 X2 xlo xhi        # X1,X2 = x bounds of box that encloses lattice
-Y1 Y2 ylo yhi        # y bounds (only if Ndim = 2 or 3)
-Z1 Z2 zlo zhi        # z bounds (only if Ndim = 3)
-                     # skipped line
-Vertices
-                     # skipped line
-1 x y z	             # ID, x, y, z for each vertex
-2 x y z              # no y value if dim = 1, no z value if dim = 2
-...
-N x y z              # N lines in this section
-                     # skipped line
-Edges
-                     # skipped line
-1 n1 n2 n3 ...       # ID, list of IDs for neighbor connections
-1 n1 n2 n3 ...       # can be different number of connections (up to M) for each vertex
-...
-N n1 n2 n3 ...       # N lines in this section :pre
-
-For on-lattice applications, all of this information is required to be
-in the file.  For off-lattice applications, the "Edges" section is
-ignored and can be omitted.  The "connectivity" count of max edges is
-required, but is ignored, so it can be listed as 0.
-
-:line
-
-For on- and off-lattice applications, by default SPPARKS will decide
-how to partition the simulation domain across processors in order to
-minimize communication of site information.  Typically this will
-create a 2d grid of processors for 2d problems, and a 3d grid of
-processors for 3d problems.  You can override the default and specify
-your own grid of Px by Py by Pz processors using the {procs} keyword.
-For 2d problems, Pz must be 1.  For 1d problems Py and Pz must be 1.
-If {procs 0 0 0} is specified, then SPPARKS will decide the
-partitioning.
-
-:line
-
-For on- and off-lattice applications, the values stored on each site
-can be initialized explicitly via the {input} keyword.  This can be
-useful for restarting a simulation from the dump file generated by a
-previous simulation.  See the "dump2input.py" script in the tools
-directory for a way to convert a dump file to the input format
-described below.
-
-Normally, if the {input} keyword is not used, the application will
-initialize the sites in some random manner.
-
-The file specified with the {input} keyword should have the following
-format.  As before, the comments (#) need not be included in the file.
-
-comment              # 1st line is skipped
-Nsite nvalue         # Nsite = total # of sites, nvalue = values/site
-                     # skipped line
-1 value1 value2 ...
-2 value1 value2 ...
-...
-Nsites value1 value2 ...   # Nsite lines :pre
-
-In the body of the file, there is one line per site.  These lines can
-be in any order.  The first field on the line is the ID of the site,
-which should be an integer from 1 to Nsite.  There should be "nvalue"
-remaining fields on each line.  These values are assigned to that
-site.  How many values there should be (nvalue) depends on the
-application.  For those with a single integer value (Nint = Ndouble =
-0, nvalue = 1), just list that value.  If the {site} keyword is used
-(Nint and/or Ndouble != 0, nvalue = Nint+Ndouble), then list the
-integer value(s) first, followed by the double value(s).
-
-:line
-
 [Restrictions:] none
 
 [Related commands:] none
 
-[Default:]
-
-There is no default for the {lattice} keyword.  It must be specified
-for on- and off-lattice applications.  The default values for the
-{procs} keyword are 0 0 0.
+[Default:] none

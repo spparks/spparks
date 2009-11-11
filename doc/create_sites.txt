@@ -1,0 +1,124 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+create_sites command :h3
+
+[Syntax:]
+
+create_sites style arg keyword values ... :pre
+
+style = {box} or {region} :ulb,l
+  {box} arg = none
+  {region} arg = region-ID
+    region-ID = sites will only be created if contained in the region :pre
+zero or more keyword/value pairs may be appended :l
+keyword = {value} or {basis} :l
+  {value} values = label nvalue
+    label = {site} or {iN} or {dN}
+    nvalue = specific value to set all created sites to
+  {basis} values = M nvalue
+    M = which basis site (see asterisk form below)
+    nvalue = specific value to set all created basis sites to :pre
+:ule
+
+[Examples:]
+
+create_sites box
+create_sites region surf value site 1
+create_sites box value i2 0 basis 1 1 basis 2* 2 :pre
+
+[Description:]
+
+This command creates "sites" on a lattice for on-lattice and
+off-lattice applications.  This is an alternative to reading in their
+coordinates via a "read_sites"_read_sites.html command.  A simulation
+box must already exist, which is typically created via the
+"create_box"_create_box.html command.  Before using this command, a
+lattice must also be defined using the "lattice"_lattice.html command.
+
+In SPPARKS, a "site" is a point in space at which an application, as
+defined by the "app_style"_app_style.html command can perform events.
+For on-lattice applications, the site is static and has a defined set
+of neighboring sites with which it interacts.  For off-lattice
+applications, a site is like a particle.  It moves and has a dynamic
+neighborhood of nearby particles with which it interacts.
+
+For the {box} style, the create_sites command fills the entire
+simulation box with sites on the lattice.  This is the only option
+allowed for on-lattice applications.
+
+In this case the simulation box size must be an integer multiple of
+the lattice constant in each dimension, to insure consitent placement
+of sites and neighbor interactions across periodic boundaries.
+SPPARKS is careful to put exactly one site at the boundary (on either
+side of the box), not zero or two.
+
+NOTE: The {region} style is not yet implemented but will be soon.  The
+following text explains how it will work.
+
+For the {region} style, the geometric volume is filled with sites on
+the lattice that are both inside the simulation box and also
+consistent with the region volume.  See the "region"_region.html
+command for details.  Note that a region can be specified so that its
+"volume" is either inside or outside a geometric boundary.  Also note
+that even if the region is the same size as a periodic simulation box
+(in some dimension), SPPARKS does not implement the same logic as with
+the {box} style, to insure exactly one site at the boundary.  If this
+is what you desire, you should either use the {box} style, or tweak
+the region size to get precisely the sites you want.
+
+:line
+
+Site IDs are assigned to created sites with consecutive values from 1
+to N, where N is the total number of sites that fill the simulation
+box.  The numbering is the same, independent of the number of
+processors.
+
+Depending on the "application"_app_style.html, each site stores zero
+of more integer and floating-point values.  By default these are set
+to zero when a site is created by this command.  The {value} and
+{basis} keywords can override the default.
+
+The {value} keyword specifies a per-site value that will be assigned
+to every site as it is created.  The {label} determines which per-site
+quantity is set.  {iN} and {dN} mean the Nth integer or floating-point
+quantity, with 1 <= N <= Nmax.  Nmax is defined by the application.
+If {label} is specified as {site} it is the same as {i1}.  The
+quantity is set to the specified {nvalue}, which should be either an
+integer or floating-point numeric value, depending on what kind of
+per-site quantity is being set.
+
+The {basis} keyword can be used to override the {value} keyword
+setting for individual basis sites as each unit cell is created.  The
+per-site quantity (e.g. i2) specified by the {value} keyword is set
+for basis sites {M}.  The quantity is set to the specified {nvalue}
+for the {basis} keyword, instead of the {nvalue} from the {value}
+keyword.  See the "lattice"_lattice.html command for specifics on how
+basis atoms and unit cells are defined for each lattice style.
+
+M can be specified in one of two ways.  An explicit numeric value can
+be used, such as 2.  A wild-card asterisk can also be used in place of
+or in conjunction with the M argument to specify multiple basis sites
+together.  This takes the form "*" or "*n" or "n*" or "m*n".  If N =
+the total number of basis sites, then an asterisk with no numeric
+values means all sites from 1 to N.  A leading asterisk means all
+sites from 1 to n (inclusive).  A trailing asterisk means all sites
+from n to N (inclusive).  A middle asterisk means all sites from m to
+n (inclusive).
+
+[Restrictions:]
+
+The "app_style"_app_style.html command must be used to define an
+application before using the create_box command.
+
+[Related commands:]
+
+"lattice"_lattice.html, "region"_region.html,
+"create_box"_create_box.html, "read_sites"_read_sites.html
+
+[Default:] none

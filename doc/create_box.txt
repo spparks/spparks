@@ -1,0 +1,42 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+create_box command :h3
+
+[Syntax:]
+
+create_box region-ID :pre
+
+region-ID = ID of region to use as simulation domain :ul
+
+[Examples:]
+
+create_box mybox :pre
+
+[Description:]
+
+This command creates a simulation box based on the specified region
+for on-lattice and off-lattice spatial simulations.  Thus a
+"region"_region.html command must first be used to define a geometric
+domain.  SPPARKS encloses the region (block, sphere, etc) with an
+axis-aligned (orthogonal) box which becomes the simulation domain.
+
+The "read_sites"_read_sites.html command can also be used to define a
+simulation box.
+
+[Restrictions:]
+
+The "app_style"_app_style.html command must be used to define an
+application before using the create_box command.
+
+[Related commands:]
+
+"create_sites"_create_atoms.html, "region"_region.html,
+"read_sites"_create_atoms.html
+
+[Default:] none

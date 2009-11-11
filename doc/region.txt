@@ -1,0 +1,98 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+region command :h3
+
+[Syntax:]
+
+region ID style args keyword value ... :pre
+
+ID = user-assigned name for the region :ulb,l
+style = {block} or {cylinder} or {sphere} or {union} or {intersect} :l
+  {block} args = xlo xhi ylo yhi zlo zhi
+    xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
+  {cylinder} args = dim c1 c2 radius lo hi
+    dim = {x} or {y} or {z} = axis of cylinder
+    c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
+    radius = cylinder radius (distance units)
+    lo,hi = bounds of cylinder in dim (distance units)
+  {sphere} args = x y z radius
+    x,y,z = center of sphere (distance units)
+    radius = radius of sphere (distance units)
+  {union} args = N reg-ID1 reg-ID2 ...
+    N = # of regions to follow, must be 2 or greater
+    reg-ID1,reg-ID2, ... = IDs of regions to join together
+  {intersect} args = N reg-ID1 reg-ID2 ...
+    N = # of regions to follow, must be 2 or greater
+    reg-ID1,reg-ID2, ... = IDs of regions to intersect :pre
+zero or more keyword/value pairs may be appended :l
+keyword = {side} :l
+  {side} value = {in} or {out}
+    {in} = the region is inside the specified geometry
+    {out} = the region is outside the specified geometry
+:ule
+
+[Examples:]
+
+region 1 block -3.0 5.0 INF 10.0 INF INF
+region 2 sphere 0.0 0.0 0.0 5 side out
+region void cylinder y 2 3 5 -5.0 EDGE
+region outside union 4 side1 side2 side3 side4 :pre
+
+[Description:]
+
+This command defines a geometric region of space.  Various other
+commands use regions.  For example, the region can be filled with
+sites via the "create_sites"_create_sites.html command.
+
+The distance units used to define the region are setup by the
+"lattice"_lattice.html command which must be used before any regions
+are defined.  The lattice command defines a lattice spacing and
+regions are defined in terms of this length scale.  For example, if
+the lattice spacing is 3.0 and the region sphere radius is 2.5, then
+the size of the sphere is 2.5*3.0 = 7.5.
+
+The lo/hi values for the {block} or {cylinder} styles can be specified
+as EDGE or INF.  EDGE means they extend all the way to the global
+simulation box boundary.  Note that this is the current box boundary;
+if the box changes size during a simulation, the region does not.  INF
+means a large negative or positive number (1.0e20), so it should
+encompass the simulation box even if it changes size.  If a region is
+defined before the simulation box has been created (via
+"create_box"_create_box.html or "read_sites"_read_sites.html
+commands), then an EDGE or INF parameter cannot be used.
+
+For style {cylinder}, the c1,c2 params are coordinates in the 2 other
+dimensions besides the cylinder axis dimension.  For dim = x, c1/c2 =
+y/z; for dim = y, c1/c2 = x/z; for dim = z, c1/c2 = x/y.  Thus the
+third example above specifies a cylinder with its axis in the
+y-direction located at x = 2.0 and z = 3.0, with a radius of 5.0, and
+extending in the y-direction from -5.0 to the upper box boundary.
+
+The {union} style creates a region consisting of the volume of all the
+listed regions combined.  The {intersect} style creates a region
+consisting of the volume that is common to all the listed regions.
+
+The {side} keyword determines whether the region is considered to be
+inside or outside of the specified geometry.  Using this keyword in
+conjunction with {union} and {intersect} regions, complex geometries
+can be built up.  For example, if the interior of two spheres were
+each defined as regions, and a {union} style with {side} = out was
+constructed listing the region-IDs of the 2 spheres, the resulting
+region would be all the volume in the simulation box that was outside
+both of the spheres.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"lattice"_lattice.html, "create_sites"_create_sites.html
+
+[Default:]
+
+The option defaults are side = in.

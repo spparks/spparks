@@ -1,0 +1,108 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>region command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>region ID style args keyword value ... 
+</PRE>
+<UL><LI>ID = user-assigned name for the region 
+
+<LI>style = <I>block</I> or <I>cylinder</I> or <I>sphere</I> or <I>union</I> or <I>intersect</I> 
+
+<PRE>  <I>block</I> args = xlo xhi ylo yhi zlo zhi
+    xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
+  <I>cylinder</I> args = dim c1 c2 radius lo hi
+    dim = <I>x</I> or <I>y</I> or <I>z</I> = axis of cylinder
+    c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
+    radius = cylinder radius (distance units)
+    lo,hi = bounds of cylinder in dim (distance units)
+  <I>sphere</I> args = x y z radius
+    x,y,z = center of sphere (distance units)
+    radius = radius of sphere (distance units)
+  <I>union</I> args = N reg-ID1 reg-ID2 ...
+    N = # of regions to follow, must be 2 or greater
+    reg-ID1,reg-ID2, ... = IDs of regions to join together
+  <I>intersect</I> args = N reg-ID1 reg-ID2 ...
+    N = # of regions to follow, must be 2 or greater
+    reg-ID1,reg-ID2, ... = IDs of regions to intersect 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>side</I> 
+
+  <I>side</I> value = <I>in</I> or <I>out</I>
+    <I>in</I> = the region is inside the specified geometry
+    <I>out</I> = the region is outside the specified geometry
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>region 1 block -3.0 5.0 INF 10.0 INF INF
+region 2 sphere 0.0 0.0 0.0 5 side out
+region void cylinder y 2 3 5 -5.0 EDGE
+region outside union 4 side1 side2 side3 side4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command defines a geometric region of space.  Various other
+commands use regions.  For example, the region can be filled with
+sites via the <A HREF = "create_sites.html">create_sites</A> command.
+</P>
+<P>The distance units used to define the region are setup by the
+<A HREF = "lattice.html">lattice</A> command which must be used before any regions
+are defined.  The lattice command defines a lattice spacing and
+regions are defined in terms of this length scale.  For example, if
+the lattice spacing is 3.0 and the region sphere radius is 2.5, then
+the size of the sphere is 2.5*3.0 = 7.5.
+</P>
+<P>The lo/hi values for the <I>block</I> or <I>cylinder</I> styles can be specified
+as EDGE or INF.  EDGE means they extend all the way to the global
+simulation box boundary.  Note that this is the current box boundary;
+if the box changes size during a simulation, the region does not.  INF
+means a large negative or positive number (1.0e20), so it should
+encompass the simulation box even if it changes size.  If a region is
+defined before the simulation box has been created (via
+<A HREF = "create_box.html">create_box</A> or <A HREF = "read_sites.html">read_sites</A>
+commands), then an EDGE or INF parameter cannot be used.
+</P>
+<P>For style <I>cylinder</I>, the c1,c2 params are coordinates in the 2 other
+dimensions besides the cylinder axis dimension.  For dim = x, c1/c2 =
+y/z; for dim = y, c1/c2 = x/z; for dim = z, c1/c2 = x/y.  Thus the
+third example above specifies a cylinder with its axis in the
+y-direction located at x = 2.0 and z = 3.0, with a radius of 5.0, and
+extending in the y-direction from -5.0 to the upper box boundary.
+</P>
+<P>The <I>union</I> style creates a region consisting of the volume of all the
+listed regions combined.  The <I>intersect</I> style creates a region
+consisting of the volume that is common to all the listed regions.
+</P>
+<P>The <I>side</I> keyword determines whether the region is considered to be
+inside or outside of the specified geometry.  Using this keyword in
+conjunction with <I>union</I> and <I>intersect</I> regions, complex geometries
+can be built up.  For example, if the interior of two spheres were
+each defined as regions, and a <I>union</I> style with <I>side</I> = out was
+constructed listing the region-IDs of the 2 spheres, the resulting
+region would be all the volume in the simulation box that was outside
+both of the spheres.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "lattice.html">lattice</A>, <A HREF = "create_sites.html">create_sites</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are side = in.
+</P>
+</HTML>

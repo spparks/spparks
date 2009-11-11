@@ -23,23 +23,26 @@
 
 <LI>zero or more fields may be appended 
 
-<LI>field = <I>id</I> or <I>lattice</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>energy</I> or <I>propensity</I> or <I>iN</I> or <I>dN</I> 
+<LI>field = <I>id</I> or <I>site</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>energy</I> or <I>propensity</I> or <I>iN</I> or <I>dN</I> 
 
 <P><B>Examples:</B>
 </P>
 <PRE>dump 1 0.25 tmp.dump
-dump mydump 5.0 snap.ising id lattice energy i1 
+dump mydump 5.0 snap.ising id site energy i1 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Dump snapshots of the state of the lattice to a file at time intervals
-of <I>delta</I> during a simulation.  As described below, the filename
-determines the kind of output (text or binary or gzipped, one big file
-or one per timestep, one big file or one per processor).  The
-quantities printed are obtained from the application.  Only
-lattice-based applications support dumps since one line per lattice
-site is output.  More that one dump command and file can be used
-during a simulation by giving each a unique dump-ID.
+<P>Dump snapshots of site values to a file at time intervals of <I>delta</I>
+during a simulation.  As described below, the filename determines the
+kind of output (text or binary or gzipped, one big file or one per
+timestep, one big file or one per processor).  The quantities printed
+are obtained from the application.  Only <A HREF = "app_style.html">on-lattice and off-lattice
+applications</A> support dumps since they are spatial in
+nature.  More that one dump command and file can be used during a
+simulation by giving each a unique dump-ID.  Note that if written in
+appropriate format, a snapshot from a dump file can easily be
+converted into a data file suitable for input via the
+<A HREF = "read_sites.html">read_sites</A> command to restart a simulation.
 </P>
 <P>IMPORTANT NOTE: When running in parallel, the order of sites as
 printed to the dump file will be in chunks by processor, not ordered
@@ -67,25 +70,24 @@ reflect any reduction in site count due to the
 314159 
 </PRE>
 <P>If fields are listed, then only those quantities will be printed for
-each lattice site.  If no fields are listed, then the default output
-values for each site are "id lattice x y z".  These are the possible
-field values which may be specified.
+each site.  If no fields are listed, then the default output values
+for each site are "id site x y z".  These are the possible field
+values which may be specified.
 </P>
 <P>The <I>id</I> is a unique integer ID for each site.
 </P>
-<P>The <I>lattice</I> value is typically the integer state of the lattice,
-e.g. the spin value, assuming the application uses the lattice array.
-Some applications store multiple values per lattice site; see the
-<I>site</I> option of the <A HREF = "app_style.html">app_style</A> command.  You can
-specify these values be dumped as <I>iN</I> or <I>dN</I>, where i = integer, d =
-double, and N = which value to print (1,2,3,...).
+<P>The <I>site</I>, <I>iN</I>, and <I>dN</I> fields specify a per-site value.  <I>Site</I> is
+the same as <I>i1</I>.  <I>iN</I> fields are integer values; <I>dN</I> fields are
+floating-point value. The application defines how many integer and
+floating=point values are stored for each site.
 </P>
-<P>The <I>x</I>, <I>y</I>, <I>z</I> values are the coordinates assigned to the lattice
-site.  The <I>energy</I> value is what is computed by the energy() function
-in the application.  Likewise for the <I>propensity</I> value which can be
-thought of as the relative probablity for that site to perform a KMC
-event.  Note that if you are doing Metropolis MC and not kinetic MC,
-no propensity is defined.
+<P>The <I>x</I>, <I>y</I>, <I>z</I> values are the coordinates of the site.
+</P>
+<P>The <I>energy</I> value is what is computed by the energy() function in the
+application.  Likewise for the <I>propensity</I> value which can be thought
+of as the relative probablity for that site to perform a KMC event.
+Note that if the application only performs rejection KMC or Metropolis
+MC, then no propensity is defined.
 </P>
 
 
@@ -131,9 +133,13 @@ longer to write.
 
 <P><B>Restrictions:</B>
 </P>
-<P>This command can only be used as part of the lattice-based
+<P>This command can only be used as part of on-lattice or off-lattice
 applications.  See the <A HREF = "app_style.html">app_style</A> command for further
 details.
+</P>
+<P>To write gzipped dump files, you must compile SPPARKS with the
+-DSPPARKS_GZIP option - see the <A HREF = "Section_start.html#2_2">Making
+SPPARKS</A> section of the documentation.
 </P>
 <P><B>Related commands:</B>
 </P>

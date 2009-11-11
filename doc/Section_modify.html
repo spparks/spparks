@@ -53,22 +53,15 @@ command like
 </P>
 <PRE>app_style foo 0.1 3.5 
 </PRE>
-<P>you put your 2 files in the SPPARKS src directory, add 2 lines to the
-style_user.h file, and re-make the code.
+<P>you put your 2 files in the SPPARKS src directory and re-make the
+code.  The app_foo.h file should have these lines at the top
 </P>
-<P>The first line added to style_user.h would be
-</P>
-<PRE>AppStyle(foo,AppFoo) 
+<PRE>#ifdef APP_CLASS
+AppStyle(foo,AppFoo)
+#else 
 </PRE>
-<P>in the #ifdef AppClass section, where "foo" is the style keyword in
-the app_style command, and AppFoo is the class name in your C++ files.
-</P>
-<P>The 2nd line added to style_user.h would be
-</P>
-<PRE>#include "app_foo.h" 
-</PRE>
-<P>in the #ifdef AppInclude section, where app_foo.h is the name of your
-new include file.
+<P>where "foo" is the style keyword to be used in the app_style command,
+and AppFoo is the class name in your C++ files.
 </P>
 <P>When you re-make SPPARKS, your new application becomes part of the
 executable and can be invoked with a app_style command like the
@@ -109,44 +102,33 @@ between on-lattice and off-lattice applications.  A new off-lattice
 application can be anything you wish.  On-lattice applications are
 derive from the AppLattice class.
 </P>
-<P>For off-lattice applications, here is a brief description of methods
-you define in your new derived class.  Some of them are required; some
-are optional.  See app.h for details.
+<P>For on-lattice and off-lattice applications, here is a brief
+description of methods you define in your new derived class.  Some of
+them are required; some are optional.  See app.h for details.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >input</TD><TD > additional commands the application defines</TD></TR>
-<TR><TD >init</TD><TD > setup the application</TD></TR>
-<TR><TD >run</TD><TD > perform iterations or timestepping of the model</TD></TR>
-<TR><TD >dump_header</TD><TD > write header of dump file</TD></TR>
-<TR><TD >dump</TD><TD > write a snapshot of state of model</TD></TR>
-<TR><TD >set_stats</TD><TD > setup application-specific statistics</TD></TR>
-<TR><TD >set_dump</TD><TD > setup application-specific dump 
-</TD></TR></TABLE></DIV>
-
-<P>For off-lattice applications, here is a brief description of methods
-you define in your new derived class.  Some of them are required; some
-are optional.  See app_lattice.h for details.  Note that two of the
-methods are required if you want your application to perform kinetic
-Monte Carlo (KMC) with a <A HREF = "solve_style.html">solver</A>.  One of the
-methods is required if you want your application to perform rejection
-KMC (rKMC) with a <A HREF = "sweep.html">sweep method</A>.
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >site_energy</TD><TD > compute energy of a lattice site</TD></TR>
+<TR><TD >input_app</TD><TD > additional commands the application defines</TD></TR>
+<TR><TD >grow_app</TD><TD > set pointers to per-site arrays used by the application</TD></TR>
+<TR><TD >init_app</TD><TD > initialize the application before a run</TD></TR>
+<TR><TD >site_energy</TD><TD > compute energy of a site</TD></TR>
 <TR><TD >site_event_rejection</TD><TD > peform an event with null-bin rejection (for rKMC)</TD></TR>
 <TR><TD >site_propensity</TD><TD > compute propensity of all events on a site (for KMC)</TD></TR>
-<TR><TD >site_event</TD><TD > perform a kinetic Monte Carlo event (for KMC)</TD></TR>
-<TR><TD >input_app</TD><TD > perform application-specific input</TD></TR>
-<TR><TD >init_app</TD><TD > perform application-specific initialization 
+<TR><TD >site_event</TD><TD > perform an event (for KMC) 
 </TD></TR></TABLE></DIV>
 
-<P>For an on-lattice application, you also need to define various flags
-in the constructor of your application, to insure proper operation
-with the "KMC solvers'_solve.html and rejection KMC <A HREF = "sweep.html">sweep
-methods</A>.  These are the flags, all of which have default
-values set in app_lattice.cpp:
+<P>Note that two of the methods are required if you want your application
+to perform kinetic Monte Carlo (KMC) with a <A HREF = "solve_style.html">solver</A>.
+One of the methods is required if you want your application to perform
+rejection KMC (rKMC) with a <A HREF = "sweep.html">sweep method</A>.
+</P>
+<P>The constructor for your application class also needs to define, to
+insure proper operation with the "KMC solvers'_solve.html and
+rejection KMC <A HREF = "sweep.html">sweep methods</A>.  These are the flags, all of
+which have default values set in app_lattice.cpp:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >ninteger </TD><TD > how many integer values are defined per site</TD></TR>
+<TR><TD >ndouble</TD><TD > how many floating point values are defined per site</TD></TR>
 <TR><TD >delpropensity</TD><TD > how many neighbors away values are needed to compute propensity</TD></TR>
 <TR><TD >delevent</TD><TD > how many neighbors away may the value can be changed by an event</TD></TR>
 <TR><TD >allow_kmc</TD><TD > 1 if methods are provided for KMC</TD></TR>

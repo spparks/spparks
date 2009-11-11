@@ -172,31 +172,65 @@ documentation.
 
 Initialization commands:
 
-"app_style"_app_style.html, "solve_style"_solve_style.html,
-"sweep"_sweep.html, "pair_style"_pair_style.html,
-"pair_coeff"_pair_coeff.html, "seed"_seed.html
+"app_style"_app_style.html,
+"create_box"_create_box.html,
+"create_sites"_create_sites.html,
+"processors"_processors.html,
+"read_sites"_read_sites.html,
+"region"_region.html,
+"solve_style"_solve_style.html
+
+Setting commands:
+
+"dimension"_dimension.html,
+"lattice"_lattice.html,
+"pair_coeff"_pair_coeff.html,
+"pair_style"_pair_style.html,
+"reset_time"_reset_time.html,
+"sector"_sector.html,
+"seed"_seed.html,
+"sweep"_sweep.html,
+"set"_set.html
 
 Application-specific commands:
 
-"add_reaction"_add_reaction.html, "add_species"_add_species.html,
-"count"_count.html, "ecoord"_ecoord.html, "event"_event.html,
-"inclusion"_inclusion.html, "temperature"_temperature.html,
+"add_reaction"_add_reaction.html,
+"add_species"_add_species.html,
+"barrier"_barrier.html,
+"count"_count.html,
+"deposition"_deposition.html,
+"ecoord"_ecoord.html,
+"inclusion"_inclusion.html,
+"pin"_pin.html,
+"temperature"_temperature.html,
 "volume"_volume.html
 
 Output commands:
 
-"diag_style"_diag_style.html, "dump"_dump.html, "stats"_stats.html
+"diag_style"_diag_style.html,
+"dump"_dump.html,
+"dump_modify"_dump_modify.html,
+"dump_one"_dump_one.html,
+"stats"_stats.html,
+"undump"_undump.html
 
 Actions:
 
-"run"_run.html
+"run"_run.html,
 
 Miscellaneous:
 
-"clear"_clear.html, "echo"_echo.html, "if"_if.html,
-"include"_include.html, "jump"_jump.html, "label"_label.html,
-"log"_log.html, "next"_next.html, "print"_print.html,
-"shell"_shell.html, "variable"_variable.html
+"clear"_clear.html,
+"echo"_echo.html,
+"if"_if.html,
+"include"_include.html,
+"jump"_jump.html,
+"label"_label.html,
+"log"_log.html,
+"next"_next.html,
+"print"_print.html,
+"shell"_shell.html,
+"variable"_variable.html
 
 :line
 
@@ -218,8 +252,11 @@ Restrictions in the command's documentation.
 "barrier"_barrier.html,
 "clear"_clear.html,
 "count"_count.html,
+"create_box"_create_box.html,
+"create_sites"_create_sites.html,
 "deposition"_deposition.html,
 "diag_style"_diag_style.html,
+"dimension"_dimension.html,
 "dump"_dump.html,
 "dump_modify"_dump_modify.html,
 "dump_one"_dump_one.html,
@@ -230,16 +267,21 @@ Restrictions in the command's documentation.
 "inclusion"_inclusion.html,
 "jump"_jump.html,
 "label"_label.html,
+"lattice"_lattice.html,
 "log"_log.html,
 "next"_next.html,
 "pair_coeff"_pair_coeff.html,
 "pair_style"_pair_style.html,
 "pin"_pin.html,
 "print"_print.html,
+"processors"_processors.html,
+"read_sites"_read_sites.html,
+"region"_region.html,
 "reset_time"_reset_time.html,
 "run"_run.html,
 "sector"_sector.html,
 "seed"_seed.html,
+"set"_set.html,
 "shell"_shell.html,
 "solve_style"_solve_style.html,
 "stats"_stats.html,
