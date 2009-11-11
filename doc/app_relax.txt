@@ -52,9 +52,6 @@ number R between 0 and 1.
 
 The following additional commands are defined by this application:
 
-"dump"_dump.html : output of particle snapshots
-"dump_one"_dump_one.html : one snapshot of particle coords
-"stats"_stats.html : output of system info
 "temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
 
 :line

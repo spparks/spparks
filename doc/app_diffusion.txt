@@ -200,10 +200,7 @@ The ecoord command can only be used with the {nonlinear} energy style.
 
 "barrier"_barrier.html : define energy barriers for hop events
 "deposition"_deposition.html : define deposition events
-"dump"_dump.html : output of lattice snapshots
-"dump_one"_dump_one.html : one snapshot of lattice state
 "ecoord"_ecoord.html : specify site energy as a function of coordination number
-"stats"_stats.html : output of system info
 "temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
 
 :line

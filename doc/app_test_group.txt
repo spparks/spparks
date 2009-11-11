@@ -73,11 +73,7 @@ run 10000 :pre
 
 means to perform 10000 events, not to run for 10000 seconds.
 
-:line
-
-The following additional command is defined by this application:
-
-"stats"_stats.html : output of system info :tb(s=:)
+No additional commands are defined by this application.
 
 [Restrictions:] none
 

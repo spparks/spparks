@@ -74,10 +74,7 @@ state is accepted if R < min\[1,exp(-dE/kT)\], else it is rejected.
 
 The following additional commands are defined by these applications:
 
-"dump"_dump.html : output of lattice snapshots
-"dump_one"_dump_one.html : one snapshot of lattice state
 "inclusion"_inclusion.html : specify which sites are proteins
-"stats"_stats.html : output of system info
 "temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
 
 :line

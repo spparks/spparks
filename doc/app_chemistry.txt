@@ -41,7 +41,6 @@ The following additional commands are defined by this application:
 "add_reaction"_add_reaction.html : define a chemical reaction
 "add_species"_add_species.html : define a chemical species
 "count"_count.html : specify molecular count of a species
-"stats"_stats.html : output of system info
 "volume"_volume.html : specify volume of the chemical reactor :tb(s=:)
 
 :line
