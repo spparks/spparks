@@ -17,6 +17,17 @@ The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
+[13 Nov 2009]
+
+Allow a "none" option with the "solve_style"_doc/solve_style.html and
+"sweep"_doc/sweep.html commands so that KMC and rejection-KMC solvers
+can be turned off in between successive runs.
+
+This is the "list of changed files"_patches/files.13Nov09 from the 12
+Nov 2009 version.
+
+:line
+
 [12 Nov 2009]
 
 The PDF version of the manual was out-of-date in yesterday's
