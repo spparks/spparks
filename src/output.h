@@ -24,7 +24,7 @@ class Output : protected Pointers {
   double compute(double, int);
   void set_stats(int, char **);
   void add_dump(int, char **);
-  void dump_one(int, char **, double);
+  void dump_one(int, char **);
   void dump_modify(int, char **);
   void undump(int, char **);
   void add_diag(class Diag *);

@@ -25,6 +25,8 @@ class AppMembrane : public AppLattice {
   AppMembrane(class SPPARKS *, int, char **);
   ~AppMembrane();
   void input_app(char *, int, char **);
+  void grow_app();
+  void init_app();
 
   double site_energy(int);
   void site_event_rejection(int, class RandomPark *);
@@ -34,7 +36,7 @@ class AppMembrane : public AppLattice {
  private:
   double w01,w11,mu;
   double interact[4][4];
-  int *lattice;
+  int *spin;
   int *sites;
 };
 

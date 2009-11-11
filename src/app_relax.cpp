@@ -33,37 +33,33 @@ AppRelax::AppRelax(SPPARKS *spk, int narg, char **arg) :
   allow_rejection = 1;
   dt_sweep = 1.0;
 
+  create_arrays();
+
   // parse arguments
 
   if (narg < 2) error->all("Illegal app_style command");
 
   delta = atof(arg[1]);
   deltasq = delta*delta;
-
-  options(narg-2,&arg[2]);
-
-  // define domain and partition it across processors
-
-  create_domain();
-
-  // initialize my portion of lattice
-
-  if (infile) read_file();
-  else for (int i = 0; i < nlocal; i++) site[i] = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 AppRelax::~AppRelax() {}
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   set site value ptrs each time iarray/darray are reallocated
+------------------------------------------------------------------------- */
 
 void AppRelax::grow_app()
 {
-  site = iarray[0];
+  type = iarray[0];
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   initialize before each run
+   check validity of site values
+------------------------------------------------------------------------- */
 
 void AppRelax::init_app()
 {
@@ -73,6 +69,15 @@ void AppRelax::init_app()
 
   delpropensity = pair->cutoff;
   delevent = delta;
+
+  int ntypes = potential->pair->ntypes;
+
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (type[i] < 1 || type[i] > ntypes) flag = 1;
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) error->all("One or more sites have invalid values");
 }
 
 /* ----------------------------------------------------------------------
@@ -93,7 +98,7 @@ double AppRelax::site_energy(int i)
 
 double AppRelax::site_energy_neighbor(int i)
 {
-  return pair->energy(i,numneigh,neighs,xyz,site);
+  return pair->energy(i,numneigh,neighs,xyz,type);
 }
 
 /* ----------------------------------------------------------------------

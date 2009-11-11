@@ -20,9 +20,9 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace SPPARKS_NS;
-
 #include <map>
+
+using namespace SPPARKS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))

@@ -13,6 +13,7 @@
 
 #include "comm_off_lattice.h"
 #include "app_off_lattice.h"
+#include "domain.h"
 #include "memory.h"
 #include "error.h"
 
@@ -76,9 +77,9 @@ void CommOffLattice::init(int nsector_request)
   if (ninteger == 1 && ndouble == 0) site_only = 1;
   else site_only = 0;
 
-  xprd = app->xprd;
-  yprd = app->yprd;
-  zprd = app->zprd;
+  xprd = domain->xprd;
+  yprd = domain->yprd;
+  zprd = domain->zprd;
 
   // clear out old swaps
 

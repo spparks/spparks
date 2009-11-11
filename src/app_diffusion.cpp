@@ -12,24 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
 #include "app_diffusion.h"
 #include "solve.h"
-#include "random_mars.h"
+#include "domain.h"
 #include "random_park.h"
-#include "output.h"
 #include "memory.h"
 #include "error.h"
-
-#include <map>
 
 using namespace SPPARKS_NS;
 
 enum{ZERO,VACANT,OCCUPIED,TOP};
 enum{NO_ENERGY,LINEAR,NONLINEAR};
-enum{NO_GEOMETRY,SURFACE,VOID_FRACTION,PORE};
 enum{DEPOSITION,NNHOP,SCHWOEBEL};
 enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};  // from app_lattice.cpp
 
@@ -56,57 +51,21 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  double level,fraction,xc,yc,zc,diameter,thickness;
-
-  int iarg = 1;
-  if (iarg+1 > narg) error->all("Illegal app_style command");
-  if (strcmp(arg[iarg],"off") == 0) engstyle = NO_ENERGY;
-  else if (strcmp(arg[iarg],"linear") == 0) engstyle = LINEAR;
-  else if (strcmp(arg[iarg],"nonlinear") == 0) engstyle = NONLINEAR;
+  if (narg < 3) error->all("Illegal app_style command");
+  if (strcmp(arg[1],"off") == 0) engstyle = NO_ENERGY;
+  else if (strcmp(arg[1],"linear") == 0) engstyle = LINEAR;
+  else if (strcmp(arg[1],"nonlinear") == 0) engstyle = NONLINEAR;
   else error->all("Illegal app_style command");
-  iarg++;
 
-  if (iarg+1 > narg) error->all("Illegal app_style command");
-  if (strcmp(arg[iarg],"hop") == 0) {
+  if (strcmp(arg[2],"hop") == 0) {
+    if (narg != 3) error->all("Illegal app_style command");
     hopstyle = NNHOP;
-    iarg++;
-  } else if (strcmp(arg[iarg],"schwoebel") == 0) {
-    if (iarg+3 > narg) error->all("Illegal app_style command");
+  } else if (strcmp(arg[2],"schwoebel") == 0) {
+    if (narg != 5) error->all("Illegal app_style command");
     hopstyle = SCHWOEBEL;
-    nsmax = atoi(arg[iarg+1]);
-    nsmin = atoi(arg[iarg+2]);
-    iarg += 3;
+    nsmax = atoi(arg[3]);
+    nsmin = atoi(arg[4]);
   } else error->all("Illegal app_style command");
-
-  if (iarg+1 > narg) error->all("Illegal app_style command");
-  if (strcmp(arg[iarg],"none") == 0) {
-    geomstyle = NO_GEOMETRY;
-    iarg++;
-  } else if (strcmp(arg[iarg],"surface") == 0) {
-    if (iarg+2 > narg) error->all("Illegal app_style command");
-    geomstyle = SURFACE;
-    level = atof(arg[iarg+1]);
-    if (level < 0.0) error->all("Illegal app_style command");
-    iarg += 2;
-  } else if (strcmp(arg[iarg],"void") == 0) {
-    if (iarg+2 > narg) error->all("Illegal app_style command");
-    geomstyle = VOID_FRACTION;
-    fraction = atof(arg[iarg+1]);
-    if (fraction <= 0.0 || fraction >= 1.0)
-      error->all("Illegal app_style command");
-    iarg += 2;
-  } else if (strcmp(arg[iarg],"pore") == 0) {
-    if (iarg+6 > narg) error->all("Illegal app_style command");
-    geomstyle = PORE;
-    xc = atof(arg[iarg+1]);
-    yc = atof(arg[iarg+2]);
-    zc = atof(arg[iarg+3]);
-    diameter = atof(arg[iarg+4]);
-    thickness = atof(arg[iarg+5]);
-    iarg += 6;
-  } else error->all("Illegal app_style command");
-
-  options(narg-iarg,&arg[iarg]);
 
   // increment delpropensity by 1 for nonlinear energy
   // increment delpropensity and delevent by 1 for Schwoebel hops
@@ -117,147 +76,32 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
   if (hopstyle == SCHWOEBEL) delevent++;
   if (engstyle == LINEAR && hopstyle == NNHOP) allow_rejection = 1;
 
-  // define lattice and partition it across processors
+  create_arrays();
 
-  create_lattice();
-  lattice = iarray[0];
-
-  // for no_energy or linear:
-  // make sites large enough for 2 sites and 1st/2nd nearest neighbors
-  // for nonlinear:
-  // make sites large enough for 2 sites and their 1,2,3 nearest neighbors
-
-  if (engstyle == NO_ENERGY || engstyle == LINEAR) {
-    esites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
-    psites = NULL;
-  } else if (engstyle == NONLINEAR) {
-    int nmax = 1 + maxneigh + maxneigh*maxneigh + maxneigh*maxneigh*maxneigh;
-    esites = new int[2*nmax];
-    psites = new int[2*nmax];
-  }
-
+  esites = psites = NULL;
   echeck = pcheck = NULL;
-
-  // event list
-
   events = NULL;
   firstevent = NULL;
+
+  hbarrier = sbarrier = NULL;
+  ecoord = NULL;
+  hopsite = NULL;
+  marklist = NULL;
+  mark = NULL;
+
+  allocated = 0;
+
+  dimension = domain->dimension;
 
   // default settings for app-specific commands
 
   depflag = 0;
-
-  ecoord = new double[maxneigh+1];
-  for (int i = 0; i <= maxneigh; i++) ecoord[i] = 0.0;
-
   barrierflag = 0;
-  hbarrier = 
-    memory->create_2d_double_array(maxneigh+1,maxneigh+1,"app:hbarrier");
-  sbarrier = 
-    memory->create_2d_double_array(maxneigh+1,maxneigh+1,"app:sbarrier");
-
-  for (int i = 0; i <= maxneigh; i++)
-    for (int j = 0; j <= maxneigh; j++)
-      hbarrier[i][j] = sbarrier[i][j] = 0.0;
-
-  hopsite = new int[maxneigh*maxneigh + maxneigh];
-  marklist = new int[maxneigh*maxneigh];
-
-  mark = NULL;
-  if (hopstyle == SCHWOEBEL)
-    mark = (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:mark");
-  if (mark)
-    for (int i = 0; i < nlocal+nghost; i++) mark[i] = 0;
 
   // statistics
 
   ndeposit = ndeposit_failed = 0;
   nfirst = nsecond = 0;
-
-  // sweeping timestep
-
-  dt_sweep = 1.0/maxneigh;
-
-  // initialize my portion of lattice as file or SURFACE or VOID_FRACTION
-  // loop over global list so assignment is independent of # of procs
-  // use map to see if I own global site
-
-  RandomPark *random = new RandomPark(ranmaster->uniform());
-
-  if (infile) read_file();
-
-  // SURFACE is sites < level = OCCUPIED, rest VACANT, except at TOP
-
-  else if (geomstyle == SURFACE) {
-    std::map<int,int> hash;
-    for (int i = 0; i < nlocal; i++)
-      hash.insert(std::pair<int,int> (id[i],i));
-    std::map<int,int>::iterator loc;
-    
-    for (int iglobal = 1; iglobal <= nglobal; iglobal++) {
-      loc = hash.find(iglobal);
-      if (loc != hash.end()) {
-	if (dimension == 2) {
-	  if (xyz[loc->second][1] <= level) {
-	    lattice[loc->second] = OCCUPIED;
-	  } else if (xyz[loc->second][1] >= yprd-2.0*latconst)
-	    lattice[loc->second] = TOP;
-	  else lattice[loc->second] = VACANT;
-	} else {
-	  if (xyz[loc->second][2] <= level)
-	    lattice[loc->second] = OCCUPIED;
-	  else if (xyz[loc->second][2] >= zprd-2.0*latconst)
-	    lattice[loc->second] = TOP;
-	  else lattice[loc->second] = VACANT;
-	}
-      }
-    }
-
-  // VOID_FRACTION is sites = VACANT/OCCUPIED with fraction OCCUPIED
-
-  } else if (geomstyle == VOID_FRACTION) {
-    std::map<int,int> hash;
-    for (int i = 0; i < nlocal; i++)
-      hash.insert(std::pair<int,int> (id[i],i));
-    std::map<int,int>::iterator loc;
-    
-    int isite;
-    for (int iglobal = 1; iglobal <= nglobal; iglobal++) {
-      if (random->uniform() < fraction) isite = OCCUPIED;
-      else isite = VACANT;
-      loc = hash.find(iglobal);
-      if (loc != hash.end()) lattice[loc->second] = isite;
-    }
-
-  // PORE is sites = VACANT/OCCUPIED
-  // pore is in thin film at (xc,yc,zc) with diameter and thickness
-
-  } else if (geomstyle == PORE) {
-    double x,y,z;
-    int isite;
-    for (int i = 0; i < nlocal; i++) {
-      x = xyz[i][0];
-      y = xyz[i][1];
-      z = xyz[i][2];
-      if (dimension == 2) {
-	if (y > yc + 0.5*thickness || y < yc - 0.5*thickness) isite = VACANT;
-	else isite = OCCUPIED;
-	if (isite == OCCUPIED) {
-	  if ((x-xc)*(x-xc) < 0.25*diameter*diameter) isite = VACANT;
-	}
-      } else {
-	if (z > zc + 0.5*thickness || z < zc - 0.5*thickness) isite = VACANT;
-	else isite = OCCUPIED;
-	if (isite == OCCUPIED) {
-	  if ((x-xc)*(x-xc) + (y-yc)*(y-yc) < 0.25*diameter*diameter)
-	    isite = VACANT;
-	}
-      }
-      lattice[i] = isite;
-    }
-  }
-
-  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -280,11 +124,20 @@ AppDiffusion::~AppDiffusion()
   memory->sfree(mark);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   input script commands unique to this app
+------------------------------------------------------------------------- */
 
 void AppDiffusion::input_app(char *command, int narg, char **arg)
 {
-  double PI = 4.0*atan(1.0);
+  if (sites_exist == 0) {
+    char str[128];
+    sprintf(str,"Cannot use %s command until sites exist",command);
+    error->all(str);
+  }
+
+  if (!allocated) allocate_data();
+  allocated = 1;
 
   if (strcmp(command,"ecoord") == 0) {
     if (engstyle != NONLINEAR)
@@ -376,33 +229,42 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
   } else error->all("Unrecognized command");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   set site value ptrs each time iarray/darray are reallocated
+------------------------------------------------------------------------- */
+
+void AppDiffusion::grow_app()
+{
+  lattice = iarray[0];
+}
+
+/* ----------------------------------------------------------------------
+   initialize before each run
+   check validity of site values
+------------------------------------------------------------------------- */
 
 void AppDiffusion::init_app()
 {
-  // rejection and deposition are incompatible
-  // no parallel deposition for now
+  if (!allocated) allocate_data();
+  allocated = 1;
 
-  if (depflag && sweepflag != NOSWEEP)
-    error->all("Cannot run rejection KMC with deposition");
+  // sweeping timestep
 
-  if (depflag && nprocs > 1)
-    error->all("Cannot run deposition in parallel for now");
+  dt_sweep = 1.0/maxneigh;
 
-  delete [] echeck;
-  echeck = new int[nlocal+nghost];
-  delete [] pcheck;
-  pcheck = new int[nlocal+nghost];
+  // site validity
 
-  memory->sfree(events);
-  memory->sfree(firstevent);
-
-  events = NULL;
-  maxevent = 0;
-  firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (lattice[i] < VACANT || lattice[i] > TOP) flag = 1;
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) error->all("One or more sites have invalid values");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   setup before each run
+------------------------------------------------------------------------- */
 
 void AppDiffusion::setup_app()
 {
@@ -441,6 +303,7 @@ double AppDiffusion::site_energy(int i)
 }
 
 /* ----------------------------------------------------------------------
+   rKMC method
    perform a site event with null bin rejection
    null bin extends to size maxneigh
 ------------------------------------------------------------------------- */
@@ -503,6 +366,7 @@ void AppDiffusion::site_event_rejection(int i, RandomPark *random)
 }
 
 /* ----------------------------------------------------------------------
+   KMC method
    compute total propensity of owned site summed over possible events
 ------------------------------------------------------------------------- */
 
@@ -796,6 +660,7 @@ double AppDiffusion::site_propensity_nonlinear(int i)
 }
 
 /* ----------------------------------------------------------------------
+   KMC method
    choose and perform an event for site
 ------------------------------------------------------------------------- */
 
@@ -1160,13 +1025,13 @@ int AppDiffusion::find_deposition_site(RandomPark *random)
   // pick a random position at top of box
 
   double start[3];
-  start[0] = boxxlo + (boxxhi-boxxlo)*random->uniform();
+  start[0] = domain->boxxlo + domain->xprd*random->uniform();
   if (dimension == 2) {
-    start[1] = boxyhi;
+    start[1] = domain->boxyhi;
     start[2] = 0.0;
   } else {
-    start[1] = boxylo + (boxyhi-boxylo)*random->uniform();
-    start[2] = boxzhi;
+    start[1] = domain->boxylo + domain->yprd*random->uniform();
+    start[2] = domain->boxzhi;
   }
 
   // for each vacant site:
@@ -1266,8 +1131,8 @@ double AppDiffusion::distsq_to_line(int m, double *start,
   double dot,distsq;
   double delta[3],projection[3],offset[3];
 
-  delta[0] = xyz[m][0] + iprd*xprd - start[0];
-  delta[1] = xyz[m][1] + jprd*yprd - start[1];
+  delta[0] = xyz[m][0] + iprd*domain->xprd - start[0];
+  delta[1] = xyz[m][1] + jprd*domain->yprd - start[1];
   delta[2] = xyz[m][2] - start[2];
     
   dist2start = dir[0]*delta[0] + dir[1]*delta[1] + dir[2]*delta[2];
@@ -1310,4 +1175,47 @@ void AppDiffusion::bounds(char *str, int nmax, int &nlo, int &nhi)
     nlo = MAX(atoi(str),0);
     nhi = MIN(atoi(ptr+1),nmax);
   }
+}
+
+/* ----------------------------------------------------------------------
+   allocate data structs that have to wait until sites exist
+   so that nlocal,nghost,maxneigh are set
+------------------------------------------------------------------------- */
+
+void AppDiffusion::allocate_data()
+{
+  // for no_energy or linear:
+  // make sites large enough for 2 sites and 1st/2nd nearest neighbors
+  // for nonlinear:
+  // make sites large enough for 2 sites and their 1,2,3 nearest neighbors
+
+  if (engstyle == NO_ENERGY || engstyle == LINEAR) {
+    esites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
+    psites = NULL;
+  } else if (engstyle == NONLINEAR) {
+    int nmax = 1 + maxneigh + maxneigh*maxneigh + maxneigh*maxneigh*maxneigh;
+    esites = new int[2*nmax];
+    psites = new int[2*nmax];
+  }
+
+  ecoord = new double[maxneigh+1];
+  for (int i = 0; i <= maxneigh; i++) ecoord[i] = 0.0;
+
+  hbarrier = 
+    memory->create_2d_double_array(maxneigh+1,maxneigh+1,"app:hbarrier");
+  sbarrier = 
+    memory->create_2d_double_array(maxneigh+1,maxneigh+1,"app:sbarrier");
+
+  for (int i = 0; i <= maxneigh; i++)
+    for (int j = 0; j <= maxneigh; j++)
+      hbarrier[i][j] = sbarrier[i][j] = 0.0;
+
+  hopsite = new int[maxneigh*maxneigh + maxneigh];
+  marklist = new int[maxneigh*maxneigh];
+
+  mark = NULL;
+  if (hopstyle == SCHWOEBEL)
+    mark = (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:mark");
+  if (mark)
+    for (int i = 0; i < nlocal+nghost; i++) mark[i] = 0;
 }

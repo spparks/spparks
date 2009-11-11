@@ -27,6 +27,8 @@ class AppPotts : public AppLattice {
  public:
   AppPotts(class SPPARKS *, int, char **);
   virtual ~AppPotts();
+  void grow_app();
+  void init_app();
 
   double site_energy(int);
   virtual void site_event_rejection(int, class RandomPark *);
@@ -35,7 +37,7 @@ class AppPotts : public AppLattice {
 
  protected:
   int nspins;
-  int *lattice;
+  int *spin;
   int *sites,*unique;
 };
 

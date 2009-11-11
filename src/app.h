@@ -19,11 +19,6 @@
 namespace SPPARKS_NS {
   
 class App : protected Pointers {
-  friend class CommLattice;
-  friend class CommOffLattice;
-  friend class DiagCluster;
-  friend class Dump;
-
  public:
   enum APP_CLASSES{GENERAL,LATTICE,OFF_LATTICE};
 
@@ -31,6 +26,19 @@ class App : protected Pointers {
   char *style;            // style name of app
   double time;            // current simulation time due to executed events
   double stoptime;        // time at which to stop this run
+  int sites_exist;        // 1 if sites have been created
+
+  // owned + ghost sites
+
+  int nglobal;                 // global # of sites
+  int nlocal;                  // # of sites I own
+  int nghost;                  // # of ghost sites I store
+
+  int ninteger,ndouble;        // # of ints and doubles per site
+  int *id;                     // global ID of site
+  double **xyz;                // coords of site
+  int **iarray;                // one or more ints per site
+  double **darray;             // one or more doubles per site
 
   App(class SPPARKS *, int, char **);
   virtual ~App();
@@ -54,36 +62,7 @@ class App : protected Pointers {
   int first_run;
   double nextoutput;
 
-  int nx_procs,ny_procs,nz_procs;   // procs in each dim of lattice partition
-  int iprocx,iprocy,iprocz;         // index of me in 3d grid of procs
-
-  double xprd,yprd,zprd;                               // global domain
-  double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // global box bounds
-  double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;    // my portion of box
-
-  // arrays for owned + ghost sites
-
-  int ninteger,ndouble;        // # of ints and doubles per site
-  int *id;                     // global ID (1-N) of site
-  double **xyz;                // coords of site
-  int **iarray;                // one or more ints per site
-  double **darray;             // one or more doubles per site
-
-  void procs2domain_1d(int, int, int,
-		       double, double, double, int &,
-		       double &, double &, double &, 
-		       double &, double &, double &);
-  void procs2domain_2d(int, int, int,
-		       double, double, double, double, double, double,
-		       int &, int &,
-		       double &, double &, double &, 
-		       double &, double &, double &);
-  void procs2domain_3d(int, int, int, 
-		       double, double, double, double, double, double, 
-		       double, double, double,
-		       int &, int &, int &,
-		       double &, double &, double &, 
-		       double &, double &, double &);
+  void create_arrays();
 };
 
 }

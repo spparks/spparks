@@ -14,8 +14,9 @@
 #include "string.h"
 #include "stdlib.h"
 #include "app.h"
-#include "timer.h"
+#include "domain.h"
 #include "finish.h"
+#include "timer.h"
 #include "memory.h"
 #include "error.h"
 
@@ -38,6 +39,8 @@ App::App(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   xyz = NULL;
   iarray = NULL;
   darray = NULL;
+
+  sites_exist = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -56,8 +59,21 @@ App::~App()
 
 /* ---------------------------------------------------------------------- */
 
+void App::create_arrays()
+{
+  if (ninteger) iarray = new int*[ninteger];
+  for (int i = 0; i < ninteger; i++) iarray[i] = NULL;
+  if (ndouble) darray = new double*[ndouble];
+  for (int i = 0; i < ndouble; i++) darray[i] = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void App::run(int narg, char **arg)
 {
+  if (appclass != GENERAL && domain->box_exist == 0)
+    error->all("Cannot run application until simulation box is defined");
+
   if (narg < 1) error->all("Illegal run command");
 
   stoptime = time + atof(arg[0]);
@@ -118,203 +134,4 @@ void App::run(int narg, char **arg)
 void App::reset_time(double newtime)
 {
   time = newtime;
-}
-
-/* ----------------------------------------------------------------------
-   assign nprocs to 1d box as equal partitions
-------------------------------------------------------------------------- */
-
-void App::procs2domain_1d(int px_user, int py_user, int pz_user,
-			  double xprd, double boxxlo, double boxxhi,
-			  int &nx_procs,
-			  double &subxlo, double &subylo, double &subzlo,
-			  double &subxhi, double &subyhi, double &subzhi)
-{
-  int me,nprocs;
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
-
-  if (px_user || py_user || pz_user) {
-    if (py_user != 1 || pz_user != 1)
-      error->all("App style proc count is not valid");
-    nx_procs = px_user;
-  } else {
-    nx_procs = nprocs;
-  }
-
-  ny_procs = nz_procs = 1;
-
-  iprocx = me;
-  iprocy = iprocz = 0;
-
-  subxlo = boxxlo + iprocx * xprd/nx_procs;
-  if (iprocx < nx_procs-1) subxhi = boxxlo + (iprocx+1) * xprd/nx_procs;
-  else subxhi = boxxhi;
-
-  subylo = -0.5;
-  subyhi = 0.5;
-  subzlo = -0.5;
-  subzhi = 0.5;
-
-  if (me == 0) {
-    if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
-			nx_procs,1,1);
-    if (logfile) fprintf(logfile,"  %d by %d by %d processor grid\n",
-			 nx_procs,1,1);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   assign nprocs to 2d box so as to minimize perimeter per proc
-------------------------------------------------------------------------- */
-
-void App::procs2domain_2d(int px_user, int py_user, int pz_user,
-			  double xprd, double yprd,
-			  double boxxlo, double boxylo,
-			  double boxxhi, double boxyhi,
-			  int &nx_procs, int &ny_procs,
-			  double &subxlo, double &subylo, double &subzlo,
-			  double &subxhi, double &subyhi, double &subzhi)
-{
-  int ipx,ipy;
-  double boxx,boxy,surf;
-
-  int me,nprocs;
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
-
-  if (px_user || py_user || pz_user) {
-    if (pz_user != 1)
-      error->all("App style proc count is not valid");
-    nx_procs = px_user;
-    ny_procs = py_user;
-
-  } else {
-
-    // loop thru all possible factorizations of nprocs
-    // surf = perimeter of a proc sub-domain
-
-    double bestsurf = 2.0 * (xprd+yprd);
- 
-    ipx = 1;
-    while (ipx <= nprocs) {
-      if (nprocs % ipx == 0) {
-	ipy = nprocs/ipx;
-	boxx = xprd/ipx;
-	boxy = yprd/ipy;
-	surf = boxx + boxy;
-	if (surf < bestsurf) {
-	  bestsurf = surf;
-	  nx_procs = ipx;
-	  ny_procs = ipy;
-	}
-      }
-      ipx++;
-    }
-  }
-
-  nz_procs = 1;
-
-  iprocx = me % nx_procs;
-  iprocy = me/nx_procs;
-  iprocz = 0;
-
-  subxlo = boxxlo + iprocx * xprd/nx_procs;
-  if (iprocx < nx_procs-1) subxhi = boxxlo + (iprocx+1) * xprd/nx_procs;
-  else subxhi = boxxhi;
-
-  subylo = boxylo + iprocy * yprd/ny_procs;
-  if (iprocy < ny_procs-1) subyhi = boxylo + (iprocy+1) * yprd/ny_procs;
-  else subyhi = boxyhi;
-
-  subzlo = -0.5;
-  subzhi = 0.5;
-
-  if (me == 0) {
-    if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
-			nx_procs,ny_procs,1);
-    if (logfile) fprintf(logfile,"  %d by %d by %d processor grid\n",
-			 nx_procs,ny_procs,1);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   assign nprocs to 3d box so as to minimize surface area per proc
-------------------------------------------------------------------------- */
-
-void App::procs2domain_3d(int px_user, int py_user, int pz_user,
-			  double xprd, double yprd, double zprd,
-			  double boxxlo, double boxylo, double boxzlo,
-			  double boxxhi, double boxyhi, double boxzhi,
-			  int &nx_procs, int &ny_procs, int &nz_procs,
-			  double &subxlo, double &subylo, double &subzlo,
-			  double &subxhi, double &subyhi, double &subzhi)
-{
-  int ipx,ipy,ipz,nremain;
-  double boxx,boxy,boxz,surf;
-
-  int me,nprocs;
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
-
-  if (px_user || py_user || pz_user) {
-    nx_procs = px_user;
-    ny_procs = py_user;
-    nz_procs = pz_user;
-
-  } else {
-
-    double bestsurf = 2.0 * (xprd*yprd + yprd*zprd + zprd*xprd);
-  
-    // loop thru all possible factorizations of nprocs
-    // surf = surface area of a proc sub-domain
-
-    ipx = 1;
-    while (ipx <= nprocs) {
-      if (nprocs % ipx == 0) {
-	nremain = nprocs/ipx;
-	ipy = 1;
-	while (ipy <= nremain) {
-	  if (nremain % ipy == 0) {
-	    ipz = nremain/ipy;
-	    boxx = xprd/ipx;
-	    boxy = yprd/ipy;
-	    boxz = zprd/ipz;
-	    surf = boxx*boxy + boxy*boxz + boxz*boxx;
-	    if (surf < bestsurf) {
-	      bestsurf = surf;
-	      nx_procs = ipx;
-	      ny_procs = ipy;
-	      nz_procs = ipz;
-	    }
-	  }
-	  ipy++;
-	}
-      }
-      ipx++;
-    }
-  }
-
-  iprocx = me % nx_procs;
-  iprocy = (me/nx_procs) % ny_procs;
-  iprocz = me / (nx_procs*ny_procs);
-
-  subxlo = boxxlo + iprocx * xprd/nx_procs;
-  if (iprocx < nx_procs-1) subxhi = boxxlo + (iprocx+1) * xprd/nx_procs;
-  else subxhi = boxxhi;
-
-  subylo = boxylo + iprocy * yprd/ny_procs;
-  if (iprocy < ny_procs-1) subyhi = boxylo + (iprocy+1) * yprd/ny_procs;
-  else subyhi = boxyhi;
-
-  subzlo = boxzlo + iprocz * zprd/nz_procs;
-  if (iprocz < nz_procs-1) subzhi = boxzlo + (iprocz+1) * zprd/nz_procs;
-  else subzhi = boxzhi;
-
-  if (me == 0) {
-    if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
-			nx_procs,ny_procs,nz_procs);
-    if (logfile) fprintf(logfile,"  %d by %d by %d processor grid\n",
-			 nx_procs,ny_procs,nz_procs);
-  }
 }

@@ -59,12 +59,21 @@ class Input : protected Pointers {
 
   void app_style();
   void diag_style();
+  void dimension();
+  void dump();
+  void dump_modify();
+  void dump_one();
+  void lattice();
   void pair_coeff();
   void pair_style();
+  void processors();
+  void region();
   void reset_time();
   void run();
   void seed();
   void solve_style();
+  void stats();
+  void undump();
 };
 
 }

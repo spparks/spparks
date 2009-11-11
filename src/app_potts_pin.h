@@ -25,6 +25,7 @@ class AppPottsPin : public AppPotts {
   AppPottsPin(class SPPARKS *, int, char **);
   ~AppPottsPin() {}
   void input_app(char *, int, char **);
+  void init_app();
 
   void site_event_rejection(int, class RandomPark *);
   double site_propensity(int);

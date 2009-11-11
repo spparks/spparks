@@ -23,8 +23,6 @@ class AppOffLattice : public App {
   friend class CommOffLattice;
 
  public:
-  int nglobal;                 // global # of sites
-  int nlocal;                  // # of sites I own
   class CommOffLattice *comm;
 
   AppOffLattice(class SPPARKS *, int, char **);
@@ -34,6 +32,10 @@ class AppOffLattice : public App {
   void setup();
   void iterate();
   void *extract(char *);
+
+  void grow(int);
+  void add_site(int, double, double, double);
+  void add_values(int, char **x);
 
   // pure virtual functions, must be defined in child class
 
@@ -54,6 +56,12 @@ class AppOffLattice : public App {
 
  protected:
   int me,nprocs;
+
+  int dimension;              // domain settings
+  double xprd,yprd,zprd;
+  double subxlo,subylo,subzlo;
+  double subxhi,subyhi,subzhi;
+
   int naccept,nattempt;       // number of accepted and attempted events
   int nsweeps;                // number of sweeps performed
   double temperature,t_inverse;  // temperature settings
@@ -63,17 +71,6 @@ class AppOffLattice : public App {
 
   class RandomPark *ranapp;    // RN generator for KMC and rejection KMC
   int *sitelist;               // randomized list of site indices
-
-  int latstyle;               // lattice creation params
-  double latconst;
-  int dimension;
-  int nx,ny,nz;
-  int nrandom;
-  double cutoff;
-  char *latfile;
-  char *infile;
-
-  int px_user,py_user,pz_user;
 
   double delpropensity;        // distance away needed to compute propensity
   double delevent;             // distance away affected by an event
@@ -90,7 +87,6 @@ class AppOffLattice : public App {
   double nstop;                // requested events per site in sector
 
   int nmax;                    // max # of sites per-site arrays can store
-  int nghost;                  // # of ghost sites I store
   int size_one;                // quantities to comm per site
 
                                // arrays for owned + ghost sites
@@ -169,18 +165,9 @@ class AppOffLattice : public App {
   void add_free(int);
   void add_image_bins(int, int, int, int);
   int neighproc(int, int, int, int);
-  void grow(int);
   int inside_sector(int);
 
-  void options(int, char **);
-  void create_domain();
-  void structured_lattice();
-  void random_lattice();
-  void file_lattice();
-  void read_file();
-
   void check(char *, int, int);
-
   void create_set(int, int);
 
   void set_sector(int, char **);

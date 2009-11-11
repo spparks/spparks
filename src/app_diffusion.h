@@ -27,6 +27,7 @@ class AppDiffusion : public AppLattice {
   AppDiffusion(class SPPARKS *, int, char **);
   ~AppDiffusion();
   void input_app(char *, int, char **);
+  void grow_app();
   void init_app();
   void setup_app();
 
@@ -36,11 +37,13 @@ class AppDiffusion : public AppLattice {
   void site_event(int, class RandomPark *);
 
  private:
-  int engstyle,hopstyle,geomstyle;
+  int engstyle,hopstyle;
+  int allocated;
   int *esites,*psites;
   int *echeck,*pcheck;
   double *ecoord;
 
+  int dimension;
   int *lattice;
 
   struct Event {           // one event for an owned site
@@ -82,15 +85,15 @@ class AppDiffusion : public AppLattice {
   void site_event_nonlinear(int, class RandomPark *);
 
   int ncoord(int);
-
   void clear_events(int);
   void add_event(int, int, double, int);
 
+  int schwoebel_enumerate(int, int *);
   int find_deposition_site(class RandomPark *);
   int exceed_limit(int, double *, double &);
   double distsq_to_line(int, double *, int, int, double &);
   void bounds(char *, int, int &, int &);
-  int schwoebel_enumerate(int, int *);
+  void allocate_data();
 };
 
 }

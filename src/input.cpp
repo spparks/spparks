@@ -20,6 +20,7 @@
 #include "variable.h"
 #include "app.h"
 #include "solve.h"
+#include "domain.h"
 #include "potential.h"
 #include "pair.h"
 #include "output.h"
@@ -394,12 +395,21 @@ int Input::execute_command()
 
   else if (!strcmp(command,"app_style")) app_style();
   else if (!strcmp(command,"diag_style")) diag_style();
+  else if (!strcmp(command,"dimension")) dimension();
+  else if (!strcmp(command,"dump")) dump();
+  else if (!strcmp(command,"dump_modify")) dump_modify();
+  else if (!strcmp(command,"dump_one")) dump_one();
+  else if (!strcmp(command,"lattice")) lattice();
   else if (!strcmp(command,"pair_coeff")) pair_coeff();
   else if (!strcmp(command,"pair_style")) pair_style();
+  else if (!strcmp(command,"processors")) processors();
+  else if (!strcmp(command,"region")) region();
   else if (!strcmp(command,"reset_time")) reset_time();
   else if (!strcmp(command,"run")) run();
   else if (!strcmp(command,"seed")) seed();
   else if (!strcmp(command,"solve_style")) solve_style();
+  else if (!strcmp(command,"stats")) stats();
+  else if (!strcmp(command,"undump")) undump();
 
   else flag = 0;
 
@@ -423,7 +433,8 @@ int Input::execute_command()
 
   // assume command is application-specific
 
-  if (app == NULL) error->all("Command used before app_style set");
+  if (app == NULL) 
+    error->all("App_style specific command before app_style set");
   app->input(command,narg,arg);
   return 0;
 }
@@ -619,6 +630,8 @@ void Input::variable_command()
 
 void Input::app_style()
 {
+  if (domain->box_exist) 
+    error->all("App_style command after simulation box is defined");
   if (narg < 1) error->all("Illegal app command");
   delete app;
   delete solve;
@@ -639,7 +652,7 @@ void Input::app_style()
 
 void Input::diag_style()
 {
-  if (app == NULL) error->all("Command used before app_style set");
+  if (app == NULL) error->all("Diag_style command before app_style set");
 
   if (narg < 1) error->all("Illegal diag_style command");
 
@@ -659,8 +672,60 @@ void Input::diag_style()
 
 /* ---------------------------------------------------------------------- */
 
+void Input::dimension()
+{
+  if (domain->box_exist) 
+    error->all("Dimension command after simulation box is defined");
+  if (domain->lattice) 
+    error->all("Dimension command after lattice is defined");
+  if (narg != 1) error->all("Illegal dimension command");
+
+  domain->dimension = atoi(arg[0]);
+  if (domain->dimension < 1 || domain->dimension > 3)
+    error->all("Illegal dimension command");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::dump()
+{
+  if (app == NULL) error->all("Dump command before app_style set");
+
+  output->add_dump(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::dump_modify()
+{
+  if (app == NULL) error->all("Dump_modify command before app_style set");
+
+  output->dump_modify(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::dump_one()
+{
+  if (app == NULL) error->all("Dump_one command before app_style set");
+
+  output->dump_one(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::lattice()
+{
+  if (app == NULL) error->all("Lattice command before app_style set");
+
+  domain->set_lattice(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Input::pair_coeff()
 {
+  if (app == NULL) error->all("Pair_coeff command before app_style set");
   if (potential->pair == NULL) 
     error->all("Pair_coeff command before pair_style is defined");
   potential->pair->coeff(narg,arg);
@@ -670,6 +735,7 @@ void Input::pair_coeff()
 
 void Input::pair_style()
 {
+  if (app == NULL) error->all("Pair_style command before app_style set");
   if (narg < 1) error->all("Illegal pair_style command");
   potential->create_pair(arg[0]);
   potential->pair->settings(narg-1,&arg[1]);
@@ -677,11 +743,33 @@ void Input::pair_style()
 
 /* ---------------------------------------------------------------------- */
 
+void Input::processors()
+{
+  if (domain->box_exist)
+    error->all("Processors command after simulation box is defined");
+  if (narg != 3) error->all("Illegal processors command");
+
+  domain->user_procgrid[0] = atoi(arg[0]);
+  domain->user_procgrid[1] = atoi(arg[1]);
+  domain->user_procgrid[2] = atoi(arg[2]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::region()
+{
+  if (app == NULL) error->all("Region command before app_style set");
+
+  domain->add_region(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Input::reset_time()
 {
-  if (app == NULL) error->all("Command used before app_style set");
-
+  if (app == NULL) error->all("Reset_time command before app_style set");
   if (narg != 1) error->all("Illegal reset_time command");
+
   double time = atof(arg[0]);
   if (time < 0.0) error->all("Illegal reset_time command");
 
@@ -692,7 +780,8 @@ void Input::reset_time()
 
 void Input::run()
 {
-  if (app == NULL) error->all("Command used before app_style set");
+  if (app == NULL) error->all("Run command before app_style set");
+
   app->run(narg,arg);
 }
 
@@ -701,6 +790,7 @@ void Input::run()
 void Input::seed()
 {
   if (narg != 1) error->all("Illegal seed command");
+
   int seed = atoi(arg[0]);
   if (seed <= 0) error->all("Illegal seed command");
 
@@ -711,6 +801,7 @@ void Input::seed()
 
 void Input::solve_style()
 {
+  if (app == NULL) error->all("Solve_style command before app_style set");
   if (narg < 1) error->all("Illegal solve_style command");
   delete solve;
 
@@ -723,4 +814,22 @@ void Input::solve_style()
 #undef SOLVE_CLASS
 
   else error->all("Illegal solve_style command");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::stats()
+{
+  if (app == NULL) error->all("Stats command before app_style set");
+
+  output->set_stats(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::undump()
+{
+  if (app == NULL) error->all("Undump command before app_style set");
+
+  output->undump(narg,arg);
 }

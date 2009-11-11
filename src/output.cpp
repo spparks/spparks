@@ -231,10 +231,10 @@ void Output::add_dump(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    force current snapshot to be written out
-   does not change any attributes of next time dump
+   does not change any attributes of next dump
 ------------------------------------------------------------------------- */
 
-void Output::dump_one(int narg, char **arg, double time)
+void Output::dump_one(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal dump_one command");
 
@@ -246,7 +246,7 @@ void Output::dump_one(int narg, char **arg, double time)
   if (dumplist[i]->idump == 0)
     error->all("Cannot use dump_one for first snapshot in dump file");
 
-  dumplist[i]->write(time);
+  dumplist[i]->write(app->time);
 }
 
 /* ---------------------------------------------------------------------- */

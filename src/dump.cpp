@@ -18,6 +18,7 @@
 #include "app.h"
 #include "app_lattice.h"
 #include "app_off_lattice.h"
+#include "domain.h"
 #include "memory.h"
 #include "error.h"
 
@@ -201,14 +202,12 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 
   // dump params
 
-  if (latticeflag) nlocal = applattice->nlocal;
-
-  boxxlo = app->boxxlo;
-  boxxhi = app->boxxhi;
-  boxylo = app->boxylo;
-  boxyhi = app->boxyhi;
-  boxzlo = app->boxzlo;
-  boxzhi = app->boxzhi;
+  boxxlo = domain->boxxlo;
+  boxxhi = domain->boxxhi;
+  boxylo = domain->boxylo;
+  boxyhi = domain->boxyhi;
+  boxzlo = domain->boxzlo;
+  boxzhi = domain->boxzhi;
 
   flush_flag = 1;
   logfreq = 0;
@@ -511,9 +510,7 @@ int Dump::count()
 {
   int i;
 
-  // update nlocal if off-lattice app
-
-  if (latticeflag == 0) nlocal = appoff->nlocal;
+  nlocal = app->nlocal;
 
   // insure choose arrays are big enough
   // initialize choose[] to select all sites if reallocate

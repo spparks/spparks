@@ -123,6 +123,24 @@ else if ($1 == "style") then
      rm style_pair.tmp
   endif
 
+  set list = `grep -l REGION_CLASS region_*.h`
+  if (-e style_region.tmp) then
+    rm style_region.tmp
+  endif
+  foreach file ($list)
+    set qfile = \"$file\"
+    echo "#include $qfile" >>! style_region.tmp
+  end
+  if (! -e style_region.h) then
+     mv style_region.tmp style_region.h
+     rm Obj_*/domain.d
+  else if (`diff style_region.h style_region.tmp` != "") then
+     mv style_region.tmp style_region.h
+     rm Obj_*/domain.d
+  else
+     rm style_region.tmp
+  endif
+
   set list = `grep -l SOLVE_CLASS solve_*.h`
   if (-e style_solve.tmp) then
     rm style_solve.tmp

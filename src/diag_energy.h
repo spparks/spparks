@@ -22,7 +22,6 @@ DiagStyle(energy,DiagEnergy)
 namespace SPPARKS_NS {
 
 class DiagEnergy : public Diag {
-
  public:
   DiagEnergy(class SPPARKS *, int, char **);
   ~DiagEnergy() {}

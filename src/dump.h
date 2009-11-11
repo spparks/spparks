@@ -17,9 +17,13 @@
 namespace SPPARKS_NS {
 
 class Dump : protected Pointers {
-  friend class Output;
-
  public:
+  char *id;                  // user-defined name of Dump
+  int idump;                 // counter for output snapshots
+  double next_time,delta;    // params governing output times
+  double scale,delay;
+  int logfreq,nrepeat;
+
   Dump(class SPPARKS *, int, char **);
   ~Dump();
   void init();
@@ -27,7 +31,6 @@ class Dump : protected Pointers {
   void write(double);
 
  private:
-  char *id;                  // user-defined name of Dump
   int me,nprocs;             // proc info
 
   char *filename;            // user-specified file
@@ -52,11 +55,6 @@ class Dump : protected Pointers {
   double *thresh_value;      // threshold value for each nthresh
   int *thresh_index;         // N index for iN and dN thresholds
 
-  double next_time,delta;    // params governing output times
-  double scale,delay;
-  int logfreq,nrepeat;
-
-  int idump;                 // counter for output snapshots
   char *columns;             // text describing columns of dump output
 
   int *choose;               // lists of sites chosen for output

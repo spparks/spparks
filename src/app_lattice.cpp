@@ -18,6 +18,8 @@
 #include "app_lattice.h"
 #include "comm_lattice.h"
 #include "solve.h"
+#include "domain.h"
+#include "lattice.h"
 #include "random_mars.h"
 #include "random_park.h"
 #include "cluster.h"
@@ -30,6 +32,8 @@ using namespace SPPARKS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+#define DELTA 10000
 
 enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};
 
@@ -66,6 +70,14 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   comm = NULL;
   sweep = NULL;
 
+  nlocal = nghost = nmax = 0;
+  owner = NULL;
+  index = NULL;
+
+  maxneigh = 0;
+  numneigh = NULL;
+  neighbor = NULL;
+
   dt_sweep = 0.0;
   naccept = nattempt = 0;
   nsweeps = 0;
@@ -93,9 +105,6 @@ AppLattice::~AppLattice()
 
   delete comm;
 
-  delete [] latfile;
-  delete [] infile;
-
   memory->sfree(owner);
   memory->sfree(index);
 
@@ -110,11 +119,6 @@ void AppLattice::input(char *command, int narg, char **arg)
   if (strcmp(command,"sector") == 0) set_sector(narg,arg);
   else if (strcmp(command,"sweep") == 0) set_sweep(narg,arg);
   else if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
-  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
-  else if (strcmp(command,"dump") == 0) output->add_dump(narg,arg);
-  else if (strcmp(command,"dump_one") == 0) output->dump_one(narg,arg,time);
-  else if (strcmp(command,"dump_modify") == 0) output->dump_modify(narg,arg);
-  else if (strcmp(command,"undump") == 0) output->undump(narg,arg);
   else input_app(command,narg,arg);
 }
 
@@ -149,6 +153,8 @@ void AppLattice::init()
 
   // if sectors, set number of sectors
 
+  int dimension = domain->dimension;
+
   nsector = 1;
   if (sectorflag) {
     if (nsector_user) nsector = nsector_user;
@@ -157,13 +163,14 @@ void AppLattice::init()
     else nsector = 8;
 
     if (dimension == 3) {
-      if (nsector == 2 && (ny_procs != 1 || nz_procs != 1))
+      if (nsector == 2 && (domain->procgrid[1] != 1 || 
+			   domain->procgrid[2] != 1))
 	error->all("Invalid number of sectors");
-      if (nsector == 4 && nz_procs != 1)
+      if (nsector == 4 && domain->procgrid[2] != 1)
 	error->all("Invalid number of sectors");
     }
     if (dimension == 2) {
-      if (nsector == 2 && ny_procs != 1)
+      if (nsector == 2 && domain->procgrid[1] != 1)
 	error->all("Invalid number of sectors");
       if (nsector == 8)
 	error->all("Invalid number of sectors");
@@ -179,37 +186,10 @@ void AppLattice::init()
   ncolors = 1;
   if (sweepflag == COLOR || sweepflag == COLOR_STRICT) {
     int delcolor = delevent + delpropensity;
-    if (latstyle == LINE_2N) {
-      if (delcolor == 1) ncolors = 2;
-      if (nx % 2)
-	error->all("Color stencil is incommensurate with lattice size");
-    } else if (latstyle == SQ_4N) {
-      if (delcolor == 1) ncolors = 2;
-      if (nx % 2 || ny % 2)
-	error->all("Color stencil is incommensurate with lattice size");
-    } else if (latstyle == SQ_8N) {
-      ncolors = (delcolor+1)*(delcolor+1);
-      if (nx % (delcolor+1) || ny % (delcolor+1))
-	error->all("Color stencil is incommensurate with lattice size");
-    } else if (latstyle == TRI) {
-      if (delcolor == 1) ncolors = 4;
-      if (nx % 2)
-	error->all("Color stencil is incommensurate with lattice size");
-    } else if (latstyle == SC_6N) {
-      if (delcolor == 1) ncolors = 2;
-      if (nx % 2 || ny % 2 || nz % 2)
-	error->all("Color stencil is incommensurate with lattice size");
-    } else if (latstyle == SC_26N) {
-      ncolors = (delcolor+1)*(delcolor+1)*(delcolor+1);
-      if (nx % (delcolor+1) || ny % (delcolor+1) || nz % (delcolor+1))
-	error->all("Color stencil is incommensurate with lattice size");
-    } else if (latstyle == FCC) {
-      if (delcolor == 1) ncolors = 4;
-    } else if (latstyle == BCC) {
-      if (delcolor == 1) ncolors = 2;
-    }
-
-    if (ncolors == 1)
+    if (domain->lattice == NULL)
+      error->all("Cannot color wihtout a lattice definition of sites");
+    ncolors = domain->lattice->ncolors(delcolor,nx,ny,nz);
+    if (ncolors == 0)
       error->all("Cannot color this combination of lattice and app");
   }
 
@@ -827,13 +807,15 @@ void AppLattice::create_set(int iset, int isector, int icolor)
 {
   // sector boundaries
 
-  double xmid = 0.5 * (subxlo + subxhi);
-  double ymid = 0.5 * (subylo + subyhi);
-  double zmid = 0.5 * (subzlo + subzhi);
+  double xmid = 0.5 * (domain->subxlo + domain->subxhi);
+  double ymid = 0.5 * (domain->subylo + domain->subyhi);
+  double zmid = 0.5 * (domain->subzlo + domain->subzhi);
 
   // count sites in subset
 
   int flag,iwhich,jwhich,kwhich,msector,mcolor;
+
+  int delcolor = delevent + delpropensity;
 
   int n = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -855,7 +837,7 @@ void AppLattice::create_set(int iset, int isector, int icolor)
     }
 
     if (icolor > 0) {
-      mcolor = id2color(id[i]);
+      mcolor = domain->lattice->id2color(id[i],delcolor,nx,ny,nz);
       if (icolor != mcolor) flag = 0;
     }
 
@@ -889,7 +871,7 @@ void AppLattice::create_set(int iset, int isector, int icolor)
     }
 
     if (icolor > 0) {
-      mcolor = id2color(id[i]);
+      mcolor = domain->lattice->id2color(id[i],delcolor,nx,ny,nz);
       if (icolor != mcolor) flag = 0;
     }
 
@@ -936,55 +918,6 @@ void AppLattice::create_set(int iset, int isector, int icolor)
     set[iset].border = NULL;
     set[iset].bsites = NULL;
   }
-}
-
-/* ----------------------------------------------------------------------
-   convert a lattice ID (1 to Nsites) to a color (1 to Ncolor)
-------------------------------------------------------------------------- */
-
-int AppLattice::id2color(int idsite)
-{
-  int i,j,k,ncolors,ncolor1d,icolor;
-
-  idsite--;
-  int delcolor = delevent + delpropensity;
-
-  if (latstyle == SQ_4N) {
-    i = idsite % nx;
-    j = idsite / nx;
-    icolor = (i+j) % 2;
-
-  } else if (latstyle == SQ_8N) {
-    ncolor1d = delcolor+1;
-    i = idsite % nx;
-    j = idsite / nx;
-    icolor = ncolor1d*(j%ncolor1d) + i%ncolor1d;
-
-  } else if (latstyle == TRI) {
-    icolor = idsite % 4;
-
-  } else if (latstyle == SC_6N) {
-    i = idsite % nx;
-    j = (idsite%(nx*ny)) / nx;
-    k = idsite / (nx*ny);
-    icolor = (i+j+k) % 2;
-
-  } else if (latstyle == SC_26N) {
-    ncolor1d = delcolor+1;
-    i = idsite % nx;
-    j = (idsite%(nx*ny)) / nx;
-    k = idsite / (nx*ny);
-    icolor = ncolor1d*ncolor1d*(k%ncolor1d) + 
-      ncolor1d*(j%ncolor1d) + i%ncolor1d;
-
-  } else if (latstyle == FCC) {
-    icolor = idsite % 4;
-
-  } else if (latstyle == BCC) {
-    icolor = idsite % 2;
-  }
-
-  return icolor+1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1134,21 +1067,14 @@ void AppLattice::connected_ghosts(int i, int* cluster_ids,
 
 void *AppLattice::extract(char *name)
 {
-  if (strcmp(name,"dimension") == 0) return (void *) &dimension;
   if (strcmp(name,"nglobal") == 0) return (void *) &nglobal;
   if (strcmp(name,"nlocal") == 0) return (void *) &nlocal;
-  if (strcmp(name,"boxxlo") == 0) return (void *) &boxxlo;
-  if (strcmp(name,"boxxhi") == 0) return (void *) &boxxhi;
-  if (strcmp(name,"boxylo") == 0) return (void *) &boxylo;
-  if (strcmp(name,"boxyhi") == 0) return (void *) &boxyhi;
-  if (strcmp(name,"boxzlo") == 0) return (void *) &boxzlo;
-  if (strcmp(name,"boxzhi") == 0) return (void *) &boxzhi;
 
   if (strcmp(name,"id") == 0) return (void *) id;
   if (strcmp(name,"xyz") == 0) return (void *) xyz;
 
   if (strcmp(name,"site") == 0) {
-    if (ninteger < 1) return NULL;
+    if (ninteger == 0) return NULL;
     return (void *) iarray[0];
   }
 
@@ -1165,3 +1091,149 @@ void *AppLattice::extract(char *name)
 
   return extract_app(name);
 }
+
+/* ----------------------------------------------------------------------
+   grow per-site arrays
+   n = 0 grows arrays by DELTA
+   n > 0 allocates arrays to size n 
+------------------------------------------------------------------------- */
+
+void AppLattice::grow(int n)
+{
+  if (n == 0) nmax += DELTA;
+  else nmax = n;
+
+  id = (int *)  memory->srealloc(id,nmax*sizeof(int),"app:id");
+  xyz = memory->grow_2d_double_array(xyz,nmax,3,"app:xyz");
+  owner = (int *) memory->srealloc(owner,nmax*sizeof(int),"app:owner");
+  index = (int *) memory->srealloc(index,nmax*sizeof(int),"app:index");
+
+  numneigh = (int *) 
+    memory->srealloc(numneigh,nmax*sizeof(int),"app:numneigh");
+  if (maxneigh)
+    memory->grow_2d_T_array(neighbor,nmax,maxneigh,"app:neighbor");
+
+  for (int i = 0; i < ninteger; i++)
+    iarray[i] = (int *) 
+      memory->srealloc(iarray[i],nmax*sizeof(int),"app:iarray");
+  for (int i = 0; i < ndouble; i++)
+    darray[i] = (double *) 
+      memory->srealloc(darray[i],nmax*sizeof(double),"app:darray");
+
+  grow_app();
+}
+
+/* ----------------------------------------------------------------------
+   add an owned site
+   called from create_sites command
+   grow arrays if necessary
+ ------------------------------------------------------------------------- */
+
+void AppLattice::add_site(int n, double x, double y, double z)
+{
+  if (nlocal == nmax) grow(0);
+
+  id[nlocal] = n;
+  xyz[nlocal][0] = x;
+  xyz[nlocal][1] = y;
+  xyz[nlocal][2] = z;
+
+  owner[nlocal] = me;
+  index[nlocal] = nlocal;
+
+  for (int i = 0; i < ninteger; i++) iarray[i][nlocal] = 0;
+  for (int i = 0; i < ndouble; i++) darray[i][nlocal] = 0;
+
+  nlocal++;
+}
+
+/* ----------------------------------------------------------------------
+   add a ghost site
+   called from create_sites command
+   grow arrays if necessary
+ ------------------------------------------------------------------------- */
+
+void AppLattice::add_ghost(int n, double x, double y, double z,
+			   int proc, int index_owner)
+{
+  if (nlocal+nghost == nmax) grow(0);
+
+  int i = nlocal + nghost;
+
+  id[i] = n;
+  xyz[i][0] = x;
+  xyz[i][1] = y;
+  xyz[i][2] = z;
+
+  owner[i] = proc;
+  index[i] = index_owner;
+
+  for (int i = 0; i < ninteger; i++) iarray[i][i] = 0;
+  for (int i = 0; i < ndouble; i++) darray[i][i] = 0;
+
+  nghost++;
+}
+
+/* ----------------------------------------------------------------------
+   set neighbor connectivity for owned site I
+   nvalues = # of neighbors
+   called from read_sites command
+ ------------------------------------------------------------------------- */
+
+void AppLattice::add_neighbors(int i, int nvalues, char **values)
+{
+  numneigh[i] = nvalues;
+  for (int m = 0; m < nvalues; m++) neighbor[i][m] = atoi(values[i]);
+}
+
+/* ----------------------------------------------------------------------
+   set values for owned site I
+   called from read_sites command
+ ------------------------------------------------------------------------- */
+
+void AppLattice::add_values(int i, char **values)
+{
+  for (int m = 0; m < ninteger; m++) iarray[m][i] = atoi(values[i]);
+  for (int m = 0; m < ndouble; m++) darray[m][i] = atof(values[i+ninteger]);
+}
+
+/* ----------------------------------------------------------------------
+   print connectivity stats
+ ------------------------------------------------------------------------- */
+
+void AppLattice::print_connectivity()
+{
+  int i;
+
+  int min = maxneigh;
+  int max = 0;
+
+  for (i = 0; i < nlocal; i++) {
+    min = MIN(min,numneigh[i]);
+    max = MAX(max,numneigh[i]);
+  }
+
+  int minall,maxall;
+  MPI_Allreduce(&min,&minall,1,MPI_INT,MPI_MIN,world);
+  MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
+
+  int *count = new int[maxall+1];
+  int *countall = new int[maxall+1];
+
+  for (i = 0; i <= maxall; i++) count[i] = 0;
+
+  for (i = 0; i < nlocal; i++) count[numneigh[i]]++;
+  MPI_Allreduce(count,countall,maxall+1,MPI_INT,MPI_SUM,world);
+
+  if (me == 0)
+    for (i = minall; i <= maxall; i++) {
+      if (screen)
+	fprintf(screen,"  %d sites have %d neighbors\n",countall[i],i);
+      if (logfile)
+	fprintf(logfile,"  %d sites have %d neighbors\n",countall[i],i);
+    }
+
+  delete [] count;
+  delete [] countall;
+}
+

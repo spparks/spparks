@@ -19,6 +19,8 @@
 #include "cluster.h"
 #include "app.h"
 #include "app_lattice.h"
+#include "domain.h"
+#include "lattice.h"
 #include "output.h"
 #include "comm_lattice.h"
 #include "random_park.h"
@@ -27,6 +29,9 @@
 #include "memory.h"
 
 using namespace SPPARKS_NS;
+
+enum{LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
+       FCC_OCTA_TETRA,RANDOM_1D,RANDOM_2D,RANDOM_3D};
 
 /* ---------------------------------------------------------------------- */
 
@@ -110,6 +115,10 @@ DiagCluster::~DiagCluster()
 void DiagCluster::init()
 {
   applattice = (AppLattice *) app;
+  Lattice *lattice = domain->lattice;
+  if (lattice == NULL) 
+    error->all("Cannot use diag_style cluster without a lattice defined");
+
   nglobal = applattice->nglobal;
   nlocal = applattice->nlocal;
   nghost = applattice->nghost;
@@ -117,12 +126,12 @@ void DiagCluster::init()
   xyz = app->xyz;
   id = app->id;
 
-  boxxlo = app->boxxlo;
-  boxxhi = app->boxxhi;
-  boxylo = app->boxylo;
-  boxyhi = app->boxyhi;
-  boxzlo = app->boxzlo;
-  boxzhi = applattice->boxzhi;
+  boxxlo = domain->boxxlo;
+  boxxhi = domain->boxxhi;
+  boxylo = domain->boxylo;
+  boxyhi = domain->boxyhi;
+  boxzlo = domain->boxzlo;
+  boxzhi = domain->boxzhi;
 
   if (nglobal > 2.1474e9)
     error->all("Diag dump_style does not work if ncluster > 2^31");
@@ -137,18 +146,16 @@ void DiagCluster::init()
   }
 
   if (dump_style == OPENDX) {
-    if (applattice->latstyle == AppLattice::SC_6N || 
-	applattice->latstyle == AppLattice::SC_26N) {
+    if (lattice->style == SC_6N || lattice->style == SC_26N) {
       nx_global = applattice->nx;
       ny_global = applattice->ny;
       nz_global = applattice->nz;
-    } else if (applattice->latstyle == AppLattice::SQ_4N || 
-	applattice->latstyle == AppLattice::SQ_8N) {
+    } else if (lattice->style == SQ_4N || lattice->style == SQ_8N) {
       nx_global = applattice->nx;
       ny_global = applattice->ny;
       nz_global = 1;
     } else {
-      error->all("Diag dump_style incompatible with latstyle");
+      error->all("Diag dump_style incompatible with lattice style");
     }
   }
 
@@ -444,7 +451,7 @@ void DiagCluster::generate_clusters()
     
     volsum = 0.0;
     double rsum = 0.0;
-    double invdim = 1.0/applattice->dimension;
+    double invdim = 1.0/domain->dimension;
     for (int i = 0; i < ncluster; i++) {
       if (clustlist[i].volume > 0.0) {
 	vol = clustlist[i].volume;

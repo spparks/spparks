@@ -34,7 +34,7 @@ class AppRelax : public AppOffLattice {
 
  private:
   double delta,deltasq;
-  int *site;
+  int *type;
   class Pair *pair;
   
   double site_energy_neighbor(int);

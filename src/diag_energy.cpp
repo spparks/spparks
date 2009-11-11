@@ -51,15 +51,9 @@ void DiagEnergy::init()
 
 void DiagEnergy::compute()
 {
-  int nlocal;
-
-  if (latticeflag) {
-    applattice->comm->all();
-    nlocal = applattice->nlocal;
-  } else {
-    appofflattice->comm->all();
-    nlocal = appofflattice->nlocal;
-  }
+  int nlocal = app->nlocal;
+  if (latticeflag) applattice->comm->all();
+  else appofflattice->comm->all();
 
   double etmp = 0.0;
   if (latticeflag)

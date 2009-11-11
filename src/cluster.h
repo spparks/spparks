@@ -14,24 +14,19 @@
 namespace SPPARKS_NS {
 
 class Cluster {
- private:
+ public:
   int global_id;
   int ivalue;
   double dvalue;
   double volume;
   int nneigh;
   int* neighlist;
-  
- public:
+
   Cluster(int, int, double, double, int, double*);
   Cluster& operator=(const Cluster&);
   ~Cluster();
   void add_neigh(int);
   void print(FILE*);
-
-  friend class DiagCluster;
-  friend class DiagCluster2d;
-  friend class DiagCluster3d;
 };
 
 }

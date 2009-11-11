@@ -17,6 +17,7 @@
 #include "app_off_lattice.h"
 #include "comm_off_lattice.h"
 #include "solve.h"
+#include "domain.h"
 #include "random_mars.h"
 #include "random_park.h"
 #include "output.h"
@@ -122,11 +123,6 @@ void AppOffLattice::input(char *command, int narg, char **arg)
   if (strcmp(command,"sector") == 0) set_sector(narg,arg);
   else if (strcmp(command,"sweep") == 0) set_sweep(narg,arg);
   else if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
-  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
-  else if (strcmp(command,"dump") == 0) output->add_dump(narg,arg);
-  else if (strcmp(command,"dump_one") == 0) output->dump_one(narg,arg,time);
-  else if (strcmp(command,"dump_modify") == 0) output->dump_modify(narg,arg);
-  else if (strcmp(command,"undump") == 0) output->undump(narg,arg);
   else input_app(command,narg,arg);
 }
 
@@ -159,6 +155,19 @@ void AppOffLattice::init()
 
   size_one = 4 + ninteger + ndouble;
 
+  // domain settings
+
+  dimension = domain->dimension;
+  xprd = domain->xprd;
+  yprd = domain->yprd;
+  zprd = domain->zprd;
+  subxlo = domain->subxlo;
+  subylo = domain->subylo;
+  subzlo = domain->subzlo;
+  subxhi = domain->subxhi;
+  subyhi = domain->subyhi;
+  subzhi = domain->subzhi;
+
   // if sectors, set number of sectors
 
   nsector = 1;
@@ -169,13 +178,14 @@ void AppOffLattice::init()
     else nsector = 8;
 
     if (dimension == 3) {
-      if (nsector == 2 && (ny_procs != 1 || nz_procs != 1))
+      if (nsector == 2 && (domain->procgrid[1] != 1 || 
+			   domain->procgrid[2] != 1))
 	error->all("Invalid number of sectors");
-      if (nsector == 4 && nz_procs != 1)
+      if (nsector == 4 && domain->procgrid[2] != 1)
 	error->all("Invalid number of sectors");
     }
     if (dimension == 2) {
-      if (nsector == 2 && ny_procs != 1)
+      if (nsector == 2 && domain->procgrid[1] != 1)
 	error->all("Invalid number of sectors");
       if (nsector == 8)
 	error->all("Invalid number of sectors");
@@ -856,12 +866,14 @@ void *AppOffLattice::extract(char *name)
   return NULL;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 void AppOffLattice::init_bins()
 {
   int i,j,k,m,ix,iy,iz;
+
+  int *procgrid = domain->procgrid;
+  int *myloc = domain->myloc;
 
   // bin size must be >= cutoff set by parameters in init_app()
   // require 2 bins within sub-domain if sectoring in a dimension
@@ -870,10 +882,10 @@ void AppOffLattice::init_bins()
   // add 2 bins for ghost regions
 
   double cutoff = delpropensity + delevent;
-  nbinx = static_cast<int> (xprd/nx_procs/cutoff);
+  nbinx = static_cast<int> (xprd/procgrid[0]/cutoff);
   nbiny = nbinz = 1;
-  if (dimension >= 2) nbiny = static_cast<int> (yprd/ny_procs/cutoff);
-  if (dimension == 3) nbinz = static_cast<int> (zprd/nz_procs/cutoff);
+  if (dimension >= 2) nbiny = static_cast<int> (yprd/procgrid[1]/cutoff);
+  if (dimension == 3) nbinz = static_cast<int> (zprd/procgrid[2]/cutoff);
 
   if (nsector >= 2) nbinx = nbinx/2 * 2;
   if (nsector >= 4) nbiny = nbiny/2 * 2;
@@ -888,21 +900,21 @@ void AppOffLattice::init_bins()
   if (nbinx < 1 || nbiny < 1 || nbinz < 1)
     error->all("Application cutoff is too big for processor sub-domain");
 
-  binx = xprd/nx_procs / nbinx;
-  biny = yprd/ny_procs / nbiny;
-  binz = zprd/nz_procs / nbinz;
+  binx = xprd/procgrid[0] / nbinx;
+  biny = yprd/procgrid[1] / nbiny;
+  binz = zprd/procgrid[2] / nbinz;
   invbinx = 1.0 / binx;
   invbiny = 1.0 / biny;
   invbinz = 1.0 / binz;
 
   if (me == 0) {
     if (screen) {
-      fprintf(screen,"  Bins/proc: %d %d %d\n",nbinx,nbiny,nbinz);
-      fprintf(screen,"  Bin sizes: %g %g %g\n",binx,biny,binz);
+      fprintf(screen,"Bins/proc: %d %d %d\n",nbinx,nbiny,nbinz);
+      fprintf(screen,"Bin sizes: %g %g %g\n",binx,biny,binz);
     }
     if (logfile) {
-      fprintf(logfile,"  Bins/proc: %d %d %d\n",nbinx,nbiny,nbinz);
-      fprintf(logfile,"  Bin sizes: %g %g %g\n",binx,biny,binz);
+      fprintf(logfile,"Bins/proc: %d %d %d\n",nbinx,nbiny,nbinz);
+      fprintf(logfile,"Bin sizes: %g %g %g\n",binx,biny,binz);
     }
   }
 
@@ -983,19 +995,22 @@ void AppOffLattice::init_bins()
       iy = (m/nbinx) % nbiny;
       iz = m / (nbinx*nbiny);
 
-      if (ix == 0 && iprocx == 0) pbcoffset[m][0] = -1;
-      else if (ix == nbinx-1 && iprocx == nx_procs-1) pbcoffset[m][0] = 1;
+      if (ix == 0 && myloc[0] == 0) pbcoffset[m][0] = -1;
+      else if (ix == nbinx-1 && myloc[0] == procgrid[0]-1)
+	pbcoffset[m][0] = 1;
       else pbcoffset[m][0] = 0;
 
       if (dimension >= 2) {
-	if (iy == 0 && iprocy == 0) pbcoffset[m][1] = -1;
-	else if (iy == nbiny-1 && iprocy == ny_procs-1) pbcoffset[m][1] = 1;
+	if (iy == 0 && myloc[1] == 0) pbcoffset[m][1] = -1;
+	else if (iy == nbiny-1 && myloc[1] == procgrid[1]-1) 
+	  pbcoffset[m][1] = 1;
 	else pbcoffset[m][1] = 0;
       } else pbcoffset[m][1] = 0;
 
       if (dimension == 3) {
-	if (iz == 0 && iprocz == 0) pbcoffset[m][2] = -1;
-	else if (iz == nbinz-1 && iprocz == nz_procs-1) pbcoffset[m][2] = 1;
+	if (iz == 0 && myloc[2] == 0) pbcoffset[m][2] = -1;
+	else if (iz == nbinz-1 && myloc[2] == procgrid[2]-1) 
+	  pbcoffset[m][2] = 1;
 	else pbcoffset[m][2] = 0;
       } else pbcoffset[m][2] = 0;
 
@@ -1222,13 +1237,16 @@ int AppOffLattice::site2bin(int i)
 {
   // DEBUG check - can delete eventually
 
-  if (xyz[i][0] < subxlo-binx-EPSILON || xyz[i][0] >= subxhi+binx+EPSILON ||
-      xyz[i][1] < subylo-biny-EPSILON || xyz[i][1] >= subyhi+biny+EPSILON ||
-      xyz[i][2] < subzlo-binz-EPSILON || xyz[i][2] >= subzhi+binz+EPSILON) {
+  if (xyz[i][0] < subxlo-binx-EPSILON || 
+      xyz[i][0] >= subxhi+binx+EPSILON ||
+      xyz[i][1] < subylo-biny-EPSILON || 
+      xyz[i][1] >= subyhi+biny+EPSILON ||
+      xyz[i][2] < subzlo-binz-EPSILON || 
+      xyz[i][2] >= subzhi+binz+EPSILON) {
     printf("BAD SITE: %d %d %d %d: %g %g %g %d\n",me,i,bin[i],nlocal,
 	   xyz[i][0],xyz[i][1],xyz[i][2],id[i]);
-    printf("MY DOMAIN: %g %g %g: %g %g %g\n",subxlo,subylo,subzlo,
-	   subxhi,subyhi,subzhi);
+    printf("MY DOMAIN: %g %g %g: %g %g %g\n",subxlo,subylo,
+	   subzlo,subxhi,subyhi,subzhi);
     error->one("Site not in my bin domain");
   }
 
@@ -1620,9 +1638,11 @@ int AppOffLattice::neighproc(int offset, int inew, int jnew, int knew)
 
   // i,j,k = indices of me in 3d grid of procs
 
-  i = me % nx_procs;
-  j = (me/nx_procs) % ny_procs;
-  k = me / (nx_procs*ny_procs);
+  int *procgrid = domain->procgrid;
+
+  i = me % procgrid[0];
+  j = (me/procgrid[0]) % procgrid[1];
+  k = me / (procgrid[0]*procgrid[1]);
 
   // idelta,jdelta,kdelta = which of my neighbors the ghost bin maps to
 
@@ -1642,16 +1662,16 @@ int AppOffLattice::neighproc(int offset, int inew, int jnew, int knew)
   // i,j,k = indices of neighbor proc in 3d grid of procs
 
   i += idelta;
-  if (i < 0) i = nx_procs-1;
-  if (i == nx_procs) i = 0;
+  if (i < 0) i = procgrid[0]-1;
+  if (i == procgrid[0]) i = 0;
   j += jdelta;
-  if (j < 0) j = ny_procs-1;
-  if (j == ny_procs) j = 0;
+  if (j < 0) j = procgrid[1]-1;
+  if (j == procgrid[1]) j = 0;
   k += kdelta;
-  if (k < 0) k = nz_procs-1;
-  if (k == nz_procs) k = 0;
+  if (k < 0) k = procgrid[2]-1;
+  if (k == procgrid[2]) k = 0;
 
-  int newproc = k*nx_procs*ny_procs + j*nx_procs + i;
+  int newproc = k*procgrid[0]*procgrid[1] + j*procgrid[0] + i;
   return newproc;
 }
 
@@ -1669,4 +1689,36 @@ int AppOffLattice::inside_sector(int i)
   if (xyz[i][2] < set[activeset].zlo) return 0;
   if (xyz[i][2] >= set[activeset].zhi) return 0;
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+   add an owned site
+   called from create_sites or read_sites commands
+   grow arrays if necessary
+ ------------------------------------------------------------------------- */
+
+void AppOffLattice::add_site(int n, double x, double y, double z)
+{
+  if (nlocal == nmax) grow(0);
+
+  id[nlocal] = n;
+  xyz[nlocal][0] = x;
+  xyz[nlocal][1] = y;
+  xyz[nlocal][2] = z;
+
+  for (int i = 0; i < ninteger; i++) iarray[i][nlocal] = 0;
+  for (int i = 0; i < ndouble; i++) darray[i][nlocal] = 0;
+
+  nlocal++;
+}
+
+/* ----------------------------------------------------------------------
+   set values for owned site I
+   called from read_sites command
+ ------------------------------------------------------------------------- */
+
+void AppOffLattice::add_values(int i, char **values)
+{
+  for (int m = 0; m < ninteger; m++) iarray[m][i] = atoi(values[i]);
+  for (int m = 0; m < ndouble; m++) darray[m][i] = atof(values[i+ninteger]);
 }

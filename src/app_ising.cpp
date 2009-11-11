@@ -16,11 +16,8 @@
 #include "stdlib.h"
 #include "app_ising.h"
 #include "solve.h"
-#include "random_mars.h"
 #include "random_park.h"
 #include "error.h"
-
-#include <map>
 
 using namespace SPPARKS_NS;
 
@@ -37,45 +34,13 @@ AppIsing::AppIsing(SPPARKS *spk, int narg, char **arg) :
   allow_rejection = 1;
   allow_masking = 1;
   numrandom = 1;
-
   dt_sweep = 1.0/2.0;
 
-  // parse arguments
+  create_arrays();
 
-  if (narg < 1) error->all("Illegal app_style command");
+  if (narg != 1) error->all("Illegal app_style command");
 
-  options(narg-1,&arg[1]);
-
-  // define lattice and partition it across processors
-
-  create_lattice();
-  lattice = iarray[0];
-  sites = new int[1 + maxneigh];
-
-  // initialize my portion of lattice
-  // each site = one of 2 spins
-  // loop over global list so assignment is independent of # of procs
-  // use map to see if I own global site
-
-  RandomPark *random = new RandomPark(ranmaster->uniform());
-
-  if (infile) read_file();
-
-  else {
-    std::map<int,int> hash;
-    for (int i = 0; i < nlocal; i++)
-      hash.insert(std::pair<int,int> (id[i],i));
-    std::map<int,int>::iterator loc;
-    
-    int isite;
-    for (int iglobal = 1; iglobal <= nglobal; iglobal++) {
-      isite = random->irandom(2);
-      loc = hash.find(iglobal);
-      if (loc != hash.end()) lattice[loc->second] = isite;
-    }
-  }
-
-  delete random;
+  sites = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,19 +51,47 @@ AppIsing::~AppIsing()
 }
 
 /* ----------------------------------------------------------------------
+   set site value ptrs each time iarray/darray are reallocated
+------------------------------------------------------------------------- */
+
+void AppIsing::grow_app()
+{
+  spin = iarray[0];
+}
+
+/* ----------------------------------------------------------------------
+   initialize before each run
+   check validity of site values
+------------------------------------------------------------------------- */
+
+void AppIsing::init_app()
+{
+  delete [] sites;
+  sites = new int[1 + maxneigh];
+
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (spin[i] < 1 || spin[i] > 2) flag = 1;
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) error->all("One or more sites have invalid values");
+}
+
+/* ----------------------------------------------------------------------
    compute energy of site
 ------------------------------------------------------------------------- */
 
 double AppIsing::site_energy(int i)
 {
-  int isite = lattice[i];
+  int isite = spin[i];
   int eng = 0;
   for (int j = 0; j < numneigh[i]; j++)
-    if (isite != lattice[neighbor[i][j]]) eng++;
+    if (isite != spin[neighbor[i][j]]) eng++;
   return (double) eng;
 }
 
 /* ----------------------------------------------------------------------
+   rKMC method
    perform a site event with null bin rejection
    flip randomly to either spin
    null bin extends to size 2
@@ -106,25 +99,25 @@ double AppIsing::site_energy(int i)
 
 void AppIsing::site_event_rejection(int i, RandomPark *random)
 {
-  int oldstate = lattice[i];
+  int oldstate = spin[i];
   double einitial = site_energy(i);
 
   // event = random spin from 1 to 2, including self
 
-  if (random->uniform() < 0.5) lattice[i] = 1;
-  else lattice[i] = 2;
+  if (random->uniform() < 0.5) spin[i] = 1;
+  else spin[i] = 2;
   double efinal = site_energy(i);
 
   // accept or reject via Boltzmann criterion
 
   if (efinal <= einitial) {
   } else if (temperature == 0.0) {
-    lattice[i] = oldstate;
+    spin[i] = oldstate;
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
-    lattice[i] = oldstate;
+    spin[i] = oldstate;
   }
 
-  if (lattice[i] != oldstate) naccept++;
+  if (spin[i] != oldstate) naccept++;
 
   // set mask if site could not have changed
   // if site changed, unset mask of sites with affected propensity
@@ -132,13 +125,14 @@ void AppIsing::site_event_rejection(int i, RandomPark *random)
 
   if (Lmask) {
     if (einitial < 0.5*numneigh[i]) mask[i] = 1;
-    if (lattice[i] != oldstate)
+    if (spin[i] != oldstate)
       for (int j = 0; j < numneigh[i]; j++)
 	mask[neighbor[i][j]] = 0;
   }
 }
 
 /* ----------------------------------------------------------------------
+   KMC method
    compute total propensity of owned site summed over possible events
 ------------------------------------------------------------------------- */
 
@@ -146,7 +140,7 @@ double AppIsing::site_propensity(int i)
 {
   // event = spin flip
 
-  int oldstate = lattice[i];
+  int oldstate = spin[i];
   int newstate = 1;
   if (oldstate == 1) newstate = 2;
 
@@ -155,9 +149,9 @@ double AppIsing::site_propensity(int i)
   // if uphill energy change, propensity = Boltzmann factor
 
   double einitial = site_energy(i);
-  lattice[i] = newstate;
+  spin[i] = newstate;
   double efinal = site_energy(i);
-  lattice[i] = oldstate;
+  spin[i] = oldstate;
 
   if (efinal <= einitial) return 1.0;
   else if (temperature == 0.0) return 0.0;
@@ -165,6 +159,7 @@ double AppIsing::site_propensity(int i)
 }
 
 /* ----------------------------------------------------------------------
+   KMC method
    choose and perform an event for site
 ------------------------------------------------------------------------- */
 
@@ -174,8 +169,8 @@ void AppIsing::site_event(int i, RandomPark *random)
 
   // perform event = spin flip
 
-  if (lattice[i] == 1) lattice[i] = 2;
-  else lattice[i] = 1;
+  if (spin[i] == 1) spin[i] = 2;
+  else spin[i] = 1;
 
   // compute propensity changes for self and neighbor sites
   // ignore update of neighbor sites with isite < 0

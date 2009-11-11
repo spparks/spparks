@@ -29,7 +29,9 @@ using namespace SPPARKS_NS;
 AppPottsPin::AppPottsPin(SPPARKS *spk, int narg, char **arg) : 
   AppPotts(spk,narg,arg) {}
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   input script commands unique to this app
+------------------------------------------------------------------------- */
 
 void AppPottsPin::input_app(char *command, int narg, char **arg)
 {
@@ -46,6 +48,28 @@ void AppPottsPin::input_app(char *command, int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   initialize before each run
+   check validity of site values
+------------------------------------------------------------------------- */
+
+void AppPottsPin::init_app()
+{
+  delete [] sites;
+  delete [] unique;
+  sites = new int[1 + maxneigh];
+  unique = new int[1 + maxneigh];
+
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (spin[i] < 1 || spin[i] > nspins+1) flag = 1;
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) error->all("One or more sites have invalid values");
+}
+
+
+/* ----------------------------------------------------------------------
+   rKMC method
    perform a site event with null bin rejection
    flip to random spin from 1 to nspins, but not to a pinned site
 ------------------------------------------------------------------------- */
@@ -54,16 +78,16 @@ void AppPottsPin::site_event_rejection(int i, RandomPark *random)
 {
   // no events for a pinned site
 
-  if (lattice[i] > nspins) return;
+  if (spin[i] > nspins) return;
 
-  int oldstate = lattice[i];
+  int oldstate = spin[i];
   double einitial = site_energy(i);
 
   // event = random spin from 1 to nspins, including self
 
   int iran = (int) (nspins*random->uniform()) + 1;
   if (iran > nspins) iran = nspins;
-  lattice[i] = iran;
+  spin[i] = iran;
   double efinal = site_energy(i);
 
   // accept or reject via Boltzmann criterion
@@ -71,12 +95,12 @@ void AppPottsPin::site_event_rejection(int i, RandomPark *random)
 
   if (efinal <= einitial) {
   } else if (temperature == 0.0) {
-    lattice[i] = oldstate;
+    spin[i] = oldstate;
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
-    lattice[i] = oldstate;
+    spin[i] = oldstate;
   }
 
-  if (lattice[i] != oldstate) naccept++;
+  if (spin[i] != oldstate) naccept++;
 
   // set mask if site could not have changed
   // if site changed, unset mask of sites with affected propensity
@@ -84,13 +108,14 @@ void AppPottsPin::site_event_rejection(int i, RandomPark *random)
 
   if (Lmask) {
     if (einitial < 0.5*numneigh[i]) mask[i] = 1;
-    if (lattice[i] != oldstate)
+    if (spin[i] != oldstate)
       for (int j = 0; j < numneigh[i]; j++)
 	mask[neighbor[i][j]] = 0;
   }
 }
 
 /* ----------------------------------------------------------------------
+   KMC method
    compute total propensity of owned site summed over possible events
 ------------------------------------------------------------------------- */
 
@@ -98,7 +123,7 @@ double AppPottsPin::site_propensity(int i)
 {
   // no events for a pinned site
 
-  if (lattice[i] > nspins) return 0.0;
+  if (spin[i] > nspins) return 0.0;
 
   // events = spin flips to neighboring site different than self
   // disallow flip to pinned site
@@ -108,8 +133,8 @@ double AppPottsPin::site_propensity(int i)
   int nevent = 0;
 
   for (j = 0; j < numneigh[i]; j++) {
-    value = lattice[neighbor[i][j]];
-    if (value == lattice[i] || value > nspins) continue;
+    value = spin[neighbor[i][j]];
+    if (value == spin[i] || value > nspins) continue;
     for (m = 0; m < nevent; m++)
       if (value == unique[m]) break;
     if (m < nevent) continue;
@@ -121,23 +146,24 @@ double AppPottsPin::site_propensity(int i)
   // if downhill or no energy change, propensity = 1
   // if uphill energy change, propensity = Boltzmann factor
 
-  int oldstate = lattice[i];
+  int oldstate = spin[i];
   double einitial = site_energy(i);
   double efinal;
   double prob = 0.0;
 
   for (m = 0; m < nevent; m++) {
-    lattice[i] = unique[m];
+    spin[i] = unique[m];
     efinal = site_energy(i);
     if (efinal <= einitial) prob += 1.0;
     else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
   }
 
-  lattice[i] = oldstate;
+  spin[i] = oldstate;
   return prob;
 }
 
 /* ----------------------------------------------------------------------
+   KMC method
    choose and perform an event for site
 ------------------------------------------------------------------------- */
 
@@ -153,20 +179,20 @@ void AppPottsPin::site_event(int i, RandomPark *random)
   double threshhold = random->uniform() * propensity[i2site[i]];
   double efinal;
 
-  int oldstate = lattice[i];
+  int oldstate = spin[i];
   double einitial = site_energy(i);
   double prob = 0.0;
   int nevent = 0;
 
   for (j = 0; j < numneigh[i]; j++) {
-    value = lattice[neighbor[i][j]];
+    value = spin[neighbor[i][j]];
     if (value == oldstate || value > nspins) continue;
     for (m = 0; m < nevent; m++)
       if (value == unique[m]) break;
     if (m < nevent) continue;
     unique[nevent++] = value;
 
-    lattice[i] = value;
+    spin[i] = value;
     efinal = site_energy(i);
     if (efinal <= einitial) prob += 1.0;
     else if (temperature > 0.0) prob += exp((einitial-efinal)*t_inverse);
@@ -224,20 +250,20 @@ void AppPottsPin::pin_create()
 	iglobal = random->irandom(nglobal);
 	loc = hash.find(iglobal);
 	if (loc != hash.end()) {
-	  if (nthresh == 0) lattice[loc->second] = nspins+1;
+	  if (nthresh == 0) spin[loc->second] = nspins+1;
 	  else {
 	    m = loc->second;
 	    ndiff = 0;
 	    for (j = 0; j < numneigh[m]; j++)
-	      if (lattice[m] != lattice[neighbor[m][j]]) ndiff++;
-	    if (ndiff >= nthresh) lattice[m] = nspins+1;
+	      if (spin[m] != spin[neighbor[m][j]]) ndiff++;
+	    if (ndiff >= nthresh) spin[m] = nspins+1;
 	  }
 	}
       }
       
       nme = 0;
       for (i = 0; i < nlocal; i++)
-	if (lattice[i] > nspins) nme++;
+	if (spin[i] > nspins) nme++;
       MPI_Allreduce(&nme,&npin,1,MPI_INT,MPI_SUM,world);
     }
 
@@ -261,22 +287,22 @@ void AppPottsPin::pin_create()
       if (loc != hash.end() && loc->second < nlocal) {
 	flag = 1;
 	i = loc->second;
-	if (lattice[i] > nspins) flag = 0;
+	if (spin[i] > nspins) flag = 0;
 	for (j = 0; j < numneigh[i]; j++)
-	  if (lattice[neighbor[i][j]] > nspins) flag = 0;
+	  if (spin[neighbor[i][j]] > nspins) flag = 0;
 	if (nthresh) {
 	  ndiff = 0;
 	  for (j = 0; j < numneigh[i]; j++)
-	    if (lattice[i] != lattice[neighbor[i][j]]) ndiff++;
+	    if (spin[i] != spin[neighbor[i][j]]) ndiff++;
 	  if (ndiff < nthresh) flag = 0;
 	}
 
 	if (flag) {
 	  flags[0] = me+1;
 	  flags[1] = numneigh[i] + 1;
-	  lattice[i] = nspins+1;
+	  spin[i] = nspins+1;
 	  for (j = 0; j < numneigh[i]; j++) {
-	    lattice[neighbor[i][j]] = nspins+1;
+	    spin[neighbor[i][j]] = nspins+1;
 	    list[j] = id[neighbor[i][j]];
 	  }
 	  list[j++] = id[i];
@@ -289,12 +315,12 @@ void AppPottsPin::pin_create()
 	MPI_Bcast(list,flagall[1],MPI_INT,flagall[0]-1,world);
 	for (i = 0; i < flagall[1]; i++) {
 	  loc = hash.find(list[i]);
-	  if (loc != hash.end()) lattice[loc->second] = nspins+1;
+	  if (loc != hash.end()) spin[loc->second] = nspins+1;
 	}
 
 	nme = 0;
 	for (i = 0; i < nlocal; i++)
-	  if (lattice[i] > nspins) nme++;
+	  if (spin[i] > nspins) nme++;
 	MPI_Allreduce(&nme,&npin,1,MPI_INT,MPI_SUM,world);
       }
     }
@@ -312,7 +338,7 @@ void AppPottsPin::pin_create()
 void AppPottsPin::push_new_site(int i, int* cluster_ids, int id,
 					  std::stack<int>* cluststack)
 {
-  int isite = lattice[i];
+  int isite = spin[i];
 
   if (isite != nspins+1) {
     cluststack->push(i);

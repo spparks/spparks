@@ -42,7 +42,7 @@ void DiagPropensity::init()
     error->all("Diag propensity requires KMC solve be performed");
 
   applattice = (AppLattice *) app;
-  nlocal = applattice->nlocal;
+  nlocal = app->nlocal;
   propensity = 0.0;
 }
 

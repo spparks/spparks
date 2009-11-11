@@ -14,18 +14,39 @@
 #include "math.h"
 #include "app_potts_neigh.h"
 #include "random_park.h"
+#include "error.h"
 
 using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 AppPottsNeigh::AppPottsNeigh(SPPARKS *spk, int narg, char **arg) : 
-  AppPotts(spk,narg,arg)
+  AppPotts(spk,narg,arg) {}
+
+/* ----------------------------------------------------------------------
+   initialize before each run
+   check validity of site values
+------------------------------------------------------------------------- */
+
+void AppPottsNeigh::init_app()
 {
+  delete [] sites;
+  delete [] unique;
+  sites = new int[1 + maxneigh];
+  unique = new int[1 + maxneigh];
+
   dt_sweep = 1.0/maxneigh;
+
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (spin[i] < 1 || spin[i] > nspins) flag = 1;
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) error->all("One or more sites have invalid values");
 }
 
 /* ----------------------------------------------------------------------
+   rKMC method
    perform a site event with null bin rejection
    flip to random neighbor spin with null bin
    null bin extends to size maxneigh
@@ -33,7 +54,7 @@ AppPottsNeigh::AppPottsNeigh(SPPARKS *spk, int narg, char **arg) :
 
 void AppPottsNeigh::site_event_rejection(int i, RandomPark *random)
 {
-  int oldstate = lattice[i];
+  int oldstate = spin[i];
   double einitial = site_energy(i);
 
   // events = spin flips to neighboring site different than self
@@ -42,8 +63,8 @@ void AppPottsNeigh::site_event_rejection(int i, RandomPark *random)
   int nevent = 0;
 
   for (j = 0; j < numneigh[i]; j++) {
-    value = lattice[neighbor[i][j]];
-    if (value == lattice[i]) continue;
+    value = spin[neighbor[i][j]];
+    if (value == spin[i]) continue;
     for (m = 0; m < nevent; m++)
       if (value == unique[m]) break;
     if (m < nevent) continue;
@@ -52,19 +73,19 @@ void AppPottsNeigh::site_event_rejection(int i, RandomPark *random)
 
   int iran = (int) (maxneigh*random->uniform());
   if (iran >= nevent) return;
-  lattice[i] = unique[iran];
+  spin[i] = unique[iran];
   double efinal = site_energy(i);
 
   // accept or reject via Boltzmann criterion
 
   if (efinal <= einitial) {
   } else if (temperature == 0.0) {
-    lattice[i] = oldstate;
+    spin[i] = oldstate;
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
-    lattice[i] = oldstate;
+    spin[i] = oldstate;
   }
 
-  if (lattice[i] != oldstate) naccept++;
+  if (spin[i] != oldstate) naccept++;
 
   // set mask if site could not have changed
   // if site changed, unset mask of sites with affected propensity
@@ -72,7 +93,7 @@ void AppPottsNeigh::site_event_rejection(int i, RandomPark *random)
 
   if (Lmask) {
     if (einitial < 0.5*numneigh[i]) mask[i] = 1;
-    if (lattice[i] != oldstate)
+    if (spin[i] != oldstate)
       for (int j = 0; j < numneigh[i]; j++)
 	mask[neighbor[i][j]] = 0;
   }

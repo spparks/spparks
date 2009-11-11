@@ -89,7 +89,6 @@ void AppChemistry::input(char *command, int narg, char **arg)
   if (strcmp(command,"add_reaction") == 0) add_reaction(narg,arg);
   else if (strcmp(command,"add_species") == 0) add_species(narg,arg);
   else if (strcmp(command,"count") == 0) set_count(narg,arg);
-  else if (strcmp(command,"stats") == 0) output->set_stats(narg,arg);
   else if (strcmp(command,"volume") == 0) set_volume(narg,arg);
   else error->all("Unrecognized command");
 }

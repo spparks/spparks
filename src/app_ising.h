@@ -27,6 +27,8 @@ class AppIsing : public AppLattice {
  public:
   AppIsing(class SPPARKS *, int, char **);
   virtual ~AppIsing();
+  void grow_app();
+  void init_app();
 
   double site_energy(int);
   virtual void site_event_rejection(int, class RandomPark *);
@@ -34,7 +36,7 @@ class AppIsing : public AppLattice {
   void site_event(int, class RandomPark *);
 
  protected:
-  int *lattice;
+  int *spin;
   int *sites;
 };
 

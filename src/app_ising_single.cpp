@@ -26,6 +26,7 @@ AppIsingSingle::AppIsingSingle(SPPARKS *spk, int narg, char **arg) :
 }
 
 /* ----------------------------------------------------------------------
+   rKMC method
    perform a site event with null bin rejection
    flip to opposite spin
    null bin extends to size 1
@@ -33,25 +34,25 @@ AppIsingSingle::AppIsingSingle(SPPARKS *spk, int narg, char **arg) :
 
 void AppIsingSingle::site_event_rejection(int i, RandomPark *random)
 {
-  int oldstate = lattice[i];
+  int oldstate = spin[i];
   double einitial = site_energy(i);
 
   // event = spin flip
 
-  if (oldstate == 1) lattice[i] = 2;
-  else lattice[i] = 1;
+  if (oldstate == 1) spin[i] = 2;
+  else spin[i] = 1;
   double efinal = site_energy(i);
 
   // accept or reject via Boltzmann criterion
 
   if (efinal <= einitial) {
   } else if (temperature == 0.0) {
-    lattice[i] = oldstate;
+    spin[i] = oldstate;
   } else if (random->uniform() > exp((einitial-efinal)*t_inverse)) {
-    lattice[i] = oldstate;
+    spin[i] = oldstate;
   }
 
-  if (lattice[i] != oldstate) naccept++;
+  if (spin[i] != oldstate) naccept++;
 
   // set mask if site could not have changed
   // if site changed, unset mask of sites with affected propensity
@@ -59,7 +60,7 @@ void AppIsingSingle::site_event_rejection(int i, RandomPark *random)
 
   if (Lmask) {
     if (einitial < 0.5*numneigh[i]) mask[i] = 1;
-    if (lattice[i] != oldstate)
+    if (spin[i] != oldstate)
       for (int j = 0; j < numneigh[i]; j++)
 	mask[neighbor[i][j]] = 0;
   }

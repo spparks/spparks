@@ -20,6 +20,7 @@ namespace SPPARKS_NS {
 
 class Pair : protected Pointers {
  public:
+  int ntypes;
   double cutoff;
 
   Pair(class SPPARKS *);
@@ -36,7 +37,6 @@ class Pair : protected Pointers {
   int allocated;                       // 0/1 = whether arrays are allocated
   int **setflag;
   double **cutsq;
-  int ntypes;
   int mix_flag;
 
   double mix_energy(double, double, double, double);

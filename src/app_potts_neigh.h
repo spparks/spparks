@@ -24,6 +24,7 @@ class AppPottsNeigh : public AppPotts {
  public:
   AppPottsNeigh(class SPPARKS *, int, char **);
   ~AppPottsNeigh() {}
+  void init_app();
 
   void site_event_rejection(int, class RandomPark *);
 };

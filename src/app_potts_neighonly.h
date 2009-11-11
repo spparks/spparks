@@ -24,6 +24,7 @@ class AppPottsNeighOnly : public AppPotts {
  public:
   AppPottsNeighOnly(class SPPARKS *, int, char **);
   ~AppPottsNeighOnly() {}
+  void init_app();
 
   void site_event_rejection(int, class RandomPark *);
 };
