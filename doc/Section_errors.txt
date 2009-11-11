@@ -105,6 +105,18 @@ Errors: :h4,link(error)
 
 :dlb
 
+{Adding site to bin it is not in} :dt
+
+Internal SPPARKS error. :dd
+
+{Adding site to illegal bin} :dt
+
+Internal SPPARKS error. :dd
+
+{All pair coeffs are not set} :dt
+
+Self-explanatory. :dd
+
 {All universe/uloop variables must have same # of values} :dt
 
 Self-explanatory. :dd
@@ -118,6 +130,43 @@ Self-explanatory. :dd
 Cannot attempt to open a 2nd input script, when the original file is
 still being processed. :dd
 
+{App cannot use both a KMC and rejection KMC solver} :dt
+
+You cannot define both a solver and sweep option. :dd
+
+{App did not set dt_sweep} :dt
+
+Internal SPPARKS error. :dd
+
+{App needs a KMC or rejection KMC solver} :dt
+
+You must define either a solver or sweep option. :dd
+
+{App relax requires a pair potential} :dt
+
+Self-explanatory. :dd
+
+{App style proc count is not valid for 1d simulation} :dt
+
+There can only be 1 proc in y and z dimensions for 1d models. :dd
+
+{App style proc count is not valid for 2d simulation} :dt
+
+There can only be 1 proc in the z dimension for 2d models. :dd
+
+{App_style command after simulation box is defined} :dt
+
+Self-explanatory. :dd
+
+{App_style specific command before app_style set} :dt
+
+Self-explanatory. :dd
+
+{Application cutoff is too big for processor sub-domain} :dt
+
+There must be at least 2 bins per processor in each dimension
+where sectoring occurs. :dd
+
 {Arccos of invalid value in variable formula} :dt
 
 Argument of arccos() must be between -1 and 1. :dd
@@ -130,12 +179,48 @@ Argument of arcsin() must be between -1 and 1. :dd
 
 Internal SPPARKS error.  Should not occur. :dd
 
-{Cannot mask sweeping with non-zero temperature} :dt
+{Box bounds are invalid} :dt
 
-A finite temperature implies random spin flips can occur.  Thus
-a site cannot be masked out with 100% certainty. :dd
+Lo bound >= hi bound. :dd
 
-{Cannot open diag style cluster3d dump file} :dt
+{Can only read neighbors for on-lattice applications} :dt
+
+Self-explanatory. :dd
+
+{Can only use ecoord command with app_style diffusion nonlinear} :dt
+
+Self-explanatory. :dd
+
+{Cannot color this combination of lattice and app} :dt
+
+Coloring is not supported on this lattice for the neighbor
+dependencies of this application. :dd
+
+{Cannot color wihtout a lattice definition of sites} :dt
+
+Self-explanatory. :dd
+
+{Cannot create box after simulation box is defined} :dt
+
+Self-explanatory. :dd
+
+{Cannot create box with this application style} :dt
+
+This application does not support spatial domains. :dd
+
+{Cannot create sites after sites already exist} :dt
+
+Self-explanatory. :dd
+
+{Cannot create sites with undefined lattice} :dt
+
+Must use lattice commands first to define a lattice. :dd
+
+{Cannot define Schwoebel barrier without Schwoebel model} :dt
+
+Self-explanatory. :dd
+
+{Cannot open diag style cluster dump file} :dt
 
 Self-explanatory. :dd
 
@@ -147,38 +232,6 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Cannot open diag_style cluster2d dump file} :dt
-
-Self-explanatory. :dd
-
-{Cannot open diag_style cluster2d output file} :dt
-
-Self-explanatory. :dd
-
-{Cannot open diag_style cluster3d dump file} :dt
-
-Self-explanatory. :dd
-
-{Cannot open diag_style cluster3d output file} :dt
-
-Self-explanatory. :dd
-
-{Cannot open diag_style energy output file} :dt
-
-Self-explanatory. :dd
-
-{Cannot open diag_style energy2d output file} :dt
-
-Self-explanatory. :dd
-
-{Cannot open diag_style energy3d output file} :dt
-
-Self-explanatory. :dd
-
-{Cannot open diag_style eprof3d output file} :dt
-
-Self-explanatory. :dd
-
 {Cannot open dump file} :dt
 
 Self-explanatory. :dd
@@ -186,6 +239,10 @@ Self-explanatory. :dd
 {Cannot open file %s} :dt
 
 Self-explanatory. :dd
+
+{Cannot open gzipped file} :dt
+
+Self-explantory. :dd
 
 {Cannot open input script %s} :dt
 
@@ -221,36 +278,124 @@ For a multi-partition run, the master screen file cannot be opened.
 Check that the directory you are running in allows for files to be
 created. :dd
 
+{Cannot read neighbors unless max neighbors is set} :dt
+
+This is a setting in the header of the sites file. :dd
+
+{Cannot read sites after sites already exist} :dt
+
+Self-explanatory. :dd
+
 {Cannot redefine variable as a different style} :dt
 
 An equal-style variable can be re-defined but only if it was
 originally an equal-style variable. :dd
 
-{Cannot use solver in parallel} :dt
+{Cannot run application until simulation box is defined} :dt
 
-A KMC solver cannot be used in parallel without a sweep style
-being defined. :dd
+Self-explanatory. :dd
 
-{Cannot use solver with non-KMC sweeper} :dt
+{Cannot use %s command until sites exist} :dt
 
-Can only use a KMC solver with a sweep style that invokes the KMC
-option. :dd
+This command requires sites exist before using it in an input script. :dd
 
-{Command used before app_style set} :dt
+{Cannot use KMC solver in parallel with no sectors} :dt
 
-A command is assumed to be application-specific, but is used
-before the app_style command defines the application. :dd
+Self-explanatory. :dd
 
-{Connectivity not defined for this AppLattice child class} :dt
+{Cannot use color/strict rejection KMC with sectors} :dt
 
-Cannot use a diagnostic that requires connectivity for an application
-derived from AppLattice2d or AppLattice3d. :dd
+Self-explanatory. :dd
 
-{Delevent > delpropensity} :dt
+{Cannot use create_sites basis with random lattice} :dt
 
-Such an application does not make sense. :dd
+Self-explanatory. :dd
 
-{Diag style cluster3d dump file name too long} :dt
+{Cannot use diag_style cluster without a lattice defined} :dt
+
+This diagnostic uses the lattice style to dump OpenDx files. :dd
+
+{Cannot use dump_one for first snapshot in dump file} :dt
+
+Self-explanatory. :dd
+
+{Cannot use random rejection KMC in parallel with no sectors} :dt
+
+Self-explanatory. :dd
+
+{Cannot use raster rejection KMC in parallel with no sectors} :dt
+
+Self-explanatory. :dd
+
+{Cannot use region INF or EDGE when box does not exist} :dt
+
+Can only define a region with these parameters after a simulation
+box has been defined. :dd
+
+{Choice of sector stop led to no rKMC events} :dt
+
+Self-explanatory. :dd
+
+{Color stencil is incommensurate with lattice size} :dt
+
+Since coloring induces a pattern of colors, this pattern
+must fit an integer number of times into a periodic lattice. :dd
+
+{Could not find dump ID in dump_modify command} :dt
+
+Self-explanatory. :dd
+
+{Could not find dump ID in dump_one command} :dt
+
+Self-explanatory. :dd
+
+{Could not find dump ID in undump command} :dt
+
+Self-explanatory. :dd
+
+{Create_box command before app_style set} :dt
+
+Self-explanatory. :dd
+
+{Create_box region ID does not exist} :dt
+
+Self-explanatory. :dd
+
+{Create_box region must be of type inside} :dt
+
+Self-explanatory. :dd
+
+{Create_sites command before app_style set} :dt
+
+Self-explanatory. :dd
+
+{Create_sites command before simulation box is defined} :dt
+
+Self-explanatory. :dd
+
+{Create_sites region ID does not exist} :dt
+
+Self-explanatory. :dd
+
+{Creating a quantity application does not support} :dt
+
+The application defines what variables it supports.  You cannot set a
+variable with the create_sites command for a variable that isn't
+supported. :dd
+
+{Diag dump_style does not work if ncluster > 2^31} :dt
+
+Self-explanatory. :dd
+
+{Diag dump_style incompatible with lattice style} :dt
+
+Not all lattice styles can be output as OpenDx files. :dd
+
+{Diag propensity requires KMC solve be performed} :dt
+
+Only KMC solvers compute a propensity for sites and the system. :dd
+
+{Diag style cluster dump file name too long} :dt
 
 Self-explanatory. :dd
 
@@ -259,9 +404,72 @@ Self-explanatory. :dd
 The lattice styles of the diagnostic and the on-lattice application
 must match. :dd
 
+{Diag cluster dvalue in neighboring clusters do not match} :dt
+
+Internal SPPARKS error. :dd
+
+{Diag cluster ivalue in neighboring clusters do not match} :dt
+
+Internal SPPARKS error. :dd
+
+{Diag_style command before app_style set} :dt
+
+Self-explanatory. :dd
+
+{Diag_style diffusion requires app_style diffusion} :dt
+
+Self-explanatory. :dd
+
+{Did not assign all sites correctly} :dt
+
+One or more sites in the read_sites file were not assigned to 
+a processor correctly. :dd
+
+{Did not create correct number of sites} :dt
+
+One or more created sites were not assigned to a processor
+correctly. :dd
+
+{Dimension command after lattice is defined} :dt
+
+Self-explanatory. :dd
+
+{Dimension command after simulation box is defined} :dt
+
+Self-explanatory. :dd
+
 {Divide by 0 in variable formula} :dt
 
 Self-explanatory. :dd
+
+{Dump ID already exists} :dt
+
+Self-explanatory. :dd
+
+{Dump command before app_style set} :dt
+
+Self-explanatory. :dd
+
+{Dump command can only be used for spatial applications} :dt
+
+Self-explanatory. :dd
+
+{Dump requires propensity but no KMC solve performed} :dt
+
+Only KMC solvers compute propensity for sites. :dd
+
+{Dump_modify command before app_style set} :dt
+
+Self-explanatory. :dd
+
+{Dump_one command before app_style set} :dt
+
+Self-explanatory. :dd
+
+{Dumping a quantity application does not support} :dt
+
+The application defines what variables it supports.  You cannot
+output a variable in a dump that isn't supported. :dd
 
 {Failed to allocate %ld bytes for array %s} :dt
 
@@ -288,6 +496,22 @@ documentation for the command.  You can use -echo screen as a
 command-line option when running SPPARKS to see the offending
 line. :dd
 
+{Incorrect args for pair coefficients} :dt
+
+Self-explanatory. :dd
+
+{Incorrect lattice neighbor count} :dt
+
+Internal SPPARKS error. :dd
+
+{Incorrect site format in data file} :dt
+
+Self-explanatory. :dd
+
+{Incorrect value format in data file} :dt
+
+Self-explanatory. :dd
+
 {Input line too long after variable substitution} :dt
 
 This is a hard (very large) limit defined in the input.cpp file. :dd
@@ -296,22 +520,34 @@ This is a hard (very large) limit defined in the input.cpp file. :dd
 
 This is a hard (very large) limit defined in the input.cpp file. :dd
 
-{Invalid combination of sweep flags} :dt
-
-Self-explanatory. :dd
-
 {Invalid command-line argument} :dt
 
 One or more command-line arguments is invalid.  Check the syntax of
 the command you are using to launch SPPARKS. :dd
 
+{Invalid dump_modify threshold operator} :dt
+
+Self-explanatory. :dd
+
 {Invalid event count for app_style test/group} :dt
 
 Number of events must be > 0. :dd
 
+{Invalid keyword in dump command} :dt
+
+Self-explanatory. :dd
+
 {Invalid math function in variable formula} :dt
 
 The math function is not recognized. :dd
+
+{Invalid number of sectors} :dt
+
+Self-explanatory. :dd
+
+{Invalid pair style} :dt
+
+Self-explanatory. :dd
 
 {Invalid probability bounds for app_style test/group} :dt
 
@@ -325,7 +561,11 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Invalid site specification in app_style potts/variable} :dt
+{Invalid region style} :dt
+
+Self-explanatory. :dd
+
+{Invalid site ID in Sites section of data file} :dt
 
 Self-explanatory. :dd
 
@@ -358,53 +598,39 @@ command. :dd
 
 Volume must be set to value > 0. :dd
 
+{KMC events are not implemented in app} :dt
+
+Not every application supports KMC solvers. :dd
+
 {Label wasn't found in input script} :dt
 
 Self-explanatory. :dd
 
-{Lattice app needs a solver or sweeper} :dt
+{Lattice command before app_style set} :dt
 
 Self-explanatory. :dd
 
-{Lattice per proc is too small} :dt
+{Lattice style does not match dimension} :dt
 
-The section of lattice stored by a processor must be large enough to
-be split into sectors and not overlap too far into other processor's
-sub-domains. :dd
+Self-explanatory. :dd
 
 {Log of zero/negative in variable formula} :dt
 
 Self-explanatory. :dd
 
-{Maxbuftmp size too small in AppGrain::dump_detailed()} :dt
+{Mask logic not implemented in app} :dt
 
-Self-explanatory. :dd
-
-{Maxbuftmp size too small in AppGrain::dump_detailed_mask()} :dt
-
-Self-explanatory. :dd
-
-{Maxbuftmp size too small in DiagCluster2d::dump_clusters()} :dt
-
-Self-explanatory. :dd
-
-{Maxbuftmp size too small in DiagCluster3d::dump_clusters()} :dt
-
-Self-explanatory. :dd
-
-{Maxbuftmp size too small in DiagEprof3d::write_prof()} :dt
-
-Self-explanatory. :dd
+Not every application supports masking. :dd
 
 {Mismatch in counting for dbufclust} :dt
 
 Self-explanatory. :dd
 
-{Mismatched sweeper with app lattice} :dt
+{Must read Sites before Neighbors} :dt
 
-The lattice styles must match between the sweeper and application. :dd
+Self-explanatory. :dd
 
-{Must define solver with KMC sweeper} :dt
+{Must read Sites before Values} :dt
 
 Self-explanatory. :dd
 
@@ -413,11 +639,45 @@ Self-explanatory. :dd
 A multi-partition simulation cannot read the input script from stdin.
 The -in command-line option must be used to specify a file. :dd
 
+{Must use create_sites box for on-lattice applications} :dt
+
+Self-explanatory. :dd
+
+{Must use value option before basis option in create_sites command} :dt
+
+Self-explanatory. :dd
+
 {No reactions defined for chemistry app} :dt
 
 Use the add_reaction command to specify one or more reactions. :dd
 
 {No solver class defined} :dt
+
+Self-explanatory. :dd
+
+{Number of sites does not match existing sites} :dt
+
+File being read by read_sites command is not consistent with sites
+already defined. :dd
+
+{One or more sites have invalid values} :dt
+
+The application only allows sites to be initialized with specific
+values. :dd
+
+{PBC remap of site failed} :dt
+
+Internal SPPARKS error. :dd
+
+{Pair_coeff command before app_style set} :dt
+
+Self-explanatory. :dd
+
+{Pair_coeff command before pair_style is defined} :dt
+
+Self-explanatory. :dd
+
+{Pair_style command before app_style set} :dt
 
 Self-explanatory. :dd
 
@@ -429,6 +689,10 @@ Self-explanatory. :dd
 
 The total number of processors in all partitions must match the number
 of processors LAMMPS is running on. :dd
+
+{Processors command after simulation box is defined} :dt
+
+Self-explanatory. :dd
 
 {Random lattice has no connectivity} :dt
 
@@ -450,9 +714,85 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Read_sites command before app_style set} :dt
+
+Self-explanatory. :dd
+
+{Read_sites simluation box different that current box} :dt
+
+Self-explanatory. :dd
+
+{Region command before app_style set} :dt
+
+Self-explanatory. :dd
+
+{Region intersect region ID does not exist} :dt
+
+Self-explanatory. :dd
+
+{Region union region ID does not exist} :dt
+
+Self-explanatory. :dd
+
+{Rejection events are not implemented in app} :dt
+
+Self-explanatory. :dd
+
+{Reset_time command before app_style set} :dt
+
+Self-explanatory. :dd
+
+{Reuse of region ID} :dt
+
+Self-explanatory. :dd
+
+{Run command before app_style set} :dt
+
+Self-explanatory. :dd
+
+{Run upto value is before current time} :dt
+
+Self-explanatory. :dd
+
+{Seed command has not been used} :dt
+
+The seed command must be used if another command requires random
+numbers. :dd
+
+{Set command before sites exist} :dt
+
+Self-explanatory. :dd
+
+{Set command region ID does not exist} :dt
+
+Self-explanatory. :dd
+
+{Set if test on quantity application does not support} :dt
+
+The application defines what variables it supports.  You cannot do an
+if test with the set command on a variable that isn't supported. :dd
+
+{Setting a quantity application does not support} :dt
+
+The application defines what variables it supports.  You cannot set a
+variable with the set command on a variable that isn't supported. :dd
+
+{Simulation box is not multiple of current lattice settings} :dt
+
+This likely occurred because the lattice was re-defined after the
+simulation box was created. :dd
+
+{Site not in my bin domain} :dt
+
+Internal SPPARKS error. :dd
+
 {Site-site interaction was not found} :dt
 
-Internal SPPARKS error.  Should not occur. :dd
+Internal SPPARKS error. :dd
+
+{Solve_style command before app_style set} :dt
+
+Self-explanatory. :dd
 
 {Species ID %s already exists} :dt
 
@@ -462,33 +802,38 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Sqrt of negative in variable formula} :dd
+{Sqrt of negative in variable formula} :dt
 
 Self-explanatory. :dd
 
-{Substitution for undefined variable} :dt
+{Stats command before app_style set} :dt
 
 Self-explanatory. :dd
 
-{Sweep option not yet supported} :dt
+{Substitution for illegal variable} :dt
 
-Not all sweep options are currently supported with all lattice
-styles. :dd
+Self-explanatory. :dd
+
+{Threshold for a quantity application does not support} :dt
+
+The application defines what variables it supports.  You cannot do a
+threshold test with the dump command on a variable that isn't
+supported. :dd
+
+{Too many neighbors per site} :dt
+
+Internal SPPARKS error. :dd
 
 {Unbalanced quotes in input line} :dt
 
 No matching end double quote was found following a leading double
 quote. :dd
 
-{Unexpected end of lattice file} :dt
+{Undump command before app_style set} :dt
 
 Self-explanatory. :dd
 
-{Unexpected end of lattice spin file} :dt
-
-Self-explanatory. :dd
-
-{Unexpected value in spin file} :dt
+{Unexpected end of data file} :dt
 
 Self-explanatory. :dd
 
@@ -501,6 +846,10 @@ number of processor partitions. :dd
 
 The command is not known to SPPARKS.  Check the input script. :dd
 
+{Unknown identifier in data file: %s} :dt
+
+Self-explanatory. :dd
+
 {Unknown species in reaction command} :dt
 
 Self-explanatory. :dd
@@ -510,11 +859,11 @@ Self-explanatory. :dd
 The command is assumed to be application specific, but is not
 known to SPPARKS.  Check the input script. :dd
 
+{Use of region with undefined lattice} :dt
+
+The lattice command must be used before defining a geometric region. :dd
+
 {Variable name must be alphanumeric or underscore characters} :dt
-
-Self-explanatory. :dd
-
-{Vertices read from file incorrectly} :dt
 
 Self-explanatory. :dd
 

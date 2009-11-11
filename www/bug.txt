@@ -13,7 +13,7 @@ current tarball from the "download page"_../download.html, which
 includes all the new features/fixes listed below, and rebuild the
 code.
 
-The current version of SPPARKS is 13 April 2009.
+The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
