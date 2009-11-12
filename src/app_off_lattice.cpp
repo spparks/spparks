@@ -195,18 +195,17 @@ void AppOffLattice::init()
   }
 
   // create sets based on sectors
-  // only do this on first init
 
-  if (set == NULL) {
-    if (nsector == 1) {
-      nset = 1;
-      set = new Set[nset];
-      create_set(0,0);
-    } else {
-      nset = nsector;
-      set = new Set[nset];
-      for (int i = 0; i < nset; i++) create_set(i,i+1);
-    }
+  delete [] set;
+
+  if (nsector == 1) {
+    nset = 1;
+    set = new Set[nset];
+    create_set(0,0);
+  } else {
+    nset = nsector;
+    set = new Set[nset];
+    for (int i = 0; i < nset; i++) create_set(i,i+1);
   }
 
   // setup ranapp RN generator, only on first init
@@ -223,12 +222,12 @@ void AppOffLattice::init()
   init_app();
 
   // create bins for sites
-  // do this on every init in case cutoff changed
+  // redo this on every init in case cutoff changed
   
   init_bins();
 
   // create stencil for neighbor finding
-  // do this on every init in case cutoff and bins changed
+  // redo on every init in case cutoff and bins changed
 
   init_stencil();
 
@@ -241,7 +240,7 @@ void AppOffLattice::init()
   }
 
   // initialize comm, both for this proc's full domain and sectors
-  // redo every run in case cutoff and bins changed
+  // redo on every init in case cutoff and bins changed
 
   delete comm;
   comm = new CommOffLattice(spk);
