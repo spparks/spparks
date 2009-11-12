@@ -195,7 +195,7 @@ hop event is accepted if R < probability in the table.
 
 :line
 
-The following additional commands are defined by these applications.
+The following additional commands are defined by this application.
 The ecoord command can only be used with the {nonlinear} energy style.
 
 "barrier"_barrier.html : define energy barriers for hop events

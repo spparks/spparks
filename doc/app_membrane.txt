@@ -72,6 +72,8 @@ skipped altogether.  The energy change dE = Efinal - Einitial is
 calculated, as is a uniform random number R between 0 and 1.  The new
 state is accepted if R < min\[1,exp(-dE/kT)\], else it is rejected.
 
+:line
+
 The following additional commands are defined by these applications:
 
 "inclusion"_inclusion.html : specify which sites are proteins
