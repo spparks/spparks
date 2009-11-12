@@ -87,14 +87,7 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
 
 AppLattice::~AppLattice()
 {
-  for (int i = 0; i < nset; i++) {
-    memory->sfree(set[i].border);
-    memory->sfree(set[i].bsites);
-    delete set[i].solve;
-    memory->sfree(set[i].propensity);
-    memory->sfree(set[i].site2i);
-    memory->sfree(set[i].i2site);
-  }
+  for (int i = 0; i < nset; i++) free_set(i);
   delete [] set;
 
   delete ranapp;
@@ -197,29 +190,29 @@ void AppLattice::init()
   else bothflag = 0;
 
   // create sets based on sectors and coloring
-  // only do this on first init
 
-  if (set == NULL) {
-    if (nsector == 1 && ncolors == 1) {
-      nset = 1;
-      set = new Set[nset];
-      create_set(0,0,0);
-    } else if (nsector > 1 && ncolors == 1) {
-      nset = nsector;
-      set = new Set[nset];
-      for (int i = 0; i < nset; i++) create_set(i,i+1,0);
-    } else if (ncolors > 1 && nsector == 1) {
-      nset = ncolors;
-      set = new Set[nset];
-      for (int i = 0; i < nset; i++) create_set(i,0,i+1);
-    } else if (bothflag) {
-      nset = ncolors*nsector;
-      set = new Set[nset];
-      int m = 0;
-      for (int i = 0; i < nsector; i++) 
-	for (int j = 0; j < ncolors; j++)
-	  create_set(m++,i+1,j+1);
-    }
+  for (int i = 0; i < nset; i++) free_set(i);
+  delete [] set;
+
+  if (nsector == 1 && ncolors == 1) {
+    nset = 1;
+    set = new Set[nset];
+    create_set(0,0,0);
+  } else if (nsector > 1 && ncolors == 1) {
+    nset = nsector;
+    set = new Set[nset];
+    for (int i = 0; i < nset; i++) create_set(i,i+1,0);
+  } else if (ncolors > 1 && nsector == 1) {
+    nset = ncolors;
+    set = new Set[nset];
+    for (int i = 0; i < nset; i++) create_set(i,0,i+1);
+  } else if (bothflag) {
+    nset = ncolors*nsector;
+    set = new Set[nset];
+    int m = 0;
+    for (int i = 0; i < nsector; i++) 
+      for (int j = 0; j < ncolors; j++)
+	create_set(m++,i+1,j+1);
   }
 
   // initialize mask array
@@ -264,7 +257,7 @@ void AppLattice::init()
   }
 
   // initialize comm, both for this proc's full domain and sectors
-  // only do this on first init
+  // only need to do this on first init
 
   if (comm == NULL) {
     comm = new CommLattice(spk);
@@ -919,6 +912,20 @@ void AppLattice::create_set(int iset, int isector, int icolor)
     set[iset].border = NULL;
     set[iset].bsites = NULL;
   }
+}
+
+/* ----------------------------------------------------------------------
+   free memory inside a set
+ ------------------------------------------------------------------------- */
+
+void AppLattice::free_set(int iset)
+{
+  memory->sfree(set[iset].border);
+  memory->sfree(set[iset].bsites);
+  delete set[iset].solve;
+  memory->sfree(set[iset].propensity);
+  memory->sfree(set[iset].site2i);
+  memory->sfree(set[iset].i2site);
 }
 
 /* ----------------------------------------------------------------------
