@@ -16,8 +16,8 @@ style = {{linear} or {tree} or {group} or {none} :ulb,l
   {linear} arg = none
   {tree} arg = none
   {group} args = hi lo 
-    hi,lo = range of allowed probabilities :pre
-  {none} arg = none
+    hi,lo = range of allowed probabilities
+  {none} arg = none :pre
 zero or more keyword/value pairs may be appended :l
 keyword = {ngroup} :l
   {ngroup} value = N
