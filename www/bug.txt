@@ -17,6 +17,15 @@ The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
+[14 Nov 2009]
+
+Fixed an additional issue with the 13Nov09 patch.
+
+This is the "list of changed files"_patches/files.14Nov09 from the 13
+Nov 2009 version.
+
+:line
+
 [13 Nov 2009]
 
 Allow a "none" option with the "solve_style"_doc/solve_style.html and
