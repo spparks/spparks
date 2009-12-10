@@ -122,6 +122,11 @@ void App::run(int narg, char **arg)
     first_run = 0;
   }
 
+  if (domain->me == 0) {
+    if (screen) fprintf(screen,"Setting up run ...\n");
+    if (logfile) fprintf(logfile,"Setting up run ...\n");
+  }
+
   timer->init();
   setup();
   if (stoptime > time) iterate();

@@ -24,7 +24,7 @@ using namespace SPPARKS_NS;
 
 // same as in create_sites.cpp and diag_cluster.cpp
 
-enum{LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
+enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
        FCC_OCTA_TETRA,RANDOM_1D,RANDOM_2D,RANDOM_3D};
 
 /* ---------------------------------------------------------------------- */
@@ -35,7 +35,8 @@ Lattice::Lattice(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 
   if (narg < 1) error->all("Illegal lattice command");
 
-  if (strcmp(arg[0],"line/2n") == 0) style = LINE_2N;
+  if (strcmp(arg[0],"none") == 0) style = NONE;
+  else if (strcmp(arg[0],"line/2n") == 0) style = LINE_2N;
   else if (strcmp(arg[0],"sq/4n") == 0) style = SQ_4N;
   else if (strcmp(arg[0],"sq/8n") == 0) style = SQ_8N;
   else if (strcmp(arg[0],"tri") == 0) style = TRI;
@@ -50,7 +51,10 @@ Lattice::Lattice(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   else if (strcmp(arg[0],"random/3d") == 0) style = RANDOM_3D;
   else error->all("Illegal lattice command");
 
-  int dimension;
+  if (style == NONE) {
+    if (narg > 1) error->all("Illegal lattice command");
+    return;
+  }
 
   if (style == LINE_2N || style == SQ_4N || style == SQ_8N ||
       style == TRI || style == SC_6N || style == SC_26N ||

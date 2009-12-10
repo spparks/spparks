@@ -42,12 +42,12 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
 
   ninteger = 1;
   ndouble = 0;
+  delpropensity = 2;
+  delevent = 1;
   allow_kmc = 1;
   allow_rejection = 0;
   allow_masking = 0;
   numrandom = 1;
-  delpropensity = 2;
-  delevent = 1;
 
   // parse arguments
 
@@ -80,6 +80,7 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
 
   esites = psites = NULL;
   echeck = pcheck = NULL;
+  maxevent = 0;
   events = NULL;
   firstevent = NULL;
 
@@ -1197,6 +1198,8 @@ void AppDiffusion::allocate_data()
     esites = new int[2*nmax];
     psites = new int[2*nmax];
   }
+
+  firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
 
   ecoord = new double[maxneigh+1];
   for (int i = 0; i <= maxneigh; i++) ecoord[i] = 0.0;

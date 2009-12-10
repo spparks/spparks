@@ -33,11 +33,11 @@ using namespace SPPARKS_NS;
 
 // same as in lattice.cpp
 
-enum{LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
+enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
        FCC_OCTA_TETRA,RANDOM_1D,RANDOM_2D,RANDOM_3D};
 
 enum{BOX,REGION};
-enum{NONE,IARRAY,DARRAY};
+enum{DUMMY,IARRAY,DARRAY};
 
 #define DELTABUF 10000
 #define EPSILON 0.0001
@@ -77,7 +77,7 @@ void CreateSites::command(int narg, char **arg)
 
   // parse optional args
 
-  valueflag = NONE;
+  valueflag = DUMMY;
   nbasis = domain->lattice->nbasis;
   basisflag = new int[nbasis+1];
   basis_ivalue = new int[nbasis+1];
@@ -111,7 +111,7 @@ void CreateSites::command(int narg, char **arg)
       iarg += 3;
     } else if (strcmp(arg[iarg],"basis") == 0) {
       if (iarg+3 > narg) error->all("Illegal create_sites command");
-      if (valueflag == NONE) 
+      if (valueflag == DUMMY) 
 	error->all("Must use value option before basis option "
 		   "in create_sites command");
       int ilo,ihi;
