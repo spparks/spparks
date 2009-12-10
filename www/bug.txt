@@ -17,6 +17,16 @@ The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
+[10 Dec 2009]
+
+Fixed a memory bug in the "app_style diffusion"_doc/app_diffusion.html
+command.
+
+This is the "list of changed files"_patches/files.10Dec09 from the 14
+Nov 2009 version.
+
+:line
+
 [14 Nov 2009]
 
 Fixed an additional issue with the 13Nov09 patch.
