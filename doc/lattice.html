@@ -15,9 +15,10 @@
 </P>
 <PRE>lattice style args 
 </PRE>
-<UL><LI>style = <I>line/2n</I> or <I>sq/4n</I> or <I>sq/8n</I> or <I>tri</I> or <I>sc/6n</I> or <I>sc/26n</I> or <I>bcc</I> or <I>fcc</I> or <I>diamond</I> or <I>fcc/octa/tetra</I> or <I>random/1d</I> or <I>random/2d or <I>random/3d</I></I> 
+<UL><LI>style = <I>none</I> or <I>line/2n</I> or <I>sq/4n</I> or <I>sq/8n</I> or <I>tri</I> or <I>sc/6n</I> or <I>sc/26n</I> or <I>bcc</I> or <I>fcc</I> or <I>diamond</I> or <I>fcc/octa/tetra</I> or <I>random/1d</I> or <I>random/2d or <I>random/3d</I></I> 
 
-<PRE>  arg for all styles except <I>random</I> = scale
+<PRE>  <I>none</I> args: none
+  all other styles except <I>random</I> = scale
     scale = lattice constant (distance units) 
 </PRE>
 <PRE>  <I>random/1d</I> args = Nrandom cutoff
@@ -32,7 +33,8 @@
 </P>
 <PRE>lattice sq/4n 1.0
 lattice fcc 3.52
-lattice random/3d 10000 2.0 
+lattice random/3d 10000 2.0
+lattice none 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -124,6 +126,13 @@ corresponding 1d, 2d, or 3d region or simulation box.  The number of
 neighbors per site is defined by the specified <I>cutoff</I> parameter.
 Two sites I,J will be neighbors of each other if they are closer than
 the <I>cutoff</I> distance apart.
+</P>
+<HR>
+
+<P>The command "lattice none" can be used to turn off a previous lattice
+definition.  Any command that attempts to use the lattice directly
+will then generate an error.  No additional arguments need be used
+with "lattice none".
 </P>
 <HR>
 

@@ -12,8 +12,9 @@ lattice command :h3
 
 lattice style args :pre
 
-style = {line/2n} or {sq/4n} or {sq/8n} or {tri} or {sc/6n} or {sc/26n} or {bcc} or {fcc} or {diamond} or {fcc/octa/tetra} or {random/1d} or {random/2d or {random/3d}} :ulb,l
-  arg for all styles except {random} = scale
+style = {none} or {line/2n} or {sq/4n} or {sq/8n} or {tri} or {sc/6n} or {sc/26n} or {bcc} or {fcc} or {diamond} or {fcc/octa/tetra} or {random/1d} or {random/2d or {random/3d}} :ulb,l
+  {none} args: none
+  all other styles except {random} = scale
     scale = lattice constant (distance units) :pre
   {random/1d} args = Nrandom cutoff
   {random/2d} args = Nrandom cutoff
@@ -26,7 +27,8 @@ style = {line/2n} or {sq/4n} or {sq/8n} or {tri} or {sc/6n} or {sc/26n} or {bcc}
 
 lattice sq/4n 1.0
 lattice fcc 3.52
-lattice random/3d 10000 2.0 :pre
+lattice random/3d 10000 2.0
+lattice none :pre
 
 [Description:]
 
@@ -118,6 +120,13 @@ corresponding 1d, 2d, or 3d region or simulation box.  The number of
 neighbors per site is defined by the specified {cutoff} parameter.
 Two sites I,J will be neighbors of each other if they are closer than
 the {cutoff} distance apart.
+
+:line
+
+The command "lattice none" can be used to turn off a previous lattice
+definition.  Any command that attempts to use the lattice directly
+will then generate an error.  No additional arguments need be used
+with "lattice none".
 
 :line
 
