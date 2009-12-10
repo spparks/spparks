@@ -12,11 +12,10 @@ app_style potts/neighonly command :h3
 
 [Syntax:]
 
-app_style style Q keyword values ... :pre
+app_style style Q :pre
 
 style = {potts} or {potts/neigh} or {potts/neighonly}
-Q = number of spin states
-see the "app_style"_app_style.html command for additional keywords that can be appended :ul
+Q = number of spin states :ul
 
 [Examples:]
 

@@ -10,7 +10,7 @@ app_style diffusion command :h3
 
 [Syntax:]
 
-app_style diffusion estyle dstyle args gstyle args keyword values ... :pre
+app_style diffusion estyle dstyle args gstyle args :pre
 
 diffusion = application style name :ulb,l
 estyle = {off} or {linear} or {nonlinear} :l
@@ -29,7 +29,7 @@ gstyle = {none} or {surface} or {void} or {pore} :l
     xc,yc,zc = coordinates of center point of pore
     diameter = xy diameter of cylindrical pore aligned along z axis
     thickness = z thickness of thin film which the pore spans :pre
-see the "app_style"_app_style.html command for additional keywords that can be appended :l,ule
+:l,ule
 
 [Examples:]
 

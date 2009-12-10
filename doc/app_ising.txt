@@ -11,10 +11,9 @@ app_style ising/single command :h3
 
 [Syntax:]
 
-app_style style keyword values ... :pre
+app_style style :pre
 
-style = {ising} or {ising/single}
-see the "app_style"_app_style.html command for additional keywords that can be appended to the {ising} style :ul
+style = {ising} or {ising/single} :ul
 
 [Examples:]
 
