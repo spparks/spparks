@@ -115,7 +115,7 @@ void ReadSites::command(int narg, char **arg)
       if (nglobal != appoff->nglobal)
 	error->all("Number of sites does not match existing sites");
     }
-  } else app->sites_exist = 1;
+  }
 
   // read rest of file in free format
   // if add a section keyword, add to header::section_keywords and NSECTIONS
@@ -154,6 +154,8 @@ void ReadSites::command(int narg, char **arg)
 
     parse_keyword(0);
   }
+  
+  if (app->sites_exist == 0) error->all("No sites defined in site file");
 
   // close file
 
