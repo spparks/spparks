@@ -1199,6 +1199,11 @@ void AppDiffusion::allocate_data()
     psites = new int[2*nmax];
   }
 
+  delete [] echeck;
+  echeck = new int[nlocal+nghost];
+  delete [] pcheck;
+  pcheck = new int[nlocal+nghost];
+
   firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
 
   ecoord = new double[maxneigh+1];
