@@ -1201,8 +1201,8 @@ void AppLattice::add_neighbors(int i, int nvalues, char **values)
 
 void AppLattice::add_values(int i, char **values)
 {
-  for (int m = 0; m < ninteger; m++) iarray[m][i] = atoi(values[i]);
-  for (int m = 0; m < ndouble; m++) darray[m][i] = atof(values[i+ninteger]);
+  for (int m = 0; m < ninteger; m++) iarray[m][i] = atoi(values[m]);
+  for (int m = 0; m < ndouble; m++) darray[m][i] = atof(values[m+ninteger]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1244,4 +1244,3 @@ void AppLattice::print_connectivity()
   delete [] count;
   delete [] countall;
 }
-
