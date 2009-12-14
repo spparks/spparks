@@ -102,9 +102,9 @@ Lattice::Lattice(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
     add_basis(0.5,0.5,0.5);
   } else if (style == FCC) {
     add_basis(0.0,0.0,0.0);
-    add_basis(0.5,0.5,0.0);
-    add_basis(0.5,0.0,0.5);
     add_basis(0.0,0.5,0.5);
+    add_basis(0.5,0.0,0.5);
+    add_basis(0.5,0.5,0.0);
   } else if (style == DIAMOND) {
     add_basis(0.0,0.0,0.0);
     add_basis(0.0,0.5,0.5);

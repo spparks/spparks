@@ -84,6 +84,10 @@ class AppDiffusion : public AppLattice {
   void site_event_linear(int, class RandomPark *);
   void site_event_nonlinear(int, class RandomPark *);
 
+  int neighbor2(int, int *);
+  int neighbor3(int, int *);
+  int neighbor4(int, int *);
+
   int ncoord(int);
   void clear_events(int);
   void add_event(int, int, double, int);

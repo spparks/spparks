@@ -676,7 +676,7 @@ void AppDiffusion::site_event(int i, class RandomPark *random)
 
 void AppDiffusion::site_event_linear(int i, class RandomPark *random)
 {
-  int j,k,kk,m,mm;
+  int j,k,kk,kkk,m,mm,mmm,isite;
 
   // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
@@ -690,6 +690,7 @@ void AppDiffusion::site_event_linear(int i, class RandomPark *random)
     proball += events[ievent].propensity;
     if (proball >= threshhold) break;
     ievent = events[ievent].next;
+    if (ievent < 0) error->one("Did not reach event propensity threshhold");
   }
 
   // deposition or hop event
@@ -711,13 +712,14 @@ void AppDiffusion::site_event_linear(int i, class RandomPark *random)
     lattice[j] = OCCUPIED;
   }
 
-  // compute propensity changes for self and swap site and their 1,2 neighs
+  // compute propensity changes for self and swap site and their neighs
+  // 1,2 neighs for NNHOP and 1,2,3 neighs for SCHWOEBEL
   // ignore update of sites with isite < 0
   // use echeck[] to avoid resetting propensity of same site
 
   int nsites = 0;
 
-  int isite = i2site[i];
+  isite = i2site[i];
   propensity[isite] = site_propensity(i);
   esites[nsites++] = isite;
   echeck[isite] = 1;
@@ -729,45 +731,28 @@ void AppDiffusion::site_event_linear(int i, class RandomPark *random)
     echeck[isite] = 1;
   }
 
-  for (k = 0; k < numneigh[i]; k++) {
-    m = neighbor[i][k];
-    isite = i2site[m];
-    if (isite >= 0 && echeck[isite] == 0) {
-      propensity[isite] = site_propensity(m);
-      esites[nsites++] = isite;
-      echeck[isite] = 1;
-    }
-    for (kk = 0; kk < numneigh[m]; kk++) {
-      mm = neighbor[m][kk];
-      isite = i2site[mm];
-      if (isite >= 0 && echeck[isite] == 0) {
-	propensity[isite] = site_propensity(mm);
-	esites[nsites++] = isite;
-	echeck[isite] = 1;
-      }
-    }
-  }
-
-  for (k = 0; k < numneigh[j]; k++) {
-    m = neighbor[j][k];
-    isite = i2site[m];
-    if (isite >= 0 && echeck[isite] == 0) {
-      propensity[isite] = site_propensity(m);
-      esites[nsites++] = isite;
-      echeck[isite] = 1;
-    }
-    for (kk = 0; kk < numneigh[m]; kk++) {
-      mm = neighbor[m][kk];
-      isite = i2site[mm];
-      if (isite >= 0 && echeck[isite] == 0) {
-	propensity[isite] = site_propensity(mm);
-	esites[nsites++] = isite;
-	echeck[isite] = 1;
-      }
-    }
+  if (hopstyle == NNHOP) {
+    nsites += neighbor2(i,&esites[nsites]);
+    nsites += neighbor2(j,&esites[nsites]);
+  } else {
+    nsites += neighbor3(i,&esites[nsites]);
+    nsites += neighbor3(j,&esites[nsites]);
   }
 
   solve->update(nsites,esites,propensity);
+
+  // sanity check on all propensity values
+
+  /*
+  printf("EVENT %d %d\n",i,j);
+  for (m = 0; m < nlocal; m++) {
+    if (fabs(propensity[m]-site_propensity(m)) > 1.0e-6) {
+      printf("BAD PROP = %d %d %d %g %g\n",
+	     id[i],id[j],id[m],propensity[m],site_propensity(m));
+      error->one("BAD DONE");
+    }
+  }
+  */
 
   // clear echeck array
 
@@ -792,6 +777,7 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
     proball += events[ievent].propensity;
     if (proball >= threshhold) break;
     ievent = events[ievent].next;
+    if (ievent < 0) error->one("Did not reach event propensity threshhold");
   }
 
   // deposition or hop event
@@ -813,7 +799,8 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
     lattice[j] = OCCUPIED;
   }
 
-  // compute propensity changes for self and swap site and their 1,2,3 neighs
+  // compute propensity changes for self and swap site and their neighs
+  // 1,2,3 neighs for NNHOP and 1,2,3,4 neighs for SCHWOEBEL
   // ignore update of sites with isite < 0
   // use echeck[] to avoid resetting propensity of same site
 
@@ -831,12 +818,50 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
     echeck[isite] = 1;
   }
 
+  if (hopstyle == NNHOP) {
+    nsites += neighbor3(i,&esites[nsites]);
+    nsites += neighbor3(j,&esites[nsites]);
+  } else {
+    nsites += neighbor4(i,&esites[nsites]);
+    nsites += neighbor4(j,&esites[nsites]);
+  }
+
+  solve->update(nsites,esites,propensity);
+
+  // sanity check on all propensity values
+
+  /*
+  printf("EVENT %d %d\n",i,j);
+  for (m = 0; m < nlocal; m++) {
+    if (fabs(propensity[m]-site_propensity(m)) > 1.0e-6) {
+      printf("BAD PROP = %d %d %d %g %g\n",
+	     id[i],id[j],id[m],propensity[m],site_propensity(m));
+      error->one("BAD DONE");
+    }
+  }
+  */
+
+  // clear echeck array
+
+  for (m = 0; m < nsites; m++) echeck[esites[m]] = 0;
+}
+
+/* ----------------------------------------------------------------------
+   re-compute propensities out to 2nd neighbors of site I
+------------------------------------------------------------------------- */
+
+int AppDiffusion::neighbor2(int i, int *sites)
+{
+  int k,kk,m,mm,isite;
+
+  int nsites = 0;
+
   for (k = 0; k < numneigh[i]; k++) {
     m = neighbor[i][k];
     isite = i2site[m];
     if (isite >= 0 && echeck[isite] == 0) {
       propensity[isite] = site_propensity(m);
-      esites[nsites++] = isite;
+      sites[nsites++] = isite;
       echeck[isite] = 1;
     }
     for (kk = 0; kk < numneigh[m]; kk++) {
@@ -844,27 +869,31 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
       isite = i2site[mm];
       if (isite >= 0 && echeck[isite] == 0) {
 	propensity[isite] = site_propensity(mm);
-	esites[nsites++] = isite;
+	sites[nsites++] = isite;
 	echeck[isite] = 1;
-      }
-      for (kkk = 0; kkk < numneigh[mm]; kkk++) {
-	mmm = neighbor[mm][kkk];
-	isite = i2site[mmm];
-	if (isite >= 0 && echeck[isite] == 0) {
-	  propensity[isite] = site_propensity(mmm);
-	  esites[nsites++] = isite;
-	  echeck[isite] = 1;
-	}
       }
     }
   }
 
-  for (k = 0; k < numneigh[j]; k++) {
-    m = neighbor[j][k];
+  return nsites;
+}
+
+/* ----------------------------------------------------------------------
+   re-compute propensities out to 3rd neighbors of site I
+------------------------------------------------------------------------- */
+
+int AppDiffusion::neighbor3(int i, int *sites)
+{
+  int k,kk,kkk,m,mm,mmm,isite;
+
+  int nsites = 0;
+
+  for (k = 0; k < numneigh[i]; k++) {
+    m = neighbor[i][k];
     isite = i2site[m];
     if (isite >= 0 && echeck[isite] == 0) {
       propensity[isite] = site_propensity(m);
-      esites[nsites++] = isite;
+      sites[nsites++] = isite;
       echeck[isite] = 1;
     }
     for (kk = 0; kk < numneigh[m]; kk++) {
@@ -872,7 +901,7 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
       isite = i2site[mm];
       if (isite >= 0 && echeck[isite] == 0) {
 	propensity[isite] = site_propensity(mm);
-	esites[nsites++] = isite;
+	sites[nsites++] = isite;
 	echeck[isite] = 1;
       }
       for (kkk = 0; kkk < numneigh[mm]; kkk++) {
@@ -880,18 +909,64 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
 	isite = i2site[mmm];
 	if (isite >= 0 && echeck[isite] == 0) {
 	  propensity[isite] = site_propensity(mmm);
-	  esites[nsites++] = isite;
+	  sites[nsites++] = isite;
 	  echeck[isite] = 1;
 	}
       }
     }
   }
 
-  solve->update(nsites,esites,propensity);
+  return nsites;
+}
 
-  // clear echeck array
+/* ----------------------------------------------------------------------
+   re-compute propensities out to 4th neighbors of site I
+------------------------------------------------------------------------- */
 
-  for (m = 0; m < nsites; m++) echeck[esites[m]] = 0;
+int AppDiffusion::neighbor4(int i, int *sites)
+{
+  int k,kk,kkk,kkkk,m,mm,mmm,mmmm,isite;
+
+  int nsites = 0;
+
+  for (k = 0; k < numneigh[i]; k++) {
+    m = neighbor[i][k];
+    isite = i2site[m];
+    if (isite >= 0 && echeck[isite] == 0) {
+      propensity[isite] = site_propensity(m);
+      sites[nsites++] = isite;
+      echeck[isite] = 1;
+    }
+    for (kk = 0; kk < numneigh[m]; kk++) {
+      mm = neighbor[m][kk];
+      isite = i2site[mm];
+      if (isite >= 0 && echeck[isite] == 0) {
+	propensity[isite] = site_propensity(mm);
+	sites[nsites++] = isite;
+	echeck[isite] = 1;
+      }
+      for (kkk = 0; kkk < numneigh[mm]; kkk++) {
+	mmm = neighbor[mm][kkk];
+	isite = i2site[mmm];
+	if (isite >= 0 && echeck[isite] == 0) {
+	  propensity[isite] = site_propensity(mmm);
+	  sites[nsites++] = isite;
+	  echeck[isite] = 1;
+	}
+	for (kkkk = 0; kkkk < numneigh[mmm]; kkkk++) {
+	  mmmm = neighbor[mmm][kkkk];
+	  isite = i2site[mmmm];
+	  if (isite >= 0 && echeck[isite] == 0) {
+	    propensity[isite] = site_propensity(mmmm);
+	    sites[nsites++] = isite;
+	    echeck[isite] = 1;
+	  }
+	}
+      }
+    }
+  }
+
+  return nsites;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1186,17 +1261,33 @@ void AppDiffusion::bounds(char *str, int nmax, int &nlo, int &nhi)
 void AppDiffusion::allocate_data()
 {
   // for no_energy or linear:
-  // make sites large enough for 2 sites and 1st/2nd nearest neighbors
+  //   make esites large enough for 2 sites and their 1,2 neighbors
+  //   do not need psites
   // for nonlinear:
-  // make sites large enough for 2 sites and their 1,2,3 nearest neighbors
+  //   make esites large enough for 2 sites and their 1,2,3 neighbors
+  //   make psites large enough for 2 sites and their 1st neighbors
+  // Schwoebel hops add one level of neighbor dependence to esites
 
-  if (engstyle == NO_ENERGY || engstyle == LINEAR) {
-    esites = new int[2 + 2*maxneigh + 2*maxneigh*maxneigh];
+  if ((engstyle == NO_ENERGY || engstyle == LINEAR) && hopstyle == NNHOP) {
+    int emax = 1 + maxneigh + maxneigh*maxneigh;
+    esites = new int[2*emax];
     psites = NULL;
-  } else if (engstyle == NONLINEAR) {
-    int nmax = 1 + maxneigh + maxneigh*maxneigh + maxneigh*maxneigh*maxneigh;
-    esites = new int[2*nmax];
-    psites = new int[2*nmax];
+  } else if ((engstyle == NO_ENERGY || engstyle == LINEAR) && 
+	     hopstyle == SCHWOEBEL) {
+    int emax = 1 + maxneigh + maxneigh*maxneigh + maxneigh*maxneigh*maxneigh;
+    esites = new int[2*emax];
+    psites = NULL;
+  } else if (engstyle == NONLINEAR && hopstyle == NNHOP) {
+    int emax = 1 + maxneigh + maxneigh*maxneigh + maxneigh*maxneigh*maxneigh;
+    int pmax = 1 + maxneigh;
+    esites = new int[2*emax];
+    psites = new int[2*pmax];
+  } else if (engstyle == NONLINEAR && hopstyle == SCHWOEBEL) {
+    int emax = 1 + maxneigh + maxneigh*maxneigh + 
+      maxneigh*maxneigh*maxneigh + maxneigh*maxneigh*maxneigh*maxneigh;
+    int pmax = 1 + maxneigh;
+    esites = new int[2*emax];
+    psites = new int[2*pmax];
   }
 
   delete [] echeck;
