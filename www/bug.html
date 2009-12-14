@@ -19,6 +19,21 @@ code.
 </P>
 <HR>
 
+<P><B>14 Dec 2009</B>
+</P>
+<P>Fixed a bug in the Schwoebel hop logic in the <A HREF = "doc/app_diffusion.html">app_style
+diffusion</A> command.  Needed to update
+propensities one site further away in neighbor list of each site then
+we were.  This is 3rd neighbors instead of 2nd neighbors for linear
+energies.  And 4th neighbors instead of 3rd neighbors for non-linear
+energies.  This should make only a small difference in propensities of
+these far-away site, but is important to bookkeep correctly.
+</P>
+<P>This is the <A HREF = "patches/files.14Dec09">list of changed files</A> from the 10
+Nov 2009 version.
+</P>
+<HR>
+
 <P><B>10 Dec 2009</B>
 </P>
 <P>Fixed a memory bug in the <A HREF = "doc/app_diffusion.html">app_style diffusion</A>
