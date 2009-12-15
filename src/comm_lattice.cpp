@@ -63,8 +63,8 @@ CommLattice::~CommLattice()
 /* ----------------------------------------------------------------------
    setup comm pattern
    3 kinds of patterns: all ghosts, sector ghosts, sector reverse
-   if sectorflag = 0, just ghosts for entire proc domain 
-   if sectorflag = 1, do all and sector ghosts, reverse if needed
+   if nsector_request = 1, just ghosts for entire proc domain 
+   if nsector_request > 1, do all and sector ghosts, reverse if needed
    array = NULL = communicate iarray/darray from app
    array = non-NULL = communicate passed-in array (from diagnostic)
 ------------------------------------------------------------------------- */
