@@ -1,0 +1,4 @@
+14Dec09 version files changed by 17Dec09 upgrade:
+
+src/app_lattice.cpp
+src/comm_lattice.cpp
