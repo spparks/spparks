@@ -10,7 +10,7 @@ app_style diffusion command :h3
 
 [Syntax:]
 
-app_style diffusion estyle dstyle args gstyle args :pre
+app_style diffusion estyle dstyle args :pre
 
 diffusion = application style name :ulb,l
 estyle = {off} or {linear} or {nonlinear} :l
@@ -19,24 +19,12 @@ dstyle = {hop} or {schwoebel} :l
   {schwoebel} args = Nmax Nmin
     Nmax = max # of neighbors the initial Schwoebel site can have
     Nmin = min # of neighbors the final Schwoebel site can have :pre
-gstyle = {none} or {surface} or {void} or {pore} :l
-  {none} args = none, use of input file option is assumed
-  {surface} args = level
-    level = height of initial surface in y (2d) or z (3d)
-  {void} args = fraction
-    fraction = random fraction of sites that are initially occupied
-  {pore} args = xc yc zc diameter thickness
-    xc,yc,zc = coordinates of center point of pore
-    diameter = xy diameter of cylindrical pore aligned along z axis
-    thickness = z thickness of thin film which the pore spans :pre
-:l,ule
+:ule
 
 [Examples:]
 
-app_style diffusion linear hop void 0.2 lattice sq/4n 1.0 20 20
-app_style diffusion nonlinear schwoebel 5 2 void 0.2 lattice fcc 1.0 50 50
-app_style diffusion off hop pore 10 10 10 5 15 &
-		    lattice fcc 1.0 20 20 20 :pre
+app_style diffusion linear hop
+app_style diffusion nonlinear schwoebel 5 2 :pre
 
 [Description:]
 
@@ -93,26 +81,6 @@ the initial site I can have no more the {Nmax} occupied neighbors (its
 coordination number), and the destination site K can have no fewer
 than {Nmin} neighbors.
 
-The {gstyle} setting determines how the lattice geometry is
-initialized.
-
-For gstyle {none}, no explicit geometric initialization is performed,
-rather it is assumed the {lattice file} option is used.  See the
-"app_style"_app_style.html command for details.
-
-For gstyle {surface}, a flat surface is initialized.  All sites below
-{level} in 2d or 3d will be occupied.  Sites above the surface will be
-vacant.
-
-For gstyle {void}, the specified {fraction} of sites will be occupied,
-the remained will be vacant.  Which sites are occupied versus vacant
-is determined randomly.  Thus this sets up a bulk system with
-(1-fraction) percent void fraction.
-
-For gstyle {pore}, a thin film of {thickness} is setup with a
-cylindrical pore of {diameter}, centered at (xc,yc,zc).  The axis of
-the pore is along y for a 2d system and along z for a 3d system.
-
 :line
 
 The "deposition"_deposition.html command can be used with this
@@ -134,12 +102,6 @@ lattice site, i.e. the maximum coordination number.  In this scenario,
 the energy is effectively a linear function of coordination number.
 
 :line
-
-This application is a general lattice application; see the
-"app_style"_app_style.html commmand for further discussion.  The
-lattice must be specified by the appended {lattice} keword with its
-associated values, as discussed on the doc page for the
-"app_style"_app_style.html command.
 
 This application performs Kawasaki dynamics, in that the "spins" on
 two neighboring sites are swapped, where spin can be thought of as a

@@ -1,0 +1,87 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style sos command :h3
+
+[Syntax:]
+
+app_style sos bond_energy keyword args :pre
+
+sos = application style name :ulb,l
+bond_energy = lateral bond energy between columns :l
+zero or more keyword/value pairs may be appended :l
+keyword = {xsin} :l
+  {xsin} args = amp Lx Lz
+    amp = amplitude of initial sine wave
+    Lx  = wavelength of initial sine wave in x direction
+    Lz  = wavelength pf initial sine wave in z direction (ignored if > 1.0e10) :pre
+:ule
+
+[Examples:]
+
+app_style sos 1.0 xsin 5.5 20.0 1.0e+20
+app_style sos 2.0 none :pre
+
+[Description:]
+
+The SOS (Solid-on-Solid) model is an on-lattice application that
+models a solid surface as a 1D or 2D lattice of sites.  At each site
+an integer value represents the height of the surface at that site, so
+that collectively the heights of all the sites represent a surface
+profile with no overhangs or vacancies.
+
+The Hamiltonian representing the energy of a site I is:
+
+Hi = 1/2 J Sum_j |h_i - h_j| :pre
+
+where J is the bond energy, specified through the {bond_energy}
+parameter, and h_i and h_j are the heights at sites I and J.  Sum_j
+represents a sum over the nearest neighbors of i, e.g. the neighbors
+to the immediate left and right for a 1D lattice.
+
+If the {xsin} keyword is used, an initial height profile is assigned
+by a sine function.  If the z dependence is inactive (Lz > 1.0e10),
+this is
+
+hi = round(amp*sin(2*pi*x/Lx)) :pre
+
+If the z dependence is active, this is instead:
+
+hi = round(amp * min(sin(2*pi*x/Lx), sin(2*pi*z/Lz))) :pre
+
+:line
+
+This application performs Kawasaki dynamics, in which each event
+involves an "atom" hopping from one site to a neighboring site.  That
+is, an event consists of site I losing one unit of height, and either
+site I+1 or I-1 simultaneously gaining one unit of height.
+
+This application does not allow for use of a rejection KMC (rKMC)
+algorithm; only KMC options are supported.  See "this
+page"_app_style.html for more information.  For solution by a KMC
+algorithm, the probability of each "atom hop" event is min\[P0,
+P0*exp(-dE/kT)\], where P0 is a scaling factor, dE = Efinal - Einitial
+using the Hamiltonian defined above for the energy of the site, and T
+is the temperature of the system defined by the
+"temperature"_temperature.html command (which includes the Boltzmann
+constant k implicitly).  The scaling factor P0 is given by 1/nn where
+nn is the number of nearest neighbors for each site.
+
+:line
+
+The following additional commands are defined by this application:
+
+"temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
+
+:line
+
+[Restrictions:] none
+
+[Related commands:]
+
+"app_style diffusion"_app_diffusion.html
