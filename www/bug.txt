@@ -17,6 +17,16 @@ The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
+[18 Dec 2009]
+
+Greg Wagner (Sandia) added a solid-on-solid (SOS) model via a new
+"app_style sos"_doc/app_sos.html command.
+
+This is the "list of changed files"_patches/files.18Dec09 from the 17
+Nov 2009 version.
+
+:line
+
 [17 Dec 2009]
 
 Fixed a bug with using "sweep color"_doc/sweep.html with
