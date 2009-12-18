@@ -11,6 +11,10 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Greg Wagner (SNL)
+------------------------------------------------------------------------- */
+
 #include "mpi.h"
 #include "math.h"
 #include "string.h"
