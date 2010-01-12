@@ -59,7 +59,10 @@ else if ($1 == "style") then
     set qfile = \"$file\"
     echo "#include $qfile" >>! style_app.tmp
   end
-  if (! -e style_app.h) then
+  if (! -e style_app.tmp) then
+     rm style_app.h
+     touch style_app.h
+  else if (! -e style_app.h) then
      mv style_app.tmp style_app.h
      rm Obj_*/input.d
   else if (`diff style_app.h style_app.tmp` != "") then
@@ -77,7 +80,10 @@ else if ($1 == "style") then
     set qfile = \"$file\"
     echo "#include $qfile" >>! style_command.tmp
   end
-  if (! -e style_command.h) then
+  if (! -e style_command.tmp) then
+     rm style_command.h
+     touch style_command.h
+  else if (! -e style_command.h) then
      mv style_command.tmp style_command.h
      rm Obj_*/input.d
   else if (`diff style_command.h style_command.tmp` != "") then
@@ -95,7 +101,10 @@ else if ($1 == "style") then
     set qfile = \"$file\"
     echo "#include $qfile" >>! style_diag.tmp
   end
-  if (! -e style_diag.h) then
+  if (! -e style_diag.tmp) then
+     rm style_diag.h
+     touch style_diag.h
+  else if (! -e style_diag.h) then
      mv style_diag.tmp style_diag.h
      rm Obj_*/input.d
   else if (`diff style_diag.h style_diag.tmp` != "") then
@@ -113,7 +122,10 @@ else if ($1 == "style") then
     set qfile = \"$file\"
     echo "#include $qfile" >>! style_pair.tmp
   end
-  if (! -e style_pair.h) then
+  if (! -e style_pair.tmp) then
+     rm style_pair.h
+     touch style_pair.h
+  else if (! -e style_pair.h) then
      mv style_pair.tmp style_pair.h
      rm Obj_*/potential.d
   else if (`diff style_pair.h style_pair.tmp` != "") then
@@ -131,7 +143,10 @@ else if ($1 == "style") then
     set qfile = \"$file\"
     echo "#include $qfile" >>! style_region.tmp
   end
-  if (! -e style_region.h) then
+  if (! -e style_region.tmp) then
+     rm style_region.h
+     touch style_region.h
+  else if (! -e style_region.h) then
      mv style_region.tmp style_region.h
      rm Obj_*/domain.d
   else if (`diff style_region.h style_region.tmp` != "") then
@@ -149,7 +164,10 @@ else if ($1 == "style") then
     set qfile = \"$file\"
     echo "#include $qfile" >>! style_solve.tmp
   end
-  if (! -e style_solve.h) then
+  if (! -e style_solve.tmp) then
+     rm style_solve.h
+     touch style_solve.h
+  else if (! -e style_solve.h) then
      mv style_solve.tmp style_solve.h
      rm Obj_*/input.d
   else if (`diff style_solve.h style_solve.tmp` != "") then
