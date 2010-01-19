@@ -223,6 +223,13 @@ void CreateSites::structured_lattice()
   int dimension = domain->dimension;
   double **basis = domain->lattice->basis;
 
+  double boxxlo = domain->boxxlo;
+  double boxylo = domain->boxylo;
+  double boxzlo = domain->boxzlo;
+  double boxxhi = domain->boxxhi;
+  double boxyhi = domain->boxyhi;
+  double boxzhi = domain->boxzhi;
+
   double subxlo = domain->subxlo;
   double subylo = domain->subylo;
   double subzlo = domain->subzlo;
@@ -240,9 +247,9 @@ void CreateSites::structured_lattice()
     for (j = 0; j < ny; j++)
       for (i = 0; i < nx; i++)
 	for (m = 0; m < nbasis; m++) {
-	  x = (i + basis[m][0]) * latconstx;
-	  y = (j + basis[m][1]) * latconsty;
-	  z = (k + basis[m][2]) * latconstz;
+	  x = (i + basis[m][0]) * latconstx + boxxlo;
+	  y = (j + basis[m][1]) * latconsty + boxylo;
+	  z = (k + basis[m][2]) * latconstz + boxzlo;
 
 	  if (x < subxlo || x >= subxhi || 
 	      y < subylo || y >= subyhi || 
@@ -265,9 +272,9 @@ void CreateSites::structured_lattice()
       for (i = 0; i < nx; i++)
 	for (m = 0; m < nbasis; m++) {
 	  n++;
-	  x = (i + basis[m][0]) * latconstx;
-	  y = (j + basis[m][1]) * latconsty;
-	  z = (k + basis[m][2]) * latconstz;
+	  x = (i + basis[m][0]) * latconstx + boxxlo;
+	  y = (j + basis[m][1]) * latconsty + boxylo;
+	  z = (k + basis[m][2]) * latconstz + boxzlo;
 
 	  if (x < subxlo || x >= subxhi || 
 	      y < subylo || y >= subyhi || 
@@ -392,6 +399,13 @@ void CreateSites::random_sites()
   double yprd = domain->yprd;
   double zprd = domain->zprd;
 
+  double boxxlo = domain->boxxlo;
+  double boxylo = domain->boxylo;
+  double boxzlo = domain->boxzlo;
+  double boxxhi = domain->boxxhi;
+  double boxyhi = domain->boxyhi;
+  double boxzhi = domain->boxzhi;
+
   double subxlo = domain->subxlo;
   double subylo = domain->subylo;
   double subzlo = domain->subzlo;
@@ -411,9 +425,9 @@ void CreateSites::random_sites()
   int nlocal = 0;
 
   for (n = 1; n <= nrandom; n++) {
-    x = xprd * random->uniform();
-    y = yprd * random->uniform();
-    z = zprd * random->uniform();
+    x = boxxlo + xprd*random->uniform();
+    y = boxylo + yprd*random->uniform();
+    z = boxzlo + zprd*random->uniform();
     if (dimension == 1) y = 0.0;
     if (dimension != 3) z = 0.0;
     if (x < subxlo || x >= subxhi || 
@@ -436,9 +450,9 @@ void CreateSites::random_sites()
 
   nlocal = 0;
   for (n = 1; n <= nrandom; n++) {
-    x = xprd * random->uniform();
-    y = yprd * random->uniform();
-    z = zprd * random->uniform();
+    x = boxxlo + xprd*random->uniform();
+    y = boxylo + yprd*random->uniform();
+    z = boxzlo + zprd*random->uniform();
     if (dimension < 2) y = 0.0;
     if (dimension < 3) z = 0.0;
 

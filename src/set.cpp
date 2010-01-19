@@ -120,6 +120,7 @@ void Set::command(int narg, char **arg)
       if (iarg+2 > narg) error->all("Illegal set command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion < 0) error->all("Set command region ID does not exist");
+      regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"loop") == 0) {
       if (iarg+2 > narg) error->all("Illegal set command");
