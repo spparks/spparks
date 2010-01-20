@@ -1179,18 +1179,18 @@ void AppLattice::add_ghost(int n, double x, double y, double z,
 {
   if (nlocal+nghost == nmax) grow(0);
 
-  int i = nlocal + nghost;
+  int m = nlocal + nghost;
 
-  id[i] = n;
-  xyz[i][0] = x;
-  xyz[i][1] = y;
-  xyz[i][2] = z;
+  id[m] = n;
+  xyz[m][0] = x;
+  xyz[m][1] = y;
+  xyz[m][2] = z;
 
-  owner[i] = proc;
-  index[i] = index_owner;
+  owner[m] = proc;
+  index[m] = index_owner;
 
-  for (int i = 0; i < ninteger; i++) iarray[i][i] = 0;
-  for (int i = 0; i < ndouble; i++) darray[i][i] = 0;
+  for (int i = 0; i < ninteger; i++) iarray[i][m] = 0;
+  for (int i = 0; i < ndouble; i++) darray[i][m] = 0;
 
   nghost++;
 }
