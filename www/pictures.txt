@@ -73,10 +73,11 @@ therapy.  As tritium decays into helium, the helium gas clusters to
 form bubbles, often found to be preferentially oriented along \{111\}
 planes in the erbium lattice.
 
-The on-lattice SPPARKS application that runs this model uses an fcc
-lattice with additional tetrahedral and octrahedral interstitial
-sites.  Both the tritium and helium can diffuse through the lattice on
-the interstitial sites.
+The on-lattice SPPARKS application ("app_style
+erbium"_doc/app_erbium.html) that runs this model uses an fcc lattice
+with additional tetrahedral and octrahedral interstitial sites.  Both
+the tritium and helium can diffuse through the lattice on the
+interstitial sites.
 
 The image is a snapshot from a simulation on 1024 processors of a
 500x500x500 unit-cell model (2 billion sites) which encodes the list

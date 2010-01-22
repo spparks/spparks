@@ -17,6 +17,20 @@ The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
+[21 Jan 2010]
+
+In collaboration with Corbett Battaile (Sandia), added commands for
+"app_style erbium"_doc/app_erbium.html, "diag_style
+erbium"_doc/diag_erbium.html, and "event"_doc/event.html, to enable
+on-lattice modeling of reaction/diffusion events for hydrogen and
+helium in a fcc erbium lattice.  A further description of the model is
+given on the "Pictures & Movie"_pictures.html page.
+
+This is the "list of changed files"_patches/files.21Jan10 from the 20
+Jan 2010 version.
+
+:line
+
 [20 Jan 2010]
 
 Fixed a bug with the "create_sites"_doc/create_sites.html
@@ -24,7 +38,7 @@ command when building a lattice with an application
 that stores 2 or more integers or doubles per site.
 
 This is the "list of changed files"_patches/files.20Jan10 from the 19
-Dec 2009 version.
+Jan 2010 version.
 
 :line
 
