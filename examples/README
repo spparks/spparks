@@ -20,6 +20,7 @@ identical answers to those in the log of dump files included here.
 These are the sample problems in the various sub-directories:
 
 chemistry:  simple A + B <-> C reaction model
+erbium:     erbium reaction/diffusion model
 groups:     test of tree and group KMC solvers on a reaction network
 ising:      2d Ising model
 membrane:   2d membrane model of lipid, fluid, protein states

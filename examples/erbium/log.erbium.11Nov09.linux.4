@@ -1,0 +1,87 @@
+SPPARKS (11 Nov 2009)
+# SPPARKS Erbium model test
+
+seed	        12345
+
+app_style       erbium
+
+lattice         fcc/octa/tetra 1.0
+region		box block 0 10 0 10 0 10
+create_box	box
+Created box = (0 0 0) to (10 10 10)
+  1 by 2 by 2 processor grid
+create_sites	box value i1 0 basis 1*4 1 basis 5*8 2 basis 9* 3
+Creating sites ...
+  16000 sites
+  8000 sites have 14 neighbors
+  0 sites have 15 neighbors
+  0 sites have 16 neighbors
+  0 sites have 17 neighbors
+  0 sites have 18 neighbors
+  0 sites have 19 neighbors
+  0 sites have 20 neighbors
+  0 sites have 21 neighbors
+  0 sites have 22 neighbors
+  0 sites have 23 neighbors
+  0 sites have 24 neighbors
+  0 sites have 25 neighbors
+  8000 sites have 26 neighbors
+set		i2 value 1 if i1 = 1               # fcc -> erbium
+  4000 settings made for i2
+set		i2 value 4 if i1 = 2               # octa -> vacancy
+  4000 settings made for i2
+set		i2 value 4 if i1 = 3               # tetra -> vacancy
+  8000 settings made for i2
+set		i2 value 2 if i1 = 3 fraction 0.1  # tetra fraction -> hydrogen
+  779 settings made for i2
+
+sector		yes
+solve_style     tree 
+
+# single-site, double-site, triple-site events
+
+event	        1 tet h 1.78279E-9 he
+event		1 oct h 1.78279E-9 he
+
+event	        2 tet tet h vac 0.98 vac h
+event	        2 tet oct h vac 1.89 vac h
+event	        2 tet oct vac h 0.68 h vac
+event		2 tet tet he vac 0.49 vac he
+event		2 oct oct he vac 1.49 vac he
+
+event		3 tet oct oct h vac h 0.62 h h vac
+event		3 tet oct tet h vac he 1.31 he h vac
+event		3 tet oct tet he h vac 0.16 h vac he
+event		3 tet oct oct h vac he 0.88 he h vac
+event		3 tet oct oct he h vac 0.16 h vac he
+
+# temperature in units of eV
+
+temperature	1.0
+
+diag_style      erbium stats yes 		list er h he vac events s1 s2 d1 d2 d3 t1 t2 t3 t4 t5
+stats           1.0
+dump            1 10.0 tmp.erbium.new id i2 x y z
+
+run             10.0
+Setting up run ...
+      Time    Naccept    Nreject    Nsweeps        CPU er h he vac events s1 s2 d1 d2 d3 t1 t2 t3 t4 t5
+         0          0          0          0          0 4000 779 0 11221 8091 0 0 0 0 0 0 0 0 0 0
+   1.15319       2554          0          0      0.141 4000 779 0 11221 7636 0 0 1633 462 352 107 0 0 0 0
+   2.00925       4603          0          0      0.246 4000 779 0 11221 7539 0 0 2886 809 705 203 0 0 0 0
+   3.28585       7634          0          0      0.406 4000 779 0 11221 7742 0 0 4758 1328 1232 316 0 0 0 0
+   4.11114       9547          0          0      0.508 4000 779 0 11221 7626 0 0 5945 1659 1553 390 0 0 0 0
+     5.372      12470          0          0      0.663 4000 779 0 11221 7590 0 0 7738 2152 2036 544 0 0 0 0
+    6.2033      14391          0          0      0.768 4000 779 0 11221 7589 0 0 8875 2484 2385 647 0 0 0 0
+   7.09163      16381          0          0      0.872 4000 779 0 11221 7605 0 0 10072 2840 2731 738 0 0 0 0
+   8.37059      19287          0          0       1.02 4000 779 0 11221 7602 0 0 11866 3326 3224 871 0 0 0 0
+   9.28859      21330          0          0       1.13 4000 779 0 11221 7529 0 0 13079 3678 3585 988 0 0 0 0
+        10      22872          0          0       1.25 4000 779 0 11221 7689 0 0 14042 3940 3839 1051 0 0 0 0
+Loop time of 1.24891 on 4 procs
+
+Solve time (%) = 0.00183642 (0.147042)
+Update time (%) = 0 (0)
+Comm  time (%) = 0.632219 (50.6216)
+Outpt time (%) = 0.0324101 (2.59507)
+App   time (%) = 0.579295 (46.3841)
+Other time (%) = 0.00314963 (0.25219)

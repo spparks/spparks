@@ -1,0 +1,45 @@
+# SPPARKS Erbium model test
+
+seed	        12345
+
+app_style       erbium
+
+lattice         fcc/octa/tetra 1.0
+region		box block 0 10 0 10 0 10
+create_box	box
+create_sites	box value i1 0 basis 1*4 1 basis 5*8 2 basis 9* 3
+set		i2 value 1 if i1 = 1               # fcc -> erbium
+set		i2 value 4 if i1 = 2               # octa -> vacancy
+set		i2 value 4 if i1 = 3               # tetra -> vacancy
+set		i2 value 2 if i1 = 3 fraction 0.1  # tetra fraction -> hydrogen
+
+sector		yes
+solve_style     tree 
+
+# single-site, double-site, triple-site events
+
+event	        1 tet h 1.78279E-9 he
+event		1 oct h 1.78279E-9 he
+
+event	        2 tet tet h vac 0.98 vac h
+event	        2 tet oct h vac 1.89 vac h
+event	        2 tet oct vac h 0.68 h vac
+event		2 tet tet he vac 0.49 vac he
+event		2 oct oct he vac 1.49 vac he
+
+event		3 tet oct oct h vac h 0.62 h h vac
+event		3 tet oct tet h vac he 1.31 he h vac
+event		3 tet oct tet he h vac 0.16 h vac he
+event		3 tet oct oct h vac he 0.88 he h vac
+event		3 tet oct oct he h vac 0.16 h vac he
+
+# temperature in units of eV
+
+temperature	1.0
+
+diag_style      erbium stats yes &
+		list er h he vac events s1 s2 d1 d2 d3 t1 t2 t3 t4 t5
+stats           1.0
+dump            1 10.0 dump.erbium id i2 x y z
+
+run             10.0
