@@ -13,7 +13,8 @@ diag_style propensity command :h3
 diag_style propensity keyword value keyword value ... :pre
 
 propensity = style name of this diagnostic
-see the "diag_style"_diag_style.html command for additional keywords that can be appended to a diagnostic command :ul
+zero or more keyword/value pairs may be appended :l
+see the "diag_style"_diag_style.html command for keyword/value pairs that can be appended to a diagnostic command :ul
 
 [Examples:]
 

@@ -262,6 +262,7 @@ Restrictions in the command's documentation.
 "dump_one"_dump_one.html,
 "echo"_echo.html,
 "ecoord"_ecoord.html,
+"event"_event.html,
 "if"_if.html,
 "include"_include.html,
 "inclusion"_inclusion.html,
@@ -299,6 +300,7 @@ full description:
 
 "chemistry"_app_chemistry.html,
 "diffusion"_app_diffusion.html,
+"erbium"_app_erbium.html,
 "ising"_app_ising.html,
 "ising/single"_app_ising.html,
 "membrane"_app_membrane.html,
@@ -336,6 +338,7 @@ full description:
 
 "cluster"_diag_cluster.html,
 "diffusion"_diag_diffusion.html,
+"erbium"_diag_erbium.html,
 "energy"_diag_energy.html,
 "eprof"_diag_eprof.html,
 "propensity"_diag_propensity.html :tb(c=6,ea=c)

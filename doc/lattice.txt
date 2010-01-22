@@ -107,7 +107,12 @@ and a2 = 0 a 0 and a3 = 0 0 a.  There are 16 basis sites per unit
 cell, which consist of 4 fcc sites plus 4 octahedral and 8 tetrahedral
 interstitial sites.  Again, these are defined in solid-state physics
 texts.  There are 26 neighbors per fcc and octahedral site, and 14
-neihbors per tetrahedral site.
+neihbors per tetrahedral site.  More specifically, the neighbors
+are as follows:
+
+neighbors of each fcc site: 12 fcc, 6 octa, 8 tetra
+neighbors of each octa site: 6 fcc, 12 octa, 8 tetra
+neighbors of each tetra site: 4 fcc, 4 octa, 6 tetra :ul
 
 The {random} lattice styles are 1d, 2d, and 3d lattices with a1 = 1 0
 0 and a2 = 0 1 0 and a3 = 0 0 1.  Note that no {scale} parameter is

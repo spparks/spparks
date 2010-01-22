@@ -14,7 +14,7 @@ diag_style eprof3d keyword value keyword value ... :pre
 
 eprof3d = style name of this diagnostic :ulb,l
 zero or more keyword/value pairs may be appended :l
-see the "diag_style"_diag_style.html command for additional keywords that can be appended to a diagnostic command and which must appear before these keywords :l
+see the "diag_style"_diag_style.html command for additional keyword/value pairs that can be appended to a diagnostic command and which must appear before these keywords :l
 keyword = {axis} or {filename} or {boundary} :l
   {axis} value = {x} or {y} or {z}
     x,y,z = which axis to measure energy profile with respect to

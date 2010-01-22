@@ -38,6 +38,7 @@ each site's neighborhood of nearby sites can be specified.  Here is
 the list of on-lattice applications SPPARKS currently includes:
 
 "diffusion"_app_diffusion.html = vacancy exchange diffusion model
+"erbium"_app_erbium.html = H/He diffusion/rection on an Erbium lattice
 "ising"_app_ising.html = Ising model
 "ising/single"_app_ising.html = variant Ising model
 "membrane"_app_membrane.html = membrane model of lipid,water,protein
