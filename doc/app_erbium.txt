@@ -29,7 +29,7 @@ first integer (i1) is the "type" of the site:
 
 type = 1 = fcc
 type = 2 = octahedral
-type = e = tetrahedral :ul
+type = 3 = tetrahedral :ul
 
 The second integer (i2) is the element on the site:
 
@@ -62,10 +62,11 @@ KMC solver to be used with the application via the
 For solution by a KMC algorithm, the list of events that can occur at
 each site is determined by its current neighbors and by the events
 specified via the "event"_event.html command.  The relative
-probability of each event occurring is a computed as a function of the
+probability of each event occurring is computed as a function of the
 rate or energy value specified in the "event"_event.html command and
-the temperature specified via the "temperature" command.  The details
-are explained in the doc page for the "event"_event.html command.
+the temperature specified via the "temperature"_temperature.html
+command.  The details are explained in the doc page for the
+"event"_event.html command.
 
 :line
 
