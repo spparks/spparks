@@ -1,0 +1,92 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style erbium command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style erbium 
+</PRE>
+<UL><LI>erbium = style name of this application 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style erbium 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This application simulates a model of reaction and diffusion on a
+specialized Erbium lattice, which consists of an fcc lattice for the
+Erbium and additional tetrahedral and octahedral interstitial sites.
+</P>
+<P>This application stores 2 integers per lattice site.  The
+first integer (i1) is the "type" of the site:
+</P>
+<UL><LI>type = 1 = fcc
+<LI>type = 2 = octahedral
+<LI>type = e = tetrahedral 
+</UL>
+<P>The second integer (i2) is the element on the site:
+</P>
+<UL><LI>element = 1 = erbium
+<LI>element = 2 = hydrogen
+<LI>element = 3 = helium
+<LI>element = 4 = vacancy 
+</UL>
+<P>The 3-fold lattice should be created using the <A HREF = "lattice.html">lattice
+fcc/octa/tetra</A> command, which gives details of its
+geometry and neighbor connectivity.
+</P>
+<P>The 3-fold lattice should normally be initialized in the following
+way, using the <A HREF = "set.html">set</A> command.  All fcc sites are for erbium
+atoms and are fully occupied.  All octahedral sites are initially
+vacant.  A fraction of the tetrahedral sites is initialized with
+hydrogen atoms; the remainder are vacant.
+</P>
+<P>The <A HREF = "event.html">event</A> command is used to define what kinds of
+diffusive hops and reaction events occur in the model.  These can
+include correlated hops where a central site coordinates a change at
+two of its neighbor sites.  Reaction events that transmute a Hydrogen
+atom to a Helium are also possible.
+</P>
+<P>As explained on <A HREF = "app_style.html">this page</A>, this application can be
+evolved only by a kinetic Monte Carlo (KMC).  You must thus define a
+KMC solver to be used with the application via the
+<A HREF = "solve_style.html">solve_style</A> command.
+</P>
+<P>For solution by a KMC algorithm, the list of events that can occur at
+each site is determined by its current neighbors and by the events
+specified via the <A HREF = "event.html">event</A> command.  The relative
+probability of each event occurring is a computed as a function of the
+rate or energy value specified in the <A HREF = "event.html">event</A> command and
+the temperature specified via the "temperature" command.  The details
+are explained in the doc page for the <A HREF = "event.html">event</A> command.
+</P>
+<HR>
+
+<P>The following additional commands are defined by this application.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "event.html">event</A> </TD><TD > definition of an event on the 3-fold lattice</TD></TR>
+<TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "diag_erbium.html">diag_style erbium</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,85 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style erbium command :h3
+
+[Syntax:]
+
+app_style erbium :pre
+
+erbium = style name of this application :ul
+
+[Examples:]
+
+app_style erbium :pre
+
+[Description:]
+
+This application simulates a model of reaction and diffusion on a
+specialized Erbium lattice, which consists of an fcc lattice for the
+Erbium and additional tetrahedral and octahedral interstitial sites.
+
+This application stores 2 integers per lattice site.  The
+first integer (i1) is the "type" of the site:
+
+type = 1 = fcc
+type = 2 = octahedral
+type = e = tetrahedral :ul
+
+The second integer (i2) is the element on the site:
+
+element = 1 = erbium
+element = 2 = hydrogen
+element = 3 = helium
+element = 4 = vacancy :ul
+
+The 3-fold lattice should be created using the "lattice
+fcc/octa/tetra"_lattice.html command, which gives details of its
+geometry and neighbor connectivity.
+
+The 3-fold lattice should normally be initialized in the following
+way, using the "set"_set.html command.  All fcc sites are for erbium
+atoms and are fully occupied.  All octahedral sites are initially
+vacant.  A fraction of the tetrahedral sites is initialized with
+hydrogen atoms; the remainder are vacant.
+
+The "event"_event.html command is used to define what kinds of
+diffusive hops and reaction events occur in the model.  These can
+include correlated hops where a central site coordinates a change at
+two of its neighbor sites.  Reaction events that transmute a Hydrogen
+atom to a Helium are also possible.
+
+As explained on "this page"_app_style.html, this application can be
+evolved only by a kinetic Monte Carlo (KMC).  You must thus define a
+KMC solver to be used with the application via the
+"solve_style"_solve_style.html command.
+
+For solution by a KMC algorithm, the list of events that can occur at
+each site is determined by its current neighbors and by the events
+specified via the "event"_event.html command.  The relative
+probability of each event occurring is a computed as a function of the
+rate or energy value specified in the "event"_event.html command and
+the temperature specified via the "temperature" command.  The details
+are explained in the doc page for the "event"_event.html command.
+
+:line
+
+The following additional commands are defined by this application.
+
+"event"_event.html : definition of an event on the 3-fold lattice
+"temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
+
+:line
+
+[Restrictions:] none
+
+[Related commands:]
+
+"diag_style erbium"_diag_erbium.html
+
+[Default:] none

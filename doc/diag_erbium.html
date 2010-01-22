@@ -1,0 +1,73 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>diag_style erbium command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>diag_style erbium keyword value keyword value ... 
+</PRE>
+<UL><LI>erbium = style name of this diagnostic 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>see the <A HREF = "diag_style.html">diag_style</A> command for additional keyword/value pairs that can be appended to a diagnostic command and which must appear before these keywords 
+
+<LI>keyword = <I>list</I> 
+
+<PRE>  <I>list</I> values = <I>er</I> or <I>h</I> or <I>he</I> or <I>vac</I> or <I>events</I> or <I>sN</I> or <I>dN</I> or <I>tN</I>
+    <I>er</I>,<I>h</I>,<I>he</I>,<I>vac</I> = counts of how many lattice sites of this type exist
+    <I>events</I> = total # of events for all sites
+    <I>sN</I>,<I>dN</I>,<I>tN</I> = cummulative # of events for this reaction that have occurred 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>diag_style erbium stats yes list h he vac events s1 d1 t2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The erbium diagnostic prints out statistics about the system being
+modeled by <A HREF = "app_erbium.html">app_style erbium</A>.  The values will be
+printed as part of <A HREF = "stats.html">stats</A> output.
+</P>
+<P>Following the <I>list</I> keyword you can list one or more of the listed
+values, in any order.
+</P>
+<P>The <I>er</I>, <I>h</I>, <I>he</I>, and <I>vac</I> values will print counts of the number
+of current sites of each type.  The <I>events</I> value will print the
+total # of possible events that can occur as defined by the
+<A HREF = "event.html">event</A> command, given the current state of the lattice,
+summed over all sites.
+</P>
+<P>The <I>sN</I>, <I>dN</I>, and <I>tN</I> values refer to a tally of events that have
+actually occurred, as defined by the <A HREF = "event.html">event</A> command.  The
+letter "s" means reactions involving a single site, "d" means double
+reactions involving 2 sites, and "t" means triple reactions involving
+3 sites.  The N refers to which reaction (from 1 to the number of that
+type of reaction).  I.e. "t2" means the 2nd 3-site reaction defined in
+your input script.  Note that the values printed for <I>sN</I>, <I>dN</I>, and
+<I>tN</I> are cummulative counts of events from the beginning of the
+simulation run.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used as part of the <A HREF = "app_erbium.html">app_style
+erbium</A> application.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "diag_style.html">diag_style</A>, <A HREF = "stats.html">stats</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>
