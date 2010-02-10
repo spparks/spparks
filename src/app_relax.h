@@ -16,6 +16,9 @@ AppStyle(relax,AppRelax)
 
 #else
 
+#ifndef SPK_APP_RELAX_H
+#define SPK_APP_RELAX_H
+
 #include "app_off_lattice.h"
 
 namespace SPPARKS_NS {
@@ -42,4 +45,5 @@ class AppRelax : public AppOffLattice {
 
 }
 
+#endif
 #endif

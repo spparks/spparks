@@ -16,6 +16,9 @@ AppStyle(membrane,AppMembrane)
 
 #else
 
+#ifndef SPK_APP_MEMBRANE_H
+#define SPK_APP_MEMBRANE_H
+
 #include "app_lattice.h"
 
 namespace SPPARKS_NS {
@@ -42,4 +45,5 @@ class AppMembrane : public AppLattice {
 
 }
 
+#endif
 #endif

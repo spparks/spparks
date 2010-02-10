@@ -16,6 +16,9 @@ AppStyle(erbium,AppErbium)
 
 #else
 
+#ifndef SPK_APP_ERBIUM_H
+#define SPK_APP_ERBIUM_H
+
 #include "app_lattice.h"
 
 namespace SPPARKS_NS {
@@ -72,4 +75,5 @@ class AppErbium : public AppLattice {
 
 }
 
+#endif
 #endif

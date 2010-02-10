@@ -16,6 +16,9 @@ AppStyle(ising/single,AppIsingSingle)
 
 #else
 
+#ifndef SPK_APP_ISING_SINGLE_H
+#define SPK_APP_ISING_SINGLE_H
+
 #include "app_ising.h"
 
 namespace SPPARKS_NS {
@@ -30,4 +33,5 @@ class AppIsingSingle : public AppIsing {
 
 }
 
+#endif
 #endif

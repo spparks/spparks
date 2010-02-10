@@ -16,6 +16,9 @@ AppStyle(diffusion,AppDiffusion)
 
 #else
 
+#ifndef SPK_APP_DIFFUSION_H
+#define SPK_APP_DIFFUSION_H
+
 #include "app_lattice.h"
 
 namespace SPPARKS_NS {
@@ -102,4 +105,5 @@ class AppDiffusion : public AppLattice {
 
 }
 
+#endif
 #endif

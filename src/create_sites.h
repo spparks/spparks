@@ -16,6 +16,9 @@ CommandStyle(create_sites,CreateSites)
 
 #else
 
+#ifndef SPK_CREATE_SITES_H
+#define SPK_CREATE_SITES_H
+
 #include "pointers.h"
 
 namespace SPPARKS_NS {
@@ -63,4 +66,5 @@ class CreateSites : protected Pointers {
 
 }
 
+#endif
 #endif

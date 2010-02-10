@@ -16,6 +16,9 @@ CommandStyle(create_box,CreateBox)
 
 #else
 
+#ifndef SPK_CREATE_BOX_H
+#define SPK_CREATE_BOX_H
+
 #include "pointers.h"
 
 namespace SPPARKS_NS {
@@ -28,4 +31,5 @@ class CreateBox : protected Pointers {
 
 }
 
+#endif
 #endif

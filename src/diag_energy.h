@@ -16,6 +16,9 @@ DiagStyle(energy,DiagEnergy)
 
 #else
 
+#ifndef SPK_DIAG_ENERGY_H
+#define SPK_DIAG_ENERGY_H
+
 #include "stdio.h"
 #include "diag.h"
 
@@ -39,4 +42,5 @@ class DiagEnergy : public Diag {
 
 }
 
+#endif
 #endif

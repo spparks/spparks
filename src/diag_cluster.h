@@ -16,6 +16,9 @@ DiagStyle(cluster,DiagCluster)
 
 #else
 
+#ifndef SPK_DIAG_CLUSTER_H
+#define SPK_DIAG_CLUSTER_H
+
 #include "stdio.h"
 #include <stack>
 #include "diag.h"
@@ -72,4 +75,5 @@ class DiagCluster : public Diag {
 
 }
 
+#endif
 #endif

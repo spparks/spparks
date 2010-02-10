@@ -16,6 +16,9 @@ AppStyle(potts/neighonly,AppPottsNeighOnly)
 
 #else
 
+#ifndef SPK_APP_POTTS_NEIGHONLY_H
+#define SPK_APP_POTTS_NEIGHONLY_H
+
 #include "app_potts.h"
 
 namespace SPPARKS_NS {
@@ -31,4 +34,5 @@ class AppPottsNeighOnly : public AppPotts {
 
 }
 
+#endif
 #endif

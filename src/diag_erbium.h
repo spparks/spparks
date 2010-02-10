@@ -16,6 +16,9 @@ DiagStyle(erbium,DiagErbium)
 
 #else
 
+#ifndef SPK_DIAG_ERBIUM_H
+#define SPK_DIAG_ERBIUM_H
+
 #include "diag.h"
 
 namespace SPPARKS_NS {
@@ -39,4 +42,5 @@ class DiagErbium : public Diag {
 
 }
 
+#endif
 #endif

@@ -16,6 +16,9 @@ AppStyle(chemistry,AppChemistry)
 
 #else
 
+#ifndef SPK_APP_CHEMISTRY_H
+#define SPK_APP_CHEMISTRY_H
+
 #include "app.h"
 
 namespace SPPARKS_NS {
@@ -73,4 +76,5 @@ class AppChemistry : public App {
 
 }
 
+#endif
 #endif

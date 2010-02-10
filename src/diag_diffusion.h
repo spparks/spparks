@@ -16,6 +16,9 @@ DiagStyle(diffusion,DiagDiffusion)
 
 #else
 
+#ifndef SPK_DIAG_DIFFUSION_H
+#define SPK_DIAG_DIFFUSION_H
+
 #include "stdio.h"
 #include "diag.h"
 
@@ -39,4 +42,5 @@ class DiagDiffusion : public Diag {
 
 }
 
+#endif
 #endif

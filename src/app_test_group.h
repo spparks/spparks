@@ -16,6 +16,9 @@ AppStyle(test/group,AppTestGroup)
 
 #else
 
+#ifndef SPK_APP_TEST_GROUP_H
+#define SPK_APP_TEST_GROUP_H
+
 #include "app.h"
 
 namespace SPPARKS_NS {
@@ -58,4 +61,5 @@ class AppTestGroup : public App {
 
 }
 
+#endif
 #endif

@@ -11,6 +11,9 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef SPK_DUMP_H
+#define SPK_DUMP_H
+
 #include "stdio.h"
 #include "pointers.h"
 
@@ -100,3 +103,5 @@ class Dump : protected Pointers {
 };
 
 }
+
+#endif

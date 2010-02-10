@@ -16,6 +16,9 @@ DiagStyle(propensity,DiagPropensity)
 
 #else
 
+#ifndef SPK_DIAG_PROPENSITY_H
+#define SPK_DIAG_PROPENSITY_H
+
 #include "stdio.h"
 #include "diag.h"
 
@@ -39,4 +42,5 @@ class DiagPropensity : public Diag {
 
 }
 
+#endif
 #endif
