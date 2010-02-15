@@ -11,6 +11,9 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef SPK_GROUP_H
+#define SPK_GROUP_H
+
 #include "pointers.h"
 
 namespace SPPARKS_NS {
@@ -62,3 +65,5 @@ class Groups : protected Pointers {
 };
 
 }
+
+#endif

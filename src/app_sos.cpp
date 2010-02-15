@@ -77,7 +77,6 @@ AppSOS::AppSOS(SPPARKS *spk, int narg, char **arg) :
   // defaults
 
   boltz = 1.0;
-  bondeng = 1.0;
   stepheight = 1.0;
 
   firsttime = 1;
