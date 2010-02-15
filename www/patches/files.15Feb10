@@ -1,0 +1,24 @@
+21Jan10 version files changed by 15Feb10 upgrade:
+
+doc/app_erbium.html
+doc/app_erbium.txt
+src/app_chemistry.h
+src/app_diffusion.h
+src/app_erbium.h
+src/app_ising_single.h
+src/app_membrane.h
+src/app_potts_neigh.h
+src/app_potts_neighonly.h
+src/app_relax.h
+src/app_test_group.h
+src/cluster.h
+src/comm_lattice.h
+src/comm_off_lattice.h
+src/create_box.h
+src/create_sites.h
+src/diag_cluster.h
+src/diag_diffusion.h
+src/diag_energy.h
+src/diag_erbium.h
+src/diag_propensity.h
+src/dump.h
