@@ -16,6 +16,9 @@ RegionStyle(union,RegUnion)
 
 #else
 
+#ifndef SPK_REGION_UNION_H
+#define SPK_REGION_UNION_H
+
 #include "region.h"
 
 namespace SPPARKS_NS {
@@ -33,4 +36,5 @@ class RegUnion : public Region {
 
 }
 
+#endif
 #endif

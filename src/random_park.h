@@ -11,6 +11,9 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef SPK_RANDOM_PARK_H
+#define SPK_RANDOM_PARK_H
+
 namespace SPPARKS_NS {
 
 class RandomPark {
@@ -26,3 +29,5 @@ class RandomPark {
 };
 
 }
+
+#endif

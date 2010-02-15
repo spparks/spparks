@@ -16,6 +16,9 @@ RegionStyle(cylinder,RegCylinder)
 
 #else
 
+#ifndef SPK_REGION_CYLINDER_H
+#define SPK_REGION_CYLINDER_H
+
 #include "region.h"
 
 namespace SPPARKS_NS {
@@ -34,4 +37,5 @@ class RegCylinder : public Region {
 
 }
 
+#endif
 #endif

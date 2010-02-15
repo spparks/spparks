@@ -16,6 +16,9 @@ CommandStyle(shell,Shell)
 
 #else
 
+#ifndef SPK_SHELL_H
+#define SPK_SHELL_H
+
 #include "pointers.h"
 
 namespace SPPARKS_NS {
@@ -28,4 +31,5 @@ class Shell : protected Pointers {
 
 }
 
+#endif
 #endif

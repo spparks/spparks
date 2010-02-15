@@ -16,6 +16,9 @@ RegionStyle(sphere,RegSphere)
 
 #else
 
+#ifndef SPK_REGION_SPHERE_H
+#define SPK_REGION_SPHERE_H
+
 #include "region.h"
 
 namespace SPPARKS_NS {
@@ -32,4 +35,5 @@ class RegSphere : public Region {
 
 }
 
+#endif
 #endif

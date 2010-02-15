@@ -16,6 +16,9 @@ CommandStyle(read_sites,ReadSites)
 
 #else
 
+#ifndef SPK_READ_SITES_H
+#define SPK_READ_SITES_H
+
 #include "pointers.h"
 
 namespace SPPARKS_NS {
@@ -54,4 +57,5 @@ class ReadSites : protected Pointers {
 
 }
 
+#endif
 #endif

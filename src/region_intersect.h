@@ -16,6 +16,9 @@ RegionStyle(intersect,RegIntersect)
 
 #else
 
+#ifndef SPK_REGION_INTERSECT_H
+#define SPK_REGION_INTERSECT_H
+
 #include "region.h"
 
 namespace SPPARKS_NS {
@@ -33,4 +36,5 @@ class RegIntersect : public Region {
 
 }
 
+#endif
 #endif

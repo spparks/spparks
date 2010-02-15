@@ -16,6 +16,9 @@ RegionStyle(block,RegBlock)
 
 #else
 
+#ifndef SPK_REGION_BLOCK_H
+#define SPK_REGION_BLOCK_H
+
 #include "region.h"
 
 namespace SPPARKS_NS {
@@ -31,4 +34,5 @@ class RegBlock : public Region {
 
 }
 
+#endif
 #endif

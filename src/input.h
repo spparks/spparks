@@ -11,6 +11,9 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef SPK_INPUT_H
+#define SPK_INPUT_H
+
 #include "stdio.h"
 #include "pointers.h"
 
@@ -77,3 +80,5 @@ class Input : protected Pointers {
 };
 
 }
+
+#endif

@@ -11,6 +11,9 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef SPK_RANDOM_MARS_H
+#define SPK_RANDOM_MARS_H
+
 #include "pointers.h"
 
 namespace SPPARKS_NS {
@@ -30,3 +33,5 @@ class RanMars : protected Pointers {
 };
 
 }
+
+#endif

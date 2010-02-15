@@ -16,6 +16,9 @@ CommandStyle(set,Set)
 
 #else
 
+#ifndef SPK_SET_H
+#define SPK_SET_H
+
 #include "pointers.h"
 
 namespace SPPARKS_NS {
@@ -54,4 +57,5 @@ class Set : protected Pointers {
 
 }
 
+#endif
 #endif

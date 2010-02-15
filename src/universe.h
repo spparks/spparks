@@ -11,6 +11,9 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef SPK_UNIVERSE_H
+#define SPK_UNIVERSE_H
+
 #include "mpi.h"
 #include "stdio.h"
 #include "pointers.h"
@@ -39,3 +42,5 @@ class Universe : protected Pointers {
 };
 
 }
+
+#endif

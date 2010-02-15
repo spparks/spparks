@@ -11,6 +11,9 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef SPK_MEMORY_H
+#define SPK_MEMORY_H
+
 #include "pointers.h"
 
 namespace SPPARKS_NS {
@@ -434,3 +437,5 @@ void Memory::destroy_4d_T_array(T ****array)
 }
 
 }
+
+#endif

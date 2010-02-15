@@ -16,6 +16,9 @@ PairStyle(lj/cut,PairLJCut)
 
 #else
 
+#ifndef SPK_PAIR_LJ_CUT_H
+#define SPK_PAIR_LJ_CUT_H
+
 #include "pair.h"
 
 namespace SPPARKS_NS {
@@ -40,4 +43,5 @@ class PairLJCut : public Pair {
 
 }
 
+#endif
 #endif
