@@ -17,12 +17,12 @@ The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
-[15 Feb 2010]
+[16 Feb 2010]
 
 Fixed a one-line bug with the "app_style sos"_doc/app_sos.html command
 that reset the bond energy to 1.0 even after the user set it.
 
-This is the "list of changed files"_patches/files.15Feb10 from the 21
+This is the "list of changed files"_patches/files.16Feb10 from the 21
 Jan 2010 version.
 
 :line
