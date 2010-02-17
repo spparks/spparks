@@ -17,6 +17,17 @@ The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
+[17 Feb 2010]
+
+Greg Wagner (Sandia) found a memory bug with the way event lists are
+cleared between runs, that affected a few of the applications that
+maintain these lists.  This update fixes it.
+
+This is the "list of changed files"_patches/files.17Feb10 from the 16
+Feb 2010 version.
+
+:line
+
 [16 Feb 2010]
 
 Fixed a one-line bug with the "app_style sos"_doc/app_sos.html command
