@@ -42,9 +42,11 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
 
   if (narg != 1) error->all("Illegal app_style command");
 
+  firsttime = 1;
   esites = NULL;
   echeck = NULL;
   events = NULL;
+  maxevent = 0;
   firstevent = NULL;
 
   // reaction lists
@@ -228,20 +230,16 @@ void AppErbium::grow_app()
 
 void AppErbium::init_app()
 {
-  delete [] echeck;
-  echeck = new int[nlocal];
+  if (firsttime) {
+    firsttime = 0;
 
-  // esites must be large enough for 3 sites and their 1st neighbors
+    echeck = new int[nlocal];
+    firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
 
-  delete [] esites;
-  esites = new int[3 + 3*maxneigh];
-
-  memory->sfree(events);
-  memory->sfree(firstevent);
-
-  events = NULL;
-  maxevent = 0;
-  firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
+    // esites must be large enough for 3 sites and their 1st neighbors
+    
+    esites = new int[3 + 3*maxneigh];
+  }
 
   // site validity
 
@@ -261,8 +259,12 @@ void AppErbium::setup_app()
 {
   for (int i = 0; i < nlocal; i++) echeck[i] = 0;
 
+  // clear event list
+
   nevents = 0;
   for (int i = 0; i < nlocal; i++) firstevent[i] = -1;
+  for (int i = 0; i < maxevent; i++) events[i].next = i+1;
+  freeevent = 0;
 
   // set propensities from rates
 

@@ -271,8 +271,12 @@ void AppDiffusion::setup_app()
 {
   for (int i = 0; i < nlocal+nghost; i++) echeck[i] = pcheck[i] = 0;
 
+  // clear event list
+
   nevents = 0;
   for (int i = 0; i < nlocal; i++) firstevent[i] = -1;
+  for (int i = 0; i < maxevent; i++) events[i].next = i+1;
+  freeevent = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1290,9 +1294,7 @@ void AppDiffusion::allocate_data()
     psites = new int[2*pmax];
   }
 
-  delete [] echeck;
   echeck = new int[nlocal+nghost];
-  delete [] pcheck;
   pcheck = new int[nlocal+nghost];
 
   firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");

@@ -42,6 +42,7 @@ class AppErbium : public AppLattice {
  private:
   int engstyle;
   int *type,*element;      // variables on each lattice site
+  int firsttime;
 
   int *esites;
   int *echeck;

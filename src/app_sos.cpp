@@ -127,13 +127,12 @@ void AppSOS::init_app()
 
     check = new int[nlocal+nghost];
     firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
+
+    // sites must be large enough for 2 sites and their 1,2 nearest neighbors
+
+    int nmax = 1 + maxneigh + maxneigh*maxneigh;
+    sites = new int[2*nmax];
   }
-
-  // sites must be large enough for 2 sites and their 1,2 nearest neighbors
-
-  delete [] sites;
-  int nmax = 1 + maxneigh + maxneigh*maxneigh;
-  sites = new int[2*nmax];
 
   // prefactor on propensity is 1/N_neighbors
 
@@ -150,8 +149,12 @@ void AppSOS::setup_app()
 {
   for (int i = 0; i < nlocal+nghost; i++) check[i] = 0;
 
+  // clear event list
+
   nevents = 0;
   for (int i = 0; i < nlocal; i++) firstevent[i] = -1;
+  for (int i = 0; i < maxevent; i++) events[i].next = i+1;
+  freeevent = 0;
 }
 
 /* ----------------------------------------------------------------------
