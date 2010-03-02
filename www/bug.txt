@@ -17,6 +17,16 @@ The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
+[2 Mar 2010]
+
+Corbett Battaile (Sandia) found a typo bug with the "set x"_doc/set.html
+command.
+
+This is the "list of changed files"_patches/files.2Mar10 from the 17
+Feb 2010 version.
+
+:line
+
 [17 Feb 2010]
 
 Greg Wagner (Sandia) found a memory bug with the way event lists are
