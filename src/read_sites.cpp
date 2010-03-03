@@ -65,6 +65,14 @@ void ReadSites::command(int narg, char **arg)
 
   if (narg != 1) error->all("Illegal read_sites command");
 
+  if (app->appclass == App::LATTICE) {
+    applattice = (AppLattice *) app;
+    latticeflag = 1;
+  } else if (app->appclass == App::OFF_LATTICE) {
+    appoff = (AppOffLattice *) app;
+    latticeflag = 0;
+  }
+
   // read header info
 
   if (me == 0) {
@@ -73,19 +81,9 @@ void ReadSites::command(int narg, char **arg)
   }
   header();
 
-  // if box already exists, test that data file box is consistent
-  // else create it
+  // if simulation box does not exist, create it
 
-  if (domain->box_exist) {
-    if (fabs(domain->boxxlo-boxxlo) > EPSILON ||
-	fabs(domain->boxylo-boxylo) > EPSILON ||
-	fabs(domain->boxzlo-boxzlo) > EPSILON ||
-	fabs(domain->boxxhi-boxxhi) > EPSILON ||
-	fabs(domain->boxyhi-boxyhi) > EPSILON ||
-	fabs(domain->boxzhi-boxzhi) > EPSILON)
-      error->all("Read_sites simluation box different that current box");
-
-  } else {
+  if (!domain->box_exist) {
     domain->boxxlo = boxxlo;
     domain->boxylo = boxylo;
     domain->boxzlo = boxzlo;
@@ -95,26 +93,6 @@ void ReadSites::command(int narg, char **arg)
 
     domain->set_box();
     domain->box_exist = 1;
-  }
-
-  // if sites already exist, test that data file nglobal is consistent
-
-  if (app->appclass == App::LATTICE) {
-    applattice = (AppLattice *) app;
-    latticeflag = 1;
-  } else if (app->appclass == App::OFF_LATTICE) {
-    appoff = (AppOffLattice *) app;
-    latticeflag = 0;
-  }
-
-  if (app->sites_exist) {
-    if (latticeflag) {
-      if (nglobal != applattice->nglobal)
-	error->all("Number of sites does not match existing sites");
-    } else {
-      if (nglobal != appoff->nglobal)
-	error->all("Number of sites does not match existing sites");
-    }
   }
 
   // read rest of file in free format
@@ -192,6 +170,7 @@ void ReadSites::header()
 
   // defaults
 
+  dimension = 0;
   nglobal = 0;
   maxneigh = 0;
   boxxlo = boxylo = boxzlo = -0.5;
@@ -226,12 +205,44 @@ void ReadSites::header()
 
     // search line for header keyword and set corresponding variable
 
-    if (strstr(line,"sites")) sscanf(line,"%d",&nglobal);
-    else if (strstr(line,"max neighbors")) sscanf(line,"%d",&maxneigh);
-    else if (strstr(line,"xlo xhi")) sscanf(line,"%lg %lg",&boxxlo,&boxxhi);
-    else if (strstr(line,"ylo yhi")) sscanf(line,"%lg %lg",&boxylo,&boxyhi);
-    else if (strstr(line,"zlo zhi")) sscanf(line,"%lg %lg",&boxzlo,&boxzhi);
-    else break;
+    if (strstr(line,"dimension")) {
+      sscanf(line,"%d",&dimension);
+      if (domain->box_exist && dimension != domain->dimension)
+	error->all("Data file dimension does not match existing box");
+    } else if (strstr(line,"sites")) {
+      sscanf(line,"%d",&nglobal);
+      if (app->sites_exist) {
+	if (latticeflag && nglobal != applattice->nglobal)
+	  error->all("Data file number of sites "
+		     "does not match existing sites");
+	if (!latticeflag && nglobal != appoff->nglobal)
+	  error->all("Data file number of sites "
+		     "does not match existing sites");
+      }
+    }
+    else if (strstr(line,"max neighbors")) {
+      sscanf(line,"%d",&maxneigh);
+      if (!latticeflag) 
+	error->all("Off-lattice application data file "
+		   "cannot have maxneigh setting");
+      if (app->sites_exist && maxneigh != applattice->maxneigh)
+	error->all("Data file maxneigh setting does not match existing sites");
+    } else if (strstr(line,"xlo xhi")) {
+      sscanf(line,"%lg %lg",&boxxlo,&boxxhi);
+      if (domain->box_exist && (fabs(domain->boxxlo-boxxlo) > EPSILON ||
+				fabs(domain->boxxhi-boxxhi) > EPSILON))
+	  error->all("Data file simluation box different that current box");
+    } else if (strstr(line,"ylo yhi")) {
+      sscanf(line,"%lg %lg",&boxylo,&boxyhi);
+      if (domain->box_exist && (fabs(domain->boxylo-boxylo) > EPSILON ||
+				fabs(domain->boxyhi-boxyhi) > EPSILON))
+	  error->all("Data file simluation box different that current box");
+    } else if (strstr(line,"zlo zhi")) {
+      sscanf(line,"%lg %lg",&boxzlo,&boxzhi);
+      if (domain->box_exist && (fabs(domain->boxzlo-boxzlo) > EPSILON ||
+				fabs(domain->boxzhi-boxzhi) > EPSILON))
+	  error->all("Data file simluation box different that current box");
+    } else break;
   }
 
   // check that exiting string is a valid section keyword
