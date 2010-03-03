@@ -37,24 +37,25 @@ neighbors of each site (only for on-lattice applications).  Values
 assign per-site values to each site, which can also be done via the
 <A HREF = "set.html">set</A> command.
 </P>
-<P>If a simulation box has not already been created, then the data file
-defines the box size (in the header), and it must define Sites and
-Neighbors (for on-lattice applications).  The Values section is
-optional.
+<P>The read_sites command can be used in one of 3 scenarios:
+</P>
+<P>If a simulation box has not already been created and no event sites
+exist, then the data file defines the box size (in the header), and it
+must define Sites and Neighbors (for on-lattice applications).  The
+Values section is optional, since these can be set later via the
+<A HREF = "set.html">set</A> command.
 </P>
 <P>If a simulation box has already been defined (by the "create_box"
 command or a previous read_sites command), but no sites have previosly
-been defined, then the box size in the header must be the same, and
-the data file must define Sites and Neighbors (for on-lattice
-applications).  The Values section is optional.
+been defined, then the data file must define Sites and Neighbors (for
+on-lattice applications).  The Values section is optional.
 </P>
 <P>If a simulation box has already been defined, and sites have previosly
 been defined (by the "create_sites" command or a previous read_sites
-command), then the box size in the header must be the same, no Sites
-or Neighbors can be specfied, but the Values section may be used.
-This is a means of restarting a simulation using per-site info written
-out by the <A HREF = "dump.html">dump</A> command and reformatted so it can be input
-by this command.
+command), then no Sites or Neighbors can be specfied, but the Values
+section may be used.  This is a means of restarting a simulation using
+per-site info written out by the <A HREF = "dump.html">dump</A> command and
+reformatted into a data file so it can be input by this command.
 </P>
 <HR>
 
@@ -64,7 +65,7 @@ at a time.  Lines can have a trailing comment starting with '#' that
 is ignored.  If the line is blank (only whitespace after comment is
 deleted), it is skipped.  If the line contains a header keyword, the
 corresponding value(s) is read from the line.  If it doesn't contain a
-header keyword, the line begins the body of the file.
+header keyword, the line begins the body of the file. 
 </P>
 <P>The body of the file contains zero or more sections.  The first line
 of a section has only a keyword.  The next line is skipped.  The
@@ -86,8 +87,10 @@ any order.  The value(s) are read from the beginning of the line.
 Thus the keyword <I>sites</I> should be in a line like "1000 sites"; the
 keyword <I>ylo yhi</I> should be in a line like "-10.0 10.0 ylo yhi".  All
 these settings have a default value of 0, except the lo/hi box size
-defaults are -0.5 and 0.5.  A line need only appear if the value is
-different than the default.
+defaults which are -0.5 and 0.5.  A line need only appear if the value
+is different than the default.  If the keyword values have already
+been defined (e.g. box sizes for a previously created simulation box),
+then the values in the data file must match.
 </P>
 <UL><LI><I>dimension</I> = dimension of system = 1,2,3
 <LI><I>sites</I> = number of sites
@@ -137,8 +140,9 @@ x y z = coordinates of site
 </PRE>
 
 </UL>
-<P>There must be N lines in this section where N = number of sites.  The
-lines can appear in any order.
+<P>There must be N lines in this section where N = number of sites and is
+defined by the <I>nglobal</I> keyword in the header section of the file.
+The lines can appear in any order.
 </P>
 <HR>
 
@@ -157,8 +161,9 @@ n1 n2 n3 ... = IDs of neighbor sites
 </PRE>
 
 </UL>
-<P>There must be N lines in this section where N = number of sites.  The
-lines can appear in any order.
+<P>There must be N lines in this section where N = number of sites and is
+defined by the <I>nglobal</I> keyword in the header section of the file.
+The lines can appear in any order.
 </P>
 <P>The number of neighbors can vary from site to site, but there can be
 no more than <I>max neighbors</I> for any one site.  The neighbors of an
@@ -182,8 +187,9 @@ d1,d2,...dN = floating point values for the site
 </PRE>
 
 </UL>
-<P>There must be N lines in this section where N = number of sites.  The
-lines can appear in any order.
+<P>There must be N lines in this section where N = number of sites and is
+defined by the <I>nglobal</I> keyword in the header section of the file.
+The lines can appear in any order.
 </P>
 <P>The number of values per site that should be listed depends on the
 application which defines the number of integer and floating-point
