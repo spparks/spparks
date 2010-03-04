@@ -12,7 +12,7 @@ solve_style command :h3
 
 solve_style style args keyword value ... :pre
 
-style = {{linear} or {tree} or {group} or {none} :ulb,l
+style = {linear} or {tree} or {group} or {none} :ulb,l
   {linear} arg = none
   {tree} arg = none
   {group} args = hi lo 
