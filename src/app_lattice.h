@@ -146,8 +146,8 @@ class AppLattice : public App {
   void ghosts_from_connectivity();
   void connectivity_within_cutoff();
 
-  void create_set(int, int, int);
-  void free_set(int);
+  void create_set(int, int, int, class Solve *);
+  class Solve *free_set(int);
   int id2color(int);
   int find_border_sites(int);
   void boundary_clear_mask(int);

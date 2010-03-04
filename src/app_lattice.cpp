@@ -87,7 +87,11 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
 
 AppLattice::~AppLattice()
 {
-  for (int i = 0; i < nset; i++) free_set(i);
+  Solve *s;
+  for (int i = 0; i < nset; i++) {
+    s = free_set(i);
+    delete s;
+  }
   delete [] set;
 
   delete ranapp;
@@ -192,32 +196,55 @@ void AppLattice::init()
   // create sets based on sectors and coloring
   // set are either all sectors or all colors or both
   // for both, first sets are entire sections, remaining are colors in sectors
+  // if new nset is same as old nset, pass each set's solver to create_set,
+  //   so it can reuse solver and its RNG,
+  //   so consecutive runs are identical to one continuous run
 
-  for (int i = 0; i < nset; i++) free_set(i);
+  int nsetold = nset;
+  Solve **sold = new Solve*[nsetold];
+
+  for (int i = 0; i < nset; i++) sold[i] = free_set(i);
   delete [] set;
 
   if (nsector == 1 && ncolors == 1) {
     nset = 1;
     set = new Set[nset];
-    create_set(0,0,0);
+    if (nset == nsetold) create_set(0,0,0,sold[0]);
+    else create_set(0,0,0,NULL);
   } else if (nsector > 1 && ncolors == 1) {
     nset = nsector;
     set = new Set[nset];
-    for (int i = 0; i < nset; i++) create_set(i,i+1,0);
+    for (int i = 0; i < nset; i++) {
+      if (nset == nsetold) create_set(i,i+1,0,sold[i]);
+      else create_set(i,i+1,0,NULL);
+    }
   } else if (ncolors > 1 && nsector == 1) {
     nset = ncolors;
     set = new Set[nset];
-    for (int i = 0; i < nset; i++) create_set(i,0,i+1);
+    for (int i = 0; i < nset; i++) {
+      if (nset == nsetold) create_set(i,0,i+1,sold[i]);
+      else create_set(i,0,i+1,NULL);
+    }
   } else if (bothflag) {
     nset = nsector + ncolors*nsector;
     set = new Set[nset];
     int m = 0;
+    for (int i = 0; i < nsector; i++) {
+      if (nset == nsetold) create_set(m,i+1,0,sold[m]);
+      else create_set(m,i+1,0,NULL);
+      m++;
+    }
     for (int i = 0; i < nsector; i++) 
-      create_set(m++,i+1,0);
-    for (int i = 0; i < nsector; i++) 
-      for (int j = 0; j < ncolors; j++)
-	create_set(m++,i+1,j+1);
+      for (int j = 0; j < ncolors; j++) {
+	if (nset == nsetold) create_set(m,i+1,j+1,sold[m]);
+        else create_set(m,i+1,j+1,NULL);
+	m++;
+      }
   }
+
+  if (nset != nsetold)
+    for (int i = 0; i < nsetold; i++) delete sold[i];
+  delete [] sold;
 
   // initialize mask array
 
@@ -810,7 +837,7 @@ void AppLattice::stats_header(char *strtmp)
    icolor > 1 = sites of a certain color
  ------------------------------------------------------------------------- */
 
-void AppLattice::create_set(int iset, int isector, int icolor)
+void AppLattice::create_set(int iset, int isector, int icolor, Solve *oldsolve)
 {
   // sector boundaries
 
@@ -902,9 +929,15 @@ void AppLattice::create_set(int iset, int isector, int icolor)
     (double *) memory->smalloc(n*sizeof(double),"app:propensity");
 
   // allocate KMC solver for set
+  // reuse old solver if provided, else delete it
 
-  if (solve) set[iset].solve = solve->clone();
-  else set[iset].solve = NULL;
+  if (solve) {
+    if (oldsolve) set[iset].solve = oldsolve;
+    else set[iset].solve = solve->clone();
+  } else {
+    set[iset].solve = NULL;
+    delete oldsolve;
+  }
 
   // setup border arrays for set
   // nborder = # of sites in sector influenced by site outside sector
@@ -929,16 +962,17 @@ void AppLattice::create_set(int iset, int isector, int icolor)
 
 /* ----------------------------------------------------------------------
    free memory inside a set
+   return Solver so caller can reuse it if desired
  ------------------------------------------------------------------------- */
 
-void AppLattice::free_set(int iset)
+Solve *AppLattice::free_set(int iset)
 {
   memory->sfree(set[iset].border);
   memory->sfree(set[iset].bsites);
-  delete set[iset].solve;
   memory->sfree(set[iset].propensity);
   memory->sfree(set[iset].site2i);
   memory->sfree(set[iset].i2site);
+  return set[iset].solve;
 }
 
 /* ----------------------------------------------------------------------
