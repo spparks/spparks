@@ -49,14 +49,12 @@ of each cluster are appended to this file. The output format is:
 
 Clustering Analysis for Lattice (diag_style cluster) 
 nglobal = <total number of sites>
-nprocs = <number of processors>
+nprocs = <number of processors> :ul
 
-
---------------------------------------------------
 Time = <time>
 ncluster = <total number of cluster> 
 id ivalue dvalue size
- <cluster id> <ivalue> <dvalue> <size>
+<cluster id> <ivalue> <dvalue> <size> :ul
 
 cluster_id is an arbitrary integer assigned uniquely to each cluster.
 It will be different for different numbers of processors.
