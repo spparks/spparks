@@ -116,10 +116,10 @@ method,	serial/no-sectors, serial/sectors, parallel/no-sectors, parallel/sectors
 exact KMC, yes, yes, no, yes
 rKMC random, yes, yes, no, yes
 rKMC raster, yes, yes, no, yes
-rKMC color, yes, no, yes, no :tb(ea=c)
+rKMC color, yes, yes, yes, yes
+rKMC color/strict, yes, no, yes, no :tb(ea=c)
 
-Note that the choice of {color} can also be {color/strict} and that
-masking can also be turned on for rKMC algorithms via the
+Note that masking can also be turned on for rKMC algorithms via the
 "sweep"_sweep.html command if the application supports it.
 Off-lattice applications do not support the {color} or {masking}
 options.
