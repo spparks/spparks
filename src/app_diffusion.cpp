@@ -92,8 +92,6 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
 
   allocated = 0;
 
-  dimension = domain->dimension;
-
   // default settings for app-specific commands
 
   depflag = 0;
@@ -170,9 +168,9 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
     coordlo = atoi(arg[5]);
     coordhi = atoi(arg[6]);
     if (deprate < 0.0) error->all("Illegal deposition command");
-    if (dimension == 2 && (dir[1] >= 0.0 || dir[2] != 0.0))
+    if (domain->dimension == 2 && (dir[1] >= 0.0 || dir[2] != 0.0))
       error->all("Illegal deposition command");
-    if (dimension == 3 && dir[2] >= 0.0)
+    if (domain->dimension == 3 && dir[2] >= 0.0)
       error->all("Illegal deposition command");
     if (d0 < 0.0) error->all("Illegal deposition command");
     if (coordlo < 0 || coordhi > maxneigh || coordlo > coordhi)
@@ -248,6 +246,8 @@ void AppDiffusion::init_app()
 {
   if (!allocated) allocate_data();
   allocated = 1;
+
+  dimension = domain->dimension;
 
   // sweeping timestep
 
