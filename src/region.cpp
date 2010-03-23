@@ -69,7 +69,7 @@ void Region::options(int narg, char **arg)
   if (domain->lattice == NULL)
     error->all("Use of region with undefined lattice");
 
-  xscale = domain->lattice->a1[0];
-  yscale = domain->lattice->a2[1];
-  zscale = domain->lattice->a3[2];
+  xscale = domain->lattice->xlattice;
+  yscale = domain->lattice->ylattice;
+  zscale = domain->lattice->zlattice;
 }

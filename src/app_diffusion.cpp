@@ -631,7 +631,7 @@ double AppDiffusion::site_propensity_nonlinear(int i)
     for (m = 0; m < nsites; m++) pcheck[psites[m]] = 0;
     
     edelta = efinal - einitial;
-    
+
     if (!barrierflag) {
       if (edelta <= 0.0) probone = 1.0;
       else if (temperature > 0.0) 
@@ -1140,8 +1140,6 @@ int AppDiffusion::find_deposition_site(RandomPark *random)
 
   if (closesite < 0) ndeposit_failed++;
   else ndeposit++;
-
-  if (closesite < 0) exit(1);
 
   return closesite;
 }

@@ -39,7 +39,7 @@ class CreateSites : protected Pointers {
   class AppOffLattice *appoff;
 
   int latstyle,nbasis,nx,ny,nz;
-  double latconstx,latconsty,latconstz;
+  double xlattice,ylattice,zlattice;
 
   int ***cmap;                 // connectivity map for regular lattices
                                // cmap[nbasis][maxneigh][4]
@@ -59,9 +59,8 @@ class CreateSites : protected Pointers {
 
   int connect(int, int);
   void offsets(int, double **);
-  void offsets_2d(int, double **, double, double, double, double, int, int **);
-  void offsets_3d(int, double **, double, double, double, double, double,
-		  int, int **);
+  void offsets_2d(int, double **, double, double, int, int **);
+  void offsets_3d(int, double **, double, double, int, int **);
 };
 
 }

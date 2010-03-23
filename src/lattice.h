@@ -21,7 +21,7 @@ namespace SPPARKS_NS {
 class Lattice : protected Pointers {
  public:
   int style;                           // enum list of NONE,SC,FCC,etc
-  double latconst;                     // lattice constant
+  double xlattice,ylattice,zlattice;   // lattice scale factors in 3 dims
   double a1[3],a2[3],a3[3];            // edge vectors of unit cell
   int nbasis;                          // # of basis atoms in unit cell
   double **basis;                      // fractional coords of each basis atom
@@ -35,6 +35,7 @@ class Lattice : protected Pointers {
   int id2color(int, int, int, int, int);
 
 private:
+  double latconst;                     // lattice constant
   double origin[3];                    // lattice origin
   int orientx[3];                      // lattice orientation vecs
   int orienty[3];                      // orientx = what lattice dir lies

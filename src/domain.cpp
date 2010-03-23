@@ -152,10 +152,10 @@ void Domain::procs2domain_1d()
     subxhi = boxxlo + (myloc[0]+1) * xprd/procgrid[0];
   else subxhi = boxxhi;
 
-  subylo = -0.5;
-  subyhi = 0.5;
-  subzlo = -0.5;
-  subzhi = 0.5;
+  subylo = boxylo;
+  subyhi = boxyhi;
+  subzlo = boxzlo;
+  subzhi = boxzhi;
 }
 
 /* ----------------------------------------------------------------------
@@ -213,8 +213,8 @@ void Domain::procs2domain_2d()
     subyhi = boxylo + (myloc[1]+1) * yprd/procgrid[1];
   else subyhi = boxyhi;
 
-  subzlo = -0.5;
-  subzhi = 0.5;
+  subzlo = boxzlo;
+  subzhi = boxzhi;
 }
 
 /* ----------------------------------------------------------------------

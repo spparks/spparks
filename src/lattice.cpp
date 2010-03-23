@@ -148,6 +148,12 @@ Lattice::Lattice(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   a3[0] = 0.0;  a3[1] = 0.0;  a3[2] = 1.0;
 
   if (style == TRI) a2[1] = sqrt(3.0);
+
+  // lattice spacings
+
+  xlattice = a1[0]*latconst;
+  ylattice = a2[1]*latconst;
+  zlattice = a3[2]*latconst;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -165,23 +165,23 @@ void CreateSites::command(int narg, char **arg)
       latstyle == FCC || latstyle == BCC || latstyle == DIAMOND ||
       latstyle == FCC_OCTA_TETRA) {
 
-    latconstx = domain->lattice->a1[0];
-    latconsty = domain->lattice->a2[1];
-    latconstz = domain->lattice->a3[2];
+    xlattice = domain->lattice->xlattice;
+    ylattice = domain->lattice->ylattice;
+    zlattice = domain->lattice->zlattice;
 
-    nx = static_cast<int> (domain->xprd / latconstx);
-    if (dimension >= 2) ny = static_cast<int> (domain->yprd / latconsty);
+    nx = static_cast<int> (domain->xprd / xlattice);
+    if (dimension >= 2) ny = static_cast<int> (domain->yprd / ylattice);
     else ny = 1;
-    if (dimension == 3) nz = static_cast<int> (domain->zprd / latconstz);
+    if (dimension == 3) nz = static_cast<int> (domain->zprd / zlattice);
     else nz = 1;
 
     // check that current box is integer multiple of lattice constants
 
-    if (fabs(nx*latconstx - domain->xprd) > EPSILON)
+    if (fabs(nx*xlattice - domain->xprd) > EPSILON)
       error->all("Simulation box is not multiple of current lattice settings");
-    if (dimension > 1 && fabs(ny*latconsty - domain->yprd) > EPSILON)
+    if (dimension > 1 && fabs(ny*ylattice - domain->yprd) > EPSILON)
       error->all("Simulation box is not multiple of current lattice settings");
-    if (dimension > 2 && fabs(nz*latconstz - domain->zprd) > EPSILON)
+    if (dimension > 2 && fabs(nz*zlattice - domain->zprd) > EPSILON)
       error->all("Simulation box is not multiple of current lattice settings");
 
     if (latticeflag) {
@@ -210,7 +210,7 @@ void CreateSites::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   generate sites on structured lattice
+   generate sites on structured lattice that fits in simulation box
    loop over entire lattice
    each proc keeps those in its sub-domain
  ------------------------------------------------------------------------- */
@@ -226,9 +226,8 @@ void CreateSites::structured_lattice()
   double boxxlo = domain->boxxlo;
   double boxylo = domain->boxylo;
   double boxzlo = domain->boxzlo;
-  double boxxhi = domain->boxxhi;
-  double boxyhi = domain->boxyhi;
-  double boxzhi = domain->boxzhi;
+  if (dimension <= 1) boxylo = 0.0;
+  if (dimension <= 2) boxzlo = 0.0;
 
   double subxlo = domain->subxlo;
   double subylo = domain->subylo;
@@ -247,9 +246,9 @@ void CreateSites::structured_lattice()
     for (j = 0; j < ny; j++)
       for (i = 0; i < nx; i++)
 	for (m = 0; m < nbasis; m++) {
-	  x = (i + basis[m][0]) * latconstx + boxxlo;
-	  y = (j + basis[m][1]) * latconsty + boxylo;
-	  z = (k + basis[m][2]) * latconstz + boxzlo;
+	  x = (i + basis[m][0])*xlattice + boxxlo;
+	  y = (j + basis[m][1])*ylattice + boxylo;
+	  z = (k + basis[m][2])*zlattice + boxzlo;
 
 	  if (x < subxlo || x >= subxhi || 
 	      y < subylo || y >= subyhi || 
@@ -272,9 +271,9 @@ void CreateSites::structured_lattice()
       for (i = 0; i < nx; i++)
 	for (m = 0; m < nbasis; m++) {
 	  n++;
-	  x = (i + basis[m][0]) * latconstx + boxxlo;
-	  y = (j + basis[m][1]) * latconsty + boxylo;
-	  z = (k + basis[m][2]) * latconstz + boxzlo;
+	  x = (i + basis[m][0])*xlattice + boxxlo;
+	  y = (j + basis[m][1])*ylattice + boxylo;
+	  z = (k + basis[m][2])*zlattice + boxzlo;
 
 	  if (x < subxlo || x >= subxhi || 
 	      y < subylo || y >= subyhi || 
@@ -1010,68 +1009,52 @@ void CreateSites::offsets(int maxneigh, double **basis)
 
   if (latstyle == SQ_4N)
     for (int m = 0; m < nbasis; m++)
-      offsets_2d(m,basis,latconstx,latconsty,
-		 latconstx,latconstx,maxneigh,cmap[m]);
+      offsets_2d(m,basis,xlattice,xlattice,maxneigh,cmap[m]);
   else if (latstyle == SQ_8N)
     for (int m = 0; m < nbasis; m++)
-      offsets_2d(m,basis,latconstx,latconsty,
-		 latconstx,sqrt(2.0)*latconstx,maxneigh,cmap[m]);
+      offsets_2d(m,basis,xlattice,sqrt(2.0)*xlattice,maxneigh,cmap[m]);
   else if (latstyle == TRI)
     for (int m = 0; m < nbasis; m++)
-      offsets_2d(m,basis,latconstx,latconsty,
-		 latconstx,latconstx,maxneigh,cmap[m]);
+      offsets_2d(m,basis,xlattice,xlattice,maxneigh,cmap[m]);
 
   if (latstyle == SC_6N)
     for (int m = 0; m < nbasis; m++)
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		 latconstx,latconstx,maxneigh,cmap[m]);
+      offsets_3d(m,basis,xlattice,xlattice,maxneigh,cmap[m]);
   else if (latstyle == SC_26N)
     for (int m = 0; m < nbasis; m++)
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		latconstx,sqrt(3.0)*latconstx,maxneigh,cmap[m]);
+      offsets_3d(m,basis,xlattice,sqrt(3.0)*xlattice,maxneigh,cmap[m]);
   else if (latstyle == FCC)
     for (int m = 0; m < nbasis; m++)
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		sqrt(2.0)/2.0*latconstx,sqrt(2.0)/2.0*latconstx,
+      offsets_3d(m,basis,sqrt(2.0)/2.0*xlattice,sqrt(2.0)/2.0*xlattice,
 		 maxneigh,cmap[m]);
   else if (latstyle == BCC)
     for (int m = 0; m < nbasis; m++)
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		sqrt(3.0)/2.0*latconstx,sqrt(3.0)/2.0*latconstx,
+      offsets_3d(m,basis,sqrt(3.0)/2.0*xlattice,sqrt(3.0)/2.0*xlattice,
 		 maxneigh,cmap[m]);
   else if (latstyle == DIAMOND)
     for (int m = 0; m < nbasis; m++)
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		 sqrt(3.0)/4.0*latconstx,sqrt(3.0)/4.0*latconstx,
+      offsets_3d(m,basis,sqrt(3.0)/4.0*xlattice,sqrt(3.0)/4.0*xlattice,
 		 maxneigh,cmap[m]);
 
   else if (latstyle == FCC_OCTA_TETRA) {
     for (int m = 0; m < 4; m++) {
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		 sqrt(2.0)/2.0*latconstx,sqrt(2.0)/2.0*latconstx,
+      offsets_3d(m,basis,sqrt(2.0)/2.0*xlattice,sqrt(2.0)/2.0*xlattice,
 		 12,&cmap[m][0]);
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		 0.5*latconstx,0.5*latconstx,6,&cmap[m][12]);
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		 sqrt(3.0)/4.0*latconstx,sqrt(3.0)/4.0*latconstx,
+      offsets_3d(m,basis,0.5*xlattice,0.5*xlattice,6,&cmap[m][12]);
+      offsets_3d(m,basis,sqrt(3.0)/4.0*xlattice,sqrt(3.0)/4.0*xlattice,
 		 8,&cmap[m][18]);
     }
     for (int m = 4; m < 8; m++) {
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		 0.5*latconstx,0.5*latconstx,6,&cmap[m][0]);
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		 sqrt(2.0)/2.0*latconstx,sqrt(2.0)/2.0*latconstx,
+      offsets_3d(m,basis,0.5*xlattice,0.5*xlattice,6,&cmap[m][0]);
+      offsets_3d(m,basis,sqrt(2.0)/2.0*xlattice,sqrt(2.0)/2.0*xlattice,
 		 12,&cmap[m][6]);
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		 sqrt(3.0)/4.0*latconstx,sqrt(3.0)/4.0*latconstx,
+      offsets_3d(m,basis,sqrt(3.0)/4.0*xlattice,sqrt(3.0)/4.0*xlattice,
 		 8,&cmap[m][18]);
     }
     for (int m = 8; m < nbasis; m++) {
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		 sqrt(3.0)/4.0*latconstx,sqrt(3.0)/4.0*latconstx,
+      offsets_3d(m,basis,sqrt(3.0)/4.0*xlattice,sqrt(3.0)/4.0*xlattice,
 		 8,&cmap[m][0]);
-      offsets_3d(m,basis,latconstx,latconsty,latconstz,
-		 0.5*latconstx,0.5*latconstx,6,&cmap[m][8]);
+      offsets_3d(m,basis,0.5*xlattice,0.5*xlattice,6,&cmap[m][8]);
     }
   }
 }
@@ -1079,7 +1062,6 @@ void CreateSites::offsets(int maxneigh, double **basis)
 /* ---------------------------------------------------------------------- */
 
 void CreateSites::offsets_2d(int ibasis, double **basis, 
-			    double xlat, double ylat,
 			    double cutlo, double cuthi,
 			    int ntarget, int **cmapone)
 {
@@ -1087,13 +1069,13 @@ void CreateSites::offsets_2d(int ibasis, double **basis,
   double x0,y0,delx,dely,r;
 
   n = 0;
-  x0 = basis[ibasis][0] * xlat;
-  y0 = basis[ibasis][1] * ylat;
+  x0 = basis[ibasis][0] * xlattice;
+  y0 = basis[ibasis][1] * ylattice;
   for (i = -1; i <= 1; i++) {
     for (j = -1; j <= 1; j++) {
       for (m = 0; m < nbasis; m++) {
-	delx = (i+basis[m][0])*xlat - x0;
-	dely = (j+basis[m][1])*ylat - y0;
+	delx = (i+basis[m][0])*xlattice - x0;
+	dely = (j+basis[m][1])*ylattice - y0;
 	r = sqrt(delx*delx + dely*dely);
 	if (r > cutlo-EPSILON && r < cuthi+EPSILON) {
 	  if (n == ntarget) error->all("Incorrect lattice neighbor count");
@@ -1112,7 +1094,6 @@ void CreateSites::offsets_2d(int ibasis, double **basis,
 /* ---------------------------------------------------------------------- */
 
 void CreateSites::offsets_3d(int ibasis, double **basis, 
-			    double xlat, double ylat, double zlat,
 			    double cutlo, double cuthi, 
 			    int ntarget, int **cmapone)
 {
@@ -1120,16 +1101,16 @@ void CreateSites::offsets_3d(int ibasis, double **basis,
   double x0,y0,z0,delx,dely,delz,r;
 
   n = 0;
-  x0 = basis[ibasis][0] * xlat;
-  y0 = basis[ibasis][1] * ylat;
-  z0 = basis[ibasis][2] * zlat;
+  x0 = basis[ibasis][0] * xlattice;
+  y0 = basis[ibasis][1] * ylattice;
+  z0 = basis[ibasis][2] * zlattice;
   for (i = -1; i <= 1; i++) {
     for (j = -1; j <= 1; j++) {
       for (k = -1; k <= 1; k++) {
 	for (m = 0; m < nbasis; m++) {
-	  delx = (i+basis[m][0])*xlat - x0;
-	  dely = (j+basis[m][1])*ylat - y0;
-	  delz = (k+basis[m][2])*zlat - z0;
+	  delx = (i+basis[m][0])*xlattice - x0;
+	  dely = (j+basis[m][1])*ylattice - y0;
+	  delz = (k+basis[m][2])*zlattice - z0;
 	  r = sqrt(delx*delx + dely*dely + delz*delz);
 	  if (r > cutlo-EPSILON && r < cuthi+EPSILON) {
 	    if (n == ntarget) error->all("Incorrect lattice neighbor count");
