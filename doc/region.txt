@@ -34,7 +34,7 @@ zero or more keyword/value pairs may be appended :l
 keyword = {side} :l
   {side} value = {in} or {out}
     {in} = the region is inside the specified geometry
-    {out} = the region is outside the specified geometry
+    {out} = the region is outside the specified geometry :pre
 :ule
 
 [Examples:]
