@@ -29,7 +29,7 @@
 using namespace SPPARKS_NS;
 
 enum{IARRAY,DARRAY,X,Y,Z,XYZ,ID};
-enum{VALUE,RANGE,DISPLACE};
+enum{VALUE,RANGE,UNIQUE,DISPLACE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
 
@@ -93,6 +93,10 @@ void Set::command(int narg, char **arg)
       dvaluehi = atof(arg[3]);
     } else error->all("Illegal set command");
     iarg = 4;
+  } else if (strcmp(arg[1],"unique") == 0) {
+    if (narg < 2) error->all("Illegal set command");
+    rhs = UNIQUE;
+    iarg = 2;
   } else if (strcmp(arg[1],"displace") == 0) {
     if (narg < 3) error->all("Illegal set command");
     rhs = DISPLACE;
@@ -198,9 +202,10 @@ void Set::command(int narg, char **arg)
     latticeflag = 0;
   }
 
-  if (rhs == VALUE) set_value(lhs);
-  else if (rhs == RANGE) set_range(lhs);
-  else if (rhs == DISPLACE) set_displace(lhs);
+  if (rhs == VALUE) set_single(lhs,rhs);
+  else if (rhs == RANGE) set_range(lhs,rhs);
+  else if (rhs == UNIQUE) set_single(lhs,rhs);
+  else if (rhs == DISPLACE) set_displace(lhs,rhs);
 
   // statistics
 
@@ -219,10 +224,11 @@ void Set::command(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    set sites to a single value
+   ivalue for VALUE, site ID for UNIQUE
    account for loop, region, fraction, condition options
 ------------------------------------------------------------------------- */
 
-void Set::set_value(int lhs)
+void Set::set_single(int lhs, int rhs)
 {
   int i,iglobal;
   int nlocal,nglobal;
@@ -261,7 +267,8 @@ void Set::set_value(int lhs)
       if (regionflag == 0 && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
-	  iarray[siteindex][i] = ivalue;
+	  if (rhs == VALUE) iarray[siteindex][i] = ivalue;
+	  else iarray[siteindex][i] = id[siteindex];
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
@@ -278,7 +285,8 @@ void Set::set_value(int lhs)
 	  if (loc == hash.end()) continue;
 	  i = loc->second;
 	  if (ncondition && condition(i)) continue;
-	  iarray[siteindex][i] = ivalue;
+	  if (rhs == VALUE) iarray[siteindex][i] = ivalue;
+	  else iarray[siteindex][i] = id[siteindex];
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -289,7 +297,8 @@ void Set::set_value(int lhs)
 	  i = loc->second;
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
-	    iarray[siteindex][i] = ivalue;
+	    if (rhs == VALUE) iarray[siteindex][i] = ivalue;
+	    else iarray[siteindex][i] = id[siteindex];
 	    count++;
 	  }
 	}
@@ -299,14 +308,16 @@ void Set::set_value(int lhs)
       if (regionflag == 0 && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
-	  darray[siteindex][i] = dvalue;
+	  if (rhs == VALUE) darray[siteindex][i] = dvalue;
+	  else darray[siteindex][i] = id[siteindex];
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
-	    darray[siteindex][i] = dvalue;
+	    if (rhs == VALUE) darray[siteindex][i] = dvalue;
+	    else darray[siteindex][i] = id[siteindex];
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
@@ -316,7 +327,8 @@ void Set::set_value(int lhs)
 	  if (loc == hash.end()) continue;
 	  i = loc->second;
 	  if (ncondition && condition(i)) continue;
-	  darray[siteindex][i] = dvalue;
+	  if (rhs == VALUE) darray[siteindex][i] = dvalue;
+	  else darray[siteindex][i] = id[siteindex];
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -327,7 +339,8 @@ void Set::set_value(int lhs)
 	  i = loc->second;
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
-	    darray[siteindex][i] = dvalue;
+	    if (rhs == VALUE) darray[siteindex][i] = dvalue;
+	    else darray[siteindex][i] = id[siteindex];
 	    count++;
 	  }
 	}
@@ -340,21 +353,24 @@ void Set::set_value(int lhs)
       if (regionflag == 0 && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
-	  iarray[siteindex][i] = ivalue;
+	  if (rhs == VALUE) iarray[siteindex][i] = ivalue;
+	  else iarray[siteindex][i] = id[siteindex];
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
-	    iarray[siteindex][i] = ivalue;
+	    if (rhs == VALUE) iarray[siteindex][i] = ivalue;
+	    else iarray[siteindex][i] = id[siteindex];
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
 	for (i = 0; i < nlocal; i++) {
 	  if (random->uniform() >= fraction) continue;
 	  if (ncondition && condition(i)) continue;
-	  iarray[siteindex][i] = ivalue;
+	  if (rhs == VALUE) iarray[siteindex][i] = ivalue;
+	  else iarray[siteindex][i] = id[siteindex];
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -362,7 +378,8 @@ void Set::set_value(int lhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (random->uniform() >= fraction) continue;
 	    if (ncondition && condition(i)) continue;
-	    iarray[siteindex][i] = ivalue;
+	    if (rhs == VALUE) iarray[siteindex][i] = ivalue;
+	    else iarray[siteindex][i] = id[siteindex];
 	    count++;
 	  }
       }
@@ -371,21 +388,24 @@ void Set::set_value(int lhs)
       if (regionflag == 0 && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
-	  darray[siteindex][i] = dvalue;
+	  if (rhs == VALUE) darray[siteindex][i] = ivalue;
+	  else darray[siteindex][i] = id[siteindex];
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
-	    darray[siteindex][i] = dvalue;
+	    if (rhs == VALUE) darray[siteindex][i] = ivalue;
+	    else darray[siteindex][i] = id[siteindex];
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
 	for (i = 0; i < nlocal; i++) {
 	  if (random->uniform() < fraction) continue;
 	  if (ncondition && condition(i)) continue;
-	  darray[siteindex][i] = dvalue;
+	  if (rhs == VALUE) darray[siteindex][i] = ivalue;
+	  else darray[siteindex][i] = id[siteindex];
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -393,7 +413,8 @@ void Set::set_value(int lhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (random->uniform() < fraction) continue;
 	    if (ncondition && condition(i)) continue;
-	    darray[siteindex][i] = dvalue;
+	    if (rhs == VALUE) darray[siteindex][i] = ivalue;
+	    else darray[siteindex][i] = id[siteindex];
 	    count++;
 	  }
       }
@@ -408,7 +429,7 @@ void Set::set_value(int lhs)
    account for loop, region, fraction, condition options
 ------------------------------------------------------------------------- */
 
-void Set::set_range(int lhs)
+void Set::set_range(int lhs, int rhs)
 {
   int i,iglobal;
   int nlocal,nglobal;
@@ -623,7 +644,7 @@ void Set::set_range(int lhs)
    displace site coordinates
 ------------------------------------------------------------------------- */
 
-void Set::set_displace(int lhs)
+void Set::set_displace(int lhs, int rhs)
 {
 }
 

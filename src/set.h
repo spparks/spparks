@@ -49,9 +49,9 @@ class Set : protected Pointers {
   class AppLattice *applattice;
   class AppOffLattice *appoff;
     
-  void set_value(int);
-  void set_range(int);
-  void set_displace(int);
+  void set_single(int, int);
+  void set_range(int, int);
+  void set_displace(int, int);
   int condition(int);
 };
 
