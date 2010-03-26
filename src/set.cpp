@@ -268,14 +268,15 @@ void Set::set_single(int lhs, int rhs)
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	  else iarray[siteindex][i] = id[siteindex];
+	  else iarray[siteindex][i] = id[i];
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
-	    iarray[siteindex][i] = ivalue;
+	    if (rhs == VALUE) iarray[siteindex][i] = ivalue;
+	    else iarray[siteindex][i] = id[i];
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
@@ -286,7 +287,7 @@ void Set::set_single(int lhs, int rhs)
 	  i = loc->second;
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	  else iarray[siteindex][i] = id[siteindex];
+	  else iarray[siteindex][i] = id[i];
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -298,7 +299,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	    else iarray[siteindex][i] = id[siteindex];
+	    else iarray[siteindex][i] = id[i];
 	    count++;
 	  }
 	}
@@ -309,7 +310,7 @@ void Set::set_single(int lhs, int rhs)
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) darray[siteindex][i] = dvalue;
-	  else darray[siteindex][i] = id[siteindex];
+	  else darray[siteindex][i] = id[i];
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
@@ -317,7 +318,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) darray[siteindex][i] = dvalue;
-	    else darray[siteindex][i] = id[siteindex];
+	    else darray[siteindex][i] = id[i];
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
@@ -328,7 +329,7 @@ void Set::set_single(int lhs, int rhs)
 	  i = loc->second;
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) darray[siteindex][i] = dvalue;
-	  else darray[siteindex][i] = id[siteindex];
+	  else darray[siteindex][i] = id[i];
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -340,7 +341,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) darray[siteindex][i] = dvalue;
-	    else darray[siteindex][i] = id[siteindex];
+	    else darray[siteindex][i] = id[i];
 	    count++;
 	  }
 	}
@@ -354,7 +355,7 @@ void Set::set_single(int lhs, int rhs)
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	  else iarray[siteindex][i] = id[siteindex];
+	  else iarray[siteindex][i] = id[i];
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
@@ -362,7 +363,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	    else iarray[siteindex][i] = id[siteindex];
+	    else iarray[siteindex][i] = id[i];
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
@@ -370,7 +371,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (random->uniform() >= fraction) continue;
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	  else iarray[siteindex][i] = id[siteindex];
+	  else iarray[siteindex][i] = id[i];
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -379,7 +380,7 @@ void Set::set_single(int lhs, int rhs)
 	    if (random->uniform() >= fraction) continue;
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	    else iarray[siteindex][i] = id[siteindex];
+	    else iarray[siteindex][i] = id[i];
 	    count++;
 	  }
       }
@@ -389,7 +390,7 @@ void Set::set_single(int lhs, int rhs)
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) darray[siteindex][i] = ivalue;
-	  else darray[siteindex][i] = id[siteindex];
+	  else darray[siteindex][i] = id[i];
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
@@ -397,7 +398,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) darray[siteindex][i] = ivalue;
-	    else darray[siteindex][i] = id[siteindex];
+	    else darray[siteindex][i] = id[i];
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
@@ -405,7 +406,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (random->uniform() < fraction) continue;
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) darray[siteindex][i] = ivalue;
-	  else darray[siteindex][i] = id[siteindex];
+	  else darray[siteindex][i] = id[i];
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -414,7 +415,7 @@ void Set::set_single(int lhs, int rhs)
 	    if (random->uniform() < fraction) continue;
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) darray[siteindex][i] = ivalue;
-	    else darray[siteindex][i] = id[siteindex];
+	    else darray[siteindex][i] = id[i];
 	    count++;
 	  }
       }
