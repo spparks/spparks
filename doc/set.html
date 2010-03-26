@@ -20,18 +20,19 @@
 <LI>style = <I>value</I> or <I>range</I> or <I>displace</I> 
 
 <PRE>  <I>value</I> arg = nvalue
-   nvalue = value to set sites to
- <I>range</I> args = lo hi
-   lo,hi = range of values to set sites to
- <I>displace</I> arg = delta
-    delta = max distance to displace the site 
+    nvalue = value to set sites to
+  <I>range</I> args = lo hi
+    lo,hi = range of values to set sites to
+  <I>unique</I> args = none
+  <I>displace</I> arg = delta
+     delta = max distance to displace the site 
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
 <LI>keyword = <I>fraction</I> or <I>region</I> or <I>loop</I> or <I>if</I> 
 
 <PRE>  <I>fraction</I> value = frac
-    frac = fractional value > 0 and <= 1.0
+    frac = number > 0 and <= 1.0
   <I>region</I> args = region-ID
     region-ID = ID of region that sites must be part of
   <I>loop</I> arg = <I>all</I> or <I>local</I>
@@ -77,6 +78,10 @@ value, depending on what kind of per-site quantity is being set.
 between <I>lo</I> and <I>hi</I> (inclusive).  Both <I>lo</I> and <I>hi</I> should be
 either integer or floating-point numeric values, depending on what kind
 of per-site quantity is being set.
+</P>
+<P>For style <I>unique</I>, the per-site quantity is set to the site ID, which
+is effectively a value unique to each site.  This can be useful, for
+example, for setting the initial spin of each site to a unique value.
 </P>
 <P>NOTE: The <I>displace</I> style is not yet implemented but will be soon.
 The following text explains how it will work for off-lattice
