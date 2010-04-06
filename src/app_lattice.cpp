@@ -808,6 +808,8 @@ void AppLattice::set_temperature(int narg, char **arg)
 
 void AppLattice::stats(char *strtmp)
 {
+  // accumulate counts in 64-bit ints to avoid overflow
+
   uint64_t naccept_one,naccept_all;
   naccept_one = naccept;
   MPI_Allreduce(&naccept_one,&naccept_all,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
