@@ -808,13 +808,16 @@ void AppLattice::set_temperature(int narg, char **arg)
 
 void AppLattice::stats(char *strtmp)
 {
-  int naccept_all;
-  MPI_Allreduce(&naccept,&naccept_all,1,MPI_INT,MPI_SUM,world);
-  if (solve) sprintf(strtmp,"%10g %10d %10d %10d",time,naccept_all,0,0);
+  uint64_t naccept_one,naccept_all;
+  naccept_one = naccept;
+  MPI_Allreduce(&naccept_one,&naccept_all,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
+  if (solve) sprintf(strtmp,"%10g %10lu %10d %10d",time,naccept_all,0,0);
   else {
-    int nattempt_all;
-    MPI_Allreduce(&nattempt,&nattempt_all,1,MPI_INT,MPI_SUM,world);
-    sprintf(strtmp,"%10g %10d %10d %10d",
+    uint64_t nattempt_one,nattempt_all;
+    nattempt_one = nattempt;
+    MPI_Allreduce(&nattempt_one,&nattempt_all,1,
+		  MPI_UNSIGNED_LONG,MPI_SUM,world);
+    sprintf(strtmp,"%10g %10lu %10lu %10d",
 	    time,naccept_all,nattempt_all-naccept_all,nsweeps);
   }
 }
