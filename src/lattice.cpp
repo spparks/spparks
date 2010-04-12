@@ -60,12 +60,12 @@ Lattice::Lattice(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
       style == TRI || style == SC_6N || style == SC_26N ||
       style == FCC || style == BCC || style == DIAMOND || 
       style == FCC_OCTA_TETRA) {
-    if (narg != 2) error->all("Illegal app_style command");
+    if (narg != 2) error->all("Illegal lattice command");
     latconst = atof(arg[1]);
   }
 
   if (style == RANDOM_1D || style == RANDOM_2D || style == RANDOM_3D) {
-    if (narg != 3) error->all("Illegal app_style command");
+    if (narg != 3) error->all("Illegal lattice command");
     latconst = 1.0;
     nrandom = atoi(arg[1]);
     cutoff = atof(arg[2]);
