@@ -27,8 +27,6 @@ Mar 2010 version.
 
 :line
 
-:line
-
 [27 Mar 2010]
 
 Added an option to the "set"_doc/set.html command to set
