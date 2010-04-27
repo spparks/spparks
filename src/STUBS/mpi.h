@@ -24,6 +24,7 @@
 #define MPI_CHAR 4
 #define MPI_BYTE 5
 #define MPI_DOUBLE_INT 6
+#define MPI_UNSIGNED_LONG 7
 
 #define MPI_SUM 1
 #define MPI_MAX 2
@@ -38,6 +39,10 @@
 #define MPI_Datatype int
 #define MPI_Op int
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* MPI data structs */
 
 struct MPI_Status {
@@ -47,10 +52,12 @@ struct MPI_Status {
 /* Function prototypes for MPI stubs */
 
 void MPI_Init(int *argc, char ***argv);
+void MPI_Initialized(int *flag);
+void MPI_Finalize();
+
 void MPI_Comm_rank(MPI_Comm comm, int *me);
 void MPI_Comm_size(MPI_Comm comm, int *nprocs);
 void MPI_Abort(MPI_Comm comm, int errorcode);
-void MPI_Finalize();
 double MPI_Wtime();
 
 void MPI_Send(void *buf, int count, MPI_Datatype datatype,
@@ -106,5 +113,9 @@ void MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 void MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		    void *recvbuf, int *recvcounts, int *displs,
 		    MPI_Datatype recvtype, int root, MPI_Comm comm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
