@@ -1,0 +1,8 @@
+6Apr10 version files changed by 27Apr10 upgrade:
+
+src/app.cpp
+src/app.h
+src/app_lattice.cpp
+src/app_potts_neighonly.cpp
+src/dump.cpp
+src/lattice.cpp
