@@ -17,6 +17,17 @@ The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
+[29 Apr 2010]
+
+Added error checks to prevent the "deposition"_doc/deposition.html
+option in "app_style diffusion"_doc/app_diffusion.html when running in
+parallel or with multiple sectors.
+
+This is the "list of changed files"_patches/files.29Apr10 from the 28
+Apr 2010 version.
+
+:line
+
 [28 Apr 2010]
 
 Added support to the MPI STUBS lib to support the 6Apr10 patch.
