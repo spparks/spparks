@@ -244,6 +244,11 @@ void AppDiffusion::grow_app()
 
 void AppDiffusion::init_app()
 {
+  if (depflag && nprocs > 1)
+    error->all("Cannot perform deposition in parallel");
+  if (depflag && nsector > 1)
+    error->all("Cannot perform deposition with multiple sectors");
+
   if (!allocated) allocate_data();
   allocated = 1;
 
@@ -705,7 +710,6 @@ void AppDiffusion::site_event_linear(int i, class RandomPark *random)
   if (events[ievent].style == DEPOSITION) {
     m = find_deposition_site(random);
     if (m < 0) return;
-    lattice[m] = TOP;
     lattice[m] = OCCUPIED;
     i = j = m;
   } else {
@@ -792,7 +796,6 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
   if (events[ievent].style == DEPOSITION) {
     m = find_deposition_site(random);
     if (m < 0) return;
-    lattice[m] = TOP;
     lattice[m] = OCCUPIED;
     i = j = m;
   } else {
