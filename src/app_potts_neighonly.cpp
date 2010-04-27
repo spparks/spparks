@@ -23,7 +23,6 @@ using namespace SPPARKS_NS;
 AppPottsNeighOnly::AppPottsNeighOnly(SPPARKS *spk, int narg, char **arg) : 
   AppPotts(spk,narg,arg) {}
 
-
 /* ----------------------------------------------------------------------
    initialize before each run
    check validity of site values

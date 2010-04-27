@@ -63,6 +63,7 @@ class App : protected Pointers {
   double nextoutput;
 
   void create_arrays();
+  void recreate_arrays();
 };
 
 }

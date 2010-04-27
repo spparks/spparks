@@ -1202,7 +1202,7 @@ void AppLattice::add_site(int n, double x, double y, double z)
   index[nlocal] = nlocal;
 
   for (int i = 0; i < ninteger; i++) iarray[i][nlocal] = 0;
-  for (int i = 0; i < ndouble; i++) darray[i][nlocal] = 0;
+  for (int i = 0; i < ndouble; i++) darray[i][nlocal] = 0.0;
 
   nlocal++;
 }
@@ -1229,7 +1229,7 @@ void AppLattice::add_ghost(int n, double x, double y, double z,
   index[m] = index_owner;
 
   for (int i = 0; i < ninteger; i++) iarray[i][m] = 0;
-  for (int i = 0; i < ndouble; i++) darray[i][m] = 0;
+  for (int i = 0; i < ndouble; i++) darray[i][m] = 0.0;
 
   nghost++;
 }

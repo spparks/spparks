@@ -69,6 +69,15 @@ void App::create_arrays()
 
 /* ---------------------------------------------------------------------- */
 
+void App::recreate_arrays()
+{
+  delete [] iarray;
+  delete [] darray;
+  create_arrays();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void App::run(int narg, char **arg)
 {
   if (appclass != GENERAL && domain->box_exist == 0)

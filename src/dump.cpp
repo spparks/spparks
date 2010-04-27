@@ -167,7 +167,7 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
     } else if (word[0] == 'd') {
       pack_choice[i] = &Dump::pack_darray;
       vtype[i] = DOUBLE;
-      vindex[i] = atoi(&word[1]) - 1;
+      vindex[i] = atoi(&word[1]);
       if (latticeflag && (vindex[i] < 1 || vindex[i] > app->ndouble))
 	error->all("Invalid keyword in dump command");
       vindex[i]--;
