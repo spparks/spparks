@@ -61,7 +61,8 @@ This command can only be used as part of the "app_style
 diffusion"_app_diffusion.html application.
 
 Deposition can currently only be done in serial simulations, not
-parallel.
+parallel.  In serial, it can not be used with multiple
+"sectors"_sector.html, only one sector.
 
 [Related commands:]
 
