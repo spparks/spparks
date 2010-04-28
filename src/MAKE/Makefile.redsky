@@ -1,0 +1,39 @@
+# redsky = Sun cluster, Nehalem X5570 quad-core, Infiniband, OpenMPI, Intel 11.1 compilers 
+
+SHELL = /bin/sh
+.IGNORE:
+
+# System-specific settings
+
+CC =		mpicxx
+CCFLAGS =	-O
+DEPFLAGS =	-M
+LINK =		mpicxx
+LINKFLAGS =	-O
+USRLIB =	
+SYSLIB =	-lstdc++ -lm
+SIZE =		size
+
+# Test rule
+
+test:
+
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)
