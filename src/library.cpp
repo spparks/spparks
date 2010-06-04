@@ -93,8 +93,8 @@ double spparks_energy(void *ptr)
   SPPARKS *spk = (SPPARKS *) ptr;
 
   int latticeflag;
-  if (spk->app->appclass != App::GENERAL) return 0.0;
-  else if (spk->app->appclass != App::LATTICE) latticeflag = 1;
+  if (spk->app->appclass == App::GENERAL) return 0.0;
+  else if (spk->app->appclass == App::LATTICE) latticeflag = 1;
   else latticeflag = 0;
 
   AppLattice *applattice;
