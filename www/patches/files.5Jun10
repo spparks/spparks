@@ -1,0 +1,5 @@
+30Apr10 version files changed by 5Jun10 upgrade:
+
+src/MAKE/Makefile.redsky
+src/Makefile.list
+src/library.cpp
