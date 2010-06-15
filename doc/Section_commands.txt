@@ -340,5 +340,4 @@ full description:
 "diffusion"_diag_diffusion.html,
 "erbium"_diag_erbium.html,
 "energy"_diag_energy.html,
-"eprof"_diag_eprof.html,
 "propensity"_diag_propensity.html :tb(c=6,ea=c)
