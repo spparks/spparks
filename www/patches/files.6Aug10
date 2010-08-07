@@ -1,0 +1,14 @@
+5Jun10 version files changed by 6Aug10 upgrade:
+
+doc/Section_commands.html
+doc/Section_commands.txt
+doc/diag_eprof.html
+doc/diag_eprof.txt
+doc/diag_style.html
+doc/diag_style.txt
+src/app_erbium.cpp
+src/app_lattice.cpp
+src/create_sites.cpp
+src/create_sites.h
+src/read_sites.cpp
+src/read_sites.h

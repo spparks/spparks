@@ -17,6 +17,17 @@ The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
+[6 Aug 2010]
+
+Made some bug fixes to the read_sites command for reading in full
+lattices and neighbor definitions as opposed to just values on
+lattices.
+
+This is the "list of changed files"_patches/files.6Aug10 from the 5
+Jun 2010 version.
+
+:line
+
 [5 Jun 2010]
 
 Fixed a small bug in the library interface routine spparks_energy()
