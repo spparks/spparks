@@ -20,6 +20,7 @@
 #include "app_lattice.h"
 #include "app_off_lattice.h"
 #include "domain.h"
+#include "create_sites.h"
 #include "error.h"
 #include "memory.h"
 
@@ -30,10 +31,9 @@ using namespace SPPARKS_NS;
 #define MAXLINE 256
 #define CHUNK 1024
 #define DELTA 4
+#define EPSILON 1.0e-6
 
 #define NSECTIONS 3       // change when add to header::section_keywords
-
-#define EPSILON 1.0e-6
 
 /* ---------------------------------------------------------------------- */
 
@@ -93,36 +93,44 @@ void ReadSites::command(int narg, char **arg)
 
     domain->set_box();
     domain->box_exist = 1;
+    if (domain->dimension == 1) domain->procs2domain_1d();
+    if (domain->dimension == 2) domain->procs2domain_2d();
+    if (domain->dimension == 3) domain->procs2domain_3d();
   }
 
   // read rest of file in free format
   // if add a section keyword, add to header::section_keywords and NSECTIONS
 
   int sitesflag = 0;
+  int neighflag = 0;
+  int valueflag = 0;
 
   while (strlen(keyword)) {
     if (strcmp(keyword,"Sites") == 0) {
-      if (app->sites_exist) 
-	error->all("Cannot read sites after sites already exist");
+      if (app->sites_exist)
+	error->all("Cannot read Sites after sites already exist");
       sites();
       sitesflag = 1;
-      app->sites_exist = 1;
 
     } else if (strcmp(keyword,"Neighbors") == 0) {
-      if (sitesflag == 0) error->all("Must read Sites before Neighbors");
+      if (app->sites_exist) 
+	error->all("Cannot read Neighbors after sites already exist");
       if (latticeflag == 0) 
-	error->all("Can only read neighbors for on-lattice applications");
+	error->all("Can only read Neighbors for on-lattice applications");
       if (maxneigh <= 0) 
-	error->all("Cannot read neighbors unless max neighbors is set");
+	error->all("Cannot read Neighbors unless max neighbors is set");
+      if (sitesflag == 0) error->all("Must read Sites before Neighbors");
 
       applattice->maxneigh = maxneigh;
       applattice->grow(app->nlocal);
       neighbors();
+      neighflag = 1;
 
     } else if (strcmp(keyword,"Values") == 0) {
       if (app->sites_exist == 0 && sitesflag == 0) 
-	error->all("Must read Sites before Values");
+	error->all("Cannot read Values before sites exist or are read");
       values();
+      valueflag = 1;
 
     } else {
       char str[128];
@@ -132,8 +140,27 @@ void ReadSites::command(int narg, char **arg)
 
     parse_keyword(0);
   }
-  
-  if (app->sites_exist == 0) error->all("No sites defined in site file");
+
+  // error checks
+
+  if (sitesflag == 0 && neighflag == 0 && valueflag == 0)
+    error->all("Site file has no Sites, Neighbors, or Values");
+
+  if (app->sites_exist == 0) {
+    if (sitesflag == 0) error->all("No Sites defined in site file");
+    if (latticeflag && neighflag == 0) 
+      error->all("No Neighbors defined in site file");
+    app->sites_exist = 1;
+  }
+
+  // process neighbors
+
+  if (neighflag) {
+    CreateSites *cs = new CreateSites(spk);
+    cs->ghosts_from_connectivity(applattice,applattice->delpropensity);
+    applattice->print_connectivity();
+    delete cs;
+  }
 
   // close file
 
@@ -170,7 +197,6 @@ void ReadSites::header()
 
   // defaults
 
-  dimension = 0;
   nglobal = 0;
   maxneigh = 0;
   boxxlo = boxylo = boxzlo = -0.5;
@@ -206,9 +232,11 @@ void ReadSites::header()
     // search line for header keyword and set corresponding variable
 
     if (strstr(line,"dimension")) {
+      int dimension;
       sscanf(line,"%d",&dimension);
       if (domain->box_exist && dimension != domain->dimension)
 	error->all("Data file dimension does not match existing box");
+      domain->dimension = dimension;
     } else if (strstr(line,"sites")) {
       sscanf(line,"%d",&nglobal);
       if (app->sites_exist) {
@@ -219,8 +247,7 @@ void ReadSites::header()
 	  error->all("Data file number of sites "
 		     "does not match existing sites");
       }
-    }
-    else if (strstr(line,"max neighbors")) {
+    } else if (strstr(line,"max neighbors")) {
       sscanf(line,"%d",&maxneigh);
       if (!latticeflag) 
 	error->all("Off-lattice application data file "
@@ -403,6 +430,7 @@ void ReadSites::neighbors()
     buf = buffer;
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
+      *next = '\0';
 
       idone = atoi(strtok(buf," \t\n\r\f"));
       loc = hash.find(idone);

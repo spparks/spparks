@@ -13,6 +13,8 @@
 
 #include "math.h"
 #include "mpi.h"
+#include "stdlib.h"
+#include "string.h"
 #include "app_erbium.h"
 #include "solve.h"
 #include "random_park.h"

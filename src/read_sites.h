@@ -40,7 +40,7 @@ class ReadSites : protected Pointers {
   class AppLattice *applattice;
   class AppOffLattice *appoff;
 
-  int dimension,nglobal,maxneigh;
+  int nglobal,maxneigh;
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;
 
   void open(char *);

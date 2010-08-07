@@ -24,9 +24,12 @@ CommandStyle(create_sites,CreateSites)
 namespace SPPARKS_NS {
 
 class CreateSites : protected Pointers {
+  friend class ReadSites;
+
  public:
   CreateSites(class SPPARKS *);
   void command(int, char **);
+  void ghosts_from_connectivity(class AppLattice *, int);
 
  private:
   int style,nregion,valueflag,valueindex,ivalue;
@@ -55,7 +58,6 @@ class CreateSites : protected Pointers {
   void structured_connectivity();
   void random_sites();
   void random_connectivity();
-  void ghosts_from_connectivity(int);
 
   int connect(int, int);
   void offsets(int, double **);

@@ -200,7 +200,7 @@ void CreateSites::command(int narg, char **arg)
   }
 
   if (latticeflag) {
-    ghosts_from_connectivity(applattice->delpropensity);
+    ghosts_from_connectivity(applattice,applattice->delpropensity);
     applattice->print_connectivity();
   }
 
@@ -758,6 +758,7 @@ void CreateSites::random_connectivity()
 /* ----------------------------------------------------------------------
    create ghosts sites around local sub-domain
    only called for on-lattice models
+   pass applattice as pointer so can call from ReadSites
    numneigh and global neighbor IDs of each owned site are known as input
    add ghost sites for delpropensity layers
    form neigh list for each layer of ghost sites one layer at a time
@@ -766,7 +767,7 @@ void CreateSites::random_connectivity()
    convert neighbor IDs from global indices to local indices
  ------------------------------------------------------------------------- */
 
-void CreateSites::ghosts_from_connectivity(int delpropensity)
+void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
 {
   int i,j,k,m,idrecv,proc,id_ghost,owner_ghost,index_ghost;
   double x,y,z;
@@ -782,7 +783,7 @@ void CreateSites::ghosts_from_connectivity(int delpropensity)
 
   // nchunk = size of one site datum circulated in message
 
-  int nchunk = 7 + applattice->maxneigh;
+  int nchunk = 7 + apl->maxneigh;
 
   // setup ring of procs
 
@@ -817,8 +818,8 @@ void CreateSites::ghosts_from_connectivity(int delpropensity)
     int maxbuf = 0;
     int nsite = 0;
 
-    numneigh = applattice->numneigh;
-    neighbor = applattice->neighbor;
+    numneigh = apl->numneigh;
+    neighbor = apl->neighbor;
 
     for (i = 0; i < nlocal+nghost; i++) {
       for (j = 0; j < numneigh[i]; j++) {
@@ -892,9 +893,9 @@ void CreateSites::ghosts_from_connectivity(int delpropensity)
     npreviousghost = nghost;
     nghost += nsite;
 
-    applattice->grow(nlocal+nghost);
-    numneigh = applattice->numneigh;
-    neighbor = applattice->neighbor;
+    apl->grow(nlocal+nghost);
+    numneigh = apl->numneigh;
+    neighbor = apl->neighbor;
 
     // original site list came back to me around ring
     // extract info for my new layer of ghost sites
@@ -910,7 +911,7 @@ void CreateSites::ghosts_from_connectivity(int delpropensity)
       y = buf[m++];
       z = buf[m++];
 
-      applattice->add_ghost(id_ghost,x,y,z,owner_ghost,index_ghost);
+      apl->add_ghost(id_ghost,x,y,z,owner_ghost,index_ghost);
 
       j = nlocal + npreviousghost + i;
       numneigh[j] = static_cast<int> (buf[m++]);
@@ -928,8 +929,8 @@ void CreateSites::ghosts_from_connectivity(int delpropensity)
   // if i is owned or in delpropensity-1 layers, then error if neigh not found
   // if i is ghost in last delpropensity layer, then delete neigh if not found
 
-  numneigh = applattice->numneigh;
-  neighbor = applattice->neighbor;
+  numneigh = apl->numneigh;
+  neighbor = apl->neighbor;
 
   for (i = 0; i < nlocal+nghost; i++) {
     j = 0;

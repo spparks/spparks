@@ -1243,7 +1243,8 @@ void AppLattice::add_ghost(int n, double x, double y, double z,
 void AppLattice::add_neighbors(int i, int nvalues, char **values)
 {
   numneigh[i] = nvalues;
-  for (int m = 0; m < nvalues; m++) neighbor[i][m] = atoi(values[i]);
+  for (int m = 0; m < nvalues; m++)
+    neighbor[i][m] = atoi(values[m]);
 }
 
 /* ----------------------------------------------------------------------
