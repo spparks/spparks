@@ -15,6 +15,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
+#include "stdint.h"
 #include "app_lattice.h"
 #include "comm_lattice.h"
 #include "solve.h"
