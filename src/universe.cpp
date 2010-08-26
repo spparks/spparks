@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "universe.h"
+#include "version.h"
 #include "memory.h"
 
 using namespace SPPARKS_NS;
@@ -25,7 +26,7 @@ using namespace SPPARKS_NS;
 
 Universe::Universe(SPPARKS *spk, MPI_Comm communicator) : Pointers(spk)
 {
-  version = (char *) "11 Nov 2009";
+  version = (char *) SPPARKS_VERSION;
 
   uworld = communicator;
   MPI_Comm_rank(uworld,&me);
