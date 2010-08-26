@@ -17,8 +17,8 @@ style = {ising} or {ising/single} :ul
 
 [Examples:]
 
-app_style ising lattice sq/4n 1.0 50 50
-app_style ising/single lattice sq/4n 1.0 50 50 :pre
+app_style ising
+app_style ising/single :pre
 
 [Description:]
 

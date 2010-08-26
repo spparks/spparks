@@ -10,15 +10,14 @@ app_style relax command :h3
 
 [Syntax:]
 
-app_style relax delta keyword values ... :pre
+app_style relax delta :pre
 
 relax = style name of this application
-delta = maximum displacement distance of a particle (distance units)
-see the "app_style"_app_style.html command for additional keywords that can be appended :ul
+delta = maximum displacement distance of a particle (distance units) :ul
 
 [Examples:]
 
-app_style relax 0.5 lattice sq/4n 1.0 50 50 :pre
+app_style relax 0.5 :pre
 
 [Description:]
 

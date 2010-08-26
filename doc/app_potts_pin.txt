@@ -17,7 +17,7 @@ Q = number of spin states :ul
 
 [Examples:]
 
-app_style potts/pin 100 lattice tri 1.0 50 50 :pre
+app_style potts/pin :pre
 
 [Description:]
 

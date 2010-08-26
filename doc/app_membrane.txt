@@ -19,7 +19,7 @@ mu = chemical potential to insert a solvent (typically -2.0) :ul
 
 [Examples:]
 
-app_style membrane 1.25 1.0 -3.0 lattice tri 1.0 100 50 :pre
+app_style membrane 1.25 1.0 -3.0 :pre
 
 [Description:]
 

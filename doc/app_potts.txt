@@ -19,8 +19,8 @@ Q = number of spin states :ul
 
 [Examples:]
 
-app_style potts 100 lattice sq/4n 1.0 50 50
-app_style potts/neigh 20 lattice sq/4n 1.0 50 50 :pre
+app_style potts 100
+app_style potts/neigh 20 :pre
 
 [Description:]
 
