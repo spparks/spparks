@@ -17,6 +17,16 @@ The current version of SPPARKS is 11 Nov 2009.
 
 :line
 
+[26 Aug 2010]
+
+Updated the library interface to SPPARKS for use by external codes
+that call SPPARKS as a library.
+
+This is the "list of changed files"_patches/files.26Aug10 from the 6
+Aug 2010 version.
+
+:line
+
 [6 Aug 2010]
 
 Made some bug fixes to the read_sites command for reading in full
