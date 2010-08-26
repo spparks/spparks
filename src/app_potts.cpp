@@ -40,6 +40,8 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
   // parse arguments
 
   if (narg < 2) error->all("Illegal app_style command");
+  if (strcmp(style,"potts") == 0 && narg != 2)
+    error->all("Illegal app_style command");
 
   nspins = atoi(arg[1]);
   dt_sweep = 1.0/nspins;

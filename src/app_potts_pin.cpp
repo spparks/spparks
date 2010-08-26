@@ -27,7 +27,10 @@ using namespace SPPARKS_NS;
 /* ---------------------------------------------------------------------- */
 
 AppPottsPin::AppPottsPin(SPPARKS *spk, int narg, char **arg) : 
-  AppPotts(spk,narg,arg) {}
+  AppPotts(spk,narg,arg)
+{
+  if (narg != 2) error->all("Illegal app_style command");
+}
 
 /* ----------------------------------------------------------------------
    input script commands unique to this app

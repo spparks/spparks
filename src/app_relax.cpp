@@ -37,7 +37,7 @@ AppRelax::AppRelax(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  if (narg < 2) error->all("Illegal app_style command");
+  if (narg != 2) error->all("Illegal app_style command");
 
   delta = atof(arg[1]);
   deltasq = delta*delta;

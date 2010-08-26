@@ -41,7 +41,6 @@ class AppLattice : public App {
   void init();
   void setup();
   void iterate();
-  void *extract(char *);
 
   void grow(int);
   void add_site(int, double, double, double);

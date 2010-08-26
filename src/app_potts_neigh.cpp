@@ -21,7 +21,10 @@ using namespace SPPARKS_NS;
 /* ---------------------------------------------------------------------- */
 
 AppPottsNeigh::AppPottsNeigh(SPPARKS *spk, int narg, char **arg) : 
-  AppPotts(spk,narg,arg) {}
+  AppPotts(spk,narg,arg)
+{
+  if (narg != 2) error->all("Illegal app_style command");
+}
 
 /* ----------------------------------------------------------------------
    initialize before each run

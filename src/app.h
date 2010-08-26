@@ -44,6 +44,7 @@ class App : protected Pointers {
   virtual ~App();
   void run(int, char **);
   void reset_time(double);
+  void *extract(char *);
 
   // pure virtual functions, must be defined in child class
   
@@ -56,7 +57,7 @@ class App : protected Pointers {
 
   virtual void stats(char *strtmp) {strtmp[0] = '\0';};
   virtual void stats_header(char *strtmp) {strtmp[0] = '\0';};
-  virtual void *extract(char *) {return NULL;};
+  virtual void *extract_app(char *) {return NULL;}
 
  protected:
   int first_run;

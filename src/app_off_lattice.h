@@ -31,7 +31,6 @@ class AppOffLattice : public App {
   void init();
   void setup();
   void iterate();
-  void *extract(char *);
 
   void grow(int);
   void add_site(int, double, double, double);
@@ -50,6 +49,7 @@ class AppOffLattice : public App {
   void virtual input_app(char *, int, char **);
   void virtual init_app() {}
   void virtual setup_app() {}
+  virtual void *extract_app(char *) {return NULL;}
 
   enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
 	 FCC_OCTA_TETRA,RANDOM_1D,RANDOM_2D,RANDOM_3D,FILENAME};
