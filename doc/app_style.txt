@@ -46,7 +46,7 @@ the list of on-lattice applications SPPARKS currently includes:
 "potts/neigh"_app_potts.html = variant Potts model
 "potts/neighonly"_app_potts.html = variant Potts model
 "potts/pin"_app_potts_pin.html = Potts model with pinning sites
-"potts/strain"_app_potts_strain.html = Potts model with strain energy term :ul
+"potts/strain"_app_potts_strain.html = Potts model with per-site strain :ul
 
 Off-lattice applications define a set of mobile sites in space on
 which events occur.  The sites typically represent particles.  Each

@@ -17,7 +17,7 @@ Q = number of spin states :ul
 
 [Examples:]
 
-app_style potts/pin :pre
+app_style potts/pin 100 :pre
 
 [Description:]
 
@@ -35,7 +35,7 @@ delta_ij is 0 if the spin of sites I and J are the same and 1 if they
 are different.  The energy of the entire system is the sum of Hi over
 all sites.
 
-These applications perform Glauber dynamics, meaning the spin is
+This application performs Glauber dynamics, meaning the spin is
 flipped on a single site.  See "app_style
 diffusion"_app_diffusion.html for an Ising model which performs
 Kawasaki dynamics, meaning the spins on two neighboring sites are
@@ -53,7 +53,7 @@ using the Hamiltonian defined above for the energy of the site, and T
 is the temperature of the system defined by the
 "temperature"_temperature.html command (which includes the Boltzmann
 constant k implicitly).  The KMC algorithm does not allow spin flips
-known as "wild" flips, even at finite temperature.  These are flips to
+known as "wild" flips, even at finite temperaturge.  These are flips to
 values that are not equal to any neighbor site value.  The KMC
 algorithm also does not allow spin flips to a pinned site value.
 
@@ -63,14 +63,6 @@ since those sites are set to Q+1.  When the flip is attempted dE =
 Efinal - Einitial is calculated, as is a uniform random number R
 between 0 and 1.  The new state is accepted if R <
 min\[1,exp(-dE/kT)\], else it is rejected.
-
-The rKMC algorithm for the {potts} style does allow spin flips known
-as "wild" flips.  These are flips to values that are not equal to any
-neighbor site value.  At temperature 0.0 these are effectively
-disallowed, since they will increase the energy of the system (except
-in the uninteresting case when the site already has a spin value not
-equal to any neighbor values), but at finite temperature they will
-have a non-zero probability of occurring.
 
 :line
 

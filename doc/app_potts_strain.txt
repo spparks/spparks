@@ -6,27 +6,28 @@
 
 :line
 
-app_style potts/pin command :h3
+app_style potts/strain command :h3
 
 [Syntax:]
 
-app_style potts/pin Q :pre
+app_style potts/strain Q :pre
 
-potts/pin = application style name
+potts/strain = application style name
 Q = number of spin states :ul
 
 [Examples:]
 
-app_style potts/pin :pre
+app_style potts/strain 100 :pre
 
 [Description:]
 
-This is an on-lattice application which evolves a Q-state Potts model
-in the presence of pinning sites, which are sites tagged with a spin
-value of Q+1 which do not change.  Their effect is typically to pin or
-inhibit grain growth in various ways.
+This is an on-lattice application which evolve a Q-state Potts model
+with a per-site strain, where each lattice site has a spin value from
+1 to Q.  Sites flip their spin as the model evolves.  The strain
+energy can influence the grain growth.
 
-The Hamiltonian representing the energy of site I is as follows:
+The Hamiltonian representing the energy of site I is the
+same as for the Potts model:
 
 Hi = Sum_j delta_ij :pre
 
@@ -35,48 +36,55 @@ delta_ij is 0 if the spin of sites I and J are the same and 1 if they
 are different.  The energy of the entire system is the sum of Hi over
 all sites.
 
-These applications perform Glauber dynamics, meaning the spin is
+The per-site strain influences spin flips through altering the
+effective temperature as discussed below.
+
+This applications perform Glauber dynamics, meaning the spin is
 flipped on a single site.  See "app_style
 diffusion"_app_diffusion.html for an Ising model which performs
 Kawasaki dynamics, meaning the spins on two neighboring sites are
 swapped.
 
-As explained on "this page"_app_style.html, this application can be
-evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
-algorithm.  You must thus define a KMC solver or sweeping method to be
-used with the application via the "solve_style"_solve_style.html or
-"sweep"_sweep.html commands.
+As explained on "this page"_app_style.html, this application is
+evolved by a kinetic Monte Carlo (KMC) algorithm.  You must thus
+define a KMC solver to be used with the application via the
+"solve_style"_solve_style.html command.
 
 For solution by a KMC algorithm, a site event is a spin flip and its
-probability is min\[1,exp(-dE/kT)\], where dE = Efinal - Einitial
-using the Hamiltonian defined above for the energy of the site, and T
-is the temperature of the system defined by the
+probability is 1/(1+strain) when dE <= 0 and exp(-dE/kT*) when dE > 0
+and the temperature T is finite, where dE = Efinal - Einitial using
+the Hamiltonian defined above for the energy of the site, T is the
+temperature of the system defined by the
 "temperature"_temperature.html command (which includes the Boltzmann
-constant k implicitly).  The KMC algorithm does not allow spin flips
-known as "wild" flips, even at finite temperature.  These are flips to
-values that are not equal to any neighbor site value.  The KMC
-algorithm also does not allow spin flips to a pinned site value.
+constant k implicitly), and T* = T (1 + strain).  Thus the effect of
+the strain, defined for each site, is to rescale the temperature.
 
-For solution by a rKMC algorithm, a random spin from 1 to Q is chosen.
-Note that this does not allow a spin flip to a pinned site value,
-since those sites are set to Q+1.  When the flip is attempted dE =
-Efinal - Einitial is calculated, as is a uniform random number R
-between 0 and 1.  The new state is accepted if R <
-min\[1,exp(-dE/kT)\], else it is rejected.
+The KMC algorithm does not allow spin flips known as "wild" flips,
+even at finite temperature.  These are flips to values that are not
+equal to any neighbor site value.
 
-The rKMC algorithm for the {potts} style does allow spin flips known
-as "wild" flips.  These are flips to values that are not equal to any
-neighbor site value.  At temperature 0.0 these are effectively
-disallowed, since they will increase the energy of the system (except
-in the uninteresting case when the site already has a spin value not
-equal to any neighbor values), but at finite temperature they will
-have a non-zero probability of occurring.
+Strain values are stored for each site as a "double" value.  This
+means they can be assigned to each site using the "d1" keyword with
+the "set"_set.html command, or read in via the
+"read_sites"_read_sites.html command.
+
+The application does not change the strain assigned to each site as
+the simulation progresses.  But if SPPARKS is built and used as a
+library, as discussed in "this section"_Section_start.html#2_4 of the
+manual, the driver program can alter the per-site settings.  The
+"couple" directory of the "LAMMPS molecular dynamics package"_lammps
+includes a sample coupled LAMMPS/SPPARKS application which uses LAMMPS
+to compute strain values at each site of a snapshot of grain structure
+produced by this application running in SPPARKS.  The strains are
+passed back to SPPARKS periodically by the driver application so that
+more Monte Carlo dynamics can be performed.
+
+:link(lammps,http://lammps.sandia.gov)
 
 :line
 
-The following additional commands are defined by this application:
+The following additional command is defined by this application:
 
-"pin"_pin.html : create a set of pinned sites
 "temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
 
 :line
