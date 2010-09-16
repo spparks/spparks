@@ -1,0 +1,12 @@
+26Aug10 version files changed by 16Sep10 upgrade:
+
+doc/app_potts_pin.html
+doc/app_potts_pin.txt
+doc/app_potts_strain.html
+doc/app_potts_strain.txt
+doc/app_style.html
+doc/app_style.txt
+src/Makefile.lib
+src/app_potts_strain.cpp
+src/app_potts_strain.h
+src/version.h
