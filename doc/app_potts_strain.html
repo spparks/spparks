@@ -1,0 +1,97 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style potts/pin command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style potts/pin Q 
+</PRE>
+<UL><LI>potts/pin = application style name
+<LI>Q = number of spin states 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style potts/pin 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This is an on-lattice application which evolves a Q-state Potts model
+in the presence of pinning sites, which are sites tagged with a spin
+value of Q+1 which do not change.  Their effect is typically to pin or
+inhibit grain growth in various ways.
+</P>
+<P>The Hamiltonian representing the energy of site I is as follows:
+</P>
+<PRE>Hi = Sum_j delta_ij 
+</PRE>
+<P>where Sum_j is a sum over all the neighbor sites of site I and
+delta_ij is 0 if the spin of sites I and J are the same and 1 if they
+are different.  The energy of the entire system is the sum of Hi over
+all sites.
+</P>
+<P>These applications perform Glauber dynamics, meaning the spin is
+flipped on a single site.  See <A HREF = "app_diffusion.html">app_style
+diffusion</A> for an Ising model which performs
+Kawasaki dynamics, meaning the spins on two neighboring sites are
+swapped.
+</P>
+<P>As explained on <A HREF = "app_style.html">this page</A>, this application can be
+evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
+algorithm.  You must thus define a KMC solver or sweeping method to be
+used with the application via the <A HREF = "solve_style.html">solve_style</A> or
+<A HREF = "sweep.html">sweep</A> commands.
+</P>
+<P>For solution by a KMC algorithm, a site event is a spin flip and its
+probability is min[1,exp(-dE/kT)], where dE = Efinal - Einitial
+using the Hamiltonian defined above for the energy of the site, and T
+is the temperature of the system defined by the
+<A HREF = "temperature.html">temperature</A> command (which includes the Boltzmann
+constant k implicitly).  The KMC algorithm does not allow spin flips
+known as "wild" flips, even at finite temperature.  These are flips to
+values that are not equal to any neighbor site value.  The KMC
+algorithm also does not allow spin flips to a pinned site value.
+</P>
+<P>For solution by a rKMC algorithm, a random spin from 1 to Q is chosen.
+Note that this does not allow a spin flip to a pinned site value,
+since those sites are set to Q+1.  When the flip is attempted dE =
+Efinal - Einitial is calculated, as is a uniform random number R
+between 0 and 1.  The new state is accepted if R <
+min[1,exp(-dE/kT)], else it is rejected.
+</P>
+<P>The rKMC algorithm for the <I>potts</I> style does allow spin flips known
+as "wild" flips.  These are flips to values that are not equal to any
+neighbor site value.  At temperature 0.0 these are effectively
+disallowed, since they will increase the energy of the system (except
+in the uninteresting case when the site already has a spin value not
+equal to any neighbor values), but at finite temperature they will
+have a non-zero probability of occurring.
+</P>
+<HR>
+
+<P>The following additional commands are defined by this application:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "pin.html">pin</A> </TD><TD > create a set of pinned sites</TD></TR>
+<TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_potts.html">app_style potts</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>
