@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
+#include "string.h"
 #include "app_potts_strain.h"
 #include "solve.h"
 #include "random_park.h"
