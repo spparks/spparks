@@ -63,6 +63,8 @@ class CreateSites : protected Pointers {
   void offsets(int, double **);
   void offsets_2d(int, double **, double, double, int, int **);
   void offsets_3d(int, double **, double, double, int, int **);
+
+  void id2xyz(int, double &, double &, double &);
 };
 
 }

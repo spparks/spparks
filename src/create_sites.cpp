@@ -240,6 +240,7 @@ void CreateSites::structured_lattice()
   double **darray = app->darray;
 
   // count lattice points I own in my sub-domain
+  // must also be within region if applicable
 
   int nlocal = 0;
   for (k = 0; k < nz; k++)
@@ -250,6 +251,8 @@ void CreateSites::structured_lattice()
 	  y = (j + basis[m][1])*ylattice + boxylo;
 	  z = (k + basis[m][2])*zlattice + boxzlo;
 
+	  if (style == REGION &&
+	      domain->regions[nregion]->match(x,y,z) == 0) continue;
 	  if (x < subxlo || x >= subxhi || 
 	      y < subylo || y >= subyhi || 
 	      z < subzlo || z >= subzhi) continue;
@@ -263,6 +266,8 @@ void CreateSites::structured_lattice()
   else appoff->grow(nlocal);
 
   // generate xyz coords and store them with site ID
+  // must also be within region if applicable
+  // if region, IDs will not be contiguous
 
   nlocal = 0;
   n = 0;
@@ -275,6 +280,8 @@ void CreateSites::structured_lattice()
 	  y = (j + basis[m][1])*ylattice + boxylo;
 	  z = (k + basis[m][2])*zlattice + boxzlo;
 
+	  if (style == REGION &&
+	      domain->regions[nregion]->match(x,y,z) == 0) continue;
 	  if (x < subxlo || x >= subxhi || 
 	      y < subylo || y >= subyhi || 
 	      z < subzlo || z >= subzhi) continue;
@@ -304,7 +311,7 @@ void CreateSites::structured_lattice()
       fprintf(logfile,"  %d sites\n",app->nglobal);
   }
 
-  if (app->nglobal != nx*ny*nz*nbasis)
+  if (style == BOX && app->nglobal != nx*ny*nz*nbasis)
     error->all("Did not create correct number of sites");
 }
 
@@ -315,7 +322,8 @@ void CreateSites::structured_lattice()
 
 void CreateSites::structured_connectivity()
 {
-  int i,j;
+  int i,j,gid,max;
+  double x,y,z;
 
   // allocate arrays to store lattice connectivity
 
@@ -346,33 +354,63 @@ void CreateSites::structured_connectivity()
   offsets(maxneigh,basis);
 
   // generate global lattice connectivity for each site
+  // some neighbors may not exist for style = REGION
   // connect() computes global index of Jth neighbor of global site I
   // global index = 1 to Nglobal
-  // FCC_OCTA_TETRA does not have same # of neighs for all sites
+  // id2xyz() computes xyz from global index of site
+  // FCC_OCTA_TETRA is special case, # of neighs not same for all sites
 
   int nlocal = app->nlocal;
   int nglobal = app->nglobal;
   int *id = app->id;
 
   if (latstyle == FCC_OCTA_TETRA) {
-    for (i = 0; i < nlocal; i++) {
-      if ((id[i]-1) % 16 < 8) numneigh[i] = maxneigh;
-      else numneigh[i] = 14;
-      for (j = 0; j < numneigh[i]; j++) {
-	neighbor[i][j] = connect(id[i],j);
-	if (neighbor[i][j] <= 0 || neighbor[i][j] > nglobal)
-	  error->all("Bad connectivity result");
+    if (style == BOX) {
+      for (i = 0; i < nlocal; i++) {
+	if ((id[i]-1) % 16 < 8) numneigh[i] = maxneigh;
+	else numneigh[i] = 14;
+	for (j = 0; j < numneigh[i]; j++) {
+	  neighbor[i][j] = connect(id[i],j);
+	  if (neighbor[i][j] <= 0 || neighbor[i][j] > nglobal)
+	    error->all("Bad connectivity result");
+	}
+      }
+    } else {
+      for (i = 0; i < nlocal; i++) {
+	numneigh[i] = 0;
+	if ((id[i]-1) % 16 < 8) max = maxneigh;
+	else max = 14;
+	for (j = 0; j < max; j++) {
+	  gid = connect(id[i],j);
+	  id2xyz(gid,x,y,z);
+	  if (domain->regions[nregion]->match(x,y,z) == 0) continue;
+	  neighbor[i][numneigh[i]++] = gid;
+	  if (gid <= 0 || gid > nglobal)
+	    error->all("Bad connectivity result");
+	}
       }
     }
 
   } else {
-    for (i = 0; i < nlocal; i++) {
-      numneigh[i] = maxneigh;
-      for (j = 0; j < numneigh[i]; j++) {
-	neighbor[i][j] = connect(id[i],j);
-	if (neighbor[i][j] <= 0 || neighbor[i][j] > nglobal) {
-	  printf("IJ %d %d %d %d\n",i,j,neighbor[i][j],nglobal);
-	  error->all("Bad connectivity result");
+    if (style == BOX) {
+      for (i = 0; i < nlocal; i++) {
+	numneigh[i] = maxneigh;
+	for (j = 0; j < numneigh[i]; j++) {
+	  neighbor[i][j] = connect(id[i],j);
+	  if (neighbor[i][j] <= 0 || neighbor[i][j] > nglobal)
+	    error->all("Bad connectivity result");
+	}
+      }
+    } else {
+      for (i = 0; i < nlocal; i++) {
+	numneigh[i] = 0;
+	for (j = 0; j < maxneigh; j++) {
+	  gid = connect(id[i],j);
+	  id2xyz(gid,x,y,z);
+	  if (domain->regions[nregion]->match(x,y,z) == 0) continue;
+	  neighbor[i][numneigh[i]++] = gid;
+	  if (gid <= 0 || gid > nglobal)
+	    error->all("Bad connectivity result");
 	}
       }
     }
@@ -446,19 +484,27 @@ void CreateSites::random_sites()
   random = new RandomPark(seed);
 
   // generate xyz coords and store them with site ID
+  // iterate until atom is within region
+  // if final coords are in my subbox, create site
 
   nlocal = 0;
   for (n = 1; n <= nrandom; n++) {
-    x = boxxlo + xprd*random->uniform();
-    y = boxylo + yprd*random->uniform();
-    z = boxzlo + zprd*random->uniform();
-    if (dimension < 2) y = 0.0;
-    if (dimension < 3) z = 0.0;
+    while (1) {
+      x = boxxlo + xprd*random->uniform();
+      y = boxylo + yprd*random->uniform();
+      z = boxzlo + zprd*random->uniform();
+      if (dimension < 2) y = 0.0;
+      if (dimension < 3) z = 0.0;
+
+      if (style == REGION) {
+	if (domain->regions[nregion]->match(x,y,z) == 0) break;
+      } else break;
+    }
 
     if (x < subxlo || x >= subxhi || 
 	y < subylo || y >= subyhi || 
 	z < subzlo || z >= subzhi) continue;
-
+    
     if (latticeflag) applattice->add_site(n,x,y,z);
     else appoff->add_site(n,x,y,z);
 
@@ -1127,4 +1173,44 @@ void CreateSites::offsets_3d(int ibasis, double **basis,
   }
 
   if (n != ntarget) error->all("Incorrect lattice neighbor count");
+}
+
+/* ----------------------------------------------------------------------
+   convert a global ID of a site to its x,y,z coords
+   called from stuctured_connectivity() when style = REGION
+ ------------------------------------------------------------------------- */
+
+void CreateSites::id2xyz(int iglobal, double &x, double &y, double &z)
+{
+  int i,j,k,m;
+
+  int dimension = domain->dimension;
+  double **basis = domain->lattice->basis;
+  double boxxlo = domain->boxxlo;
+  double boxylo = domain->boxylo;
+  double boxzlo = domain->boxzlo;
+  if (dimension <= 1) boxylo = 0.0;
+  if (dimension <= 2) boxzlo = 0.0;
+
+  if (latstyle == LINE_2N) {
+    i = (iglobal-1)/nbasis % nx;
+    j = k = 0;
+    m = (iglobal-1) % nbasis;
+  } else if (latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI) {
+    i = (iglobal-1)/nbasis % nx;
+    j = (iglobal-1)/nbasis / nx;
+    k = 0;
+    m = (iglobal-1) % nbasis;
+  } else if (latstyle == SC_6N || latstyle == SC_26N || 
+	     latstyle == FCC || latstyle == BCC || latstyle == DIAMOND ||
+	     latstyle == FCC_OCTA_TETRA) {
+    i = (iglobal-1)/nbasis % nx;
+    j = (iglobal-1)/nbasis / nx % ny;;
+    k = (iglobal-1)/nbasis / (nx*ny);
+    m = (iglobal-1) % nbasis;
+  }
+
+  x = (i + basis[m][0])*xlattice + boxxlo;
+  y = (j + basis[m][1])*ylattice + boxylo;
+  z = (k + basis[m][2])*zlattice + boxzlo;
 }
