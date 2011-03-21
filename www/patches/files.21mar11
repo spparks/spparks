@@ -1,0 +1,12 @@
+16Sep10 version files changed by 21mar11 upgrade:
+
+doc/create_sites.html
+doc/create_sites.txt
+src/app_lattice.cpp
+src/app_lattice.h
+src/app_off_lattice.cpp
+src/app_off_lattice.h
+src/app_potts_strain.cpp
+src/create_sites.cpp
+src/create_sites.h
+src/version.h
