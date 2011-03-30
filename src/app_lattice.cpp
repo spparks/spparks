@@ -63,6 +63,8 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   Lmask = false;
   mask = NULL;
 
+  allow_update = 0;
+
   temperature = 0.0;
 
   propensity = NULL;
@@ -421,6 +423,10 @@ void AppLattice::setup()
     sitelist = (int *) memory->smalloc(n*sizeof(int),"app:sitelist");
   }
 
+  // second stage of app-specific setup
+
+  setup_end_app();
+
   // setup future output
 
   nextoutput = output->setup(time);
@@ -572,6 +578,8 @@ void AppLattice::iterate_kmc_sector(double stoptime)
       }
     }
 
+    if (allow_update) user_update(dt_kmc);
+
     // keep looping until overall time threshhold reached
     
     time += dt_kmc;
@@ -667,6 +675,8 @@ void AppLattice::iterate_rejection(double stoptime)
 	else comm->all_reverse();
 	timer->stamp(TIME_COMM);
       }
+
+      if (allow_update) user_update(dt_rkmc);
     }
 
     nsweeps++;

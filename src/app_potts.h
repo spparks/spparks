@@ -30,7 +30,7 @@ class AppPotts : public AppLattice {
   virtual void grow_app();
   virtual void init_app();
 
-  double site_energy(int);
+  virtual double site_energy(int);
   virtual void site_event_rejection(int, class RandomPark *);
   virtual double site_propensity(int);
   virtual void site_event(int, class RandomPark *);

@@ -60,14 +60,17 @@ class AppLattice : public App {
 
   // virtual functions, may be overridden by child class
 
-  void virtual input_app(char *, int, char **);
-  void virtual init_app() {}
-  void virtual setup_app() {}
+  virtual void input_app(char *, int, char **);
+  virtual void init_app() {}
+  virtual void setup_app() {}
+  virtual void setup_end_app() {}
   virtual void *extract_app(char *) {return NULL;}
 
   virtual void push_new_site(int, int *, int, std::stack<int>*);
   virtual void push_connected_neighbors(int, int *, int, std::stack<int>*);
   virtual void connected_ghosts(int, int *, class Cluster *, int);
+
+  virtual void user_update(double) {}
 
  protected:
   int me,nprocs;
@@ -82,6 +85,7 @@ class AppLattice : public App {
   int allow_kmc;               // 1 if app supports KMC
   int allow_rejection;         // 1 if app supports rejection KMC
   int allow_masking;           // 1 if app supports rKMC masking
+  int allow_update;            // 1 if app provides user_update()
   int numrandom;               // # of RN used by rejection routine
 
   int sweepflag;               // set if rejection KMC solver
