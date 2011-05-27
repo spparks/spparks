@@ -39,6 +39,15 @@ it to be part of very patch. :ule,l
 :line
 :line
 
+[28 May 2011]
+
+Update the PDF manual.
+
+This is the "list of changed files"_patches/files.28May11 from the 27
+May 2010 version.
+
+:line
+
 [27 May 2011]
 
 Fixed a bug with "deposition"_doc/deposition.html in the "app_style
@@ -56,7 +65,7 @@ Added some additional hooks in the AppLattice class that a user
 application can use to add custom functionality.
 
 This is the "list of changed files"_patches/files.30Mar11 from the 21
-Sept 2010 version.
+Mar 2011 version.
 
 :line
 
