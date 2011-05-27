@@ -40,7 +40,8 @@ lattice whose sites are partially occupied and partially unoccupied
 (vacancies).  It can be used to model surface diffusion or bulk
 diffusion on 2d or 3d lattices.  It is equivalent to a 2-state Ising
 model performing Kawasaki dynamics where neighboring sites exchange
-their spins as the model evolves.
+their spins as the model evolves.  Each lattice site stores a value
+which is 1 for vacant or 2 for occupied.
 </P>
 <P>The <I>estyle</I> setting determines how energy is used in computing the
 probability of hop events, which is related to the Hamiltonian for the
@@ -92,6 +93,14 @@ than <I>Nmin</I> neighbors.
 
 <P>The <A HREF = "deposition.html">deposition</A> command can be used with this
 application to add atoms to the system in competition with hop events.
+</P>
+<P>IMPORTANT NOTE: If you have a free surface you are depositing onto, it
+may also be possible for atoms to diffuse away from this surface,
+i.e. desorb into a vacuum.  This application does not do anything
+special with those atoms (e.g. remove them), so they may clump
+together or induce deposition to take place onto the clumps above the
+surface.  If you wish to prevent this you should insure that
+desorption is an energetically unfavorable event.
 </P>
 <P>The <A HREF = "barrier.html">barrier</A> command can be used with this application
 to add an energy barrier to the model for nearest-neighbor hop and
