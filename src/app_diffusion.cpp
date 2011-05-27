@@ -45,7 +45,7 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
   delpropensity = 2;
   delevent = 1;
   allow_kmc = 1;
-  allow_rejection = 0;
+  allow_rejection = 1;
   allow_masking = 0;
   numrandom = 1;
 
@@ -77,6 +77,8 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
   if (engstyle == LINEAR && hopstyle == NNHOP) allow_rejection = 1;
 
   create_arrays();
+
+  dt_sweep = 1.0/maxneigh;
 
   esites = psites = NULL;
   echeck = pcheck = NULL;
@@ -254,10 +256,6 @@ void AppDiffusion::init_app()
 
   dimension = domain->dimension;
 
-  // sweeping timestep
-
-  dt_sweep = 1.0/maxneigh;
-
   // site validity
 
   int flag = 0;
@@ -403,7 +401,12 @@ double AppDiffusion::site_propensity_no_energy(int i)
 
   clear_events(i);
 
-  if (lattice[i] != OCCUPIED) return 0.0;
+  if (lattice[i] != OCCUPIED) {
+    if (depflag && i == 0) {
+      add_event(i,-1,deprate,DEPOSITION);
+      return deprate;
+    } else return 0.0;
+  }
 
   // nhop1 = 1st neigh hops, nhop2 = 2nd neigh hops
   // hopsite = all possible hop sites
@@ -472,7 +475,12 @@ double AppDiffusion::site_propensity_linear(int i)
 
   clear_events(i);
 
-  if (lattice[i] != OCCUPIED) return 0.0;
+  if (lattice[i] != OCCUPIED) {
+    if (depflag && i == 0) {
+      add_event(i,-1,deprate,DEPOSITION);
+      return deprate;
+    } else return 0.0;
+  }
 
   // nhop1 = 1st neigh hops, nhop2 = 2nd neigh hops
   // hopsite = all possible hop sites
@@ -553,7 +561,12 @@ double AppDiffusion::site_propensity_nonlinear(int i)
 
   clear_events(i);
 
-  if (lattice[i] != OCCUPIED) return 0.0;
+  if (lattice[i] != OCCUPIED) {
+    if (depflag && i == 0) {
+      add_event(i,-1,deprate,DEPOSITION);
+      return deprate;
+    } else return 0.0;
+  }
 
   // nhop1 = 1st neigh hops, nhop2 = 2nd neigh hops
   // hopsite = all possible hop sites

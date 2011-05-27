@@ -675,9 +675,9 @@ void AppLattice::iterate_rejection(double stoptime)
 	else comm->all_reverse();
 	timer->stamp(TIME_COMM);
       }
-
-      if (allow_update) user_update(dt_rkmc);
     }
+
+    if (allow_update) user_update(dt_rkmc);
 
     nsweeps++;
     time += dt_rkmc;
