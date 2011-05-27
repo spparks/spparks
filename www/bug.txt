@@ -39,11 +39,11 @@ it to be part of very patch. :ule,l
 :line
 :line
 
-[29 May 2011]
+[30 May 2011]
 
 Update the PDF manual.
 
-This is the "list of changed files"_patches/files.29May11 from the 27
+This is the "list of changed files"_patches/files.30May11 from the 27
 May 2010 version.
 
 :line
