@@ -30,10 +30,10 @@ version date is printed to the screen and logfile every time you run
 SPPARKS. It is also in the file src/version.h and in the SPPARKS
 directory name created when you unpack a tarball.
 
-If you browse the HTML doc pages on the SPPARKS WWW site, they always
-describe the most current version of SPPARKS. :ulb,l
+If you browse the HTML or PDF doc pages on the SPPARKS WWW site, they
+always describe the most current version of SPPARKS. :ulb,l
 
-If you browse the HTML doc pages included in your tarball, they
+If you browse the HTML or PDF doc pages included in your tarball, they
 describe the version you have. :ule,l
 
 SPPARKS stands for Stochastic Parallel PARticle Kinetic Simulator.
