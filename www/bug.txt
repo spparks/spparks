@@ -37,6 +37,18 @@ once per month.  This is because it is large, and we don't want
 it to be part of very patch. :ule,l
 
 :line
+:line
+
+[27 May 2011]
+
+Fixed a bug with "deposition"_doc/deposition.html in the "app_style
+diffusion"_doc/app_diffusion.html application, that would prevent
+deposition if the site at the origin ever became unoccupied.
+
+This is the "list of changed files"_patches/files.27May11 from the 30
+Mar 2010 version.
+
+:line
 
 [30 Mar 2011]
 
