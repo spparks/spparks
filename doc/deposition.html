@@ -58,6 +58,14 @@ x-periodicity in 2d and x- and y-periodicity in 3d.
 one closest to the starting point, measuring a projected distance
 along the incident direction.
 </P>
+<P>IMPORTANT NOTE: <A HREF = "app_diffusion.html">App_style diffusion</A> defines valid
+sites as vacant (site value = 1) or occupied (value = 2).  When
+performing deposition, a row (2d) or plane (3d) of sites at the top of
+the system (where the deposited atoms are incident from) should be set
+to a value of 3.  This prevents those sites from being considered as
+candidate deposition sites, due to them being neighbors of occupied
+sites at the bottom of the system in a periodic sense.
+</P>
 <P><B>Restrictions:</B>
 </P>
 <P>This command can only be used as part of the <A HREF = "app_diffusion.html">app_style

@@ -34,7 +34,9 @@ lattice whose sites are partially occupied and partially unoccupied
 diffusion on 2d or 3d lattices.  It is equivalent to a 2-state Ising
 model performing Kawasaki dynamics where neighboring sites exchange
 their spins as the model evolves.  Each lattice site stores a value
-which is 1 for vacant or 2 for occupied.
+which is 1 for vacant or 2 for occupied or 3 for vacant and a
+non-deposition site.  See the "deposition"_deposition.html command for
+more details on the value = 3 sites.
 
 The {estyle} setting determines how energy is used in computing the
 probability of hop events, which is related to the Hamiltonian for the
