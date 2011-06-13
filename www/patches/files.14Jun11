@@ -1,5 +1,10 @@
-13Jun11 version files changed by 14Jun11 upgrade:
+30May11 version files changed by 14Jun11 upgrade:
 
+doc/Manual.html
 doc/Manual.pdf
+doc/Manual.txt
+doc/region.html
+doc/region.txt
+src/app_lattice.h
 src/create_sites.cpp
 src/version.h
