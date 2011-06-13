@@ -101,7 +101,7 @@ void CreateSites::command(int narg, char **arg)
 	valueindex--;
       } else if (arg[iarg+1][0] == 'd') {
 	valueflag = DARRAY;
-	valueindex = atoi(&arg[iarg+2][1]);
+	valueindex = atoi(&arg[iarg+1][0]);
 	if (valueindex < 1 || valueindex > app->ndouble)
 	  error->all("Creating a quantity application does not support");
 	valueindex--;
