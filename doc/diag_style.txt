@@ -43,6 +43,7 @@ applications.
 
 The diagnostics currently available are:
 
+"array"_diag_array.html = statistics of lattice values
 "cluster"_diag_cluster.html = grain size statistics for general lattices
 "diffusion"_diag_diffusion.html = statistics on diffusion events
 "energy"_diag_energy.html = energy of entire system for general lattices
