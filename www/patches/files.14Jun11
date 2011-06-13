@@ -1,0 +1,5 @@
+13Jun11 version files changed by 14Jun11 upgrade:
+
+doc/Manual.pdf
+src/create_sites.cpp
+src/version.h
