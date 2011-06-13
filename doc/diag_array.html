@@ -1,0 +1,47 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>diag_style array command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>diag_style array value mode value mode ... 
+</PRE>
+<LI>array = style name of this diagnostic 
+
+<LI>value = <I>iN</I> or <I>dN</I> 
+
+<LI>mode = <I>min</I> or <I>max</I> or <I>mean</I> or <I>sum</I> 
+
+<P><B>Examples:</B>
+</P>
+<PRE>diag_style array i2 mean
+diag_style array d1 sum d1 min d1 max 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The array diagnostic computes the mean, sum, min, or max for a
+per-site lattice value in the system.  The diagnostic can operate on
+one or more values in one or more modes (min, max, mean, sum).  The
+results are printed as stats output via the <A HREF = "stats.html">stats</A>
+command.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This diagnostic can only be used for on-lattice applications.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "diag_style.html">diag_style</A>, <A HREF = "stats.html">stats</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>
