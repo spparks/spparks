@@ -138,7 +138,7 @@ class AppLattice : public App {
 
   void iterate_kmc_global(double);
   void iterate_kmc_sector(double);
-  void iterate_rejection(double);
+  virtual void iterate_rejection(double);
 
   typedef void (AppLattice::*FnPtrSweep)(int, int *);
   FnPtrSweep sweep;                         // ptr to< sweep functions

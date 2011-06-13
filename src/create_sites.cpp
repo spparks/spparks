@@ -69,7 +69,7 @@ void CreateSites::command(int narg, char **arg)
     iarg = 1;
   } else if (strcmp(arg[0],"region") == 0) {
     style = REGION;
-    if (narg != 2) error->all("Illegal create_sites command");
+    if (narg < 2) error->all("Illegal create_sites command");
     nregion = domain->find_region(arg[1]);
     if (nregion == -1) error->all("Create_sites region ID does not exist");
     iarg = 2;
