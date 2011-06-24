@@ -35,6 +35,16 @@ describe the version you have. :ule,l
 :line
 :line
 
+[24 Jun 2011]
+
+Made some lo-level changes within the lattice app base class
+to support a new phase field app we'll release later.
+
+This is the "list of changed files"_patches/files.24Jun11 from the 15
+Jun 2010 version.
+
+:line
+
 [15 Jun 2011]
 
 Eric Homer (Sandia) added a "diag_style array"_doc/diag_array.html
