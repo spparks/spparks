@@ -26,10 +26,10 @@ namespace SPPARKS_NS {
 class AppPottsNeighOnly : public AppPotts {
  public:
   AppPottsNeighOnly(class SPPARKS *, int, char **);
-  ~AppPottsNeighOnly() {}
-  void init_app();
+  virtual ~AppPottsNeighOnly() {}
+  virtual void init_app();
 
-  void site_event_rejection(int, class RandomPark *);
+  virtual void site_event_rejection(int, class RandomPark *);
 };
 
 }

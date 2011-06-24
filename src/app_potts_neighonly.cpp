@@ -23,7 +23,10 @@ using namespace SPPARKS_NS;
 AppPottsNeighOnly::AppPottsNeighOnly(SPPARKS *spk, int narg, char **arg) : 
   AppPotts(spk,narg,arg)
 {
-  if (narg != 2) error->all("Illegal app_style command");
+  // only error check for this class, not derived classes
+
+  if (strcmp(arg[0],"potts/neighonly") == 0 && narg != 2)
+    error->all("Illegal app_style command");
 }
 
 /* ----------------------------------------------------------------------
