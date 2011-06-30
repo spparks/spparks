@@ -1,4 +1,4 @@
-# storm = Cray XT5, Cray mpicxx, native MPI
+# xt5 = Cray XT5, Cray mpicxx, native MPI
 
 SHELL = /bin/sh
 .SUFFIXES: .cpp .d
