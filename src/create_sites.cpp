@@ -420,8 +420,7 @@ void CreateSites::structured_connectivity()
 }
 
 /* ----------------------------------------------------------------------
-   generate sites on structured lattice
-   loop over entire lattice
+   generate random sites
    each proc keeps those in its sub-domain
  ------------------------------------------------------------------------- */
 
@@ -484,30 +483,26 @@ void CreateSites::random_sites()
   random = new RandomPark(seed);
 
   // generate xyz coords and store them with site ID
-  // iterate until atom is within region
-  // if final coords are in my subbox, create site
+  // if coords are in my subbox and region, create site
 
   nlocal = 0;
   for (n = 1; n <= nrandom; n++) {
-    while (1) {
-      x = boxxlo + xprd*random->uniform();
-      y = boxylo + yprd*random->uniform();
-      z = boxzlo + zprd*random->uniform();
-      if (dimension < 2) y = 0.0;
-      if (dimension < 3) z = 0.0;
-
-      if (style == REGION) {
-	if (domain->regions[nregion]->match(x,y,z) == 0) break;
-      } else break;
-    }
-
+    x = boxxlo + xprd*random->uniform();
+    y = boxylo + yprd*random->uniform();
+    z = boxzlo + zprd*random->uniform();
+    if (dimension < 2) y = 0.0;
+    if (dimension < 3) z = 0.0;
+    
     if (x < subxlo || x >= subxhi || 
 	y < subylo || y >= subyhi || 
 	z < subzlo || z >= subzhi) continue;
     
+    if (style == REGION)
+      if (domain->regions[nregion]->match(x,y,z) == 0) continue;
+    
     if (latticeflag) applattice->add_site(n,x,y,z);
     else appoff->add_site(n,x,y,z);
-
+    
     if (valueflag == IARRAY) iarray[valueindex][nlocal] = ivalue;
     else if (valueflag == DARRAY) darray[valueindex][nlocal] = dvalue;
     nlocal++;
