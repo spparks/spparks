@@ -28,9 +28,13 @@ lib:	$(OBJ)
 
 # Compilation rules
 
-.cpp.o:
+%.o:%.cpp
 	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
 
-$(OBJ):	     $(INC)
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)
