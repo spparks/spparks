@@ -101,7 +101,8 @@ void SolveGroup::init(int n, double *propensity)
 
   sum = 0.0;
   for (int i = 0; i < n; i++) {
-    if (propensity[i] > 0.0) num_active++;
+    //    if (propensity[i] > 0.0) 
+    num_active++;
     p[i] = MAX(propensity[i],lo);
     p[i] = MIN(p[i],hi);
     sum += p[i];
@@ -118,8 +119,8 @@ void SolveGroup::update(int n, int *indices, double *propensity)
     int j = indices[i];
     double pt = propensity[j];
     if (p[j] != pt) {
-      if (p[j] > 0.0) num_active--;
-      if (pt > 0.0) num_active++;
+      if (p[j] == 0.0) num_active++;
+      if (pt == 0.0) num_active--;
       sum -= p[j];
       groups->alter_element(j,p,pt);
       p[j] = pt;
@@ -134,8 +135,8 @@ void SolveGroup::update(int n, double *propensity)
 {
   double pt = propensity[n];
   if (p[n] != pt) {
-    if (p[n] > 0.0) num_active--;
-    if (pt > 0.0) num_active++;
+    if (p[n] == 0.0) num_active++;
+    if (pt == 0.0) num_active--;
     sum -= p[n];
     groups->alter_element(n,p,pt);
     p[n] = pt;
