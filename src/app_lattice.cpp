@@ -294,12 +294,10 @@ void AppLattice::init()
   }
 
   // initialize comm, both for this proc's full domain and sectors
-  // only need to do this on first init
+  // recall comm->init in case sectoring has changed
 
-  if (comm == NULL) {
-    comm = new CommLattice(spk);
-    comm->init(nsector,delpropensity,delevent,NULL);
-  }
+  if (comm == NULL) comm = new CommLattice(spk);
+  comm->init(nsector,delpropensity,delevent,NULL);
 
   // set sweep function ptr
 
