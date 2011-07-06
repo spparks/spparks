@@ -35,6 +35,16 @@ describe the version you have. :ule,l
 :line
 :line
 
+[5 Jul 2011]
+
+Fix a logic error with communication when performing multiple
+runs with changing sector rules.
+
+This is the "list of changed files"_patches/files.5Jul11 from the 24
+Jun 2010 version.
+
+:line
+
 [24 Jun 2011]
 
 Made some lo-level changes within the lattice app base class
