@@ -35,6 +35,21 @@ describe the version you have. :ule,l
 :line
 :line
 
+[7 Jul 2011]
+
+Fixed some problems with the "group-style
+solver"_doc/solve_style.html.  This includes one accuracy bug with the
+way changed propensities were assigned to new groups, and some
+bookkeeping changes for how zero-valued propensities were handled.
+The specified {lo} and {hi} bounds can now be exact matches to event
+propensities of your model.  A warning message is printed if generated
+propensities violate the specified bounds.
+
+This is the "list of changed files"_patches/files.7Jul11 from the 5
+Jul 2010 version.
+
+:line
+
 [5 Jul 2011]
 
 Fix a logic error with communication when performing multiple

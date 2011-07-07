@@ -38,6 +38,21 @@ describe the version you have.
 
 <HR>
 
+<P><B>7 Jul 2011</B>
+</P>
+<P>Fixed some problems with the <A HREF = "doc/solve_style.html">group-style
+solver</A>.  This includes one accuracy bug with the
+way changed propensities were assigned to new groups, and some
+bookkeeping changes for how zero-valued propensities were handled.
+The specified <I>lo</I> and <I>hi</I> bounds can now be exact matches to event
+propensities of your model.  A warning message is printed if generated
+propensities violate the specified bounds.
+</P>
+<P>This is the <A HREF = "patches/files.7Jul11">list of changed files</A> from the 5
+Jul 2010 version.
+</P>
+<HR>
+
 <P><B>5 Jul 2011</B>
 </P>
 <P>Fix a logic error with communication when performing multiple
