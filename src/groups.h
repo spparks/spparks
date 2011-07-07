@@ -29,20 +29,20 @@ class Groups : protected Pointers {
 
  private:
   int size;             // number of propensities
-  double sum;           // sum of all propensities
-  double hi,lo;         // propensity bounds, inclusive
+  double psum;          // sum of all propensities
+  double hi,lo;         // inclusive propensity bounds
   double invbinsize;    // inverse width of propensity bin when user-specified
 
   int ngroups;          // number of groups
   int ngroups_flag;     // 0 for logarithmic, N for N equal-spaced groups
-  int **group;          // list of propensity indices in each group
-  int *group_maxsize;   // max propensities each group is allocated for
-  int *group_size;      // # of propensities in each group
-  double *group_hi;     // upper bound of propensity for each group
-  double *group_sum;    // sum of propensities for each group
+  int **g2p;            // list of propensity indices in each group
+  int *gcount;          // # of propensities in each group
+  int *gmaxsize;        // max # of propensities each group is allocated for
+  double *ghibound;     // upper bound of propensity for each group
+  double *gpsum;        // sum of propensities for each group
 
-  int *my_group;        // inverse group index
-  int *my_group_i;      // inverse group location index 
+  int *p2g;             // p2g[n] = which group propensity N is assigned to
+  int *p2g_index;       // p2gindex[n] = index within group of propensity N
 
   class RandomPark *random;
 
@@ -52,7 +52,6 @@ class Groups : protected Pointers {
   void allocate_memory(int);
   void release_memory();
   void sanity_check(double *p);
-
 };
 
 }

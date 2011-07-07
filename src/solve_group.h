@@ -37,16 +37,20 @@ class SolveGroup : public Solve {
 
  private:
   class RandomPark *random;
-  class Groups2 *groups;
+  class Groups *groups;
   int nevents;
 
   double *p;                     // local copy of propensities
   double lo,hi;
   int ngroups;
+
+  int nroundlo,nroundhi;         // info on propensities reset to lo/hi
+  double lomax,himax;
+
+  void round_check();
 };
 
 }
 
 #endif
 #endif
-

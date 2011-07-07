@@ -16,7 +16,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "solve_group.h"
-#include "groups2.h"
+#include "groups.h"
 #include "random_mars.h"
 #include "random_park.h"
 #include "error.h"
@@ -51,14 +51,20 @@ SolveGroup::SolveGroup(SPPARKS *spk, int narg, char **arg) :
   }
 
   random = new RandomPark(ranmaster->uniform());
-  groups = new Groups2(spk,hi,lo,ngroups);
+  groups = new Groups(spk,hi,lo,ngroups);
   p = NULL;
+
+  nroundlo = nroundhi = 0;
+  lomax = lo;
+  himax = hi;
 }
 
 /* ---------------------------------------------------------------------- */
 
 SolveGroup::~SolveGroup()
 {
+  round_check();
+
   delete random;
   delete groups;
   delete [] p;
@@ -106,13 +112,27 @@ void SolveGroup::init(int n, double *propensity)
   for (int i = 0; i < n; i++) {
     if (propensity[i] > 0.0) {
       num_active++;
-      p[i] = MAX(propensity[i],lo);
-      p[i] = MIN(p[i],hi);
+      p[i] = propensity[i];
+      if (p[i] < lo) {
+	nroundlo++;
+	lomax = MIN(lomax,p[i]);
+	p[i] = lo;
+      }
+      if (p[i] > hi) {
+	nroundhi++;
+	himax = MAX(himax,p[i]);
+	p[i] = hi;
+      }
       sum += p[i];
     } else p[i] = 0.0;
   }
 
   groups->partition(p,n);
+
+  round_check();
+  nroundlo = nroundhi = 0;
+  lomax = lo;
+  himax = hi;
 }
 
 /* ----------------------------------------------------------------------
@@ -131,8 +151,16 @@ void SolveGroup::update(int n, int *indices, double *propensity)
       if (p[j] == 0.0) num_active++;
       if (pt == 0.0) num_active--;
       else {
-	pt = MAX(pt,lo);
-	pt = MIN(pt,hi);
+	if (pt < lo) {
+	  nroundlo++;
+	  lomax = MIN(lomax,pt);
+	  pt = lo;
+	}
+	if (pt > hi) {
+	  nroundhi++;
+	  himax = MIN(himax,pt);
+	  pt = hi;
+	}
       }
       sum -= p[j];
       groups->alter_element(j,p,pt);
@@ -156,8 +184,16 @@ void SolveGroup::update(int n, double *propensity)
     if (p[n] == 0.0) num_active++;
     if (pt == 0.0) num_active--;
     else {
-      pt = MAX(pt,lo);
-      pt = MIN(pt,hi);
+      if (pt < lo) {
+	nroundlo++;
+	lomax = MIN(lomax,pt);
+	pt = lo;
+      }
+      if (pt > hi) {
+	nroundhi++;
+	himax = MIN(himax,pt);
+	pt = hi;
+      }
     }
     sum -= p[n];
     groups->alter_element(n,p,pt);
@@ -186,4 +222,28 @@ int SolveGroup::event(double *pdt)
   m = groups->sample(p);
   *pdt = -1.0/sum * log(random->uniform());
   return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void SolveGroup::round_check()
+{
+  int nlo,nhi;
+  double lomaxall,himaxall;
+  MPI_Allreduce(&nroundlo,&nlo,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&nroundhi,&nhi,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&lomax,&lomaxall,1,MPI_DOUBLE,MPI_MIN,world);
+  MPI_Allreduce(&himax,&himaxall,1,MPI_DOUBLE,MPI_MAX,world);
+
+  int me;
+  MPI_Comm_rank(world,&me);
+  if ((nlo || nhi) && me == 0) {
+    char str[128];
+    sprintf(str,"%d propensities were reset to lo value, max lo = %g",
+	    nlo,lomaxall);
+    error->warning(str);
+    sprintf(str,"%d propensities were reset to hi value, max hi = %g",
+	    nhi,himaxall);
+    error->warning(str);
+  }
 }

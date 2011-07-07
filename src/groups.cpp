@@ -38,14 +38,14 @@ Groups::Groups(SPPARKS *spk, double hi_in, double lo_in, int ng_in) :
   if (ngroups == 0) ngroups_flag = 0;
   else ngroups_flag = 1;
 
-  group = NULL;
-  group_maxsize = NULL;
-  group_size = NULL;
-  group_hi = NULL;
-  group_sum = NULL;
+  g2p = NULL;
+  gcount = NULL;
+  gmaxsize = NULL;
+  ghibound = NULL;
+  gpsum = NULL;
 
-  my_group = NULL;
-  my_group_i = NULL;
+  p2g = NULL;
+  p2g_index = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,6 +58,7 @@ Groups::~Groups()
 
 /* ----------------------------------------------------------------------
    setup the group data structures
+   each input propensity is between lo,hi inclusive or is zero
 ------------------------------------------------------------------------- */
 
 void Groups::partition(double *p, int size_in)
@@ -65,7 +66,7 @@ void Groups::partition(double *p, int size_in)
   int g;
 
   size = size_in;
-  sum = 0.0;
+  psum = 0.0;
 
   // for ngroups_flag = 1:
   //   propensity = lo will be in group 0
@@ -92,20 +93,20 @@ void Groups::partition(double *p, int size_in)
     double binsize = (hi-lo)/(ngroups-EPSILON);
     invbinsize = 1.0/binsize;
     for (int g = 0; g < ngroups; g++)
-      group_hi[g] = lo + (g+1)*binsize;
-    group_hi[ngroups-1] = hi;
+      ghibound[g] = lo + (g+1)*binsize;
+    ghibound[ngroups-1] = hi;
   } else {
     double top = hi;
     for (int g = 0; g < ngroups; g++) {
-      group_hi[g] = top;
+      ghibound[g] = top;
       top *= 0.5;
     }
   }
 
   // count # of propensities in each group
-  // sum = total propensity
+  // psum = total propensity
 
-  for (g = 0; g <= ngroups; g++) group_size[g] = 0;
+  for (g = 0; g <= ngroups; g++) gcount[g] = 0;
 
   for (int i = 0; i < size; i++) {
     if (p[i] == 0.0) g = ngroups;
@@ -116,8 +117,8 @@ void Groups::partition(double *p, int size_in)
       if (g < 0) g = 0;
     }
 
-    group_size[g]++;
-    sum += p[i];
+    gcount[g]++;
+    psum += p[i];
   }
   
   // allocate per-group lists
@@ -128,18 +129,17 @@ void Groups::partition(double *p, int size_in)
   if (ave == 0) ave = 1;
 
   for (g = 0; g <= ngroups; g++) {
-    group_maxsize[g] = ave;
-    if (group_size[g] > ave) group_maxsize[g] = group_size[g];
-    group[g] = (int *) memory->smalloc(group_maxsize[g]*sizeof(int),
-				       "group:group");
+    gmaxsize[g] = ave;
+    if (gcount[g] > ave) gmaxsize[g] = gcount[g];
+    g2p[g] = (int *) memory->smalloc(gmaxsize[g]*sizeof(int),"group:g2p");
   }
 
   // add index of each propensity to its group
   // each propensity is guaranteed to be 0.0 or between lo,hi inclusive
 
   for (g = 0; g <= ngroups; g++) {
-    group_size[g] = 0;
-    group_sum[g] = 0.0;
+    gcount[g] = 0;
+    gpsum[g] = 0.0;
   }
   
   for (int i = 0; i < size; i++) {
@@ -151,10 +151,10 @@ void Groups::partition(double *p, int size_in)
       if (g < 0) g = 0;
     }
 
-    my_group[i] = g;
-    my_group_i[i] = group_size[g];
-    group[g][group_size[g]++] = i;
-    group_sum[g] += p[i];
+    p2g[i] = g;
+    p2g_index[i] = gcount[g];
+    g2p[g][gcount[g]++] = i;
+    gpsum[g] += p[i];
   }
 
   // debug check
@@ -164,13 +164,14 @@ void Groups::partition(double *p, int size_in)
 
 /* ----------------------------------------------------------------------
    change value of a single element
+   new propensity is between lo,hi inclusive or is zero
 ------------------------------------------------------------------------- */
 
 void Groups::alter_element(int n, double *p, double p_new)
 {
   double p_old = p[n];
   double diff = p_new - p_old;
-  sum += diff;
+  psum += diff;
 
   // compute new group for p_new
 
@@ -187,24 +188,24 @@ void Groups::alter_element(int n, double *p, double p_new)
   // index = where in old group this propensity is
   // lastprop = which propensity is last in old group
 
-  if (my_group[n] == new_group) group_sum[new_group] += diff;
+  if (p2g[n] == new_group) gpsum[new_group] += diff;
   else {
-    int old_group = my_group[n];
-    int index = my_group_i[n];
-    int lastprop = group[old_group][group_size[old_group]-1];
+    int old_group = p2g[n];
+    int index = p2g_index[n];
+    int lastprop = g2p[old_group][gcount[old_group]-1];
 
-    group[old_group][index] = lastprop;
-    my_group_i[lastprop] = index;
-    group_size[old_group]--;
-    group_sum[old_group] -= p_old;
+    g2p[old_group][index] = lastprop;
+    p2g_index[lastprop] = index;
+    gcount[old_group]--;
+    gpsum[old_group] -= p_old;
     
-    if (group_size[new_group] == group_maxsize[new_group])
+    if (gcount[new_group] == gmaxsize[new_group])
       grow_group(new_group);
 
-    my_group[n] = new_group;
-    my_group_i[n] = group_size[new_group];
-    group[new_group][group_size[new_group]++] = n;
-    group_sum[new_group] += p_new;
+    p2g[n] = new_group;
+    p2g_index[n] = gcount[new_group];
+    g2p[new_group][gcount[new_group]++] = n;
+    gpsum[new_group] += p_new;
   }
 
   // debug check
@@ -235,12 +236,12 @@ int Groups::sample(double *p)
 
 int Groups::linear_select_group()
 {
-  double thresh = sum*random->uniform();
+  double thresh = psum*random->uniform();
   double partial = 0.0;
 
   int g;
   for (g = 0; g < ngroups; g++) {
-    partial += group_sum[g];
+    partial += gpsum[g];
     if (partial > thresh) return g;
   }
   return ngroups-1;
@@ -252,9 +253,9 @@ int Groups::linear_select_group()
 
 int Groups::sample_with_rejection(int g, double *p)
 {
-  int index = static_cast<int>(group_size[g]*random->uniform());
-  int sample = group[g][index];
-  if (p[sample] > group_hi[g]*random->uniform()) return sample;
+  int index = static_cast<int>(gcount[g]*random->uniform());
+  int sample = g2p[g][index];
+  if (p[sample] > ghibound[g]*random->uniform()) return sample;
   return -1;
 }
 
@@ -264,9 +265,8 @@ int Groups::sample_with_rejection(int g, double *p)
 
 void Groups::grow_group(int g)
 {
-  group_maxsize[g] *= 2;
-  group[g] = (int *) memory->srealloc(group[g],group_maxsize[g]*sizeof(int),
-				      "group:group");
+  gmaxsize[g] *= 2;
+  g2p[g] = (int *) memory->srealloc(g2p[g],gmaxsize[g]*sizeof(int),"group:g2p");
 }
 
 /* ----------------------------------------------------------------------
@@ -277,15 +277,15 @@ void Groups::grow_group(int g)
 
 void Groups::allocate_memory(int n)
 {
-  group = new int*[n+1];
+  g2p = new int*[n+1];
 
-  group_maxsize = new int [n+1];
-  group_size = new int [n+1];
-  group_sum = new double [n+1];
-  group_hi = new double [n+1];
+  gcount = new int [n+1];
+  gmaxsize = new int [n+1];
+  gpsum = new double [n+1];
+  ghibound = new double [n+1];
 
-  my_group = (int *) memory->smalloc(size*sizeof(int),"group:my_group");
-  my_group_i = (int *) memory->smalloc(size*sizeof(int),"group:my_group_i");
+  p2g = (int *) memory->smalloc(size*sizeof(int),"group:p2g");
+  p2g_index = (int *) memory->smalloc(size*sizeof(int),"group:p2g_index");
 }
 
 /* ----------------------------------------------------------------------
@@ -294,19 +294,19 @@ void Groups::allocate_memory(int n)
 
 void Groups::release_memory()
 {
-  if (group) {
-    for (int g = 0; g <= ngroups; g++) memory->sfree(group[g]);
-    delete [] group;
-    group = NULL;
+  if (g2p) {
+    for (int g = 0; g <= ngroups; g++) memory->sfree(g2p[g]);
+    delete [] g2p;
+    g2p = NULL;
   }
 
-  delete [] group_maxsize;
-  delete [] group_size;
-  delete [] group_sum;
-  delete [] group_hi;
+  delete [] gcount;
+  delete [] gmaxsize;
+  delete [] gpsum;
+  delete [] ghibound;
 
-  memory->sfree(my_group);
-  memory->sfree(my_group_i);
+  memory->sfree(p2g);
+  memory->sfree(p2g_index);
 }
 
 /* ----------------------------------------------------------------------
@@ -317,16 +317,16 @@ void Groups::sanity_check(double *p)
 {
   // check that per-group count and sum = totals within EPSILON
 
-  int gcount = 0;
-  double gsum = 0.0;
+  int count = 0;
+  double sum = 0.0;
 
   for (int g = 0; g <= ngroups; g++) {
-    gcount += group_size[g];
-    gsum += group_sum[g];
+    count += gcount[g];
+    sum += gpsum[g];
   }
 
-  if (gcount != size) printf("Bad group count: %d %d\n",gcount,size);
-  if (fabs(gsum-sum) > EPSILON) printf("Bad group sum: %g %g\n",gsum,sum);
+  if (count != size) printf("Bad group count: %d %d\n",count,size);
+  if (fabs(sum-psum) > EPSILON) printf("Bad group sum: %g %g\n",sum,psum);
 
   // check that all propensities in group are within group bounds
 
@@ -336,20 +336,20 @@ void Groups::sanity_check(double *p)
     if (g < ngroups) {
       if (ngroups_flag) {
 	if (g == 0) glo = lo;
-	else glo = group_hi[g-1];
-	ghi = group_hi[g];
+	else glo = ghibound[g-1];
+	ghi = ghibound[g];
       } else {
-	if (g < ngroups-1) glo = group_hi[g+1];
+	if (g < ngroups-1) glo = ghibound[g+1];
 	else glo = lo;
-	ghi = group_hi[g];
+	ghi = ghibound[g];
       }
     } else glo = ghi = 0.0;
 
-    for (int i = 0; i < group_size[g]; i++) {
-      double pone = p[group[g][i]];
+    for (int i = 0; i < gcount[g]; i++) {
+      double pone = p[g2p[g][i]];
       if (pone < glo || pone > ghi) {
 	printf("Group mismatch: %d %d %d: %g %g %g\n",
-	       g,i,group[g][i],glo,pone,ghi);
+	       g,i,g2p[g][i],glo,pone,ghi);
 	flag++;
       }
     }
