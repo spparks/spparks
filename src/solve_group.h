@@ -37,7 +37,7 @@ class SolveGroup : public Solve {
 
  private:
   class RandomPark *random;
-  class Groups *groups;
+  class Groups2 *groups;
   int nevents;
 
   double *p;                     // local copy of propensities

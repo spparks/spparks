@@ -101,7 +101,7 @@ void CreateSites::command(int narg, char **arg)
 	valueindex--;
       } else if (arg[iarg+1][0] == 'd') {
 	valueflag = DARRAY;
-	valueindex = atoi(&arg[iarg+1][0]);
+	valueindex = atoi(&arg[iarg+1][1]);
 	if (valueindex < 1 || valueindex > app->ndouble)
 	  error->all("Creating a quantity application does not support");
 	valueindex--;
@@ -453,6 +453,7 @@ void CreateSites::random_sites()
   double **darray = app->darray;
 
   // count sites I own in my sub-domain
+  // iterate until atom is within region
 
   double seed = ranmaster->uniform();
   RandomPark *random = new RandomPark(seed);
@@ -461,14 +462,21 @@ void CreateSites::random_sites()
   int nlocal = 0;
 
   for (n = 1; n <= nrandom; n++) {
-    x = boxxlo + xprd*random->uniform();
-    y = boxylo + yprd*random->uniform();
-    z = boxzlo + zprd*random->uniform();
-    if (dimension == 1) y = 0.0;
-    if (dimension != 3) z = 0.0;
+    while (1) {
+      x = boxxlo + xprd*random->uniform();
+      y = boxylo + yprd*random->uniform();
+      z = boxzlo + zprd*random->uniform();
+      if (dimension < 2) y = 0.0;
+      if (dimension < 3) z = 0.0;
+      if (style == REGION) {
+	if (domain->regions[nregion]->match(x,y,z) == 1) break;
+      } else break;
+    }
+
     if (x < subxlo || x >= subxhi || 
 	y < subylo || y >= subyhi || 
 	z < subzlo || z >= subzhi) continue;
+
     nlocal++;
   }
 
@@ -483,22 +491,25 @@ void CreateSites::random_sites()
   random = new RandomPark(seed);
 
   // generate xyz coords and store them with site ID
-  // if coords are in my subbox and region, create site
+  // iterate until atom is within region
+  // if coords are in my sub-domain, create site
 
   nlocal = 0;
   for (n = 1; n <= nrandom; n++) {
-    x = boxxlo + xprd*random->uniform();
-    y = boxylo + yprd*random->uniform();
-    z = boxzlo + zprd*random->uniform();
-    if (dimension < 2) y = 0.0;
-    if (dimension < 3) z = 0.0;
-    
+    while (1) {
+      x = boxxlo + xprd*random->uniform();
+      y = boxylo + yprd*random->uniform();
+      z = boxzlo + zprd*random->uniform();
+      if (dimension < 2) y = 0.0;
+      if (dimension < 3) z = 0.0;
+      if (style == REGION) {
+	if (domain->regions[nregion]->match(x,y,z) == 1) break;
+      } else break;
+    }
+
     if (x < subxlo || x >= subxhi || 
 	y < subylo || y >= subyhi || 
 	z < subzlo || z >= subzhi) continue;
-    
-    if (style == REGION)
-      if (domain->regions[nregion]->match(x,y,z) == 0) continue;
     
     if (latticeflag) applattice->add_site(n,x,y,z);
     else appoff->add_site(n,x,y,z);

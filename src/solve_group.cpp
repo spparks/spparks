@@ -16,7 +16,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "solve_group.h"
-#include "groups.h"
+#include "groups2.h"
 #include "random_mars.h"
 #include "random_park.h"
 #include "error.h"
@@ -51,7 +51,7 @@ SolveGroup::SolveGroup(SPPARKS *spk, int narg, char **arg) :
   }
 
   random = new RandomPark(ranmaster->uniform());
-  groups = new Groups(spk,hi,lo,ngroups);
+  groups = new Groups2(spk,hi,lo,ngroups);
   p = NULL;
 }
 
@@ -89,7 +89,10 @@ SolveGroup *SolveGroup::clone()
   return ptr;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   bound all non-zero propensities between LO and HI inclusive
+   zero propensities are not changed and do not contribute to num_active
+------------------------------------------------------------------------- */
 
 void SolveGroup::init(int n, double *propensity)
 {
@@ -101,17 +104,23 @@ void SolveGroup::init(int n, double *propensity)
 
   sum = 0.0;
   for (int i = 0; i < n; i++) {
-    //    if (propensity[i] > 0.0) 
-    num_active++;
-    p[i] = MAX(propensity[i],lo);
-    p[i] = MIN(p[i],hi);
-    sum += p[i];
+    if (propensity[i] > 0.0) {
+      num_active++;
+      p[i] = MAX(propensity[i],lo);
+      p[i] = MIN(p[i],hi);
+      sum += p[i];
+    } else p[i] = 0.0;
   }
 
-  groups->partition_init(p,n);
+  groups->partition(p,n);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   update a list of propensity values
+   invoke alter_element() only if a propensity changes
+   bound all non-zero propensities between LO and HI inclusive
+   adjust num_active based on old p[j] vs new pt propensity values
+------------------------------------------------------------------------- */
 
 void SolveGroup::update(int n, int *indices, double *propensity)
 {
@@ -121,6 +130,10 @@ void SolveGroup::update(int n, int *indices, double *propensity)
     if (p[j] != pt) {
       if (p[j] == 0.0) num_active++;
       if (pt == 0.0) num_active--;
+      else {
+	pt = MAX(pt,lo);
+	pt = MIN(pt,hi);
+      }
       sum -= p[j];
       groups->alter_element(j,p,pt);
       p[j] = pt;
@@ -129,7 +142,12 @@ void SolveGroup::update(int n, int *indices, double *propensity)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   update a single propensity value
+   invoke alter_element() only if propensity changes
+   bound non-zero propensity between LO and HI inclusive
+   adjust num_active based on old p[j] vs new pt propensity value
+------------------------------------------------------------------------- */
 
 void SolveGroup::update(int n, double *propensity)
 {
@@ -137,6 +155,10 @@ void SolveGroup::update(int n, double *propensity)
   if (p[n] != pt) {
     if (p[n] == 0.0) num_active++;
     if (pt == 0.0) num_active--;
+    else {
+      pt = MAX(pt,lo);
+      pt = MIN(pt,hi);
+    }
     sum -= p[n];
     groups->alter_element(n,p,pt);
     p[n] = pt;

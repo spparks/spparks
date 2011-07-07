@@ -23,45 +23,36 @@ class Groups : protected Pointers {
   Groups(class SPPARKS *, double, double, int);
   ~Groups();
 
-  void partition_init(double *,int);
+  void partition(double *,int);
   void alter_element(int, double *, double);
   int sample(double *);
 
  private:
-  double overlg2;
-
-  int *my_group;   // inverse group index
-  int *my_group_i; // inverse group location index 
-  int size;        // current distribution size
-  int max_size;    // current allocated distribution storage
-  double psum;     // current distribution sum
-  double hi,lo,range;  // distribution parameters
+  int size;             // number of propensities
+  double sum;           // sum of all propensities
+  double hi,lo;         // propensity bounds, inclusive
+  double invbinsize;    // inverse width of propensity bin when user-specified
 
   int ngroups;          // number of groups
-  int ngroups_flag;
-  int *group_size;      // size of groups
-  int **group;          // group members
-  int *i_group;         // current group max index
-  double *group_hi;     // current group sup
-  double *group_sum;    // current group sum
-  int *empty_groups;    // 0 for empty, 1 for non-empty
-  int nempty;
-  double frac;
+  int ngroups_flag;     // 0 for logarithmic, N for N equal-spaced groups
+  int **group;          // list of propensity indices in each group
+  int *group_maxsize;   // max propensities each group is allocated for
+  int *group_size;      // # of propensities in each group
+  double *group_hi;     // upper bound of propensity for each group
+  double *group_sum;    // sum of propensities for each group
 
-  void partition(double *, double, double);
-  void remove_element(int, double *);
-  void add_element(int, double *);
-
-  void allocate_group_space(int);
-  void release_group_space();
-  void grow_group(int);
-  void shrink_group(int);
-  void resize_group(int);
-  void resize_inverse();
+  int *my_group;        // inverse group index
+  int *my_group_i;      // inverse group location index 
 
   class RandomPark *random;
-  int sample_with_rejection(int, double *);
+
   int linear_select_group();
+  int sample_with_rejection(int, double *);
+  void grow_group(int);
+  void allocate_memory(int);
+  void release_memory();
+  void sanity_check(double *p);
+
 };
 
 }
