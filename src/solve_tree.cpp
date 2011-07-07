@@ -68,7 +68,6 @@ void SolveTree::init(int n, double *propensity)
 
   nevents = n;
   sum = 0;
-  num_active = 0;
 
   // m = value such that 2^m >= nevents
 
