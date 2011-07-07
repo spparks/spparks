@@ -1,0 +1,53 @@
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
+------------------------------------------------------------------------- */
+
+#ifdef SOLVE_CLASS
+SolveStyle(group2,SolveGroup2)
+
+#else
+
+#ifndef SPK_SOLVE_GROUP2_H
+#define SPK_SOLVE_GROUP2_H
+
+#include "solve.h"
+
+namespace SPPARKS_NS {
+
+class SolveGroup2 : public Solve {
+ public:
+  SolveGroup2(class SPPARKS *, int, char **);
+  ~SolveGroup2();
+  SolveGroup2 *clone();
+
+  void init(int, double *);
+  void update(int, int *, double *);
+  void update(int, double *);
+  void resize(int, double *);
+  int event(double *);
+
+ private:
+  class RandomPark *random;
+  class Groups2 *groups;
+  int nevents;
+
+  double *p;                     // local copy of propensities
+  double sum;
+  double lo,hi;
+  int ngroups;
+};
+
+}
+
+#endif
+#endif
+
