@@ -22,7 +22,7 @@ diag_style energy :pre
 [Description:]
 
 The energy diagnostic computes the total energy of all lattice sites
-in the system. The energy is printed as stats output via the
+in the system.  The energy is printed as stats output via the
 "stats"_stats.html command.
 
 [Restrictions:]

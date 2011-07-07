@@ -68,21 +68,35 @@ pick an event scales as O(logN).
 (CR) algorithm described originally in <A HREF = "#Devroye">Devroye</A> and
 discussed in <A HREF = "#Slepoy">Slepoy</A>.  Its cost to pick an event scales as
 O(1) as it is a constant time algorithm.  It requires that you bound
-the <I>hi</I> and <I>lo</I> probabilities for any event that will be registered
-with the solver.  Note that on-lattice applications typically register
-the total probability of all a site's events with the KMC solver.  The
-value of <I>lo</I> must be > 0.0 and <I>lo</I> cannot be >= <I>hi</I>.
+the <I>hi</I> and <I>lo</I> probabilities for any event that will be considered
+with the solver.  Note that for on-lattice applications this is
+typically the total probability of all events associated with a site.
+The value of <I>lo</I> must be > 0.0 and <I>lo</I> cannot be >= <I>hi</I>.  For
+efficiency purposes it is good to choose bounds that are reasonably
+tight.
 </P>
 <P>By default, the <I>group</I> style will create groups whose boundaries
-cascade upward in powers of 2 from <I>lo</I> to <I>hi</I>.  I.e. the first group
-is from lo to 2*lo, the second group is from 2*lo to 4*lo, etc.  Note
-that for hi/lo = 1.0e6, there would thus be about 20 groups.
+cascade downward in powers of 2 from <I>hi</I> to <I>lo</I>.  I.e. the first
+group is from hi/2 to hi, the second group is from hi/4 to hi/2, and
+continuing until <I>lo</I> is reached.  Note that for hi/lo = 1.0e6, there
+would thus be about 20 groups.
 </P>
 <P>If the <I>ngroup</I> keyword is used, then it specifies the number of
 groups to use between <I>lo</I> and <I>hi</I> and they will be equal in extent.
 E.g. for <I>ngroup</I> = 3, the first group is from lo to lo + (hi-lo)/3,
 the second group is from lo + 2*(hi-lo)/3, and the third group is from
 lo + 2*(hi-lo)/3 to hi.
+</P>
+<P>IMPORTANT NOTE: For the <I>group</I> style, if an event is generated that
+has a probability = 0.0 (e.g. a site has no possible event), that is
+not a violation of the <I>lo</I> bound.  However if an event is generated
+with a non-zero probability and the probability is less than <I>lo</I> or
+greater than <I>hi</I>, then the probability is reset by the solver to the
+<I>lo</I> or <I>hi</I> bound.  If this occurs during a run, SPPARKS will print
+out a warning message (either before the run, or at the end of the
+script), since it indicates events have been selected using (slightly)
+different probabilities than the model generated.  This allows you to
+set a different <I>lo</I> or <I>hi</I> bound and re-run the simulation.
 </P>
 <P>The <I>none</I> style deletes any KMC solver previously defined.  This may
 be useful for transitioning from a KMC solver in one run to a
