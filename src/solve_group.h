@@ -41,7 +41,6 @@ class SolveGroup : public Solve {
   int nevents;
 
   double *p;                     // local copy of propensities
-  double sum;
   double lo,hi;
   int ngroups;
 };
