@@ -1,24 +1,59 @@
 # xt5 = Cray XT5, Cray mpicxx, native MPI
 
 SHELL = /bin/sh
-.SUFFIXES: .cpp .d
-.IGNORE:
 
-# System-specific settings
+# ---------------------------------------------------------------------
+# compiler/linker settings
+# specify flags and libraries needed for your compiler
 
 CC =		CC
-CCFLAGS =	-fastsse -DMPICH_IGNORE_CXX_SEEK
+CCFLAGS =	-fastsse 
 DEPFLAGS =	-M
 LINK =		CC
 LINKFLAGS =	-O
-USRLIB =	
-SYSLIB =
+LIB =	  	
+ARCHIVE =	ar
+ARFLAGS =	-rc
 SIZE =		size
 
-# Link rule
+# ---------------------------------------------------------------------
+# SPPARKS-specific settings
+# specify settings for SPPARKS features you will use
+
+# SPPARKS ifdef options, see doc/Section_start.html
+
+SPK_INC =	-DSPPARKS_GZIP
+
+# MPI library, can be src/STUBS dummy lib
+# INC = path for mpi.h, MPI compiler settings
+# PATH = path for MPI library
+# LIB = name of MPI library
+
+MPI_INC =       -DMPICH_IGNORE_CXX_SEEK
+MPI_PATH = 
+MPI_LIB =	
+
+# JPEG library, only needed if -DLAMMPS_JPEG listed with LMP_INC
+# INC = path for jpeglib.h
+# PATH = path for JPEG library
+# LIB = name of JPEG library
+
+JPG_INC =       
+JPG_PATH = 	
+JPG_LIB =	/usr/local/lib/libjpeg.a
+
+# ---------------------------------------------------------------------
+# build rules and dependencies
+# no need to edit this section
+
+EXTRA_INC = $(SPK_INC) $(MPI_INC) $(JPG_INC)
+EXTRA_PATH = $(MPI_PATH) $(JPG_PATH)
+EXTRA_LIB = $(MPI_LIB) $(JPG_LIB)
+
+# Link target
 
 $(EXE):	$(OBJ)
-	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
 # Library target
@@ -29,10 +64,10 @@ lib:	$(OBJ)
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) -c $<
+	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
-	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
 

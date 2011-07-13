@@ -2,34 +2,74 @@
 
 SHELL = /bin/sh
 
-# System-specific settings
+# ---------------------------------------------------------------------
+# compiler/linker settings
+# specify flags and libraries needed for your compiler
 
 CC =		c++
-CCFLAGS =	-O -MMD -I../STUBS 
+CCFLAGS =	-O -MMD
+DEPFLAGS =	-M
 LINK =		c++
 LINKFLAGS =	-O 
-USRLIB =	../STUBS/mpi.o
-SYSLIB = 
+LIB =	  	
+ARCHIVE =	ar
+ARFLAGS =	-rc
 SIZE =		size
 
-# Test rule
+# ---------------------------------------------------------------------
+# SPPARKS-specific settings
+# specify settings for SPPARKS features you will use
 
-test:
-	$(EXE) < $(INPUTFILE)
+# SPPARKS ifdef options, see doc/Section_start.html
 
-# Link rule
+SPK_INC =	-DSPPARKS_GZIP
+
+# MPI library, can be src/STUBS dummy lib
+# INC = path for mpi.h, MPI compiler settings
+# PATH = path for MPI library
+# LIB = name of MPI library
+
+MPI_INC =       -I../STUBS
+MPI_PATH = 	
+MPI_LIB =	../STUBS/libmpi.a
+
+# JPEG library, only needed if -DLAMMPS_JPEG listed with LMP_INC
+# INC = path for jpeglib.h
+# PATH = path for JPEG library
+# LIB = name of JPEG library
+
+JPG_INC =       
+JPG_PATH = 	
+JPG_LIB =	/usr/local/lib/libjpeg.a
+
+# ---------------------------------------------------------------------
+# build rules and dependencies
+# no need to edit this section
+
+EXTRA_INC = $(SPK_INC) $(MPI_INC) $(JPG_INC)
+EXTRA_PATH = $(MPI_PATH) $(JPG_PATH)
+EXTRA_LIB = $(MPI_LIB) $(JPG_LIB)
+
+# Link target
 
 $(EXE):	$(OBJ)
-	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
 # Compilation rules
 
-
 %.o:%.cpp
-	$(CC) $(CCFLAGS) -c $<
+	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
 
 DEPENDS = $(OBJ:.o=.d)
--include $(DEPENDS)
+include $(DEPENDS)
