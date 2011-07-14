@@ -209,6 +209,7 @@ Output commands:
 
 "diag_style"_diag_style.html,
 "dump"_dump.html,
+"dump image"_dump_image.html,
 "dump_modify"_dump_modify.html,
 "dump_one"_dump_one.html,
 "stats"_stats.html,
@@ -258,6 +259,7 @@ Restrictions in the command's documentation.
 "diag_style"_diag_style.html,
 "dimension"_dimension.html,
 "dump"_dump.html,
+"dump image"_dump_image.html,
 "dump_modify"_dump_modify.html,
 "dump_one"_dump_one.html,
 "echo"_echo.html,
