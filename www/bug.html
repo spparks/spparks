@@ -38,6 +38,34 @@ describe the version you have.
 
 <HR>
 
+<P><B>14 Jul 2011</B>
+</P>
+<P>With considerable help from graphics whiz Nathan Fabian (Sandia), we
+added a <A HREF = "doc/dump_image.html">dump image</A> command with accompanying
+options settable via the <A HREF = "doc/dump_modify.html">dump_modify</A> command.
+</P>
+<P>This enables you to write out a series of high-quality, ray-traced JPG
+or PPM images of the collection of sites from lattice-based
+applications.  Of course, this does not replace the need for a
+full-featured, interactive post-processing visulization capability,
+but it does provide a simple, easy way to quickly see how your
+simulation is working, since there are numerous tools that can display
+individual image files or animate a series of them.  It is also
+convenient for very large models, as a replacement for large dump
+snapshots.
+</P>
+<P>The <A HREF = "doc/dump_image.html">dump image</A> doc page includes a couple sample
+images you can view.
+</P>
+<P>As part of this command, the previous <A HREF = "doc/dump.html">dump</A> command now
+requires a "style" argument, which can be either "text" or "image".
+The previous dump command is now the "text" style.
+</P>
+<P>This is the <A HREF = "patches/files.14Jul11">list of changed files</A> from the 7
+Jul 2010 version.
+</P>
+<HR>
+
 <P><B>7 Jul 2011</B>
 </P>
 <P>Fixed some problems with the <A HREF = "doc/solve_style.html">group-style

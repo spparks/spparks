@@ -35,6 +35,34 @@ describe the version you have. :ule,l
 :line
 :line
 
+[14 Jul 2011]
+
+With considerable help from graphics whiz Nathan Fabian (Sandia), we
+added a "dump image"_doc/dump_image.html command with accompanying
+options settable via the "dump_modify"_doc/dump_modify.html command.
+
+This enables you to write out a series of high-quality, ray-traced JPG
+or PPM images of the collection of sites from lattice-based
+applications.  Of course, this does not replace the need for a
+full-featured, interactive post-processing visulization capability,
+but it does provide a simple, easy way to quickly see how your
+simulation is working, since there are numerous tools that can display
+individual image files or animate a series of them.  It is also
+convenient for very large models, as a replacement for large dump
+snapshots.
+
+The "dump image"_doc/dump_image.html doc page includes a couple sample
+images you can view.
+
+As part of this command, the previous "dump"_doc/dump.html command now
+requires a "style" argument, which can be either "text" or "image".
+The previous dump command is now the "text" style.
+
+This is the "list of changed files"_patches/files.14Jul11 from the 7
+Jul 2010 version.
+
+:line
+
 [7 Jul 2011]
 
 Fixed some problems with the "group-style
