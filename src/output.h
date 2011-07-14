@@ -11,9 +11,6 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_OUTPUT_H
-#define SPK_OUTPUT_H
-
 #include "pointers.h"
 
 namespace SPPARKS_NS {
@@ -52,5 +49,3 @@ class Output : protected Pointers {
 };
 
 }
-
-#endif

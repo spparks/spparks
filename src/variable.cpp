@@ -17,6 +17,7 @@
 #include "ctype.h"
 #include "unistd.h"
 #include "variable.h"
+#include "app.h"
 #include "universe.h"
 #include "memory.h"
 #include "error.h"
@@ -52,6 +53,8 @@ Variable::Variable(SPPARKS *spk) : Pointers(spk)
   precedence[MULTIPLY] = precedence[DIVIDE] = 2;
   precedence[CARAT] = 3;
   precedence[UNARY] = 4;
+
+  PI = 4.0*atan(1.0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -354,6 +357,15 @@ char *Variable::retrieve(char *name)
 }
 
 /* ----------------------------------------------------------------------
+   return result of equal-style variable evaluation
+------------------------------------------------------------------------- */
+
+double Variable::compute_equal(int ivar)
+{
+  return evaluate(data[ivar][0]);
+}
+
+/* ----------------------------------------------------------------------
    search for name in list of variables names
    return index or -1 if not found
 ------------------------------------------------------------------------- */
@@ -363,6 +375,16 @@ int Variable::find(char *name)
   for (int i = 0; i < nvar; i++)
     if (strcmp(name,names[i]) == 0) return i;
   return -1;
+}
+
+/* ----------------------------------------------------------------------
+   return 1 if variable is EQUAL style, 0 if not
+------------------------------------------------------------------------- */
+  
+int Variable::equalstyle(int ivar)
+{
+  if (style[ivar] == EQUAL) return 1;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -404,6 +426,8 @@ void Variable::copy(int narg, char **from, char **to)
    recursive evaluation of a string str
    string is a equal-style formula containing one or more items:
      number = 0.0, -5.45, 2.8e-4, ...
+     constant = PI
+     keyword = time, nglobal
      math operation = (),-x,x+y,x-y,x*y,x/y,x^y,
                       sqrt(x),exp(x),ln(x),log(x),
 		      sin(x),cos(x),tan(x),asin(x),acos(x),atan(x)
@@ -477,7 +501,7 @@ double Variable::evaluate(char *str)
       delete [] number;
 
     // ----------------
-    // letter: exp(), v_name
+    // letter: v_name, PI, time
     // ----------------
 
     } else if (islower(onechar)) {
@@ -516,7 +540,7 @@ double Variable::evaluate(char *str)
 	delete [] id;
 
       // ----------------
-      // math function
+      // math function or constant or keyword
       // ----------------
 
       } else {
@@ -533,7 +557,19 @@ double Variable::evaluate(char *str)
 
 	  delete [] contents;
 
-	} else error->all("Invalid math function in variable formula");
+	// constant
+
+	} else if (is_constant(word)) {
+	  value1 = constant(word);
+	  argstack[nargstack++] = value1;
+
+	// keyword
+
+	} else {
+	  int flag = keyword(word,value1);
+	  if (flag) error->all("Invalid keyword in variable formula");
+	  argstack[nargstack++] = value1;
+	}
       }
 
       delete [] word;
@@ -703,3 +739,41 @@ int Variable::math_function(char *word, char *contents,
 
   return 1;
 }
+
+/* ----------------------------------------------------------------------
+   check if word matches a constant
+   return 1 if yes, else 0
+   customize by adding a constant: PI
+------------------------------------------------------------------------- */
+
+int Variable::is_constant(char *word)
+{
+  if (strcmp(word,"PI") == 0) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   process a constant in formula
+   customize by adding a constant: PI
+------------------------------------------------------------------------- */
+
+double Variable::constant(char *word)
+{
+  if (strcmp(word,"PI") == 0) return PI;
+  return 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   process a constant in formula
+   customize by adding a constant: PI
+------------------------------------------------------------------------- */
+
+int Variable::keyword(char *word, double &value)
+{
+  if (strcmp(word,"time") == 0) value = app->time;
+  else if (strcmp(word,"nglobal") == 0) app->nglobal;
+  else return 1;
+
+  return 0;
+}
+

@@ -25,7 +25,10 @@ class Variable : protected Pointers {
   void set(int, char **);
   void set(char *, char *);
   int next(int, char **);
+  int find(char *);
+  int equalstyle(int);
   char *retrieve(char *);
+  double compute_equal(int);
 
  private:
   int me;
@@ -38,12 +41,16 @@ class Variable : protected Pointers {
   char ***data;            // str value of each variable's values
   int precedence[7];       // precedence level of math operators
 
-  int find(char *);
+  double PI;
+
   void remove(int);
   void copy(int, char **, char **);
   double evaluate(char *);
   int find_matching_paren(char *, int, char *&);
   int math_function(char *, char *, double *, int &);
+  int is_constant(char *);
+  double constant(char *);
+  int keyword(char *, double &);
 };
 
 }

@@ -16,6 +16,8 @@
 #include "string.h"
 #include "stdlib.h"
 #include "output.h"
+#include "style_dump.h"
+#include "style_diag.h"
 #include "app.h"
 #include "dump.h"
 #include "diag.h"
@@ -214,19 +216,32 @@ void Output::set_stats(int narg, char **arg)
 
 void Output::add_dump(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal dump command");
+  if (narg < 2) error->all("Illegal dump command");
 
   for (int i = 0; i < ndump; i++)
-    if (strcmp(dumplist[i]->id,arg[0]) == 0)
-      error->all("Dump ID already exists");
+    if (strcmp(dumplist[i]->id,arg[0]) == 0) error->all("Reuse of dump ID");
+
+  // extend Dump list if necessary
 
   if (ndump == max_dump) {
     max_dump++;
-    dumplist = (Dump **) memory->srealloc(dumplist,max_dump*sizeof(Dump *),
-					  "output:dumplist");
-    dumplist[ndump] = new Dump(spk,narg,arg);
-    ndump++;
+    dumplist = (Dump **)
+      memory->srealloc(dumplist,max_dump*sizeof(Dump *),"output:dump");
   }
+
+  // create the Dump
+
+  if (0) return;         // dummy line to enable else-if macro expansion
+
+#define DUMP_CLASS
+#define DumpStyle(key,Class) \
+  else if (strcmp(arg[1],#key) == 0) dumplist[ndump] = new Class(spk,narg,arg);
+#include "style_dump.h"
+#undef DUMP_CLASS
+
+  else error->all("Invalid dump style");
+
+  ndump++;
 }
 
 /* ----------------------------------------------------------------------

@@ -114,6 +114,24 @@ else if ($1 == "style") then
      rm style_diag.tmp
   endif
 
+  set list = `grep -l DUMP_CLASS dump_*.h`
+  if (-e style_dump.tmp) then
+    rm style_dump.tmp
+  endif
+  foreach file ($list)
+    set qfile = \"$file\"
+    echo "#include $qfile" >>! style_dump.tmp
+  end
+  if (! -e style_dump.h) then
+     mv style_dump.tmp style_dump.h
+     rm Obj_*/input.d
+  else if (`diff style_dump.h style_dump.tmp` != "") then
+     mv style_dump.tmp style_dump.h
+     rm Obj_*/input.d
+  else
+     rm style_dump.tmp
+  endif
+
   set list = `grep -l PAIR_CLASS pair_*.h`
   if (-e style_pair.tmp) then
     rm style_pair.tmp

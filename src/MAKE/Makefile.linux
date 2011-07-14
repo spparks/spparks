@@ -2,7 +2,9 @@
 
 SHELL = /bin/sh
 
-# System-specific settings
+# ---------------------------------------------------------------------
+# compiler/linker settings
+# specify flags and libraries needed for your compiler
 
 CC =		icc
 CCFLAGS =	-O
