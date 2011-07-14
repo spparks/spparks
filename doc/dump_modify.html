@@ -19,9 +19,16 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>delay</I> or <I>delta</I> or <I>flush</I> or <I>logfreq</I> or <I>thresh</I> 
+<LI>keyword = <I>backcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>delay</I> or <I>delta</I> or <I>flush</I> or <I>logfreq</I> or <I>pad</I> or <I>region</I> or <I>scolor</I> or <I>sdiam</I> or <I>smap</I> or <I>thresh</I> 
 
-<PRE>  <I>delay</I> value = tdelay
+<PRE>  <I>backcolor</I> arg = color
+    color = name of color for background
+  <I>boxcolor</I> arg = color
+    color = name of color for box lines
+  <I>color</I> args = name R G B
+    name = name of color
+    R,G,B = red/green/blue numeric values from 0.0 to 1.0
+  <I>delay</I> value = tdelay
     tdelay = delay dump until at least this time (seconds)
   <I>delta</I> arg = dt
     dt = time increment between dumps (seconds)
@@ -29,6 +36,34 @@
   <I>logfreq</I> values = N factor
     N = number of repetitions per interval
     factor = scale factor between interval
+  <I>pad</I> arg = Nchar = # of characters to convert timestep to
+  <I>region</I> arg = region-ID or "none"
+  <I>scolor</I> args = I color
+    I = integer value or range of values (see below)
+    color = name of color or color1/color2/...
+  <I>sdiam</I> args = I diam
+    I = integer value or range of values (see below)
+    diam = diameter of sites of that value
+  <I>smap</I> args = lo hi style N delta entry1 entry2 ... entryN
+    lo = number or <I>min</I> = lower bound of range of color map
+    hi = number or <I>max</I> = upper bound of range of color map
+    style = 2 letters = "c" or "d" or "s" plus "a" or "f"
+      "c" for continuous
+      "d" for discrete
+      "s" for sequential
+      "a" for absolute
+      "f" for fractional
+    delta = binsize (only used for style "s", otherwise ignored)
+      binsize = range is divided into bins of this width
+    N = # of subsequent entries
+    entry = value color (for continuous style)
+      value = number or <I>min</I> or <I>max</I> = single value within range
+      color = name of color used for that value
+    entry = lo hi color (for discrete style)
+      lo/hi = number or <I>min</I> or <I>max</I> = lower/upper bound of subset of range
+      color = name of color used for that subset of values
+    entry = color (for sequential style)
+      color = name of color used for a bin of values
   <I>thresh</I> args = attribute operation value
     attribute = same fields (id,lattice,x,etc) used by <A HREF = "dump.html">dump</A> command
     operation = "<" or "<=" or ">" or ">=" or "==" or "!="
@@ -46,22 +81,29 @@ dump_modify mine thresh energy > 0.0 thresh id <= 1000
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Dump snapshots of the state of the lattice to a file at intervals of delta
-during a simulation.  The quantities printed are obtained from
-the application.  Only lattice-based applications support dumps since
-what is output is one line per lattice site.
+<P>Modify the parameters of a previously defined dump command.  Not all
+parameters are relevant to both the <I>text</I> and <I>image</I> dump styles.
 </P>
+<HR>
+
 <P>The <I>delay</I> keyword will suppress output until <I>tdelay</I> time has
 elapsed.
 </P>
+<HR>
+
 <P>The <I>delta</I> keyword will suppress output until <I>tdelay</I> time has
 elapsed.
 </P>
+<HR>
+
 <P>The <I>flush</I> option determines whether a flush operation in invoked
 after a dump snapshot is written to the dump file.  A flush insures
 the output in that file is current (no buffering by the OS), even if
-SPPARKS halts before the simulation completes.
+SPPARKS halts before the simulation completes.  The <I>flush</I> option is
+only relevant to the <A HREF = "dump.html">dump text</A> style.
 </P>
+<HR>
+
 <P>The <I>logfreq</I> keyword will produce statistical output at varying
 intervals during the course of a simulation.  There will be <I>N</I>
 outputs per interval where the size of each interval is initially
@@ -86,16 +128,186 @@ outputs per interval where the size of each interval is initially
 <P>If <I>N</I> is specified as 0, then this will turn off logarithmic output,
 and revert to regular output every <I>delta</I> seconds.
 </P>
+<HR>
+
+<P>The <I>pad</I> keyword only applies when the dump filename is specified
+with a wildcard "*" character which becomes the timestep.  If <I>pad</I> is
+0, which is the default, the timestep is converted into a string of
+unpadded length, e.g. 100 or 12000 or 2000000.  When <I>pad</I> is
+specified with <I>Nchar</I> > 0, the string is padded with leading zeroes
+so they are all the same length = <I>Nchar</I>.  For example, pad 7 would
+yield 0000100, 0012000, 2000000.  This can be useful so that
+post-processing programs can easily read the files in ascending
+timestep order.
+</P>
+<HR>
+
+<P>The <I>region</I> keyword allows sub-selection of lattice sites to output.
+If specified, only sites in the region will be written to the dump
+file or included in the image.  Only one region can be applied as a
+filter (the last one specified).  See the <A HREF = "region.html">region</A> command
+for more details.  Note that a region can be defined as the "inside"
+or "outside" of a geometric shape, and it can be the "union" or
+"intersection" of a series of simpler regions.
+</P>
+<HR>
+
+<P>The <I>scolor</I> keyword applies only to the dump <I>image</I> style.  It can
+be used with the <A HREF = "dump_image.html">dump image</A> command, when its site
+color setting is an integer attribute, and a <I>crange</I> setting from
+<I>lo</I> to <I>hi</I> has been specified to set the color associated with each
+integer value.
+</P>
+<P>The specified <I>I</I> value should be an integer from <I>lo</I> to <I>hi</I>
+inclusive.  A wildcard asterisk can be used in place of or in
+conjunction with the <I>type</I> argument to specify a range of values.
+This takes the form "*" or "*n" or "n*" or "m*n".  An asterisk with no
+numeric values means all values from <I>lo</I> to <I>hi</I>.  A leading asterisk
+means all values from <I>lo</I> to n (inclusive).  A trailing asterisk
+means all values from n to <I>hi</I> (inclusive).  A middle asterisk means
+all values from m to n (inclusive).
+</P>
+<P>The specified <I>color</I> can be a single color which is any of the 140
+pre-defined colors (see below) or a color name defined by the
+dump_modify color option.  Or it can be two or more colors separated
+by a "/" character, e.g. red/green/blue.  In the former case, that
+color is assigned to all the specified integer values.  In the latter
+case, the list of colors are assigned in a round-robin fashion to each
+of the specified integer values.
+</P>
+<HR>
+
+<P>The <I>sdiam</I> keyword applies only to the dump <I>image</I> style.  It can be
+used with the <A HREF = "dump_image.html">dump image</A> command, when its site
+diameter setting is an integer attribute, and a <I>drange</I> setting from
+<I>lo</I> to <I>hi</I> has been specified to set the diameter associated with
+each integer value.  The specified <I>I</I> value should be an integer from
+<I>lo</I> to <I>hi</I>.  As with the <I>scolor</I> keyword, a wildcard asterisk can
+be used as part of the <I>I</I> argument to specify a range of values.
+</P>
+<HR>
+
+<P>The <I>smap</I> keyword applies only to the dump <I>image</I> style.  It can be
+used with the <A HREF = "dump_image.html">dump image</A> command, when its site
+color setting is a floating point attribute, to setup a color map.
+The color map is used to assign a specific RGB (red/green/blue) color
+value to an individual site when it is drawn, based on the atom's
+attribute, which is a numeric value, e.g. its x coordinate, if the
+attribute "x" was specified.
+</P>
+<P>The basic idea of a color map is that the site-attribute will be
+within a range of values, and that range is associated with a series
+of colors (e.g. red, blue, green).  An sites's specific value (x =
+-3.2) can then mapped to the series of colors (e.g. halfway between
+red and blue), and a specific color is determined via an interpolation
+procedure.
+</P>
+<P>There are many possible options for the color map, enabled by the
+<I>smap</I> keyword.  Here are the details.
+</P>
+<P>The <I>lo</I> and <I>hi</I> settings determine the range of values allowed for
+the site attribute.  If numeric values are used for <I>lo</I> and/or <I>hi</I>,
+then values that are lower/higher than lo/hi are set to either <I>lo</I> or
+<I>hi</I>.  I.e. the range is static.  If <I>lo</I> is specified as <I>min</I> or
+<I>hi</I> as <I>max</I> then the range is dynamic, and the lower and/or upper
+bound will be calculated each time an image is drawn, based on the set
+of sites being visualized.
+</P>
+<P>The <I>style</I> setting is two letters, such as "ca".  The first letter is
+either "c" for continuous, "d" for discrete, or "s" for sequential.
+The second letter is either "a" for absolute, or "f" for fractional.
+</P>
+<P>A continuous color map is one in which the color changes continuously
+from value to value within the range.  A discrete color map is one in
+which discrete colors are assigned to sub-ranges of values within the
+range.  A sequential color map is one in which discrete colors are
+assigned to a sequence of sub-ranges of values covering the entire
+range.
+</P>
+<P>An absolute color map is one in which the values to which colors are
+assigned are specified explicitly as values within the range.  A
+fractional color map is one in which the values to which colors are
+assigned are specified as a fractional portion of the range.  For
+example if the range is from -10.0 to 10.0, and the color red is to be
+assigned to atoms with a value of 5.0, then for an absolute color map
+the number 5.0 would be used.  But for a fractional map, the number
+0.75 would be used since 5.0 is 3/4 of the way from -10.0 to 10.0.
+</P>
+<P>The <I>delta</I> setting is only specified if the style is sequential.  It
+specifies the bin size to use within the range for assigning
+consecutive colors to.  For example, if the range is from -10.0 to
+10.0 and a <I>delta</I> of 1.0 is used, then 20 colors will be assigned to
+the range.  The first will be from -10.0 <= color1 < -9.0, then 2nd
+from -9.0 <= color2 < -8.0, etc.
+</P>
+<P>The <I>N</I> setting is how many entries follow.  The format of the entries
+depends on whether the color map style is continuous, discrete or
+sequential.  In all cases the <I>color</I> setting can be any of the 140
+pre-defined colors (see below) or a color name defined by the
+dump_modify color option.
+</P>
+<P>For continuous color maps, each entry has a <I>value</I> and a <I>color</I>.
+The <I>value</I> is either a number within the range of values or <I>min</I> or
+<I>max</I>.  The <I>value</I> of the first entry must be <I>min</I> and the <I>value</I>
+of the last entry must be <I>max</I>.  Any entries in between must have
+increasing values.  Note that numeric values can be specified either
+as absolute numbers or as fractions (0.0 to 1.0) of the range,
+depending on the "a" or "f" in the style setting for the color map.
+</P>
+<P>Here is how the entries are used to determine the color of an
+individual site, given the value X of its site attribute.  X will fall
+between 2 of the entry values.  The color of the site is linearly
+interpolated (in each of the RGB values) between the 2 colors
+associated with those entries.  For example, if X = -5.0 and the 2
+surrounding entries are "red" at -10.0 and "blue" at 0.0, then the
+site's color will be halfway between "red" and "blue", which happens
+to be "purple".
+</P>
+<P>For discrete color maps, each entry has a <I>lo</I> and <I>hi</I> value and a
+<I>color</I>.  The <I>lo</I> and <I>hi</I> settings are either numbers within the
+range of values or <I>lo</I> can be <I>min</I> or <I>hi</I> can be <I>max</I>.  The <I>lo</I>
+and <I>hi</I> settings of the last entry must be <I>min</I> and <I>max</I>.  Other
+entries can have any <I>lo</I> and <I>hi</I> values and the sub-ranges of
+different values can overlap.  Note that numeric <I>lo</I> and <I>hi</I> values
+can be specified either as absolute numbers or as fractions (0.0 to
+1.0) of the range, depending on the "a" or "f" in the style setting
+for the color map.
+</P>
+<P>Here is how the entries are used to determine the color of an
+individual site, given the value X of its site attribute.  The entries
+are scanned from first to last.  The first time that <I>lo</I> <= X <=
+<I>hi</I>, X is assigned the color associated with that entry.  You can
+think of the last entry as assigning a default color (since it will
+always be matched by X), and the earlier entries as colors that
+override the default.  Also note that no interpolation of a color RGB
+is done.  All sites will be drawn with one of the colors in the list
+of entries.
+</P>
+<P>For sequential color maps, each entry has only a <I>color</I>.  Here is how
+the entries are used to determine the color of an individual site,
+given the value X of its site attribute.  The range is partitioned
+into N bins of width <I>binsize</I>.  Thus X will fall in a specific bin
+from 1 to N, say the Mth bin.  If it falls on a boundary between 2
+bins, it is considered to be in the higher of the 2 bins.  Each bin is
+assigned a color from the E entries.  If E < N, then the colors are
+repeated.  For example if 2 entries with colors red and green are
+specified, then the odd numbered bins will be red and the even bins
+green.  The color of the site is the color of its bin.  Note that the
+sequential color map is really a shorthand way of defining a discrete
+color map without having to specify where all the bin boundaries are.
+</P>
+<HR>
+
 <P>The <I>thresh</I> keyword allows sub-selection of lattice sites to output.
 Multiple thresholds can be specified.  Specifying "none" turns off all
 threshold criteria.  If thresholds are specified, only sites whose
 attributes meet all the threshold criteria are written to the dump
-file.  The possible attributes that can be tested for are the same as
-the fields that can be specified in the <A HREF = "dump.html">dump</A> command.
-Note that different attributes can be output by the dump command than
-are used as threshold criteria by the dump_modify command.  E.g. you
-can output the coordinates and propensity of sites whose energy is
-above some threshold.
+file or included in the image.  The possible attributes that can be
+tested for are the same as the fields that can be specified in the
+<A HREF = "dump.html">dump</A> command.  Note that different attributes can be
+output by the dump command than are used as threshold criteria by the
+dump_modify command.  E.g. you can output the coordinates and
+propensity of sites whose energy is above some threshold.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -105,12 +317,63 @@ details.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "dump.html">dump</A>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_image.html">dump image</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are delay = 0.0, delta = whatever was used in the
-<A HREF = "dump.html">dump</A> command, flush = yes, logfreq = off, and thresh =
-none.
+<P>The option defaults are
 </P>
+<UL><LI>backcolor = black
+<LI>boxcolor = yellow
+<LI>color = 140 color names are pre-defined as listed below
+<LI>delay = 0.0
+<LI>delta = value used in the <A HREF = "dump.html">dump</A> command
+<LI>flush = yes
+<LI>logfreq = off
+<LI>pad = 0
+<LI>region = none
+<LI>scolor = * red/green/blue/yellow/aqua/cyan
+<LI>sdiam = * 1.0
+<LI>smap = min max cf 2 min blue max red
+<LI>thresh = none 
+</UL>
+<HR>
+
+<P>These are the 140 colors that SPPARKS pre-defines for use with the
+<A HREF = "dump_image.html">dump image</A> and dump_modify commands.  Additional
+colors can be defined with the dump_modify color command.  The 3
+numbers listed for each name are the RGB (red/green/blue) values.
+Divide each value by 255 to get the equivalent 0.0 to 1.0 value.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >aliceblue = 240, 248, 255 </TD><TD >antiquewhite = 250, 235, 215 </TD><TD >aqua = 0, 255, 255 </TD><TD >aquamarine = 127, 255, 212 </TD><TD >azure = 240, 255, 255 </TD></TR>
+<TR><TD >beige = 245, 245, 220 </TD><TD >bisque = 255, 228, 196 </TD><TD >black = 0, 0, 0 </TD><TD >blanchedalmond = 255, 255, 205 </TD><TD >blue = 0, 0, 255 </TD></TR>
+<TR><TD >blueviolet = 138, 43, 226 </TD><TD >brown = 165, 42, 42 </TD><TD >burlywood = 222, 184, 135 </TD><TD >cadetblue = 95, 158, 160 </TD><TD >chartreuse = 127, 255, 0 </TD></TR>
+<TR><TD >chocolate = 210, 105, 30 </TD><TD >coral = 255, 127, 80 </TD><TD >cornflowerblue = 100, 149, 237 </TD><TD >cornsilk = 255, 248, 220 </TD><TD >crimson = 220, 20, 60 </TD></TR>
+<TR><TD >cyan = 0, 255, 255 </TD><TD >darkblue = 0, 0, 139 </TD><TD >darkcyan = 0, 139, 139 </TD><TD >darkgoldenrod = 184, 134, 11 </TD><TD >darkgray = 169, 169, 169 </TD></TR>
+<TR><TD >darkgreen = 0, 100, 0 </TD><TD >darkkhaki = 189, 183, 107 </TD><TD >darkmagenta = 139, 0, 139 </TD><TD >darkolivegreen = 85, 107, 47 </TD><TD >darkorange = 255, 140, 0 </TD></TR>
+<TR><TD >darkorchid = 153, 50, 204 </TD><TD >darkred = 139, 0, 0 </TD><TD >darksalmon = 233, 150, 122 </TD><TD >darkseagreen = 143, 188, 143 </TD><TD >darkslateblue = 72, 61, 139 </TD></TR>
+<TR><TD >darkslategray = 47, 79, 79 </TD><TD >darkturquoise = 0, 206, 209 </TD><TD >darkviolet = 148, 0, 211 </TD><TD >deeppink = 255, 20, 147 </TD><TD >deepskyblue = 0, 191, 255 </TD></TR>
+<TR><TD >dimgray = 105, 105, 105 </TD><TD >dodgerblue = 30, 144, 255 </TD><TD >firebrick = 178, 34, 34 </TD><TD >floralwhite = 255, 250, 240 </TD><TD >forestgreen = 34, 139, 34 </TD></TR>
+<TR><TD >fuchsia = 255, 0, 255 </TD><TD >gainsboro = 220, 220, 220 </TD><TD >ghostwhite = 248, 248, 255 </TD><TD >gold = 255, 215, 0 </TD><TD >goldenrod = 218, 165, 32 </TD></TR>
+<TR><TD >gray = 128, 128, 128 </TD><TD >green = 0, 128, 0 </TD><TD >greenyellow = 173, 255, 47 </TD><TD >honeydew = 240, 255, 240 </TD><TD >hotpink = 255, 105, 180 </TD></TR>
+<TR><TD >indianred = 205, 92, 92 </TD><TD >indigo = 75, 0, 130 </TD><TD >ivory = 255, 240, 240 </TD><TD >khaki = 240, 230, 140 </TD><TD >lavender = 230, 230, 250 </TD></TR>
+<TR><TD >lavenderblush = 255, 240, 245 </TD><TD >lawngreen = 124, 252, 0 </TD><TD >lemonchiffon = 255, 250, 205 </TD><TD >lightblue = 173, 216, 230 </TD><TD >lightcoral = 240, 128, 128 </TD></TR>
+<TR><TD >lightcyan = 224, 255, 255 </TD><TD >lightgoldenrodyellow = 250, 250, 210 </TD><TD >lightgreen = 144, 238, 144 </TD><TD >lightgrey = 211, 211, 211 </TD><TD >lightpink = 255, 182, 193 </TD></TR>
+<TR><TD >lightsalmon = 255, 160, 122 </TD><TD >lightseagreen = 32, 178, 170 </TD><TD >lightskyblue = 135, 206, 250 </TD><TD >lightslategray = 119, 136, 153 </TD><TD >lightsteelblue = 176, 196, 222 </TD></TR>
+<TR><TD >lightyellow = 255, 255, 224 </TD><TD >lime = 0, 255, 0 </TD><TD >limegreen = 50, 205, 50 </TD><TD >linen = 250, 240, 230 </TD><TD >magenta = 255, 0, 255 </TD></TR>
+<TR><TD >maroon = 128, 0, 0 </TD><TD >mediumaquamarine = 102, 205, 170 </TD><TD >mediumblue = 0, 0, 205 </TD><TD >mediumorchid = 186, 85, 211 </TD><TD >mediumpurple = 147, 112, 219 </TD></TR>
+<TR><TD >mediumseagreen = 60, 179, 113 </TD><TD >mediumslateblue = 123, 104, 238 </TD><TD >mediumspringgreen = 0, 250, 154 </TD><TD >mediumturquoise = 72, 209, 204 </TD><TD >mediumvioletred = 199, 21, 133 </TD></TR>
+<TR><TD >midnightblue = 25, 25, 112 </TD><TD >mintcream = 245, 255, 250 </TD><TD >mistyrose = 255, 228, 225 </TD><TD >moccasin = 255, 228, 181 </TD><TD >navajowhite = 255, 222, 173 </TD></TR>
+<TR><TD >navy = 0, 0, 128 </TD><TD >oldlace = 253, 245, 230 </TD><TD >olive = 128, 128, 0 </TD><TD >olivedrab = 107, 142, 35 </TD><TD >orange = 255, 165, 0 </TD></TR>
+<TR><TD >orangered = 255, 69, 0 </TD><TD >orchid = 218, 112, 214 </TD><TD >palegoldenrod = 238, 232, 170 </TD><TD >palegreen = 152, 251, 152 </TD><TD >paleturquoise = 175, 238, 238 </TD></TR>
+<TR><TD >palevioletred = 219, 112, 147 </TD><TD >papayawhip = 255, 239, 213 </TD><TD >peachpuff = 255, 239, 213 </TD><TD >peru = 205, 133, 63 </TD><TD >pink = 255, 192, 203 </TD></TR>
+<TR><TD >plum = 221, 160, 221 </TD><TD >powderblue = 176, 224, 230 </TD><TD >purple = 128, 0, 128 </TD><TD >red = 255, 0, 0 </TD><TD >rosybrown = 188, 143, 143 </TD></TR>
+<TR><TD >royalblue = 65, 105, 225 </TD><TD >saddlebrown = 139, 69, 19 </TD><TD >salmon = 250, 128, 114 </TD><TD >sandybrown = 244, 164, 96 </TD><TD >seagreen = 46, 139, 87 </TD></TR>
+<TR><TD >seashell = 255, 245, 238 </TD><TD >sienna = 160, 82, 45 </TD><TD >silver = 192, 192, 192 </TD><TD >skyblue = 135, 206, 235 </TD><TD >slateblue = 106, 90, 205 </TD></TR>
+<TR><TD >slategray = 112, 128, 144 </TD><TD >snow = 255, 250, 250 </TD><TD >springgreen = 0, 255, 127 </TD><TD >steelblue = 70, 130, 180 </TD><TD >tan = 210, 180, 140 </TD></TR>
+<TR><TD >teal = 0, 128, 128 </TD><TD >thistle = 216, 191, 216 </TD><TD >tomato = 253, 99, 71 </TD><TD >turquoise = 64, 224, 208 </TD><TD >violet = 238, 130, 238 </TD></TR>
+<TR><TD >wheat = 245, 222, 179 </TD><TD >white = 255, 255, 255 </TD><TD >whitesmoke = 245, 245, 245 </TD><TD >yellow = 255, 255, 0 </TD><TD >yellowgreen = 154, 205, 50 
+</TD></TR></TABLE></DIV>
+
 </HTML>

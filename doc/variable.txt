@@ -21,6 +21,8 @@ style = {index} or {loop} or {world} or {universe} or {uloop} or {equal} or {ato
   {uloop} args = N = integer size of loop
   {equal} args = one formula containing numbers, math operations, variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
+    constants = PI
+    keywords = time, nglobal
     math operations = (), -x, x+y, x-y, x*y, x/y, x^y, 
                       sqrt(x), exp(x), ln(x), log(x),
                       sin(x), cos(x), tan(x), asin(x), acos(x), atan(x),
@@ -177,8 +179,15 @@ Specifically, an formula can contain numbers, math operations, and
 references to other variables.
 
 Number: 0.2, 100, 1.0e20, -15.4, etc
+Constants: PI
+Keywords: time, nglobal
 Math operations: (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x)
 Other variables: v_abc, v_n :tb(s=:)
+
+
+The keywords currently allowed in a formula are {time} and {nglobal}.
+{Time} is the current simulation time.  {Nglobal} is the number of
+sites in the model.
 
 Math operations are written in the usual way, where the "x" and "y" in
 the examples above can be another section of the formula.  Operators

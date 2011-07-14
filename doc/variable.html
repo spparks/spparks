@@ -26,6 +26,8 @@
   <I>uloop</I> args = N = integer size of loop
   <I>equal</I> args = one formula containing numbers, math operations, variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
+    constants = PI
+    keywords = time, nglobal
     math operations = (), -x, x+y, x-y, x*y, x/y, x^y, 
                       sqrt(x), exp(x), ln(x), log(x),
                       sin(x), cos(x), tan(x), asin(x), acos(x), atan(x),
@@ -184,10 +186,16 @@ references to other variables.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >Number</TD><TD > 0.2, 100, 1.0e20, -15.4, etc</TD></TR>
+<TR><TD >Constants</TD><TD > PI</TD></TR>
+<TR><TD >Keywords</TD><TD > time, nglobal</TD></TR>
 <TR><TD >Math operations</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x)</TD></TR>
 <TR><TD >Other variables</TD><TD > v_abc, v_n 
 </TD></TR></TABLE></DIV>
 
+<P>The keywords currently allowed in a formula are <I>time</I> and <I>nglobal</I>.
+<I>Time</I> is the current simulation time.  <I>Nglobal</I> is the number of
+sites in the model.
+</P>
 <P>Math operations are written in the usual way, where the "x" and "y" in
 the examples above can be another section of the formula.  Operators
 are evaluated left to right and have the usual precedence: unary minus

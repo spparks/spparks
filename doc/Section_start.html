@@ -51,10 +51,11 @@ sub-directories:
 <P><B><I>Read this first:</I></B>
 </P>
 <P>Building SPPARKS can be non-trivial.  You will likely need to edit a
-makefile, there are compiler options, an MPI library can be used, etc.
-Please read this section carefully.  If you are not comfortable with
-makefiles, or building codes on a Unix platform, or running an MPI job
-on your machine, please find a local expert to help you.
+makefile, there are compiler options, additional libraries can be used
+(MPI, JPEG), etc.  Please read this section carefully.  If you are not
+comfortable with makefiles, or building codes on a Unix platform, or
+running an MPI job on your machine, please find a local expert to help
+you.
 </P>
 <P><B><I>Building a SPPARKS executable:</I></B>
 </P>
@@ -109,38 +110,78 @@ section.
 and whatever other options you set.  This is the line you will see if
 you just type "make".
 </P>
-<P>(2) Set the paths and flags for your C++ compiler, including
-optimization flags.  You can use g++, the open-source GNU compiler,
-which is available on all Unix systems.  Vendor compilers often
-produce faster code.  On boxes with Intel CPUs, we suggest using the
-free Intel icc compiler, which you can download from <A HREF = "http://www.intel.com/software/products/noncom">Intel's compiler
-site</A>.
+<P>(2) The "compiler/linker settings" section lists compiler and linker
+settings for your C++ compiler, including optimization flags.  You can
+use g++, the open-source GNU compiler, which is available on all Unix
+systems.  You can also use mpicc which will typically be available if
+MPI is installed on your system, though you should check which actual
+compiler it wraps.  Vendor compilers often produce faster code.  On
+boxes with Intel CPUs, we suggest using the free Intel icc compiler,
+which you can download from <A HREF = "http://www.intel.com/software/products/noncom">Intel's compiler site</A>.
 </P>
 
 
-<P>(3) If you want SPPARKS to run in parallel, you must have an MPI
-library installed on your platform.  If you do not use "mpicc" as your
-compiler/linker, then Makefile.foo needs to specify where the mpi.h
-file (-I switch) and the libmpi.a library (-L switch) is found.  If
-you are installing MPI yourself, we recommend Argonne's MPICH 1.2 or
-2.0 which can be downloaded from the <A HREF = "http://www-unix.mcs.anl.gov/mpi">Argonne MPI
-site</A>.  OpenMPI should also work.  If
+<P>If building a C++ code on your machine requires additional libraries,
+then you should list them as part of the LIB variable.
+</P>
+<P>The DEPFLAGS setting is what triggers the C++ compiler to create a
+dependency list for a source file.  This speeds re-compilation when
+source (*.cpp) or header (*.h) files are edited.  Some compilers do
+not support dependency file creation, or may use a different switch
+than -D.  GNU g++ works with -D.  If your compiler can't create
+dependency files (a long list of errors involving *.d files), then
+you'll need to create a Makefile.foo patterned after Makefile.storm,
+which uses different rules that do not involve dependency files.
+</P>
+<P>(3) The "system-specific settings" section has 3 parts.
+</P>
+<P>(3.a) The SPK_INC variable is used to include options that turn on
+system-dependent ifdefs within the SPPARKS code.  The settings
+that are currently recogized are:
+</P>
+<UL><LI>-DSPPARKS_GZIP
+<LI>-DSPPARKS_JPEG 
+</UL>
+<P>The read_sites and dump commands will read/write gzipped files if you
+compile with -DSPPARKS_GZIP.  It requires that your Unix support the
+"popen" command.
+</P>
+<P>If you use -DSPPARKS_JPEG, the <A HREF = "dump.html">dump image</A> command will be
+able to write out JPEG image files.  If not, it will only be able to
+write out text-based PPM image files.  For JPEG files, you must also
+link SPPARKS with a JPEG library.  See section (3.c) below for more
+details on this.
+</P>
+<P>(3.b) The 3 MPI variables are used to specify an MPI library to build
+SPPARKS with.
+</P>
+<P>If you want SPPARKS to run in parallel, you must have an MPI library
+installed on your platform.  If you use an MPI-wrapped compiler, such
+as "mpicc" to build SPPARKS, you can probably leave these 3 variables
+blank.  If you do not use "mpicc" as your compiler/linker, then you
+need to specify where the mpi.h file (MPI_INC) and the MPI library
+(MPI_PATH) is found and its name (MPI_LIB).
+</P>
+<P>If you are installing MPI yourself, we recommend Argonne's MPICH 1.2
+or 2.0 or OpenMPI.  MPICH can be downloaded from the <A HREF = "http://www-unix.mcs.anl.gov/mpi">Argonne MPI
+site</A>.  OpenMPI can be downloaded the
+<A HREF = "http://www.open-mpi.org">OpenMPI site</A>.  LAM MPI should also work.  If
 you are running on a big parallel platform, your system people or the
 vendor should have already installed a version of MPI, which will be
-faster than MPICH or OpenMPI, so find out how to build and link with
-it.  If you use MPICH or OpenMPI, you will have to configure and build
-it for your platform.  The MPI configure script should have compiler
-options to enable you to use the same compiler you are using for the
-SPPARKS build, which can avoid problems that may arise when linking
-SPPARKS to the MPI library.
+faster than MPICH or OpenMPI or LAM, so find out how to build and link
+with it.  If you use MPICH or OpenMPI or LAM, you will have to
+configure and build it for your platform.  The MPI configure script
+should have compiler options to enable you to use the same compiler
+you are using for the SPPARKS build, which can avoid problems that can
+arise when linking SPPARKS to the MPI library.
 </P>
-<P>(4) If you just want SPPARKS to run on a single processor, you can use
-the STUBS library in place of MPI, since you don't need an MPI library
+<P>If you just want SPPARKS to run on a single processor, you can use the
+STUBS library in place of MPI, since you don't need a true MPI library
 installed on your system.  See the Makefile.serial file for how to
-specify the -I and -L switches.  You will also need to build the STUBS
+specify the 3 MPI variables.  You will also need to build the STUBS
 library for your platform before making SPPARKS itself.  From the STUBS
 dir, type "make" and it will hopefully create a libmpi.a suitable for
-linking to SPPARKS.  If the build fails, you will need to edit the
+linking to SPPARKS.  If this build fails, you will need to edit the
 STUBS/Makefile for your platform.
 </P>
 <P>The file STUBS/mpi.cpp has a CPU timer function MPI_Wtime() that calls
@@ -149,19 +190,20 @@ you'll need to insert code to call another timer.  Note that the
 ANSI-standard function clock() rolls over after an hour or so, and is
 therefore insufficient for timing long SPPARKS simulations.
 </P>
-<P>(5) The DEPFLAGS setting is how the C++ compiler creates a dependency
-file for each source file.  This speeds re-compilation when source
-(*.cpp) or header (*.h) files are edited.  Some compilers do not
-support dependency file creation, or may use a different switch than
--D.  GNU g++ works with -D.  If your compiler can't create dependency
-files (a long list of errors involving *.d files), then you'll need to
-create a Makefile.foo patterned after Makefile.tflop, which uses
-different rules that do not involve dependency files.
+<P>(3.c) The 3 JPG variables are used to specify a JPEG library which
+SPPARKS uses when writing a JPEG file via the <A HREF = "dump_image.html">dump
+image</A> command.  These can be left blank if you are
+not using the -DSPPARKS_JPEG switch discussed above in section (3.a).
 </P>
-<P>(6) There is a -D compiler switches you can set as part of CCFLAGS.
-The dump command will read/write gzipped files if you compile with
--DSPPARKS_GZIP.  It requires that your Unix support the "popen"
-command.
+<P>A standard JPEG library usually goes by the name libjpeg.a and has an
+associated header file jpeglib.h.  Whichever JPEG library you have on
+your platform, you'll need to set the appropriate JPG_INC, JPG_PATH,
+and JPG_LIB variables in Makefile.foo so that the compiler and linker
+can find it.
+</P>
+<P>That's it.  Once you have a correct Makefile.foo and you have
+pre-built any other libraries it will use (e.g. MPI, JPEG), all you
+need to do from the src directory is type one of these 2 commands:
 </P>
 <P>That's it.  Once you have a correct Makefile.foo and you have
 pre-built the MPI library it uses, all you need to do from the src

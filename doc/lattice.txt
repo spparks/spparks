@@ -82,8 +82,9 @@ neighbors.
 
 Lattices of style {sq/4n} and {sq/8n} are 2d lattices with a1 = a 0 0
 and a2 = 0 a 0, and one basis site per unit cell at (0,0,0).  The
-{sq/4n} style has 4 neighbors per site (east/west/north/south); the {sq/8n} style has 8 neighbors per site (same 4 as
-{sq/4n} plus 4 corner points).
+{sq/4n} style has 4 neighbors per site (east/west/north/south); the
+{sq/8n} style has 8 neighbors per site (same 4 as {sq/4n} plus 4
+corner points).
 
 A lattice of style {tri} is a 2d lattice with a1 = a 0 0 and a2 = 0
 sqrt(3)*a 0, and two basis sites per unit cell at (0,0,0) and

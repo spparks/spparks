@@ -1,0 +1,398 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dump image command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dump dump-ID image delta filename color keyword value ... 
+</PRE>
+<UL><LI>ID = user-assigned name for the dump 
+
+<LI>image = style of dump command (other style <I>text</I> is discussed on the <A HREF = "dump.html">dump</A> doc page) 
+
+<LI>delta = time increment between dumps (seconds) 
+
+<LI>filename = name of file to write image to 
+
+<LI>color = attribute that determines color of each site 
+
+<LI>diameter = attribute that determines size of each site 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>shape</I> or <I>sdiam</I> or <I>crange</I> or <I>drange</I> or <I>size</I> or <I>view</I> or <I>center</I> or <I>up</I> or <I>zoom</I> or <I>persp</I> or <I>box</I> or <I>axes</I> or <I>shiny</I> or <I>ssao</I> 
+
+<PRE>  <I>shape</I> value = <I>sphere</I> or <I>cube</I>
+  <I>sdiam</I> value = number = numeric value for site diameter (distance units)
+  <I>crange</I> values = lo hi
+     lo,hi = lower and upper bound (inclusive) of integer color attribute
+  <I>drange</I> values = lo hi
+     lo,hi = lower and upper bound (inclusive) of integer diameter attribute
+  <I>size</I> values = width height = size of images
+    width = width of image in # of pixels
+    height = height of image in # of pixels
+  <I>view</I> values = theta phi = view of simulation box
+    theta = view angle from +z axis (degrees)
+    phi = azimuthal view angle (degrees)
+    theta or phi can be a variable (see below)
+  <I>center</I> values = flag Cx Cy Cz = center point of image
+    flag = "s" for static, "d" for dynamic
+    Cx,Cy,Cz = center point of image as fraction of box dimension (0.5 = center of box)
+    Cx,Cy,Cz can be variables (see below)
+  <I>up</I> values = Ux Uy Uz = direction that is "up" in image
+    Ux,Uy,Uz = components of up vector
+    Ux,Uy,Uz can be variables (see below)
+  <I>zoom</I> value = zfactor = size that simulation box appears in image
+    zfactor = scale image size by factor > 1 to enlarge, factor < 1 to shrink
+    zfactor can be a variable (see below)
+  <I>persp</I> value = pfactor = amount of "perspective" in image
+    pfactor = amount of perspective (0 = none, < 1 = some, > 1 = highly skewed)
+    pfactor can be a variable (see below)
+  <I>box</I> values = yes/no diam = draw outline of simulation box
+    yes/no = do or do not draw simulation box lines
+    diam = diameter of box lines as fraction of shortest box length
+  <I>axes</I> values = yes/no length diam = draw xyz axes
+    yes/no = do or do not draw xyz axes lines next to simulation box
+    length = length of axes lines as fraction of respective box lengths
+    diam = diameter of axes lines as fraction of shortest box length
+  <I>shiny</I> value = sfactor = shinyness of spheres and cylinders
+    sfactor = shinyness of spheres and cylinders from 0.0 to 1.0
+  <I>ssao</I> value = yes/no seed dfactor = SSAO depth shading
+    yes/no = turn depth shading on/off
+    seed = random # seed (positive integer)
+    dfactor = strength of shading from 0.0 to 1.0 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>dump myDump image 100 dump.*.jpg site site
+dump myDump image 100 dump.*.jpg energy i2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Dump a high-quality ray-traced image of the sites at time intervals of
+<I>delta</I> during a simulation as either a JPG or PPM file.  A series of
+such images can easily be converted into an animated movie of your
+simulation; see further details below.  The <I>text</I> dump style writes
+snapshots of numerical data asociated with sites, as discussed on the
+<A HREF = "dump.html">dump</A> doc page.
+</P>
+<P>Here are two sample images, rendered as 1024x1024 JPG files.  Click to
+see the full-size images:
+</P>
+<DIV ALIGN=center>
+
+<A HREF = "JPG/dump1.jpg"><IMG SRC = "JPG/dump1_small.jpg"></A>
+
+<A HREF = "JPG/dump2.jpg"><IMG SRC = "JPG/dump2_small.jpg"></A>
+
+</DIV>
+
+<P>The <A HREF = "dump_modify.html">dump_modify</A> command can be used to alter the
+times at which images are written out as well as alter what sites are
+included in the image.
+</P>
+<P>The filename suffix determines whether a JPG or PPM file is created.
+If the suffix is ".jpg" or ".jpeg", then a JPG file is created, else a
+PPM file is created, which is a text-based format.  To write out JPG
+files, you must build SPPARKS with a JPEG library.  See <A HREF = "Section_start.html#2_2">this
+section</A> of the manual for instructions on how
+to do this.
+</P>
+<HR>
+
+<P>Dump image filenames must contain a wildcard character "*", so that
+one image file per snapshot is written.  The "*" character is replaced
+with the timestep value.  For example, tmp.dump.*.jpg becomes
+tmp.dump.0.jpg, tmp.dump.10000.jpg, tmp.dump.20000.jpg, etc.  Note
+that the <A HREF = "dump_modify.html">dump_modify pad</A> command can be used to
+insure all timestep numbers are the same length (e.g. 00010), which
+can make it easier to convert a series of images into a movie in the
+correct ordering.
+</P>
+<HR>
+
+<P>The <I>color</I> and <I>diameter</I> settings determine the color and size of
+sites rendered in the image.  They can be any attribute defined for
+the <A HREF = "dump.html">dump text</A> command, including <I>site</I>.  Note that the
+<I>diameter</I> setting can be overridden with a numeric value by the
+optional <I>sdiam</I> keyword, in which case you can specify the <I>diameter</I>
+setting with any valid atom attribute.
+</P>
+<P>If an integer attribute such as <I>site</I> or <I>i2</I> is specified for the
+<I>color</I> setting, then you must use the optional <I>crange</I> keyword to
+specify the range of integer values that are allowed, from <I>lo</I> to
+<I>hi</I>.  The color of each site is determined by the integer value.  By
+default the mapping of values to colors is as follows:
+</P>
+<UL><LI>type lo = red
+<LI>type lo+1 = green
+<LI>type lo+2 = blue
+<LI>type lo+3 = yellow
+<LI>type lo+4 = aqua
+<LI>type lo+5 = cyan 
+</UL>
+<P>and repeats itself cyclically for larger values.  This mapping can be
+changed by the <A HREF = "dump_modify.html">dump_modify scolor</A> command.
+</P>
+<P>If a floating point attribute such as <I>energy</I> or <I>d1</I> is specified
+for the <I>color</I> setting, then the site's attribute will be associated
+with a specific color via a "color map", which can be specified via
+the <A HREF = "dump_modify.html">dump_modify</A> command.  The basic idea is that
+the attribute will be within a range of values, and every value within
+the range is mapped to a specific color.  Depending on how the color
+map is defined, that mapping can take place via interpolation so that
+a value of -3.2 is halfway between "red" and "blue", or discretely so
+that the value of -3.2 is "orange".
+</P>
+<P>If an integer attribute such as <I>site</I> or <I>i2</I> is specified for the
+<I>diameter</I> setting, then you must use the optional <I>drange</I> keyword to
+specify the range of integer values that are allowed.  The size of
+each site is determined by the integer value.  By default all values
+has diameter 1.0.  This mapping can be changed by the <A HREF = "dump_modify.html">dump_modify
+sdiam</A> command.
+</P>
+<P>If a floating point attribute such as <I>energy</I> or <I>d1</I> is specified
+for the <I>diameter</I> setting, then the site will be rendered using the
+site's attribute as the diameter.  If the per-site value <= 0.0, then
+the site will not be drawn.
+</P>
+<HR>
+
+<P>The various kewords listed above control how the image is rendered.
+As listed below, all of the keywords have defaults, most of which you
+will likely not need to change.  The <A HREF = "dump_modify.html">dump modify</A>
+also has options specific to the dump image style, particularly for
+assigning colors to atoms, bonds, and other image features.
+</P>
+<HR>
+
+<P>The <I>shape</I> keyword can be specied with a value of <I>sphere</I> or <I>cube</I>,
+to draw either a sphere or cube at each site.  Cubes typically only
+make sense for simple square or cubic lattices with regular spacing,
+so that the cubes will tile the 2d or 3d space without overlapping.
+The diameter specified for each site will be the diamter of the sphere
+or the edge length of the cube.
+</P>
+<HR>
+
+<P>The <I>sdiam</I> keyword allows you to override the <I>diameter</I> setting with
+a specified numeric value.  All sites will be drawn with that
+diameter.
+</P>
+<HR>
+
+<P>The <I>crange</I> keyword must be used if the specified <I>color</I> setting is
+an integer attribute such as <I>site</I> or <I>i2</I>.  The <I>lo</I> and <I>hi</I> values
+are the range of values that the attribute can have.  For example,
+if spins in a Potts model will range from 1 to 100 (inclusive), then
+<I>lo</I> nd <I>hi</I> should be specified as 1 and 100.
+</P>
+<HR>
+
+<P>The <I>drange</I> keyword must be used if the specified <I>diameter</I> setting
+is an integer attribute such as <I>site</I> or <I>i2</I>, unless the <I>sdiam</I>
+keyword is used, in which case the <I>diameter</I> setting is ignored.  The
+<I>lo</I> and <I>hi</I> values are the range of values that the attribute can
+have.  For example, if the <I>i2</I> attibute will take on the values -1,
+0, or 1, then then <I>lo</I> nd <I>hi</I> should be specified as -1 and 1
+</P>
+<HR>
+
+<P>The <I>size</I> keyword sets the width and height of the created images,
+i.e. the number of pixels in each direction.
+</P>
+<HR>
+
+<P>The <I>view</I>, <I>center</I>, <I>up</I>, <I>zoom</I>, and <I>persp</I> values determine how
+3d simulation space is mapped to the 2d plane of the image.  Basically
+they control how the simulation box appears in the image.
+</P>
+<P>All of the <I>view</I>, <I>center</I>, <I>up</I>, <I>zoom</I>, and <I>persp</I> values can be
+specified as numeric quantities, whose meaning is explained below.
+Any of them can also be specified as an <A HREF = "variable.html">equal-style
+variable</A>, by using v_name as the value, where "name" is
+the variable name.  In this case the variable will be evaluated on the
+timestep each image is created to create a new value.  If the
+equal-style variable is time-dependent, this is a means of changing
+the way the simulation box appears from image to image, effectively
+doing a pan or fly-by view of your simulation.
+</P>
+<P>The <I>view</I> keyword determines the viewpoint from which the simulation
+box is viewed, looking towards the <I>center</I> point.  The <I>theta</I> value
+is the vertical angle from the +z axis, and must be an angle from 0 to
+180 degrees.  The <I>phi</I> value is an azimuthal angle around the z axis
+and can be positive or negative.  A value of 0.0 is a view along the
++x axis, towards the <I>center</I> point.  If <I>theta</I> or <I>phi</I> are
+specified via variables, then the variable values should be in
+degrees.
+</P>
+<P>The <I>center</I> keyword determines the point in simulation space that
+will be at the center of the image.  <I>Cx</I>, <I>Cy</I>, and <I>Cz</I> are
+speficied as fractions of the box dimensions, so that (0.5,0.5,0.5) is
+the center of the simulation box.  These values do not have to be
+between 0.0 and 1.0, if you want the simulation box to be offset from
+the center of the image.  Note, however, that if you choose strange
+values for <I>Cx</I>, <I>Cy</I>, or <I>Cz</I> you may get a blank image.  Internally,
+<I>Cx</I>, <I>Cy</I>, and <I>Cz</I> are converted into a point in simulation space.
+If <I>flag</I> is set to "s" for static, then this conversion is done once,
+at the time the dump command is issued.  If <I>flag</I> is set to "d" for
+dynamic then the conversion is performed every time a new image is
+created.  If the box size or shape is changing, this will adjust the
+center point in simulation space.
+</P>
+<P>The <I>up</I> keyword determines what direction in simulation space will be
+"up" in the image.  Internally it is stored as a vector that is in the
+plane perpendicular to the view vector implied by the <I>theta</I> and
+<I>pni</I> values, and which is also in the plane defined by the view
+vector and user-specified up vector.  Thus this internal vector is
+computed from the user-specified <I>up</I> vector as
+</P>
+<PRE>up_internal = view cross (up cross view) 
+</PRE>
+<P>This means the only restriction on the specified <I>up</I> vector is that
+it cannot be parallel to the <I>view</I> vector, implied by the <I>theta</I> and
+<I>phi</I> values.
+</P>
+<P>The <I>zoom</I> keyword scales the size of the simulation box as it appears
+in the image.  The default <I>zfactor</I> value of 1 should display an
+image mostly filled by the atoms in the simulation box.  A <I>zfactor</I> >
+1 will make the simulation box larger; a <I>zfactor</I> < 1 will make it
+smaller.  <I>Zfactor</I> must be a value > 0.0.
+</P>
+<P>The <I>persp</I> keyword determines how much depth perspective is present
+in the image.  Depth perspective makes lines that are parallel in
+simulation space appear non-parallel in the image.  A <I>pfactor</I> value
+of 0.0 means that parallel lines will meet at infininty (1.0/pfactor),
+which is an orthographic rendering with no persepctive.  A <I>pfactor</I>
+value between 0.0 and 1.0 will introduce more perspective.  A <I>pfactor</I>
+value > 1 will create a highly skewed image with a large amount of
+perspective.
+</P>
+<P>IMPORTANT NOTE: The <I>persp</I> keyword is not yet supported as an option.
+</P>
+<HR>
+
+<P>The <I>box</I> keyword determines how the simulation box boundaries are
+rendered as thin cylinders in the image.  If <I>no</I> is set, then the box
+boundaries are not drawn and the <I>diam</I> setting is ignored.  If <I>yes</I>
+is set, the 12 edges of the box are drawn, with a diameter that is a
+fraction of the shortest box length in x,y,z (for 3d) or x,y (for 2d).
+The color of the box boundaries can be set with the <A HREF = "dump_modify.html">dump_modify
+boxcolor</A> command.
+</P>
+<P>The <I>axes</I> keyword determines how the coordinate axes are rendered as
+thin cylinders in the image.  If <I>no</I> is set, then the axes are not
+drawn and the <I>length</I> and <I>diam</I> settings are ignored.  If <I>yes</I> is
+set, 3 thin cylinders are drawn to represent the x,y,z axes in colors
+red,green,blue.  The origin of these cylinders will be offset from the
+lower left corner of the box by 10%.  The <I>length</I> setting determines
+how long the cylinders will be as a fraction of the respective box
+lengths.  The <I>diam</I> setting determines their thickness as a fraction
+of the shortest box length in x,y,z (for 3d) or x,y (for 2d).
+</P>
+<HR>
+
+<P>The <I>shiny</I> keyword determines how shiny the objects rendered in the
+image will appear.  The <I>sfactor</I> value must be a value 0.0 <=
+<I>sfactor</I> <= 1.0, where <I>sfactor</I> = 1 is a highly reflective surface
+and <I>sfactor</I> = 0 is a rough non-shiny surface.
+</P>
+<P>The <I>ssao</I> keyword turns on/off a screen space ambient occlusion
+(SSAO) model for depth shading.  If <I>yes</I> is set, then atoms further
+away from the viewer are darkened via a randomized process, which is
+perceived as depth.  The calculation of this effect can increase the
+cost of computing the image by roughly 2x.  The strength of the effect
+can be scaled by the <I>dfactor</I> parameter.  If <I>no</I> is set, no depth
+shading is performed.
+</P>
+<HR>
+
+<P>A series of JPG or PPM images can be converted into a movie file and
+then played as a movie using commonly available tools.
+</P>
+<P>Convert JPG or PPM files into an animated GIF or MPEG or other movie
+file:
+</P>
+<UL><LI>a) Use the ImageMagick convert program. 
+
+<PRE>% convert *.jpg foo.gif
+% convert *.ppm foo.mpg 
+</PRE>
+<LI>b) Use QuickTime. 
+
+<P>Select "Open Image Sequence" under the File menu
+Load the images into QuickTime to animate them
+Select "Export" under the File menu
+Save the movie as a QuickTime movie (*.mov) or in another format
+</P>
+<LI>c) Windows-based tool. 
+</UL>
+<P>If someone tells us how to do this via a common Windows-based tool,
+we'll post the instructions here.
+</P>
+<P>Play the movie:
+</P>
+<UL><LI>a) Use your browser to view an animated GIF movie. 
+
+<P>Select "Open File" under the File menu
+Load the animated GIF file
+</P>
+<LI>b) Use the freely available mplayer tool to view an MPEG movie. 
+
+<PRE>% mplayer foo.mpg 
+</PRE>
+<LI>c) Use the <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A>
+<A HREF = "http://www.sandia.gov/~sjplimp/pizza/doc/animate.html">animate tool</A>,
+which works directly on a series of image files. 
+
+<PRE>a = animate("foo*.jpg") 
+</PRE>
+<LI>d) QuickTime and other Windows-based media players can
+obviously play movie files directly. 
+</UL>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>To write JPG images, you must use a -DSPPARKS_JPEG switch when
+building SPPARKS and link with a JPEG library.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section of the documentation for
+details.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_modify.html">dump_modify</A>, <A HREF = "undump.html">undump</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The defaults for the keywords are as follows:
+</P>
+<UL><LI>shape = sphere
+<LI>sdiam = not specified (use diameter setting)
+<LI>crange = no default
+<LI>drange = no default
+<LI>size = 512 512
+<LI>view = 60 30 (for 3d)
+<LI>view = 0 0 (for 2d)
+<LI>center = s 0.5 0.5 0.5
+<LI>up = 0 0 1 (for 3d)
+<LI>up = 0 1 0 (for 2d)
+<LI>zoom = 1.0
+<LI>persp = 0.0
+<LI>box = yes 0.02
+<LI>axes = no 0.0 0.0
+<LI>shiny = 1.0
+<LI>ssao = no 
+</UL>
+</HTML>

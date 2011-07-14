@@ -11,32 +11,47 @@
 
 <H3>dump command 
 </H3>
+<H3><A HREF = "dump_image.html">dump image</A> command 
+</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>dump dump-ID delta filename field1 field2 ... 
+<PRE>dump dump-ID style delta filename field1 field2 ... 
 </PRE>
-<LI>dump-ID = user-assigned name for the dump 
+<UL><LI>dump-ID = user-assigned name for the dump 
+
+<LI>style = <I>text</I> or <I>image</I> 
 
 <LI>delta = time increment between dumps (seconds) 
 
 <LI>filename = name of file to dump snapshots to 
 
-<LI>zero or more fields may be appended 
+<LI>fields = list of arguments for a particular style 
 
-<LI>field = <I>id</I> or <I>site</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>energy</I> or <I>propensity</I> or <I>iN</I> or <I>dN</I> 
+<PRE>  <I>image</I> fields = discussed on <A HREF = "dump_image.html">dump image</A> doc page
+  <I>text</I> fields = <I>id</I> or <I>site</I> or <I>x</I> or <I>y</I> or <I>z</I> or
+                  <I>energy</I> or <I>propensity</I> or <I>iN</I> or <I>dN</I> 
+</PRE>
 
+</UL>
 <P><B>Examples:</B>
 </P>
-<PRE>dump 1 0.25 tmp.dump
-dump mydump 5.0 snap.ising id site energy i1 
+<PRE>dump 1 text 0.25 tmp.dump
+dump 1 text 1.0 my.dump id site x y z
+dump mydump text 5.0 snap.ising id site energy i1 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Dump snapshots of site values to a file at time intervals of <I>delta</I>
-during a simulation.  As described below, the filename determines the
-kind of output (text or binary or gzipped, one big file or one per
-timestep, one big file or one per processor).  The quantities printed
-are obtained from the application.  Only <A HREF = "app_style.html">on-lattice and off-lattice
+<P>The <I>text</I> style dumps a snapshot of site values to one or more files
+at time intervals of <I>delta</I> during a simulation.  The <I>image</I> style
+creates a JPG or PPM image file of the site configuration every at
+time intervals of <I>delta</I>, as discussed on the <A HREF = "dump_image.html">dump
+image</A> doc page.  The remainder of this page
+refers to the <I>text</I> style.
+</P>
+<P>As described below, the filename determines the kind of output (text
+or binary or gzipped, one big file or one per timestep, one big file
+or one per processor).  The quantities printed are obtained from the
+application.  Only <A HREF = "app_style.html">on-lattice and off-lattice
 applications</A> support dumps since they are spatial in
 nature.  More that one dump command and file can be used during a
 simulation by giving each a unique dump-ID.  Note that if written in
@@ -70,9 +85,9 @@ reflect any reduction in site count due to the
 314159 
 </PRE>
 <P>If fields are listed, then only those quantities will be printed for
-each site.  If no fields are listed, then the default output values
-for each site are "id site x y z".  These are the possible field
-values which may be specified.
+each site.  If no fields are listed, then a default set of fields are
+output, namely "id site x y z".  These are the possible field values
+which may be specified.
 </P>
 <P>The <I>id</I> is a unique integer ID for each site.
 </P>
