@@ -35,6 +35,16 @@ describe the version you have. :ule,l
 :line
 :line
 
+[15 Jul 2011]
+
+Fixed a glitch in the color table map for the "dump
+image"_doc/dump_image.html command.
+
+This is the "list of changed files"_patches/files.15Jul11 from the 14
+Jul 2010 version.
+
+:line
+
 [14 Jul 2011]
 
 With considerable help from graphics whiz Nathan Fabian (Sandia), we

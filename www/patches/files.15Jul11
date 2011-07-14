@@ -1,0 +1,7 @@
+14Jul11 version files changed by 15Jul11 upgrade:
+
+doc/Manual.pdf
+doc/Section_commands.html
+doc/Section_commands.txt
+src/dump_image.cpp
+src/version.h
