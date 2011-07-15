@@ -46,13 +46,14 @@ RandomPark::RandomPark(double rseed)
 /* ---------------------------------------------------------------------- 
    reset seed to a positive int based on rseed and offset
    assume 0.0 <= rseed < 1.0 and offset is an int >= 0
+   fmod() insures no overflow when static cast to int
    warmup the new RNG if requested
    typically used to setup one RN generator per proc or site or particle
  ------------------------------------------------------------------------*/
 
 void RandomPark::reset(double rseed, int offset, int warmup)
 {
-  seed = static_cast<int> (rseed*IM + offset);
+  seed = static_cast<int> (fmod(rseed*IM+offset,IM));
   if (seed < 0) seed = -seed;
   if (seed == 0) seed = 1;
   for (int i = 0; i < warmup; i++) uniform();
