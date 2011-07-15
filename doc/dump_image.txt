@@ -120,17 +120,13 @@ If an integer attribute such as {site} or {i2} is specified for the
 {color} setting, then you must use the optional {crange} keyword to
 specify the range of integer values that are allowed, from {lo} to
 {hi}.  The color of each site is determined by the integer value.  By
-default the mapping of values to colors is as follows:
-
-type lo = red
-type lo+1 = green
-type lo+2 = blue
-type lo+3 = yellow
-type lo+4 = aqua
-type lo+5 = cyan :ul
-
-and repeats itself cyclically for larger values.  This mapping can be
-changed by the "dump_modify scolor"_dump_modify.html command.
+default the mapping of values to colors is done by looping over the
+set of pre-defined colors listed with the
+"dump_modify"_dump_modify.html command, and assiging the first one to
+value lo, the next to value lo+1, and so on, repeating the assignment
+in a loop if the number of values exceeds the number of pre-defined
+colors.  This mapping can be changed by the "dump_modify
+scolor"_dump_modify.html command.
 
 If a floating point attribute such as {energy} or {d1} is specified
 for the {color} setting, then the site's attribute will be associated

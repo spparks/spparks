@@ -34,7 +34,7 @@ keyword = {backcolor} or {boxcolor} or {color} or {delay} or {delta} or {flush} 
   {region} arg = region-ID or "none"
   {scolor} args = I color
     I = integer value or range of values (see below)
-    color = name of color or color1/color2/...
+    color = name of color or color1/color2/... or {random}
   {sdiam} args = I diam
     I = integer value or range of values (see below)
     diam = diameter of sites of that value
@@ -167,6 +167,12 @@ by a "/" character, e.g. red/green/blue.  In the former case, that
 color is assigned to all the specified integer values.  In the latter
 case, the list of colors are assigned in a round-robin fashion to each
 of the specified integer values.
+
+The specified {color} can also be the word {random}.  In this case,
+random red/blue/green color values, each from 0.0 to 1.0, are
+generated for each {I} value.  This is a convenient way to assign a
+large number of random colors, without having to list them explicitly
+by name.
 
 :line
 

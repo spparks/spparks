@@ -133,17 +133,13 @@ setting with any valid atom attribute.
 <I>color</I> setting, then you must use the optional <I>crange</I> keyword to
 specify the range of integer values that are allowed, from <I>lo</I> to
 <I>hi</I>.  The color of each site is determined by the integer value.  By
-default the mapping of values to colors is as follows:
-</P>
-<UL><LI>type lo = red
-<LI>type lo+1 = green
-<LI>type lo+2 = blue
-<LI>type lo+3 = yellow
-<LI>type lo+4 = aqua
-<LI>type lo+5 = cyan 
-</UL>
-<P>and repeats itself cyclically for larger values.  This mapping can be
-changed by the <A HREF = "dump_modify.html">dump_modify scolor</A> command.
+default the mapping of values to colors is done by looping over the
+set of pre-defined colors listed with the
+<A HREF = "dump_modify.html">dump_modify</A> command, and assiging the first one to
+value lo, the next to value lo+1, and so on, repeating the assignment
+in a loop if the number of values exceeds the number of pre-defined
+colors.  This mapping can be changed by the <A HREF = "dump_modify.html">dump_modify
+scolor</A> command.
 </P>
 <P>If a floating point attribute such as <I>energy</I> or <I>d1</I> is specified
 for the <I>color</I> setting, then the site's attribute will be associated
