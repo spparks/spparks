@@ -314,12 +314,12 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
 						 "image:colorattribute");
     for (int i = clo; i <= chi; i++) {
       int j = i-clo;
-      if (i % 6 == 0) colorattribute[j] = color2rgb("red");
-      else if (i % 6 == 1) colorattribute[j] = color2rgb("green");
-      else if (i % 6 == 2) colorattribute[j] = color2rgb("blue");
-      else if (i % 6 == 3) colorattribute[j] = color2rgb("yellow");
-      else if (i % 6 == 4) colorattribute[j] = color2rgb("aqua");
-      else if (i % 6 == 5) colorattribute[j] = color2rgb("cyan");
+      if (j % 6 == 0) colorattribute[j] = color2rgb("red");
+      else if (j % 6 == 1) colorattribute[j] = color2rgb("green");
+      else if (j % 6 == 2) colorattribute[j] = color2rgb("blue");
+      else if (j % 6 == 3) colorattribute[j] = color2rgb("yellow");
+      else if (j % 6 == 4) colorattribute[j] = color2rgb("aqua");
+      else if (j % 6 == 5) colorattribute[j] = color2rgb("cyan");
     }
   }
 

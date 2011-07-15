@@ -141,8 +141,6 @@ Lattice::Lattice(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   orienty[0] = 0;  orienty[1] = 1;  orienty[2] = 0;
   orientz[0] = 0;  orientz[1] = 0;  orientz[2] = 1;
 
-  int spaceflag = 0;
-
   a1[0] = 1.0;  a1[1] = 0.0;  a1[2] = 0.0;
   a2[0] = 0.0;  a2[1] = 1.0;  a2[2] = 0.0;
   a3[0] = 0.0;  a3[1] = 0.0;  a3[2] = 1.0;
@@ -224,7 +222,7 @@ int Lattice::ncolors(int delcolor, int nx, int ny, int nz)
 
 int Lattice::id2color(int idsite, int delcolor, int nx, int ny, int nz)
 {
-  int i,j,k,ncolors,ncolor1d,icolor;
+  int i,j,k,ncolor1d,icolor;
 
   idsite--;
 

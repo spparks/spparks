@@ -771,7 +771,7 @@ double Variable::constant(char *word)
 int Variable::keyword(char *word, double &value)
 {
   if (strcmp(word,"time") == 0) value = app->time;
-  else if (strcmp(word,"nglobal") == 0) app->nglobal;
+  else if (strcmp(word,"nglobal") == 0) value = app->nglobal;
   else return 1;
 
   return 0;

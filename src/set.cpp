@@ -141,7 +141,7 @@ void Set::command(int narg, char **arg)
       if (strcmp(arg[iarg+1],"id") == 0) {
 	cond[ncondition].lhs = ID;
 	cond[ncondition].type = INT;
-	cond[ncondition].stride == 1;
+	cond[ncondition].stride = 1;
       } else if (strcmp(arg[iarg+1],"x") == 0) {
 	cond[ncondition].lhs = X;
 	cond[ncondition].type = DOUBLE;
