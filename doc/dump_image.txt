@@ -75,13 +75,14 @@ simulation; see further details below.  The {text} dump style writes
 snapshots of numerical data asociated with sites, as discussed on the
 "dump"_dump.html doc page.
 
-Here are two sample images, rendered as 1024x1024 JPG files.  Click to
-see the full-size images:
+Here are two sample images, rendered as 1024x1024 JPG files.  The left
+image is a million-site lattice; the right image is half a billion
+sites.  Click to see the full-size images:
 
 <DIV ALIGN=center>
 
-:image(JPG/dump1_small.jpg,JPG/dump1.jpg)
-:image(JPG/dump2_small.jpg,JPG/dump2.jpg)
+:image(JPG/image_1M_small.jpg,JPG/image_1M.jpg)
+:image(JPG/image_512M_small.jpg,JPG/image_512M.jpg)
 
 </DIV>
 
