@@ -35,6 +35,17 @@ describe the version you have. :ule,l
 :line
 :line
 
+[16 Jul 2011]
+
+More upgrades to the "dump_image"_doc/dump_image.html command,
+including an option to generate a list of random colors via the
+"dump_modify scolor"_doc/dump_modify.html command.
+
+This is the "list of changed files"_patches/files.16Jul11 from the 15
+Jul 2010 version.
+
+:line
+
 [15 Jul 2011]
 
 Fixed a glitch in the color table map for the "dump
