@@ -103,6 +103,7 @@ class DumpImage : public DumpText {
 
   double *diamattribute;
   double **colorattribute;
+  int *color_memflag;
 
   double *boxcolor;
   int background[3];
@@ -150,7 +151,7 @@ class DumpImage : public DumpText {
 
   void bounds(char *, int, int, int &, int &);
   double *value2color(double);
-  double *color2rgb(char *);
+  double *color2rgb(char *, int);
 
   // inlined functions
 

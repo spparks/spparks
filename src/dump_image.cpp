@@ -300,6 +300,7 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
 
   diamattribute = NULL;
   colorattribute = NULL;
+  color_memflag = NULL;
 
   if (sdiam == IATTRIBUTE) {
     if (drange == NO) error->all("Dump image drange must be set");
@@ -312,18 +313,17 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
     if (crange == NO) error->all("Dump image crange must be set");
     colorattribute = (double **) memory->smalloc((chi-clo+1)*sizeof(double *),
 						 "image:colorattribute");
+    color_memflag = (int *) memory->smalloc((chi-clo+1)*sizeof(int),
+					    "image:color_memflag");
     for (int i = clo; i <= chi; i++) {
       int j = i-clo;
-      if (j % 6 == 0) colorattribute[j] = color2rgb("red");
-      else if (j % 6 == 1) colorattribute[j] = color2rgb("green");
-      else if (j % 6 == 2) colorattribute[j] = color2rgb("blue");
-      else if (j % 6 == 3) colorattribute[j] = color2rgb("yellow");
-      else if (j % 6 == 4) colorattribute[j] = color2rgb("aqua");
-      else if (j % 6 == 5) colorattribute[j] = color2rgb("cyan");
+      int m = j % NCOLORS;
+      colorattribute[j] = color2rgb("tmp",m+1);
+      color_memflag[j] = 0;
     }
   }
 
-  boxcolor = color2rgb("yellow");
+  boxcolor = color2rgb("yellow",0);
   background[0] = background[1] = background[2] = 0;
 
   mlo = MINVALUE;
@@ -334,9 +334,9 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
   nentry = 2;
   mentry = new MapEntry[nentry];
   mentry[0].svalue = 0.0;
-  mentry[0].color = color2rgb("blue");
+  mentry[0].color = color2rgb("blue",0);
   mentry[1].svalue = 1.0;
-  mentry[1].color = color2rgb("red");
+  mentry[1].color = color2rgb("red",0);
 
   // static parameters
 
@@ -402,7 +402,12 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
 DumpImage::~DumpImage()
 {
   memory->sfree(diamattribute);
-  memory->sfree(colorattribute);
+  if (colorattribute) {
+    for (int i = clo; i <= chi; i++)
+      if (color_memflag[i-clo]) delete [] colorattribute[i-clo];
+    memory->sfree(colorattribute);
+  }
+  memory->sfree(color_memflag);
 
   for (int i = 0; i < ncolors; i++) delete [] username[i];
   memory->sfree(username);
@@ -902,9 +907,9 @@ void DumpImage::create_image()
     corners[4][1] = corners[0][1] + axeslen*(corners[4][1]-corners[0][1]);
     corners[4][2] = corners[0][2] + axeslen*(corners[4][2]-corners[0][2]);
 
-    draw_cylinder(corners[0],corners[1],color2rgb("red"),diameter,3);
-    draw_cylinder(corners[0],corners[2],color2rgb("green"),diameter,3);
-    draw_cylinder(corners[0],corners[4],color2rgb("blue"),diameter,3);
+    draw_cylinder(corners[0],corners[1],color2rgb("red",0),diameter,3);
+    draw_cylinder(corners[0],corners[2],color2rgb("green",0),diameter,3);
+    draw_cylinder(corners[0],corners[4],color2rgb("blue",0),diameter,3);
   }
 }
 
@@ -1436,7 +1441,7 @@ int DumpImage::modify_param(int narg, char **arg)
   
   if (strcmp(arg[0],"backcolor") == 0) {
     if (narg < 2) error->all("Illegal dump_modify command");
-    double *color = color2rgb(arg[1]);
+    double *color = color2rgb(arg[1],0);
     if (color == NULL) error->all("Invalid color in dump_modify command");
     background[0] = static_cast<int> (color[0]*255.0);
     background[1] = static_cast<int> (color[1]*255.0);
@@ -1445,7 +1450,7 @@ int DumpImage::modify_param(int narg, char **arg)
 
   } else if (strcmp(arg[0],"boxcolor") == 0) {
     if (narg < 2) error->all("Illegal dump_modify command");
-    boxcolor = color2rgb(arg[1]);
+    boxcolor = color2rgb(arg[1],0);
     if (boxcolor == NULL) error->all("Invalid color in dump_modify command");
     return 2;
 
@@ -1476,32 +1481,54 @@ int DumpImage::modify_param(int narg, char **arg)
     int nlo,nhi;
     bounds(arg[1],clo,chi,nlo,nhi);
 
+    // color arg = "random"
+    // assign random RGB values to each attribute
+
+    if (strcmp(arg[2],"random") == 0) {
+      RandomPark *randomcolor = new RandomPark(ranmaster->uniform()); 
+      for (int i = nlo; i <= nhi; i++) {
+	double *rgb;
+	if (color_memflag[i-clo] == 0) rgb = new double[3];
+	else rgb = colorattribute[i-clo];
+	rgb[0] = randomcolor->uniform();
+	rgb[1] = randomcolor->uniform();
+	rgb[2] = randomcolor->uniform();
+	colorattribute[i-clo] = rgb;
+	color_memflag[i-clo] = 1;
+      }
+      delete randomcolor;
+
+    // color arg is a color name
     // ptrs = list of ncount colornames separated by '/'
+    // assign each of ncount colors in round-robin fashion to attributes
 
-    int ncount = 1;
-    char *nextptr;
-    char *ptr = arg[2];
-    while (nextptr = strchr(ptr,'/')) {
-      ptr = nextptr + 1;
-      ncount++;
+    } else {
+      int ncount = 1;
+      char *nextptr;
+      char *ptr = arg[2];
+      while (nextptr = strchr(ptr,'/')) {
+	ptr = nextptr + 1;
+	ncount++;
+      }
+      char **ptrs = new char*[ncount+1];
+      ncount = 0;
+      ptrs[ncount++] = strtok(arg[2],"/");
+      while (ptrs[ncount++] = strtok(NULL,"/"));
+      ncount--;
+      
+      int m = 0;
+      for (int i = nlo; i <= nhi; i++) {
+	if (color_memflag[i-clo] == 0) delete [] colorattribute[i-clo];
+	colorattribute[i-clo] = color2rgb(ptrs[m%ncount],0);
+	color_memflag[i-clo] = 0;
+	if (colorattribute[i-clo] == NULL)
+	  error->all("Invalid color in dump_modify command");
+	m++;
+      }
+
+      delete [] ptrs;
     }
-    char **ptrs = new char*[ncount+1];
-    ncount = 0;
-    ptrs[ncount++] = strtok(arg[2],"/");
-    while (ptrs[ncount++] = strtok(NULL,"/"));
-    ncount--;
 
-    // assign each of ncount colors in round-robin fashion to types
-
-    int m = 0;
-    for (int i = nlo; i <= nhi; i++) {
-      colorattribute[i-clo] = color2rgb(ptrs[m%ncount]);
-      if (colorattribute[i] == NULL)
-	error->all("Invalid color in dump_modify command");
-      m++;
-    }
-
-    delete [] ptrs;
     return 3;
 
   } else if (strcmp(arg[0],"sdiam") == 0) {
@@ -1559,7 +1586,7 @@ int DumpImage::modify_param(int narg, char **arg)
 	} else if (strcmp(arg[n],"min") == 0) mentry[i].single = MINVALUE;
 	else if (strcmp(arg[n],"max") == 0) mentry[i].single = MAXVALUE;
 	else error->all("Illegal dump_modify command");
-	mentry[i].color = color2rgb(arg[n+1]);
+	mentry[i].color = color2rgb(arg[n+1],0);
 	n += 2;
       } else if (mstyle == DISCRETE) {
 	if (n+3 > narg) error->all("Illegal dump_modify command");
@@ -1575,11 +1602,11 @@ int DumpImage::modify_param(int narg, char **arg)
 	} else if (strcmp(arg[n+1],"min") == 0) mentry[i].single = MINVALUE;
 	else if (strcmp(arg[n+1],"max") == 0) mentry[i].single = MAXVALUE;
 	else error->all("Illegal dump_modify command");
-	mentry[i].color = color2rgb(arg[n+2]);
+	mentry[i].color = color2rgb(arg[n+2],0);
 	n += 3;
       } else if (mstyle == SEQUENTIAL) {
 	if (n+1 > narg) error->all("Illegal dump_modify command");
-	mentry[i].color = color2rgb(arg[n]);
+	mentry[i].color = color2rgb(arg[n],0);
 	n += 1;
       }
       if (mentry[i].color == NULL)
@@ -1690,7 +1717,7 @@ double *DumpImage::value2color(double value)
    search user-defined color names first, then the list of NCOLORS names
 ------------------------------------------------------------------------- */
 
-double *DumpImage::color2rgb(char *color)
+double *DumpImage::color2rgb(char *color, int index)
 {
   static char *name[NCOLORS] = { 
     "aliceblue",
@@ -1977,6 +2004,8 @@ double *DumpImage::color2rgb(char *color)
     {255/255.0, 255/255.0, 0/255.0},
     {154/255.0, 205/255.0, 50/255.0}
   };
+
+  if (index) return rgb[index-1];
 
   for (int i = 0; i < ncolors; i++)
     if (strcmp(color,username[i]) == 0) return userrgb[i];
