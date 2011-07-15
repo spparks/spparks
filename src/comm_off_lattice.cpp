@@ -250,7 +250,7 @@ CommOffLattice::Swap *CommOffLattice::create_swap_sector(int isector)
 
 CommOffLattice::Swap *CommOffLattice::create_swap_sector_reverse(int isector)
 {
-  int i,m,n;
+  int m,n;
 
   int nbins = appoff->nbins;
   int nbinx = appoff->nbinx;

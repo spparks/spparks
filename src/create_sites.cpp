@@ -426,7 +426,7 @@ void CreateSites::structured_connectivity()
 
 void CreateSites::random_sites()
 {
-  int i,n;
+  int n;
 
   int dimension = domain->dimension;
   int nrandom = domain->lattice->nrandom;
@@ -438,9 +438,6 @@ void CreateSites::random_sites()
   double boxxlo = domain->boxxlo;
   double boxylo = domain->boxylo;
   double boxzlo = domain->boxzlo;
-  double boxxhi = domain->boxxhi;
-  double boxyhi = domain->boxyhi;
-  double boxzhi = domain->boxzhi;
 
   double subxlo = domain->subxlo;
   double subylo = domain->subylo;

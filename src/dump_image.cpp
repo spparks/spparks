@@ -788,7 +788,7 @@ void DumpImage::create_image()
 {
   int i,j,m,ivalue;
   double diameter;
-  double *color,*color1,*color2;
+  double *color;
 
   // initialze image buffers
   // no need to init surfaceBuffer, since will be based on depth
@@ -982,8 +982,6 @@ void DumpImage::draw_sphere(double *x, double *surfaceColor, double diameter)
 
 void DumpImage::draw_cube(double *x, double *surfaceColor, double diameter)
 {
-  int ix,iy;
-  double projRad;
   double xlocal[3],surface[3],normal[3];
   double t,tdir[3];
   double depth;
@@ -999,7 +997,6 @@ void DumpImage::draw_cube(double *x, double *surfaceColor, double diameter)
   double radius = 0.5*diameter;
   double pixelWidth = (tanPerPixel > 0) ? tanPerPixel * dist : 
     -tanPerPixel / zoom;
-  double pixelNorm = pixelWidth / radius;
 
   double halfWidth = diameter;
   double pixelHalfWidthFull = halfWidth / pixelWidth;

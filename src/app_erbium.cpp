@@ -389,8 +389,6 @@ void AppErbium::site_event(int i, class RandomPark *random)
   int ibef = 0;
   for (int jj = 0; jj < nlocal; jj++)
     if (element[jj] == HYDROGEN) ibef++;
-  int iel1 = element[i];
-  int iel2 = element[j];
 
   if (rstyle == 1) {
     element[i] = soutput[which];

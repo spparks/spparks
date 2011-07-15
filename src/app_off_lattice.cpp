@@ -1420,7 +1420,6 @@ int AppOffLattice::delete_owned_site(int i)
   int nextptr = next[i];
   if (nextptr == nlocal-1) nextptr = i;
 
-  int ibin = bin[i];
   delete_from_bin(i,bin[i]);
 
   id[i] = id[nlocal-1];

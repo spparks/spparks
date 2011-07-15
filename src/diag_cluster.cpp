@@ -269,7 +269,7 @@ void DiagCluster::generate_clusters()
 
   int *site = app->iarray[0];
 
-  int nclustertot,ii,jj,kk,id;
+  int nclustertot,ii,id;
   double vol,volsum,voltot;
 
   ncluster = 0;
@@ -499,7 +499,7 @@ void DiagCluster::add_cluster(int id, int iv, double dv, double vol, int nn, dou
 
 void DiagCluster::dump_clusters(double time)
 {
-  int nsend,nrecv;
+  int nrecv;
   double* dbuftmp;
   int maxbuftmp;
   int cid, isite;

@@ -163,7 +163,7 @@ void AppSOS::setup_app()
 
 double AppSOS::site_energy(int i)
 {
-  int j,jj,isite,jsite;
+  int j,isite,jsite;
 
   isite = height[i];
 

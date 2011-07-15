@@ -390,7 +390,7 @@ double AppDiffusion::site_propensity(int i)
 double AppDiffusion::site_propensity_no_energy(int i)
 {
   int j,ihop,nhop1,nhop2,eflag;
-  double einitial,edelta,probone,proball;
+  double probone,proball;
 
   // events = OCCUPIED site exchanges with adjacent VACANT site
   // if engstyle, compute edelta between initial and final state
@@ -698,7 +698,7 @@ void AppDiffusion::site_event(int i, class RandomPark *random)
 
 void AppDiffusion::site_event_linear(int i, class RandomPark *random)
 {
-  int j,k,kk,kkk,m,mm,mmm,isite;
+  int j,m,isite;
 
   // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
@@ -784,7 +784,7 @@ void AppDiffusion::site_event_linear(int i, class RandomPark *random)
 
 void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
 {
-  int j,k,kk,kkk,m,mm,mmm,isite;
+  int j,k,m,isite;
 
   // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
@@ -1134,7 +1134,7 @@ int AppDiffusion::find_deposition_site(RandomPark *random)
   // discard site if neighbor count not between coordlo and coordhi
   // find site whose projected distance is closest to start point
 
-  int i,j,ncount;
+  int i,ncount;
   double dist2start;
 
   int closesite = -1;
