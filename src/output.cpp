@@ -84,7 +84,8 @@ double Output::setup(double time)
 
   double dump_time = app->stoptime;
   for (int i = 0; i < ndump; i++) {
-    if (dumplist[i]->idump == 0) dumplist[i]->write(time);
+    if (dumplist[i]->idump == 0  && 
+	time >= dumplist[i]->delay) dumplist[i]->write(time);
     dumplist[i]->next_time = 
       next_time(time,dumplist[i]->logfreq,dumplist[i]->delta,
 		dumplist[i]->nrepeat,dumplist[i]->scale,dumplist[i]->delay);
