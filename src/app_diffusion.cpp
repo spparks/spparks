@@ -784,7 +784,7 @@ void AppDiffusion::site_event_linear(int i, class RandomPark *random)
 
 void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
 {
-  int j,k,m,isite;
+  int j,m,isite;
 
   // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
@@ -1222,7 +1222,6 @@ int AppDiffusion::exceed_limit(int m, double *start, double &dist2start)
 double AppDiffusion::distsq_to_line(int m, double *start,
 				    int iprd, int jprd, double &dist2start)
 {
-  double dot,distsq;
   double delta[3],projection[3],offset[3];
 
   delta[0] = xyz[m][0] + iprd*domain->xprd - start[0];

@@ -256,7 +256,6 @@ CommOffLattice::Swap *CommOffLattice::create_swap_sector_reverse(int isector)
   int nbinx = appoff->nbinx;
   int nbiny = appoff->nbiny;
   int nbinz = appoff->nbinz;
-  int *nimages = appoff->nimages;
   int *binflag = appoff->binflag;
   int *ghostindex = appoff->ghostindex;
   int *ghostproc = appoff->ghostproc;
@@ -304,9 +303,6 @@ CommOffLattice::Swap *CommOffLattice::create_swap_sector_reverse(int isector)
 void CommOffLattice::create_send_from_list(int nlist, int **list, Swap *swap)
 {
   int i,j,isend;
-
-  int nbins = appoff->nbins;
-  int *binflag = appoff->binflag;
 
   // proc[i] = count of bins I send to proc I, including self
 
@@ -412,7 +408,7 @@ void CommOffLattice::create_send_from_list(int nlist, int **list, Swap *swap)
 
 void CommOffLattice::create_recv_from_send(Swap *swap)
 {
-  int i,isend,irecv;
+  int i,isend;
 
   // swap params
 
