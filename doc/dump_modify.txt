@@ -14,7 +14,7 @@ dump_modify dump-ID keyword values ... :pre
 
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
-keyword = {backcolor} or {boxcolor} or {color} or {delay} or {delta} or {flush} or {logfreq} or {pad} or {region} or {scolor} or {sdiam} or {smap} or {thresh} :l
+keyword = {backcolor} or {boxcolor} or {color} or {delay} or {delta} or {flush} or {logfreq} or {loglinfreq} or {pad} or {region} or {scolor} or {sdiam} or {smap} or {thresh} :l
   {backcolor} arg = color
     color = name of color for background
   {boxcolor} arg = color
@@ -29,7 +29,7 @@ keyword = {backcolor} or {boxcolor} or {color} or {delay} or {delta} or {flush} 
   {flush} arg = {yes} or {no}
   {logfreq} or {loglinfreq} values = N factor
     N = number of repetitions per interval
-    factor = scale factor between intervals :pre
+    factor = scale factor between intervals
   {pad} arg = Nchar = # of characters to convert timestep to
   {region} arg = region-ID or "none"
   {scolor} args = I color
@@ -314,6 +314,7 @@ delay = 0.0
 delta = value used in the "dump"_dump.html command
 flush = yes
 logfreq = off
+loglinfreq = off
 pad = 0
 region = none
 scolor = * red/green/blue/yellow/aqua/cyan

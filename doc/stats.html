@@ -19,13 +19,13 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>delay</I> or <I>logfreq</I> 
+<LI>keyword = <I>delay</I> or <I>logfreq</I> or <I>loglinfreq</I> 
 
 <PRE>  <I>delay</I> value = tdelay
     tdelay = delay stats until at least this time (seconds)
-  <I>logfreq</I> values = N factor
+  <I>logfreq</I> or <I>loglinfreq</I> values = N factor
     N = number of repetitions per interval
-    factor = scale factor between interval 
+    factor = scale factor between intervals 
 </PRE>
 
 </UL>
@@ -33,7 +33,7 @@
 </P>
 <PRE>stats 0.1
 stats 0.1 delta 0.5
-stats 1.0 logfreq 7 10.0 
+stats 1.0 loglinfreq 7 10.0 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -55,16 +55,18 @@ creating diagnostics via the <A HREF = "diag_style.html">diag_style</A> command.
 <P>The <I>delay</I> keyword will suppress output until <I>tdelay</I> time has
 elapsed.
 </P>
-<P>Using the <I>logfreq</I> keyword will produce statistical output at varying
-intervals during the course of a simulation.  There will be <I>N</I>
-outputs per interval where the size of the interval is initially
-<I>delta</I> and then scales up by <I>factor</I> each time.
+<P>Using the <I>logfreq</I> or <I>loglinfreq</I> keyword will produce statistical 
+output at progressively larger intervals during the course of a simulation.  
+There will be <I>N</I> outputs per interval where the size of the interval is 
+initially <I>delta</I> and then scales up by <I>factor</I> each time. With <I>loglinfreq</I>,
+output times increase arithmetically within an interval; with <I>logfreq</I> the 
+output times increase geometrically.
 </P>
 <P>For example, this command
 </P>
-<PRE>stats 0.1 logfreq 7 10.0 
+<PRE>stats 0.1 loglinfreq 7 10.0 
 </PRE>
-<P>will produce output at these times:
+<P>will produce output at times:
 </P>
 <PRE>t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... 
 </PRE>
@@ -72,10 +74,22 @@ outputs per interval where the size of the interval is initially
 </P>
 <PRE>stats 0.1 logfreq 1 2.0 
 </PRE>
-<P>will produce output at these times:
+<P>will produce output at times:
 </P>
 <PRE>t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... 
 </PRE>
+<P>This command
+</P>
+<PRE>stats 1.0 logfreq 10 10.0 
+</PRE>
+<P>will produce output at times:
+</P>
+<PRE>t = 0, 1.0, 1.26, 1.58, 2.00, 2.51, 3.16, 3.98, 5.01, 6.31, 7.94, 10.0, ... 
+</PRE>
+<P>Note that in the above examples the times are the earliest times that output will
+be produced. In practice, because time is incremented in discrete jumps, output
+ will be produced at times somewhat later than these times.
+</P>
 <P>If <I>N</I> is specified as 0, then this will turn off logarithmic output,
 and revert to regular output every <I>delta</I> seconds.
 </P>

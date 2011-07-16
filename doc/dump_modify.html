@@ -19,7 +19,7 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>backcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>delay</I> or <I>delta</I> or <I>flush</I> or <I>logfreq</I> or <I>pad</I> or <I>region</I> or <I>scolor</I> or <I>sdiam</I> or <I>smap</I> or <I>thresh</I> 
+<LI>keyword = <I>backcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>delay</I> or <I>delta</I> or <I>flush</I> or <I>logfreq</I> or <I>loglinfreq</I> or <I>pad</I> or <I>region</I> or <I>scolor</I> or <I>sdiam</I> or <I>smap</I> or <I>thresh</I> 
 
 <PRE>  <I>backcolor</I> arg = color
     color = name of color for background
@@ -33,9 +33,9 @@
   <I>delta</I> arg = dt
     dt = time increment between dumps (seconds)
   <I>flush</I> arg = <I>yes</I> or <I>no</I>
-  <I>logfreq</I> values = N factor
+  <I>logfreq</I> or <I>loglinfreq</I> values = N factor
     N = number of repetitions per interval
-    factor = scale factor between interval
+    factor = scale factor between intervals
   <I>pad</I> arg = Nchar = # of characters to convert timestep to
   <I>region</I> arg = region-ID or "none"
   <I>scolor</I> args = I color
@@ -76,7 +76,7 @@
 <P><B>Examples:</B>
 </P>
 <PRE>dump_modify 1 delay 30.0
-dump_modify 1 logfreq 7 10.0 delay 100.0 flush yes
+dump_modify 1 loglinfreq 7 10.0 delay 100.0 flush yes
 dump_modify mine thresh energy > 0.0 thresh id <= 1000 
 </PRE>
 <P><B>Description:</B>
@@ -104,27 +104,12 @@ only relevant to the <A HREF = "dump.html">dump text</A> style.
 </P>
 <HR>
 
-<P>The <I>logfreq</I> keyword will produce statistical output at varying
-intervals during the course of a simulation.  There will be <I>N</I>
+<P>The <I>logfreq</I> and <I>loglinfreq</I> keywords will produce output at progressively
+larger intervals during the course of a simulation.  There will be <I>N</I>
 outputs per interval where the size of each interval is initially
-<I>delta</I> and then scales up by <I>factor</I> each time.
+<I>delta</I> and then scales up by <I>factor</I> each time. See the <A HREF = "stats.html">stats</A>
+command for more information on how the output times are specified.
 </P>
-<P>For example, this command
-</P>
-<PRE>dump_modify 1 logfreq 7 10.0 
-</PRE>
-<P>will dump snapshots at these times:
-</P>
-<PRE>t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... 
-</PRE>
-<P>This command
-</P>
-<PRE>dump_modify mine logfreq 1 2.0 
-</PRE>
-<P>will dump snapshots at these times:
-</P>
-<PRE>t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... 
-</PRE>
 <P>If <I>N</I> is specified as 0, then this will turn off logarithmic output,
 and revert to regular output every <I>delta</I> seconds.
 </P>
@@ -336,6 +321,7 @@ details.
 <LI>delta = value used in the <A HREF = "dump.html">dump</A> command
 <LI>flush = yes
 <LI>logfreq = off
+<LI>loglinfreq = off
 <LI>pad = 0
 <LI>region = none
 <LI>scolor = * red/green/blue/yellow/aqua/cyan
@@ -351,7 +337,7 @@ colors can be defined with the dump_modify color command.  The 3
 numbers listed for each name are the RGB (red/green/blue) values.
 Divide each value by 255 to get the equivalent 0.0 to 1.0 value.
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >aliceblue = 240, 248, 255 </TD><TD >antiquewhite = 250, 235, 215 </TD><TD >aqua = 0, 255, 255 </TD><TD >aquamarine = 127, 255, 212 </TD><TD >azure = 240, 255, 255 </TD></TR>
 <TR><TD >beige = 245, 245, 220 </TD><TD >bisque = 255, 228, 196 </TD><TD >black = 0, 0, 0 </TD><TD >blanchedalmond = 255, 255, 205 </TD><TD >blue = 0, 0, 255 </TD></TR>
 <TR><TD >blueviolet = 138, 43, 226 </TD><TD >brown = 165, 42, 42 </TD><TD >burlywood = 222, 184, 135 </TD><TD >cadetblue = 95, 158, 160 </TD><TD >chartreuse = 127, 255, 0 </TD></TR>

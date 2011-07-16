@@ -14,16 +14,17 @@ diag_style style keyword value keyword value ... :pre
 
 style = {cluster} or {diffusion} or {energy} or {propensity} :ulb,l
 zero or more keyword/value pairs may be appended :l
-keyword = {stats} or {delay} or {delt} or {logfreq}
+keyword = {stats} or {delay} or {delt} or {logfreq} or {loglinfreq} :l
   {stats} values = {yes} or {no}
     yes/no = provide output to stats line
   {delay} values = tdelay
     tdelay = delay evaluating diagnostic until at least this time
   {delt} values = delta
     delta = time increment between evaluations of the diagnostic (seconds)
-  {logfreq} values = N factor
+  {logfreq} or {loglinfreq} values = N factor
     N = number of repetitions per interval
-    factor = scale factor between interval :pre
+    factor = scale factor between intervals
+:pre
 
 see doc pages for individual diagnostic commands for additional
 keywords - diagnostic-specific keywords must come after any other
@@ -73,12 +74,7 @@ the diagnostic to run at progressively larger intervals
 during the course of a
 simulation.  There will be {N} outputs per interval where the size of
 each interval scales up by {factor} each time.  {Delta} is the time
-between outputs in the first (smallest) interval.
-
-The {logfreq} and {loglinfreq} keywords will produce output at progressively
-larger intervals during the course of a simulation.  There will be {N}
-outputs per interval where the size of each interval is initially
-{delta} and then scales up by {factor} each time. See the "stats"_stats.html
+between outputs in the first (smallest) interval. See the "stats"_stats.html
 command for more information on how the output times are specified.
 See the "stats"_stats.html
 command for more information on how the intervals are specified.

@@ -14,7 +14,7 @@ stats delta keyword values ... :pre
 
 delta = time increment between statistical output (seconds) :ulb,l
 zero or more keyword/value pairs may be appended :l
-keyword = {delay} or {logfreq} :l
+keyword = {delay} or {logfreq} or {loglinfreq} :l
   {delay} value = tdelay
     tdelay = delay stats until at least this time (seconds)
   {logfreq} or {loglinfreq} values = N factor
@@ -53,11 +53,11 @@ output at progressively larger intervals during the course of a simulation.
 There will be {N} outputs per interval where the size of the interval is 
 initially {delta} and then scales up by {factor} each time. With {loglinfreq},
 output times increase arithmetically within an interval; with {logfreq} the 
-outputs increase geometrically.
+output times increase geometrically.
 
 For example, this command
 
-stats 0.1 logfreq 7 10.0 :pre
+stats 0.1 loglinfreq 7 10.0 :pre
 
 will produce output at times:
 

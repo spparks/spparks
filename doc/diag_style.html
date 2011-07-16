@@ -19,16 +19,18 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<PRE>keyword = <I>stats</I> or <I>delay</I> or <I>delt</I> or <I>logfreq</I>
-  <I>stats</I> values = <I>yes</I> or <I>no</I>
+<LI>keyword = <I>stats</I> or <I>delay</I> or <I>delt</I> or <I>logfreq</I> or <I>loglinfreq</I> 
+
+<PRE>  <I>stats</I> values = <I>yes</I> or <I>no</I>
     yes/no = provide output to stats line
   <I>delay</I> values = tdelay
     tdelay = delay evaluating diagnostic until at least this time
   <I>delt</I> values = delta
     delta = time increment between evaluations of the diagnostic (seconds)
-  <I>logfreq</I> values = N factor
+  <I>logfreq</I> or <I>loglinfreq</I> values = N factor
     N = number of repetitions per interval
-    factor = scale factor between interval 
+    factor = scale factor between intervals
+
 </PRE>
 <LI>see doc pages for individual diagnostic commands for additional
 keywords - diagnostic-specific keywords must come after any other
@@ -71,29 +73,22 @@ called.
 <P>If <I>stats</I> is set to <I>no</I>, then the other keywords can be used, since
 presumably the diagnostic will create its own output files.  The
 <I>delt</I> keyword specificies <I>Delta</I> = the interval of time between each
-diagnostic calculation.  Similarly, the <I>logfreq</I> keyword will cause
-the diagnostic to run at varying intervals during the course of a
+diagnostic calculation.  
+</P>
+<P>Similarly, the <I>logfreq</I> and <I>loglinfreq</I> keywords will cause
+the diagnostic to run at progressively larger intervals 
+during the course of a
 simulation.  There will be <I>N</I> outputs per interval where the size of
 each interval scales up by <I>factor</I> each time.  <I>Delta</I> is the time
-between outputs in the first (smallest) interval.
+between outputs in the first (smallest) interval. See the <A HREF = "stats.html">stats</A>
+command for more information on how the output times are specified.
+See the <A HREF = "stats.html">stats</A>
+command for more information on how the intervals are specified.
 </P>
-<P>For example, this command
+<P>If <I>N</I> is specified as 0, then this will turn off logarithmic intervals,
+and revert to regular intervals of <I>delta</I>.
 </P>
-<PRE>diag_style energy stats no delt 0.1 logfreq 7 10.0 
-</PRE>
-<P>will perform its computation at these times:
-</P>
-<PRE>t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... 
-</PRE>
-<P>This command
-</P>
-<PRE>diag_style energy stats no delt 0.1 logfreq 1 2.0 
-</PRE>
-<P>will perform its computation at these times:
-</P>
-<PRE>t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... 
-</PRE>
-<P>The delay keyword specifies the shortest time at which the 
+<P>The <I>delay</I> keyword specifies the shortest time at which the 
 diagnostic can be evaluated. This is useful if it is inconvenient
 to evaluate the diagnostic at time t=0.
 </P>
