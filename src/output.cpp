@@ -397,7 +397,7 @@ double Output::next_time(double tcurrent, int logfreq, double delta,
   } else if (logfreq == 1) {
     while (tcurrent >= delta*scale) delta *= scale;
     double ktmp = pow(scale,1.0/nrepeat);
-    tnew = delta*ktmp;
+    tnew = delta;
     while (tcurrent >= tnew) tnew *= ktmp;
   } else if (logfreq == 2) {
     double start = delta;
