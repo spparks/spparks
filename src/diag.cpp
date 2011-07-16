@@ -48,7 +48,7 @@ Diag::Diag(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 
   int iarg = 1;
   while (iarg < narg) {
-    if  (strcmp(arg[iarg],"stats") == 0) {
+    if (strcmp(arg[iarg],"stats") == 0) {
       iarg++;
       if (iarg < narg) {
 	if (strcmp(arg[iarg],"yes") == 0) stats_flag = 1;
@@ -62,16 +62,23 @@ Diag::Diag(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 	if (delta <= 0.0) error->all("Illegal diag_style command");
       } else error->all("Illegal diag_style command");
     } else if (strcmp(arg[iarg],"logfreq") == 0) {
-      logfreq = 1;
-      iarg++;
-      if (iarg+1 < narg) {
-	nrepeat = atoi(arg[iarg]);
-	iarg++;
-	scale = atof(arg[iarg]);
-	if (scale <= 0.0) error->all("Illegal diag_style command");
-	if (nrepeat*delta > scale)
-	  error->all("Illegal diag_style command");
-      } else error->all("Illegal diag_style command");
+      if (iarg+3 > narg) error->all("Illegal diag_style command");
+      nrepeat = atoi(arg[iarg+1]);
+      scale = atof(arg[iarg+2]);
+      if (scale <= 0) error->all("Illegal diag_style command");
+      if (nrepeat < 0) error->all("Illegal diag_style command");
+      if (nrepeat == 0) logfreq = 0;
+      else logfreq = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"loglinfreq") == 0) {
+      if (iarg+3 > narg) error->all("Illegal diag_style command");
+      nrepeat = atoi(arg[iarg+1]);
+      scale = atof(arg[iarg+2]);
+      if (scale <= 0) error->all("Illegal diag_style command");
+      if (nrepeat < 0) error->all("Illegal diag_style command");
+      if (nrepeat == 0) logfreq = 0;
+      else logfreq = 2;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"delay") == 0) {
       iarg++;
       if (iarg < narg) {

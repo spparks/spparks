@@ -205,6 +205,7 @@ void Output::set_stats(int narg, char **arg)
       if (iarg+3 > narg) error->all("Illegal stats command");
       stats_nrepeat = atoi(arg[iarg+1]);
       stats_scale = atof(arg[iarg+2]);
+      if (stats_scale <= 0) error->all("Illegal stats command");
       if (stats_nrepeat < 0) error->all("Illegal stats command");
       if (stats_nrepeat == 0) stats_logfreq = 0;
       else stats_logfreq = 1;

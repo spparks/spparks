@@ -11,6 +11,7 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#include "string.h"
 #include "math.h"
 #include "app_potts_neighonly.h"
 #include "random_park.h"
