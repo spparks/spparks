@@ -11,7 +11,7 @@ create_box	 box
 create_sites	 box
 set		 site range 1 100
 
-sweep none
+#solve_style      tree
 solve_style      group 26 1
 sector		 yes
 
@@ -23,7 +23,5 @@ stats            1.0 loglinfreq 5 10.0
 dump             1 text 1.0 dump.potts
 dump_modify      1  loglinfreq 5 10.0
 diag_style       cluster stats yes filename cluster.dat
-
-
 
 run              100.0
