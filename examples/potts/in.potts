@@ -15,14 +15,14 @@ sweep none
 solve_style      group 26 1
 sector		 yes
 
-diag_style       energy delt 1.0 stats no logfreq 5 10.0
+diag_style       energy
 
 temperature	 0.0
 
 stats            1.0 loglinfreq 5 10.0
 dump             1 text 1.0 dump.potts
 dump_modify      1  loglinfreq 5 10.0
-diag_style       cluster stats no delt 1.0 loglinfreq 5 10.0 filename cluster.dat
+diag_style       cluster stats yes filename cluster.dat
 
 
 
