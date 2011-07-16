@@ -209,6 +209,14 @@ void Output::set_stats(int narg, char **arg)
       if (stats_nrepeat == 0) stats_logfreq = 0;
       else stats_logfreq = 1;
       iarg += 3;
+    } else if (strcmp(arg[iarg],"loglinfreq") == 0) {
+      if (iarg+3 > narg) error->all("Illegal stats command");
+      stats_nrepeat = atoi(arg[iarg+1]);
+      stats_scale = atof(arg[iarg+2]);
+      if (stats_nrepeat < 0) error->all("Illegal stats command");
+      if (stats_nrepeat == 0) stats_logfreq = 0;
+      else stats_logfreq = 2;
+      iarg += 3;
     } else error->all("Illegal stats command");
   }
 }
@@ -385,7 +393,12 @@ double Output::next_time(double tcurrent, int logfreq, double delta,
   if (logfreq == 0) {
     tnew = ceil(tcurrent/delta) * delta;
     if (tnew == tcurrent) tnew = tcurrent + delta;
-  } else {
+  } else if (logfreq == 1) {
+    while (tcurrent >= delta*scale) delta *= scale;
+    double ktmp = pow(scale,1.0/nrepeat);
+    tnew = delta*ktmp;
+    while (tcurrent >= tnew) tnew *= ktmp;
+  } else if (logfreq == 2) {
     double start = delta;
     while (tcurrent >= start*scale) start *= scale;
     tnew = ceil(tcurrent/start) * start;

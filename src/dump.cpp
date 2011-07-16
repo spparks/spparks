@@ -254,6 +254,14 @@ void Dump::modify_params(int narg, char **arg)
       if (nrepeat == 0) logfreq = 0;
       else logfreq = 1;
       iarg += 3;
+    } else if (strcmp(arg[iarg],"loglinfreq") == 0) {
+      if (iarg+3 > narg) error->all("Illegal dump_modify command");
+      nrepeat = atoi(arg[iarg+1]);
+      scale = atof(arg[iarg+2]);
+      if (nrepeat < 0) error->all("Illegal dump_modify command");
+      if (nrepeat == 0) logfreq = 0;
+      else logfreq = 2;
+      iarg += 3;
     } else if (strcmp(arg[iarg],"delay") == 0) {
       if (iarg+2 > narg) error->all("Illegal dump_modify command");
       delay = atof(arg[iarg+1]);
