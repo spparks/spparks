@@ -27,9 +27,9 @@ keyword = {backcolor} or {boxcolor} or {color} or {delay} or {delta} or {flush} 
   {delta} arg = dt
     dt = time increment between dumps (seconds)
   {flush} arg = {yes} or {no}
-  {logfreq} values = N factor
+  {logfreq} or {loglinfreq} values = N factor
     N = number of repetitions per interval
-    factor = scale factor between interval
+    factor = scale factor between intervals :pre
   {pad} arg = Nchar = # of characters to convert timestep to
   {region} arg = region-ID or "none"
   {scolor} args = I color
@@ -69,7 +69,7 @@ keyword = {backcolor} or {boxcolor} or {color} or {delay} or {delta} or {flush} 
 [Examples:]
 
 dump_modify 1 delay 30.0
-dump_modify 1 logfreq 7 10.0 delay 100.0 flush yes
+dump_modify 1 loglinfreq 7 10.0 delay 100.0 flush yes
 dump_modify mine thresh energy > 0.0 thresh id <= 1000 :pre
 
 [Description:]
@@ -97,26 +97,11 @@ only relevant to the "dump text"_dump.html style.
 
 :line
 
-The {logfreq} keyword will produce statistical output at varying
-intervals during the course of a simulation.  There will be {N}
+The {logfreq} and {loglinfreq} keywords will produce output at progressively
+larger intervals during the course of a simulation.  There will be {N}
 outputs per interval where the size of each interval is initially
-{delta} and then scales up by {factor} each time.
-
-For example, this command
-
-dump_modify 1 logfreq 7 10.0 :pre
-
-will dump snapshots at these times:
-
-t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... :pre
-
-This command
-
-dump_modify mine logfreq 1 2.0 :pre
-
-will dump snapshots at these times:
-
-t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... :pre
+{delta} and then scales up by {factor} each time. See the "stats"_stats.html
+command for more information on how the output times are specified.
 
 If {N} is specified as 0, then this will turn off logarithmic output,
 and revert to regular output every {delta} seconds.

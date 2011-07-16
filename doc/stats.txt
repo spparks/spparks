@@ -17,16 +17,16 @@ zero or more keyword/value pairs may be appended :l
 keyword = {delay} or {logfreq} :l
   {delay} value = tdelay
     tdelay = delay stats until at least this time (seconds)
-  {logfreq} values = N factor
+  {logfreq} or {loglinfreq} values = N factor
     N = number of repetitions per interval
-    factor = scale factor between interval :pre
+    factor = scale factor between intervals :pre
 :ule
     
 [Examples:]
 
 stats 0.1
 stats 0.1 delta 0.5
-stats 1.0 logfreq 7 10.0 :pre
+stats 1.0 loglinfreq 7 10.0 :pre
 
 [Description:]
 
@@ -48,16 +48,18 @@ creating diagnostics via the "diag_style"_diag_style.html command.
 The {delay} keyword will suppress output until {tdelay} time has
 elapsed.
 
-Using the {logfreq} keyword will produce statistical output at varying
-intervals during the course of a simulation.  There will be {N}
-outputs per interval where the size of the interval is initially
-{delta} and then scales up by {factor} each time.
+Using the {logfreq} or {loglinfreq} keyword will produce statistical 
+output at progressively larger intervals during the course of a simulation.  
+There will be {N} outputs per interval where the size of the interval is 
+initially {delta} and then scales up by {factor} each time. With {loglinfreq},
+output times increase arithmetically within an interval; with {logfreq} the 
+outputs increase geometrically.
 
 For example, this command
 
 stats 0.1 logfreq 7 10.0 :pre
 
-will produce output at these times:
+will produce output at times:
 
 t = 0, 0.1, 0.2, ..., 0.7, 1, 2, ...., 7, 10, 20, .... :pre
 
@@ -65,9 +67,21 @@ This command
 
 stats 0.1 logfreq 1 2.0 :pre
 
-will produce output at these times:
+will produce output at times:
 
 t = 0, 0.1, 0.2, 0.4, 0.8, 1.6, ... :pre
+
+This command
+
+stats 1.0 logfreq 10 10.0 :pre
+
+will produce output at times:
+
+t = 0, 1.0, 1.26, 1.58, 2.00, 2.51, 3.16, 3.98, 5.01, 6.31, 7.94, 10.0, ... :pre
+
+Note that in the above examples the times are the earliest times that output will
+be produced. In practice, because time is incremented in discrete jumps, output
+ will be produced at times somewhat later than these times.
 
 If {N} is specified as 0, then this will turn off logarithmic output,
 and revert to regular output every {delta} seconds.
