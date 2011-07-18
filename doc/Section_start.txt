@@ -43,7 +43,19 @@ src: source files :tb(s=:)
 
 2.2 Making SPPARKS :h4,link(2_2)
 
-[{Read this first:}]
+This section has the following sub-sections:
+
+"Read this first"_#2_2_1
+"Building a SPPARKS executable"_#2_2_2
+"Common errors that can occur when making SPPARKS"_#2_2_3
+"Editing a new low-level Makefile"_#2_2_4
+"Additional build tips"_#2_2_5
+"Building for a Mac"_#2_2_6
+"Building for Windows"_#2_2_7 :ul
+
+:line
+
+[{Read this first:}] :link(2_2_1)
 
 Building SPPARKS can be non-trivial.  You will likely need to edit a
 makefile, there are compiler options, additional libraries can be used
@@ -52,7 +64,9 @@ comfortable with makefiles, or building codes on a Unix platform, or
 running an MPI job on your machine, please find a local expert to help
 you.
 
-[{Building a SPPARKS executable:}]
+:line
+
+[{Building a SPPARKS executable:}] :link(2_2_2)
 
 The src directory contains the C++ source and header files for SPPARKS.
 It also contains a top-level Makefile and a MAKE sub-directory with
@@ -71,7 +85,9 @@ will typically build SPPARKS more quickly.
 If you get no errors and an executable like spk_linux or spk_mac is
 produced, you're done; it's your lucky day.
 
-[{Errors that can occur when making SPPARKS:}]
+:line
+
+[{Common errors that can occur when making SPPARKS:}] :link(2_2_3)
 
 (1) If the make command breaks immediately with errors that indicate
 it can't find files with a "*" in their names, this can be because
@@ -94,7 +110,9 @@ you need to create a Makefile.foo in the MAKE sub-directory.  Use
 whatever existing file is closest to your platform as a starting
 point.  See the next section for more instructions.
 
-[{Editing a new low-level Makefile.foo:}]
+:line
+
+[{Editing a new low-level Makefile.foo:}] :link(2_2_4)
 
 These are the issues you need to address when editing a low-level
 Makefile for your machine.  With a couple exceptions, the only portion
@@ -209,7 +227,9 @@ gmake foo :pre
 
 You should get the executable spk_foo when the build is complete.
 
-[{Additional build tips:}]
+:line
+
+[{Additional build tips:}] :link(2_2_5)
 
 (1) Building SPPARKS for multiple platforms.
 
@@ -222,9 +242,54 @@ Obj_name where it stores the system-specific *.o files.
 Typing "make clean" will delete all *.o object files created when
 SPPARKS is built.
 
-(3) Building for a Macintosh.
+(3) Changing the size limits in src/spktype.h
+
+If you get an error that refers to size limits set in src/spktype.h
+then you may need to change one or more settings in that file and
+re-compile SPPARKS.
+
+By default the file is setup to allow models to be run with more than
+2 billions sites, limited only by available physical memory on your
+machine.  This requires the use of 64-bit integers for site IDs and
+tallying system statistics (e.g. number of accepted events).  If your
+system or MPI implementation does not support 64-bit integers, or you
+wish to save memory by using 32-bit integers for these quantities,
+then you can change the settings by editing the file.  If you use
+32-bit integers, then you will be limited to model with around 2
+billions sites.
+
+As the documentation in that file explains, you have basically
+two choices to make:
+
+set the data type size of integer site IDs to 4 or 8 bytes
+set the data type size of integers that store tallies to 4 or 8 bytes :ul
+
+Note that in src/spktype.h there are also settings for the MPI data
+types associated with the site IDs and system tally sizes, which need
+to be set consistent with the associated C data types.
+
+In all cases, the size of problem that can be run on a per-processor
+basis is limited by 4-byte integer storage to about 2 billion sites
+per processor (2^31), which should not normally be a restriction since
+such a problem would have a huge per-processor memory footprint due to
+neighbor lists and would run very slowly in terms of CPU time.
+
+[{Building for a Mac:}] :link(2_2_6)
 
 OS X is BSD Unix, so it already works.  See the Makefile.mac file.
+
+:line
+
+[{Building for Windows:}] :link(2_2_7)
+
+SPPARKS is just C++ with MPI calls, so it should be possible to build
+it for a Windows box, either using a Linux installation such as cygwin
+(see src/MAKE/Makefile.cygwin), or importing the source files into
+Visual Studio C++ and building it there.  For the latter you are on
+your own.  The SPPARKS developers do not use Windows.  But if you
+figure out how to do it, or create a Visual Studio project that works,
+please let us know, and we can release the instructions/files for how
+to do this as part of SPPARKS.
 
 :line
 
