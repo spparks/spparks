@@ -217,9 +217,6 @@ void CreateSites::command(int narg, char **arg)
 
 void CreateSites::structured_lattice()
 {
-  int i,j,k,m,n;
-  double x,y,z;
-
   int dimension = domain->dimension;
   double **basis = domain->lattice->basis;
 
@@ -239,38 +236,14 @@ void CreateSites::structured_lattice()
   int **iarray = app->iarray;
   double **darray = app->darray;
 
-  // count lattice points I own in my sub-domain
-  // must also be within region if applicable
-
-  int nlocal = 0;
-  for (k = 0; k < nz; k++)
-    for (j = 0; j < ny; j++)
-      for (i = 0; i < nx; i++)
-	for (m = 0; m < nbasis; m++) {
-	  x = (i + basis[m][0])*xlattice + boxxlo;
-	  y = (j + basis[m][1])*ylattice + boxylo;
-	  z = (k + basis[m][2])*zlattice + boxzlo;
-
-	  if (style == REGION &&
-	      domain->regions[nregion]->match(x,y,z) == 0) continue;
-	  if (x < subxlo || x >= subxhi || 
-	      y < subylo || y >= subyhi || 
-	      z < subzlo || z >= subzhi) continue;
-
-	  nlocal++;
-	}
-
-  // app allocates arrays
-
-  if (latticeflag) applattice->grow(nlocal);
-  else appoff->grow(nlocal);
-
   // generate xyz coords and store them with site ID
   // must also be within region if applicable
   // if region, IDs will not be contiguous
 
-  nlocal = 0;
-  n = 0;
+  int i,j,k,m,nlocal;
+  double x,y,z;
+
+  tagint n = 0;
   for (k = 0; k < nz; k++)
     for (j = 0; j < ny; j++)
       for (i = 0; i < nx; i++)
@@ -288,6 +261,7 @@ void CreateSites::structured_lattice()
 
 	  if (latticeflag) applattice->add_site(n,x,y,z);
 	  else appoff->add_site(n,x,y,z);
+	  nlocal = app->nlocal;
 
 	  if (valueflag == IARRAY) {
 	    if (basisflag[m+1]) iarray[valueindex][nlocal] = basis_ivalue[m+1];
@@ -296,22 +270,24 @@ void CreateSites::structured_lattice()
 	    if (basisflag[m+1]) darray[valueindex][nlocal] = basis_dvalue[m+1];
 	    else darray[valueindex][nlocal] = dvalue;
 	  }
-	  nlocal++;
 	}
 
   // print site count
   // check if sum of nlocal = nglobal
 
-  MPI_Allreduce(&app->nlocal,&app->nglobal,1,MPI_INT,MPI_SUM,world);
+  tagint nbig = app->nlocal;
+  MPI_Allreduce(&nbig,&app->nglobal,1,MPI_SPK_TAGINT,MPI_SUM,world);
 
   if (domain->me == 0) {
     if (screen)
-      fprintf(screen,"  %d sites\n",app->nglobal);
+      fprintf(screen,"  " TAGINT_FORMAT " sites\n",app->nglobal);
     if (logfile)
-      fprintf(logfile,"  %d sites\n",app->nglobal);
+      fprintf(logfile,"  " TAGINT_FORMAT " sites\n",app->nglobal);
   }
 
-  if (style == BOX && app->nglobal != nx*ny*nz*nbasis)
+  nbig = nbasis;
+  nbig = nbig*nx*ny*nz;
+  if (style == BOX && app->nglobal != nbig)
     error->all("Did not create correct number of sites");
 }
 
@@ -322,12 +298,11 @@ void CreateSites::structured_lattice()
 
 void CreateSites::structured_connectivity()
 {
-  int i,j,gid,max;
+  int i,j,max;
+  tagint gid;
   double x,y,z;
 
-  // allocate arrays to store lattice connectivity
-
-  int maxneigh;
+  // set maxneigh and allocate idneigh array to store connectivity
 
   if (latstyle == LINE_2N) maxneigh = 2;
   else if (latstyle == SQ_4N) maxneigh = 4;
@@ -340,18 +315,14 @@ void CreateSites::structured_connectivity()
   else if (latstyle == DIAMOND) maxneigh = 4;
   else if (latstyle == FCC_OCTA_TETRA) maxneigh = 26;
 
-  applattice->maxneigh = maxneigh;
-  applattice->grow(app->nlocal);
-
-  int *numneigh = applattice->numneigh;
-  int **neighbor = applattice->neighbor;
+  memory->create(idneigh,app->nlocal,maxneigh,"create:idneigh");
 
   // create connectivity offsets
 
   int nbasis = domain->lattice->nbasis;
   double **basis = domain->lattice->basis;
-  memory->create_3d_T_array(cmap,nbasis,maxneigh,4,"app:cmap");
-  offsets(maxneigh,basis);
+  memory->create(cmap,nbasis,maxneigh,4,"create:cmap");
+  offsets(basis);
 
   // generate global lattice connectivity for each site
   // some neighbors may not exist for style = REGION
@@ -360,9 +331,10 @@ void CreateSites::structured_connectivity()
   // id2xyz() computes xyz from global index of site
   // FCC_OCTA_TETRA is special case, # of neighs not same for all sites
 
+  tagint nglobal = app->nglobal;
   int nlocal = app->nlocal;
-  int nglobal = app->nglobal;
-  int *id = app->id;
+  tagint *id = app->id;
+  int *numneigh = applattice->numneigh;
 
   if (latstyle == FCC_OCTA_TETRA) {
     if (style == BOX) {
@@ -370,8 +342,8 @@ void CreateSites::structured_connectivity()
 	if ((id[i]-1) % 16 < 8) numneigh[i] = maxneigh;
 	else numneigh[i] = 14;
 	for (j = 0; j < numneigh[i]; j++) {
-	  neighbor[i][j] = connect(id[i],j);
-	  if (neighbor[i][j] <= 0 || neighbor[i][j] > nglobal)
+	  idneigh[i][j] = connect(id[i],j);
+	  if (idneigh[i][j] <= 0 || idneigh[i][j] > nglobal)
 	    error->all("Bad connectivity result");
 	}
       }
@@ -384,7 +356,7 @@ void CreateSites::structured_connectivity()
 	  gid = connect(id[i],j);
 	  id2xyz(gid,x,y,z);
 	  if (domain->regions[nregion]->match(x,y,z) == 0) continue;
-	  neighbor[i][numneigh[i]++] = gid;
+	  idneigh[i][numneigh[i]++] = gid;
 	  if (gid <= 0 || gid > nglobal)
 	    error->all("Bad connectivity result");
 	}
@@ -396,8 +368,8 @@ void CreateSites::structured_connectivity()
       for (i = 0; i < nlocal; i++) {
 	numneigh[i] = maxneigh;
 	for (j = 0; j < numneigh[i]; j++) {
-	  neighbor[i][j] = connect(id[i],j);
-	  if (neighbor[i][j] <= 0 || neighbor[i][j] > nglobal)
+	  idneigh[i][j] = connect(id[i],j);
+	  if (idneigh[i][j] <= 0 || idneigh[i][j] > nglobal)
 	    error->all("Bad connectivity result");
 	}
       }
@@ -408,7 +380,7 @@ void CreateSites::structured_connectivity()
 	  gid = connect(id[i],j);
 	  id2xyz(gid,x,y,z);
 	  if (domain->regions[nregion]->match(x,y,z) == 0) continue;
-	  neighbor[i][numneigh[i]++] = gid;
+	  idneigh[i][numneigh[i]++] = gid;
 	  if (gid <= 0 || gid > nglobal)
 	    error->all("Bad connectivity result");
 	}
@@ -416,7 +388,7 @@ void CreateSites::structured_connectivity()
     }
   }
 
-  memory->destroy_3d_T_array(cmap);
+  memory->destroy(cmap);
 }
 
 /* ----------------------------------------------------------------------
@@ -426,10 +398,8 @@ void CreateSites::structured_connectivity()
 
 void CreateSites::random_sites()
 {
-  int n;
-
   int dimension = domain->dimension;
-  int nrandom = domain->lattice->nrandom;
+  tagint nrandom = domain->lattice->nrandom;
 
   double xprd = domain->xprd;
   double yprd = domain->yprd;
@@ -449,50 +419,17 @@ void CreateSites::random_sites()
   int **iarray = app->iarray;
   double **darray = app->darray;
 
-  // count sites I own in my sub-domain
-  // iterate until atom is within region
-
-  double seed = ranmaster->uniform();
-  RandomPark *random = new RandomPark(seed);
-
-  double x,y,z;
-  int nlocal = 0;
-
-  for (n = 1; n <= nrandom; n++) {
-    while (1) {
-      x = boxxlo + xprd*random->uniform();
-      y = boxylo + yprd*random->uniform();
-      z = boxzlo + zprd*random->uniform();
-      if (dimension < 2) y = 0.0;
-      if (dimension < 3) z = 0.0;
-      if (style == REGION) {
-	if (domain->regions[nregion]->match(x,y,z) == 1) break;
-      } else break;
-    }
-
-    if (x < subxlo || x >= subxhi || 
-	y < subylo || y >= subyhi || 
-	z < subzlo || z >= subzhi) continue;
-
-    nlocal++;
-  }
-
-  // app allocates arrays
-
-  if (latticeflag) applattice->grow(nlocal);
-  else appoff->grow(nlocal);
-
-  // reset RNG with same seed, so as to generate same points
-
-  delete random;
-  random = new RandomPark(seed);
-
   // generate xyz coords and store them with site ID
   // iterate until atom is within region
   // if coords are in my sub-domain, create site
 
-  nlocal = 0;
-  for (n = 1; n <= nrandom; n++) {
+  int nlocal;
+  double x,y,z;
+
+  double seed = ranmaster->uniform();
+  RandomPark *random = new RandomPark(seed);
+
+  for (tagint n = 1; n <= nrandom; n++) {
     while (1) {
       x = boxxlo + xprd*random->uniform();
       y = boxylo + yprd*random->uniform();
@@ -510,10 +447,10 @@ void CreateSites::random_sites()
     
     if (latticeflag) applattice->add_site(n,x,y,z);
     else appoff->add_site(n,x,y,z);
-    
+
+    nlocal = app->nlocal;
     if (valueflag == IARRAY) iarray[valueindex][nlocal] = ivalue;
     else if (valueflag == DARRAY) darray[valueindex][nlocal] = dvalue;
-    nlocal++;
   }
 
   delete random;
@@ -521,13 +458,14 @@ void CreateSites::random_sites()
   // print site count
   // check if sum of nlocal = nglobal
 
-  MPI_Allreduce(&app->nlocal,&app->nglobal,1,MPI_INT,MPI_SUM,world);
+  tagint nbig = app->nlocal;
+  MPI_Allreduce(&nbig,&app->nglobal,1,MPI_SPK_TAGINT,MPI_SUM,world);
 
   if (domain->me == 0) {
     if (screen)
-      fprintf(screen,"  %d sites\n",app->nglobal);
+      fprintf(screen,"  " TAGINT_FORMAT " sites\n",app->nglobal);
     if (logfile)
-      fprintf(logfile,"  %d sites\n",app->nglobal);
+      fprintf(logfile,"  " TAGINT_FORMAT " sites\n",app->nglobal);
   }
 
   if (app->nglobal != nrandom)
@@ -561,7 +499,7 @@ void CreateSites::random_connectivity()
   double subyhi = domain->subyhi;
   double subzhi = domain->subzhi;
 
-  int *id = app->id;
+  tagint *id = app->id;
   double **xyz = app->xyz;
 
   // put all owned sites within cutoff of subdomain face into buf
@@ -577,7 +515,7 @@ void CreateSites::random_connectivity()
       if (nsend == maxbuf) {
 	maxbuf += DELTABUF;
 	bufsend = (Site *) 
-	  memory->srealloc(bufsend,maxbuf*sizeof(Site),"app:bufsend");
+	  memory->srealloc(bufsend,maxbuf*sizeof(Site),"create:bufsend");
       }
       bufsend[nsend].id = id[i];
       bufsend[nsend].proc = me;
@@ -601,9 +539,9 @@ void CreateSites::random_connectivity()
   MPI_Allreduce(&nsend,&maxsize,1,MPI_INT,MPI_MAX,world);
 
   bufsend = (Site *) 
-    memory->srealloc(bufsend,maxsize*sizeof(Site),"app:bufsend");
+    memory->srealloc(bufsend,maxsize*sizeof(Site),"create:bufsend");
   Site *bufcopy = (Site *) 
-    memory->smalloc(maxsize*sizeof(Site),"app:bufcopy");
+    memory->smalloc(maxsize*sizeof(Site),"create:bufcopy");
 
   // cycle send list around ring of procs back to self
   // when receive it, extract any sites within cutoff of my sub-box
@@ -664,7 +602,7 @@ void CreateSites::random_connectivity()
       if (nrecv == maxbuf) {
 	maxbuf += DELTABUF;
 	bufrecv = (Site *) memory->srealloc(bufrecv,maxbuf*sizeof(Site),
-					     "app:bufrecv");
+					     "create:bufrecv");
       }
       bufrecv[nrecv].id = bufsend[i].id;
       bufrecv[nrecv].proc = bufsend[i].proc;
@@ -732,17 +670,14 @@ void CreateSites::random_connectivity()
     }
   }
 
-  // allocate neighbor array to store connectivity
+  // set maxneigh and allocate idneigh array to store connectivity
 
   int tmp = 0;
   for (i = 0; i < nlocal; i++) tmp = MAX(tmp,numneigh[i]);
-  int maxneigh;
   MPI_Allreduce(&tmp,&maxneigh,1,MPI_INT,MPI_MAX,world);
   if (maxneigh == 0) error->all("Random lattice has no connectivity");
 
-  applattice->maxneigh = maxneigh;
-  applattice->grow(nlocal);
-  int **neighbor = applattice->neighbor;
+  memory->create(idneigh,app->nlocal,maxneigh,"create:idneigh");
 
   // generate neighbor connectivity thru same expensive N^2 loop
   // 1st loop over owned sites
@@ -771,8 +706,8 @@ void CreateSites::random_connectivity()
 
       rsq = dx*dx + dy*dy + dz*dz;
       if (rsq < cutsq) {
-	neighbor[i][numneigh[i]++] = id[j];
-	neighbor[j][numneigh[j]++] = id[i];
+	idneigh[i][numneigh[i]++] = id[j];
+	idneigh[j][numneigh[j]++] = id[i];
       }
     }
 
@@ -793,7 +728,7 @@ void CreateSites::random_connectivity()
       }
 
       rsq = dx*dx + dy*dy + dz*dz;
-      if (rsq < cutsq) neighbor[i][numneigh[i]++] = bufrecv[j].id;
+      if (rsq < cutsq) idneigh[i][numneigh[i]++] = bufrecv[j].id;
     }
   }
 
@@ -818,13 +753,14 @@ void CreateSites::random_connectivity()
 
 void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
 {
-  int i,j,k,m,idrecv,proc,id_ghost,owner_ghost,index_ghost;
+  int i,j,k,m,proc,owner_ghost,index_ghost;
+  tagint idglobal,idghost,idrecv;
   double x,y,z;
-  int *id;
+  tagint *id;
   int *numneigh,**neighbor;
   double **xyz;
-  std::map<int,int>::iterator loc;
-  std::map<int,int> hash;
+  std::map<tagint,int>::iterator loc;
+  std::map<tagint,int> hash;
 
   int me = domain->me;
   int nprocs = domain->nprocs;
@@ -832,7 +768,7 @@ void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
 
   // nchunk = size of one site datum circulated in message
 
-  int nchunk = 7 + apl->maxneigh;
+  int nchunk = 7 + maxneigh;
 
   // setup ring of procs
 
@@ -855,7 +791,7 @@ void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
 
     hash.clear();
     for (i = 0; i < nlocal+nghost; i++)
-      hash.insert(std::pair<int,int> (id[i],i));
+      hash.insert(std::pair<tagint,int> (id[i],i));
 
     // make a list of sites I need
     // loop over neighbors of owned + current ghost sites
@@ -868,21 +804,19 @@ void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
     int nsite = 0;
 
     numneigh = apl->numneigh;
-    neighbor = apl->neighbor;
 
     for (i = 0; i < nlocal+nghost; i++) {
       for (j = 0; j < numneigh[i]; j++) {
-	m = neighbor[i][j];
-	if (hash.find(m) == hash.end()) {
+	idglobal = idneigh[i][j];
+	if (hash.find(idglobal) == hash.end()) {
 	  if (nbuf + nchunk >= maxbuf) {
 	    maxbuf += DELTABUF;
-	    buf = (double *) 
-	      memory->srealloc(buf,maxbuf*sizeof(double),"app:buf");
+	    memory->grow(buf,maxbuf,"create:buf");
 	  }
-	  buf[nbuf] = m;
+	  buf[nbuf] = idglobal;
 	  buf[nbuf+1] = -1;
 	  nbuf += nchunk;
-	  hash.insert(std::pair<int,int> (m,nlocal+nghost+nsite));
+	  hash.insert(std::pair<tagint,int> (idglobal,nlocal+nghost+nsite));
 	  nsite++;
 	}
       }
@@ -893,9 +827,9 @@ void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
     int maxsize;
     MPI_Allreduce(&nbuf,&maxsize,1,MPI_INT,MPI_MAX,world);
 
-    buf = (double *) memory->srealloc(buf,maxsize*sizeof(double),"app:buf");
-    double *bufcopy = (double *) 
-      memory->smalloc(maxsize*sizeof(double),"app:bufcopy");
+    memory->grow(buf,maxsize,"create:buf");
+    double *bufcopy;
+    memory->create(bufcopy,maxsize,"create:bufcopy");
 
     // cycle site list around ring of procs back to self
     // when receive it, fill in info for any sites I own
@@ -919,7 +853,7 @@ void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
       }
       for (int i = 0; i < nsite; i++) {
 	m = i * nchunk;
-	idrecv = static_cast<int> (buf[m++]);
+	idrecv = static_cast<tagint> (buf[m++]);
 	proc = static_cast<int> (buf[m++]);
 	if (proc >= 0) continue;
 	loc = hash.find(idrecv);
@@ -933,75 +867,84 @@ void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
 	buf[m++] = xyz[j][2];
 	buf[m++] = numneigh[j];
 	for (k = 0; k < numneigh[j]; k++)
-	  buf[m++] = neighbor[j][k];
+	  buf[m++] = idneigh[j][k];
       }
     }
 
-    // reallocate site arrays so can append next layer of ghosts
+    // original site list came back to me around ring
+    // realloc idneigh to store neighbor info for these ghost sites
+    // extract info for my new layer of ghost sites
+    // reset numneigh after each call to add_ghost() in case realloc occurred
+    // error if any site is not filled in
 
     npreviousghost = nghost;
     nghost += nsite;
-
-    apl->grow(nlocal+nghost);
-    numneigh = apl->numneigh;
-    neighbor = apl->neighbor;
-
-    // original site list came back to me around ring
-    // extract info for my new layer of ghost sites
-    // error if any site is not filled in
+    memory->grow(idneigh,nlocal+nghost,maxneigh,"create:idneigh");
 
     for (i = 0; i < nsite; i++) {
       m = i * nchunk;
-      id_ghost = static_cast<int> (buf[m++]);
+      idghost = static_cast<tagint> (buf[m++]);
       owner_ghost = static_cast<int> (buf[m++]);
-      if (owner_ghost < 0) error->one("Ghost site was not found");
+      if (owner_ghost < 0) {
+	printf("AAA %d %d: %ld %d\n",me,i,idghost,owner_ghost);
+	error->one("Ghost site was not found");
+      }
       index_ghost = static_cast<int> (buf[m++]);
       x = buf[m++];
       y = buf[m++];
       z = buf[m++];
 
-      apl->add_ghost(id_ghost,x,y,z,owner_ghost,index_ghost);
+      apl->add_ghost(idghost,x,y,z,owner_ghost,index_ghost);
+      numneigh = apl->numneigh;
 
       j = nlocal + npreviousghost + i;
       numneigh[j] = static_cast<int> (buf[m++]);
       for (k = 0; k < numneigh[j]; k++)
-	neighbor[j][k] = static_cast<int> (buf[m++]);
+	idneigh[j][k] = static_cast<tagint> (buf[m++]);
     }
 
     // clean up
 
-    memory->sfree(buf);
-    memory->sfree(bufcopy);
+    memory->destroy(buf);
+    memory->destroy(bufcopy);
   }
 
-  // convert all my neighbor connections to local indices
-  // if i is owned or in delpropensity-1 layers, then error if neigh not found
-  // if i is ghost in last delpropensity layer, then delete neigh if not found
+  // can now set AppLattice::maxneigh and allocate AppLattice::neighbor
 
+  apl->maxneigh = maxneigh;
+  apl->grow(apl->nmax);
   numneigh = apl->numneigh;
   neighbor = apl->neighbor;
+
+  // convert all global neighbors to local indices in AppLattice::neighbor
+  // if i is owned or in delpropensity-1 layers, then error if neigh not found
+  // if i is ghost in last delpropensity layer, then delete neigh if not found
 
   for (i = 0; i < nlocal+nghost; i++) {
     j = 0;
     while (j < numneigh[i]) {
-      m = neighbor[i][j];
-      loc = hash.find(m);
+      idglobal = idneigh[i][j];
+      loc = hash.find(idglobal);
       if (loc != hash.end()) {
 	neighbor[i][j] = loc->second;
 	j++;
       } else if (i >= nlocal+npreviousghost) {
 	numneigh[i]--;
-	for (k = j; k < numneigh[i]; k++) neighbor[i][k] = neighbor[i][k+1];
+	for (k = j; k < numneigh[i]; k++) idneigh[i][k] = idneigh[i][k+1];
       } else error->one("Ghost connection was not found");
     }
   }
+
+  // no longer need idneigh since AppLattice::neighbor now exists
+
+  memory->destroy(idneigh);
 }
 
 /* ---------------------------------------------------------------------- */
 
-int CreateSites::connect(int iglobal, int ineigh)
+tagint CreateSites::connect(tagint iglobal, int ineigh)
 {
-  int i,j,k,m,n;
+  tagint i,j,k,m,n;
 
   if (latstyle == LINE_2N) {
     i = (iglobal-1)/nbasis % nx;
@@ -1050,7 +993,7 @@ int CreateSites::connect(int iglobal, int ineigh)
 
 /* ---------------------------------------------------------------------- */
 
-void CreateSites::offsets(int maxneigh, double **basis)
+void CreateSites::offsets(double **basis)
 {
   if (latstyle == LINE_2N) {
     cmap[0][0][0] = -1; cmap[0][0][1] =  0;
@@ -1183,9 +1126,10 @@ void CreateSites::offsets_3d(int ibasis, double **basis,
    called from stuctured_connectivity() when style = REGION
  ------------------------------------------------------------------------- */
 
-void CreateSites::id2xyz(int iglobal, double &x, double &y, double &z)
+void CreateSites::id2xyz(tagint iglobal, double &x, double &y, double &z)
 {
-  int i,j,k,m;
+  tagint i,j,k;
+  int m;
 
   int dimension = domain->dimension;
   double **basis = domain->lattice->basis;

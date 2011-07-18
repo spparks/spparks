@@ -232,6 +232,23 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
     }
   }
 
+  // check datatype settings in spparks.h
+
+  if (sizeof(smallint) != sizeof(int))
+    error->all("Smallint setting in spktype.h is invalid");
+  if (sizeof(tagint) < sizeof(smallint))
+    error->all("Tagint setting in spktype.h is invalid");
+  if (sizeof(bigint) < sizeof(tagint))
+    error->all("Bigint setting in spktype.h is invalid");
+
+  int mpisize;
+  MPI_Type_size(MPI_SPK_TAGINT,&mpisize);
+  if (mpisize != sizeof(tagint))
+      error->all("MPI_SPK_TAGINT and tagint in spktype.h are not compatible");
+  MPI_Type_size(MPI_SPK_BIGINT,&mpisize);
+  if (mpisize != sizeof(bigint))
+      error->all("MPI_SPK_BIGINT and bigint in spktype.h are not compatible");
+
   // allocate input class now that MPI is fully setup
 
   input = new Input(this,narg,arg);

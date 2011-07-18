@@ -51,12 +51,10 @@ DiagArray::DiagArray(SPPARKS *spk, int narg, char **arg) :
 
   nvals = (narg-1)/2;
   
-  index = (int *) memory->smalloc(nvals*sizeof(int),"diag_array::index");
-  index_double = (bool *) memory->smalloc(nvals*sizeof(bool),
-					  "diag_array::index_double");
-  vals = (double *) memory->smalloc(nvals*sizeof(double),"diag_array::vals");
-  diag_method = (int *) memory->smalloc(nvals*sizeof(int),
-					"diag_array::diag_method");
+  memory->create(index,nvals,"diag_array::index");
+  memory->create(index_double,nvals,"diag_array::index_double");
+  memory->create(vals,nvals,"diag_array::vals");
+   memory->create(diag_method,nvals,"diag_array::diag_method");
   
   for (int i=0; i<nvals; i++) {
 
@@ -95,10 +93,10 @@ DiagArray::DiagArray(SPPARKS *spk, int narg, char **arg) :
 
 DiagArray::~DiagArray()
 {
-  memory->sfree(index);
-  memory->sfree(index_double);
-  memory->sfree(vals);
-  memory->sfree(diag_method);
+  memory->destroy(index);
+  memory->destroy(index_double);
+  memory->destroy(vals);
+  memory->destroy(diag_method);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -191,7 +189,7 @@ void DiagArray::compute()
         MPI_Allreduce(&itmp,&itmp_all,1,MPI_INT,MPI_MAX,world);
         vals[i]= double(itmp_all);
       } else {
-        itmp = 0.0;
+        itmp = 0;
         for (int j = 0; j < nlocal; j++) itmp += iptr[ii][j];
         MPI_Allreduce(&itmp,&itmp_all,1,MPI_INT,MPI_SUM,world);
         

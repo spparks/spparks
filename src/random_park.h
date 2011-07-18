@@ -14,6 +14,8 @@
 #ifndef SPK_RANDOM_PARK_H
 #define SPK_RANDOM_PARK_H
 
+#include "spktype.h"
+
 namespace SPPARKS_NS {
 
 class RandomPark {
@@ -24,8 +26,11 @@ class RandomPark {
   RandomPark(double);
   ~RandomPark() {}
   void reset(double, int, int);
+  void tagreset(double, tagint, int);
   double uniform();
   int irandom(int);
+  tagint tagrandom(tagint);
+  bigint bigrandom(bigint);
 };
 
 }

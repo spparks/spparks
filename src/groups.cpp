@@ -131,7 +131,7 @@ void Groups::partition(double *p, int size_in)
   for (g = 0; g <= ngroups; g++) {
     gmaxsize[g] = ave;
     if (gcount[g] > ave) gmaxsize[g] = gcount[g];
-    g2p[g] = (int *) memory->smalloc(gmaxsize[g]*sizeof(int),"group:g2p");
+    memory->create(g2p[g],gmaxsize[g],"group:g2p");
   }
 
   // add index of each propensity to its group
@@ -266,7 +266,7 @@ int Groups::sample_with_rejection(int g, double *p)
 void Groups::grow_group(int g)
 {
   gmaxsize[g] *= 2;
-  g2p[g] = (int *) memory->srealloc(g2p[g],gmaxsize[g]*sizeof(int),"group:g2p");
+  memory->grow(g2p[g],gmaxsize[g],"group:g2p");
 }
 
 /* ----------------------------------------------------------------------
@@ -279,13 +279,13 @@ void Groups::allocate_memory(int n)
 {
   g2p = new int*[n+1];
 
-  gcount = new int [n+1];
-  gmaxsize = new int [n+1];
-  gpsum = new double [n+1];
-  ghibound = new double [n+1];
+  gcount = new int[n+1];
+  gmaxsize = new int[n+1];
+  gpsum = new double[n+1];
+  ghibound = new double[n+1];
 
-  p2g = (int *) memory->smalloc(size*sizeof(int),"group:p2g");
-  p2g_index = (int *) memory->smalloc(size*sizeof(int),"group:p2g_index");
+  memory->create(p2g,size,"group:p2g");
+  memory->create(p2g_index,size,"group:p2g_index");
 }
 
 /* ----------------------------------------------------------------------
@@ -295,7 +295,7 @@ void Groups::allocate_memory(int n)
 void Groups::release_memory()
 {
   if (g2p) {
-    for (int g = 0; g <= ngroups; g++) memory->sfree(g2p[g]);
+    for (int g = 0; g <= ngroups; g++) memory->destroy(g2p[g]);
     delete [] g2p;
     g2p = NULL;
   }
@@ -305,8 +305,8 @@ void Groups::release_memory()
   delete [] gpsum;
   delete [] ghibound;
 
-  memory->sfree(p2g);
-  memory->sfree(p2g_index);
+  memory->destroy(p2g);
+  memory->destroy(p2g_index);
 }
 
 /* ----------------------------------------------------------------------

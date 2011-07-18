@@ -14,7 +14,6 @@
 #ifndef SPK_APP_OFF_LATTICE_H
 #define SPK_APP_OFF_LATTICE_H
 
-#include "stdint.h"
 #include "stdio.h"
 #include "app.h"
 
@@ -34,7 +33,7 @@ class AppOffLattice : public App {
   void iterate();
 
   void grow(int);
-  void add_site(int, double, double, double);
+  void add_site(tagint, double, double, double);
   void add_values(int, char **x);
 
   // pure virtual functions, must be defined in child class
@@ -63,7 +62,7 @@ class AppOffLattice : public App {
   double subxlo,subylo,subzlo;
   double subxhi,subyhi,subzhi;
 
-  uint64_t naccept,nattempt;  // number of accepted and attempted events
+  bigint naccept,nattempt;    // number of accepted and attempted events
   int nsweeps;                // number of sweeps performed
   double temperature,t_inverse;  // temperature settings
   double dt_sweep;            // rKMC time for nglobal attemped events

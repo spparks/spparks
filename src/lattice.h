@@ -26,13 +26,13 @@ class Lattice : protected Pointers {
   int nbasis;                          // # of basis atoms in unit cell
   double **basis;                      // fractional coords of each basis atom
                                        // within unit cell (0 <= coord < 1)
-  int nrandom;                         // # of sites for random lattices
+  tagint nrandom;                      // # of sites for random lattices
   double cutoff;                       // neighbor cutoff for random lattices
 
   Lattice(class SPPARKS *, int, char **);
   ~Lattice();
   int ncolors(int, int, int, int);
-  int id2color(int, int, int, int, int);
+  int id2color(tagint, int, int, int, int);
 
 private:
   double latconst;                     // lattice constant

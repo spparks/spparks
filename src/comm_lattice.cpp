@@ -194,7 +194,7 @@ CommLattice::Swap *CommLattice::create_swap_all()
   int nghost = applattice->nghost;
   int ntotal = nlocal + nghost;
 
-  int *id = app->id;
+  tagint *id = app->id;
 
   // buf = list of global IDs I need to receive
 
@@ -241,7 +241,7 @@ CommLattice::Swap *CommLattice::create_swap_all_reverse()
   int nghost = applattice->nghost;
   int ntotal = nlocal + nghost;
 
-  int *id = app->id;
+  tagint *id = app->id;
   int *owner = applattice->owner;
   int *numneigh = applattice->numneigh;
   int **neighbor = applattice->neighbor;
@@ -249,7 +249,8 @@ CommLattice::Swap *CommLattice::create_swap_all_reverse()
   // flag ghost sites with -1
   // flag owned sites with 0
 
-  int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"comm:flag");
+  int *flag;
+  memory->create(flag,ntotal,"comm:flag");
   for (i = 0; i < ntotal; i++) flag[i] = -1;
   for (i = 0; i < nlocal; i++) flag[i] = 0;
 
@@ -279,7 +280,7 @@ CommLattice::Swap *CommLattice::create_swap_all_reverse()
     nsite++;
   }
 
-  memory->sfree(flag);
+  memory->destroy(flag);
 
   // grow buf to size of max sites on any proc
 
@@ -314,14 +315,15 @@ CommLattice::Swap *CommLattice::create_swap_sector(int nsites, int *site2i)
   int nghost = applattice->nghost;
   int ntotal = nlocal + nghost;
 
-  int *id = app->id;
+  tagint *id = app->id;
   int *numneigh = applattice->numneigh;
   int **neighbor = applattice->neighbor;
 
   // flag sites with -1 that are not in sector
   // flag sites with 0 that are in sector
 
-  int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"comm:flag");
+  int *flag;
+  memory->create(flag,ntotal,"comm:flag");
   for (i = 0; i < ntotal; i++) flag[i] = -1;
   for (m = 0; m < nsites; m++) flag[site2i[m]] = 0;
 
@@ -351,7 +353,7 @@ CommLattice::Swap *CommLattice::create_swap_sector(int nsites, int *site2i)
     nsite++;
   }
 
-  memory->sfree(flag);
+  memory->destroy(flag);
 
   // grow buf to size of max sites on any proc
 
@@ -387,7 +389,7 @@ CommLattice::Swap *CommLattice::create_swap_sector_reverse(int nsites,
   int nghost = applattice->nghost;
   int ntotal = nlocal + nghost;
 
-  int *id = app->id;
+  tagint *id = app->id;
   int *owner = applattice->owner;
   int *numneigh = applattice->numneigh;
   int **neighbor = applattice->neighbor;
@@ -395,7 +397,8 @@ CommLattice::Swap *CommLattice::create_swap_sector_reverse(int nsites,
   // flag sites with -1 that are not in sector
   // flag sites with 0 that are in sector
 
-  int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"comm:flag");
+  int *flag;
+  memory->create(flag,ntotal,"comm:flag");
   for (i = 0; i < ntotal; i++) flag[i] = -1;
   for (m = 0; m < nsites; m++) flag[site2i[m]] = 0;
 
@@ -425,7 +428,7 @@ CommLattice::Swap *CommLattice::create_swap_sector_reverse(int nsites,
     nsite++;
   }
 
-  memory->sfree(flag);
+  memory->destroy(flag);
 
   // grow buf to size of max sites on any proc
 
@@ -459,7 +462,7 @@ void CommLattice::create_send_from_recv(int nsite, int maxsite,
   int i,isend;
 
   AppLattice *applattice = (AppLattice *) app;
-  int *id = app->id;
+  tagint *id = app->id;
   int nlocal = applattice->nlocal;
 
   Site *bufcopy = (Site *) 
@@ -467,11 +470,11 @@ void CommLattice::create_send_from_recv(int nsite, int maxsite,
 
   // put my entire list of owned site IDs in a hash
 
-  std::map<int,int>::iterator loc;
-  std::map<int,int> hash;
+  std::map<tagint,int>::iterator loc;
+  std::map<tagint,int> hash;
 
   for (i = 0; i < nlocal; i++)
-    hash.insert(std::pair<int,int> (id[i],i));
+    hash.insert(std::pair<tagint,int> (id[i],i));
 
   // setup ring of procs
 
@@ -536,9 +539,7 @@ void CommLattice::create_send_from_recv(int nsite, int maxsite,
       isend = nsend - 1;
       if (scount[isend] == smax[isend]) {
 	smax[isend] += DELTA;
-	sindex[isend] =
-	  (int *) memory->srealloc(sindex[isend],smax[isend]*sizeof(int),
-				   "comm:sindex");
+	memory->grow(sindex[isend],smax[isend],"comm:sindex");
       }
       sindex[isend][scount[isend]] = loc->second;
       scount[isend]++;
@@ -620,9 +621,7 @@ void CommLattice::create_send_from_list(int nsite, Site *buf, Swap *swap)
 
     if (scount[isend] == smax[isend]) {
       smax[isend] += DELTA;
-      sindex[isend] =
-	(int *) memory->srealloc(sindex[isend],smax[isend]*sizeof(int),
-				 "comm:sindex");
+      memory->grow(sindex[isend],smax[isend],"comm:sindex");
     }
     sindex[isend][scount[isend]] = buf[i].index_local;
     scount[isend]++;
@@ -666,7 +665,7 @@ void CommLattice::create_recv_from_send(int nsite, int maxsite,
   int i,irecv;
 
   AppLattice *applattice = (AppLattice *) app;
-  int *id = app->id;
+  tagint *id = app->id;
   int nlocal = applattice->nlocal;
 
   Site *bufcopy = (Site *) 
@@ -674,11 +673,11 @@ void CommLattice::create_recv_from_send(int nsite, int maxsite,
 
   // put my entire list of owned site IDs in a hash
 
-  std::map<int,int>::iterator loc;
-  std::map<int,int> hash;
+  std::map<tagint,int>::iterator loc;
+  std::map<tagint,int> hash;
 
   for (i = 0; i < nlocal; i++)
-    hash.insert(std::pair<int,int> (id[i],i));
+    hash.insert(std::pair<tagint,int> (id[i],i));
 
   // setup ring of procs
 
@@ -745,9 +744,7 @@ void CommLattice::create_recv_from_send(int nsite, int maxsite,
       irecv = nrecv - 1;
       if (rcount[irecv] == rmax[irecv]) {
 	rmax[irecv] += DELTA;
-	rindex[irecv] =
-	  (int *) memory->srealloc(rindex[irecv],rmax[irecv]*sizeof(int),
-				   "comm:rindex");
+	memory->grow(rindex[irecv],rmax[irecv],"comm:rindex");
       }
       rindex[irecv][rcount[irecv]] = loc->second;
       rcount[irecv]++;
@@ -839,9 +836,7 @@ void CommLattice::create_recv_from_list(int nsite, Site *buf, Swap *swap)
 
     if (rcount[irecv] == rmax[irecv]) {
       rmax[irecv] += DELTA;
-      rindex[irecv] =
-	(int *) memory->srealloc(rindex[irecv],rmax[irecv]*sizeof(int),
-				 "comm:rindex");
+      memory->grow(rindex[irecv],rmax[irecv],"comm:rindex");
     }
     rindex[irecv][rcount[irecv]] = buf[i].index_local;
     rcount[irecv]++;
@@ -885,7 +880,7 @@ void CommLattice::free_swap(Swap *swap)
   delete [] swap->sproc;
   delete [] swap->scount;
   delete [] swap->smax;
-  for (int i = 0; i < swap->nsend; i++) memory->sfree(swap->sindex[i]);
+  for (int i = 0; i < swap->nsend; i++) memory->destroy(swap->sindex[i]);
   delete [] swap->sindex;
   delete [] swap->sibuf;
   delete [] swap->sdbuf;
@@ -893,7 +888,7 @@ void CommLattice::free_swap(Swap *swap)
   delete [] swap->rproc;
   delete [] swap->rcount;
   delete [] swap->rmax;
-  for (int i = 0; i < swap->nrecv; i++) memory->sfree(swap->rindex[i]);
+  for (int i = 0; i < swap->nrecv; i++) memory->destroy(swap->rindex[i]);
   delete [] swap->rindex;
   for (int i = 0; i < swap->nrecv; i++) delete [] swap->ribuf[i];
   for (int i = 0; i < swap->nrecv; i++) delete [] swap->rdbuf[i];

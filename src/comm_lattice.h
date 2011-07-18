@@ -51,7 +51,7 @@ class CommLattice : protected Pointers {
   };
 
   struct Site {
-    int id_global;
+    tagint id_global;
     int index_local;
     int proc;
   };

@@ -31,7 +31,7 @@ using namespace SPPARKS_NS;
 enum{IARRAY,DARRAY,X,Y,Z,XYZ,ID};
 enum{VALUE,RANGE,UNIQUE,DISPLACE};
 enum{LT,LE,GT,GE,EQ,NEQ};
-enum{INT,DOUBLE};
+enum{INT,DOUBLE,TAGINT};
 
 /* ---------------------------------------------------------------------- */
 
@@ -140,7 +140,7 @@ void Set::command(int narg, char **arg)
 					    "set:cond");
       if (strcmp(arg[iarg+1],"id") == 0) {
 	cond[ncondition].lhs = ID;
-	cond[ncondition].type = INT;
+	cond[ncondition].type = TAGINT;
 	cond[ncondition].stride = 1;
       } else if (strcmp(arg[iarg+1],"x") == 0) {
 	cond[ncondition].lhs = X;
@@ -209,13 +209,14 @@ void Set::command(int narg, char **arg)
 
   // statistics
 
-  int allcount;
-  MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
+  tagint nbig = count;
+  tagint allcount;
+  MPI_Allreduce(&nbig,&allcount,1,MPI_SPK_TAGINT,MPI_SUM,world);
     
   if (domain->me == 0) {
-    if (screen) fprintf(screen,"  %d settings made for %s\n",
+    if (screen) fprintf(screen,"  " TAGINT_FORMAT " settings made for %s\n",
 			allcount,arg[0]);
-    if (logfile) fprintf(logfile,"  %d settings made for %s\n",
+    if (logfile) fprintf(logfile,"  " TAGINT_FORMAT " settings made for %s\n",
 			 allcount,arg[0]);
   }
 
@@ -230,18 +231,13 @@ void Set::command(int narg, char **arg)
 
 void Set::set_single(int lhs, int rhs)
 {
-  int i,iglobal;
-  int nlocal,nglobal;
+  int i;
+  tagint iglobal;
 
-  if (latticeflag) {
-    nlocal = applattice->nlocal;
-    nglobal = applattice->nglobal;
-  } else {
-    nlocal = appoff->nlocal;
-    nglobal = appoff->nglobal;
-  }
+  int nlocal = app->nlocal;
+  tagint nglobal = app->nglobal;
 
-  int *id = app->id;
+  tagint *id = app->id;
   double **xyz = app->xyz;
   int **iarray = app->iarray;
   double **darray = app->darray;
@@ -258,17 +254,16 @@ void Set::set_single(int lhs, int rhs)
   count = 0;
 
   if (loopflag) {
-
-    std::map<int,int> hash;
-    std::map<int,int>::iterator loc;
-    for (i = 0; i < nlocal; i++) hash.insert(std::pair<int,int> (id[i],i));
+    std::map<tagint,int> hash;
+    std::map<tagint,int>::iterator loc;
+    for (i = 0; i < nlocal; i++) hash.insert(std::pair<tagint,int> (id[i],i));
 
     if (lhs == IARRAY) {
       if (regionflag == 0 && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	  else iarray[siteindex][i] = id[i];
+	  else iarray[siteindex][i] = id[i] % MAXSMALLINT;
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
@@ -276,7 +271,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	    else iarray[siteindex][i] = id[i];
+	    else iarray[siteindex][i] = id[i] % MAXSMALLINT;
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
@@ -287,7 +282,7 @@ void Set::set_single(int lhs, int rhs)
 	  i = loc->second;
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	  else iarray[siteindex][i] = id[i];
+	  else iarray[siteindex][i] = id[i] % MAXSMALLINT;
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -299,7 +294,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	    else iarray[siteindex][i] = id[i];
+	    else iarray[siteindex][i] = id[i] % MAXSMALLINT;
 	    count++;
 	  }
 	}
@@ -310,7 +305,7 @@ void Set::set_single(int lhs, int rhs)
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) darray[siteindex][i] = dvalue;
-	  else darray[siteindex][i] = id[i];
+	  else darray[siteindex][i] = id[i] % MAXSMALLINT;
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
@@ -318,7 +313,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) darray[siteindex][i] = dvalue;
-	    else darray[siteindex][i] = id[i];
+	    else darray[siteindex][i] = id[i] % MAXSMALLINT;
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
@@ -329,7 +324,7 @@ void Set::set_single(int lhs, int rhs)
 	  i = loc->second;
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) darray[siteindex][i] = dvalue;
-	  else darray[siteindex][i] = id[i];
+	  else darray[siteindex][i] = id[i] % MAXSMALLINT;
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -341,7 +336,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) darray[siteindex][i] = dvalue;
-	    else darray[siteindex][i] = id[i];
+	    else darray[siteindex][i] = id[i] % MAXSMALLINT;
 	    count++;
 	  }
 	}
@@ -349,13 +344,12 @@ void Set::set_single(int lhs, int rhs)
     }
 
   } else {
-
     if (lhs == IARRAY) {
       if (regionflag == 0 && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	  else iarray[siteindex][i] = id[i];
+	  else iarray[siteindex][i] = id[i] % MAXSMALLINT;
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
@@ -363,7 +357,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	    else iarray[siteindex][i] = id[i];
+	    else iarray[siteindex][i] = id[i] % MAXSMALLINT;
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
@@ -371,7 +365,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (random->uniform() >= fraction) continue;
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	  else iarray[siteindex][i] = id[i];
+	  else iarray[siteindex][i] = id[i] % MAXSMALLINT;
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -380,7 +374,7 @@ void Set::set_single(int lhs, int rhs)
 	    if (random->uniform() >= fraction) continue;
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) iarray[siteindex][i] = ivalue;
-	    else iarray[siteindex][i] = id[i];
+	    else iarray[siteindex][i] = id[i] % MAXSMALLINT;
 	    count++;
 	  }
       }
@@ -390,7 +384,7 @@ void Set::set_single(int lhs, int rhs)
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) darray[siteindex][i] = ivalue;
-	  else darray[siteindex][i] = id[i];
+	  else darray[siteindex][i] = id[i] % MAXSMALLINT;
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
@@ -398,7 +392,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) darray[siteindex][i] = ivalue;
-	    else darray[siteindex][i] = id[i];
+	    else darray[siteindex][i] = id[i] % MAXSMALLINT;
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
@@ -406,7 +400,7 @@ void Set::set_single(int lhs, int rhs)
 	  if (random->uniform() < fraction) continue;
 	  if (ncondition && condition(i)) continue;
 	  if (rhs == VALUE) darray[siteindex][i] = ivalue;
-	  else darray[siteindex][i] = id[i];
+	  else darray[siteindex][i] = id[i] % MAXSMALLINT;
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -415,7 +409,7 @@ void Set::set_single(int lhs, int rhs)
 	    if (random->uniform() < fraction) continue;
 	    if (ncondition && condition(i)) continue;
 	    if (rhs == VALUE) darray[siteindex][i] = ivalue;
-	    else darray[siteindex][i] = id[i];
+	    else darray[siteindex][i] = id[i] % MAXSMALLINT;
 	    count++;
 	  }
       }
@@ -432,18 +426,13 @@ void Set::set_single(int lhs, int rhs)
 
 void Set::set_range(int lhs, int rhs)
 {
-  int i,iglobal;
-  int nlocal,nglobal;
+  int i;
+  tagint iglobal;
 
-  if (latticeflag) {
-    nlocal = applattice->nlocal;
-    nglobal = applattice->nglobal;
-  } else {
-    nlocal = appoff->nlocal;
-    nglobal = appoff->nglobal;
-  }
+  int nlocal = app->nlocal;
+  tagint nglobal = app->nglobal;
 
-  int *id = app->id;
+  tagint *id = app->id;
   double **xyz = app->xyz;
   int **iarray = app->iarray;
   double **darray = app->darray;
@@ -460,10 +449,9 @@ void Set::set_range(int lhs, int rhs)
   count = 0;
 
   if (loopflag) {
-
-    std::map<int,int> hash;
-    std::map<int,int>::iterator loc;
-    for (i = 0; i < nlocal; i++) hash.insert(std::pair<int,int> (id[i],i));
+    std::map<tagint,int> hash;
+    std::map<tagint,int>::iterator loc;
+    for (i = 0; i < nlocal; i++) hash.insert(std::pair<tagint,int> (id[i],i));
 
     if (lhs == IARRAY) {
       int range = ivaluehi - ivaluelo + 1;
@@ -569,7 +557,6 @@ void Set::set_range(int lhs, int rhs)
     }
 
   } else {
-
     if (lhs == IARRAY) {
       int range = ivaluehi - ivaluelo + 1;
 
@@ -658,6 +645,7 @@ void Set::set_displace(int lhs, int rhs)
 int Set::condition(int i)
 {
   int *intarray;
+  tagint *tagintarray;
   double *doublearray;
 
   for (int m = 0; m < ncondition; m++) {
@@ -666,43 +654,55 @@ int Set::condition(int i)
     else if (cond[m].lhs == X) doublearray = &app->xyz[0][0];
     else if (cond[m].lhs == Y) doublearray = &app->xyz[0][1];
     else if (cond[m].lhs == Z) doublearray = &app->xyz[0][2];
-    else if (cond[m].lhs == ID) intarray = app->id;
+    else if (cond[m].lhs == ID) tagintarray = app->id;
 
     int offset = cond[m].stride * i;
 
     if (cond[m].op == LT) {
       if (cond[m].type == INT) {
 	if (intarray[offset] >= cond[m].irhs) return 1;
+      } else if (cond[m].type == TAGINT) {
+	if (tagintarray[offset] >= cond[m].irhs) return 1;
       } else {
 	if (doublearray[offset] >= cond[m].drhs) return 1;
       }
     } else if (cond[m].op == LE) {
       if (cond[m].type == INT) {
 	if (intarray[offset] > cond[m].irhs) return 1;
+      } else if (cond[m].type == TAGINT) {
+	if (tagintarray[offset] > cond[m].irhs) return 1;
       } else {
 	if (doublearray[offset] > cond[m].drhs) return 1;
       }
     } else if (cond[m].op == GT) {
       if (cond[m].type == INT) {
 	if (intarray[offset] <= cond[m].irhs) return 1;
+      } else if (cond[m].type == TAGINT) {
+	if (tagintarray[offset] <= cond[m].irhs) return 1;
       } else {
 	if (doublearray[offset] <= cond[m].drhs) return 1;
       }
     } else if (cond[m].op == GE) {
       if (cond[m].type == INT) {
 	if (intarray[offset] < cond[m].irhs) return 1;
+      } else if (cond[m].type == TAGINT) {
+	if (tagintarray[offset] < cond[m].irhs) return 1;
       } else {
 	if (doublearray[offset] < cond[m].drhs) return 1;
       }
     } else if (cond[m].op == EQ) {
       if (cond[m].type == INT) {
 	if (intarray[offset] != cond[m].irhs) return 1;
+      } else if (cond[m].type == TAGINT) {
+	if (tagintarray[offset] != cond[m].irhs) return 1;
       } else {
 	if (doublearray[offset] != cond[m].drhs) return 1;
       }
     } else if (cond[m].op == NEQ) {
       if (cond[m].type == INT) {
 	if (intarray[offset] == cond[m].irhs) return 1;
+      } else if (cond[m].type == TAGINT) {
+	if (tagintarray[offset] == cond[m].irhs) return 1;
       } else {
 	if (doublearray[offset] == cond[m].drhs) return 1;
       }

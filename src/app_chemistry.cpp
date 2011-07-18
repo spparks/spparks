@@ -69,17 +69,17 @@ AppChemistry::~AppChemistry()
   for (int i = 0; i < nreactions; i++) delete [] rname[i];
   memory->sfree(rname);
 
-  memory->sfree(nreactant);
-  memory->destroy_2d_int_array(reactants);
-  memory->sfree(nproduct);
-  memory->destroy_2d_int_array(products);
-  memory->sfree(rate);
+  memory->destroy(nreactant);
+  memory->destroy(reactants);
+  memory->destroy(nproduct);
+  memory->destroy(products);
+  memory->destroy(rate);
 
-  memory->sfree(pcount);
-  delete [] ndepends;
-  memory->destroy_2d_int_array(depends);
-  delete [] propensity;
-  delete [] rcount;
+  memory->destroy(pcount);
+  memory->destroy(ndepends);
+  memory->destroy(depends);
+  memory->destroy(propensity);
+  memory->destroy(rcount);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -110,14 +110,14 @@ void AppChemistry::init()
   // determine reaction dependencies
 
   delete [] ndepends;
-  memory->destroy_2d_int_array(depends);
-  ndepends = new int[nreactions];
+  memory->destroy(depends);
+  memory->create(ndepends,nreactions,"chemistry:ndepends");
   build_dependency_graph();
 
   // zero reaction counts
 
   delete [] rcount;
-  rcount = new int[nreactions];
+  memory->create(rcount,nreactions,"chemistry:rcount");
   for (int m = 0; m < nreactions; m++) rcount[m] = 0;
 
   // initialize output
@@ -132,7 +132,7 @@ void AppChemistry::setup()
   // compute initial propensity for each reaction
 
   delete [] propensity;
-  propensity = new double[nreactions];
+  memory->create(propensity,nreactions,"chemistry:propensity");
   for (int m = 0; m < nreactions; m++) propensity[m] = compute_propensity(m);
 
   // initialize solver
@@ -269,16 +269,11 @@ void AppChemistry::add_reaction(int narg, char **arg)
 
   // grow reaction arrays
 
-  nreactant = (int *) memory->srealloc(nreactant,n*sizeof(int),
-					    "chemistry:nreactnant");
-  reactants = memory->grow_2d_int_array(reactants,n,2,
-					     "chemistry:reactants");
-  nproduct = (int *) memory->srealloc(nproduct,n*sizeof(int),
-					   "chemistry:nproduct");
-  products = memory->grow_2d_int_array(products,n,MAX_PRODUCT,
-					    "chemistry:products");
-  rate = (double *) memory->srealloc(rate,n*sizeof(double),
-					  "chemistry:rate");
+  memory->grow(nreactant,n,"chemistry:nreactnant");
+  memory->grow(reactants,n,2,"chemistry:reactants");
+  memory->grow(nproduct,n,"chemistry:nproduct");
+  memory->grow(products,n,MAX_PRODUCT,"chemistry:products");
+  memory->grow(rate,n,"chemistry:rate");
 
   // find which arg is numeric reaction rate
 
@@ -430,11 +425,10 @@ void AppChemistry::build_dependency_graph()
 
   // allocate depends array, 2nd dim is max of ndepends[]
 
-  memory->destroy_2d_int_array(depends);
+  memory->destroy(depends);
   int nmax = 0;
   for (m = 0; m < nreactions; m++) nmax = MAX(nmax,ndepends[m]);
-  depends = memory->create_2d_int_array(nreactions,nmax,
-					     "chemistry:depends");
+  memory->create(depends,nreactions,nmax,"chemistry:depends");
 
   // zero the dependencies
 

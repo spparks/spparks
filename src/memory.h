@@ -22,419 +22,457 @@ class Memory : protected Pointers {
  public:
   Memory(class SPPARKS *);
 
-  void *smalloc(long long int n, const char *);
+  void *smalloc(bigint n, const char *);
+  void *srealloc(void *, bigint n, const char *);
   void sfree(void *);
-  void *srealloc(void *, long long int n, const char *name);
-
-  double *create_1d_double_array(int, int, const char *);
-  void destroy_1d_double_array(double *, int);
-  
-  double **create_2d_double_array(int, int, const char *);
-  void destroy_2d_double_array(double **);
-  double **grow_2d_double_array(double **, int, int, const char *);
-
-  int **create_2d_int_array(int, int, const char *);
-  int **create_2d_int_ragged_array(int, int *, const char *);
-  void destroy_2d_int_array(int **);
-  int **grow_2d_int_array(int **, int, int, const char *);
-
-  double **create_2d_double_array(int, int, int, const char *);
-  void destroy_2d_double_array(double **, int);
-
-  double ***create_3d_double_array(int, int, int, const char *);
-  void destroy_3d_double_array(double ***);
-  double ***grow_3d_double_array(double ***, int, int, int, const char *);
-
-  double ***create_3d_double_array(int, int, int, int, const char *);
-  void destroy_3d_double_array(double ***, int);
-
-  double ***create_3d_double_array(int, int, int, int, int, int, const char *);
-  void destroy_3d_double_array(double ***, int, int, int);
-
-  int ***create_3d_int_array(int, int, int, const char *);
-  void destroy_3d_int_array(int ***);
-
-  double ****create_4d_double_array(int, int, int, int, const char *);
-  void destroy_4d_double_array(double ****);
-
-  // Templated versions
-
-  template<typename T>
-    void create_1d_T_array(T *&, int, int, const char *);
-
-  template<typename T>
-    void destroy_1d_T_array(T *, int);
-  
-  template<typename T>
-    void create_2d_T_array(T **&, int, int, const char *);
-
-  template<typename T>
-    void destroy_2d_T_array(T **);
-
-  template<typename T>
-    void grow_2d_T_array(T **&, int, int, const char *);
-
-  template<typename T>
-    void create_2d_T_array(T **&, int, int, int, const char *);
-
-  template<typename T>
-    void destroy_2d_T_array(T **, int);
-    
-  template<typename T>
-    void create_2d_T_array(T **&, int, int, int, int, const char *);
-
-  template<typename T>
-    void destroy_2d_T_array(T **, int, int);
-    
-  template<typename T>
-    void create_3d_T_array(T ***&, int, int, int, const char *);
-
-  template<typename T>
-    void destroy_3d_T_array(T ***);
-
-  template<typename T>
-    void grow_3d_T_array(T ***&, int, int, int, const char *);
-    
-  template<typename T>
-    void create_3d_T_array(T ***&, int, int, int, int, const char *);
-
-  template<typename T>
-    void destroy_3d_T_array(T ***, int);
-    
-  template<typename T>
-    void create_3d_T_array(T ***&, int, int, int, int, int, int, const char *);
-
-  template<typename T>
-    void destroy_3d_T_array(T ***, int, int, int);
-    
-  template<typename T>
-    void create_4d_T_array(T ****&, int, int, int, int, const char *);
-
-  template<typename T>
-    void destroy_4d_T_array(T ****);
-};
-
-// Non-inline function definitions still need to go in the header file
+  void fail(const char *);
 
 /* ----------------------------------------------------------------------
-   create a 1d T array with index from nlo to nhi inclusive 
+   create/grow/destroy vecs and multidim arrays with contiguous memory blocks
+   only use with primitive data types, e.g. 1d vec of ints, 2d array of doubles
+   cannot use with pointers, e.g. 1d vec of int*, due to mismatched destroy 
+   avoid use with non-primitive data types to avoid code bloat
+   for these other cases, use smalloc/srealloc/sfree directly
 ------------------------------------------------------------------------- */
 
-template<typename T>
-void Memory::create_1d_T_array(T *&array, int nlo, int nhi, const char *name)
-{
-  int n = nhi - nlo + 1;
-  array = (T *) smalloc(n*sizeof(T),name);
-  array = array-nlo;
-}
-
 /* ----------------------------------------------------------------------
-   free a 1d T array with index offset 
+   create a 1d array 
 ------------------------------------------------------------------------- */
 
-template<typename T>
-void Memory::destroy_1d_T_array(T *array, int offset)
-{
-  if (array == NULL) return;
-  sfree(array + offset);
-}
+  template <typename TYPE>
+    TYPE *create(TYPE *&array, int n, const char *name)
+    {
+      bigint nbytes = sizeof(TYPE) * n;
+      array = (TYPE *) smalloc(nbytes,name);
+      return array;
+    }
+
+  template <typename TYPE>
+    TYPE **create(TYPE **&array, int n, const char *name) {fail(name);}
 
 /* ----------------------------------------------------------------------
-   create a 2d T array 
+   grow or shrink 1d array
 ------------------------------------------------------------------------- */
 
-// Templating does not work on return-type.
-// We achieve the desired result by moving the return value 
-// into the argument list as a reference.
-template<typename T>
-void Memory::create_2d_T_array(T **&array, int n1, int n2, const char *name)
-{
-  T *data = (T *) smalloc(n1*n2*sizeof(T),name);
-  array = (T **) smalloc(n1*sizeof(T *),name);
+  template <typename TYPE>
+    TYPE *grow(TYPE *&array, int n, const char *name) 
+    {
+      if (array == NULL) return create(array,n,name);
+      
+      bigint nbytes = sizeof(TYPE) * n;
+      array = (TYPE *) srealloc(array,nbytes,name);
+      return array;
+    }
 
-  int n = 0;
-  for (int i = 0; i < n1; i++) {
-    array[i] = &data[n];
-    n += n2;
-  }
-}
+  template <typename TYPE>
+    TYPE **grow(TYPE **&array, int n, const char *name) {fail(name);}
 
 /* ----------------------------------------------------------------------
-   free a 2d T array 
+   destroy a 1d array 
 ------------------------------------------------------------------------- */
 
-template<typename T>
-void Memory::destroy_2d_T_array(T **array)
-{
-  if (array == NULL) return;
-  sfree(array[0]);
-  sfree(array);
-}
+  template <typename TYPE>
+    void destroy(TYPE *array) 
+    {
+      sfree(array);
+    }
 
 /* ----------------------------------------------------------------------
-   grow or shrink 1st dim of a 2d T array
+   create a 1d array with index from nlo to nhi inclusive 
+   cannot grow it
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    TYPE *create1d_offset(TYPE *&array, int nlo, int nhi, const char *name) 
+    {
+      bigint nbytes = sizeof(TYPE) * (nhi-nlo+1);
+      array = (TYPE *) smalloc(nbytes,name);
+      array -= nlo;
+      return array;
+    }
+
+  template <typename TYPE>
+    TYPE **create1d_offset(TYPE **&array, int nlo, int nhi, const char *name)
+    {fail(name);}
+
+/* ----------------------------------------------------------------------
+   destroy a 1d array with index offset 
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    void destroy1d_offset(TYPE *array, int offset) 
+    {
+      if (array) sfree(&array[offset]);
+    }
+
+/* ----------------------------------------------------------------------
+   create a 2d array 
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    TYPE **create(TYPE **&array, int n1, int n2, const char *name) 
+    {
+      bigint nbytes = sizeof(TYPE) * n1*n2;
+      TYPE *data = (TYPE *) smalloc(nbytes,name);
+      nbytes = sizeof(TYPE *) * n1;
+      array = (TYPE **) smalloc(nbytes,name);
+      
+      bigint n = 0;
+      for (int i = 0; i < n1; i++) {
+	array[i] = &data[n];
+	n += n2;
+      }
+      return array;
+    }
+
+  template <typename TYPE>
+    TYPE ***create(TYPE ***&array, int n1, int n2, const char *name)
+    {fail(name);}
+
+/* ----------------------------------------------------------------------
+   grow or shrink 1st dim of a 2d array
    last dim must stay the same
-   if either dim is 0, return NULL 
 ------------------------------------------------------------------------- */
 
-template<typename T>
-void Memory::grow_2d_T_array(T **&array,
-			     int n1, int n2, const char *name)
-
-{
-  if (n1 == 0 || n2 == 0) {
-    destroy_2d_T_array(array);
-    array = NULL;
-    return;
-  }
-
-  if (array == NULL) {
-    create_2d_T_array(array,n1,n2,name);
-    return;
-  }
-
-  T *data = (T *) srealloc(array[0],n1*n2*sizeof(T),name);
-  sfree(array);
-  array = (T **) smalloc(n1*sizeof(T *),name);
-
-  int n = 0;
-  for (int i = 0; i < n1; i++) {
-    array[i] = &data[n];
-    n += n2;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   create a 2d T array with 2nd index from n2lo to n2hi inclusive 
-------------------------------------------------------------------------- */
-
-template<typename T>
- void Memory::create_2d_T_array(T **&array, int n1, int n2lo, int n2hi, const char *name)
-{
-  int n2 = n2hi - n2lo + 1;
-  create_2d_T_array(array,n1,n2,name);
-
-  for (int i = 0; i < n1; i++) array[i] -= n2lo;
-}
-
-/* ----------------------------------------------------------------------
-   free a 2d T array with 2nd index offset 
-------------------------------------------------------------------------- */
-
-template<typename T>
-void Memory::destroy_2d_T_array(T **array, int offset)
-{
-  if (array == NULL) return;
-  sfree(&array[0][offset]);
-  sfree(array);
-}
-
-/* ----------------------------------------------------------------------
-   create a 2d T array with indexes from n1lo to n1hi and n2lo to n2hi inclusive 
-------------------------------------------------------------------------- */
-
-template<typename T>
-  void Memory::create_2d_T_array(T **&array,
-				 int n1lo, int n1hi, int n2lo, int n2hi,
-				 const char *name)
-{
-  int n1 = n1hi - n1lo + 1;
-  int n2 = n2hi - n2lo + 1;
-  create_2d_T_array(array,n1,n2,name);
-
-  for (int i = 0; i < n1; i++) array[i] -= n2lo;
-  array -= n1lo;
-}
-
-/* ----------------------------------------------------------------------
-   free a 2d T array with 1st and 2nd index offset 
-------------------------------------------------------------------------- */
-
-template<typename T>
-void Memory::destroy_2d_T_array(T **array, int n1lo, int n2lo)
-{
-  if (array == NULL) return;
-  sfree(&array[n1lo][n2lo]);
-  sfree(array+n1lo);
-}
-
-/* ----------------------------------------------------------------------
-   create a 3d T array 
-------------------------------------------------------------------------- */
-
-template<typename T>
-void Memory::create_3d_T_array(T ***&array,
-			       int n1, int n2, int n3, const char *name)
-{
-  int i,j;
-
-  T *data = (T *) smalloc(n1*n2*n3*sizeof(T),name);
-  T **plane = (T **) smalloc(n1*n2*sizeof(T *),name);
-  array = (T ***) smalloc(n1*sizeof(T **),name);
-
-  int n = 0;
-  for (i = 0; i < n1; i++) {
-    array[i] = &plane[i*n2];
-    for (j = 0; j < n2; j++) {
-      plane[i*n2+j] = &data[n];
-      n += n3;
+  template <typename TYPE>
+    TYPE **grow(TYPE **&array, int n1, int n2, const char *name) 
+    {
+      if (array == NULL) return create(array,n1,n2,name);
+      
+      bigint nbytes = sizeof(TYPE) * n1*n2;
+      TYPE *data = (TYPE *) srealloc(array[0],nbytes,name);
+      nbytes = sizeof(TYPE *) * n1;
+      array = (TYPE **) srealloc(array,nbytes,name);
+      
+      bigint n = 0;
+      for (int i = 0; i < n1; i++) {
+	array[i] = &data[n];
+	n += n2;
+      }
+      return array;
     }
-  }
 
-}
+  template <typename TYPE>
+    TYPE ***grow(TYPE ***&array, int n1, int n2, const char *name)
+    {fail(name);}
 
 /* ----------------------------------------------------------------------
-   free a 3d T array 
+   destroy a 2d array 
 ------------------------------------------------------------------------- */
 
-template<typename T>
-void Memory::destroy_3d_T_array(T ***array)
-{
-  if (array == NULL) return;
-  sfree(array[0][0]);
-  sfree(array[0]);
-  sfree(array);
-}
+  template <typename TYPE>
+    void destroy(TYPE **array)
+    {
+      if (array == NULL) return;
+      sfree(array[0]);
+      sfree(array);
+    }
 
 /* ----------------------------------------------------------------------
-   grow or shrink 1st dim of a 3d T array
+   create a 2d array with a ragged 2nd dimension
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    TYPE **create_ragged(TYPE **&array, int n1, int *n2, const char *name) 
+    {
+      int n2sum = 0;
+      for (int i = 0; i < n1; i++) n2sum += n2[i];
+
+      bigint nbytes = sizeof(TYPE) * n1*n2sum;
+      TYPE *data = (TYPE *) smalloc(nbytes,name);
+      nbytes = sizeof(TYPE *) * n1;
+      array = (TYPE **) smalloc(nbytes,name);
+      
+      bigint n = 0;
+      for (int i = 0; i < n1; i++) {
+	array[i] = &data[n];
+	n += n2[i];
+      }
+      return array;
+    }
+
+  template <typename TYPE>
+    TYPE ***create_ragged(TYPE ***&array, int n1, int *n2, const char *name)
+    {fail(name);}
+
+/* ----------------------------------------------------------------------
+   create a 2d array with 2nd index from n2lo to n2hi inclusive 
+   cannot grow it
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    TYPE **create2d_offset(TYPE **&array, int n1, int n2lo, int n2hi,
+			   const char *name)
+    {
+      int n2 = n2hi - n2lo + 1;
+      create(array,n1,n2,name);
+      for (int i = 0; i < n1; i++) array[i] -= n2lo;
+      return array;
+    }
+
+  template <typename TYPE>
+    TYPE ***create2d_offset(TYPE ***&array, int n1, int n2lo, int n2hi,
+			    const char *name) {fail(name);}
+
+/* ----------------------------------------------------------------------
+   destroy a 2d array with 2nd index offset 
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    void destroy2d_offset(TYPE **array, int offset)
+    {
+      if (array == NULL) return;
+      sfree(&array[0][offset]);
+      sfree(array);
+    }
+
+/* ----------------------------------------------------------------------
+   create a 3d array 
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    TYPE ***create(TYPE ***&array, int n1, int n2, int n3, const char *name) 
+    {
+      bigint nbytes = sizeof(TYPE) * n1*n2*n3;
+      TYPE *data = (TYPE *) smalloc(nbytes,name);
+      nbytes = sizeof(TYPE *) * n1*n2;
+      TYPE **plane = (TYPE **) smalloc(nbytes,name);
+      nbytes = sizeof(TYPE **) * n1;
+      array = (TYPE ***) smalloc(nbytes,name);
+      
+      int i,j;
+      bigint m;
+      bigint n = 0;
+      for (i = 0; i < n1; i++) {
+	m = i;
+	m *= n2;
+	array[i] = &plane[m];
+	for (j = 0; j < n2; j++) {
+	  plane[m+j] = &data[n];
+	  n += n3;
+	}
+      }
+      return array;
+    }
+
+  template <typename TYPE>
+    TYPE ****create(TYPE ****&array, int n1, int n2, int n3, const char *name) 
+    {fail(name);}
+
+/* ----------------------------------------------------------------------
+   grow or shrink 1st dim of a 3d array
    last 2 dims must stay the same
-   if any dim is 0, return NULL 
 ------------------------------------------------------------------------- */
 
-template<typename T>
-void Memory::grow_3d_T_array(T ***&array,
-			     int n1, int n2, int n3, const char *name)
-{
-  int i,j;
-
-  if (n1 == 0 || n2 == 0 || n3 == 0) {
-    destroy_3d_T_array(array);
-    array = NULL;
-    return;
-  }
-
-  if (array == NULL) {
-    create_3d_T_array(array,n1,n2,n3,name);
-    return;
-  }
-
-  T *data = (T *) srealloc(array[0][0],n1*n2*n3*sizeof(T),name);
-  sfree(array[0]);
-  T **plane = (T **) smalloc(n1*n2*sizeof(T *),name);
-  sfree(array);
-  array = (T ***) smalloc(n1*sizeof(T **),name);
-
-  int n = 0;
-  for (i = 0; i < n1; i++) {
-    array[i] = &plane[i*n2];
-    for (j = 0; j < n2; j++) {
-      plane[i*n2+j] = &data[n];
-      n += n3;
+  template <typename TYPE>
+    TYPE ***grow(TYPE ***&array, int n1, int n2, int n3, const char *name) 
+    {
+      if (array == NULL) return create(array,n1,n2,n3,name);
+      
+      bigint nbytes = sizeof(TYPE) * n1*n2*n3;
+      TYPE *data = (TYPE *) srealloc(array[0][0],nbytes,name);
+      nbytes = sizeof(TYPE *) * n1*n2;
+      TYPE **plane = (TYPE **) srealloc(array[0],nbytes,name);
+      nbytes = sizeof(TYPE **) * n1;
+      array = (TYPE ***) srealloc(array,nbytes,name);
+      
+      int i,j;
+      bigint m;
+      bigint n = 0;
+      for (i = 0; i < n1; i++) {
+	m = i;
+	m *= n2;
+	array[i] = &plane[m];
+	for (j = 0; j < n2; j++) {
+	  plane[m+j] = &data[n];
+	  n += n3;
+	}
+      }
+      return array;
     }
-  }
-}
+
+  template <typename TYPE>
+    TYPE ****grow(TYPE ****&array, int n1, int n2, int n3, const char *name) 
+    {fail(name);}
 
 /* ----------------------------------------------------------------------
-   create a 3d T array with 1st index from n1lo to n1hi inclusive 
+   destroy a 3d array 
 ------------------------------------------------------------------------- */
 
-template<typename T>
-void Memory::create_3d_T_array(T ***&array, int n1lo, int n1hi, 
-			       int n2, int n3, const char *name)
-{
-  int n1 = n1hi - n1lo + 1;
-  create_3d_T_array(array,n1,n2,n3,name);
-  array = array-n1lo;
-}
+  template <typename TYPE>
+    void destroy(TYPE ***array) 
+    {
+      if (array == NULL) return;
+      sfree(array[0][0]);
+      sfree(array[0]);
+      sfree(array);
+    }
 
 /* ----------------------------------------------------------------------
-   free a 3d T array with 1st index offset 
+   create a 3d array with 1st index from n1lo to n1hi inclusive 
+   cannot grow it
 ------------------------------------------------------------------------- */
 
-template<typename T>
-void Memory::destroy_3d_T_array(T ***array, int offset)
-{
-  if (array) destroy_3d_T_array(array + offset);
-}
+  template <typename TYPE>
+    TYPE ***create3d_offset(TYPE ***&array, int n1lo, int n1hi, 
+			    int n2, int n3, const char *name)
+    {
+      int n1 = n1hi - n1lo + 1;
+      create(array,n1,n2,n3,name);
+      array -= n1lo;
+      return array;
+    }
+
+  template <typename TYPE>
+    TYPE ****create3d_offset(TYPE ****&array, int n1lo, int n1hi, 
+			     int n2, int n3, const char *name)
+    {fail(name);}
 
 /* ----------------------------------------------------------------------
-   create a 3d T array with
+   free a 3d array with 1st index offset 
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    void destroy3d_offset(TYPE ***array, int offset)
+    {
+      if (array) destroy(&array[offset]);
+    }
+
+/* ----------------------------------------------------------------------
+   create a 3d array with
    1st index from n1lo to n1hi inclusive,
    2nd index from n2lo to n2hi inclusive,
    3rd index from n3lo to n3hi inclusive 
+   cannot grow it
 ------------------------------------------------------------------------- */
 
-template<typename T>
-void Memory::create_3d_T_array(T ***&array, int n1lo, int n1hi,
-					 int n2lo, int n2hi,
-					 int n3lo, int n3hi, const char *name)
-{
-  int n1 = n1hi - n1lo + 1;
-  int n2 = n2hi - n2lo + 1;
-  int n3 = n3hi - n3lo + 1;
-  create_3d_T_array(array,n1,n2,n3,name);
-
-  for (int i = 0; i < n1*n2; i++) array[0][i] -= n3lo;
-  for (int i = 0; i < n1; i++) array[i] -= n2lo;
-  array = array-n1lo;
-}
-
-/* ----------------------------------------------------------------------
-   free a 3d T array with all 3 indices offset 
-------------------------------------------------------------------------- */
-
-template<typename T>
-void Memory::destroy_3d_T_array(T ***array, int n1_offset,
-				     int n2_offset, int n3_offset)
-{
-  if (array == NULL) return;
-  sfree(&array[n1_offset][n2_offset][n3_offset]);
-  sfree(&array[n1_offset][n2_offset]);
-  sfree(array + n1_offset);
-}
-
-/* ----------------------------------------------------------------------
-   create a 4d T array 
-------------------------------------------------------------------------- */
-
-template<typename T>
-void Memory::create_4d_T_array(T ****&array, int n1, int n2, int n3, int n4, const char *name)
-{
-  int i,j,k;
-
-  T *data = (T *) smalloc(n1*n2*n3*n4*sizeof(T),name);
-  T **cube = (T **) smalloc(n1*n2*n3*sizeof(T *),name);
-  T ***plane = (T ***) smalloc(n1*n2*sizeof(T **),name);
-  array = (T ****) smalloc(n1*sizeof(T ***),name);
-
-  int n = 0;
-  for (i = 0; i < n1; i++) {
-    array[i] = &plane[i*n2];
-    for (j = 0; j < n2; j++) {
-      plane[i*n2+j] = &cube[i*n2*n3+j*n3];
-      for (k = 0; k < n3; k++) {
-	cube[i*n2*n3+j*n3+k] = &data[n];
-	n += n4;
-      }
+  template <typename TYPE>
+    TYPE ***create3d_offset(TYPE ***&array, int n1lo, int n1hi, 
+			    int n2lo, int n2hi, int n3lo, int n3hi,
+			    const char *name)
+    {
+      int n1 = n1hi - n1lo + 1;
+      int n2 = n2hi - n2lo + 1;
+      int n3 = n3hi - n3lo + 1;
+      create(array,n1,n2,n3,name);
+      
+      bigint m = n1;
+      m *= n2;
+      for (bigint i = 0; i < m; i++) array[0][i] -= n3lo;
+      for (int i = 0; i < n1; i++) array[i] -= n2lo;
+      array -= n1lo;
+      return array;
     }
-  }
 
-}
+  template <typename TYPE>
+    TYPE ****create3d_offset(TYPE ****&array, int n1lo, int n1hi, 
+			     int n2lo, int n2hi, int n3lo, int n3hi,
+			     const char *name)
+    {fail(name);}
 
 /* ----------------------------------------------------------------------
-   free a 4d T array 
+   free a 3d array with all 3 indices offset 
 ------------------------------------------------------------------------- */
 
-template<typename T>
-void Memory::destroy_4d_T_array(T ****array)
-{
-  if (array == NULL) return;
-  sfree(array[0][0][0]);
-  sfree(array[0][0]);
-  sfree(array[0]);
-  sfree(array);
-}
+  template <typename TYPE>
+    void destroy3d_offset(TYPE ***array, 
+			  int n1_offset, int n2_offset, int n3_offset)
+    {
+      if (array == NULL) return;
+      sfree(&array[n1_offset][n2_offset][n3_offset]);
+      sfree(&array[n1_offset][n2_offset]);
+      sfree(&array[n1_offset]);
+    }
+
+/* ----------------------------------------------------------------------
+   create a 4d array 
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    TYPE ****create(TYPE ****&array, int n1, int n2, int n3, int n4,
+		    const char *name)
+    {
+      bigint nbytes = sizeof(TYPE) * n1*n2*n3*n4;
+      TYPE *data = (TYPE *) smalloc(nbytes,name);
+      nbytes = sizeof(TYPE *) * n1*n2*n3;
+      TYPE **cube = (TYPE **) smalloc(nbytes,name);
+      nbytes = sizeof(TYPE **) * n1*n2;
+      TYPE ***plane = (TYPE ***) smalloc(nbytes,name);
+      nbytes = sizeof(TYPE ***) * n1;
+      array = (TYPE ****) smalloc(nbytes,name);
+      
+      int i,j,k;
+      int n = 0;
+      for (i = 0; i < n1; i++) {
+	array[i] = &plane[i*n2];
+	for (j = 0; j < n2; j++) {
+	  plane[i*n2+j] = &cube[i*n2*n3+j*n3];
+	  for (k = 0; k < n3; k++) {
+	    cube[i*n2*n3+j*n3+k] = &data[n];
+	    n += n4;
+	  }
+	}
+      }
+      return array;
+    }
+
+  template <typename TYPE>
+    TYPE *****create(TYPE *****&array, int n1, int n2, int n3, int n4,
+		     const char *name)
+    {fail(name);}
+
+/* ----------------------------------------------------------------------
+   destroy a 4d array 
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    void destroy(TYPE ****array)
+    {
+      if (array == NULL) return;
+      sfree(array[0][0][0]);
+      sfree(array[0][0]);
+      sfree(array[0]);
+      sfree(array);
+    }
+
+/* ----------------------------------------------------------------------
+   memory usage of arrays, including pointers
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    bigint usage(TYPE *array, int n)
+    {
+      bigint bytes = sizeof(TYPE) * n;
+      return bytes;
+    }
+
+  template <typename TYPE>
+    bigint usage(TYPE **array, int n1, int n2)
+    {
+      bigint bytes = sizeof(TYPE) * n1*n2;
+      bytes += sizeof(TYPE *) * n1;
+      return bytes;
+    }
+
+  template <typename TYPE>
+    bigint usage(TYPE ***array, int n1, int n2, int n3)
+    {
+      bigint bytes = sizeof(TYPE) * n1*n2*n3;
+      bytes += sizeof(TYPE *) * n1*n2;
+      bytes += sizeof(TYPE **) * n1;
+      return bytes;
+    }
+
+  template <typename TYPE>
+    bigint usage(TYPE ****array, int n1, int n2, int n3, int n4)
+    {
+      bigint bytes = sizeof(TYPE) * n1*n2*n3*n4;
+      bytes += sizeof(TYPE *) * n1*n2*n3;
+      bytes += sizeof(TYPE **) * n1*n2;
+      bytes += sizeof(TYPE ***) * n1;
+      return bytes;
+    }
+};
 
 }
 

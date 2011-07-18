@@ -87,11 +87,11 @@ AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
 
 AppTestGroup::~AppTestGroup()
 {
-  delete [] propensity;
-  delete [] ndepends;
-  memory->destroy_2d_int_array(depends);
-  delete [] ran_dep;
-  delete [] count;
+  memory->destroy(propensity);
+  memory->destroy(ndepends);
+  memory->destroy(depends);
+  memory->destroy(ran_dep);
+  memory->destroy(count);
   delete random;
 }
 
@@ -110,22 +110,22 @@ void AppTestGroup::init()
 
   if (solve == NULL) error->all("No solver class defined");
 
-  delete [] ndepends;
-  memory->destroy_2d_int_array(depends);
-  delete [] ran_dep;
+  memory->destroy(ndepends);
+  memory->destroy(depends);
+  memory->destroy(ran_dep);
 
   if (dep_graph) build_dependency_graph();
-  else ran_dep = new int[ndep];
+  else memory->create(ran_dep,ndep,"test:ran_dep");
 
-  delete [] propensity;
-  propensity = new double[nevents];
+  memory->destroy(propensity);
+  memory->create(propensity,nevents,"test:propensity");
 
   // allocate and zero event stats
   // initialize output
 
 #ifdef OUTPUT
-  delete [] count;
-  count = new int[nevents];
+  memory->destroy(count);
+  memory->create(count,nevents,"test:count");
   for (int m = 0; m < nevents; m++) count[m] = 0;
 
   output->init(time);
@@ -255,14 +255,14 @@ void AppTestGroup::stats_header(char *strtmp)
 
 void AppTestGroup::build_dependency_graph()
 {
-  ndepends = new int[nevents];
+  memory->create(ndepends,nevents,"test:ndepends");
   for (int m = 0; m < nevents; m++) 
     ndepends[m] = static_cast<int> (ndep*random->uniform()) + 1;
 
   int nmax = 1;
   for (int m = 0; m < nevents; m++)
     nmax = MAX(nmax,ndepends[m]);
-  depends = memory->create_2d_int_array(nevents,nmax,"test:depends");
+  memory->create(depends,nevents,nmax,"test:depends");
 
   // set each dependency to random reaction other than self
   

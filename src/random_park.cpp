@@ -59,6 +59,14 @@ void RandomPark::reset(double rseed, int offset, int warmup)
   for (int i = 0; i < warmup; i++) uniform();
 }
 
+void RandomPark::tagreset(double rseed, tagint offset, int warmup)
+{
+  seed = static_cast<int> (fmod(rseed*IM+offset,IM));
+  if (seed < 0) seed = -seed;
+  if (seed == 0) seed = 1;
+  for (int i = 0; i < warmup; i++) uniform();
+}
+
 /* ----------------------------------------------------------------------
    uniform RN 
 ------------------------------------------------------------------------- */
@@ -79,6 +87,28 @@ double RandomPark::uniform()
 int RandomPark::irandom(int n)
 {
   int i = (int) (uniform()*n) + 1;
+  if (i > n) i = n;
+  return i;
+}
+
+/* ----------------------------------------------------------------------
+   tagint RN between 1 and N inclusive
+------------------------------------------------------------------------- */
+
+tagint RandomPark::tagrandom(tagint n)
+{
+  tagint i = (tagint) (uniform()*n) + 1;
+  if (i > n) i = n;
+  return i;
+}
+
+/* ----------------------------------------------------------------------
+   bigint RN between 1 and N inclusive
+------------------------------------------------------------------------- */
+
+bigint RandomPark::bigrandom(bigint n)
+{
+  bigint i = (bigint) (uniform()*n) + 1;
   if (i > n) i = n;
   return i;
 }

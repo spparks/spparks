@@ -92,25 +92,25 @@ AppOffLattice::~AppOffLattice()
   delete [] set;
 
   delete ranapp;
-  memory->sfree(sitelist);
-  memory->sfree(site2i);
-  memory->sfree(in_sector);
+  memory->destroy(sitelist);
+  memory->destroy(site2i);
+  memory->destroy(in_sector);
 
-  memory->sfree(bin);
-  memory->sfree(next);
-  memory->sfree(prev);
-  memory->sfree(nextimage);
+  memory->destroy(bin);
+  memory->destroy(next);
+  memory->destroy(prev);
+  memory->destroy(nextimage);
 
   delete comm;
 
-  memory->sfree(binhead);
-  memory->sfree(binflag);
-  memory->destroy_2d_int_array(pbcoffset);
-  memory->sfree(nimages);
-  memory->destroy_2d_int_array(imageindex);
-  memory->destroy_2d_int_array(imageproc);
-  memory->sfree(ghostindex);
-  memory->sfree(ghostproc);
+  memory->destroy(binhead);
+  memory->destroy(binflag);
+  memory->destroy(pbcoffset);
+  memory->destroy(nimages);
+  memory->destroy(imageindex);
+  memory->destroy(imageproc);
+  memory->destroy(ghostindex);
+  memory->destroy(ghostproc);
   
   delete [] stencil;
   delete [] neighs;
@@ -289,18 +289,17 @@ void AppOffLattice::setup()
   // do this every run since sector timestep could have changed
 
   if (sweepflag == RANDOM) {
-    memory->sfree(sitelist);
-    int n = nlocal;
-    sitelist = (int *) memory->smalloc(n*sizeof(int),"app:sitelist");
+    memory->destroy(sitelist);
+    memory->create(sitelist,nlocal,"app:sitelist");
   }
 
   // setup site2i and in_sector lists
   // do this every run in case nlocal has changed
 
-  memory->sfree(site2i);
-  memory->sfree(in_sector);
-  site2i = (int *) memory->smalloc(nlocal*sizeof(int),"app:site2i");
-  in_sector = (int *) memory->smalloc(nlocal*sizeof(int),"app:in_sector");
+  memory->destroy(site2i);
+  memory->destroy(in_sector);
+  memory->create(site2i,nlocal,"app:site2i");
+  memory->create(in_sector,nlocal,"app:in_sector");
 
   // setup future output
 
@@ -614,7 +613,7 @@ void AppOffLattice::check(char *str, int flag, int iset)
 
   for (int i = 0; i < nall; i++) {
     if (site2bin(i) != bin[i] || bin[i] < 0 || bin[i] > nbins-1) {
-      printf("%s SITE %d: %d %d %d: %g %g %g\n",
+      printf("%s SITE %d: %d " TAGINT_FORMAT " %d: %g %g %g\n",
 	     str,me,i,id[i],bin[i],xyz[i][0],xyz[i][1],xyz[i][2]);
       error->one("SITE MISMATCH");
     }
@@ -641,7 +640,8 @@ void AppOffLattice::check(char *str, int flag, int iset)
     int mprev = -1;
     while (m >= 0) {
       if (prev[m] != mprev) {
-	printf("%s LINK me %d: m %d id %d bin %d prev %d mprev %d nloc %d\n",
+	printf("%s LINK me %d: m %d id " TAGINT_FORMAT 
+	       " bin %d prev %d mprev %d nloc %d\n",
 	       str,me,m,id[m],bin[m],prev[m],mprev,nlocal);
 	error->one("LINK MISMATCH");
       }
@@ -656,7 +656,7 @@ void AppOffLattice::check(char *str, int flag, int iset)
     int m = binhead[i];
     while (m >= 0) {
       if (bin[m] != i) {
-	printf("%s BIN %d: %d %d %d %d %d\n",
+	printf("%s BIN %d: %d " TAGINT_FORMAT " %d %d %d\n",
 	       str,me,m,id[m],bin[m],i,site2bin(m));
 	error->one("BIN MISMATCH");
       }
@@ -770,14 +770,20 @@ void AppOffLattice::set_temperature(int narg, char **arg)
 
 void AppOffLattice::stats(char *strtmp)
 {
-  uint64_t naccept_all;
-  MPI_Allreduce(&naccept,&naccept_all,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
-  if (solve) sprintf(strtmp,"%10g %10lu %10d %10d",time,naccept_all,0,0);
-  else {
-    uint64_t nattempt_all;
-    MPI_Allreduce(&nattempt,&nattempt_all,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
-    sprintf(strtmp,"%10g %10lu %10lu %10d",
-	    time,naccept_all,nattempt_all-naccept_all,nsweeps);
+  char big[8],format[64];
+  strcpy(big,BIGINT_FORMAT);
+
+  bigint naccept_all;
+  MPI_Allreduce(&naccept,&naccept_all,1,MPI_SPK_BIGINT,MPI_SUM,world);
+
+  if (solve) {
+    sprintf(format,"%%10g %%10%s %%10d %%10d",&big[1]);
+    sprintf(strtmp,format,time,naccept_all,0,0);
+  } else {
+    bigint nattempt_all;
+    MPI_Allreduce(&nattempt,&nattempt_all,1,MPI_SPK_BIGINT,MPI_SUM,world);
+    sprintf(format,"%%10g %%10%s %%10%s %%10d",&big[1],&big[1]);
+    sprintf(strtmp,format,time,naccept_all,nattempt_all-naccept_all,nsweeps);
   }
 }
 
@@ -902,30 +908,30 @@ void AppOffLattice::init_bins()
 
   nbins = nbinx*nbiny*nbinz;
 
-  memory->sfree(binhead);
-  memory->sfree(binflag);
-  memory->destroy_2d_int_array(pbcoffset);
-  memory->sfree(nimages);
-  memory->destroy_2d_int_array(imageindex);
-  memory->sfree(ghostindex);
-  memory->sfree(ghostproc);
+  memory->destroy(binhead);
+  memory->destroy(binflag);
+  memory->destroy(pbcoffset);
+  memory->destroy(nimages);
+  memory->destroy(imageindex);
+  memory->destroy(ghostindex);
+  memory->destroy(ghostproc);
 
-  binhead = (int *) memory->smalloc(nbins*sizeof(int),"app:binhead");
-  binflag = (int *) memory->smalloc(nbins*sizeof(int),"app:binflag");
-  pbcoffset = memory->create_2d_int_array(nbins,3,"app:pbcoffset");
-  nimages = (int *) memory->smalloc(nbins*sizeof(int),"app:nimages");
+  memory->create(binhead,nbins,"app:binhead");
+  memory->create(binflag,nbins,"app:binflag");
+  memory->create(pbcoffset,nbins,3,"app:pbcoffset");
+  memory->create(nimages,nbins,"app:nimages");
   if (dimension == 3) {
-    imageindex = memory->create_2d_int_array(nbins,7,"app:imageindex");
-    imageproc = memory->create_2d_int_array(nbins,7,"app:imageproc");
+    memory->create(imageindex,nbins,7,"app:imageindex");
+    memory->create(imageproc,nbins,7,"app:imageproc");
   } else if (dimension == 2) {
-    imageindex = memory->create_2d_int_array(nbins,3,"app:imageindex");
-    imageproc = memory->create_2d_int_array(nbins,3,"app:imageproc");
+    memory->create(imageindex,nbins,3,"app:imageindex");
+    memory->create(imageproc,nbins,3,"app:imageproc");
   } else {
-    imageindex = memory->create_2d_int_array(nbins,1,"app:imageindex");
-    imageproc = memory->create_2d_int_array(nbins,1,"app:imageproc");
+    memory->create(imageindex,nbins,1,"app:imageindex");
+    memory->create(imageproc,nbins,1,"app:imageproc");
   }
-  ghostindex = (int *) memory->smalloc(nbins*sizeof(int),"app:ghostindex");
-  ghostproc = (int *) memory->smalloc(nbins*sizeof(int),"app:ghostproc");
+  memory->create(ghostindex,nbins,"app:ghostindex");
+  memory->create(ghostproc,nbins,"app:ghostproc");
 
   // determine if each bin is INTERIOR or EDGE or GHOST
 
@@ -1221,8 +1227,8 @@ int AppOffLattice::site2bin(int i)
       xyz[i][1] >= subyhi+biny+EPSILON ||
       xyz[i][2] < subzlo-binz-EPSILON || 
       xyz[i][2] >= subzhi+binz+EPSILON) {
-    printf("BAD SITE: %d %d %d %d: %g %g %g %d\n",me,i,bin[i],nlocal,
-	   xyz[i][0],xyz[i][1],xyz[i][2],id[i]);
+    printf("BAD SITE: %d %d %d %d: %g %g %g " TAGINT_FORMAT "\n",
+	   me,i,bin[i],nlocal,xyz[i][0],xyz[i][1],xyz[i][2],id[i]);
     printf("MY DOMAIN: %g %g %g: %g %g %g\n",subxlo,subylo,
 	   subzlo,subxhi,subyhi,subzhi);
     error->one("Site not in my bin domain");
@@ -1580,26 +1586,24 @@ void AppOffLattice::grow(int n)
 {
   if (n == 0) nmax += DELTA;
   else nmax = n;
+  if (nmax < 0 || nmax > MAXSMALLINT)
+    error->one("Per-processor system is too big");
 
-  id = (int *)  memory->srealloc(id,nmax*sizeof(int),"app:id");
-  bin = (int *) memory->srealloc(bin,nmax*sizeof(int),"app:bin");
-  next = (int *) memory->srealloc(next,nmax*sizeof(int),"app:next");
-  prev = (int *) memory->srealloc(prev,nmax*sizeof(int),"app:prev");
-  nextimage = (int *) memory->srealloc(nextimage,nmax*sizeof(int),
-				       "app:nextimage");
+  memory->grow(id,nmax,"app:id");
+  memory->grow(bin,nmax,"app:bin");
+  memory->grow(next,nmax,"app:next");
+  memory->grow(prev,nmax,"app:prev");
+  memory->grow(nextimage,nmax,"app:nextimage");
 
-  xyz = memory->grow_2d_double_array(xyz,nmax,3,"app:xyz");
+  memory->grow(xyz,nmax,3,"app:xyz");
 
-  site2i = (int *) memory->srealloc(site2i,nmax*sizeof(int),"app:site2i");
-  in_sector = (int *) memory->srealloc(in_sector,nmax*sizeof(int),
-				       "app:in_sector");
+  memory->grow(site2i,nmax,"app:site2i");
+  memory->grow(in_sector,nmax,"app:in_sector");
 
   for (int i = 0; i < ninteger; i++)
-    iarray[i] = (int *) 
-      memory->srealloc(iarray[i],nmax*sizeof(int),"app:iarray");
+    memory->grow(iarray[i],nmax,"app:iarray");
   for (int i = 0; i < ndouble; i++)
-    darray[i] = (double *) 
-      memory->srealloc(darray[i],nmax*sizeof(double),"app:darray");
+    memory->srealloc(darray[i],nmax,"app:darray");
 
   grow_app();
 }
@@ -1674,7 +1678,7 @@ int AppOffLattice::inside_sector(int i)
    grow arrays if necessary
  ------------------------------------------------------------------------- */
 
-void AppOffLattice::add_site(int n, double x, double y, double z)
+void AppOffLattice::add_site(tagint n, double x, double y, double z)
 {
   if (nlocal == nmax) grow(0);
 

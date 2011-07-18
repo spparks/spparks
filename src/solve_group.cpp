@@ -19,6 +19,7 @@
 #include "groups.h"
 #include "random_mars.h"
 #include "random_park.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace SPPARKS_NS;
@@ -67,7 +68,7 @@ SolveGroup::~SolveGroup()
 
   delete random;
   delete groups;
-  delete [] p;
+  memory->destroy(p);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,8 +106,8 @@ void SolveGroup::init(int n, double *propensity)
   nevents = n;
   num_active = 0;
 
-  delete [] p;
-  p = new double[n];
+  memory->destroy(p);
+  memory->create(p,n,"solve/group:p");
 
   sum = 0.0;
   for (int i = 0; i < n; i++) {

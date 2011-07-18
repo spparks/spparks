@@ -18,6 +18,7 @@
 #include "solve_linear.h"
 #include "random_mars.h"
 #include "random_park.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace SPPARKS_NS;
@@ -37,8 +38,8 @@ SolveLinear::SolveLinear(SPPARKS *spk, int narg, char **arg) :
 
 SolveLinear::~SolveLinear()
 {
-  delete [] prob;
   delete random;
+  memory->destroy(prob);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -60,7 +61,7 @@ void SolveLinear::init(int n, double *propensity)
 {
   delete [] prob;
   nevents = n;
-  prob = new double[n];
+  memory->create(prob,n,"solve/linear:prob");
 
   sum = 0.0;
   num_active = 0;

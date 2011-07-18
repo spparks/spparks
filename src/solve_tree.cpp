@@ -18,6 +18,7 @@
 #include "solve_tree.h"
 #include "random_mars.h"
 #include "random_park.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace SPPARKS_NS;
@@ -30,7 +31,6 @@ SolveTree::SolveTree(SPPARKS *spk, int narg, char **arg) :
   if (narg != 1) error->all("Illegal solve command");
 
   random = new RandomPark(ranmaster->uniform());
-  allocated = 0;
   tree = NULL;
 }
 
@@ -38,8 +38,8 @@ SolveTree::SolveTree(SPPARKS *spk, int narg, char **arg) :
 
 SolveTree::~SolveTree()
 {
-  free_arrays();
   delete random;
+  memory->destroy(tree);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,30 +61,34 @@ void SolveTree::init(int n, double *propensity)
   ntotal = 0;
   offset = 0;
 
-  // memory allocation
-
-  if (allocated) free_arrays();
-  allocated = 1;
-
   nevents = n;
-  sum = 0;
 
-  // m = value such that 2^m >= nevents
+  // m = tree depth such that 2^m >= nevents
+  // nround = power of 2 >= nevents
 
   int m = 0;
-  long long int neat = 1;
+  tagint nround = 1;
+  while (nround < nevents) {
+    nround *= 2;
+    m++;
+  }
 
-  while (neat < nevents) {neat *=2; m++;}
+  // offset = nround - 1 = where propensities start as leaves of tree
+  // ntotal = 2*nround - 1
+  // require ntotal <= MAXSMALLINT for indexing the tree
+  // means max N = 2^30 = 1 billion
 
-  // create tree of length ntotal
-  // use 64bit math, so we can handle ntotal = 2^31-1
+  offset = nround - 1;
+  nround = 2*nround - 1;
+  ntotal = nround;
+  if (ntotal > MAXSMALLINT)
+    error->one("Per-processor solve tree is too big");
 
-  ntotal = 2LL*neat - 1;
-  tree = new double[ntotal];
-  offset = neat - 1;
+  memory->destroy(tree);
+  memory->create(tree,ntotal,"solve:tree");
 
   for (int i = 0; i < ntotal; i++) tree[i] = 0.0;
-  for (int i = offset; i < offset + n; i++) 
+  for (int i = offset; i < offset + nevents; i++) 
     tree[i] = propensity[i-offset];
   sum_tree();
 }
@@ -206,13 +210,4 @@ int SolveTree::find(double value)
     }
   }
   return i - offset;
-}
-
-/* ----------------------------------------------------------------------
-   free arrays used by solver
-------------------------------------------------------------------------- */
-
-void SolveTree::free_arrays()
-{
-  delete [] tree;
 }

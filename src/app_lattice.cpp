@@ -15,7 +15,6 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
-#include "stdint.h"
 #include "app_lattice.h"
 #include "comm_lattice.h"
 #include "solve.h"
@@ -101,17 +100,17 @@ AppLattice::~AppLattice()
 
   delete ranapp;
   delete ranstrict;
-  memory->sfree(siteseeds);
-  memory->sfree(sitelist);
-  memory->sfree(mask);
+  memory->destroy(siteseeds);
+  memory->destroy(sitelist);
+  memory->destroy(mask);
 
   delete comm;
 
-  memory->sfree(owner);
-  memory->sfree(index);
+  memory->destroy(owner);
+  memory->destroy(index);
 
-  memory->sfree(numneigh);
-  memory->destroy_2d_T_array(neighbor);
+  memory->destroy(numneigh);
+  memory->destroy(neighbor);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -255,12 +254,11 @@ void AppLattice::init()
   // initialize mask array
 
   if (!Lmask && mask) {
-    memory->sfree(mask);
+    memory->destroy(mask);
     mask = NULL;
   }
   if (Lmask && mask == NULL) {
-    mask = (char *)
-      memory->smalloc((nlocal+nghost)*sizeof(char),"app:mask");
+    memory->create(mask,nlocal+nghost,"app:mask");
     for (int i = 0; i < nlocal+nghost; i++) mask[i] = 0;
   }
 
@@ -277,7 +275,7 @@ void AppLattice::init()
 
   if (sweepflag != COLOR_STRICT) {
     delete ranstrict;
-    memory->sfree(siteseeds);
+    memory->destroy(siteseeds);
     ranstrict = NULL;
     siteseeds = NULL;
   }
@@ -285,10 +283,9 @@ void AppLattice::init()
   if (sweepflag == COLOR_STRICT && ranstrict == NULL) {
     ranstrict = new RandomPark(ranmaster->uniform());
     double seed = ranmaster->uniform();
-    siteseeds = 
-      (int *) memory->smalloc(nlocal*sizeof(int),"app:siteseeds");
+    memory->create(siteseeds,nlocal,"app:siteseeds");
     for (int i = 0; i < nlocal; i++) {
-      ranstrict->reset(seed,id[i],100);
+      ranstrict->tagreset(seed,id[i],100);
       siteseeds[i] = ranstrict->seed;
     }
   }
@@ -418,10 +415,10 @@ void AppLattice::setup()
   // do this every run since sector timestep could have changed
 
   if (sweepflag == RANDOM) {
-    memory->sfree(sitelist);
+    memory->destroy(sitelist);
     int n = 0;
     for (int i = 0; i < nset; i++) n = MAX(n,set[i].nselect);
-    sitelist = (int *) memory->smalloc(n*sizeof(int),"app:sitelist");
+    memory->create(sitelist,n,"app:sitelist");
   }
 
   // second stage of app-specific setup
@@ -860,14 +857,20 @@ void AppLattice::set_update_only(int narg, char **arg)
 
 void AppLattice::stats(char *strtmp)
 {
-  uint64_t naccept_all;
-  MPI_Allreduce(&naccept,&naccept_all,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
-  if (solve) sprintf(strtmp,"%10g %10lu %10d %10d",time,naccept_all,0,0);
-  else {
-    uint64_t nattempt_all;
-    MPI_Allreduce(&nattempt,&nattempt_all,1,MPI_UNSIGNED_LONG,MPI_SUM,world);
-    sprintf(strtmp,"%10g %10lu %10lu %10d",
-	    time,naccept_all,nattempt_all-naccept_all,nsweeps);
+  char big[8],format[64];
+  strcpy(big,BIGINT_FORMAT);
+
+  bigint naccept_all;
+  MPI_Allreduce(&naccept,&naccept_all,1,MPI_SPK_BIGINT,MPI_SUM,world);
+
+  if (solve) {
+    sprintf(format,"%%10g %%10%s %%10d %%10d",&big[1]);
+    sprintf(strtmp,format,time,naccept_all,0,0);
+  } else {
+    bigint nattempt_all;
+    MPI_Allreduce(&nattempt,&nattempt_all,1,MPI_SPK_BIGINT,MPI_SUM,world);
+    sprintf(format,"%%10g %%10%s %%10%s %%10d",&big[1],&big[1]);
+    sprintf(strtmp,format,time,naccept_all,nattempt_all-naccept_all,nsweeps);
   }
 }
 
@@ -934,8 +937,7 @@ void AppLattice::create_set(int iset, int isector, int icolor, Solve *oldsolve)
 
   // setup site2i for sites in set
 
-  set[iset].site2i =
-    (int *) memory->smalloc(n*sizeof(int),"app:site2i");
+  memory->create(set[iset].site2i,n,"app:site2i");
 
   n = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -968,17 +970,15 @@ void AppLattice::create_set(int iset, int isector, int icolor, Solve *oldsolve)
   // i2site = 0 to nsite-1 for owned points in set, else -1
 
   if (solve) {
-    set[iset].i2site =
-      (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:i2site");
-      for (int i = 0; i < nlocal+nghost; i++) set[iset].i2site[i] = -1;
-      for (int i = 0; i < set[iset].nlocal; i++) 
-	set[iset].i2site[set[iset].site2i[i]] = i;
+    (int *) memory->create(set[iset].i2site,nlocal+nghost,"app:i2site");
+    for (int i = 0; i < nlocal+nghost; i++) set[iset].i2site[i] = -1;
+    for (int i = 0; i < set[iset].nlocal; i++) 
+      set[iset].i2site[set[iset].site2i[i]] = i;
   } else set[iset].i2site = NULL;
 
   // allocate propensity array for set
 
-  set[iset].propensity =
-    (double *) memory->smalloc(n*sizeof(double),"app:propensity");
+  memory->create(set[iset].propensity,n,"app:propensity");
 
   // allocate KMC solver for set
   // reuse old solver if provided, else delete it
@@ -1001,9 +1001,7 @@ void AppLattice::create_set(int iset, int isector, int icolor, Solve *oldsolve)
   if ((solve && sectorflag) || Lmask) {
     set[iset].nborder = find_border_sites(iset);
     if (solve && sectorflag)
-      set[iset].bsites =
-	(int *) memory->smalloc(set[iset].nborder*sizeof(int),
-				"app:bsites");
+      memory->create(set[iset].bsites,set[iset].nborder,"app:bsites");
     else set[iset].bsites = NULL;
   } else {
     set[iset].nborder = 0;
@@ -1019,11 +1017,11 @@ void AppLattice::create_set(int iset, int isector, int icolor, Solve *oldsolve)
 
 Solve *AppLattice::free_set(int iset)
 {
-  memory->sfree(set[iset].border);
-  memory->sfree(set[iset].bsites);
-  memory->sfree(set[iset].propensity);
-  memory->sfree(set[iset].site2i);
-  memory->sfree(set[iset].i2site);
+  memory->destroy(set[iset].border);
+  memory->destroy(set[iset].bsites);
+  memory->destroy(set[iset].propensity);
+  memory->destroy(set[iset].site2i);
+  memory->destroy(set[iset].i2site);
   return set[iset].solve;
 }
 
@@ -1046,7 +1044,8 @@ int AppLattice::find_border_sites(int isector)
   // flag sites with -1 that are not in sector
   // flag sites with 0 that are in sector
 
-  int *flag = (int *) memory->smalloc(ntotal*sizeof(int),"app:flag");
+  int *flag;
+  memory->create(flag,ntotal,"app:flag");
   for (i = 0; i < ntotal; i++) flag[i] = -1;
   for (m = 0; m < nsites; m++) flag[site2i[m]] = 0;
 
@@ -1075,8 +1074,8 @@ int AppLattice::find_border_sites(int isector)
     if (flag[i] < 0) nborder++;
   }
 
-  int *border = (int *)
-    memory->smalloc(nborder*sizeof(int),"app:border");
+  int *border;
+  memory->create(border,nborder,"app:border");
 
   nborder = 0;
   for (m = 0; m < nsites; m++) {
@@ -1084,7 +1083,7 @@ int AppLattice::find_border_sites(int isector)
     if (flag[i] < 0) border[nborder++] = i;
   }
 
-  memory->sfree(flag);
+  memory->destroy(flag);
 
   set[isector].border = border;
   return nborder;
@@ -1152,15 +1151,17 @@ void AppLattice::connected_ghosts(int i, int* cluster_ids,
   int ii;
   int isite = iarray[0][i];
 
-  // Check if this was a site that was ignored
+  // check if this was a site that was ignored
+
   if (cluster_ids[i] == 0) return;
 
   iclust = cluster_ids[i]-idoffset;
+  
+  // add ghost cluster to neighbors of local cluster
 
   for (int j = 0; j < numneigh[i]; j++) {
     ii = neighbor[i][j];
     if (iarray[0][ii] == isite && ii >= nlocal) {
-      // Add ghost cluster to neighbors of local cluster
       clustlist[iclust].add_neigh(cluster_ids[ii]);
     }
   }
@@ -1176,23 +1177,21 @@ void AppLattice::grow(int n)
 {
   if (n == 0) nmax += DELTA;
   else nmax = n;
+  if (nmax < 0 || nmax > MAXSMALLINT)
+    error->one("Per-processor system is too big");
 
-  id = (int *)  memory->srealloc(id,nmax*sizeof(int),"app:id");
-  xyz = memory->grow_2d_double_array(xyz,nmax,3,"app:xyz");
-  owner = (int *) memory->srealloc(owner,nmax*sizeof(int),"app:owner");
-  index = (int *) memory->srealloc(index,nmax*sizeof(int),"app:index");
+  memory->grow(id,nmax,"app:id");
+  memory->grow(xyz,nmax,3,"app:xyz");
+  memory->grow(owner,nmax,"app:owner");
+  memory->grow(index,nmax,"app:index");
 
-  numneigh = (int *) 
-    memory->srealloc(numneigh,nmax*sizeof(int),"app:numneigh");
-  if (maxneigh)
-    memory->grow_2d_T_array(neighbor,nmax,maxneigh,"app:neighbor");
+  memory->grow(numneigh,nmax,"app:numneigh");
+  if (maxneigh) memory->grow(neighbor,nmax,maxneigh,"app:neighbor");
 
   for (int i = 0; i < ninteger; i++)
-    iarray[i] = (int *) 
-      memory->srealloc(iarray[i],nmax*sizeof(int),"app:iarray");
+    memory->grow(iarray[i],nmax,"app:iarray");
   for (int i = 0; i < ndouble; i++)
-    darray[i] = (double *) 
-      memory->srealloc(darray[i],nmax*sizeof(double),"app:darray");
+    memory->grow(darray[i],nmax,"app:darray");
 
   grow_app();
 }
@@ -1203,7 +1202,7 @@ void AppLattice::grow(int n)
    grow arrays if necessary
  ------------------------------------------------------------------------- */
 
-void AppLattice::add_site(int n, double x, double y, double z)
+void AppLattice::add_site(tagint n, double x, double y, double z)
 {
   if (nlocal == nmax) grow(0);
 
@@ -1227,7 +1226,7 @@ void AppLattice::add_site(int n, double x, double y, double z)
    grow arrays if necessary
  ------------------------------------------------------------------------- */
 
-void AppLattice::add_ghost(int n, double x, double y, double z,
+void AppLattice::add_ghost(tagint n, double x, double y, double z,
 			   int proc, int index_owner)
 {
   if (nlocal+nghost == nmax) grow(0);
@@ -1280,32 +1279,34 @@ void AppLattice::print_connectivity()
 {
   int i;
 
-  int min = maxneigh;
-  int max = 0;
+  tagint min = maxneigh;
+  tagint max = 0;
 
   for (i = 0; i < nlocal; i++) {
     min = MIN(min,numneigh[i]);
     max = MAX(max,numneigh[i]);
   }
 
-  int minall,maxall;
-  MPI_Allreduce(&min,&minall,1,MPI_INT,MPI_MIN,world);
-  MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
+  tagint minall,maxall;
+  MPI_Allreduce(&min,&minall,1,MPI_SPK_TAGINT,MPI_MIN,world);
+  MPI_Allreduce(&max,&maxall,1,MPI_SPK_TAGINT,MPI_MAX,world);
 
-  int *count = new int[maxall+1];
-  int *countall = new int[maxall+1];
+  tagint *count = new tagint[maxall+1];
+  tagint *countall = new tagint[maxall+1];
 
   for (i = 0; i <= maxall; i++) count[i] = 0;
 
   for (i = 0; i < nlocal; i++) count[numneigh[i]]++;
-  MPI_Allreduce(count,countall,maxall+1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(count,countall,maxall+1,MPI_SPK_TAGINT,MPI_SUM,world);
 
   if (me == 0)
     for (i = minall; i <= maxall; i++) {
       if (screen)
-	fprintf(screen,"  %d sites have %d neighbors\n",countall[i],i);
+	fprintf(screen,"  " TAGINT_FORMAT " sites have %d neighbors\n",\
+		countall[i],i);
       if (logfile)
-	fprintf(logfile,"  %d sites have %d neighbors\n",countall[i],i);
+	fprintf(logfile,"  " TAGINT_FORMAT " sites have %d neighbors\n",
+		countall[i],i);
     }
 
   delete [] count;

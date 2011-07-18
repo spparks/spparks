@@ -102,7 +102,7 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) :
 DiagCluster::~DiagCluster()
 {
   delete comm;
-  memory->destroy_1d_T_array(cluster_ids,0);
+  memory->destroy(cluster_ids);
   free_clustlist();
   delete [] opendxroot;
   if (me == 0 ) {
@@ -120,7 +120,6 @@ void DiagCluster::init()
   if (lattice == NULL) 
     error->all("Cannot use diag_style cluster without a lattice defined");
 
-  nglobal = applattice->nglobal;
   nlocal = applattice->nlocal;
   nghost = applattice->nghost;
 
@@ -134,12 +133,11 @@ void DiagCluster::init()
   boxzlo = domain->boxzlo;
   boxzhi = domain->boxzhi;
 
-  if (nglobal > 2.1474e9)
+  if (app->nglobal > MAXSMALLINT)
     error->all("Diag dump_style does not work if ncluster > 2^31");
 
-  memory->destroy_1d_T_array(cluster_ids,0);
-  memory->create_1d_T_array(cluster_ids,0,nlocal+nghost-1,
-			    "diagcluster:cluster");
+  memory->destroy(cluster_ids);
+  memory->create(cluster_ids,nlocal+nghost,"diagcluster:cluster");
 
   if (!comm) {
     comm = new CommLattice(spk);
@@ -199,7 +197,7 @@ void DiagCluster::write_header()
   if (me == 0) {
     if (fp) {
       fprintf(fp,"Clustering Analysis for Lattice (diag_style cluster) \n");
-      fprintf(fp,"nglobal = %d \n",nglobal);
+      fprintf(fp,"nglobal = " TAGINT_FORMAT " \n",app->nglobal);
       fprintf(fp,"nprocs = %d \n",nprocs);
     }
   }
@@ -270,7 +268,8 @@ void DiagCluster::generate_clusters()
 
   int *site = app->iarray[0];
 
-  int nclustertot,ii,id;
+  int nclustertot,ii;
+  tagint id;
   double vol,volsum,voltot;
 
   ncluster = 0;
@@ -503,7 +502,7 @@ void DiagCluster::dump_clusters(double time)
   int nrecv;
   double* dbuftmp;
   int maxbuftmp;
-  int cid, isite;
+  tagint cid,isite;
   int nsites = nx_global*ny_global*nz_global;
   int* datadx;
   int* randomkeys;
@@ -514,7 +513,7 @@ void DiagCluster::dump_clusters(double time)
       fprintf(fpdump,"ITEM: TIMESTEP\n");
       fprintf(fpdump,"%g\n",time);
       fprintf(fpdump,"ITEM: NUMBER OF ATOMS\n");
-      fprintf(fpdump,"%d\n",nglobal);
+      fprintf(fpdump,TAGINT_FORMAT "\n",app->nglobal);
       fprintf(fpdump,"ITEM: BOX BOUNDS\n");
       fprintf(fpdump,"%g %g\n",boxxlo,boxxhi);
       fprintf(fpdump,"%g %g\n",boxylo,boxyhi);
@@ -558,8 +557,8 @@ void DiagCluster::dump_clusters(double time)
       fprintf(fpdump,"\n# Feed data.\n");
       fprintf(fpdump,"object 3 class array type int rank 0 items %d data follows\n#data goes here\n",
 	      nx_global*ny_global*nz_global);
-      datadx = (int *) memory->smalloc(nsites*sizeof(int),"diagcluster:datadx");
-      randomkeys = (int *) memory->smalloc(ncluster*sizeof(int),"diagcluster:randomkeys");
+      memory->create(datadx,nsites,"diagcluster:datadx");
+      memory->create(randomkeys,ncluster,"diagcluster:randomkeys");
       randomtmp = new RandomPark(12345);
       for (int i = 0; i < ncluster; i++) {
 	randomkeys[i] = randomtmp->irandom(nsites);
@@ -571,8 +570,8 @@ void DiagCluster::dump_clusters(double time)
 
   maxbuftmp = 0;
   MPI_Allreduce(&nlocal,&maxbuftmp,1,MPI_INT,MPI_MAX,world);
-  dbuftmp = (double*) memory->smalloc(size_one*maxbuftmp*sizeof(double),
-				      "diagcluster:dump_clusters:buftmp");
+  memory->create(dbuftmp,size_one*maxbuftmp,
+		 "diagcluster:dump_clusters:buftmp");
 
   int m = 0;
 
@@ -609,17 +608,17 @@ void DiagCluster::dump_clusters(double time)
 
       if (dump_style == STANDARD) {
 	for (int i = 0; i < nrecv; i++) {
-	  cid = static_cast<int>(dbuftmp[m+1])-1;
+	  cid = static_cast<tagint> (dbuftmp[m+1])-1;
 	  cid = clustlist[cid].global_id;
-	  fprintf(fpdump,"%d %d %g %g %g\n",
+	  fprintf(fpdump,"%d " TAGINT_FORMAT " %g %g %g\n",
 		  static_cast<int>(dbuftmp[m]),cid,
 		  dbuftmp[m+2],dbuftmp[m+3],dbuftmp[m+4]);
 	  m += size_one;
 	}
       } else if (dump_style == OPENDX) {
 	for (int i = 0; i < nrecv; i++) {
-	  isite = static_cast<int>(dbuftmp[m]);
-	  cid = clustlist[static_cast<int>(dbuftmp[m+1])].global_id;
+	  isite = static_cast<int> (dbuftmp[m]);
+	  cid = clustlist[static_cast<int> (dbuftmp[m+1])].global_id;
 	  datadx[isite-1] = cid;
 	  m += size_one;
 	}
@@ -631,7 +630,7 @@ void DiagCluster::dump_clusters(double time)
     MPI_Rsend(dbuftmp,size_one*nlocal,MPI_DOUBLE,0,0,world);
   }
 
-  memory->sfree(dbuftmp);
+  memory->destroy(dbuftmp);
 
   if (me == 0) {
     if (dump_style == STANDARD) {
@@ -656,8 +655,8 @@ void DiagCluster::dump_clusters(double time)
       fclose(fpdump);
       fpdump = NULL;
 
-      memory->sfree(datadx);
-      memory->sfree(randomkeys);
+      memory->destroy(datadx);
+      memory->destroy(randomkeys);
       delete randomtmp;
     }
   }
@@ -671,7 +670,7 @@ void DiagCluster::free_clustlist()
   // that would free memory twice.
   // Instead, need to delete neighlist manually.
 
-  for (int i = 0; i < ncluster; i++) free(clustlist[i].neighlist);
+  for (int i = 0; i < ncluster; i++) memory->sfree(clustlist[i].neighlist);
   memory->sfree(clustlist);
   clustlist = NULL;
   ncluster = 0;

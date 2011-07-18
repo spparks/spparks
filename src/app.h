@@ -30,12 +30,12 @@ class App : protected Pointers {
 
   // owned + ghost sites
 
-  int nglobal;                 // global # of sites
+  tagint nglobal;              // global # of sites
   int nlocal;                  // # of sites I own
   int nghost;                  // # of ghost sites I store
 
   int ninteger,ndouble;        // # of ints and doubles per site
-  int *id;                     // global ID of site
+  tagint *id;                  // global ID of site
   double **xyz;                // coords of site
   int **iarray;                // one or more ints per site
   double **darray;             // one or more doubles per site

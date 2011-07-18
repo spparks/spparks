@@ -36,6 +36,7 @@ class CreateSites : protected Pointers {
   double dvalue;
   int *basisflag,*basis_ivalue;
   double *basis_dvalue;
+  int maxneigh;
 
   int latticeflag;
   class AppLattice *applattice;
@@ -43,6 +44,10 @@ class CreateSites : protected Pointers {
 
   int latstyle,nbasis,nx,ny,nz;
   double xlattice,ylattice,zlattice;
+
+  tagint **idneigh;            // global indices of neighbors of each site
+                               // same as AppLattice neighbor, but tagint
+                               // tmp usage until convert to local indices
 
   int ***cmap;                 // connectivity map for regular lattices
                                // cmap[nbasis][maxneigh][4]
@@ -59,12 +64,12 @@ class CreateSites : protected Pointers {
   void random_sites();
   void random_connectivity();
 
-  int connect(int, int);
-  void offsets(int, double **);
+  tagint connect(tagint, int);
+  void offsets(double **);
   void offsets_2d(int, double **, double, double, int, int **);
   void offsets_3d(int, double **, double, double, int, int **);
 
-  void id2xyz(int, double &, double &, double &);
+  void id2xyz(tagint, double &, double &, double &);
 };
 
 }

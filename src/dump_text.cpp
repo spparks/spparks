@@ -29,7 +29,7 @@ using namespace SPPARKS_NS;
 
 enum{ID,SITE,X,Y,Z,ENERGY,PROPENSITY,IARRAY,DARRAY};
 enum{LT,LE,GT,GE,EQ,NEQ};
-enum{INT,DOUBLE};           // also in dump_image
+enum{INT,DOUBLE,TAGINT};           // also in dump_image
 
 #define MAXLINE 1024
 
@@ -78,6 +78,7 @@ DumpText::DumpText(SPPARKS *spk, int narg, char **arg) : Dump(spk, narg, arg)
     char *format;
     if (vtype[i] == INT) format = "%d ";
     else if (vtype[i] == DOUBLE) format = "%g ";
+    else if (vtype[i] == TAGINT) format = TAGINT_FORMAT " ";
     int n = strlen(format) + 1;
     vformat[i] = new char[n];
     strcpy(vformat[i],format);
@@ -223,7 +224,7 @@ int DumpText::count()
     for (int ithresh = 0; ithresh < nthresh; ithresh++) {
 
       if (thresh_array[ithresh] == ID) {
-	int *id = app->id;
+	tagint *id = app->id;
 	for (i = 0; i < nlocal; i++) dchoose[i] = id[i];
 	ptr = dchoose;
 	nstride = 1;
@@ -386,8 +387,12 @@ void DumpText::write_text(int n, double *buf)
   int m = 0;
   for (i = 0; i < n; i++) {
     for (j = 0; j < size_one; j++) {
-      if (vtype[j] == INT) fprintf(fp,vformat[j],static_cast<int> (buf[m]));
-      else fprintf(fp,vformat[j],buf[m]);
+      if (vtype[j] == INT)
+	fprintf(fp,vformat[j],static_cast<int> (buf[m]));
+      else if (vtype[j] == DOUBLE)
+	fprintf(fp,vformat[j],buf[m]);
+      else if (vtype[j] == TAGINT) 
+	fprintf(fp,vformat[j],static_cast<tagint> (buf[m]));
       m++;
     }
     fprintf(fp,"\n");
@@ -404,7 +409,7 @@ int DumpText::parse_fields(int narg, char **arg)
 
     if (strcmp(arg[iarg],"id") == 0) {
       pack_choice[i] = &DumpText::pack_id;
-      vtype[i] = INT;
+      vtype[i] = TAGINT;
     } else if (strcmp(arg[iarg],"site") == 0) {
       pack_choice[i] = &DumpText::pack_site;
       vtype[i] = INT;
@@ -569,7 +574,7 @@ int DumpText::modify_param(int narg, char **arg)
 
 void DumpText::pack_id(int n)
 {
-  int *id = app->id;
+  tagint *id = app->id;
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = id[clist[i]];

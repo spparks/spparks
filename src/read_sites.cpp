@@ -197,7 +197,6 @@ void ReadSites::header()
 
   // defaults
 
-  nglobal = 0;
   maxneigh = 0;
   boxxlo = boxylo = boxzlo = -0.5;
   boxxhi = boxyhi = boxzhi = 0.5;
@@ -238,15 +237,12 @@ void ReadSites::header()
 	error->all("Data file dimension does not match existing box");
       domain->dimension = dimension;
     } else if (strstr(line,"sites")) {
-      sscanf(line,"%d",&nglobal);
-      if (app->sites_exist) {
-	if (latticeflag && nglobal != applattice->nglobal)
-	  error->all("Data file number of sites "
-		     "does not match existing sites");
-	if (!latticeflag && nglobal != appoff->nglobal)
-	  error->all("Data file number of sites "
-		     "does not match existing sites");
-      }
+      tagint nglobal;
+      sscanf(line,TAGINT_FORMAT,&nglobal);
+      if (app->sites_exist && nglobal != app->nglobal)
+	error->all("Data file number of sites "
+		   "does not match existing sites");
+      app->nglobal = nglobal;
     } else if (strstr(line,"max neighbors")) {
       sscanf(line,"%d",&maxneigh);
       if (!latticeflag) 
@@ -272,6 +268,11 @@ void ReadSites::header()
     } else break;
   }
 
+  // error check on total system size
+
+  if (app->nglobal < 0 || app->nglobal > MAXTAGINT)
+    error->all("System in site file is too big");
+
   // check that exiting string is a valid section keyword
 
   parse_keyword(1);
@@ -286,7 +287,6 @@ void ReadSites::header()
 
 /* ----------------------------------------------------------------------
    read all sites
-   accumulate nread in double precision to allow nglobal > 2^31
 ------------------------------------------------------------------------- */
 
 void ReadSites::sites()
@@ -306,11 +306,12 @@ void ReadSites::sites()
   // read and broadcast one CHUNK of lines at a time
   // add a site if I own its coords
 
-  int nread = 0;
+  tagint nread = 0;
+  tagint nglobal = app->nglobal;
 
   while (nread < nglobal) {
     if (nglobal-nread > CHUNK) nchunk = CHUNK;
-    else nchunk = static_cast<int> (nglobal - nread);
+    else nchunk = nglobal-nread;
     if (me == 0) {
       char *eof;
       m = 0;
@@ -319,12 +320,12 @@ void ReadSites::sites()
 	if (eof == NULL) error->one("Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
-      buffer[m++] = '\n';
+      m++;
     }
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
-    buf = buffer;
 
+    buf = buffer;
     next = strchr(buf,'\n');
     *next = '\0';
     int nwords = count_words(buf);
@@ -340,7 +341,7 @@ void ReadSites::sites()
       values[2] = strtok(NULL," \t\n\r\f");
       values[3] = strtok(NULL," \t\n\r\f");
 
-      id = atoi(values[0]);
+      id = ATOTAGINT(values[0]);
       x = atof(values[1]);
       y = atof(values[2]);
       z = atof(values[3]);
@@ -360,11 +361,12 @@ void ReadSites::sites()
 
   // check that all sites were assigned correctly
 
-  MPI_Allreduce(&app->nlocal,&app->nglobal,1,MPI_INT,MPI_SUM,world);
+  tagint tmp = app->nlocal;
+  MPI_Allreduce(&tmp,&nglobal,1,MPI_INT,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %d sites\n",app->nglobal);
-    if (logfile) fprintf(logfile,"  %d sites\n",app->nglobal);
+    if (screen) fprintf(screen,"  " TAGINT_FORMAT " sites\n",nglobal);
+    if (logfile) fprintf(logfile,"  " TAGINT_FORMAT " sites\n",nglobal);
   }
 
   if (nglobal != app->nglobal) 
@@ -385,35 +387,36 @@ void ReadSites::sites()
 /* ----------------------------------------------------------------------
    read all neighbors of sites
    to find atoms, must build atom map if not a molecular system 
-   accumulate nread in double precision to allow natoms > 2^31
 ------------------------------------------------------------------------- */
 
 void ReadSites::neighbors()
 {
-  int i,m,nchunk,idone,nvalues;
+  int i,m,nchunk,nvalues;
+  tagint idone;
   char *next,*buf;
 
   // put my entire list of owned site IDs in a hash
 
-  std::map<int,int>::iterator loc;
-  std::map<int,int> hash;
+  std::map<tagint,int>::iterator loc;
+  std::map<tagint,int> hash;
 
-  int *id = app->id;
+  tagint *id = app->id;
   int nlocal = app->nlocal;
 
   for (i = 0; i < nlocal; i++)
-    hash.insert(std::pair<int,int> (id[i],i));
+    hash.insert(std::pair<tagint,int> (id[i],i));
 
   // read and broadcast one CHUNK of lines at a time
   // store site's neighbors if I own its ID
 
   char **values = new char*[maxneigh+1];
 
-  int nread = 0;
+  tagint nread = 0;
+  tagint nglobal = app->nglobal;
 
   while (nread < nglobal) {
     if (nglobal-nread > CHUNK) nchunk = CHUNK;
-    else nchunk = static_cast<int> (nglobal - nread);
+    else nchunk = nglobal-nread;
     if (me == 0) {
       char *eof;
       m = 0;
@@ -422,7 +425,7 @@ void ReadSites::neighbors()
 	if (eof == NULL) error->one("Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
-      buffer[m++] = '\n';
+      m++;
     }
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
@@ -432,7 +435,7 @@ void ReadSites::neighbors()
       next = strchr(buf,'\n');
       *next = '\0';
 
-      idone = atoi(strtok(buf," \t\n\r\f"));
+      idone = ATOTAGINT(strtok(buf," \t\n\r\f"));
       loc = hash.find(idone);
 
       if (loc != hash.end()) {
@@ -455,39 +458,39 @@ void ReadSites::neighbors()
 
   delete [] values;
 
-  int ncount = 0;
+  bigint ncount = 0;
   for (i = 0; i < app->nlocal; i++)
     ncount += applattice->numneigh[i];
-  int ntotal;
-  MPI_Allreduce(&ncount,&ntotal,1,MPI_INT,MPI_SUM,world);
+  bigint ntotal;
+  MPI_Allreduce(&ncount,&ntotal,1,MPI_SPK_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %d neighbors\n",ntotal);
-    if (logfile) fprintf(logfile,"  %d neighbors\n",ntotal);
+    if (screen) fprintf(screen,"  " BIGINT_FORMAT " neighbors\n",ntotal);
+    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " neighbors\n",ntotal);
   }
 }
 
 /* ----------------------------------------------------------------------
    read all per-site values
    to find atoms, must build atom map if not a molecular system 
-   accumulate nread in double precision to allow natoms > 2^31
 ------------------------------------------------------------------------- */
 
 void ReadSites::values()
 {
-  int i,m,nchunk,idone;
+  int i,m,nchunk;
+  tagint idone;
   char *next,*buf;
 
   // put my entire list of owned site IDs in a hash
 
-  std::map<int,int>::iterator loc;
-  std::map<int,int> hash;
+  std::map<tagint,int>::iterator loc;
+  std::map<tagint,int> hash;
 
-  int *id = app->id;
+  tagint *id = app->id;
   int nlocal = app->nlocal;
 
   for (i = 0; i < nlocal; i++)
-    hash.insert(std::pair<int,int> (id[i],i));
+    hash.insert(std::pair<tagint,int> (id[i],i));
 
   // read and broadcast one CHUNK of lines at a time
   // store site's values if I own its ID
@@ -495,11 +498,12 @@ void ReadSites::values()
   int nvalues = app->ninteger + app->ndouble;
   char **values = new char*[nvalues];
 
-  int nread = 0;
+  tagint nread = 0;
+  tagint nglobal = app->nglobal;
 
   while (nread < nglobal) {
     if (nglobal-nread > CHUNK) nchunk = CHUNK;
-    else nchunk = static_cast<int> (nglobal - nread);
+    else nchunk = nglobal-nread;
     if (me == 0) {
       char *eof;
       m = 0;
@@ -508,12 +512,12 @@ void ReadSites::values()
 	if (eof == NULL) error->one("Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
-      buffer[m++] = '\n';
+      m++;
     }
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
-    buf = buffer;
 
+    buf = buffer;
     next = strchr(buf,'\n');
     *next = '\0';
     int nwords = count_words(buf);
@@ -524,7 +528,7 @@ void ReadSites::values()
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
 
-      idone = atoi(strtok(buf," \t\n\r\f"));
+      idone = ATOTAGINT(strtok(buf," \t\n\r\f"));
       loc = hash.find(idone);
 
       if (loc != hash.end()) {
@@ -541,9 +545,12 @@ void ReadSites::values()
 
   delete [] values;
 
+  bigint nbig = nglobal;
   if (me == 0) {
-    if (screen) fprintf(screen,"  %d values\n",nglobal*nvalues);
-    if (logfile) fprintf(logfile,"  %d values\n",nglobal*nvalues);
+    if (screen) fprintf(screen,"  " BIGINT_FORMAT " values\n",
+			nbig*nvalues);
+    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " values\n",
+			 nbig*nvalues);
   }
 }
 

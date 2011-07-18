@@ -69,26 +69,26 @@ AppErbium::~AppErbium()
   delete [] esites;
   delete [] echeck;
   memory->sfree(events);
-  memory->sfree(firstevent);
+  memory->destroy(firstevent);
 
-  memory->sfree(srate);
-  memory->sfree(drate);
-  memory->sfree(trate);
-  memory->sfree(spropensity);
-  memory->sfree(dpropensity);
-  memory->sfree(tpropensity);
-  memory->sfree(stype);
-  memory->sfree(sinput);
-  memory->sfree(soutput);
-  memory->destroy_2d_int_array(dtype);
-  memory->destroy_2d_int_array(dinput);
-  memory->destroy_2d_int_array(doutput);
-  memory->destroy_2d_int_array(ttype);
-  memory->destroy_2d_int_array(tinput);
-  memory->destroy_2d_int_array(toutput);
-  memory->sfree(scount);
-  memory->sfree(dcount);
-  memory->sfree(tcount);
+  memory->destroy(srate);
+  memory->destroy(drate);
+  memory->destroy(trate);
+  memory->destroy(spropensity);
+  memory->destroy(dpropensity);
+  memory->destroy(tpropensity);
+  memory->destroy(stype);
+  memory->destroy(sinput);
+  memory->destroy(soutput);
+  memory->destroy(dtype);
+  memory->destroy(dinput);
+  memory->destroy(doutput);
+  memory->destroy(ttype);
+  memory->destroy(tinput);
+  memory->destroy(toutput);
+  memory->destroy(scount);
+  memory->destroy(dcount);
+  memory->destroy(tcount);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -236,7 +236,7 @@ void AppErbium::init_app()
     firsttime = 0;
 
     echeck = new int[nlocal];
-    firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
+    memory->create(firstevent,nlocal,"app:firstevent");
 
     // esites must be large enough for 3 sites and their 1st neighbors
     
@@ -515,41 +515,29 @@ void AppErbium::grow_reactions(int rstyle)
 {
   if (rstyle == 1) {
     int n = none + 1;
-    srate = (double *) 
-      memory->srealloc(srate,n*sizeof(double),"app/erbium:srate");
-    spropensity = (double *) 
-      memory->srealloc(spropensity,n*sizeof(double),"app/erbium:spropensity");
-    stype = (int *) 
-      memory->srealloc(stype,n*sizeof(int),"app/erbium:stype");
-    sinput = (int *) 
-      memory->srealloc(sinput,n*sizeof(int),"app/erbium:sinput");
-    soutput = (int *) 
-      memory->srealloc(soutput,n*sizeof(int),"app/erbium:soutput");
-    scount = (int *) 
-      memory->srealloc(scount,n*sizeof(int),"app/erbium:scount");
+    memory->grow(srate,n,"app/erbium:srate");
+    memory->grow(spropensity,n,"app/erbium:spropensity");
+    memory->grow(stype,n,"app/erbium:stype");
+    memory->grow(sinput,n,"app/erbium:sinput");
+    memory->grow(soutput,n,"app/erbium:soutput");
+    memory->grow(scount,n,"app/erbium:scount");
 
   } else if (rstyle == 2) {
     int n = ntwo + 1;
-    drate = (double *) 
-      memory->srealloc(drate,n*sizeof(double),"app/erbium:drate");
-    dpropensity = (double *) 
-      memory->srealloc(dpropensity,n*sizeof(double),"app/erbium:dpropensity");
-    dtype = memory->grow_2d_int_array(dtype,n,2,"app/erbium:dtype");
-    dinput = memory->grow_2d_int_array(dinput,n,2,"app/erbium:dinput");
-    doutput = memory->grow_2d_int_array(doutput,n,2,"app/erbium:doutput");
-    dcount = (int *) 
-      memory->srealloc(dcount,n*sizeof(int),"app/erbium:dcount");
+    memory->grow(drate,n,"app/erbium:drate");
+    memory->grow(dpropensity,n,"app/erbium:dpropensity");
+    dtype = memory->grow(dtype,n,2,"app/erbium:dtype");
+    dinput = memory->grow(dinput,n,2,"app/erbium:dinput");
+    doutput = memory->grow(doutput,n,2,"app/erbium:doutput");
+    memory->grow(dcount,n,"app/erbium:dcount");
 
   } else if (rstyle == 3) {
     int n = nthree + 1;
-    trate = (double *) 
-      memory->srealloc(trate,n*sizeof(double),"app/erbium:trate");
-    tpropensity = (double *) 
-      memory->srealloc(tpropensity,n*sizeof(double),"app/erbium:tpropensity");
-    ttype = memory->grow_2d_int_array(ttype,n,3,"app/erbium:ttype");
-    tinput = memory->grow_2d_int_array(tinput,n,3,"app/erbium:tinput");
-    toutput = memory->grow_2d_int_array(toutput,n,3,"app/erbium:toutput");
-    tcount = (int *) 
-      memory->srealloc(tcount,n*sizeof(int),"app/erbium:tcount");
+    memory->grow(trate,n,"app/erbium:trate");
+    memory->grow(tpropensity,n,"app/erbium:tpropensity");
+    ttype = memory->grow(ttype,n,3,"app/erbium:ttype");
+    tinput = memory->grow(tinput,n,3,"app/erbium:tinput");
+    toutput = memory->grow(toutput,n,3,"app/erbium:toutput");
+    memory->grow(tcount,n,"app/erbium:tcount");
   }
 }

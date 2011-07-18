@@ -35,8 +35,8 @@ class DiagCluster : public Diag {
   void stats_header(char *);
 
  protected:
-  int* cluster_ids;
-  int ncluster, ncluster_reduced;
+  int *cluster_ids;
+  int ncluster,ncluster_reduced;
   double vav,rav;
   class Cluster *clustlist;
   std::stack<int> cluststack;      // stack for performing cluster analysis
@@ -48,10 +48,9 @@ class DiagCluster : public Diag {
 
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // simulation box bounds
 
-  int *id;                     // global ID (1-N) of site
+  tagint *id;                  // global ID (1-N) of site
   double **xyz;                // coords of site
 
-  int nglobal;                 // global # of sites
   int nlocal;                  // # of sites I own
   int nghost;                  // # of ghost sites I store
 

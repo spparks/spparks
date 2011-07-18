@@ -228,8 +228,9 @@ void AppPottsPin::site_event(int i, RandomPark *random)
 
 void AppPottsPin::pin_create()
 {
-  int i,j,m,nattempt,iglobal,nme,npin,ndiff;
+  int i,j,m,nattempt,nme,npin,ndiff;
   int flag,flags[2],flagall[2];
+  tagint iglobal;
 
   int ndesired = static_cast<int> (pfraction*nglobal);
 
@@ -241,16 +242,16 @@ void AppPottsPin::pin_create()
   // nthresh > 0 for insertion at grain boundaries
 
   if (!multi) {
-    std::map<int,int> hash;
+    std::map<tagint,int> hash;
     for (i = 0; i < nlocal; i++)
-      hash.insert(std::pair<int,int> (id[i],i));
-    std::map<int,int>::iterator loc;
+      hash.insert(std::pair<tagint,int> (id[i],i));
+    std::map<tagint,int>::iterator loc;
 
     npin = 0;
     while (npin < ndesired) {
       nattempt = ndesired - npin;
       for (i = 0; i < nattempt; i++) {
-	iglobal = random->irandom(nglobal);
+	iglobal = random->tagrandom(nglobal);
 	loc = hash.find(iglobal);
 	if (loc != hash.end()) {
 	  if (nthresh == 0) spin[loc->second] = nspins+1;
@@ -276,16 +277,16 @@ void AppPottsPin::pin_create()
   // nthresh > 0 for insertion at grain boundaries
 
   } else if (multi) {
-    std::map<int,int> hash;
+    std::map<tagint,int> hash;
     for (i = 0; i < nlocal+nghost; i++)
-      hash.insert(std::pair<int,int> (id[i],i));
-    std::map<int,int>::iterator loc;
+      hash.insert(std::pair<tagint,int> (id[i],i));
+    std::map<tagint,int>::iterator loc;
 
-    int *list = new int[maxneigh+1];
+    tagint *list = new tagint[maxneigh+1];
 
     npin = 0;
     while (npin < ndesired) {
-      iglobal = random->irandom(nglobal);
+      iglobal = random->tagrandom(nglobal);
       loc = hash.find(iglobal);
       if (loc != hash.end() && loc->second < nlocal) {
 	flag = 1;

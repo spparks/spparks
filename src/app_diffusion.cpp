@@ -114,15 +114,15 @@ AppDiffusion::~AppDiffusion()
   delete [] echeck;
   delete [] pcheck;
   memory->sfree(events);
-  memory->sfree(firstevent);
+  memory->destroy(firstevent);
 
-  memory->destroy_2d_double_array(hbarrier);
-  memory->destroy_2d_double_array(sbarrier);
+  memory->destroy(hbarrier);
+  memory->destroy(sbarrier);
   delete [] ecoord;
 
   delete [] hopsite;
   delete [] marklist;
-  memory->sfree(mark);
+  memory->destroy(mark);
 }
 
 /* ----------------------------------------------------------------------
@@ -1310,15 +1310,13 @@ void AppDiffusion::allocate_data()
   echeck = new int[nlocal+nghost];
   pcheck = new int[nlocal+nghost];
 
-  firstevent = (int *) memory->smalloc(nlocal*sizeof(int),"app:firstevent");
+  memory->create(firstevent,nlocal,"app:firstevent");
 
   ecoord = new double[maxneigh+1];
   for (int i = 0; i <= maxneigh; i++) ecoord[i] = 0.0;
 
-  hbarrier = 
-    memory->create_2d_double_array(maxneigh+1,maxneigh+1,"app:hbarrier");
-  sbarrier = 
-    memory->create_2d_double_array(maxneigh+1,maxneigh+1,"app:sbarrier");
+  memory->create(hbarrier,maxneigh+1,maxneigh+1,"app:hbarrier");
+  memory->create(sbarrier,maxneigh+1,maxneigh+1,"app:sbarrier");
 
   for (int i = 0; i <= maxneigh; i++)
     for (int j = 0; j <= maxneigh; j++)
@@ -1328,8 +1326,7 @@ void AppDiffusion::allocate_data()
   marklist = new int[maxneigh*maxneigh];
 
   mark = NULL;
-  if (hopstyle == SCHWOEBEL)
-    mark = (int *) memory->smalloc((nlocal+nghost)*sizeof(int),"app:mark");
+  if (hopstyle == SCHWOEBEL) memory->create(mark,nlocal+nghost,"app:mark");
   if (mark)
     for (int i = 0; i < nlocal+nghost; i++) mark[i] = 0;
 }

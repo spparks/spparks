@@ -67,7 +67,7 @@ Lattice::Lattice(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   if (style == RANDOM_1D || style == RANDOM_2D || style == RANDOM_3D) {
     if (narg != 3) error->all("Illegal lattice command");
     latconst = 1.0;
-    nrandom = atoi(arg[1]);
+    nrandom = ATOTAGINT(arg[1]);
     cutoff = atof(arg[2]);
   }
 
@@ -158,7 +158,7 @@ Lattice::Lattice(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 
 Lattice::~Lattice()
 {
-  memory->destroy_2d_double_array(basis);
+  memory->destroy(basis);
 }
 
 /* ----------------------------------------------------------------------
@@ -168,7 +168,7 @@ Lattice::~Lattice()
 
 void Lattice::add_basis(double x, double y, double z)
 {
-  basis = memory->grow_2d_double_array(basis,nbasis+1,3,"lattice:basis");
+  memory->grow(basis,nbasis+1,3,"lattice:basis");
   basis[nbasis][0] = x;
   basis[nbasis][1] = y;
   basis[nbasis][2] = z;
@@ -220,9 +220,10 @@ int Lattice::ncolors(int delcolor, int nx, int ny, int nz)
    convert a lattice ID (1 to Nsites) to a color (1 to Ncolor)
 ------------------------------------------------------------------------- */
 
-int Lattice::id2color(int idsite, int delcolor, int nx, int ny, int nz)
+int Lattice::id2color(tagint idsite, int delcolor, int nx, int ny, int nz)
 {
-  int i,j,k,ncolor1d,icolor;
+  tagint i,j,k;
+  int ncolor1d,icolor;
 
   idsite--;
 

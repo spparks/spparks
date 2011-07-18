@@ -21,8 +21,8 @@
 #ifndef SPK_POINTERS_H
 #define SPK_POINTERS_H
 
+#include "spktype.h"
 #include "mpi.h"
-#include "stdio.h"
 #include "spparks.h"
 
 namespace SPPARKS_NS {

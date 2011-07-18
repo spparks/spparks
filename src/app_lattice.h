@@ -14,7 +14,6 @@
 #ifndef SPK_APP_LATTICE_H
 #define SPK_APP_LATTICE_H
 
-#include "stdint.h"
 #include "stdio.h"
 #include "app.h"
 
@@ -30,9 +29,10 @@ class AppLattice : public App {
   int delpropensity;           // # of sites away needed to compute propensity
   int delevent;                // # of sites away affected by an event
 
+  int nmax;                    // max # of sites per-site arrays can store
   int maxneigh;                // max neighbors of any site in entire system
   int *numneigh;               // # of neighbors of each site
-  int **neighbor;              // list of neighbors of each site
+  int **neighbor;              // local indices of neighbors of each site
 
   class CommLattice *comm;
 
@@ -44,8 +44,8 @@ class AppLattice : public App {
   void iterate();
 
   void grow(int);
-  void add_site(int, double, double, double);
-  void add_ghost(int, double, double, double, int, int);
+  void add_site(tagint, double, double, double);
+  void add_ghost(tagint, double, double, double, int, int);
   void add_neighbors(int, int, char **);
   void add_values(int, char **);
   void print_connectivity();
@@ -75,7 +75,7 @@ class AppLattice : public App {
  protected:
   int me,nprocs;
 
-  uint64_t naccept,nattempt;  // number of accepted and attempted events
+  bigint naccept,nattempt;    // number of accepted and attempted events
   int nsweeps;                // number of sweeps performed
   double temperature,t_inverse;  // temperature settings
   double dt_sweep;            // rKMC time for nglobal attemped events
@@ -107,8 +107,6 @@ class AppLattice : public App {
   double Ladapt;               // adaptive sector time increments for KMC
   double tstop;                // requested time increment in sector
   double nstop;                // requested events per site in sector
-
-  int nmax;                    // max # of sites per-site arrays can store
 
                                // arrays for owned + ghost sites
   int *owner;                  // proc who owns the site

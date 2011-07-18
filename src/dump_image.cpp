@@ -47,7 +47,7 @@ enum{STATIC,DYNAMIC};
 enum{CONTINUOUS,DISCRETE,SEQUENTIAL};
 enum{ABSOLUTE,FRACTIONAL};
 enum{NO,YES};
-enum{INT,DOUBLE};           // also in dump_text
+enum{INT,DOUBLE,BIGINT};           // also in dump_text
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
@@ -304,8 +304,7 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
 
   if (sdiam == IATTRIBUTE) {
     if (drange == NO) error->all("Dump image drange must be set");
-    diamattribute = (double *) memory->smalloc((dhi-dlo+1)*sizeof(double),
-					       "image:diamattribute");
+    memory->create(diamattribute,dhi-dlo+1,"image:diamattribute");
     for (int i = dlo; i <= dhi; i++) diamattribute[i-dlo] = 1.0;
   }
 
@@ -313,8 +312,8 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
     if (crange == NO) error->all("Dump image crange must be set");
     colorattribute = (double **) memory->smalloc((chi-clo+1)*sizeof(double *),
 						 "image:colorattribute");
-    color_memflag = (int *) memory->smalloc((chi-clo+1)*sizeof(int),
-					    "image:color_memflag");
+    memory->create(color_memflag,chi-clo+1,"image:color_memflag");
+
     for (int i = clo; i <= chi; i++) {
       int j = i-clo;
       int m = j % NCOLORS;
@@ -374,18 +373,12 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
 
   // image and depth buffers
 
-  depthBuffer = (double *) memory->smalloc(npixels*sizeof(double),
-					   "dump:depthBuffer");
-  surfaceBuffer = (double *) memory->smalloc(2*npixels*sizeof(double),
-					     "dump:surfaceBuffer");
-  imageBuffer = (char *) memory->smalloc(3*npixels*sizeof(char),
-					 "dump:imageBuffer");
-  depthcopy = (double *) memory->smalloc(npixels*sizeof(double),
-					 "dump:depthcopy");
-  surfacecopy = (double *) memory->smalloc(npixels*2*sizeof(double),
-					   "dump:surfacecopy");
-  rgbcopy = (char *) memory->smalloc(3*npixels*sizeof(char),
-				     "dump:rgbcopy");
+  memory->create(depthBuffer,npixels,"dump:depthBuffer");
+  memory->create(surfaceBuffer,2*npixels,"dump:surfaceBuffer");
+  memory->create(imageBuffer,3*npixels,"dump:imageBuffer");
+  memory->create(depthcopy,npixels,"dump:depthcopy");
+  memory->create(surfacecopy,npixels*2,"dump:surfacecopy");
+  memory->create(rgbcopy,3*npixels,"dump:rgbcopy");
 
   // RNG for SSAO depth shading
 
@@ -401,25 +394,25 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
 
 DumpImage::~DumpImage()
 {
-  memory->sfree(diamattribute);
+  memory->destroy(diamattribute);
   if (colorattribute) {
     for (int i = clo; i <= chi; i++)
       if (color_memflag[i-clo]) delete [] colorattribute[i-clo];
     memory->sfree(colorattribute);
   }
-  memory->sfree(color_memflag);
+  memory->destroy(color_memflag);
 
   for (int i = 0; i < ncolors; i++) delete [] username[i];
   memory->sfree(username);
-  memory->sfree(userrgb);
+  memory->destroy(userrgb);
   delete [] mentry;
 
-  memory->sfree(depthBuffer);
-  memory->sfree(surfaceBuffer);
-  memory->sfree(imageBuffer);
-  memory->sfree(depthcopy);
-  memory->sfree(surfacecopy);
-  memory->sfree(rgbcopy);
+  memory->destroy(depthBuffer);
+  memory->destroy(surfaceBuffer);
+  memory->destroy(imageBuffer);
+  memory->destroy(depthcopy);
+  memory->destroy(surfacecopy);
+  memory->destroy(rgbcopy);
 
   delete random; 
 }
@@ -532,8 +525,8 @@ void DumpImage::write(double time)
 
   if (nme > maxbuf) {
     maxbuf = nme;
-    memory->sfree(buf);
-    buf = (double *) memory->smalloc(maxbuf*size_one*sizeof(double),"dump:buf");
+    memory->destroy(buf);
+    memory->create(buf,maxbuf*size_one,"dump:buf");
   }
 
   pack();
@@ -1455,7 +1448,7 @@ int DumpImage::modify_param(int narg, char **arg)
     if (narg < 5) error->all("Illegal dump_modify command");
     username = (char **) 
       memory->srealloc(username,(ncolors+1)*sizeof(char *),"dump:username");
-    userrgb = memory->grow_2d_double_array(userrgb,ncolors+1,3,"dump:userrgb");
+    memory->grow(userrgb,ncolors+1,3,"dump:userrgb");
     int n = strlen(arg[1]) + 1;
     username[ncolors] = new char[n];
     strcpy(username[ncolors],arg[1]);

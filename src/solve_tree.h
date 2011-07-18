@@ -35,19 +35,15 @@ class SolveTree : public Solve {
   void resize(int, double *);
   int event(double *);
   void sum_tree();
-  void free_arrays();
   void set(int, double);
   int find(double);
-  void tree_to_screen(int);
 
  private:
   class RandomPark *random;
-  int nevents;
-  int ntotal;
-
-  double *tree;
-  int offset;
-  int allocated;
+  int nevents;            // # of propensities (unrounded)
+  int ntotal;             // # of propensities (rounded up to power-of-2) + tree
+  double *tree;           // tree + propensities
+  int offset;             // index where propensities start as leaves of tree
 };
 
 }

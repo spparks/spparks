@@ -49,10 +49,10 @@ App::~App()
 {
   delete [] style;
 
-  memory->sfree(id);
-  memory->destroy_2d_T_array(xyz);
-  for (int i = 0; i < ninteger; i++) memory->sfree(iarray[i]);
-  for (int i = 0; i < ndouble; i++) memory->sfree(darray[i]);
+  memory->destroy(id);
+  memory->destroy(xyz);
+  for (int i = 0; i < ninteger; i++) memory->destroy(iarray[i]);
+  for (int i = 0; i < ndouble; i++) memory->destroy(darray[i]);
   delete [] iarray;
   delete [] darray;
 }

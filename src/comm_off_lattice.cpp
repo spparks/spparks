@@ -56,8 +56,8 @@ CommOffLattice::~CommOffLattice()
     delete [] sectorreverseswap;
   }
 
-  memory->sfree(sbuf);
-  memory->sfree(rbuf);
+  memory->destroy(sbuf);
+  memory->destroy(rbuf);
 }
 
 /* ----------------------------------------------------------------------
@@ -162,7 +162,8 @@ CommOffLattice::Swap *CommOffLattice::create_swap_all()
 
   // allocate list
 
-  int **list = memory->create_2d_int_array(n,3,"commoff:list");
+  int **list;
+  memory->create(list,n,3,"commoff:list");
 
   // fill list with info on all image bins
 
@@ -183,7 +184,7 @@ CommOffLattice::Swap *CommOffLattice::create_swap_all()
   create_send_from_list(n,list,swap);
   create_recv_from_send(swap);
 
-  memory->destroy_2d_int_array(list);
+  memory->destroy(list);
 
   return swap;
 }
@@ -216,7 +217,8 @@ CommOffLattice::Swap *CommOffLattice::create_swap_sector(int isector)
 
   // allocate list
 
-  int **list = memory->create_2d_int_array(n,3,"commoff:list");
+  int **list;
+  memory->create(list,n,3,"commoff:list");
 
   // fill list with info on all image bins for isector
 
@@ -238,7 +240,7 @@ CommOffLattice::Swap *CommOffLattice::create_swap_sector(int isector)
   create_send_from_list(n,list,swap);
   create_recv_from_send(swap);
 
-  memory->destroy_2d_int_array(list);
+  memory->destroy(list);
 
   return swap;
 }
@@ -269,7 +271,8 @@ CommOffLattice::Swap *CommOffLattice::create_swap_sector_reverse(int isector)
 
   // allocate list
 
-  int **list = memory->create_2d_int_array(n,3,"commoff:list");
+  int **list;
+  memory->create(list,n,3,"commoff:list");
 
   // fill list with info on all ghost bins for isector
 
@@ -290,7 +293,7 @@ CommOffLattice::Swap *CommOffLattice::create_swap_sector_reverse(int isector)
   create_send_from_list(n,list,swap);
   create_recv_from_send(swap);
 
-  memory->destroy_2d_int_array(list);
+  memory->destroy(list);
 
   return swap;
 }
@@ -365,10 +368,10 @@ void CommOffLattice::create_send_from_list(int nlist, int **list, Swap *swap)
   // ssite will actually be sent in create_recv()
   // use proc[] to convert proc ID to isend
 
-  int **sindex = 
-    memory->create_2d_int_ragged_array(nsend,scount,"commoff:sindex");
-  int **ssite = 
-    memory->create_2d_int_ragged_array(nsend,scount,"commoff:ssite");
+  int **sindex;
+  memory->create_ragged(sindex,nsend,scount,"commoff:sindex");
+  int **ssite;
+  memory->create_ragged(ssite,nsend,scount,"commoff:ssite");
 
   for (isend = 0; isend < nsend; isend++) scount[isend] = 0;
 
@@ -476,10 +479,10 @@ void CommOffLattice::create_recv_from_send(Swap *swap)
   // rindex = list of bins to receive
   // fill rindex by sending ssite to receivers
 
-  int **rindex = 
-    memory->create_2d_int_ragged_array(nrecv,rcount,"commoff:rindex");
-  int **rsite = 
-    memory->create_2d_int_ragged_array(nrecv,rcount,"commoff:rsite");
+  int **rindex;
+  memory->create_ragged(rindex,nrecv,rcount,"commoff:rindex");
+  int **rsite;
+  memory->create_ragged(rsite,nrecv,rcount,"commoff:rsite");
 
   for (int irecv = 0; irecv < nrecv; irecv++)
     MPI_Irecv(rindex[irecv],rcount[irecv],MPI_INT,
@@ -518,14 +521,14 @@ void CommOffLattice::free_swap(Swap *swap)
 {
   delete [] swap->sproc;
   delete [] swap->scount;
-  memory->destroy_2d_int_array(swap->sindex);
-  memory->destroy_2d_int_array(swap->ssite);
+  memory->destroy(swap->sindex);
+  memory->destroy(swap->ssite);
   delete [] swap->stotal;
 
   delete [] swap->rproc;
   delete [] swap->rcount;
-  memory->destroy_2d_int_array(swap->rindex);
-  memory->destroy_2d_int_array(swap->rsite);
+  memory->destroy(swap->rindex);
+  memory->destroy(swap->rsite);
   delete [] swap->rtotal;
 
   delete [] swap->cbinsrc;
@@ -663,7 +666,7 @@ void CommOffLattice::perform_swap(Swap *swap)
 
   // reset site ptrs from app
 
-  int *id = app->id;
+  tagint *id = app->id;
   double **xyz = app->xyz;
   int **iarray = app->iarray;
   double **darray = app->darray;
@@ -676,14 +679,14 @@ void CommOffLattice::perform_swap(Swap *swap)
 
   if (sendmax > smax) {
     smax = static_cast<int> (BUFFACTOR*sendmax);
-    memory->sfree(sbuf);
-    sbuf = (double *) memory->smalloc(smax*size_one*sizeof(double),"app:sbuf");
+    memory->destroy(sbuf);
+    memory->create(sbuf,smax*size_one,"app:sbuf");
   }
 
   if (recvcount > rmax) {
     rmax = static_cast<int> (BUFFACTOR*recvcount);
-    memory->sfree(rbuf);
-    rbuf = (double *) memory->smalloc(rmax*size_one*sizeof(double),"app:rbuf");
+    memory->destroy(rbuf);
+    memory->create(rbuf,rmax*size_one,"app:rbuf");
   }
 
   // post receives for sites
@@ -765,7 +768,7 @@ void CommOffLattice::perform_swap(Swap *swap)
       for (i = 0; i < rsite[irecv][n]; i++) {
 	j = appoff->new_ghost_site();
 	jbin = rindex[irecv][n];
-	id[j] = static_cast<int> (rbuf[m++]);
+	id[j] = static_cast<tagint> (rbuf[m++]);
 	xyz[j][0] = rbuf[m++] + pbcoffset[jbin][0]*xprd;
 	xyz[j][1] = rbuf[m++] + pbcoffset[jbin][1]*yprd;
 	xyz[j][2] = rbuf[m++] + pbcoffset[jbin][2]*zprd;
@@ -901,7 +904,7 @@ void CommOffLattice::perform_swap_reverse(Swap *swap)
 
   // reset site ptrs from app
 
-  int *id = app->id;
+  tagint *id = app->id;
   double **xyz = app->xyz;
   int **iarray = app->iarray;
   double **darray = app->darray;
@@ -913,14 +916,14 @@ void CommOffLattice::perform_swap_reverse(Swap *swap)
 
   if (sendmax > smax) {
     smax = static_cast<int> (BUFFACTOR*sendmax);
-    memory->sfree(sbuf);
-    sbuf = (double *) memory->smalloc(smax*size_one*sizeof(double),"app:sbuf");
+    memory->destroy(sbuf);
+    memory->create(sbuf,smax*size_one,"app:sbuf");
   }
 
   if (recvcount > rmax) {
     rmax = static_cast<int> (BUFFACTOR*recvcount);
-    memory->sfree(rbuf);
-    rbuf = (double *) memory->smalloc(rmax*size_one*sizeof(double),"app:rbuf");
+    memory->destroy(rbuf);
+    memory->create(rbuf,rmax*size_one,"app:rbuf");
   }
 
   // post receives for sites
@@ -1003,7 +1006,7 @@ void CommOffLattice::perform_swap_reverse(Swap *swap)
       for (i = 0; i < rsite[irecv][n]; i++) {
 	j = appoff->new_owned_site();
 	jbin = rindex[irecv][n];
-	id[j] = static_cast<int> (rbuf[m++]);
+	id[j] = static_cast<tagint> (rbuf[m++]);
 	xyz[j][0] = rbuf[m++];
 	xyz[j][1] = rbuf[m++];
 	xyz[j][2] = rbuf[m++];
