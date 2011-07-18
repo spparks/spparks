@@ -38,6 +38,30 @@ describe the version you have.
 
 <HR>
 
+<P><B>18 Jul 2011</B>
+</P>
+<P>Enhanced SPPARKS to be able to run arbitraryily large models with more
+than 2 billions sites, limited only by the physical memory on your
+machine.  This requires use of 64-bit integers to store site IDs and
+various system tallies, like the number of accepted and rejected
+events.
+</P>
+<P>The data types for this are now defined in the file src/spktype.h,
+which by default is set to allow for large problems.  To reduce memory
+usage or for machines or MPI implementations that do not support
+64-bit integers, you can revert to 32-bit integers by editing that
+file.  See <A HREF = "doc/Section_start.html">this section of the manual</A> for
+more details.
+</P>
+<P>There is still a limit of around 2 billions sites per processor, which
+should not be a restriction since that would have a huge memory
+footprint to store neibhbor lists.
+</P>
+<P>This is the <A HREF = "patches/files.18Jul11">list of changed files</A> from the 16
+Jul 2010 version.
+</P>
+<HR>
+
 <P><B>16 Jul 2011</B>
 </P>
 <P>More upgrades to the <A HREF = "doc/dump_image.html">dump_image</A> command,

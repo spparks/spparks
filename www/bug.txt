@@ -35,6 +35,30 @@ describe the version you have. :ule,l
 :line
 :line
 
+[18 Jul 2011]
+
+Enhanced SPPARKS to be able to run arbitraryily large models with more
+than 2 billions sites, limited only by the physical memory on your
+machine.  This requires use of 64-bit integers to store site IDs and
+various system tallies, like the number of accepted and rejected
+events.
+
+The data types for this are now defined in the file src/spktype.h,
+which by default is set to allow for large problems.  To reduce memory
+usage or for machines or MPI implementations that do not support
+64-bit integers, you can revert to 32-bit integers by editing that
+file.  See "this section of the manual"_doc/Section_start.html for
+more details.
+
+There is still a limit of around 2 billions sites per processor, which
+should not be a restriction since that would have a huge memory
+footprint to store neibhbor lists.
+
+This is the "list of changed files"_patches/files.18Jul11 from the 16
+Jul 2010 version.
+
+:line
+
 [16 Jul 2011]
 
 More upgrades to the "dump_image"_doc/dump_image.html command,
