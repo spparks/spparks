@@ -461,7 +461,6 @@ void AppLattice::iterate()
 void AppLattice::iterate_kmc_global(double stoptime)
 {
   int isite;
-  double dt;
   
   // global KMC runs with one set
   // save ptr to system solver
@@ -474,18 +473,19 @@ void AppLattice::iterate_kmc_global(double stoptime)
   int done = 0;
   while (!done) {
     timer->stamp();
-    isite = solve->event(&dt);
+    isite = solve->event(&dt_step);
     timer->stamp(TIME_SOLVE);
 
-    if (isite < 0) done = 1;
-    else {
+    time += dt_step;
+    if (isite < 0 || time > stoptime) {
+      done = 1;
+      time -= dt_step;
+    } else {
       site_event(isite,ranapp);
       naccept++;
-      time += dt;
       timer->stamp(TIME_APP);
     }
 
-    if (time >= stoptime) done = 1;
     if (done || time >= nextoutput) nextoutput = output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
   }

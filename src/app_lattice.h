@@ -81,6 +81,7 @@ class AppLattice : public App {
   double dt_sweep;            // rKMC time for nglobal attemped events
   double dt_rkmc;             // rKMC time for one pass thru all sectors
   double dt_kmc;              // KMC time for one pass thru all sectors
+  double dt_step;             // KMC time for single global KMC step
 
   int allow_kmc;               // 1 if app supports KMC
   int allow_rejection;         // 1 if app supports rejection KMC
