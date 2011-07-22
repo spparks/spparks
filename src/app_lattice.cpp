@@ -588,7 +588,8 @@ void AppLattice::iterate_kmc_sector(double stoptime)
     if (allow_update) user_update(dt_kmc);
 
     // keep looping until overall time threshhold reached
-    
+
+    nsweeps++;
     time += dt_kmc;
     if (time >= stoptime) alldone = 1;
     if (alldone || time >= nextoutput)
@@ -865,7 +866,7 @@ void AppLattice::stats(char *strtmp)
 
   if (solve) {
     sprintf(format,"%%10g %%10%s %%10d %%10d",&big[1]);
-    sprintf(strtmp,format,time,naccept_all,0,0);
+    sprintf(strtmp,format,time,naccept_all,0,nsweeps);
   } else {
     bigint nattempt_all;
     MPI_Allreduce(&nattempt,&nattempt_all,1,MPI_SPK_BIGINT,MPI_SUM,world);
