@@ -35,6 +35,16 @@ describe the version you have. :ule,l
 :line
 :line
 
+[25 Jul 2011]
+
+Added a sweep counter back to the output stats for sectored
+KMC solves.  Somehow this got lost from an earlier version.
+
+This is the "list of changed files"_patches/files.25Jul11 from the 18
+Jul 2010 version.
+
+:line
+
 [18 Jul 2011]
 
 Enhanced SPPARKS to be able to run arbitraryily large models with more

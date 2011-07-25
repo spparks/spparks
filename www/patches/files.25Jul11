@@ -1,0 +1,8 @@
+18Jul11 version files changed by 25Jul11 upgrade:
+
+doc/Manual.pdf
+src/app_lattice.cpp
+src/app_lattice.h
+src/memory.cpp
+src/memory.h
+src/version.h
