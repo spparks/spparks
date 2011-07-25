@@ -476,14 +476,19 @@ void AppLattice::iterate_kmc_global(double stoptime)
     isite = solve->event(&dt_step);
     timer->stamp(TIME_SOLVE);
 
-    time += dt_step;
-    if (isite < 0 || time > stoptime) {
-      done = 1;
-      time -= dt_step;
+    if (isite >= 0) {
+      time += dt_step;
+      if (time <= stoptime) {
+	site_event(isite,ranapp);
+	naccept++;
+	timer->stamp(TIME_APP);
+      } else {
+	done = 1;
+	time = stoptime;
+      }
     } else {
-      site_event(isite,ranapp);
-      naccept++;
-      timer->stamp(TIME_APP);
+      done = 1;
+      time = stoptime;
     }
 
     if (done || time >= nextoutput) nextoutput = output->compute(time,done);
