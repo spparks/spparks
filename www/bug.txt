@@ -35,6 +35,16 @@ describe the version you have. :ule,l
 :line
 :line
 
+[29 Jul 2011]
+
+Upgraded the dummy MPI library (used with make serial) to
+be compatible with the 64-bit options now available in SPPARKS.
+
+This is the "list of changed files"_patches/files.29Jul11 from the 25
+Jul 2010 version.
+
+:line
+
 [25 Jul 2011]
 
 Added a sweep counter back to the output stats for sectored
