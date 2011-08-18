@@ -48,8 +48,8 @@ class DiagCluster : public Diag {
 
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // simulation box bounds
 
-  tagint *id;                  // global ID (1-N) of site
   double **xyz;                // coords of site
+  tagint *idsite;              // global site ids
 
   int nlocal;                  // # of sites I own
   int nghost;                  // # of ghost sites I store

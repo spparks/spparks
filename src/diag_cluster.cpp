@@ -124,7 +124,7 @@ void DiagCluster::init()
   nghost = applattice->nghost;
 
   xyz = app->xyz;
-  id = app->id;
+  idsite = app->id;
 
   boxxlo = domain->boxxlo;
   boxxhi = domain->boxxhi;
@@ -132,9 +132,6 @@ void DiagCluster::init()
   boxyhi = domain->boxyhi;
   boxzlo = domain->boxzlo;
   boxzhi = domain->boxzhi;
-
-  if (app->nglobal > MAXSMALLINT)
-    error->all("Diag dump_style does not work if ncluster > 2^31");
 
   memory->destroy(cluster_ids);
   memory->create(cluster_ids,nlocal+nghost,"diagcluster:cluster");
@@ -268,8 +265,8 @@ void DiagCluster::generate_clusters()
 
   int *site = app->iarray[0];
 
-  int nclustertot,ii;
-  tagint id;
+  int ii;
+  int id;
   double vol,volsum,voltot;
 
   ncluster = 0;
@@ -307,8 +304,15 @@ void DiagCluster::generate_clusters()
   }
 
   int idoffset;
+  tagint nclustertot,nclusterme;
+  nclusterme = ncluster;
+
   MPI_Allreduce(&volsum,&voltot,1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&ncluster,&nclustertot,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&ncluster,&nclustertot,1,MPI_SPK_TAGINT,MPI_SUM,world);
+
+  if (nclustertot > MAXSMALLINT) 
+     error->all("Diag cluster does not work if ncluster > 2^31");
+
   MPI_Scan(&ncluster,&idoffset,1,MPI_INT,MPI_SUM,world);
   idoffset = idoffset-ncluster+1;
   for (int i = 0; i < ncluster; i++) {
@@ -502,7 +506,8 @@ void DiagCluster::dump_clusters(double time)
   int nrecv;
   double* dbuftmp;
   int maxbuftmp;
-  tagint cid,isite;
+  int cid;
+  tagint isite;
   int nsites = nx_global*ny_global*nz_global;
   int* datadx;
   int* randomkeys;
@@ -578,7 +583,7 @@ void DiagCluster::dump_clusters(double time)
   // pack my lattice values into buffer
 
   for (int i = 0; i < nlocal; i++) {
-    dbuftmp[m++] = id[i];
+    dbuftmp[m++] = idsite[i];
     dbuftmp[m++] = cluster_ids[i];
     dbuftmp[m++] = xyz[i][0];
     dbuftmp[m++] = xyz[i][1];
@@ -608,16 +613,16 @@ void DiagCluster::dump_clusters(double time)
 
       if (dump_style == STANDARD) {
 	for (int i = 0; i < nrecv; i++) {
-	  cid = static_cast<tagint> (dbuftmp[m+1])-1;
+	  cid = static_cast<int> (dbuftmp[m+1])-1;
 	  cid = clustlist[cid].global_id;
-	  fprintf(fpdump,"%d " TAGINT_FORMAT " %g %g %g\n",
-		  static_cast<int>(dbuftmp[m]),cid,
+	  fprintf(fpdump, TAGINT_FORMAT " %d %g %g %g\n",
+		  static_cast<tagint>(dbuftmp[m]),cid,
 		  dbuftmp[m+2],dbuftmp[m+3],dbuftmp[m+4]);
 	  m += size_one;
 	}
       } else if (dump_style == OPENDX) {
 	for (int i = 0; i < nrecv; i++) {
-	  isite = static_cast<int> (dbuftmp[m]);
+	  isite = static_cast<tagint> (dbuftmp[m]);
 	  cid = clustlist[static_cast<int> (dbuftmp[m+1])].global_id;
 	  datadx[isite-1] = cid;
 	  m += size_one;
