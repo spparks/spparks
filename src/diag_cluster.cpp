@@ -308,7 +308,7 @@ void DiagCluster::generate_clusters()
   nclusterme = ncluster;
 
   MPI_Allreduce(&volsum,&voltot,1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&ncluster,&nclustertot,1,MPI_SPK_TAGINT,MPI_SUM,world);
+  MPI_Allreduce(&nclusterme,&nclustertot,1,MPI_SPK_TAGINT,MPI_SUM,world);
 
   if (nclustertot > MAXSMALLINT) 
      error->all("Diag cluster does not work if ncluster > 2^31");
