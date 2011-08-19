@@ -11,6 +11,7 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#include "spktype.h"
 #include "comm_off_lattice.h"
 #include "app_off_lattice.h"
 #include "domain.h"

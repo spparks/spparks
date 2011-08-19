@@ -11,6 +11,7 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#include "spktype.h"
 #include "math.h"
 #include "string.h"
 #include "stdlib.h"

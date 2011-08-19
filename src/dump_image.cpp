@@ -1508,7 +1508,7 @@ int DumpImage::modify_param(int narg, char **arg)
       
       int m = 0;
       for (int i = nlo; i <= nhi; i++) {
-	if (color_memflag[i-clo] == 0) delete [] colorattribute[i-clo];
+	if (color_memflag[i-clo] == 1) delete [] colorattribute[i-clo];
 	colorattribute[i-clo] = color2rgb(ptrs[m%ncount],0);
 	color_memflag[i-clo] = 0;
 	if (colorattribute[i-clo] == NULL)
@@ -1705,6 +1705,7 @@ double *DumpImage::value2color(double value)
    search the list of color names for the string color
    return a pointer to the 3 floating point RGB values
    search user-defined color names first, then the list of NCOLORS names
+   if index is set, just return pointer to index-1 color
 ------------------------------------------------------------------------- */
 
 double *DumpImage::color2rgb(char *color, int index)
