@@ -21,7 +21,7 @@ temperature	 0.0
 
 stats            1.0 loglinfreq 5 10.0
 dump             1 text 1.0 dump.potts
-dump_modify      1  loglinfreq 5 10.0
+dump_modify      1 loglinfreq 5 10.0
 diag_style       cluster stats yes filename cluster.dat
 
 run              100.0

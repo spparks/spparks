@@ -13,7 +13,7 @@ sector		 yes
 temperature	 1.0
 
 stats            100.0
-dump             1 100.0 dump.relax
+dump             1 text 100.0 dump.relax
 
 diag_style	 energy
 

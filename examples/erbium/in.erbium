@@ -40,6 +40,6 @@ temperature	1.0
 diag_style      erbium stats yes &
 		list er h he vac events s1 s2 d1 d2 d3 t1 t2 t3 t4 t5
 stats           1.0
-dump            1 10.0 dump.erbium id i2 x y z
+dump            1 text 10.0 dump.erbium id i2 x y z
 
 run             10.0

@@ -24,7 +24,7 @@ inclusion	40 54 0 6
 stats           10.0
 diag_style      energy
 
-dump            1 5.0 dump.membrane
+dump            1 text 5.0 dump.membrane
 
 temperature	0.7
 run             500

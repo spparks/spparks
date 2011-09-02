@@ -35,6 +35,19 @@ describe the version you have. :ule,l
 :line
 :line
 
+[2 Sep 2011]
+
+Fixed an indexing bug in the "create_sites"_doc/create_sites.html
+command.
+
+Updated the input scripts in the examples to reflect the new syntax
+for the "dump"_doc/dump.html command.
+
+This is the "list of changed files"_patches/files.2Sep11 from the 29
+Jul 2010 version.
+
+:line
+
 [29 Jul 2011]
 
 Upgraded the dummy MPI library (used with make serial) to
