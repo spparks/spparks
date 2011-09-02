@@ -262,7 +262,7 @@ void CreateSites::structured_lattice()
 
 	  if (latticeflag) applattice->add_site(n,x,y,z);
 	  else appoff->add_site(n,x,y,z);
-	  nlocal = app->nlocal;
+	  nlocal = app->nlocal - 1;
 
 	  if (valueflag == IARRAY) {
 	    if (basisflag[m+1]) iarray[valueindex][nlocal] = basis_ivalue[m+1];
