@@ -10,7 +10,7 @@ dump image command :h3
 
 [Syntax:]
 
-dump dump-ID image delta filename color keyword value ... :pre
+dump dump-ID image delta filename color diameter keyword value ... :pre
 
 ID = user-assigned name for the dump :ulb,l
 image = style of dump command (other style {text} is discussed on the "dump"_dump.html doc page) :l
