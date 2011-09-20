@@ -39,6 +39,8 @@ Domain::Domain(SPPARKS *spk) : Pointers(spk)
   periodicity[1] = yperiodic;
   periodicity[2] = zperiodic;
 
+  user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
+
   box_exist = 0;
 
   lattice = NULL;

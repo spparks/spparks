@@ -1167,7 +1167,6 @@ void CreateSites::id2xyz(tagint iglobal, double &x, double &y, double &z)
   double boxxlo = domain->boxxlo;
   double boxylo = domain->boxylo;
   double boxzlo = domain->boxzlo;
-  double boxxhi = domain->boxxhi;
   double boxyhi = domain->boxyhi;
   double boxzhi = domain->boxzhi;
   if (dimension <= 1) boxylo = 0.5 * (boxylo+boxyhi);
