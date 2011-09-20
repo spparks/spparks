@@ -66,6 +66,12 @@ void ReadSites::command(int narg, char **arg)
 
   if (narg != 1) error->all("Illegal read_sites command");
 
+  if (domain->dimension == 2 && domain->zperiodic == 0)
+    error->all("Cannot run 2d simulation with nonperiodic Z dimension");
+  if (domain->dimension == 1 && 
+      (domain->yperiodic == 0 || domain->zperiodic == 0))
+    error->all("Cannot run 1d simulation with nonperiodic Y or Z dimension");
+
   if (app->appclass == App::LATTICE) {
     applattice = (AppLattice *) app;
     latticeflag = 1;
@@ -154,7 +160,7 @@ void ReadSites::command(int narg, char **arg)
     app->sites_exist = 1;
   }
 
-  // process neighbors
+  // process neighbors to generate ghost sites
 
   if (neighflag) {
     CreateSites *cs = new CreateSites(spk);

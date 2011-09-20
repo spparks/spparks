@@ -1279,6 +1279,37 @@ void AppLattice::add_values(int i, char **values)
 }
 
 /* ----------------------------------------------------------------------
+   compute bounds implied by numeric str with a possible wildcard asterik
+   lo,hi = inclusive bounds
+   5 possibilities:
+     (1) i = i to i, (2) * = lo to hi,
+     (3) i* = i to hi, (4) *j = lo to j, (5) i*j = i to j
+   return nlo,nhi
+------------------------------------------------------------------------- */
+
+void AppLattice::bounds(char *str, int lo, int hi, int &nlo, int &nhi)
+{
+  char *ptr = strchr(str,'*');
+
+  if (ptr == NULL) {
+    nlo = MAX(atoi(str),lo);
+    nhi = MIN(atoi(str),hi);
+  } else if (strlen(str) == 1) {
+    nlo = lo;
+    nhi = hi;
+  } else if (ptr == str) {
+    nlo = lo;
+    nhi = MIN(atoi(ptr+1),hi);
+  } else if (strlen(ptr+1) == 0) {
+    nlo = MAX(atoi(str),lo);
+    nhi = hi;
+  } else {
+    nlo = MAX(atoi(str),lo);
+    nhi = MIN(atoi(ptr+1),hi);
+  }
+}
+
+/* ----------------------------------------------------------------------
    print connectivity stats
  ------------------------------------------------------------------------- */
 

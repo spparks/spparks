@@ -23,7 +23,9 @@
 #include "dump_image.h"
 #include "math_extra.h"
 #include "app.h"
+#include "app_lattice.h"
 #include "domain.h"
+#include "lattice.h"
 #include "input.h"
 #include "variable.h"
 #include "random_park.h"
@@ -87,6 +89,7 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
   // set defaults for optional args
 
   shape = SPHERE;
+  boundflag = NO;
   crange = drange = NO;
   width = height = 512;
   theta = 60.0 * PI/180.0;
@@ -122,6 +125,15 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"sphere") == 0) shape = SPHERE;
       else if (strcmp(arg[iarg+1],"cube") == 0) shape = CUBE;
       iarg += 2;
+
+    } else if (strcmp(arg[iarg],"boundary") == 0) {
+      if (iarg+3 > narg) error->all("Illegal dump image command");
+      if (strcmp(arg[iarg+1],"yes") == 0) boundflag = YES;
+      else if (strcmp(arg[iarg+1],"no") == 0) boundflag = NO;
+      else error->all("Illegal dump image command");
+      bounddiam = atof(arg[iarg+2]);
+      if (bounddiam < 0.0) error->all("Illegal dump image command");
+      iarg += 3;
 
     } else if (strcmp(arg[iarg],"sdiam") == 0) {
       if (iarg+2 > narg) error->all("Illegal dump image command");
@@ -286,6 +298,17 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
     } else error->all("Illegal dump image command");
   }
 
+  // error checks
+
+  if (boundflag == YES && shape == SPHERE && me == 0)
+    error->warning("Using dump image boundary with spheres");
+
+  if (boundflag == YES) {
+    if (app->appclass != App::LATTICE)
+      error->all("Dump image boundary requires lattice app");
+    applattice = (AppLattice *) app;
+  }
+
   // params based on args
 
   npixels = width * height;
@@ -322,6 +345,7 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
     }
   }
 
+  boundcolor = color2rgb("white",0);
   boxcolor = color2rgb("yellow",0);
   background[0] = background[1] = background[2] = 0;
 
@@ -831,6 +855,53 @@ void DumpImage::create_image()
     else draw_cube(xyz[j],color,diameter);
 
     m += size_one;
+  }
+
+  // render my boundaries bewteen adjacent sites
+  // loop over all chosen atoms and all their neighbors, whether chosen or not
+  // only draw boundary if 2 values are different & 2 sites share adjacent face
+
+  if (boundflag == YES) {
+    int k;
+    double c1[3],c2[3];
+    int dimension = domain->dimension;
+    double dx = domain->lattice->a1[0];
+    double dy = domain->lattice->a2[1];
+    double dz = domain->lattice->a3[2];
+    int *numneigh = applattice->numneigh;
+    int **neighbor = applattice->neighbor;
+    int *site = app->iarray[0];
+
+    for (int ii = 0; ii < nchoose; ii++) {
+      i = clist[ii];
+      for (int jj = 0; jj < numneigh[i]; jj++) {
+	j = neighbor[i][jj];
+	if (dimension == 2) {
+	  if (site[i] == site[j]) continue;
+	  if (xyz[i][0] != xyz[j][0] && xyz[i][1] != xyz[j][1]) continue;
+	  if (xyz[i][0] == xyz[j][0]) {
+	    c1[0] = xyz[i][0] - 0.5*dx;
+	    c2[0] = xyz[i][0] + 0.5*dx;
+	    c1[1] = c2[1] = 0.5*(xyz[i][1]+xyz[j][1]);
+	    c1[2] = c2[2] = 0.0;
+	  } else if (xyz[i][1] == xyz[j][1]) {
+	    c1[0] = c2[0] = 0.5*(xyz[i][0]+xyz[j][0]);
+	    c1[1] = xyz[i][1] - 0.5*dy;
+	    c2[1] = xyz[i][1] + 0.5*dy;
+	    c1[2] = c2[2] = 0.0;
+	  }
+	} else {
+	  if (xyz[i][0] != xyz[j][0] && xyz[i][1] != xyz[j][1] &&
+	      xyz[i][2] != xyz[j][2]) continue;
+	}
+	
+	if (dimension == 2) {
+	  draw_cylinder(c1,c2,boundcolor,bounddiam,3);
+	} else {
+	  // have to draw 12 triangles for thin box?
+	}
+      }
+    }
   }
 
   // render outline of simulation box
@@ -1439,6 +1510,12 @@ int DumpImage::modify_param(int narg, char **arg)
     background[2] = static_cast<int> (color[2]*255.0);
     return 2;
 
+  } else if (strcmp(arg[0],"boundcolor") == 0) {
+    if (narg < 2) error->all("Illegal dump_modify command");
+    boundcolor = color2rgb(arg[1],0);
+    if (boundcolor == NULL) error->all("Invalid color in dump_modify command");
+    return 2;
+
   } else if (strcmp(arg[0],"boxcolor") == 0) {
     if (narg < 2) error->all("Illegal dump_modify command");
     boxcolor = color2rgb(arg[1],0);
@@ -1627,10 +1704,10 @@ int DumpImage::modify_param(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    compute bounds implied by numeric str with a possible wildcard asterik
-   nmax = upper bound
+   lo,hi = inclusive bounds
    5 possibilities:
-     (1) i = i to i, (2) * = 1 to nmax,
-     (3) i* = i to nmax, (4) *j = 1 to j, (5) i*j = i to j
+     (1) i = i to i, (2) * = lo to hi,
+     (3) i* = i to hi, (4) *j = lo to j, (5) i*j = i to j
    return nlo,nhi
 ------------------------------------------------------------------------- */
 

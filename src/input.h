@@ -61,6 +61,7 @@ class Input : protected Pointers {
   void variable_command();
 
   void app_style();
+  void boundary();
   void diag_style();
   void dimension();
   void dump();

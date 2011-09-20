@@ -32,10 +32,11 @@ class DumpImage : public DumpText {
 
  private:
   int filetype;
-  int shape,scolor,sdiam;
+  int shape,boundflag,scolor,sdiam;
   int crange,drange;
   int clo,chi,dlo,dhi;
   double sdiamvalue;
+  double bounddiam;
   int width,height;
   double theta,phi;
   char *thetastr,*phistr;
@@ -55,6 +56,8 @@ class DumpImage : public DumpText {
   double shiny;
   int ssao,seed;
   double ssaoint;
+
+  class AppLattice *applattice;
 
   int npixels,viewflag;
   double *depthBuffer,*surfaceBuffer;
@@ -105,7 +108,7 @@ class DumpImage : public DumpText {
   double **colorattribute;
   int *color_memflag;
 
-  double *boxcolor;
+  double *boxcolor,*boundcolor;
   int background[3];
 
   // color map

@@ -28,6 +28,10 @@ class Domain : protected Pointers {
 
   int box_exist;                    // 0 = not yet created, 1 = exists
   int dimension;                    // 1,2,3
+  int nonperiodic;                  // 0 = periodic in all dims
+                                    // 1 = non-periodic in any dim
+  int xperiodic,yperiodic,zperiodic;  // 0 = non-periodic, 1 = periodic
+  int periodicity[3];               // xyz periodicity as array
 
   double xprd,yprd,zprd;                               // global domain
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // global box bounds

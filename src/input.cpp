@@ -394,6 +394,7 @@ int Input::execute_command()
   else if (!strcmp(command,"variable")) variable_command();
 
   else if (!strcmp(command,"app_style")) app_style();
+  else if (!strcmp(command,"boundary")) boundary();
   else if (!strcmp(command,"diag_style")) diag_style();
   else if (!strcmp(command,"dimension")) dimension();
   else if (!strcmp(command,"dump")) dump();
@@ -646,6 +647,15 @@ void Input::app_style()
 #undef APP_CLASS
 
   else error->all("Illegal app_style command");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::boundary()
+{
+  if (domain->box_exist) 
+    error->all("Boundary command after simulation box is defined");
+  domain->set_boundary(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

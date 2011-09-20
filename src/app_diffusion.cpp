@@ -147,7 +147,7 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
     if (narg != 2) error->all("Illegal ecoord command");
 
     int lo,hi;
-    bounds(arg[0],maxneigh,lo,hi);
+    bounds(arg[0],0,maxneigh,lo,hi);
     double value = atof(arg[1]);
 
     for (int i = lo; i <= hi; i++) ecoord[i] = value;
@@ -218,8 +218,8 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
 
     } else {
       int ilo,ihi,jlo,jhi;
-      bounds(arg[1],maxneigh,ilo,ihi);
-      bounds(arg[2],maxneigh,jlo,jhi);
+      bounds(arg[1],0,maxneigh,ilo,ihi);
+      bounds(arg[2],0,maxneigh,jlo,jhi);
       double q = atof(arg[3]);
 
       for (int i = ilo; i <= ihi; i++)
@@ -1237,37 +1237,6 @@ double AppDiffusion::distsq_to_line(int m, double *start,
   offset[1] = delta[1] - projection[1];
   offset[2] = delta[2] - projection[2];
   return offset[0]*offset[0] + offset[1]*offset[1] + offset[2]*offset[2];
-}
-
-/* ----------------------------------------------------------------------
-   compute bounds implied by numeric str with a possible wildcard asterik
-   nmax = upper bound
-   5 possibilities:
-     (1) i = i to i, (2) * = 0 to nmax,
-     (3) i* = 0 to nmax, (4) *j = 0 to j, (5) i*j = i to j
-   return nlo,nhi
-------------------------------------------------------------------------- */
-
-void AppDiffusion::bounds(char *str, int nmax, int &nlo, int &nhi)
-{
-  char *ptr = strchr(str,'*');
-
-  if (ptr == NULL) {
-    nlo = MAX(atoi(str),0);
-    nhi = MIN(atoi(str),nmax);
-  } else if (strlen(str) == 1) {
-    nlo = 0;
-    nhi = nmax;
-  } else if (ptr == str) {
-    nlo = 0;
-    nhi = MIN(atoi(ptr+1),nmax);
-  } else if (strlen(ptr+1) == 0) {
-    nlo = MAX(atoi(str),0);
-    nhi = nmax;
-  } else {
-    nlo = MAX(atoi(str),0);
-    nhi = MIN(atoi(ptr+1),nmax);
-  }
 }
 
 /* ----------------------------------------------------------------------

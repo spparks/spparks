@@ -23,9 +23,7 @@ using namespace SPPARKS_NS;
 
 #define DELTA 1
 
-/* ----------------------------------------------------------------------
-   default is periodic 
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 Domain::Domain(SPPARKS *spk) : Pointers(spk)
 {
@@ -33,8 +31,12 @@ Domain::Domain(SPPARKS *spk) : Pointers(spk)
   MPI_Comm_size(world,&nprocs);
 
   dimension = 3;
-
-  user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
+  xperiodic = yperiodic = zperiodic = 1;
+  nonperiodic = 0;
+  xperiodic = yperiodic = zperiodic = 1;
+  periodicity[0] = xperiodic;
+  periodicity[1] = yperiodic;
+  periodicity[2] = zperiodic;
 
   box_exist = 0;
 
@@ -126,6 +128,32 @@ int Domain::find_region(char *name)
   for (int iregion = 0; iregion < nregion; iregion++)
     if (strcmp(name,regions[iregion]->id) == 0) return iregion;
   return -1;
+}
+
+/* ----------------------------------------------------------------------
+   boundary settings from the input script 
+------------------------------------------------------------------------- */
+
+void Domain::set_boundary(int narg, char **arg)
+{
+  if (narg != 3) error->all("Illegal boundary command");
+
+  if (strcmp(arg[0],"f") == 0) xperiodic = 0;
+  else if (strcmp(arg[0],"p") == 0) xperiodic = 1;
+  else error->all("Illegal boundary command");
+  if (strcmp(arg[1],"f") == 0) yperiodic = 0;
+  else if (strcmp(arg[1],"p") == 0) yperiodic = 1;
+  else error->all("Illegal boundary command");
+  if (strcmp(arg[2],"f") == 0) zperiodic = 0;
+  else if (strcmp(arg[2],"p") == 0) zperiodic = 1;
+  else error->all("Illegal boundary command");
+
+  periodicity[0] = xperiodic;
+  periodicity[1] = yperiodic;
+  periodicity[2] = zperiodic;
+
+  nonperiodic = 0;
+  if (xperiodic == 0 || yperiodic == 0 || zperiodic == 0) nonperiodic = 1;
 }
 
 /* ----------------------------------------------------------------------

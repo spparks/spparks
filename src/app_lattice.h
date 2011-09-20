@@ -164,6 +164,8 @@ class AppLattice : public App {
   void set_sweep(int, char **);
   void set_temperature(int, char **);
   void set_update_only(int, char **);
+
+  void bounds(char *, int, int, int &, int &);
 };
 
 }

@@ -131,15 +131,6 @@ void CreateSites::command(int narg, char **arg)
     } else error->all("Illegal create_sites command");
   }
 
-  // error check
-
-  if (domain->lattice == NULL)
-    error->all("Cannot create sites with undefined lattice");
-  if (app->appclass == App::LATTICE && style != BOX)
-    error->all("Must use create_sites box for on-lattice applications");
-  if (app->appclass == App::LATTICE && app->sites_exist)
-    error->all("Cannot create sites after sites already exist");
-
   // create sites, either on-lattice or off-lattice
 
   if (domain->me == 0) {
@@ -176,14 +167,24 @@ void CreateSites::command(int narg, char **arg)
     if (dimension == 3) nz = static_cast<int> (domain->zprd / zlattice);
     else nz = 1;
 
-    // check that current box is integer multiple of lattice constants
+    // check that simulation box is integer multiple of lattice constants
 
-    if (fabs(nx*xlattice - domain->xprd) > EPSILON)
+    if (domain->xperiodic && fabs(nx*xlattice - domain->xprd) > EPSILON)
       error->all("Simulation box is not multiple of current lattice settings");
-    if (dimension > 1 && fabs(ny*ylattice - domain->yprd) > EPSILON)
+    if (domain->yperiodic && dimension > 1 && 
+	fabs(ny*ylattice - domain->yprd) > EPSILON)
       error->all("Simulation box is not multiple of current lattice settings");
-    if (dimension > 2 && fabs(nz*zlattice - domain->zprd) > EPSILON)
+    if (domain->zperiodic && dimension > 2 && 
+	fabs(nz*zlattice - domain->zprd) > EPSILON)
       error->all("Simulation box is not multiple of current lattice settings");
+
+    // for non-periodic dims add one to counts to insure tiling of entire box
+
+    if (!domain->xperiodic) nx++;
+    if (!domain->yperiodic && dimension > 1) ny++;
+    if (!domain->zperiodic && dimension > 2) ny++;
+
+    // store counts in applattice
 
     if (latticeflag) {
       applattice->nx = nx;
@@ -213,19 +214,26 @@ void CreateSites::command(int narg, char **arg)
 /* ----------------------------------------------------------------------
    generate sites on structured lattice that fits in simulation box
    loop over entire lattice
-   each proc keeps those in its sub-domain
+   if style = REGION, require a site be in region as well
+   each proc keeps sites in its sub-domain
  ------------------------------------------------------------------------- */
 
 void CreateSites::structured_lattice()
 {
   int dimension = domain->dimension;
-  double **basis = domain->lattice->basis;
+  int nonperiodic = domain->nonperiodic;
+  int xperiodic = domain->xperiodic;
+  int yperiodic = domain->yperiodic;
+  int zperiodic = domain->zperiodic;
 
   double boxxlo = domain->boxxlo;
   double boxylo = domain->boxylo;
   double boxzlo = domain->boxzlo;
-  if (dimension <= 1) boxylo = 0.0;
-  if (dimension <= 2) boxzlo = 0.0;
+  double boxxhi = domain->boxxhi;
+  double boxyhi = domain->boxyhi;
+  double boxzhi = domain->boxzhi;
+  if (dimension <= 1) boxylo = 0.5 * (boxylo+boxyhi);
+  if (dimension <= 2) boxzlo = 0.5 * (boxzlo+boxzhi);
 
   double subxlo = domain->subxlo;
   double subylo = domain->subylo;
@@ -234,12 +242,14 @@ void CreateSites::structured_lattice()
   double subyhi = domain->subyhi;
   double subzhi = domain->subzhi;
 
+  double **basis = domain->lattice->basis;
   int **iarray = app->iarray;
   double **darray = app->darray;
 
   // generate xyz coords and store them with site ID
-  // must also be within region if applicable
-  // if region, IDs will not be contiguous
+  // for non-periodic dims, check if site is within global box (upper bound)
+  // for style = REGION, check if site is within region
+  // if non-periodic or style = REGION, IDs may not be contiguous
 
   int i,j,k,m,nlocal;
   double x,y,z;
@@ -254,6 +264,11 @@ void CreateSites::structured_lattice()
 	  y = (j + basis[m][1])*ylattice + boxylo;
 	  z = (k + basis[m][2])*zlattice + boxzlo;
 
+	  if (nonperiodic) {
+	    if (!xperiodic && x > boxxhi) continue;
+	    if (!yperiodic && y > boxyhi) continue;
+	    if (!zperiodic && z > boxzhi) continue;
+	  }
 	  if (style == REGION &&
 	      domain->regions[nregion]->match(x,y,z) == 0) continue;
 	  if (x < subxlo || x >= subxhi || 
@@ -274,7 +289,6 @@ void CreateSites::structured_lattice()
 	}
 
   // print site count
-  // check if sum of nlocal = nglobal
 
   tagint nbig = app->nlocal;
   MPI_Allreduce(&nbig,&app->nglobal,1,MPI_SPK_TAGINT,MPI_SUM,world);
@@ -286,14 +300,19 @@ void CreateSites::structured_lattice()
       fprintf(logfile,"  " TAGINT_FORMAT " sites\n",app->nglobal);
   }
 
-  nbig = nbasis;
-  nbig = nbig*nx*ny*nz;
-  if (style == BOX && app->nglobal != nbig)
-    error->all("Did not create correct number of sites");
+  // for style = BOX and periodic system, check if nglobal is correct
+
+  if (style == BOX && domain->nonperiodic == 0) {
+    nbig = nbasis;
+    nbig = nbig*nx*ny*nz;
+    if (style == BOX && app->nglobal != nbig)
+      error->all("Did not create correct number of sites");
+  }
 }
 
 /* ----------------------------------------------------------------------
    generate site connectivity for on-lattice applications
+   respect non-periodic boundaries
    only called for on-lattice models
  ------------------------------------------------------------------------- */
 
@@ -302,6 +321,20 @@ void CreateSites::structured_connectivity()
   int i,j,max;
   tagint gid;
   double x,y,z;
+
+  int nonperiodic = domain->nonperiodic;
+  int xperiodic = domain->xperiodic;
+  int yperiodic = domain->yperiodic;
+  int zperiodic = domain->zperiodic;
+
+  double boxxhi = domain->boxxhi;
+  double boxyhi = domain->boxyhi;
+  double boxzhi = domain->boxzhi;
+  double xhalf = 0.5*domain->xprd;
+  double yhalf = 0.5*domain->yprd;
+  double zhalf = 0.5*domain->zprd;
+
+  double **xyz = app->xyz;
 
   // set maxneigh and allocate idneigh array to store connectivity
 
@@ -326,10 +359,10 @@ void CreateSites::structured_connectivity()
   offsets(basis);
 
   // generate global lattice connectivity for each site
-  // some neighbors may not exist for style = REGION
   // connect() computes global index of Jth neighbor of global site I
-  // global index = 1 to Nglobal
   // id2xyz() computes xyz from global index of site
+  // for non-periodic dims, site must be in global box and not across boundary
+  // for style = REGION, check if site is in region
   // FCC_OCTA_TETRA is special case, # of neighs not same for all sites
 
   tagint nglobal = app->nglobal;
@@ -337,57 +370,41 @@ void CreateSites::structured_connectivity()
   tagint *id = app->id;
   int *numneigh = applattice->numneigh;
 
-  if (latstyle == FCC_OCTA_TETRA) {
-    if (style == BOX) {
-      for (i = 0; i < nlocal; i++) {
-	if ((id[i]-1) % 16 < 8) numneigh[i] = maxneigh;
-	else numneigh[i] = 14;
-	for (j = 0; j < numneigh[i]; j++) {
-	  idneigh[i][j] = connect(id[i],j);
-	  if (idneigh[i][j] <= 0 || idneigh[i][j] > nglobal)
-	    error->all("Bad connectivity result");
+  for (i = 0; i < nlocal; i++) {
+    numneigh[i] = 0;
+    if (latstyle == FCC_OCTA_TETRA) {
+      if ((id[i]-1) % 16 < 8) max = maxneigh;
+      else max = 14;
+    } else max = maxneigh;
+    
+    for (j = 0; j < max; j++) {
+      gid = connect(id[i],j);
+      if (style == BOX && nonperiodic == 0 && (gid <= 0 || gid > nglobal))
+	error->all("Bad connectivity site ID");
+      
+      id2xyz(gid,x,y,z);
+      if (nonperiodic) {
+	if (!xperiodic) {
+	  if (x > boxxhi) continue;
+	  if (fabs(xyz[i][0]-x) > xhalf) continue;
+	}
+	if (!yperiodic) {
+	  if (y > boxyhi) continue;
+	  if (fabs(xyz[i][1]-y) > yhalf) continue;
+	}
+	if (!zperiodic) {
+	  if (z > boxzhi) continue;
+	  if (fabs(xyz[i][2]-z) > zhalf) continue;
 	}
       }
-    } else {
-      for (i = 0; i < nlocal; i++) {
-	numneigh[i] = 0;
-	if ((id[i]-1) % 16 < 8) max = maxneigh;
-	else max = 14;
-	for (j = 0; j < max; j++) {
-	  gid = connect(id[i],j);
-	  id2xyz(gid,x,y,z);
-	  if (domain->regions[nregion]->match(x,y,z) == 0) continue;
-	  idneigh[i][numneigh[i]++] = gid;
-	  if (gid <= 0 || gid > nglobal)
-	    error->all("Bad connectivity result");
-	}
-      }
-    }
-
-  } else {
-    if (style == BOX) {
-      for (i = 0; i < nlocal; i++) {
-	numneigh[i] = maxneigh;
-	for (j = 0; j < numneigh[i]; j++) {
-	  idneigh[i][j] = connect(id[i],j);
-	  if (idneigh[i][j] <= 0 || idneigh[i][j] > nglobal)
-	    error->all("Bad connectivity result");
-	}
-      }
-    } else {
-      for (i = 0; i < nlocal; i++) {
-	numneigh[i] = 0;
-	for (j = 0; j < maxneigh; j++) {
-	  gid = connect(id[i],j);
-	  id2xyz(gid,x,y,z);
-	  if (domain->regions[nregion]->match(x,y,z) == 0) continue;
-	  idneigh[i][numneigh[i]++] = gid;
-	  if (gid <= 0 || gid > nglobal)
-	    error->all("Bad connectivity result");
-	}
-      }
+      if (style == REGION &&
+	  domain->regions[nregion]->match(x,y,z) == 0) continue;
+      
+      idneigh[i][numneigh[i]++] = gid;
     }
   }
+
+  // delete connectivity offsets
 
   memory->destroy(cmap);
 }
@@ -475,6 +492,7 @@ void CreateSites::random_sites()
 
 /* ----------------------------------------------------------------------
    infer connectivity from neighbors within cutoff distance
+   respect non-periodic boundaries
    only called for on-lattice models
  ------------------------------------------------------------------------- */
 
@@ -485,6 +503,9 @@ void CreateSites::random_connectivity()
   int me = domain->me;
   int nprocs = domain->nprocs;
   int dimension = domain->dimension;
+  int xperiodic = domain->xperiodic;
+  int yperiodic = domain->yperiodic;
+  int zperiodic = domain->zperiodic;
 
   int nlocal = app->nlocal;
   double cutoff = domain->lattice->cutoff;
@@ -492,6 +513,9 @@ void CreateSites::random_connectivity()
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
+  double xhalf = 0.5 * xprd;
+  double yhalf = 0.5 * yprd;
+  double zhalf = 0.5 * zprd;
 
   double subxlo = domain->subxlo;
   double subylo = domain->subylo;
@@ -632,15 +656,17 @@ void CreateSites::random_connectivity()
       dy = xyz[i][1] - xyz[j][1];
       dz = xyz[i][2] - xyz[j][2];
 
-      if (dx < -0.5*xprd) dx += xprd;
-      else if (dx > 0.5*xprd) dx -= xprd;
-      if (dimension != 1) {
-	if (dy < -0.5*yprd) dy += yprd;
-	else if (dy > 0.5*yprd) dy -= yprd;
+      if (xperiodic && fabs(dx) > xhalf) {
+	if (dx < 0.0) dx += xprd;
+	else dx -= xprd;
       }
-      if (dimension == 3) {
-	if (dz < -0.5*zprd) dz += zprd;
-	else if (dz > 0.5*zprd) dz -= zprd;
+      if (yperiodic && fabs(dy) > yhalf) {
+	if (dy < 0.0) dy += yprd;
+	else dy -= yprd;
+      }
+      if (zperiodic && fabs(dz) > zhalf) {
+	if (dz < 0.0) dz += zprd;
+	else dz -= zprd;
       }
 
       rsq = dx*dx + dy*dy + dz*dz;
@@ -655,15 +681,17 @@ void CreateSites::random_connectivity()
       dy = xyz[i][1] - bufrecv[j].y;
       dz = xyz[i][2] - bufrecv[j].z;
 
-      if (dx < -0.5*xprd) dx += xprd;
-      else if (dx > 0.5*xprd) dx -= xprd;
-      if (dimension != 1) {
-	if (dy < -0.5*yprd) dy += yprd;
-	else if (dy > 0.5*yprd) dy -= yprd;
+      if (xperiodic && fabs(dx) > xhalf) {
+	if (dx < 0.0) dx += xprd;
+	else dx -= xprd;
       }
-      if (dimension == 3) {
-	if (dz < -0.5*zprd) dz += zprd;
-	else if (dz > 0.5*zprd) dz -= zprd;
+      if (yperiodic && fabs(dy) > yhalf) {
+	if (dy < 0.0) dy += yprd;
+	else dy -= yprd;
+      }
+      if (zperiodic && fabs(dz) > zhalf) {
+	if (dz < 0.0) dz += zprd;
+	else dz -= zprd;
       }
 
       rsq = dx*dx + dy*dy + dz*dz;
@@ -694,15 +722,17 @@ void CreateSites::random_connectivity()
       dy = xyz[i][1] - xyz[j][1];
       dz = xyz[i][2] - xyz[j][2];
 
-      if (dx < -0.5*xprd) dx += xprd;
-      else if (dx > 0.5*xprd) dx -= xprd;
-      if (dimension != 1) {
-	if (dy < -0.5*yprd) dy += yprd;
-	else if (dy > 0.5*yprd) dy -= yprd;
+      if (xperiodic && fabs(dx) > xhalf) {
+	if (dx < 0.0) dx += xprd;
+	else dx -= xprd;
       }
-      if (dimension == 3) {
-	if (dz < -0.5*zprd) dz += zprd;
-	else if (dz > 0.5*zprd) dz -= zprd;
+      if (yperiodic && fabs(dy) > yhalf) {
+	if (dy < 0.0) dy += yprd;
+	else dy -= yprd;
+      }
+      if (zperiodic && fabs(dz) > zhalf) {
+	if (dz < 0.0) dz += zprd;
+	else dz -= zprd;
       }
 
       rsq = dx*dx + dy*dy + dz*dz;
@@ -717,15 +747,17 @@ void CreateSites::random_connectivity()
       dy = xyz[i][1] - bufrecv[j].y;
       dz = xyz[i][2] - bufrecv[j].z;
 
-      if (dx < -0.5*xprd) dx += xprd;
-      else if (dx > 0.5*xprd) dx -= xprd;
-      if (dimension != 1) {
-	if (dy < -0.5*yprd) dy += yprd;
-	else if (dy > 0.5*yprd) dy -= yprd;
+      if (xperiodic && fabs(dx) > xhalf) {
+	if (dx < 0.0) dx += xprd;
+	else dx -= xprd;
       }
-      if (dimension == 3) {
-	if (dz < -0.5*zprd) dz += zprd;
-	else if (dz > 0.5*zprd) dz -= zprd;
+      if (yperiodic && fabs(dy) > yhalf) {
+	if (dy < 0.0) dy += yprd;
+	else dy -= yprd;
+      }
+      if (zperiodic && fabs(dz) > zhalf) {
+	if (dz < 0.0) dz += zprd;
+	else dz -= zprd;
       }
 
       rsq = dx*dx + dy*dy + dz*dz;
@@ -886,10 +918,7 @@ void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
       m = i * nchunk;
       idghost = static_cast<tagint> (buf[m++]);
       owner_ghost = static_cast<int> (buf[m++]);
-      if (owner_ghost < 0) {
-	printf("AAA %d %d: %ld %d\n",me,i,idghost,owner_ghost);
-	error->one("Ghost site was not found");
-      }
+      if (owner_ghost < 0) error->one("Ghost site was not found");
       index_ghost = static_cast<int> (buf[m++]);
       x = buf[m++];
       y = buf[m++];
@@ -1134,11 +1163,15 @@ void CreateSites::id2xyz(tagint iglobal, double &x, double &y, double &z)
 
   int dimension = domain->dimension;
   double **basis = domain->lattice->basis;
+
   double boxxlo = domain->boxxlo;
   double boxylo = domain->boxylo;
   double boxzlo = domain->boxzlo;
-  if (dimension <= 1) boxylo = 0.0;
-  if (dimension <= 2) boxzlo = 0.0;
+  double boxxhi = domain->boxxhi;
+  double boxyhi = domain->boxyhi;
+  double boxzhi = domain->boxzhi;
+  if (dimension <= 1) boxylo = 0.5 * (boxylo+boxyhi);
+  if (dimension <= 2) boxzlo = 0.5 * (boxzlo+boxzhi);
 
   if (latstyle == LINE_2N) {
     i = (iglobal-1)/nbasis % nx;

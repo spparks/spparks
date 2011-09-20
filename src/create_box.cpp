@@ -30,11 +30,18 @@ CreateBox::CreateBox(SPPARKS *spk) : Pointers(spk) {}
 void CreateBox::command(int narg, char **arg)
 {
   if (app == NULL) error->all("Create_box command before app_style set");
+
+  if (narg != 1) error->all("Illegal create_box command");
+
   if (app->appclass == App::GENERAL)
     error->all("Cannot create box with this application style");
   if (domain->box_exist) 
     error->all("Cannot create box after simulation box is defined");
-  if (narg != 1) error->all("Illegal create_box command");
+  if (domain->dimension == 2 && domain->zperiodic == 0)
+    error->all("Cannot run 2d simulation with nonperiodic Z dimension");
+  if (domain->dimension == 1 && 
+      (domain->yperiodic == 0 || domain->zperiodic == 0))
+    error->all("Cannot run 1d simulation with nonperiodic Y or Z dimension");
 
   // region check
 
