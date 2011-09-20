@@ -33,6 +33,9 @@
 
 <PRE>  <I>shape</I> value = <I>sphere</I> or <I>cube</I>
   <I>sdiam</I> value = number = numeric value for site diameter (distance units)
+  <I>boundary</I> values = color width
+    color = draw boundaries between sites with this color
+    width = draw boundaries between sites with this width
   <I>crange</I> values = lo hi
      lo,hi = lower and upper bound (inclusive) of integer color attribute
   <I>drange</I> values = lo hi
@@ -186,6 +189,15 @@ or the edge length of the cube.
 <P>The <I>sdiam</I> keyword allows you to override the <I>diameter</I> setting with
 a specified numeric value.  All sites will be drawn with that
 diameter.
+</P>
+<HR>
+
+<P>The <I>boundary</I> keyword is only allowed when the <I>shape</I> keyword
+is <I>cube</I>.  It will draw a boundary plane (3d) or line segement (2d)
+between two adjacent sites that share a common interface if
+the two site values are different.  This enables the boundary
+between different-valued sites to be visible, even if the
+sites themselves are colored the same.
 </P>
 <HR>
 

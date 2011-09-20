@@ -183,6 +183,7 @@ Initialization commands:
 Setting commands:
 
 "dimension"_dimension.html,
+"boundary"_boundary.html,
 "lattice"_lattice.html,
 "pair_coeff"_pair_coeff.html,
 "pair_style"_pair_style.html,
@@ -251,6 +252,7 @@ Restrictions in the command's documentation.
 "add_species"_add_species.html,
 "app_style"_app_style.html,
 "barrier"_barrier.html,
+"boundary"_boundary.html,
 "clear"_clear.html,
 "count"_count.html,
 "create_box"_create_box.html,

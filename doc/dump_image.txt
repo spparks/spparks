@@ -22,6 +22,9 @@ zero or more keyword/value pairs may be appended :l
 keyword = {shape} or {sdiam} or {crange} or {drange} or {size} or {view} or {center} or {up} or {zoom} or {persp} or {box} or {axes} or {shiny} or {ssao} :l
   {shape} value = {sphere} or {cube}
   {sdiam} value = number = numeric value for site diameter (distance units)
+  {boundary} values = color width
+    color = draw boundaries between sites with this color
+    width = draw boundaries between sites with this width
   {crange} values = lo hi
      lo,hi = lower and upper bound (inclusive) of integer color attribute
   {drange} values = lo hi
@@ -173,6 +176,15 @@ or the edge length of the cube.
 The {sdiam} keyword allows you to override the {diameter} setting with
 a specified numeric value.  All sites will be drawn with that
 diameter.
+
+:line
+
+The {boundary} keyword is only allowed when the {shape} keyword
+is {cube}.  It will draw a boundary plane (3d) or line segement (2d)
+between two adjacent sites that share a common interface if
+the two site values are different.  This enables the boundary
+between different-valued sites to be visible, even if the
+sites themselves are colored the same.
 
 :line
 

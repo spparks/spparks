@@ -1,0 +1,69 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>boundary command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dimension x y z 
+</PRE>
+<UL><LI>x,y,z = <I>p</I> or <I>n</I> in each dimension 
+
+<PRE>  <I>p</I> is periodic
+  <I>n</I> is non-periodic 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>boundary p p n 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the style of boundaries for the global simulation box in each
+dimension.  The size of the simulation box is set by the
+<A HREF = "create_box.html">create_box</A> or <A HREF = "read_sites.html">read_sites</A> commands.
+</P>
+<P>The style <I>p</I> means the box is periodic in that dimension, so that
+sites can interact across the boundary.
+</P>
+<P>The styles <I>n</I> means the box is non-periodic in that dimension, so
+that sties do not interact across the boundary.
+</P>
+<P>Note that the interaction of a pair of neighboring sites is really
+controlled by each of their neighbor lists which are setup by either
+the <A HREF = "create_sites.html">create_sites</A> or <A HREF = "read_sites.html">read sites</A>
+commands.  It is possible to have a periodic system with sites that do
+not interact across the periodic boundary, because of the way the
+neighbor lists of sites near the boundary are setup.  See the
+<A HREF = "create_sites.html">create_sites</A> or <A HREF = "read_sites.html">read sites</A>
+for details.
+</P>
+<P>IMPORTANT NOTE: The boundary command does not yet work
+with off-lattice applications.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command must be used before the simulation box is defined by a
+<A HREF = "read_sites.html">read_sites</A> or <A HREF = "create_box.html">create_box</A> command.
+</P>
+<P>A 2d simulation must be periodic in the <I>z</I> dimesion.  A 1d simulation
+must be periodic in the <I>y</I> and <I>z</I> dimensions.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dimension.html">dimension</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>boundary p p p 
+</PRE>
+</HTML>

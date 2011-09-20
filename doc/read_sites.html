@@ -41,14 +41,15 @@ assign per-site values to each site, which can also be done via the
 </P>
 <P>If a simulation box has not already been created and no event sites
 exist, then the data file defines the box size (in the header), and it
-must define Sites and Neighbors (for on-lattice applications).  The
-Values section is optional, since these can be set later via the
-<A HREF = "set.html">set</A> command.
+must define Sites.  It must also define Neighbors for on-lattice
+applications.  The Values section is optional, since these can be set
+later via the <A HREF = "set.html">set</A> command.
 </P>
 <P>If a simulation box has already been defined (by the "create_box"
 command or a previous read_sites command), but no sites have previosly
-been defined, then the data file must define Sites and Neighbors (for
-on-lattice applications).  The Values section is optional.
+been defined, then the data file must define Sites.  It must also
+define Neighbors for on-lattice applications.  The Values section is
+optional.
 </P>
 <P>If a simulation box has already been defined, and sites have previosly
 been defined (by the "create_sites" command or a previous read_sites
@@ -56,6 +57,15 @@ command), then no Sites or Neighbors can be specfied, but the Values
 section may be used.  This is a means of restarting a simulation using
 per-site info written out by the <A HREF = "dump.html">dump</A> command and
 reformatted into a data file so it can be input by this command.
+</P>
+<P>Note that the periodicity of the simulation box, as defined by the
+<A HREF = "boundary.html">boundary</A> command is not considered by this command
+when defining sites or neighbors.  It is up to you to insure sites are
+not duplicated on a periodic boundary, or that a site's neighbor list
+does not include sites that are on the other side of the simulation
+box, across a non-periodic boundary.  This is in contrast to the
+<A HREF = "create_sites.html">create_sites</A> command which accounts for both of
+these issues when creating sites and neighbor lists.
 </P>
 <HR>
 
