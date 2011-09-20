@@ -35,6 +35,21 @@ describe the version you have. :ule,l
 :line
 :line
 
+[20 Sep 2011]
+
+Added a "boundary"_doc/boundary.html command to allow specification of
+non-periodic boundaries in an on-lattice application.  This affects
+the way sites are created and eliminates site neighbors across
+non-periodic boundaries.  See the "create_sites"_doc/create_sites.html
+and "read_sites"_doc/read_sites.html commands for more details.  Using
+"create_sites region"_doc/create_sites.html is now supported to only
+create sites within a geometric region.
+
+This is the "list of changed files"_patches/files.20Sep11 from the 2
+Sep 2010 version.
+
+:line
+
 [2 Sep 2011]
 
 Fixed an indexing bug in the "create_sites"_doc/create_sites.html

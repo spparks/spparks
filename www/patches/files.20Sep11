@@ -1,0 +1,27 @@
+2Sep11 version files changed by 20Sep11 upgrade:
+
+doc/Manual.pdf
+doc/Section_commands.html
+doc/Section_commands.txt
+doc/boundary.html
+doc/boundary.txt
+doc/create_sites.html
+doc/create_sites.txt
+doc/dump_image.html
+doc/dump_image.txt
+doc/read_sites.html
+doc/read_sites.txt
+src/app_diffusion.cpp
+src/app_diffusion.h
+src/app_lattice.cpp
+src/app_lattice.h
+src/create_box.cpp
+src/create_sites.cpp
+src/domain.cpp
+src/domain.h
+src/dump_image.cpp
+src/dump_image.h
+src/input.cpp
+src/input.h
+src/read_sites.cpp
+src/version.h
