@@ -190,7 +190,7 @@ void AppLattice::init()
   if (sweepflag == COLOR || sweepflag == COLOR_STRICT) {
     int delcolor = delevent + delpropensity;
     if (domain->lattice == NULL)
-      error->all("Cannot color wihtout a lattice definition of sites");
+      error->all("Cannot color without a lattice definition of sites");
     ncolors = domain->lattice->ncolors(delcolor,nx,ny,nz);
     if (ncolors == 0)
       error->all("Cannot color this combination of lattice and app");

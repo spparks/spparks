@@ -13,6 +13,7 @@
 
 #include "string.h"
 #include "domain.h"
+#include "app.h"
 #include "lattice.h"
 #include "memory.h"
 #include "error.h"
@@ -154,6 +155,9 @@ void Domain::set_boundary(int narg, char **arg)
 
   nonperiodic = 0;
   if (xperiodic == 0 || yperiodic == 0 || zperiodic == 0) nonperiodic = 1;
+
+  if (nonperiodic && app->appclass != App::LATTICE)
+    error->all("Boundary command currently only supported by on-lattice apps");
 }
 
 /* ----------------------------------------------------------------------
