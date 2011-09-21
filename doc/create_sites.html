@@ -44,8 +44,8 @@ create_sites box value i2 0 basis 1 1 basis 2* 2
 </P>
 <P>This command creates "sites" on a lattice for on-lattice and
 off-lattice applications.  For on-lattice applications it also defines
-a connectivity between sites that is stored as a neighbor list 
-of sites that each site interacts with.
+a connectivity between sites that is stored as a neighbor list of
+nearby sites that each site interacts with.
 </P>
 <P>This command is an alternative to reading in site coordinates and
 neighbor connectivity via the <A HREF = "read_sites.html">read_sites</A> command.
@@ -61,29 +61,30 @@ of neighboring sites with which it interacts.  For off-lattice
 applications, a site is like a particle.  It moves and has a dynamic
 neighborhood of nearby particles with which it interacts.
 </P>
-<P>This command generates all the lattice points that fall within the
+<P>This command generates the set of lattice points that fall within the
 simulation box.  For any periodic dimension, as specified by the
 <A HREF = "boundary.html">boundary</A> command, the simulation box size must be an
 integer multiple of the lattice constant, to insure consistent
 placement of sites near periodic boundaries.  SPPARKS is careful to
 put exactly one site at a periodic boundary (on either side of the
 box), not zero or two.  For non-periodic dimensions, no checking near
-boundaries is done.  If the point is inside or on the boundary, it is
-considered as a candidate site.  Thus you may need to tweak the region
-size to get precisely the sites you want.
+boundaries is done; if the point is inside or on the boundary, it is
+considered as a candidate site.  Thus in non-periodic dimensions you
+may need to tweak the simulation box size to get precisely the sites
+you want.
 </P>
-<P>For the <I>box</I> style, all lattice points within the simulation box are
-stored as sites.  For the <I>region</I> style, a lattice point must also be
-consistent with the region volume to be stored as a site.  Note that a
-region can be specified so that its "volume" is either inside or
-outside a geometric boundary.
+<P>For the <I>box</I> style, all lattice points that fall inside the
+simulation box are stored as sites.  For the <I>region</I> style, a lattice
+point must additionally be consistent with the region volume to be
+stored as a site.  Note that a region can be specified so that its
+"volume" is either inside or outside a geometric boundary.
 </P>
 <P>For on-lattice applications, after sites have been created, a neighbor
 list is also generated for each site, as defined by each <A HREF = "lattice.html">lattice
 style</A>.  Sites near non-periodic boundaries will not have
 neighbors on the other side of the simulation box.  If the <I>region</I>
-style was used, sites near the region boundary will not have neighbors
-which were lattice points inconsitent with the region volume.
+style was used, sites will not have neighbors that are inconsistent
+with the region volume.
 </P>
 <HR>
 
@@ -91,9 +92,9 @@ which were lattice points inconsitent with the region volume.
 where N is the total number of sites that fill the simulation box.
 The numbering is the same, independent of the number of processors.
 Note that if the simulation box is non-periodic or the <I>region</I> style
-is used, some sites may not exist, so the site IDs may not be
-contiguous.  I.e. N will be greater than the number of actual created
-sites.
+is used, some sites may not exist, so the site IDs will not typically
+be contiguous.  I.e. the largest ID will be greater than the number of
+created sites.
 </P>
 <P>Depending on the <A HREF = "app_style.html">application</A>, each site stores zero
 of more integer and floating-point values.  By default these are set
