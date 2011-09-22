@@ -28,7 +28,7 @@ using namespace SPPARKS_NS;
 
 // customize by adding keyword to 1st enum
 
-enum{ID,SITE,X,Y,Z,ENERGY,PROPENSITY,IARRAY,DARRAY};
+enum{ID,SITE,X,Y,Z,ENERGY,PROPENSITY,IARRAY,DARRAY};  // also in dump_image
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE,TAGINT};           // also in dump_image
 

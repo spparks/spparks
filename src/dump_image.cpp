@@ -49,6 +49,7 @@ enum{STATIC,DYNAMIC};
 enum{CONTINUOUS,DISCRETE,SEQUENTIAL};
 enum{ABSOLUTE,FRACTIONAL};
 enum{NO,YES};
+enum{ID,SITE,X,Y,Z,ENERGY,PROPENSITY,IARRAY,DARRAY};  // also in dump_text
 enum{INT,DOUBLE,BIGINT};           // also in dump_text
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
@@ -126,21 +127,47 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"cube") == 0) shape = CUBE;
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"boundary") == 0) {
-      if (iarg+3 > narg) error->all("Illegal dump image command");
-      if (strcmp(arg[iarg+1],"yes") == 0) boundflag = YES;
-      else if (strcmp(arg[iarg+1],"no") == 0) boundflag = NO;
-      else error->all("Illegal dump image command");
-      bounddiam = atof(arg[iarg+2]);
-      if (bounddiam < 0.0) error->all("Illegal dump image command");
-      iarg += 3;
-
     } else if (strcmp(arg[iarg],"sdiam") == 0) {
       if (iarg+2 > narg) error->all("Illegal dump image command");
       sdiam = NUMERIC;
       sdiamvalue = atof(arg[iarg+1]);
       if (sdiamvalue <= 0.0) error->all("Illegal dump image command");
       iarg += 2;
+
+    } else if (strcmp(arg[iarg],"boundary") == 0) {
+      if (iarg+3 > narg) error->all("Illegal dump image command");
+      boundflag = YES;
+
+      if (strcmp(arg[iarg+1],"id") == 0) {
+	boundvalue = ID;
+      } else if (strcmp(arg[iarg+1],"site") == 0) {
+	boundvalue = IARRAY;
+	boundindex = 0;
+	if (app->iarray == NULL)
+	  error->all("Dump image with quantity application does not support");
+      } else if (strcmp(arg[iarg+1],"x") == 0) {
+	boundvalue = X;
+      } else if (strcmp(arg[iarg+1],"y") == 0) {
+	boundvalue = Y;
+      } else if (strcmp(arg[iarg+1],"z") == 0) {
+	boundvalue = Z;
+      } else if (arg[iarg+1][0] == 'i') {
+	boundvalue = IARRAY;
+	boundindex = atoi(&arg[iarg+1][1]);
+	if (boundindex < 1 || boundindex > app->ninteger)
+	  error->all("Dump image with quantity application does not support");
+	boundindex--;
+      } else if (arg[iarg+1][0] == 'd') {
+	boundvalue = DARRAY;
+	boundindex = atoi(&arg[iarg+1][1]);
+	if (boundindex < 1 || boundindex > app->ndouble)
+	  error->all("Dump image with quantity application does not support");
+	boundindex--;
+      } else error->all("Illegal dump image command");
+
+      bounddiam = atof(arg[iarg+2]);
+      if (bounddiam <= 0.0) error->all("Illegal dump image command");
+      iarg += 3;
 
     } else if (strcmp(arg[iarg],"crange") == 0) {
       if (iarg+3 > narg) error->all("Illegal dump image command");
@@ -803,7 +830,7 @@ void DumpImage::color_minmax()
 
 void DumpImage::create_image()
 {
-  int i,j,m,ivalue;
+  int i,j,m,n,ivalue;
   double diameter;
   double *color;
 
@@ -858,8 +885,10 @@ void DumpImage::create_image()
   }
 
   // render my boundaries bewteen adjacent sites
-  // loop over all chosen atoms and all their neighbors, whether chosen or not
-  // only draw boundary if 2 values are different & 2 sites share adjacent face
+  // loop over all chosen sites and all their neighbors
+  // neighbor does not have to be chosen site
+  // if 2 sites do not share adjacent face, do not draw boundary
+  // if 2 sites have same value, do not draw boundary
 
   if (boundflag == YES) {
     int k,flag;
@@ -870,13 +899,27 @@ void DumpImage::create_image()
     double dz = domain->lattice->zlattice;
     int *numneigh = applattice->numneigh;
     int **neighbor = applattice->neighbor;
-    int *site = app->iarray[0];
+    tagint *id = app->id;
+    int **iarray = app->iarray;
+    double **darray = app->darray;
 
     for (int ii = 0; ii < nchoose; ii++) {
       i = clist[ii];
       for (int jj = 0; jj < numneigh[i]; jj++) {
 	j = neighbor[i][jj];
-	if (site[i] == site[j]) continue;
+	if (boundvalue == ID) {
+	  if (id[i] == id[j]) continue;
+	} else if (boundvalue == IARRAY) {
+	  if (iarray[boundindex][i] == iarray[boundindex][j]) continue;
+	} else if (boundvalue == DARRAY) {
+	  if (darray[boundindex][i] == darray[boundindex][j]) continue;
+	} else if (boundvalue == X) {
+	  if (xyz[i][0] == xyz[j][0]) continue;
+	} else if (boundvalue == Y) {
+	  if (xyz[i][1] == xyz[j][1]) continue;
+	} else if (boundvalue == Z) {
+	  if (xyz[i][2] == xyz[j][2]) continue;
+	}
 
 	flag = 0;
 	if (xyz[i][0] != xyz[j][0]) flag++;

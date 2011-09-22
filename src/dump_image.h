@@ -32,7 +32,7 @@ class DumpImage : public DumpText {
 
  private:
   int filetype;
-  int shape,boundflag,scolor,sdiam;
+  int shape,boundflag,scolor,sdiam,boundvalue,boundindex;
   int crange,drange;
   int clo,chi,dlo,dhi;
   double sdiamvalue;
