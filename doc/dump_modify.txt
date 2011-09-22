@@ -94,9 +94,8 @@ a set of 4 cylinders, as described in the "dump image"_dump_image.html
 doc page.  The color name can be any of the 140 pre-defined colors
 (see below) or a color name defined by the dump_modify color option.
 
-The drawing of boundaries between sites is enabled by specifying the
-optional {boundary} setting of the "dump image"_dump_image.html
-command.
+The drawing of boundaries between neighboring sites is enabled by the
+{boundary} keyword of the "dump image"_dump_image.html command.
 
 :line
 
