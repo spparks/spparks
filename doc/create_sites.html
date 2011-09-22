@@ -68,23 +68,28 @@ integer multiple of the lattice constant, to insure consistent
 placement of sites near periodic boundaries.  SPPARKS is careful to
 put exactly one site at a periodic boundary (on either side of the
 box), not zero or two.  For non-periodic dimensions, no checking near
-boundaries is done; if the point is inside or on the boundary, it is
-considered as a candidate site.  Thus in non-periodic dimensions you
-may need to tweak the simulation box size to get precisely the sites
-you want.
+boundaries is done; if the point is inside or on the boundary, it is a
+site.  The one exception is that points that lie exactly on the upper
+boundary (in a non-periodic dimension) are considered to be outside
+the box.  Thus in non-periodic dimensions you may need to tweak the
+simulation box size to get precisely the sites you want.
 </P>
 <P>For the <I>box</I> style, all lattice points that fall inside the
-simulation box are stored as sites.  For the <I>region</I> style, a lattice
-point must additionally be consistent with the region volume to be
-stored as a site.  Note that a region can be specified so that its
-"volume" is either inside or outside a geometric boundary.
+simulation box are stored as sites, as described in the preceding
+paragraph.  For the <I>region</I> style, a lattice point must additionally
+be consistent with the region volume to be stored as a site.  Note
+that a region can be specified so that its volume is either inside or
+outside a geometric boundary.
 </P>
 <P>For on-lattice applications, after sites have been created, a neighbor
 list is also generated for each site, as defined by each <A HREF = "lattice.html">lattice
-style</A>.  Sites near non-periodic boundaries will not have
-neighbors on the other side of the simulation box.  If the <I>region</I>
-style was used, sites will not have neighbors that are inconsistent
-with the region volume.
+style</A>.  Think of this as the set of lattice points near
+a central site, with which it interacts in the sense defined by an
+application.  If the simulation box is periodic in a dimension, the
+neighbors of a central site may include sites on the other side of the
+box.  This will not be the case for a non-periodic dimension.  If some
+sites do not exist, e.g. when using the <I>region</I> style, then some
+sites will not have a complete set of neighbors.
 </P>
 <HR>
 
