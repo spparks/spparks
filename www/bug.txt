@@ -35,6 +35,17 @@ describe the version you have. :ule,l
 :line
 :line
 
+[23 Sep 2011]
+
+Added a "boundary" option to the "dump image"_doc/dump_image.html
+command.  This allows boundaries to be drawn between adjacent sites
+if their specified values are different.  It is useful for
+visualizing the boundaries between aggregated groups of sites
+when the colors of sites in the adjacent groups are the same.
+
+This is the "list of changed files"_patches/files.23Sep11 from the 22
+Sep 2010 version.
+
 [22 Sep 2011]
 
 There were still some glitches in the 20Sep11 patch

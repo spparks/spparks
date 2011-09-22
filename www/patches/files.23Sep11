@@ -1,0 +1,12 @@
+22Sep11 version files changed by 23Sep11 upgrade:
+
+doc/Manual.pdf
+doc/dump_image.html
+doc/dump_image.txt
+doc/dump_modify.html
+doc/dump_modify.txt
+examples/potts/in.potts
+src/dump_image.cpp
+src/dump_image.h
+src/dump_text.cpp
+src/version.h
