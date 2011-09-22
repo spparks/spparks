@@ -862,12 +862,12 @@ void DumpImage::create_image()
   // only draw boundary if 2 values are different & 2 sites share adjacent face
 
   if (boundflag == YES) {
-    int k;
-    double c1[3],c2[3];
+    int k,flag;
+    double c1[3],c2[3],c3[4],c4[4];
     int dimension = domain->dimension;
-    double dx = domain->lattice->a1[0];
-    double dy = domain->lattice->a2[1];
-    double dz = domain->lattice->a3[2];
+    double dx = domain->lattice->xlattice;
+    double dy = domain->lattice->ylattice;
+    double dz = domain->lattice->zlattice;
     int *numneigh = applattice->numneigh;
     int **neighbor = applattice->neighbor;
     int *site = app->iarray[0];
@@ -876,30 +876,50 @@ void DumpImage::create_image()
       i = clist[ii];
       for (int jj = 0; jj < numneigh[i]; jj++) {
 	j = neighbor[i][jj];
-	if (dimension == 2) {
-	  if (site[i] == site[j]) continue;
-	  if (xyz[i][0] != xyz[j][0] && xyz[i][1] != xyz[j][1]) continue;
-	  if (xyz[i][0] == xyz[j][0]) {
-	    c1[0] = xyz[i][0] - 0.5*dx;
-	    c2[0] = xyz[i][0] + 0.5*dx;
-	    c1[1] = c2[1] = 0.5*(xyz[i][1]+xyz[j][1]);
-	    c1[2] = c2[2] = 0.0;
-	  } else if (xyz[i][1] == xyz[j][1]) {
-	    c1[0] = c2[0] = 0.5*(xyz[i][0]+xyz[j][0]);
-	    c1[1] = xyz[i][1] - 0.5*dy;
-	    c2[1] = xyz[i][1] + 0.5*dy;
-	    c1[2] = c2[2] = 0.0;
-	  }
+	if (site[i] == site[j]) continue;
+
+	flag = 0;
+	if (xyz[i][0] != xyz[j][0]) flag++;
+	if (xyz[i][1] != xyz[j][1]) flag++;
+	if (xyz[i][2] != xyz[j][2]) flag++;
+	if (flag >= 2) continue;
+
+	if (xyz[i][0] != xyz[j][0]) {
+	  if (fabs(xyz[i][0]-xyz[j][0]) < 0.5*domain->xprd)
+	    c1[0] = c2[0] = c3[0] = c4[0] = 0.5*(xyz[i][0]+xyz[j][0]);
+	  else 
+	    c1[0] = c2[0] = c3[0] = c4[0] = 
+	      0.5*(xyz[i][0]+xyz[j][0]-domain->xprd);
+	  c1[1] = xyz[i][1] - 0.5*dy; c1[2] = xyz[i][2] - 0.5*dz;
+	  c2[1] = xyz[i][1] - 0.5*dy; c2[2] = xyz[i][2] + 0.5*dz;
+	  c3[1] = xyz[i][1] + 0.5*dy; c3[2] = xyz[i][2] + 0.5*dz;
+	  c4[1] = xyz[i][1] + 0.5*dy; c4[2] = xyz[i][2] - 0.5*dz;
+	} else if (xyz[i][1] != xyz[j][1]) {
+	  if (fabs(xyz[i][1]-xyz[j][1]) < 0.5*domain->yprd)
+	    c1[1] = c2[1] = c3[1] = c4[1] = 0.5*(xyz[i][1]+xyz[j][1]);
+	  else 
+	    c1[1] = c2[1] = c3[1] = c4[1] = 
+	      0.5*(xyz[i][1]+xyz[j][1]-domain->yprd);
+	  c1[0] = xyz[i][0] - 0.5*dx; c1[2] = xyz[i][2] - 0.5*dz;
+	  c2[0] = xyz[i][0] - 0.5*dx; c2[2] = xyz[i][2] + 0.5*dz;
+	  c3[0] = xyz[i][0] + 0.5*dx; c3[2] = xyz[i][2] + 0.5*dz;
+	  c4[0] = xyz[i][0] + 0.5*dx; c4[2] = xyz[i][2] - 0.5*dz;
 	} else {
-	  if (xyz[i][0] != xyz[j][0] && xyz[i][1] != xyz[j][1] &&
-	      xyz[i][2] != xyz[j][2]) continue;
+	  if (fabs(xyz[i][2]-xyz[j][2]) < 0.5*domain->zprd)
+	    c1[2] = c2[2] = c3[2] = c4[2] = 0.5*(xyz[i][2]+xyz[j][2]);
+	  else
+	    c1[2] = c2[2] = c3[2] = c4[2] = 
+	      0.5*(xyz[i][2]+xyz[j][2]-domain->zprd);
+	  c1[0] = xyz[i][0] - 0.5*dx; c1[1] = xyz[i][1] - 0.5*dy;
+	  c2[0] = xyz[i][0] - 0.5*dx; c2[1] = xyz[i][1] + 0.5*dy;
+	  c3[0] = xyz[i][0] + 0.5*dx; c3[1] = xyz[i][1] + 0.5*dy;
+	  c4[0] = xyz[i][0] + 0.5*dx; c4[1] = xyz[i][1] - 0.5*dy;
 	}
 	
-	if (dimension == 2) {
-	  draw_cylinder(c1,c2,boundcolor,bounddiam,3);
-	} else {
-	  // have to draw 12 triangles for thin box?
-	}
+	draw_cylinder(c1,c2,boundcolor,bounddiam,3);
+	draw_cylinder(c2,c3,boundcolor,bounddiam,3);
+	draw_cylinder(c3,c4,boundcolor,bounddiam,3);
+	draw_cylinder(c4,c1,boundcolor,bounddiam,3);
       }
     }
   }
