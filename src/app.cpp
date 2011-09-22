@@ -22,6 +22,9 @@
 
 using namespace SPPARKS_NS;
 
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 /* ---------------------------------------------------------------------- */
 
 App::App(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
@@ -190,3 +193,40 @@ void *App::extract(char *name)
 
   return extract_app(name);
 }
+
+/* ----------------------------------------------------------------------
+   return max ID
+   may not be nglobal if site IDs are not contiguous
+ ------------------------------------------------------------------------- */
+
+tagint App::max_site_ID()
+{
+  tagint max = -1;
+  for (int i = 0; i < nlocal; i++) max = MAX(max,id[i]);
+  tagint all;
+  MPI_Allreduce(&max,&all,1,MPI_SPK_TAGINT,MPI_MAX,world);
+  return all;
+}
+
+/* ----------------------------------------------------------------------
+   check if site IDs are contiguous from 1 to N
+ ------------------------------------------------------------------------- */
+
+int App::contiguous_sites()
+{
+  tagint min = nglobal+1;
+  tagint max = -1;
+
+  for (int i = 0; i < nlocal; i++) {
+    min = MIN(min,id[i]);
+    max = MAX(max,id[i]);
+  }
+
+  tagint all;
+  MPI_Allreduce(&min,&all,1,MPI_SPK_TAGINT,MPI_MIN,world);
+  if (all != 1) return 0;
+  MPI_Allreduce(&max,&all,1,MPI_SPK_TAGINT,MPI_MAX,world);
+  if (all != nglobal) return 0;
+  return 1;
+}
+

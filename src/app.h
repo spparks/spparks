@@ -45,6 +45,7 @@ class App : protected Pointers {
   void run(int, char **);
   void reset_time(double);
   void *extract(char *);
+  tagint max_site_ID();
 
   // pure virtual functions, must be defined in child class
   
@@ -65,6 +66,7 @@ class App : protected Pointers {
 
   void create_arrays();
   void recreate_arrays();
+  int contiguous_sites();
 };
 
 }

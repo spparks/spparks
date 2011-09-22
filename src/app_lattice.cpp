@@ -191,7 +191,9 @@ void AppLattice::init()
     int delcolor = delevent + delpropensity;
     if (domain->lattice == NULL)
       error->all("Cannot color without a lattice definition of sites");
-    ncolors = domain->lattice->ncolors(delcolor,nx,ny,nz);
+    if (contiguous_sites() == 0)
+      error->all("Cannot color without contiguous site IDs");
+    ncolors = domain->lattice->ncolors(delcolor);
     if (ncolors == 0)
       error->all("Cannot color this combination of lattice and app");
   }
@@ -933,7 +935,7 @@ void AppLattice::create_set(int iset, int isector, int icolor, Solve *oldsolve)
     }
 
     if (icolor > 0) {
-      mcolor = domain->lattice->id2color(id[i],delcolor,nx,ny,nz);
+      mcolor = domain->lattice->id2color(id[i],delcolor);
       if (icolor != mcolor) flag = 0;
     }
 
@@ -966,7 +968,7 @@ void AppLattice::create_set(int iset, int isector, int icolor, Solve *oldsolve)
     }
 
     if (icolor > 0) {
-      mcolor = domain->lattice->id2color(id[i],delcolor,nx,ny,nz);
+      mcolor = domain->lattice->id2color(id[i],delcolor);
       if (icolor != mcolor) flag = 0;
     }
 

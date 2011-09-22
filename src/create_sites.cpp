@@ -40,6 +40,7 @@ enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
 enum{BOX,REGION};
 enum{DUMMY,IARRAY,DARRAY};
 
+#define DELTALOCAL 10000
 #define DELTABUF 10000
 #define EPSILON 0.0001
 
@@ -161,37 +162,6 @@ void CreateSites::command(int narg, char **arg)
     ylattice = domain->lattice->ylattice;
     zlattice = domain->lattice->zlattice;
 
-    nx = static_cast<int> (domain->xprd / xlattice);
-    if (dimension >= 2) ny = static_cast<int> (domain->yprd / ylattice);
-    else ny = 1;
-    if (dimension == 3) nz = static_cast<int> (domain->zprd / zlattice);
-    else nz = 1;
-
-    // check that simulation box is integer multiple of lattice constants
-
-    if (domain->xperiodic && fabs(nx*xlattice - domain->xprd) > EPSILON)
-      error->all("Simulation box is not multiple of current lattice settings");
-    if (domain->yperiodic && dimension > 1 && 
-	fabs(ny*ylattice - domain->yprd) > EPSILON)
-      error->all("Simulation box is not multiple of current lattice settings");
-    if (domain->zperiodic && dimension > 2 && 
-	fabs(nz*zlattice - domain->zprd) > EPSILON)
-      error->all("Simulation box is not multiple of current lattice settings");
-
-    // for non-periodic dims add one to counts to insure tiling of entire box
-
-    if (!domain->xperiodic) nx++;
-    if (!domain->yperiodic && dimension > 1) ny++;
-    if (!domain->zperiodic && dimension > 2) ny++;
-
-    // store counts in applattice
-
-    if (latticeflag) {
-      applattice->nx = nx;
-      applattice->ny = ny;
-      applattice->nz = nz;
-    }
-
     structured_lattice();
     if (latticeflag) structured_connectivity();
 
@@ -246,45 +216,142 @@ void CreateSites::structured_lattice()
   int **iarray = app->iarray;
   double **darray = app->darray;
 
+  // in periodic dims:
+  // check that simulation box is integer multiple of lattice spacing
+  
+  nx = static_cast<int> (domain->xprd / xlattice);
+  if (dimension >= 2) ny = static_cast<int> (domain->yprd / ylattice);
+  else ny = 1;
+  if (dimension == 3) nz = static_cast<int> (domain->zprd / zlattice);
+  else nz = 1;
+
+  if (xperiodic && 
+      fabs(nx*xlattice - domain->xprd) > EPSILON)
+    error->all("Periodic box is not a multiple of lattice spacing");
+  if (dimension > 1 && yperiodic &&
+      fabs(ny*ylattice - domain->yprd) > EPSILON)
+    error->all("Periodic box is not a multiple of lattice spacing");
+  if (dimension > 2 && zperiodic && 
+      fabs(nz*zlattice - domain->zprd) > EPSILON)
+    error->all("Periodic box is not a multiple of lattice spacing");
+
+  // set domain->nx,ny,nz iff style = BOX and system is fully periodic
+  // else site IDs may be non-contiguous and/or ordered irregularly
+
+  if (style == BOX && nonperiodic == 0) {
+    domain->nx = nx;
+    domain->ny = ny;
+    domain->nz = nz;
+  }
+
+  // if dim is periodic:
+  // lattice origin = lower box boundary
+  // loop bounds = 0 to N-1
+  // if dim is non-periodic:
+  // lattice origin = 0.0
+  // loop bounds = enough to tile box completely, with all basis atoms
+
+  if (xperiodic) {
+    xorig = boxxlo;
+    xlo = 0;
+    xhi = nx-1;
+  } else {
+    xorig = 0.0;
+    xlo = static_cast<int> (boxxlo / xlattice);
+    while ((xlo+1)*xlattice > boxxlo) xlo--;
+    xlo++;
+    xhi = static_cast<int> (boxxhi / xlattice);
+    while (xhi*xlattice <= boxxhi) xhi++;
+    xhi--;
+  }
+
+  if (yperiodic) {
+    yorig = boxylo;
+    ylo = 0;
+    yhi = ny-1;
+  } else {
+    yorig = 0.0;
+    ylo = static_cast<int> (boxylo / ylattice);
+    while ((ylo+1)*ylattice > boxylo) ylo--;
+    ylo++;
+    yhi = static_cast<int> (boxyhi / ylattice);
+    while (yhi*ylattice <= boxyhi) yhi++;
+    yhi--;
+  }
+
+  if (zperiodic) {
+    zorig = boxxlo;
+    zlo = 0;
+    zhi = nz-1;
+  } else {
+    zorig = 0.0;
+    zlo = static_cast<int> (boxzlo / zlattice);
+    while ((zlo+1)*zlattice > boxzlo) zlo--;
+    zlo++;
+    zhi = static_cast<int> (boxzhi / zlattice);
+    while (zhi*zlattice <= boxzhi) zhi++;
+    zhi--;
+  }
+  
   // generate xyz coords and store them with site ID
-  // for non-periodic dims, check if site is within global box (upper bound)
+  // tile the simulation box from origin at (0,0,0) respecting PBC
+  // site IDs should be contiguous if style = BOX and fully periodic
+  // for non-periodic dims, check if site is within global box
   // for style = REGION, check if site is within region
   // if non-periodic or style = REGION, IDs may not be contiguous
 
   int i,j,k,m,nlocal;
   double x,y,z;
 
+  int maxlocal = 0;
+  siteijk = NULL;
+
   tagint n = 0;
-  for (k = 0; k < nz; k++)
-    for (j = 0; j < ny; j++)
-      for (i = 0; i < nx; i++)
+  for (k = zlo; k <= zhi; k++)
+    for (j = ylo; j <= yhi; j++)
+      for (i = xlo; i <= xhi; i++)
 	for (m = 0; m < nbasis; m++) {
 	  n++;
-	  x = (i + basis[m][0])*xlattice + boxxlo;
-	  y = (j + basis[m][1])*ylattice + boxylo;
-	  z = (k + basis[m][2])*zlattice + boxzlo;
+	  x = (i + basis[m][0])*xlattice + xorig;
+	  y = (j + basis[m][1])*ylattice + yorig;
+	  z = (k + basis[m][2])*zlattice + zorig;
 
 	  if (nonperiodic) {
-	    if (!xperiodic && x > boxxhi) continue;
-	    if (!yperiodic && y > boxyhi) continue;
-	    if (!zperiodic && z > boxzhi) continue;
+	    if (!xperiodic && (x < boxxlo || x >= boxxhi)) continue;
+	    if (!yperiodic && (y < boxylo || y >= boxyhi)) continue;
+	    if (!zperiodic && (z < boxzlo || z >= boxzhi)) continue;
 	  }
 	  if (style == REGION &&
 	      domain->regions[nregion]->match(x,y,z) == 0) continue;
+
 	  if (x < subxlo || x >= subxhi || 
 	      y < subylo || y >= subyhi || 
 	      z < subzlo || z >= subzhi) continue;
 
 	  if (latticeflag) applattice->add_site(n,x,y,z);
 	  else appoff->add_site(n,x,y,z);
-	  nlocal = app->nlocal - 1;
+	  nlocal = app->nlocal;
+
+	  if (nlocal > maxlocal) {
+	    maxlocal += DELTALOCAL;
+	    memory->grow(siteijk,maxlocal,4,"create:siteijk");
+	  }
+
+	  siteijk[nlocal-1][0] = i;
+	  siteijk[nlocal-1][1] = j;
+	  siteijk[nlocal-1][2] = k;
+	  siteijk[nlocal-1][3] = m;
+
+	  //printf("SITE %d: %d %d %d %d: %g %g %g\n",n,i,j,k,m,x,y,z);
 
 	  if (valueflag == IARRAY) {
-	    if (basisflag[m+1]) iarray[valueindex][nlocal] = basis_ivalue[m+1];
-	    else iarray[valueindex][nlocal] = ivalue;
+	    if (basisflag[m+1])
+	      iarray[valueindex][nlocal-1] = basis_ivalue[m+1];
+	    else iarray[valueindex][nlocal-1] = ivalue;
 	  } else if (valueflag == DARRAY) {
-	    if (basisflag[m+1]) darray[valueindex][nlocal] = basis_dvalue[m+1];
-	    else darray[valueindex][nlocal] = dvalue;
+	    if (basisflag[m+1]) 
+	      darray[valueindex][nlocal-1] = basis_dvalue[m+1];
+	    else darray[valueindex][nlocal-1] = dvalue;
 	  }
 	}
 
@@ -318,23 +385,27 @@ void CreateSites::structured_lattice()
 
 void CreateSites::structured_connectivity()
 {
-  int i,j,max;
+  int i,j,m,max;
+  int ineigh,jneigh,kneigh,mneigh;
   tagint gid;
-  double x,y,z;
+  double x,y,z,xneigh,yneigh,zneigh;
 
+  int dimension = domain->dimension;
   int nonperiodic = domain->nonperiodic;
   int xperiodic = domain->xperiodic;
   int yperiodic = domain->yperiodic;
   int zperiodic = domain->zperiodic;
 
+  double boxxlo = domain->boxxlo;
+  double boxylo = domain->boxylo;
+  double boxzlo = domain->boxzlo;
   double boxxhi = domain->boxxhi;
   double boxyhi = domain->boxyhi;
   double boxzhi = domain->boxzhi;
-  double xhalf = 0.5*domain->xprd;
-  double yhalf = 0.5*domain->yprd;
-  double zhalf = 0.5*domain->zprd;
 
-  double **xyz = app->xyz;
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
 
   // set maxneigh and allocate idneigh array to store connectivity
 
@@ -359,8 +430,6 @@ void CreateSites::structured_connectivity()
   offsets(basis);
 
   // generate global lattice connectivity for each site
-  // connect() computes global index of Jth neighbor of global site I
-  // id2xyz() computes xyz from global index of site
   // for non-periodic dims, site must be in global box and not across boundary
   // for style = REGION, check if site is in region
   // FCC_OCTA_TETRA is special case, # of neighs not same for all sites
@@ -378,34 +447,101 @@ void CreateSites::structured_connectivity()
     } else max = maxneigh;
     
     for (j = 0; j < max; j++) {
-      gid = connect(id[i],j);
-      if (style == BOX && nonperiodic == 0 && (gid <= 0 || gid > nglobal))
-	error->all("Bad connectivity site ID");
-      
-      id2xyz(gid,x,y,z);
-      if (nonperiodic) {
-	if (!xperiodic) {
-	  if (x > boxxhi) continue;
-	  if (fabs(xyz[i][0]-x) > xhalf) continue;
+
+      // ijkm neigh = indices of neighbor site
+      // calculated from siteijk and cmap offsets
+
+      m = siteijk[i][3];
+      ineigh = siteijk[i][0] + cmap[m][j][0];
+      jneigh = siteijk[i][1] + cmap[m][j][1];
+      kneigh = siteijk[i][2] + cmap[m][j][2];
+      mneigh = cmap[m][j][3];
+
+      //printf("AAA %d %d: %d %d %d %d\n",i,j,ineigh,jneigh,kneigh,mneigh);
+
+      // xyz neigh = coords of neighbor site
+      // calculated in same manner that structured_lattice() generated coords
+
+      xneigh = (ineigh + basis[mneigh][0])*xlattice + xorig;
+      yneigh = (jneigh + basis[mneigh][1])*ylattice + yorig;
+      zneigh = (kneigh + basis[mneigh][2])*zlattice + zorig;
+
+      //printf("BBB %d %d: %g %g %g\n",i,j,xneigh,yneigh,zneigh);
+
+      // remap neighbor coords and indices into periodic box
+
+      if (xperiodic) {
+	if (xneigh < boxxlo) {
+	  xneigh += xprd;
+	  ineigh += nx;
 	}
-	if (!yperiodic) {
-	  if (y > boxyhi) continue;
-	  if (fabs(xyz[i][1]-y) > yhalf) continue;
-	}
-	if (!zperiodic) {
-	  if (z > boxzhi) continue;
-	  if (fabs(xyz[i][2]-z) > zhalf) continue;
+	if (xneigh >= boxxhi) {
+	  xneigh -= xprd;
+	  xneigh = MAX(xneigh,boxxlo);
+	  ineigh -= nx;
 	}
       }
+      if (yperiodic) {
+	if (yneigh < boxylo) {
+	  yneigh += yprd;
+	  jneigh += ny;
+	}
+	if (yneigh >= boxyhi) {
+	  yneigh -= yprd;
+	  yneigh = MAX(yneigh,boxylo);
+	  jneigh -= ny;
+	}
+      }
+      if (zperiodic) {
+	if (zneigh < boxzlo) {
+	  zneigh += zprd;
+	  kneigh += nz;
+	}
+	if (zneigh >= boxzhi) {
+	  zneigh -= zprd;
+	  zneigh = MAX(zneigh,boxzlo);
+	  kneigh -= nz;
+	}
+      }
+
+      //printf("CCC %d %d: %d %d %d %d\n",i,j,ineigh,jneigh,kneigh,mneigh);
+      //printf("DDD %d %d: %g %g %g\n",i,j,xneigh,yneigh,zneigh);
+
+      // discard neighs that are outside non-periodic box or region
+
+      if (nonperiodic) {
+	if (!xperiodic && (xneigh < boxxlo || xneigh >= boxxhi)) continue;
+	if (!yperiodic && (yneigh < boxylo || yneigh >= boxyhi)) continue;
+	if (!zperiodic && (zneigh < boxzlo || zneigh >= boxzhi)) continue;
+      }
       if (style == REGION &&
-	  domain->regions[nregion]->match(x,y,z) == 0) continue;
-      
+	  domain->regions[nregion]->match(xneigh,yneigh,zneigh) == 0) continue;
+
+      // gid = global ID of neighbor
+      // calculated in same manner that structured_lattice() generated IDs
+
+      gid = (kneigh-zlo)*(yhi-ylo+1)*(xhi-xlo+1) + (jneigh-ylo)*(xhi-xlo+1) +
+	(ineigh-xlo) + mneigh + 1;
+
+      //printf("EEE %d %d: %d\n",i,j,gid);
+
+      if (style == BOX && nonperiodic == 0 && (gid <= 0 || gid > nglobal))
+	error->all("Bad neighbor site ID");
+
+      // add gid to neigh list of site I
+
       idneigh[i][numneigh[i]++] = gid;
     }
+
+    //printf("NEIGH %d: %d\n",id[i],numneigh[i]);
+    //for (int m = 0; m < numneigh[i]; m++)
+    //  printf(" %d",idneigh[i][m]);
+    //printf("\n");
   }
 
-  // delete connectivity offsets
+  // delete siteijk and connectivity offsets
 
+  memory->destroy(siteijk);
   memory->destroy(cmap);
 }
 
@@ -972,62 +1108,11 @@ void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
 
 /* ---------------------------------------------------------------------- */
 
-tagint CreateSites::connect(tagint iglobal, int ineigh)
-{
-  tagint i,j,k,m,n;
-
-  if (latstyle == LINE_2N) {
-    i = (iglobal-1)/nbasis % nx;
-    m = (iglobal-1) % nbasis;
-    i += cmap[m][ineigh][0];
-    m = cmap[m][ineigh][1];
-    if (i < 0) i += nx;
-    if (i >= nx) i -= nx;
-    n = i*nbasis + m + 1;
-
-  } else if (latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI) {
-    i = (iglobal-1)/nbasis % nx;
-    j = (iglobal-1)/nbasis / nx;
-    m = (iglobal-1) % nbasis;
-    i += cmap[m][ineigh][0];
-    j += cmap[m][ineigh][1];
-    m = cmap[m][ineigh][2];
-    if (i < 0) i += nx;
-    if (i >= nx) i -= nx;
-    if (j < 0) j += ny;
-    if (j >= ny) j -= ny;
-    n = j*nx*nbasis + i*nbasis + m + 1;
-
-  } else if (latstyle == SC_6N || latstyle == SC_26N || 
-	     latstyle == FCC || latstyle == BCC || latstyle == DIAMOND ||
-	     latstyle == FCC_OCTA_TETRA) {
-    i = (iglobal-1)/nbasis % nx;
-    j = (iglobal-1)/nbasis / nx % ny;;
-    k = (iglobal-1)/nbasis / (nx*ny);
-    m = (iglobal-1) % nbasis;
-    i += cmap[m][ineigh][0];
-    j += cmap[m][ineigh][1];
-    k += cmap[m][ineigh][2];
-    m = cmap[m][ineigh][3];
-    if (i < 0) i += nx;
-    if (i >= nx) i -= nx;
-    if (j < 0) j += ny;
-    if (j >= ny) j -= ny;
-    if (k < 0) k += nz;
-    if (k >= nz) k -= nz;
-    n = k*nx*ny*nbasis + j*nx*nbasis + i*nbasis + m + 1;
-  }
-
-  return n;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void CreateSites::offsets(double **basis)
 {
   if (latstyle == LINE_2N) {
-    cmap[0][0][0] = -1; cmap[0][0][1] =  0;
-    cmap[0][1][0] =  1; cmap[0][1][1] =  0;
+    cmap[0][0][0] = -1; cmap[0][0][1] = 0; cmap[0][0][2] = 0; cmap[0][0][3] = 0;
+    cmap[0][1][0] =  1; cmap[0][1][1] = 0; cmap[0][1][2] = 0; cmap[0][1][3] = 0;
   }
 
   if (latstyle == SQ_4N)
@@ -1104,7 +1189,8 @@ void CreateSites::offsets_2d(int ibasis, double **basis,
 	  if (n == ntarget) error->all("Incorrect lattice neighbor count");
 	  cmapone[n][0] = i;
 	  cmapone[n][1] = j;
-	  cmapone[n][2] = m;
+	  cmapone[n][2] = 0;
+	  cmapone[n][3] = m;
 	  n++;
 	}
       }
@@ -1149,48 +1235,4 @@ void CreateSites::offsets_3d(int ibasis, double **basis,
   }
 
   if (n != ntarget) error->all("Incorrect lattice neighbor count");
-}
-
-/* ----------------------------------------------------------------------
-   convert a global ID of a site to its x,y,z coords
-   called from stuctured_connectivity() when style = REGION
- ------------------------------------------------------------------------- */
-
-void CreateSites::id2xyz(tagint iglobal, double &x, double &y, double &z)
-{
-  tagint i,j,k;
-  int m;
-
-  int dimension = domain->dimension;
-  double **basis = domain->lattice->basis;
-
-  double boxxlo = domain->boxxlo;
-  double boxylo = domain->boxylo;
-  double boxzlo = domain->boxzlo;
-  double boxyhi = domain->boxyhi;
-  double boxzhi = domain->boxzhi;
-  if (dimension <= 1) boxylo = 0.5 * (boxylo+boxyhi);
-  if (dimension <= 2) boxzlo = 0.5 * (boxzlo+boxzhi);
-
-  if (latstyle == LINE_2N) {
-    i = (iglobal-1)/nbasis % nx;
-    j = k = 0;
-    m = (iglobal-1) % nbasis;
-  } else if (latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI) {
-    i = (iglobal-1)/nbasis % nx;
-    j = (iglobal-1)/nbasis / nx;
-    k = 0;
-    m = (iglobal-1) % nbasis;
-  } else if (latstyle == SC_6N || latstyle == SC_26N || 
-	     latstyle == FCC || latstyle == BCC || latstyle == DIAMOND ||
-	     latstyle == FCC_OCTA_TETRA) {
-    i = (iglobal-1)/nbasis % nx;
-    j = (iglobal-1)/nbasis / nx % ny;;
-    k = (iglobal-1)/nbasis / (nx*ny);
-    m = (iglobal-1) % nbasis;
-  }
-
-  x = (i + basis[m][0])*xlattice + boxxlo;
-  y = (j + basis[m][1])*ylattice + boxylo;
-  z = (k + basis[m][2])*zlattice + boxzlo;
 }

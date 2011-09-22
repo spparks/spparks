@@ -144,16 +144,19 @@ void DiagCluster::init()
 
   if (dump_style == OPENDX) {
     if (lattice->style == SC_6N || lattice->style == SC_26N) {
-      nx_global = applattice->nx;
-      ny_global = applattice->ny;
-      nz_global = applattice->nz;
+      nx_global = domain->nx;
+      ny_global = domain->ny;
+      nz_global = domain->nz;
     } else if (lattice->style == SQ_4N || lattice->style == SQ_8N) {
-      nx_global = applattice->nx;
-      ny_global = applattice->ny;
+      nx_global = domain->nx;
+      ny_global = domain->ny;
       nz_global = 1;
     } else {
-      error->all("Diag dump_style incompatible with lattice style");
+      error->all("Diag_style cluster incompatible with lattice style");
     }
+
+    if (nx_global == 0 || ny_global == 0 || nz_global == 0)
+      error->all("Diag_style cluster nx,ny,nz = 0");
   }
 
   if (first_run) {

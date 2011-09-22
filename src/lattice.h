@@ -31,8 +31,8 @@ class Lattice : protected Pointers {
 
   Lattice(class SPPARKS *, int, char **);
   ~Lattice();
-  int ncolors(int, int, int, int);
-  int id2color(tagint, int, int, int, int);
+  int ncolors(int);
+  int id2color(tagint, int);
 
 private:
   double latconst;                     // lattice constant

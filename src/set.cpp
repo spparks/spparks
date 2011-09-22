@@ -195,14 +195,6 @@ void Set::command(int narg, char **arg)
 
   if (domain->me == 0 && screen) fprintf(screen,"Setting site values ...\n");
 
-  if (app->appclass == App::LATTICE) {
-    applattice = (AppLattice *) app;
-    latticeflag = 1;
-  } else if (app->appclass == App::OFF_LATTICE) {
-    appoff = (AppOffLattice *) app;
-    latticeflag = 0;
-  }
-
   if (rhs == VALUE) set_single(lhs,rhs);
   else if (rhs == RANGE) set_range(lhs,rhs);
   else if (rhs == UNIQUE) set_single(lhs,rhs);
@@ -236,7 +228,7 @@ void Set::set_single(int lhs, int rhs)
   tagint iglobal;
 
   int nlocal = app->nlocal;
-  tagint nglobal = app->nglobal;
+  tagint maxID = app->max_site_ID();
 
   tagint *id = app->id;
   double **xyz = app->xyz;
@@ -276,7 +268,7 @@ void Set::set_single(int lhs, int rhs)
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
-	for (iglobal = 1; iglobal <= nglobal; iglobal++) {
+	for (iglobal = 1; iglobal <= maxID; iglobal++) {
 	  if (random->uniform() >= fraction) continue;
 	  loc = hash.find(iglobal);
 	  if (loc == hash.end()) continue;
@@ -287,7 +279,7 @@ void Set::set_single(int lhs, int rhs)
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
-	for (iglobal = 1; iglobal <= nglobal; iglobal++) {
+	for (iglobal = 1; iglobal <= maxID; iglobal++) {
 	  if (random->uniform() >= fraction) continue;
 	  loc = hash.find(iglobal);
 	  if (loc == hash.end()) continue;
@@ -318,7 +310,7 @@ void Set::set_single(int lhs, int rhs)
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
-	for (iglobal = 1; iglobal <= nglobal; iglobal++) {
+	for (iglobal = 1; iglobal <= maxID; iglobal++) {
 	  if (random->uniform() >= fraction) continue;
 	  loc = hash.find(iglobal);
 	  if (loc == hash.end()) continue;
@@ -329,7 +321,7 @@ void Set::set_single(int lhs, int rhs)
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
-	for (iglobal = 1; iglobal <= nglobal; iglobal++) {
+	for (iglobal = 1; iglobal <= maxID; iglobal++) {
 	  if (random->uniform() >= fraction) continue;
 	  loc = hash.find(iglobal);
 	  if (loc == hash.end()) continue;
@@ -431,7 +423,7 @@ void Set::set_range(int lhs, int rhs)
   tagint iglobal;
 
   int nlocal = app->nlocal;
-  tagint nglobal = app->nglobal;
+  tagint maxID = app->max_site_ID();
 
   tagint *id = app->id;
   double **xyz = app->xyz;
@@ -458,7 +450,7 @@ void Set::set_range(int lhs, int rhs)
       int range = ivaluehi - ivaluelo + 1;
 
       if (regionflag == 0 && fraction == 1.0) {
-	for (iglobal = 1; iglobal <= nglobal; iglobal++) {
+	for (iglobal = 1; iglobal <= maxID; iglobal++) {
 	  ivalue = random->irandom(range);
 	  loc = hash.find(iglobal);
 	  if (loc == hash.end()) continue;
@@ -468,7 +460,7 @@ void Set::set_range(int lhs, int rhs)
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
-	for (iglobal = 1; iglobal <= nglobal; iglobal++) {
+	for (iglobal = 1; iglobal <= maxID; iglobal++) {
 	  ivalue = random->irandom(range);
 	  loc = hash.find(iglobal);
 	  if (loc == hash.end()) continue;
@@ -480,7 +472,7 @@ void Set::set_range(int lhs, int rhs)
 	  }
 	}
       } else if (regionflag == 0 && fraction < 1.0) {
-	for (iglobal = 1; iglobal <= nglobal; iglobal++) {
+	for (iglobal = 1; iglobal <= maxID; iglobal++) {
 	  if (random->uniform() >= fraction) continue;
 	  ivalue = random->irandom(range);
 	  loc = hash.find(iglobal);
@@ -491,7 +483,7 @@ void Set::set_range(int lhs, int rhs)
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
-	for (iglobal = 1; iglobal <= nglobal; iglobal++) {
+	for (iglobal = 1; iglobal <= maxID; iglobal++) {
 	  if (random->uniform() >= fraction) continue;
 	  ivalue = random->irandom(range);
 	  loc = hash.find(iglobal);
@@ -509,7 +501,7 @@ void Set::set_range(int lhs, int rhs)
       double range = dvaluehi - dvaluelo;
 
       if (regionflag == 0 && fraction == 1.0) {
-	for (iglobal = 1; iglobal <= nglobal; iglobal++) {
+	for (iglobal = 1; iglobal <= maxID; iglobal++) {
 	  dvalue = random->uniform();
 	  loc = hash.find(iglobal);
 	  if (loc == hash.end()) continue;
@@ -519,7 +511,7 @@ void Set::set_range(int lhs, int rhs)
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
-	for (iglobal = 1; iglobal <= nglobal; iglobal++) {
+	for (iglobal = 1; iglobal <= maxID; iglobal++) {
 	  dvalue = random->uniform();
 	  loc = hash.find(iglobal);
 	  if (loc == hash.end()) continue;
@@ -531,7 +523,7 @@ void Set::set_range(int lhs, int rhs)
 	  }
 	}
       } else if (regionflag == 0 && fraction < 1.0) {
-	for (iglobal = 1; iglobal <= nglobal; iglobal++) {
+	for (iglobal = 1; iglobal <= maxID; iglobal++) {
 	  if (random->uniform() >= fraction) continue;
 	  dvalue = random->uniform();
 	  loc = hash.find(iglobal);
@@ -542,7 +534,7 @@ void Set::set_range(int lhs, int rhs)
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
-	for (iglobal = 1; iglobal <= nglobal; iglobal++) {
+	for (iglobal = 1; iglobal <= maxID; iglobal++) {
 	  if (random->uniform() >= fraction) continue;
 	  dvalue = random->uniform();
 	  loc = hash.find(iglobal);

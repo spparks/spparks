@@ -42,17 +42,27 @@ class CreateSites : protected Pointers {
   class AppLattice *applattice;
   class AppOffLattice *appoff;
 
-  int latstyle,nbasis,nx,ny,nz;
-  double xlattice,ylattice,zlattice;
-
   tagint **idneigh;            // global indices of neighbors of each site
-                               // same as AppLattice neighbor, but tagint
-                               // tmp usage until convert to local indices
+                               // same as AppLattice neighbor, but tagint,
+                               // tmp storage until convert to local indices
+
+  int **siteijk;               // global indices of each site
+                               // 0,1,2 = i,j,k lattice indices
+                               // 3 = which basis atom in unit cell
 
   int ***cmap;                 // connectivity map for regular lattices
                                // cmap[nbasis][maxneigh][4]
-                               // 0,1,2 = x,y,z offsets in unit cell
-                               // 3 = which atom in offset unit cell
+                               // 0,1,2 = i,j,k lattice unit cell offsets
+                               // 3 = which basis atom in unit cell
+
+
+  // geometry info for building structured lattice with neighbors
+
+  int nx,ny,nz;
+  int xlo,xhi,ylo,yhi,zlo,zhi;
+  double xorig,yorig,zorig;
+  int latstyle,nbasis;
+  double xlattice,ylattice,zlattice;
 
   struct Site {
     int id,proc,index;
@@ -64,12 +74,9 @@ class CreateSites : protected Pointers {
   void random_sites();
   void random_connectivity();
 
-  tagint connect(tagint, int);
   void offsets(double **);
   void offsets_2d(int, double **, double, double, int, int **);
   void offsets_3d(int, double **, double, double, int, int **);
-
-  void id2xyz(tagint, double &, double &, double &);
 };
 
 }

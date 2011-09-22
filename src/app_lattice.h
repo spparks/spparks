@@ -25,7 +25,6 @@ class AppLattice : public App {
   friend class CommLattice;
 
  public:
-  int nx,ny,nz;                // size of lattice
   int delpropensity;           // # of sites away needed to compute propensity
   int delevent;                // # of sites away affected by an event
 

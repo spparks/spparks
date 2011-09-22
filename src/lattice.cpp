@@ -180,9 +180,15 @@ void Lattice::add_basis(double x, double y, double z)
    # of colors to partition lattice into
 ------------------------------------------------------------------------- */
 
-int Lattice::ncolors(int delcolor, int nx, int ny, int nz)
+int Lattice::ncolors(int delcolor)
 {
   int n = 0;
+
+  int nx = domain->nx;
+  int ny = domain->ny;
+  int nz = domain->nz;
+  if (nx == 0 || ny == 0 || nz == 0)
+    error->all("Cannot use coloring without domain nx,ny,nz defined");
 
   if (style == LINE_2N) {
     if (delcolor == 1) n = 2;
@@ -221,10 +227,16 @@ int Lattice::ncolors(int delcolor, int nx, int ny, int nz)
    convert a lattice ID (1 to Nsites) to a color (1 to Ncolor)
 ------------------------------------------------------------------------- */
 
-int Lattice::id2color(tagint idsite, int delcolor, int nx, int ny, int nz)
+int Lattice::id2color(tagint idsite, int delcolor)
 {
   tagint i,j,k;
   int ncolor1d,icolor;
+
+  int nx = domain->nx;
+  int ny = domain->ny;
+  int nz = domain->nz;
+  if (nx == 0 || ny == 0 || nz == 0)
+    error->all("Cannot use coloring without domain nx,ny,nz defined");
 
   idsite--;
 

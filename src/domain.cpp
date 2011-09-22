@@ -39,6 +39,7 @@ Domain::Domain(SPPARKS *spk) : Pointers(spk)
   periodicity[1] = yperiodic;
   periodicity[2] = zperiodic;
 
+  nx = ny = nz = 0;
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
 
   box_exist = 0;
@@ -141,13 +142,13 @@ void Domain::set_boundary(int narg, char **arg)
 {
   if (narg != 3) error->all("Illegal boundary command");
 
-  if (strcmp(arg[0],"f") == 0) xperiodic = 0;
+  if (strcmp(arg[0],"n") == 0) xperiodic = 0;
   else if (strcmp(arg[0],"p") == 0) xperiodic = 1;
   else error->all("Illegal boundary command");
-  if (strcmp(arg[1],"f") == 0) yperiodic = 0;
+  if (strcmp(arg[1],"n") == 0) yperiodic = 0;
   else if (strcmp(arg[1],"p") == 0) yperiodic = 1;
   else error->all("Illegal boundary command");
-  if (strcmp(arg[2],"f") == 0) zperiodic = 0;
+  if (strcmp(arg[2],"n") == 0) zperiodic = 0;
   else if (strcmp(arg[2],"p") == 0) zperiodic = 1;
   else error->all("Illegal boundary command");
 
