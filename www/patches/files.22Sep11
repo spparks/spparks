@@ -1,0 +1,18 @@
+20Sep11 version files changed by 22Sep11 upgrade:
+
+doc/Manual.pdf
+doc/create_sites.html
+doc/create_sites.txt
+src/app.cpp
+src/app.h
+src/app_lattice.cpp
+src/app_lattice.h
+src/create_sites.cpp
+src/create_sites.h
+src/diag_cluster.cpp
+src/domain.cpp
+src/domain.h
+src/lattice.cpp
+src/lattice.h
+src/set.cpp
+src/version.h

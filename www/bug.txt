@@ -35,6 +35,17 @@ describe the version you have. :ule,l
 :line
 :line
 
+[22 Sep 2011]
+
+There were still some glitches in the 20Sep11 patch
+with respect to non-periodic systems.  Hopefully this
+patch fixes the remaining issues.
+
+This is the "list of changed files"_patches/files.22Sep11 from the 20
+Sep 2010 version.
+
+:line
+
 [20 Sep 2011]
 
 Added a "boundary"_doc/boundary.html command to allow specification of
