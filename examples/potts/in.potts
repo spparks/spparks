@@ -11,17 +11,21 @@ create_box	 box
 create_sites	 box
 set		 site range 1 100
 
+sweep		 random
+#sweep		 raster mask yes
 #solve_style      tree
-solve_style      group 26 1
 sector		 yes
+
+#solve_style      tree
+#solve_style      group 26 1
+#sector		 yes
 
 diag_style       energy
 
 temperature	 0.0
 
-stats            1.0 loglinfreq 5 10.0
-dump             1 text 1.0 dump.potts
-dump_modify      1 loglinfreq 5 10.0
-diag_style       cluster stats yes filename cluster.dat
+stats            10.0
+dump             1 text 10.0 dump.potts
+diag_style       cluster delt 1.0 stats no logfreq 9 10.0 filename cluster.dat
 
 run              100.0
