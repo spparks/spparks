@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>dump dump-ID image delta filename color diameter keyword value ... 
+<PRE>dump dump-ID image delta filename color diameter boundary keyword value ... 
 </PRE>
 <UL><LI>ID = user-assigned name for the dump 
 
@@ -27,15 +27,16 @@
 
 <LI>diameter = attribute that determines size of each site 
 
+<LI>boundary = attribute that determines drawing of boundaries between sites (optional) 
+
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>shape</I> or <I>sdiam</I> or <I>crange</I> or <I>drange</I> or <I>size</I> or <I>view</I> or <I>center</I> or <I>up</I> or <I>zoom</I> or <I>persp</I> or <I>box</I> or <I>axes</I> or <I>shiny</I> or <I>ssao</I> 
+<LI>keyword = <I>shape</I> or <I>sdiam</I> or <I>bdiam</I> or <I>crange</I> or <I>drange</I> or <I>size</I> or <I>view</I> or <I>center</I> or <I>up</I> or <I>zoom</I> or <I>persp</I> or <I>box</I> or <I>axes</I> or <I>shiny</I> or <I>ssao</I> 
 
 <PRE>  <I>shape</I> value = <I>sphere</I> or <I>cube</I>
   <I>sdiam</I> value = number = numeric value for site diameter (distance units)
-  <I>boundary</I> values = color width
-    color = draw boundaries between sites with this color
-    width = draw boundaries between sites with this width
+  <I>bdiam</I> values = width
+    width = width of boundaries drawn between sites
   <I>crange</I> values = lo hi
      lo,hi = lower and upper bound (inclusive) of integer color attribute
   <I>drange</I> values = lo hi
@@ -169,6 +170,27 @@ the site will not be drawn.
 </P>
 <HR>
 
+<P>The <I>boundary</I> setting is optional.  If it is specified, boundaries
+are drawn between neighboring sites if the value of the specified
+setting is different between the 2 neighbors.  This is a way to
+visualize the boundary between two contiguous groups of sites based on
+a value that is different in the two groups, even if the sites in the
+2 groups are rendered with the same color (due to the value of their
+<I>color</I> setting).
+</P>
+<P>The boundary setting can be any attribute defined for the <A HREF = "dump.html">dump
+text</A> command, including <I>site</I>.
+</P>
+<P>The boundary itself is drawn as 4 cylinders which outline a square.
+If the 2 adjacent sites are rendered as cubes (via the <I>shape</I>
+setting), then the square is the face common to the 2 adjacent cubes.
+The diameter of the cylinders can be set via the <I>bdiam</I> keyword.
+The color of the cylinders can be set via the dump_modify 
+</P>
+<HR>
+
+<HR>
+
 <P>The various kewords listed above control how the image is rendered.
 As listed below, all of the keywords have defaults, most of which you
 will likely not need to change.  The <A HREF = "dump_modify.html">dump modify</A>
@@ -192,12 +214,9 @@ diameter.
 </P>
 <HR>
 
-<P>The <I>boundary</I> keyword is only allowed when the <I>shape</I> keyword
-is <I>cube</I>.  It will draw a boundary plane (3d) or line segement (2d)
-between two adjacent sites that share a common interface if
-the two site values are different.  This enables the boundary
-between different-valued sites to be visible, even if the
-sites themselves are colored the same.
+<P>The <I>bdiam</I> keyword sets the diameter of the cylinders drawn as
+boundaries between adjacent sites.  See the optional <I>boundary</I>
+setting for more details.
 </P>
 <HR>
 
@@ -389,6 +408,7 @@ details.
 </P>
 <UL><LI>shape = sphere
 <LI>sdiam = not specified (use diameter setting)
+<LI>bdiam = 0.1
 <LI>crange = no default
 <LI>drange = no default
 <LI>size = 512 512

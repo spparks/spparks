@@ -10,7 +10,7 @@ dump image command :h3
 
 [Syntax:]
 
-dump dump-ID image delta filename color diameter keyword value ... :pre
+dump dump-ID image delta filename color diameter boundary keyword value ... :pre
 
 ID = user-assigned name for the dump :ulb,l
 image = style of dump command (other style {text} is discussed on the "dump"_dump.html doc page) :l
@@ -18,13 +18,13 @@ delta = time increment between dumps (seconds) :l
 filename = name of file to write image to :l
 color = attribute that determines color of each site :l
 diameter = attribute that determines size of each site :l
+boundary = attribute that determines drawing of boundaries between sites (optional) :l
 zero or more keyword/value pairs may be appended :l
-keyword = {shape} or {sdiam} or {crange} or {drange} or {size} or {view} or {center} or {up} or {zoom} or {persp} or {box} or {axes} or {shiny} or {ssao} :l
+keyword = {shape} or {sdiam} or {bdiam} or {crange} or {drange} or {size} or {view} or {center} or {up} or {zoom} or {persp} or {box} or {axes} or {shiny} or {ssao} :l
   {shape} value = {sphere} or {cube}
   {sdiam} value = number = numeric value for site diameter (distance units)
-  {boundary} values = color width
-    color = draw boundaries between sites with this color
-    width = draw boundaries between sites with this width
+  {bdiam} values = width
+    width = width of boundaries drawn between sites
   {crange} values = lo hi
      lo,hi = lower and upper bound (inclusive) of integer color attribute
   {drange} values = lo hi
@@ -156,6 +156,26 @@ the site will not be drawn.
 
 :line
 
+The {boundary} setting is optional.  If it is specified, boundaries
+are drawn between neighboring sites if the value of the specified
+setting is different between the 2 neighbors.  This is a way to
+visualize the boundary between two contiguous groups of sites based on
+a value that is different in the two groups, even if the sites in the
+2 groups are rendered with the same color (due to the value of their
+{color} setting).
+
+The boundary setting can be any attribute defined for the "dump
+text"_dump.html command, including {site}.
+
+The boundary itself is drawn as 4 cylinders which outline a square.
+If the 2 adjacent sites are rendered as cubes (via the {shape}
+setting), then the square is the face common to the 2 adjacent cubes.
+The diameter of the cylinders can be set via the {bdiam} keyword.
+The color of the cylinders can be set via the dump_modify 
+
+:line
+:line
+
 The various kewords listed above control how the image is rendered.
 As listed below, all of the keywords have defaults, most of which you
 will likely not need to change.  The "dump modify"_dump_modify.html
@@ -179,12 +199,9 @@ diameter.
 
 :line
 
-The {boundary} keyword is only allowed when the {shape} keyword
-is {cube}.  It will draw a boundary plane (3d) or line segement (2d)
-between two adjacent sites that share a common interface if
-the two site values are different.  This enables the boundary
-between different-valued sites to be visible, even if the
-sites themselves are colored the same.
+The {bdiam} keyword sets the diameter of the cylinders drawn as
+boundaries between adjacent sites.  See the optional {boundary}
+setting for more details.
 
 :line
 
@@ -376,6 +393,7 @@ The defaults for the keywords are as follows:
 
 shape = sphere
 sdiam = not specified (use diameter setting)
+bdiam = 0.1
 crange = no default
 drange = no default
 size = 512 512

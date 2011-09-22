@@ -19,10 +19,12 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>backcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>delay</I> or <I>delta</I> or <I>flush</I> or <I>logfreq</I> or <I>loglinfreq</I> or <I>pad</I> or <I>region</I> or <I>scolor</I> or <I>sdiam</I> or <I>smap</I> or <I>thresh</I> 
+<LI>keyword = <I>backcolor</I> or <I>boundcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>delay</I> or <I>delta</I> or <I>flush</I> or <I>logfreq</I> or <I>loglinfreq</I> or <I>pad</I> or <I>region</I> or <I>scolor</I> or <I>sdiam</I> or <I>smap</I> or <I>thresh</I> 
 
 <PRE>  <I>backcolor</I> arg = color
     color = name of color for background
+  <I>boundcolor</I> arg = color
+    color = name of color for boundaries between sites
   <I>boxcolor</I> arg = color
     color = name of color for box lines
   <I>color</I> args = name R G B
@@ -83,6 +85,48 @@ dump_modify mine thresh energy > 0.0 thresh id <= 1000
 </P>
 <P>Modify the parameters of a previously defined dump command.  Not all
 parameters are relevant to both the <I>text</I> and <I>image</I> dump styles.
+</P>
+<HR>
+
+<P>The <I>backcolor</I> keyword applies only to the dump <I>image</I> style.  It
+sets the background color of the images.  The color name can be any of
+the 140 pre-defined colors (see below) or a color name defined by the
+dump_modify color option.
+</P>
+<HR>
+
+<P>The <I>boundcolor</I> keyword applies only to the dump <I>image</I> style.  It
+sets the color used to draw boundaries between sites, each of which is
+a set of 4 cylinders, as described in the <A HREF = "dump_image.html">dump image</A>
+doc page.  The color name can be any of the 140 pre-defined colors
+(see below) or a color name defined by the dump_modify color option.
+</P>
+<P>The drawing of boundaries between sites is enabled by specifying the
+optional <I>boundary</I> setting of the <A HREF = "dump_image.html">dump image</A>
+command.
+</P>
+<HR>
+
+<P>The <I>boxcolor</I> keyword applies only to the dump <I>image</I> style.  It
+sets the color of the simulation box drawn around the sites in each
+image.  See the "dump image box" command for how to specify that a box
+be drawn.  The color name can be any of the 140 pre-defined colors
+(see below) or a color name defined by the dump_modify color option.
+</P>
+<HR>
+
+<P>The <I>color</I> keyword applies only to the dump <I>image</I> style.  It allows
+definition of a new color name, in addition to the 140-predefined
+colors (see below), and associates 3 red/green/blue RGB values with
+that color name.  The color name can then be used with any other
+dump_modify keyword that takes a color name as a value.  The RGB
+values should each be floating point values between 0.0 and 1.0
+inclusive.
+</P>
+<P>When a color name is converted to RGB values, the user-defined color
+names are searched first, then the 140 pre-defined color names.  This
+means you can also use the <I>color</I> keyword to overwrite one of the
+pre-defined color names with new RBG values.
 </P>
 <HR>
 
@@ -315,6 +359,7 @@ details.
 <P>The option defaults are
 </P>
 <UL><LI>backcolor = black
+<LI>boundcolor = white
 <LI>boxcolor = yellow
 <LI>color = 140 color names are pre-defined as listed below
 <LI>delay = 0.0

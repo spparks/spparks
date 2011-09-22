@@ -14,9 +14,11 @@ dump_modify dump-ID keyword values ... :pre
 
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
-keyword = {backcolor} or {boxcolor} or {color} or {delay} or {delta} or {flush} or {logfreq} or {loglinfreq} or {pad} or {region} or {scolor} or {sdiam} or {smap} or {thresh} :l
+keyword = {backcolor} or {boundcolor} or {boxcolor} or {color} or {delay} or {delta} or {flush} or {logfreq} or {loglinfreq} or {pad} or {region} or {scolor} or {sdiam} or {smap} or {thresh} :l
   {backcolor} arg = color
     color = name of color for background
+  {boundcolor} arg = color
+    color = name of color for boundaries between sites
   {boxcolor} arg = color
     color = name of color for box lines
   {color} args = name R G B
@@ -76,6 +78,48 @@ dump_modify mine thresh energy > 0.0 thresh id <= 1000 :pre
 
 Modify the parameters of a previously defined dump command.  Not all
 parameters are relevant to both the {text} and {image} dump styles.
+
+:line
+
+The {backcolor} keyword applies only to the dump {image} style.  It
+sets the background color of the images.  The color name can be any of
+the 140 pre-defined colors (see below) or a color name defined by the
+dump_modify color option.
+
+:line
+
+The {boundcolor} keyword applies only to the dump {image} style.  It
+sets the color used to draw boundaries between sites, each of which is
+a set of 4 cylinders, as described in the "dump image"_dump_image.html
+doc page.  The color name can be any of the 140 pre-defined colors
+(see below) or a color name defined by the dump_modify color option.
+
+The drawing of boundaries between sites is enabled by specifying the
+optional {boundary} setting of the "dump image"_dump_image.html
+command.
+
+:line
+
+The {boxcolor} keyword applies only to the dump {image} style.  It
+sets the color of the simulation box drawn around the sites in each
+image.  See the "dump image box" command for how to specify that a box
+be drawn.  The color name can be any of the 140 pre-defined colors
+(see below) or a color name defined by the dump_modify color option.
+
+:line
+
+The {color} keyword applies only to the dump {image} style.  It allows
+definition of a new color name, in addition to the 140-predefined
+colors (see below), and associates 3 red/green/blue RGB values with
+that color name.  The color name can then be used with any other
+dump_modify keyword that takes a color name as a value.  The RGB
+values should each be floating point values between 0.0 and 1.0
+inclusive.
+
+When a color name is converted to RGB values, the user-defined color
+names are searched first, then the 140 pre-defined color names.  This
+means you can also use the {color} keyword to overwrite one of the
+pre-defined color names with new RBG values.
 
 :line
 
@@ -308,6 +352,7 @@ details.
 The option defaults are
 
 backcolor = black
+boundcolor = white
 boxcolor = yellow
 color = 140 color names are pre-defined as listed below
 delay = 0.0
