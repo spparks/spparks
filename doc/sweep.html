@@ -44,12 +44,12 @@ events.  The application defines the geometry and connectivity of the
 lattice, what the possible events are, and defines their rates and
 acceptance/rejection criteria.
 </P>
-<P>The ordering of selected sites is also affected by the <A HREF = "sector">sector</A>
-command, which partitions each processor's portion of the simulation
-domain into sectors which are quadrants (2d) or octants (3d).  In this
-case, the ordering described below is within each sector.  Sectors are
-looped over one at a time, interleaved by communication of lattice
-values inbetween.
+<P>The ordering of selected sites is also affected by the
+<A HREF = "sector.html">sector</A> command, which partitions each processor's
+portion of the simulation domain into sectors which are quadrants (2d)
+or octants (3d).  In this case, the ordering described below is within
+each sector.  Sectors are looped over one at a time, interleaved by
+communication of lattice values inbetween.
 </P>
 <P>For the <I>random</I> style, sites are chosen randomly, one at a time.
 </P>
