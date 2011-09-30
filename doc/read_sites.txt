@@ -143,7 +143,7 @@ example: :l
 :ule
 
 There must be N lines in this section where N = number of sites and is
-defined by the {nglobal} keyword in the header section of the file.
+defined by the {sites} keyword in the header section of the file.
 The lines can appear in any order.
 
 :line
@@ -159,7 +159,7 @@ example: :l
 :ule
 
 There must be N lines in this section where N = number of sites and is
-defined by the {nglobal} keyword in the header section of the file.
+defined by the {sites} keyword in the header section of the file.
 The lines can appear in any order.
 
 The number of neighbors can vary from site to site, but there can be
@@ -180,7 +180,7 @@ example: :l
 :ule
 
 There must be N lines in this section where N = number of sites and is
-defined by the {nglobal} keyword in the header section of the file.
+defined by the {sites} keyword in the header section of the file.
 The lines can appear in any order.
 
 The number of values per site that should be listed depends on the
