@@ -509,9 +509,9 @@ void CreateSites::structured_connectivity()
       // discard neighs that are outside non-periodic box or region
 
       if (nonperiodic) {
-        if (!xperiodic && (xneigh < boxxlo || xneigh >= boxxhi)) continue;
-        if (!yperiodic && (yneigh < boxylo || yneigh >= boxyhi)) continue;
-        if (!zperiodic && (zneigh < boxzlo || zneigh >= boxzhi)) continue;
+	if (!xperiodic && (xneigh < boxxlo || xneigh >= boxxhi)) continue;
+	if (!yperiodic && (yneigh < boxylo || yneigh >= boxyhi)) continue;
+	if (!zperiodic && (zneigh < boxzlo || zneigh >= boxzhi)) continue;
       }
       if (style == REGION &&
 	  domain->regions[nregion]->match(xneigh,yneigh,zneigh) == 0) continue;
@@ -519,8 +519,8 @@ void CreateSites::structured_connectivity()
       // gid = global ID of neighbor
       // calculated in same manner that structured_lattice() generated IDs
 
-      gid = (kneigh-zlo)*(yhi-ylo+1)*(xhi-xlo+1)*nbasis + (jneigh-ylo)*(xhi-xlo+1)*nbasis +
-	(ineigh-xlo)*nbasis + mneigh + 1;
+      gid = (kneigh-zlo)*(yhi-ylo+1)*(xhi-xlo+1)*nbasis + 
+	(jneigh-ylo)*(xhi-xlo+1)*nbasis + (ineigh-xlo)*nbasis + mneigh + 1;
 
       //printf("EEE %d %d: %d\n",i,j,gid);
 

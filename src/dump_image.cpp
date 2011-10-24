@@ -403,9 +403,9 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
 
   fillLightPhi = PI/6.0;     // 30 degrees
   fillLightTheta = 0; 
-  fillLightColor[0] = 0.9;
-  fillLightColor[1] = 0.9;
-  fillLightColor[2] = 0.9;
+  fillLightColor[0] = 0.45;
+  fillLightColor[1] = 0.45;
+  fillLightColor[2] = 0.45;
 
   backLightPhi = PI;         // 180 degrees
   backLightTheta = PI/12.0;  // 15 degrees
@@ -1271,6 +1271,8 @@ void DumpImage::draw_cylinder(double *x, double *y,
 
   if (zaxis[0] == camDir[0] && zaxis[1] == camDir[1] && zaxis[2] == camDir[2])
     return;
+  if (zaxis[0] == -camDir[0] && zaxis[1] == -camDir[1] && 
+      zaxis[2] == -camDir[2]) return;
 
   MathExtra::cross3(zaxis,camDir,yaxis);
   MathExtra::norm3(yaxis);

@@ -31,7 +31,7 @@ SPK_INC =	-DSPPARKS_GZIP -DSPPARKS_JPEG
 
 MPI_INC =       -DMPICH_SKIP_MPICXX
 MPI_PATH = 
-MPI_LIB =	-lmpich -lpthread
+MPI_LIB =	-lmpich -lmpl -lpthread
 
 # JPEG library, only needed if -DLAMMPS_JPEG listed with LMP_INC
 # INC = path for jpeglib.h
@@ -40,7 +40,7 @@ MPI_LIB =	-lmpich -lpthread
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	/usr/local/lib/libjpeg.a
+JPG_LIB =	-ljpeg
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
