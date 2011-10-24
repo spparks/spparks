@@ -35,6 +35,19 @@ describe the version you have. :ule,l
 :line
 :line
 
+[24 Oct 2011]
+
+Fixed a bug in the new "boundary"_doc/boundary.html command which had
+to do with hou neighbor sites were identified for on-lattice
+applications when using lattices with multi-site basis sets.
+
+This is the "list of changed files"_patches/files.24Oct11 from the 23
+Sep 2010 version.
+
+Thanks to Antonio Gomez for finding and fixing the issue.
+
+:line
+
 [23 Sep 2011]
 
 Added a "boundary" option to the "dump image"_doc/dump_image.html
