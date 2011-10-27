@@ -30,6 +30,8 @@ using namespace SPPARKS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#define MAXSTR 4096
+
 /* ---------------------------------------------------------------------- */
 
 Output::Output(SPPARKS *spk) : Pointers(spk)
@@ -320,7 +322,7 @@ void Output::add_diag(Diag *diag)
 
 void Output::stats(int timeflag)
 {
-  char str[2048] = {'\0'};
+  char str[MAXSTR] = {'\0'};
   char *strpnt = str;
 
   app->stats(strpnt);
@@ -356,7 +358,7 @@ void Output::stats(int timeflag)
 
 void Output::stats_header()
 {
-  char str[2048] = {'\0'};
+  char str[MAXSTR] = {'\0'};
   char *strpnt = str;
 
   app->stats_header(strpnt);

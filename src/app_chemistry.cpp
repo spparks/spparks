@@ -57,6 +57,8 @@ AppChemistry::AppChemistry(SPPARKS *spk, int narg, char **arg) :
   depends = NULL;
   propensity = NULL;
   rcount = NULL;
+
+  nevents = 0;
 }
 
 /* ---------------------------------------------------------------------- */
