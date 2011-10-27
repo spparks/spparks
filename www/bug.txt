@@ -35,6 +35,20 @@ describe the version you have. :ule,l
 :line
 :line
 
+[27 Oct 2011]
+
+Made the length of the output string for statistics to be an
+easily-changed setting in the src/output.cpp.  The default length is
+now 4096 characters, which ought to be long enough for most
+simulations.
+
+This is the "list of changed files"_patches/files.27Oct11 from the 24
+Oct 2010 version.
+
+:line
+
+:line
+
 [24 Oct 2011]
 
 Fixed a bug in the new "boundary"_doc/boundary.html command which had

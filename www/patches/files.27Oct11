@@ -1,0 +1,7 @@
+24Oct11 version files changed by 27Oct11 upgrade:
+
+doc/Manual.pdf
+src/MAKE/Makefile.linux
+src/app_chemistry.cpp
+src/output.cpp
+src/version.h
