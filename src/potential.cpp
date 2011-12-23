@@ -20,9 +20,6 @@
 
 using namespace SPPARKS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 Potential::Potential(SPPARKS *spk) : Pointers(spk)

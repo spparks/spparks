@@ -22,9 +22,6 @@
 
 using namespace SPPARKS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 DiagPropensity::DiagPropensity(SPPARKS *spk, int narg, char **arg) : 

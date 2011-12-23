@@ -30,9 +30,6 @@ enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};  // from app_lattice.cpp
 
 #define DELTAEVENT 100000
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) : 

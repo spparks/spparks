@@ -44,9 +44,6 @@ enum{DUMMY,IARRAY,DARRAY};
 #define DELTABUF 10000
 #define EPSILON 0.0001
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 CreateSites::CreateSites(SPPARKS *spk) : Pointers(spk) {}

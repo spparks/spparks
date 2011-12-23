@@ -27,9 +27,6 @@ using namespace SPPARKS_NS;
 #define MAX_PRODUCT 5
 #define AVOGADRO 6.023e23
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 AppChemistry::AppChemistry(SPPARKS *spk, int narg, char **arg) : 

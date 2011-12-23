@@ -24,9 +24,6 @@
 
 using namespace SPPARKS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 enum{ZERO,ERBIUM,HYDROGEN,HELIUM,VACANCY};   // same as AppErbium
 enum{ER,H,HE,VAC,EVENTS,ONE,TWO,THREE};
 

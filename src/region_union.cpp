@@ -19,9 +19,6 @@
 
 using namespace SPPARKS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define BIG 1.0e20
 
 /* ---------------------------------------------------------------------- */

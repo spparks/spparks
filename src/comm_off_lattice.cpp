@@ -20,9 +20,6 @@
 
 using namespace SPPARKS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define BUFFACTOR 1.5
 
 enum{INTERIOR,EDGE,GHOST};        // same as in app_off_lattice.cpp
