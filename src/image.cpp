@@ -1555,6 +1555,15 @@ double *Image::color2rgb(const char *color, int index)
 }
 
 /* ----------------------------------------------------------------------
+   return number of default colors
+------------------------------------------------------------------------- */
+
+int Image::default_colors()
+{
+  return NCOLORS;
+}
+
+/* ----------------------------------------------------------------------
    search the list of element names for the string element
    return a pointer to the 3 floating point RGB values
    this list is used by AtomEye and is taken from its Mendeleyev.c file

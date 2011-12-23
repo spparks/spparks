@@ -37,8 +37,6 @@
 using namespace SPPARKS_NS;
 using namespace MathConst;
 
-#define NCOLORS 140                                   // same as in Image
-
 enum{PPM,JPG};
 enum{SPHERE,CUBE};
 enum{NUMERIC,IATTRIBUTE,DATTRIBUTE,MINVALUE,MAXVALUE};
@@ -357,15 +355,16 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
 						 "image:colorattribute");
     memory->create(color_memflag,chi-clo+1,"image:color_memflag");
 
+    int ncolors = image->default_colors();
     for (int i = clo; i <= chi; i++) {
       int j = i-clo;
-      int m = j % NCOLORS;
-      colorattribute[j] = image->color2rgb("tmp",m+1);
+      int m = j % ncolors;
+      colorattribute[j] = image->color2rgb(NULL,m+1);
       color_memflag[j] = 0;
     }
   }
 
-  boundcolor = image->color2rgb("white",0);
+  boundcolor = image->color2rgb("white");
 
   // viewflag = DYNAMIC if any view parameter is dynamic
 
@@ -775,7 +774,7 @@ int DumpImage::modify_param(int narg, char **arg)
   
   if (strcmp(arg[0],"backcolor") == 0) {
     if (narg < 2) error->all("Illegal dump_modify command");
-    double *color = image->color2rgb(arg[1],0);
+    double *color = image->color2rgb(arg[1]);
     if (color == NULL) error->all("Invalid color in dump_modify command");
     image->background[0] = static_cast<int> (color[0]*255.0);
     image->background[1] = static_cast<int> (color[1]*255.0);
@@ -785,14 +784,14 @@ int DumpImage::modify_param(int narg, char **arg)
 
   if (strcmp(arg[0],"boundcolor") == 0) {
     if (narg < 2) error->all("Illegal dump_modify command");
-    boundcolor = image->color2rgb(arg[1],0);
+    boundcolor = image->color2rgb(arg[1]);
     if (boundcolor == NULL) error->all("Invalid color in dump_modify command");
     return 2;
   }
 
   if (strcmp(arg[0],"boxcolor") == 0) {
     if (narg < 2) error->all("Illegal dump_modify command");
-    image->boxcolor = image->color2rgb(arg[1],0);
+    image->boxcolor = image->color2rgb(arg[1]);
     if (image->boxcolor == NULL) 
       error->all("Invalid color in dump_modify command");
     return 2;
@@ -852,7 +851,7 @@ int DumpImage::modify_param(int narg, char **arg)
       int m = 0;
       for (int i = nlo; i <= nhi; i++) {
 	if (color_memflag[i-clo] == 1) delete [] colorattribute[i-clo];
-	colorattribute[i-clo] = image->color2rgb(ptrs[m%ncount],0);
+	colorattribute[i-clo] = image->color2rgb(ptrs[m%ncount]);
 	color_memflag[i-clo] = 0;
 	if (colorattribute[i-clo] == NULL)
 	  error->all("Invalid color in dump_modify command");

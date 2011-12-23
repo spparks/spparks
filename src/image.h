@@ -58,6 +58,7 @@ class Image : protected Pointers {
   double element2diam(char *);
   double *value2color(double);
   double *color2rgb(const char *, int index=0);
+  int default_colors();
 
  private:
   int me,nprocs;
