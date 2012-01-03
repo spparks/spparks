@@ -740,7 +740,7 @@ void DumpImage::create_image()
     corner[0][0] = boxxlo; corner[0][1] = boxylo; corner[0][2] = boxzlo;
     corner[1][0] = boxxhi; corner[1][1] = boxylo; corner[1][2] = boxzlo;
     corner[2][0] = boxxlo; corner[2][1] = boxyhi; corner[2][2] = boxzlo;
-    corner[4][0] = boxxlo; corner[4][1] = boxylo; corner[4][2] = boxzhi;
+    corner[3][0] = boxxlo; corner[3][1] = boxylo; corner[3][2] = boxzhi;
     corners = corner;
 
     double offset = MAX(boxxhi-boxxlo,boxyhi-boxylo);
@@ -749,7 +749,7 @@ void DumpImage::create_image()
     corners[0][0] -= offset; corners[0][1] -= offset; corners[0][2] -= offset;
     corners[1][0] -= offset; corners[1][1] -= offset; corners[1][2] -= offset;
     corners[2][0] -= offset; corners[2][1] -= offset; corners[2][2] -= offset;
-    corners[4][0] -= offset; corners[4][1] -= offset; corners[4][2] -= offset;
+    corners[3][0] -= offset; corners[3][1] -= offset; corners[3][2] -= offset;
 
     corners[1][0] = corners[0][0] + axeslen*(corners[1][0]-corners[0][0]);
     corners[1][1] = corners[0][1] + axeslen*(corners[1][1]-corners[0][1]);
@@ -757,9 +757,9 @@ void DumpImage::create_image()
     corners[2][0] = corners[0][0] + axeslen*(corners[2][0]-corners[0][0]);
     corners[2][1] = corners[0][1] + axeslen*(corners[2][1]-corners[0][1]);
     corners[2][2] = corners[0][2] + axeslen*(corners[2][2]-corners[0][2]);
-    corners[4][0] = corners[0][0] + axeslen*(corners[4][0]-corners[0][0]);
-    corners[4][1] = corners[0][1] + axeslen*(corners[4][1]-corners[0][1]);
-    corners[4][2] = corners[0][2] + axeslen*(corners[4][2]-corners[0][2]);
+    corners[3][0] = corners[0][0] + axeslen*(corners[3][0]-corners[0][0]);
+    corners[3][1] = corners[0][1] + axeslen*(corners[3][1]-corners[0][1]);
+    corners[3][2] = corners[0][2] + axeslen*(corners[3][2]-corners[0][2]);
 
     image->draw_axes(corners,diameter);
   }
@@ -785,7 +785,8 @@ int DumpImage::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"boundcolor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     boundcolor = image->color2rgb(arg[1]);
-    if (boundcolor == NULL) error->all(FLERR,"Invalid color in dump_modify command");
+    if (boundcolor == NULL) error->all(FLERR,
+				       "Invalid color in dump_modify command");
     return 2;
   }
 
