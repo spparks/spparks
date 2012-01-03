@@ -50,3 +50,16 @@ class DiagArray : public Diag {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Diag style incompatible with app style
+
+The lattice styles of the diagnostic and the on-lattice application
+must match.
+
+E: Invalid diag_style command
+
+UNDOCUMENTED
+
+*/

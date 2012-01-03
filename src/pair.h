@@ -46,3 +46,11 @@ class Pair : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: All pair coeffs are not set
+
+Self-explanatory.
+
+*/

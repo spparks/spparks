@@ -106,3 +106,52 @@ class AppDiffusion : public AppLattice {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Cannot use %s command until sites exist
+
+This command requires sites exist before using it in an input script.
+
+E: Can only use ecoord command with app_style diffusion nonlinear
+
+Self-explanatory.
+
+E: Cannot define Schwoebel barrier without Schwoebel model
+
+Self-explanatory.
+
+E: Unrecognized command
+
+The command is assumed to be application specific, but is not
+known to SPPARKS.  Check the input script.
+
+E: Cannot perform deposition in parallel
+
+UNDOCUMENTED
+
+E: Cannot perform deposition with multiple sectors
+
+UNDOCUMENTED
+
+E: One or more sites have invalid values
+
+The application only allows sites to be initialized with specific
+values.
+
+E: Did not reach event propensity threshhold
+
+UNDOCUMENTED
+
+E: BAD DONE
+
+UNDOCUMENTED
+
+*/

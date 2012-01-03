@@ -49,3 +49,38 @@ class Output : protected Pointers {
 };
 
 }
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Reuse of dump ID
+
+UNDOCUMENTED
+
+E: Invalid dump style
+
+UNDOCUMENTED
+
+E: Could not find dump ID in dump_one command
+
+Self-explanatory.
+
+E: Cannot use dump_one for first snapshot in dump file
+
+Self-explanatory.
+
+E: Could not find dump ID in dump_modify command
+
+Self-explanatory.
+
+E: Could not find dump ID in undump command
+
+Self-explanatory.
+
+*/

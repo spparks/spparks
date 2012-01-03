@@ -83,3 +83,136 @@ class Input : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Label wasn't found in input script
+
+Self-explanatory.
+
+E: Input line too long: %s
+
+This is a hard (very large) limit defined in the input.cpp file.
+
+E: Unknown command: %s
+
+The command is not known to SPPARKS.  Check the input script.
+
+E: Another input script is already being processed
+
+Cannot attempt to open a 2nd input script, when the original file is
+still being processed.
+
+E: Cannot open input script %s
+
+Self-explanatory.
+
+E: Unbalanced quotes in input line
+
+No matching end double quote was found following a leading double
+quote.
+
+E: Invalid variable name
+
+Variable name used in an input script line is invalid.
+
+E: Substitution for illegal variable
+
+Self-explanatory.
+
+E: Input line too long after variable substitution
+
+This is a hard (very large) limit defined in the input.cpp file.
+
+E: App_style specific command before app_style set
+
+Self-explanatory.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Cannot open logfile %s
+
+Self-explanatory.
+
+E: App_style command after simulation box is defined
+
+Self-explanatory.
+
+E: Boundary command after simulation box is defined
+
+UNDOCUMENTED
+
+E: Diag_style command before app_style set
+
+Self-explanatory.
+
+E: Dimension command after simulation box is defined
+
+Self-explanatory.
+
+E: Dimension command after lattice is defined
+
+Self-explanatory.
+
+E: Dump command before app_style set
+
+Self-explanatory.
+
+E: Dump_modify command before app_style set
+
+Self-explanatory.
+
+E: Dump_one command before app_style set
+
+Self-explanatory.
+
+E: Lattice command before app_style set
+
+Self-explanatory.
+
+E: Pair_coeff command before app_style set
+
+Self-explanatory.
+
+E: Pair_coeff command before pair_style is defined
+
+Self-explanatory.
+
+E: Pair_style command before app_style set
+
+Self-explanatory.
+
+E: Processors command after simulation box is defined
+
+Self-explanatory.
+
+E: Region command before app_style set
+
+Self-explanatory.
+
+E: Reset_time command before app_style set
+
+Self-explanatory.
+
+E: Run command before app_style set
+
+Self-explanatory.
+
+E: Solve_style command before app_style set
+
+Self-explanatory.
+
+E: Stats command before app_style set
+
+Self-explanatory.
+
+E: Undump command before app_style set
+
+Self-explanatory.
+
+*/

@@ -47,3 +47,27 @@ private:
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Lattice style does not match dimension
+
+Self-explanatory.
+
+E: Cannot use coloring without domain nx,ny,nz defined
+
+UNDOCUMENTED
+
+E: Color stencil is incommensurate with lattice size
+
+Since coloring induces a pattern of colors, this pattern
+must fit an integer number of times into a periodic lattice.
+
+*/

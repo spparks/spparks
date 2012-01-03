@@ -56,3 +56,94 @@ class Variable : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Cannot redefine variable as a different style
+
+An equal-style variable can be re-defined but only if it was
+originally an equal-style variable.
+
+E: World variable count doesn't match # of partitions
+
+A world-style variable must specify a number of values equal to the
+number of processor partitions.
+
+E: Universe/uloop variable count < # of partitions
+
+A universe or uloop style variable must specify a number of values >= to the
+number of processor partitions.
+
+E: All universe/uloop variables must have same # of values
+
+Self-explanatory.
+
+E: Variable name must be alphanumeric or underscore characters
+
+Self-explanatory.
+
+E: Invalid variable in next command
+
+Self-explanatory.
+
+E: All variables in next command must be same style
+
+Self-explanatory.
+
+E: Invalid variable style with next command
+
+Variable styles {equal} and {world} cannot be used in a next
+command.
+
+E: Invalid syntax in variable formula
+
+Self-explanatory.
+
+E: Invalid variable name in variable formula
+
+Variable name is not recognized.
+
+E: Invalid variable evaluation in variable formula
+
+A variable used in a formula could not be evaluated.
+
+E: Invalid math function in variable formula
+
+The math function is not recognized.
+
+E: Invalid keyword in variable formula
+
+UNDOCUMENTED
+
+E: Divide by 0 in variable formula
+
+Self-explanatory.
+
+E: Power by 0 in variable formula
+
+Self-explanatory.
+
+E: Sqrt of negative in variable formula
+
+Self-explanatory.
+
+E: Log of zero/negative in variable formula
+
+Self-explanatory.
+
+E: Arcsin of invalid value in variable formula
+
+Argument of arcsin() must be between -1 and 1.
+
+E: Arccos of invalid value in variable formula
+
+Argument of arccos() must be between -1 and 1.
+
+*/

@@ -44,3 +44,22 @@ class DiagErbium : public Diag {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Diag_style erbium requires app_style erbium
+
+UNDOCUMENTED
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Invalid value setting in diag_style erbium
+
+UNDOCUMENTED
+
+*/

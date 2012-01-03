@@ -83,3 +83,77 @@ class CreateSites : protected Pointers {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Create_sites command before app_style set
+
+Self-explanatory.
+
+E: Create_sites command before simulation box is defined
+
+Self-explanatory.
+
+E: Cannot create sites after sites already exist
+
+Self-explanatory.
+
+E: Cannot create sites with undefined lattice
+
+Must use lattice commands first to define a lattice.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Create_sites region ID does not exist
+
+Self-explanatory.
+
+E: Creating a quantity application does not support
+
+The application defines what variables it supports.  You cannot set a
+variable with the create_sites command for a variable that isn't
+supported.
+
+E: Must use value option before basis option in create_sites command
+
+Self-explanatory.
+
+E: Cannot use create_sites basis with random lattice
+
+Self-explanatory.
+
+E: Periodic box is not a multiple of lattice spacing
+
+UNDOCUMENTED
+
+E: Did not create correct number of sites
+
+One or more created sites were not assigned to a processor
+correctly.
+
+E: Bad neighbor site ID
+
+UNDOCUMENTED
+
+E: Random lattice has no connectivity
+
+The cutoff distance is likely too short.
+
+E: Ghost site was not found
+
+Internal SPPARKS error.  Should not occur.
+
+E: Ghost connection was not found
+
+Internal SPPARKS error.  Should not occur.
+
+E: Incorrect lattice neighbor count
+
+Internal SPPARKS error.
+
+*/

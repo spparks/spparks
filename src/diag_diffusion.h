@@ -44,3 +44,11 @@ class DiagDiffusion : public Diag {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Diag_style diffusion requires app_style diffusion
+
+Self-explanatory.
+
+*/

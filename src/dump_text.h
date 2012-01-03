@@ -91,3 +91,49 @@ class DumpText : public Dump {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Invalid attribute in dump text command
+
+UNDOCUMENTED
+
+E: Dump requires propensity but no KMC solve performed
+
+Only KMC solvers compute propensity for sites.
+
+E: Region ID for dump text does not exist
+
+UNDOCUMENTED
+
+E: Dumping a quantity application does not support
+
+The application defines what variables it supports.  You cannot
+output a variable in a dump that isn't supported.
+
+E: Invalid keyword in dump command
+
+Self-explanatory.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Dump_modify region ID does not exist
+
+UNDOCUMENTED
+
+E: Threshold for a quantity application does not support
+
+The application defines what variables it supports.  You cannot do a
+threshold test with the dump command on a variable that isn't
+supported.
+
+E: Invalid dump_modify threshold operator
+
+Self-explanatory.
+
+*/

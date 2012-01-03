@@ -35,3 +35,12 @@ class RanMars : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Seed command has not been used
+
+The seed command must be used if another command requires random
+numbers.
+
+*/

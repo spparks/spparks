@@ -59,3 +59,32 @@ class Set : protected Pointers {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Set command before sites exist
+
+Self-explanatory.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Setting a quantity application does not support
+
+The application defines what variables it supports.  You cannot set a
+variable with the set command on a variable that isn't supported.
+
+E: Set command region ID does not exist
+
+Self-explanatory.
+
+E: Set if test on quantity application does not support
+
+The application defines what variables it supports.  You cannot do an
+if test with the set command on a variable that isn't supported.
+
+*/

@@ -181,3 +181,116 @@ class AppOffLattice : public App {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: App needs a KMC or rejection KMC solver
+
+You must define either a solver or sweep option.
+
+E: App cannot use both a KMC and rejection KMC solver
+
+You cannot define both a solver and sweep option.
+
+E: KMC events are not implemented in app
+
+Not every application supports KMC solvers.
+
+E: Rejection events are not implemented in app
+
+Self-explanatory.
+
+E: Cannot use KMC solver in parallel with no sectors
+
+Self-explanatory.
+
+E: Cannot use random rejection KMC in parallel with no sectors
+
+Self-explanatory.
+
+E: Cannot use raster rejection KMC in parallel with no sectors
+
+Self-explanatory.
+
+E: App did not set dt_sweep
+
+Internal SPPARKS error.
+
+E: Invalid number of sectors
+
+Self-explanatory.
+
+E: Choice of sector stop led to no rKMC events
+
+Self-explanatory.
+
+E: SITE MISMATCH
+
+UNDOCUMENTED
+
+E: GHOST IN OWNED BIN
+
+UNDOCUMENTED
+
+E: LINK MISMATCH
+
+UNDOCUMENTED
+
+E: BIN MISMATCH
+
+UNDOCUMENTED
+
+E: SITES NOT IN BINS
+
+UNDOCUMENTED
+
+E: COUNT MISMATCH
+
+UNDOCUMENTED
+
+E: Unrecognized command
+
+The command is assumed to be application specific, but is not
+known to SPPARKS.  Check the input script.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Application cutoff is too big for processor sub-domain
+
+There must be at least 2 bins per processor in each dimension
+where sectoring occurs.
+
+E: BAD STENCIL
+
+UNDOCUMENTED
+
+E: Too many neighbors per site
+
+Internal SPPARKS error.
+
+E: PBC remap of site failed
+
+Internal SPPARKS error.
+
+E: Site not in my bin domain
+
+Internal SPPARKS error.
+
+E: Adding site to illegal bin
+
+Internal SPPARKS error.
+
+E: Adding site to bin it is not in
+
+Internal SPPARKS error.
+
+E: Per-processor system is too big
+
+UNDOCUMENTED
+
+*/

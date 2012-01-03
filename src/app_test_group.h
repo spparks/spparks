@@ -63,3 +63,35 @@ class AppTestGroup : public App {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Invalid event count for app_style test/group
+
+Number of events must be > 0.
+
+E: Invalid probability bounds for app_style test/group
+
+Self-explanatory.
+
+E: Invalid probability delta for app_style test/group
+
+Self-explanatory.
+
+E: Unrecognized command
+
+The command is assumed to be application specific, but is not
+known to SPPARKS.  Check the input script.
+
+E: No solver class defined
+
+Self-explanatory.
+
+*/

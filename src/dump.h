@@ -68,3 +68,26 @@ class Dump : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Dump command can only be used for spatial applications
+
+Self-explanatory.
+
+E: Cannot open gzipped file
+
+Self-explantory.
+
+E: Cannot open dump file
+
+Self-explanatory.
+
+*/

@@ -54,3 +54,26 @@ class SolveGroup : public Solve {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Invalid probability bounds for solve_style group
+
+Self-explanatory.
+
+W: %d propensities were reset to lo value, max lo = %g
+
+UNDOCUMENTED
+
+W: %d propensities were reset to hi value, max hi = %g
+
+UNDOCUMENTED
+
+*/

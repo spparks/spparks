@@ -62,3 +62,38 @@ class Domain : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Box bounds are invalid
+
+Lo bound >= hi bound.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Reuse of region ID
+
+Self-explanatory.
+
+E: Invalid region style
+
+Self-explanatory.
+
+E: Boundary command currently only supported by on-lattice apps
+
+UNDOCUMENTED
+
+E: App style proc count is not valid for 1d simulation
+
+There can only be 1 proc in y and z dimensions for 1d models.
+
+E: App style proc count is not valid for 2d simulation
+
+There can only be 1 proc in the z dimension for 2d models.
+
+*/

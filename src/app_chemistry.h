@@ -78,3 +78,59 @@ class AppChemistry : public App {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Unrecognized command
+
+The command is assumed to be application specific, but is not
+known to SPPARKS.  Check the input script.
+
+E: No solver class defined
+
+Self-explanatory.
+
+E: Invalid volume setting
+
+Volume must be set to value > 0.
+
+E: No reactions defined for chemistry app
+
+Use the add_reaction command to specify one or more reactions.
+
+E: Species ID %s does not exist
+
+Self-explanatory.
+
+E: Reaction ID %s already exists
+
+Cannot re-define a reaction.
+
+E: Reaction has no numeric rate
+
+Self-explanatory.
+
+E: Reaction must have 0,1,2 reactants
+
+Self-explanatory.
+
+E: Reaction cannot have more than MAX_PRODUCT products
+
+Self-explanatory.
+
+E: Unknown species in reaction command
+
+Self-explanatory.
+
+E: Species ID %s already exists
+
+Self-explanatory.
+
+*/

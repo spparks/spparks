@@ -36,3 +36,11 @@ class Potential : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Invalid pair style
+
+Self-explanatory.
+
+*/

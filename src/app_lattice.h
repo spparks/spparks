@@ -170,3 +170,88 @@ class AppLattice : public App {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: App needs a KMC or rejection KMC solver
+
+You must define either a solver or sweep option.
+
+E: App cannot use both a KMC and rejection KMC solver
+
+You cannot define both a solver and sweep option.
+
+E: KMC events are not implemented in app
+
+Not every application supports KMC solvers.
+
+E: Rejection events are not implemented in app
+
+Self-explanatory.
+
+E: Mask logic not implemented in app
+
+Not every application supports masking.
+
+E: Cannot use KMC solver in parallel with no sectors
+
+Self-explanatory.
+
+E: Cannot use random rejection KMC in parallel with no sectors
+
+Self-explanatory.
+
+E: Cannot use raster rejection KMC in parallel with no sectors
+
+Self-explanatory.
+
+E: Cannot use color/strict rejection KMC with sectors
+
+Self-explanatory.
+
+E: App did not set dt_sweep
+
+Internal SPPARKS error.
+
+E: Invalid number of sectors
+
+Self-explanatory.
+
+E: Cannot color without a lattice definition of sites
+
+UNDOCUMENTED
+
+E: Cannot color without contiguous site IDs
+
+UNDOCUMENTED
+
+E: Cannot color this combination of lattice and app
+
+Coloring is not supported on this lattice for the neighbor
+dependencies of this application.
+
+E: Choice of sector stop led to no rKMC events
+
+Self-explanatory.
+
+E: Unrecognized command
+
+The command is assumed to be application specific, but is not
+known to SPPARKS.  Check the input script.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: App does not permit user_update yes
+
+UNDOCUMENTED
+
+E: Per-processor system is too big
+
+UNDOCUMENTED
+
+*/

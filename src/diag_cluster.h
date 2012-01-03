@@ -76,3 +76,63 @@ class DiagCluster : public Diag {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Diag style incompatible with app style
+
+The lattice styles of the diagnostic and the on-lattice application
+must match.
+
+E: Cannot open diag_style cluster output file
+
+Self-explanatory.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: Cannot open diag_style cluster dump file
+
+Self-explanatory.
+
+E: Cannot use diag_style cluster without a lattice defined
+
+This diagnostic uses the lattice style to dump OpenDx files.
+
+E: Diag_style cluster incompatible with lattice style
+
+UNDOCUMENTED
+
+E: Diag_style cluster nx,ny,nz = 0
+
+UNDOCUMENTED
+
+E: Diag cluster does not work if ncluster > 2^31
+
+UNDOCUMENTED
+
+E: Mismatch in counting for dbufclust
+
+Self-explanatory.
+
+E: Diag cluster ivalue in neighboring clusters do not match
+
+Internal SPPARKS error.
+
+E: Diag cluster dvalue in neighboring clusters do not match
+
+Internal SPPARKS error.
+
+E: Diag style cluster dump file name too long
+
+Self-explanatory.
+
+E: Cannot open diag style cluster dump file
+
+Self-explanatory.
+
+*/

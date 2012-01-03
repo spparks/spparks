@@ -47,3 +47,23 @@ class AppRelax : public AppOffLattice {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running SPPARKS to see the offending
+line.
+
+E: App relax requires a pair potential
+
+Self-explanatory.
+
+E: One or more sites have invalid values
+
+The application only allows sites to be initialized with specific
+values.
+
+*/
