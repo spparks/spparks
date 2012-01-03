@@ -31,7 +31,7 @@ DiagEnergy::DiagEnergy(SPPARKS *spk, int narg, char **arg) :
 {
   if (app->appclass == App::LATTICE) latticeflag = 1;
   else if (app->appclass == App::OFF_LATTICE) latticeflag = 0;
-  else error->all("Diag style incompatible with app style");
+  else error->all(FLERR,"Diag style incompatible with app style");
 }
 
 /* ---------------------------------------------------------------------- */

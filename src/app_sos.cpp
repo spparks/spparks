@@ -50,7 +50,7 @@ AppSOS::AppSOS(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  if (narg < 2) error->all("Illegal app_style command");
+  if (narg < 2) error->all(FLERR,"Illegal app_style command");
   
   bondeng = atof(arg[1]);
 
@@ -60,18 +60,18 @@ AppSOS::AppSOS(SPPARKS *spk, int narg, char **arg) :
   int iarg = 2;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"xsin") == 0) {
-      if (iarg+4 < narg) error->all("Illegal app_style command");
+      if (iarg+4 < narg) error->all(FLERR,"Illegal app_style command");
       instyle = XSIN;
       amp = atof(arg[iarg+1]);
       xwl = atof(arg[iarg+2]);
       zwl = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"string") == 0) {
-      if (iarg+2 < narg) error->all("Illegal app_style command");
+      if (iarg+2 < narg) error->all(FLERR,"Illegal app_style command");
       instyle = STRING;
       invalues = (double *) strtol(arg[iarg+1],NULL,16);
       iarg += 2;
-    } else error->all("Illegal app_style command");
+    } else error->all(FLERR,"Illegal app_style command");
   }
 
   // defaults

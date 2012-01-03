@@ -29,7 +29,7 @@ using namespace SPPARKS_NS;
 SolveTree::SolveTree(SPPARKS *spk, int narg, char **arg) : 
   Solve(spk, narg, arg)
 {
-  if (narg != 1) error->all("Illegal solve command");
+  if (narg != 1) error->all(FLERR,"Illegal solve command");
 
   random = new RandomPark(ranmaster->uniform());
   tree = NULL;
@@ -83,7 +83,7 @@ void SolveTree::init(int n, double *propensity)
   nround = 2*nround - 1;
   ntotal = nround;
   if (ntotal > MAXSMALLINT)
-    error->one("Per-processor solve tree is too big");
+    error->one(FLERR,"Per-processor solve tree is too big");
 
   memory->destroy(tree);
   memory->create(tree,ntotal,"solve:tree");

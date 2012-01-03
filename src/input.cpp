@@ -133,7 +133,7 @@ void Input::file()
 
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n == 0) {
-      if (label_active) error->all("Label wasn't found in input script");
+      if (label_active) error->all(FLERR,"Label wasn't found in input script");
       if (me == 0) {
 	if (infile != stdin) fclose(infile);
 	nfile--;
@@ -151,7 +151,7 @@ void Input::file()
     if (n == MAXLINE) {
       char str[MAXLINE+32];
       sprintf(str,"Input line too long: %s",line);
-      error->all(str);
+      error->all(FLERR,str);
     }
 
     // echo the command unless scanning for label
@@ -176,7 +176,7 @@ void Input::file()
     if (execute_command()) {
       char str[MAXLINE];
       sprintf(str,"Unknown command: %s",line);
-      error->all(str);
+      error->all(FLERR,str);
     }
   }
 }
@@ -193,13 +193,13 @@ void Input::file(const char *filename)
 
   if (me == 0) {
     if (nfile > 1)
-      error->one("Another input script is already being processed");
+      error->one(FLERR,"Another input script is already being processed");
     if (infile != stdin) fclose(infile);
     infile = fopen(filename,"r");
     if (infile == NULL) {
       char str[128];
       sprintf(str,"Cannot open input script %s",filename);
-      error->one(str);
+      error->one(FLERR,str);
     }
     infiles[0] = infile;
   } else infile = NULL;
@@ -238,7 +238,7 @@ char *Input::one(const char *single)
   if (execute_command()) {
     char str[MAXLINE];
     sprintf(str,"Unknown command: %s",line);
-    error->all(str);
+    error->all(FLERR,str);
   }
 
   return command;
@@ -305,7 +305,7 @@ void Input::parse()
       else {
 	arg[narg][strlen(arg[narg])] = ' ';
 	ptr = strtok(arg[narg],"\"");
-	if (ptr == NULL) error->all("Unbalanced quotes in input line");
+	if (ptr == NULL) error->all(FLERR,"Unbalanced quotes in input line");
       }
     }
     if (arg[narg]) narg++;
@@ -337,7 +337,7 @@ void Input::substitute(char *str, int flag)
 	var = ptr+2;
 	int i = 0;
 	while (var[i] != '\0' && var[i] != '}') i++;
-	if (var[i] == '\0') error->one("Invalid variable name");
+	if (var[i] == '\0') error->one(FLERR,"Invalid variable name");
 	var[i] = '\0';
 	beyond = ptr + strlen(var) + 3;
       } else {
@@ -347,15 +347,15 @@ void Input::substitute(char *str, int flag)
 	beyond = ptr + strlen(var) + 1;
       }
       value = variable->retrieve(var);
-      if (value == NULL) error->one("Substitution for illegal variable");
+      if (value == NULL) error->one(FLERR,"Substitution for illegal variable");
 
       *ptr = '\0';
       strcpy(work,str);
       if (strlen(work)+strlen(value) >= MAXLINE)
-	error->one("Input line too long after variable substitution");
+	error->one(FLERR,"Input line too long after variable substitution");
       strcat(work,value);
       if (strlen(work)+strlen(beyond) >= MAXLINE)
-	error->one("Input line too long after variable substitution");
+	error->one(FLERR,"Input line too long after variable substitution");
       strcat(work,beyond);
       strcpy(str,work);
       ptr += strlen(value);
@@ -435,7 +435,7 @@ int Input::execute_command()
   // assume command is application-specific
 
   if (app == NULL) 
-    error->all("App_style specific command before app_style set");
+    error->all(FLERR,"App_style specific command before app_style set");
   app->input(command,narg,arg);
   return 0;
 }
@@ -448,7 +448,7 @@ int Input::execute_command()
 
 void Input::clear()
 {
-  if (narg > 0) error->all("Illegal clear command");
+  if (narg > 0) error->all(FLERR,"Illegal clear command");
   spk->destroy();
   spk->create();
 }
@@ -457,7 +457,7 @@ void Input::clear()
 
 void Input::echo()
 {
-  if (narg != 1) error->all("Illegal echo command");
+  if (narg != 1) error->all(FLERR,"Illegal echo command");
 
   if (strcmp(arg[0],"none") == 0) {
     echo_screen = 0;
@@ -471,14 +471,14 @@ void Input::echo()
   } else if (strcmp(arg[0],"both") == 0) {
     echo_screen = 1;
     echo_log = 1;
-  } else error->all("Illegal echo command");
+  } else error->all(FLERR,"Illegal echo command");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Input::ifthenelse()
 {
-  if (narg != 5 && narg != 7) error->all("Illegal if command");
+  if (narg != 5 && narg != 7) error->all(FLERR,"Illegal if command");
 
   int flag = 0;
   if (strcmp(arg[1],"==") == 0) {
@@ -493,11 +493,11 @@ void Input::ifthenelse()
     if (atof(arg[0]) > atof(arg[2])) flag = 1;
   } else if (strcmp(arg[1],">=") == 0) {
     if (atof(arg[0]) >= atof(arg[2])) flag = 1;
-  } else error->all("Illegal if command");
+  } else error->all(FLERR,"Illegal if command");
 
-  if (strcmp(arg[3],"then") != 0) error->all("Illegal if command");
+  if (strcmp(arg[3],"then") != 0) error->all(FLERR,"Illegal if command");
   if (narg == 7 && strcmp(arg[5],"else") != 0) 
-    error->all("Illegal if command");
+    error->all(FLERR,"Illegal if command");
 
   char str[128] = "\0";
   if (flag) strcpy(str,arg[4]);
@@ -511,7 +511,7 @@ void Input::ifthenelse()
 
 void Input::include()
 {
-  if (narg != 1) error->all("Illegal include command");
+  if (narg != 1) error->all(FLERR,"Illegal include command");
 
   if (me == 0) {
     if (nfile == maxfile) {
@@ -523,7 +523,7 @@ void Input::include()
     if (infile == NULL) {
       char str[128];
       sprintf(str,"Cannot open input script %s",arg[0]);
-      error->one(str);
+      error->one(FLERR,str);
     }
     infiles[nfile++] = infile;
   }
@@ -533,7 +533,7 @@ void Input::include()
 
 void Input::jump()
 {
-  if (narg < 1 || narg > 2) error->all("Illegal jump command");
+  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal jump command");
 
   if (jump_skip) {
     jump_skip = 0;
@@ -546,7 +546,7 @@ void Input::jump()
     if (infile == NULL) {
       char str[128];
       sprintf(str,"Cannot open input script %s",arg[0]);
-      error->one(str);
+      error->one(FLERR,str);
     }
     infiles[nfile-1] = infile;
   }
@@ -564,7 +564,7 @@ void Input::jump()
 
 void Input::label()
 {
-  if (narg != 1) error->all("Illegal label command");
+  if (narg != 1) error->all(FLERR,"Illegal label command");
   if (label_active && strcmp(labelstr,arg[0]) == 0) label_active = 0;
 }
 
@@ -572,7 +572,7 @@ void Input::label()
 
 void Input::log()
 {
-  if (narg != 1) error->all("Illegal log command");
+  if (narg != 1) error->all(FLERR,"Illegal log command");
 
   if (me == 0) {
     if (logfile) fclose(logfile);
@@ -582,7 +582,7 @@ void Input::log()
       if (logfile == NULL) {
 	char str[128];
 	sprintf(str,"Cannot open logfile %s",arg[0]);
-	error->one(str);
+	error->one(FLERR,str);
       }
     }
     if (universe->nworlds == 1) universe->ulogfile = logfile;
@@ -600,7 +600,7 @@ void Input::next_command()
 
 void Input::print()
 {
-  if (narg != 1) error->all("Illegal print command");
+  if (narg != 1) error->all(FLERR,"Illegal print command");
 
   // substitute for $ variables (no printing)
 
@@ -632,13 +632,13 @@ void Input::variable_command()
 void Input::app_style()
 {
   if (domain->box_exist) 
-    error->all("App_style command after simulation box is defined");
-  if (narg < 1) error->all("Illegal app command");
+    error->all(FLERR,"App_style command after simulation box is defined");
+  if (narg < 1) error->all(FLERR,"Illegal app command");
   delete app;
   delete solve;
   solve = NULL;
 
-  if (strcmp(arg[0],"none") == 0) error->all("Illegal app_style command");
+  if (strcmp(arg[0],"none") == 0) error->all(FLERR,"Illegal app_style command");
 
 #define APP_CLASS
 #define AppStyle(key,Class) \
@@ -646,7 +646,7 @@ void Input::app_style()
 #include "style_app.h"
 #undef APP_CLASS
 
-  else error->all("Illegal app_style command");
+  else error->all(FLERR,"Illegal app_style command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -654,7 +654,7 @@ void Input::app_style()
 void Input::boundary()
 {
   if (domain->box_exist) 
-    error->all("Boundary command after simulation box is defined");
+    error->all(FLERR,"Boundary command after simulation box is defined");
   domain->set_boundary(narg,arg);
 }
 
@@ -662,11 +662,11 @@ void Input::boundary()
 
 void Input::diag_style()
 {
-  if (app == NULL) error->all("Diag_style command before app_style set");
+  if (app == NULL) error->all(FLERR,"Diag_style command before app_style set");
 
-  if (narg < 1) error->all("Illegal diag_style command");
+  if (narg < 1) error->all(FLERR,"Illegal diag_style command");
 
-  if (strcmp(arg[0],"none") == 0) error->all("Illegal diag_style command");
+  if (strcmp(arg[0],"none") == 0) error->all(FLERR,"Illegal diag_style command");
 
 #define DIAG_CLASS
 #define DiagStyle(key,Class) \
@@ -677,7 +677,7 @@ void Input::diag_style()
 #include "style_diag.h"
 #undef DIAG_CLASS
 
-  else error->all("Illegal diag_style command");
+  else error->all(FLERR,"Illegal diag_style command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -685,21 +685,21 @@ void Input::diag_style()
 void Input::dimension()
 {
   if (domain->box_exist) 
-    error->all("Dimension command after simulation box is defined");
+    error->all(FLERR,"Dimension command after simulation box is defined");
   if (domain->lattice) 
-    error->all("Dimension command after lattice is defined");
-  if (narg != 1) error->all("Illegal dimension command");
+    error->all(FLERR,"Dimension command after lattice is defined");
+  if (narg != 1) error->all(FLERR,"Illegal dimension command");
 
   domain->dimension = atoi(arg[0]);
   if (domain->dimension < 1 || domain->dimension > 3)
-    error->all("Illegal dimension command");
+    error->all(FLERR,"Illegal dimension command");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Input::dump()
 {
-  if (app == NULL) error->all("Dump command before app_style set");
+  if (app == NULL) error->all(FLERR,"Dump command before app_style set");
 
   output->add_dump(narg,arg);
 }
@@ -708,7 +708,7 @@ void Input::dump()
 
 void Input::dump_modify()
 {
-  if (app == NULL) error->all("Dump_modify command before app_style set");
+  if (app == NULL) error->all(FLERR,"Dump_modify command before app_style set");
 
   output->dump_modify(narg,arg);
 }
@@ -717,7 +717,7 @@ void Input::dump_modify()
 
 void Input::dump_one()
 {
-  if (app == NULL) error->all("Dump_one command before app_style set");
+  if (app == NULL) error->all(FLERR,"Dump_one command before app_style set");
 
   output->dump_one(narg,arg);
 }
@@ -726,7 +726,7 @@ void Input::dump_one()
 
 void Input::lattice()
 {
-  if (app == NULL) error->all("Lattice command before app_style set");
+  if (app == NULL) error->all(FLERR,"Lattice command before app_style set");
 
   domain->set_lattice(narg,arg);
 }
@@ -735,9 +735,9 @@ void Input::lattice()
 
 void Input::pair_coeff()
 {
-  if (app == NULL) error->all("Pair_coeff command before app_style set");
+  if (app == NULL) error->all(FLERR,"Pair_coeff command before app_style set");
   if (potential->pair == NULL) 
-    error->all("Pair_coeff command before pair_style is defined");
+    error->all(FLERR,"Pair_coeff command before pair_style is defined");
   potential->pair->coeff(narg,arg);
 }
 
@@ -745,8 +745,8 @@ void Input::pair_coeff()
 
 void Input::pair_style()
 {
-  if (app == NULL) error->all("Pair_style command before app_style set");
-  if (narg < 1) error->all("Illegal pair_style command");
+  if (app == NULL) error->all(FLERR,"Pair_style command before app_style set");
+  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
   potential->create_pair(arg[0]);
   potential->pair->settings(narg-1,&arg[1]);
 }
@@ -756,8 +756,8 @@ void Input::pair_style()
 void Input::processors()
 {
   if (domain->box_exist)
-    error->all("Processors command after simulation box is defined");
-  if (narg != 3) error->all("Illegal processors command");
+    error->all(FLERR,"Processors command after simulation box is defined");
+  if (narg != 3) error->all(FLERR,"Illegal processors command");
 
   domain->user_procgrid[0] = atoi(arg[0]);
   domain->user_procgrid[1] = atoi(arg[1]);
@@ -768,7 +768,7 @@ void Input::processors()
 
 void Input::region()
 {
-  if (app == NULL) error->all("Region command before app_style set");
+  if (app == NULL) error->all(FLERR,"Region command before app_style set");
 
   domain->add_region(narg,arg);
 }
@@ -777,11 +777,11 @@ void Input::region()
 
 void Input::reset_time()
 {
-  if (app == NULL) error->all("Reset_time command before app_style set");
-  if (narg != 1) error->all("Illegal reset_time command");
+  if (app == NULL) error->all(FLERR,"Reset_time command before app_style set");
+  if (narg != 1) error->all(FLERR,"Illegal reset_time command");
 
   double time = atof(arg[0]);
-  if (time < 0.0) error->all("Illegal reset_time command");
+  if (time < 0.0) error->all(FLERR,"Illegal reset_time command");
 
   app->reset_time(time);
 }
@@ -790,7 +790,7 @@ void Input::reset_time()
 
 void Input::run()
 {
-  if (app == NULL) error->all("Run command before app_style set");
+  if (app == NULL) error->all(FLERR,"Run command before app_style set");
 
   app->run(narg,arg);
 }
@@ -799,10 +799,10 @@ void Input::run()
 
 void Input::seed()
 {
-  if (narg != 1) error->all("Illegal seed command");
+  if (narg != 1) error->all(FLERR,"Illegal seed command");
 
   int seed = atoi(arg[0]);
-  if (seed <= 0) error->all("Illegal seed command");
+  if (seed <= 0) error->all(FLERR,"Illegal seed command");
 
   ranmaster->init(seed);
 }
@@ -811,8 +811,8 @@ void Input::seed()
 
 void Input::solve_style()
 {
-  if (app == NULL) error->all("Solve_style command before app_style set");
-  if (narg < 1) error->all("Illegal solve_style command");
+  if (app == NULL) error->all(FLERR,"Solve_style command before app_style set");
+  if (narg < 1) error->all(FLERR,"Illegal solve_style command");
   delete solve;
 
   if (strcmp(arg[0],"none") == 0) solve = NULL;
@@ -823,14 +823,14 @@ void Input::solve_style()
 #include "style_solve.h"
 #undef SOLVE_CLASS
 
-  else error->all("Illegal solve_style command");
+  else error->all(FLERR,"Illegal solve_style command");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Input::stats()
 {
-  if (app == NULL) error->all("Stats command before app_style set");
+  if (app == NULL) error->all(FLERR,"Stats command before app_style set");
 
   output->set_stats(narg,arg);
 }
@@ -839,7 +839,7 @@ void Input::stats()
 
 void Input::undump()
 {
-  if (app == NULL) error->all("Undump command before app_style set");
+  if (app == NULL) error->all(FLERR,"Undump command before app_style set");
 
   output->undump(narg,arg);
 }

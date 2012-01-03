@@ -84,7 +84,7 @@ void RanMars::init(int seed)
 
 double RanMars::uniform()
 {
-  if (!initflag) error->all("Seed command has not been used");
+  if (!initflag) error->all(FLERR,"Seed command has not been used");
 
   double uni = u[i97] - u[j97];
   if (uni < 0.0) uni += 1.0;

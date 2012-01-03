@@ -38,7 +38,7 @@ void *Memory::smalloc(bigint nbytes, const char *name)
     char str[128];
     sprintf(str,"Failed to allocate " BIGINT_FORMAT " bytes for array %s",
 	    nbytes,name);
-    error->one(str);
+    error->one(FLERR,str);
   }
   return ptr;
 }
@@ -59,7 +59,7 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
     char str[128];
     sprintf(str,"Failed to reallocate " BIGINT_FORMAT " bytes for array %s",
 	    nbytes,name);
-    error->one(str);
+    error->one(FLERR,str);
   }
   return ptr;
 }
@@ -82,5 +82,5 @@ void Memory::fail(const char *name)
 {
   char str[128];
   sprintf(str,"Cannot create/grow a vector/array of pointers for %s",name);
-  error->one(str);
+  error->one(FLERR,str);
 }

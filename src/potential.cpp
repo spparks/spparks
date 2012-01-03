@@ -72,7 +72,7 @@ Pair *Potential::new_pair(const char *style)
 #include "style_pair.h"
 #undef PAIR_CLASS
 
-  else error->all("Invalid pair style");
+  else error->all(FLERR,"Invalid pair style");
   return NULL;
 }
 

@@ -50,7 +50,7 @@ enum{INT,DOUBLE,BIGINT};                              // also in dump_text
 DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) : 
   DumpText(spk, narg, arg)
 {
-  if (binary || multiproc) error->all("Invalid dump image filename");
+  if (binary || multiproc) error->all(FLERR,"Invalid dump image filename");
 
   // set filetype based on filename suffix
 
@@ -62,12 +62,12 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
   else filetype = PPM;
 
 #ifndef SPPARKS_JPEG
-  if (filetype == JPG) error->all("Cannot dump JPG file");
+  if (filetype == JPG) error->all(FLERR,"Cannot dump JPG file");
 #endif
 
   // site color,diameter settings
 
-  if (size_one != 2) error->all("Illegal dump image command");
+  if (size_one != 2) error->all(FLERR,"Illegal dump image command");
 
   if (vtype[0] == INT) scolor = IATTRIBUTE;
   else scolor = DATTRIBUTE;
@@ -109,20 +109,20 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
   int iarg = ioptional;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"shape") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump image command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
       if (strcmp(arg[iarg+1],"sphere") == 0) shape = SPHERE;
       else if (strcmp(arg[iarg+1],"cube") == 0) shape = CUBE;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"sdiam") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump image command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
       sdiam = NUMERIC;
       sdiamvalue = atof(arg[iarg+1]);
-      if (sdiamvalue <= 0.0) error->all("Illegal dump image command");
+      if (sdiamvalue <= 0.0) error->all(FLERR,"Illegal dump image command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"boundary") == 0) {
-      if (iarg+3 > narg) error->all("Illegal dump image command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       boundflag = YES;
 
       if (strcmp(arg[iarg+1],"id") == 0) {
@@ -131,7 +131,7 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
 	boundvalue = IARRAY;
 	boundindex = 0;
 	if (app->iarray == NULL)
-	  error->all("Dump image with quantity application does not support");
+	  error->all(FLERR,"Dump image with quantity application does not support");
       } else if (strcmp(arg[iarg+1],"x") == 0) {
 	boundvalue = X;
       } else if (strcmp(arg[iarg+1],"y") == 0) {
@@ -142,48 +142,48 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
 	boundvalue = IARRAY;
 	boundindex = atoi(&arg[iarg+1][1]);
 	if (boundindex < 1 || boundindex > app->ninteger)
-	  error->all("Dump image with quantity application does not support");
+	  error->all(FLERR,"Dump image with quantity application does not support");
 	boundindex--;
       } else if (arg[iarg+1][0] == 'd') {
 	boundvalue = DARRAY;
 	boundindex = atoi(&arg[iarg+1][1]);
 	if (boundindex < 1 || boundindex > app->ndouble)
-	  error->all("Dump image with quantity application does not support");
+	  error->all(FLERR,"Dump image with quantity application does not support");
 	boundindex--;
-      } else error->all("Illegal dump image command");
+      } else error->all(FLERR,"Illegal dump image command");
 
       bounddiam = atof(arg[iarg+2]);
-      if (bounddiam <= 0.0) error->all("Illegal dump image command");
+      if (bounddiam <= 0.0) error->all(FLERR,"Illegal dump image command");
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"crange") == 0) {
-      if (iarg+3 > narg) error->all("Illegal dump image command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       crange = YES;
       clo = atoi(arg[iarg+1]);
       chi = atoi(arg[iarg+2]);
-      if (clo > chi) error->all("Illegal dump image command");
+      if (clo > chi) error->all(FLERR,"Illegal dump image command");
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"drange") == 0) {
-      if (iarg+3 > narg) error->all("Illegal dump image command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       drange = YES;
       dlo = atoi(arg[iarg+1]);
       dhi = atoi(arg[iarg+2]);
-      if (dlo > dhi) error->all("Illegal dump image command");
+      if (dlo > dhi) error->all(FLERR,"Illegal dump image command");
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"size") == 0) {
-      if (iarg+3 > narg) error->all("Illegal dump image command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       int width = atoi(arg[iarg+1]);
       int height = atoi(arg[iarg+2]);
       if (width <= 0 || height <= 0) 
-	error->all("Illegal dump image command");
+	error->all(FLERR,"Illegal dump image command");
       image->width = width;
       image->height = height;
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"view") == 0) {
-      if (iarg+3 > narg) error->all("Illegal dump image command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
 	int n = strlen(&arg[iarg+1][2]) + 1;
 	thetastr = new char[n];
@@ -191,7 +191,7 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
       } else {
 	double theta = atof(arg[iarg+1]);
 	if (theta < 0.0 || theta > 180.0)
-	  error->all("Invalid dump image theta value");
+	  error->all(FLERR,"Invalid dump image theta value");
 	theta *= MY_PI/180.0;
 	image->theta = theta;
       }
@@ -207,10 +207,10 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"center") == 0) {
-      if (iarg+5 > narg) error->all("Illegal dump image command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal dump image command");
       if (strcmp(arg[iarg+1],"s") == 0) cflag = STATIC;
       else if (strcmp(arg[iarg+1],"d") == 0) cflag = DYNAMIC;
-      else error->all("Illegal dump image command");
+      else error->all(FLERR,"Illegal dump image command");
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
 	int n = strlen(&arg[iarg+2][2]) + 1;
 	cxstr = new char[n];
@@ -232,7 +232,7 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"up") == 0) {
-      if (iarg+4 > narg) error->all("Illegal dump image command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal dump image command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
 	int n = strlen(&arg[iarg+1][2]) + 1;
 	upxstr = new char[n];
@@ -251,85 +251,85 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"zoom") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump image command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
 	int n = strlen(&arg[iarg+1][2]) + 1;
 	zoomstr = new char[n];
 	strcpy(zoomstr,&arg[iarg+1][2]);
       } else {
 	double zoom = atof(arg[iarg+1]);
-	if (zoom <= 0.0) error->all("Illegal dump image command");
+	if (zoom <= 0.0) error->all(FLERR,"Illegal dump image command");
 	image->zoom = zoom;
       }
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"persp") == 0) {
-      error->all("Dump image persp option is not yet supported");
-      if (iarg+2 > narg) error->all("Illegal dump image command");
+      error->all(FLERR,"Dump image persp option is not yet supported");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
 	int n = strlen(&arg[iarg+1][2]) + 1;
 	perspstr = new char[n];
 	strcpy(perspstr,&arg[iarg+1][2]);
       } else {
 	double persp = atof(arg[iarg+1]);
-	if (persp < 0.0) error->all("Illegal dump image command");
+	if (persp < 0.0) error->all(FLERR,"Illegal dump image command");
 	image->persp = persp;
       }
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"box") == 0) {
-      if (iarg+3 > narg) error->all("Illegal dump image command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       if (strcmp(arg[iarg+1],"yes") == 0) boxflag = YES;
       else if (strcmp(arg[iarg+1],"no") == 0) boxflag = NO;
-      else error->all("Illegal dump image command");
+      else error->all(FLERR,"Illegal dump image command");
       boxdiam = atof(arg[iarg+2]);
-      if (boxdiam < 0.0) error->all("Illegal dump image command");
+      if (boxdiam < 0.0) error->all(FLERR,"Illegal dump image command");
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"axes") == 0) {
-      if (iarg+3 > narg) error->all("Illegal dump image command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       if (strcmp(arg[iarg+1],"yes") == 0) axesflag = YES;
       else if (strcmp(arg[iarg+1],"no") == 0) axesflag = NO;
-      else error->all("Illegal dump image command");
+      else error->all(FLERR,"Illegal dump image command");
       axeslen = atof(arg[iarg+2]);
       axesdiam = atof(arg[iarg+3]);
       if (axeslen < 0.0 || axesdiam < 0.0)
-	error->all("Illegal dump image command");
+	error->all(FLERR,"Illegal dump image command");
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"shiny") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump image command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
       double shiny = atof(arg[iarg+1]);
       if (shiny < 0.0 || shiny > 1.0)
-	error->all("Illegal dump image command");
+	error->all(FLERR,"Illegal dump image command");
       image->shiny = shiny;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"ssao") == 0) {
-      if (iarg+4 > narg) error->all("Illegal dump image command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal dump image command");
       if (strcmp(arg[iarg+1],"yes") == 0) image->ssao = YES;
       else if (strcmp(arg[iarg+1],"no") == 0) image->ssao = NO;
-      else error->all("Illegal dump image command");
+      else error->all(FLERR,"Illegal dump image command");
       int seed = atoi(arg[iarg+2]);
-      if (seed <= 0) error->all("Illegal dump image command");
+      if (seed <= 0) error->all(FLERR,"Illegal dump image command");
       image->seed = seed;
       double ssaoint = atof(arg[iarg+3]);
       if (ssaoint < 0.0 || ssaoint > 1.0)
-	error->all("Illegal dump image command");
+	error->all(FLERR,"Illegal dump image command");
       image->ssaoint = ssaoint;
       iarg += 4;
 
-    } else error->all("Illegal dump image command");
+    } else error->all(FLERR,"Illegal dump image command");
   }
 
   // error checks
 
   if (boundflag == YES && shape == SPHERE && me == 0)
-    error->warning("Using dump image boundary with spheres");
+    error->warning(FLERR,"Using dump image boundary with spheres");
 
   if (boundflag == YES) {
     if (app->appclass != App::LATTICE)
-      error->all("Dump image boundary requires lattice app");
+      error->all(FLERR,"Dump image boundary requires lattice app");
     applattice = (AppLattice *) app;
   }
 
@@ -344,13 +344,13 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
   color_memflag = NULL;
 
   if (sdiam == IATTRIBUTE) {
-    if (drange == NO) error->all("Dump image drange must be set");
+    if (drange == NO) error->all(FLERR,"Dump image drange must be set");
     memory->create(diamattribute,dhi-dlo+1,"image:diamattribute");
     for (int i = dlo; i <= dhi; i++) diamattribute[i-dlo] = 1.0;
   }
 
   if (scolor == IATTRIBUTE) {
-    if (crange == NO) error->all("Dump image crange must be set");
+    if (crange == NO) error->all(FLERR,"Dump image crange must be set");
     colorattribute = (double **) memory->smalloc((chi-clo+1)*sizeof(double *),
 						 "image:colorattribute");
     memory->create(color_memflag,chi-clo+1,"image:color_memflag");
@@ -395,7 +395,7 @@ DumpImage::~DumpImage()
 
 void DumpImage::init_style()
 {
-  if (multifile == 0) error->all("Dump image requires one snapshot per file");
+  if (multifile == 0) error->all(FLERR,"Dump image requires one snapshot per file");
 
   DumpText::init_style();
 
@@ -404,72 +404,72 @@ void DumpImage::init_style()
   if (thetastr) {
     thetavar = input->variable->find(thetastr);
     if (thetavar < 0) 
-      error->all("Variable name for dump image theta does not exist");
+      error->all(FLERR,"Variable name for dump image theta does not exist");
     if (!input->variable->equalstyle(thetavar))
-      error->all("Variable for dump image theta is invalid style");
+      error->all(FLERR,"Variable for dump image theta is invalid style");
   }
   if (phistr) {
     phivar = input->variable->find(phistr);
     if (phivar < 0) 
-      error->all("Variable name for dump image phi does not exist");
+      error->all(FLERR,"Variable name for dump image phi does not exist");
     if (!input->variable->equalstyle(phivar))
-      error->all("Variable for dump image phi is invalid style");
+      error->all(FLERR,"Variable for dump image phi is invalid style");
   }
   if (cxstr) {
     cxvar = input->variable->find(cxstr);
     if (cxvar < 0) 
-      error->all("Variable name for dump image center does not exist");
+      error->all(FLERR,"Variable name for dump image center does not exist");
     if (!input->variable->equalstyle(cxvar))
-      error->all("Variable for dump image center is invalid style");
+      error->all(FLERR,"Variable for dump image center is invalid style");
   }
   if (cystr) {
     cyvar = input->variable->find(cystr);
     if (cyvar < 0) 
-      error->all("Variable name for dump image center does not exist");
+      error->all(FLERR,"Variable name for dump image center does not exist");
     if (!input->variable->equalstyle(cyvar))
-      error->all("Variable for dump image center is invalid style");
+      error->all(FLERR,"Variable for dump image center is invalid style");
   }
   if (czstr) {
     czvar = input->variable->find(czstr);
     if (czvar < 0) 
-      error->all("Variable name for dump image center does not exist");
+      error->all(FLERR,"Variable name for dump image center does not exist");
     if (!input->variable->equalstyle(czvar))
-      error->all("Variable for dump image center is invalid style");
+      error->all(FLERR,"Variable for dump image center is invalid style");
   }
   if (upxstr) {
     upxvar = input->variable->find(upxstr);
     if (upxvar < 0) 
-      error->all("Variable name for dump image center does not exist");
+      error->all(FLERR,"Variable name for dump image center does not exist");
     if (!input->variable->equalstyle(upxvar))
-      error->all("Variable for dump image center is invalid style");
+      error->all(FLERR,"Variable for dump image center is invalid style");
   }
   if (upystr) {
     upyvar = input->variable->find(upystr);
     if (upyvar < 0) 
-      error->all("Variable name for dump image center does not exist");
+      error->all(FLERR,"Variable name for dump image center does not exist");
     if (!input->variable->equalstyle(upyvar))
-      error->all("Variable for dump image center is invalid style");
+      error->all(FLERR,"Variable for dump image center is invalid style");
   }
   if (upzstr) {
     upzvar = input->variable->find(upzstr);
     if (upzvar < 0) 
-      error->all("Variable name for dump image center does not exist");
+      error->all(FLERR,"Variable name for dump image center does not exist");
     if (!input->variable->equalstyle(upzvar))
-      error->all("Variable for dump image center is invalid style");
+      error->all(FLERR,"Variable for dump image center is invalid style");
   }
   if (zoomstr) {
     zoomvar = input->variable->find(zoomstr);
     if (zoomvar < 0) 
-      error->all("Variable name for dump image zoom does not exist");
+      error->all(FLERR,"Variable name for dump image zoom does not exist");
     if (!input->variable->equalstyle(zoomvar))
-      error->all("Variable for dump image zoom is invalid style");
+      error->all(FLERR,"Variable for dump image zoom is invalid style");
   }
   if (perspstr) {
     perspvar = input->variable->find(perspstr);
     if (perspvar < 0) 
-      error->all("Variable name for dump image persp does not exist");
+      error->all(FLERR,"Variable name for dump image persp does not exist");
     if (!input->variable->equalstyle(perspvar))
-      error->all("Variable for dump image persp is invalid style");
+      error->all(FLERR,"Variable for dump image persp is invalid style");
   }
 }
 
@@ -548,7 +548,7 @@ void DumpImage::view_params()
   if (thetastr) {
     double theta = input->variable->compute_equal(thetavar);
     if (theta < 0.0 || theta > 180.0)
-      error->all("Invalid dump image theta value");
+      error->all(FLERR,"Invalid dump image theta value");
     theta *= MY_PI/180.0;
     image->theta = theta;
   }
@@ -568,9 +568,9 @@ void DumpImage::view_params()
   // zoom and perspective
 
   if (zoomstr) image->zoom = input->variable->compute_equal(zoomvar);
-  if (image->zoom <= 0.0) error->all("Invalid dump image zoom value");
+  if (image->zoom <= 0.0) error->all(FLERR,"Invalid dump image zoom value");
   if (perspstr) image->persp = input->variable->compute_equal(perspvar);
-  if (image->persp < 0.0) error->all("Invalid dump image persp value");
+  if (image->persp < 0.0) error->all(FLERR,"Invalid dump image persp value");
 
   // remainder of view setup is internal to Image class
 
@@ -773,9 +773,9 @@ int DumpImage::modify_param(int narg, char **arg)
   if (n) return n;
   
   if (strcmp(arg[0],"backcolor") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     double *color = image->color2rgb(arg[1]);
-    if (color == NULL) error->all("Invalid color in dump_modify command");
+    if (color == NULL) error->all(FLERR,"Invalid color in dump_modify command");
     image->background[0] = static_cast<int> (color[0]*255.0);
     image->background[1] = static_cast<int> (color[1]*255.0);
     image->background[2] = static_cast<int> (color[2]*255.0);
@@ -783,31 +783,31 @@ int DumpImage::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0],"boundcolor") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     boundcolor = image->color2rgb(arg[1]);
-    if (boundcolor == NULL) error->all("Invalid color in dump_modify command");
+    if (boundcolor == NULL) error->all(FLERR,"Invalid color in dump_modify command");
     return 2;
   }
 
   if (strcmp(arg[0],"boxcolor") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     image->boxcolor = image->color2rgb(arg[1]);
     if (image->boxcolor == NULL) 
-      error->all("Invalid color in dump_modify command");
+      error->all(FLERR,"Invalid color in dump_modify command");
     return 2;
   }
 
   if (strcmp(arg[0],"color") == 0) {
-    if (narg < 5) error->all("Illegal dump_modify command");
+    if (narg < 5) error->all(FLERR,"Illegal dump_modify command");
     int flag = image->addcolor(arg[1],atof(arg[2]),atof(arg[3]),atof(arg[4]));
-    if (flag) error->all("Illegal dump_modify command");
+    if (flag) error->all(FLERR,"Illegal dump_modify command");
     return 5;
   }
 
   if (strcmp(arg[0],"scolor") == 0) {
-    if (narg < 3) error->all("Illegal dump_modify command");
+    if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
     if (scolor != IATTRIBUTE)
-      error->all("Dump_modify scolor requires integer attribute "
+      error->all(FLERR,"Dump_modify scolor requires integer attribute "
 		 "for dump image color");
 
     int nlo,nhi;
@@ -854,7 +854,7 @@ int DumpImage::modify_param(int narg, char **arg)
 	colorattribute[i-clo] = image->color2rgb(ptrs[m%ncount]);
 	color_memflag[i-clo] = 0;
 	if (colorattribute[i-clo] == NULL)
-	  error->all("Invalid color in dump_modify command");
+	  error->all(FLERR,"Invalid color in dump_modify command");
 	m++;
       }
 
@@ -865,31 +865,31 @@ int DumpImage::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0],"sdiam") == 0) {
-    if (narg < 3) error->all("Illegal dump_modify command");
+    if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
     if (sdiam != IATTRIBUTE)
-      error->all("Dump_modify sdiam requires integer attribute "
+      error->all(FLERR,"Dump_modify sdiam requires integer attribute "
 		 "for dump image diameter");
 
     int nlo,nhi;
     bounds(arg[1],dlo,dhi,nlo,nhi);
 
     double diam = atof(arg[2]);
-    if (diam <= 0.0) error->all("Illegal dump_modify command");
+    if (diam <= 0.0) error->all(FLERR,"Illegal dump_modify command");
     for (int i = nlo; i <= nhi; i++) diamattribute[i-dlo] = diam;
     return 3;
   }
 
   if (strcmp(arg[0],"smap") == 0) {
-    if (narg < 6) error->all("Illegal dump_modify command");
-    if (strlen(arg[3]) != 2) error->all("Illegal dump_modify command");
+    if (narg < 6) error->all(FLERR,"Illegal dump_modify command");
+    if (strlen(arg[3]) != 2) error->all(FLERR,"Illegal dump_modify command");
     int factor = 2;
     if (arg[3][0] == 's') factor = 1;
     int nentry = atoi(arg[5]);
-    if (nentry < 1) error->all("Illegal dump_modify command");
+    if (nentry < 1) error->all(FLERR,"Illegal dump_modify command");
     int n = 6 + factor*nentry;
-    if (narg < n) error->all("Illegal dump_modify command");
+    if (narg < n) error->all(FLERR,"Illegal dump_modify command");
     int flag = image->colormap(n-1,&arg[1]);
-    if (flag) error->all("Illegal dump_modify command");
+    if (flag) error->all(FLERR,"Illegal dump_modify command");
     return n;
   }
   

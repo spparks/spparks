@@ -25,7 +25,7 @@ DiagDiffusion::DiagDiffusion(SPPARKS *spk, int narg, char **arg) :
   Diag(spk,narg,arg)
 {
   if (strcmp(app->style,"diffusion") != 0)
-    error->all("Diag_style diffusion requires app_style diffusion");
+    error->all(FLERR,"Diag_style diffusion requires app_style diffusion");
 }
 
 /* ---------------------------------------------------------------------- */

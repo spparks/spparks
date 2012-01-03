@@ -48,21 +48,21 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  if (narg < 3) error->all("Illegal app_style command");
+  if (narg < 3) error->all(FLERR,"Illegal app_style command");
   if (strcmp(arg[1],"off") == 0) engstyle = NO_ENERGY;
   else if (strcmp(arg[1],"linear") == 0) engstyle = LINEAR;
   else if (strcmp(arg[1],"nonlinear") == 0) engstyle = NONLINEAR;
-  else error->all("Illegal app_style command");
+  else error->all(FLERR,"Illegal app_style command");
 
   if (strcmp(arg[2],"hop") == 0) {
-    if (narg != 3) error->all("Illegal app_style command");
+    if (narg != 3) error->all(FLERR,"Illegal app_style command");
     hopstyle = NNHOP;
   } else if (strcmp(arg[2],"schwoebel") == 0) {
-    if (narg != 5) error->all("Illegal app_style command");
+    if (narg != 5) error->all(FLERR,"Illegal app_style command");
     hopstyle = SCHWOEBEL;
     nsmax = atoi(arg[3]);
     nsmin = atoi(arg[4]);
-  } else error->all("Illegal app_style command");
+  } else error->all(FLERR,"Illegal app_style command");
 
   // increment delpropensity by 1 for nonlinear energy
   // increment delpropensity and delevent by 1 for Schwoebel hops
@@ -131,7 +131,7 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
   if (sites_exist == 0) {
     char str[128];
     sprintf(str,"Cannot use %s command until sites exist",command);
-    error->all(str);
+    error->all(FLERR,str);
   }
 
   if (!allocated) allocate_data();
@@ -139,9 +139,9 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
 
   if (strcmp(command,"ecoord") == 0) {
     if (engstyle != NONLINEAR)
-      error->all("Can only use ecoord command with "
+      error->all(FLERR,"Can only use ecoord command with "
 		 "app_style diffusion nonlinear");
-    if (narg != 2) error->all("Illegal ecoord command");
+    if (narg != 2) error->all(FLERR,"Illegal ecoord command");
 
     int lo,hi;
     bounds(arg[0],0,maxneigh,lo,hi);
@@ -150,14 +150,14 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
     for (int i = lo; i <= hi; i++) ecoord[i] = value;
 
   } else if (strcmp(command,"deposition") == 0) {
-    if (narg < 1) error->all("Illegal deposition command");
+    if (narg < 1) error->all(FLERR,"Illegal deposition command");
     if (strcmp(arg[0],"off") == 0) {
-      if (narg != 1 ) error->all("Illegal deposition command");
+      if (narg != 1 ) error->all(FLERR,"Illegal deposition command");
       depflag = 0;
       return;
     }
 
-    if (narg != 7) error->all("Illegal deposition command");
+    if (narg != 7) error->all(FLERR,"Illegal deposition command");
     depflag = 1;
     deprate = atof(arg[0]);
     dir[0] = atof(arg[1]);
@@ -166,14 +166,14 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
     d0 = atof(arg[4]);
     coordlo = atoi(arg[5]);
     coordhi = atoi(arg[6]);
-    if (deprate < 0.0) error->all("Illegal deposition command");
+    if (deprate < 0.0) error->all(FLERR,"Illegal deposition command");
     if (domain->dimension == 2 && (dir[1] >= 0.0 || dir[2] != 0.0))
-      error->all("Illegal deposition command");
+      error->all(FLERR,"Illegal deposition command");
     if (domain->dimension == 3 && dir[2] >= 0.0)
-      error->all("Illegal deposition command");
-    if (d0 < 0.0) error->all("Illegal deposition command");
+      error->all(FLERR,"Illegal deposition command");
+    if (d0 < 0.0) error->all(FLERR,"Illegal deposition command");
     if (coordlo < 0 || coordhi > maxneigh || coordlo > coordhi)
-      error->all("Illegal deposition command");
+      error->all(FLERR,"Illegal deposition command");
 
     double len = sqrt(dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2]);
     dir[0] /= len;
@@ -181,23 +181,23 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
     dir[2] /= len;
 
   } else if (strcmp(command,"barrier") == 0) {
-    if (narg < 1) error->all("Illegal barrier command");
+    if (narg < 1) error->all(FLERR,"Illegal barrier command");
     barrierflag = 1;
 
     double **barrier;
     if (strcmp(arg[0],"none") == 0) {
-      if (narg != 1) error->all("Illegal barrier command");
+      if (narg != 1) error->all(FLERR,"Illegal barrier command");
       barrierflag = 0;
       return;
     } else if (strcmp(arg[0],"hop") == 0) {
       barrier = hbarrier;
     } else if (strcmp(arg[0],"schwoebel") == 0) {
       barrier = sbarrier;
-    } else error->all("Illegal barrier command");
+    } else error->all(FLERR,"Illegal barrier command");
     if (barrier == sbarrier && hopstyle != SCHWOEBEL)
-      error->all("Cannot define Schwoebel barrier without Schwoebel model");
+      error->all(FLERR,"Cannot define Schwoebel barrier without Schwoebel model");
 
-    if (narg < 2 || narg > 4) error->all("Illegal barrier command");
+    if (narg < 2 || narg > 4) error->all(FLERR,"Illegal barrier command");
     if (narg == 2) {
       double q = atof(arg[1]);
       int i,j;
@@ -224,7 +224,7 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
 	  barrier[i][j] = q;
     }
 
-  } else error->all("Unrecognized command");
+  } else error->all(FLERR,"Unrecognized command");
 }
 
 /* ----------------------------------------------------------------------
@@ -244,9 +244,9 @@ void AppDiffusion::grow_app()
 void AppDiffusion::init_app()
 {
   if (depflag && nprocs > 1)
-    error->all("Cannot perform deposition in parallel");
+    error->all(FLERR,"Cannot perform deposition in parallel");
   if (depflag && nsector > 1)
-    error->all("Cannot perform deposition with multiple sectors");
+    error->all(FLERR,"Cannot perform deposition with multiple sectors");
 
   if (!allocated) allocate_data();
   allocated = 1;
@@ -260,7 +260,7 @@ void AppDiffusion::init_app()
     if (lattice[i] < VACANT || lattice[i] > TOP) flag = 1;
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("One or more sites have invalid values");
+  if (flagall) error->all(FLERR,"One or more sites have invalid values");
 }
 
 /* ----------------------------------------------------------------------
@@ -709,7 +709,7 @@ void AppDiffusion::site_event_linear(int i, class RandomPark *random)
     proball += events[ievent].propensity;
     if (proball >= threshhold) break;
     ievent = events[ievent].next;
-    if (ievent < 0) error->one("Did not reach event propensity threshhold");
+    if (ievent < 0) error->one(FLERR,"Did not reach event propensity threshhold");
   }
 
   // deposition or hop event
@@ -767,7 +767,7 @@ void AppDiffusion::site_event_linear(int i, class RandomPark *random)
     if (fabs(propensity[m]-site_propensity(m)) > 1.0e-6) {
       printf("BAD PROP = %d %d %d %g %g\n",
 	     id[i],id[j],id[m],propensity[m],site_propensity(m));
-      error->one("BAD DONE");
+      error->one(FLERR,"BAD DONE");
     }
   }
   */
@@ -795,7 +795,7 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
     proball += events[ievent].propensity;
     if (proball >= threshhold) break;
     ievent = events[ievent].next;
-    if (ievent < 0) error->one("Did not reach event propensity threshhold");
+    if (ievent < 0) error->one(FLERR,"Did not reach event propensity threshhold");
   }
 
   // deposition or hop event
@@ -853,7 +853,7 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
     if (fabs(propensity[m]-site_propensity(m)) > 1.0e-6) {
       printf("BAD PROP = %d %d %d %g %g\n",
 	     id[i],id[j],id[m],propensity[m],site_propensity(m));
-      error->one("BAD DONE");
+      error->one(FLERR,"BAD DONE");
     }
   }
   */

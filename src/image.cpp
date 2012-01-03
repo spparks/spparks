@@ -189,7 +189,7 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
   // normalize up vector
 
   if (up[0] == 0.0 && up[1] == 0.0 && up[2] == 0.0)
-    error->all("Invalid image up vector");
+    error->all(FLERR,"Invalid image up vector");
   MathExtra::norm3(up);
 
   // rotate up if camDir and up point in same direction
@@ -209,7 +209,7 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
   MathExtra::norm3(camRight);
   MathExtra::cross3(camDir,camRight,camUp);
   if (camUp[0] == 0.0 && camUp[1] == 0.0 && camUp[2] == 0.0)
-    error->all("Invalid image up vector");
+    error->all(FLERR,"Invalid image up vector");
   MathExtra::norm3(camUp);
 
   // light directions in terms of -camDir = z
@@ -280,7 +280,7 @@ void Image::color_minmax(int n, double *buf, int stride)
   else locurrent = mlovalue;
   if (mhi == MAXVALUE) hicurrent = twoall[1];
   else hicurrent = mhivalue;
-  if (locurrent > hicurrent) error->all("Invalid image color range");
+  if (locurrent > hicurrent) error->all(FLERR,"Invalid image color range");
 
   if (mstyle == CONTINUOUS) {
     if (mrange == ABSOLUTE) mentry[0].svalue = locurrent;

@@ -47,12 +47,13 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
   int inflag = 0;
   int screenflag = 0;
   int logflag = 0;
-  int iarg = 1;
+  int helpflag = 0;
 
+  int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"-partition") == 0) {
       if (iarg+1 > narg) 
-	error->universe_all("Invalid command-line argument");
+	error->universe_all(FLERR,"Invalid command-line argument");
       iarg++;
       while (iarg < narg && arg[iarg][0] != '-') {
 	universe->add_world(arg[iarg]);
@@ -60,28 +61,34 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
       }
     } else if (strcmp(arg[iarg],"-in") == 0) {
       if (iarg+2 > narg) 
-	error->universe_all("Invalid command-line argument");
+	error->universe_all(FLERR,"Invalid command-line argument");
       inflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-screen") == 0) {
       if (iarg+2 > narg) 
-	error->universe_all("Invalid command-line argument");
+	error->universe_all(FLERR,"Invalid command-line argument");
       screenflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-log") == 0) {
       if (iarg+2 > narg) 
-	error->universe_all("Invalid command-line argument");
+	error->universe_all(FLERR,"Invalid command-line argument");
       logflag = iarg + 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-var") == 0) {
       if (iarg+3 > narg) 
-	error->universe_all("Invalid command-line argument");
+	error->universe_all(FLERR,"Invalid command-line argument");
       iarg += 3;
     } else if (strcmp(arg[iarg],"-echo") == 0) {
       if (iarg+2 > narg) 
-	error->universe_all("Invalid command-line argument");
+	error->universe_all(FLERR,"Invalid command-line argument");
       iarg += 2;
-    } else error->universe_all("Invalid command-line argument");
+    } else if (strcmp(arg[iarg],"-help") == 0 || 
+	       strcmp(arg[iarg],"-h") == 0) {
+      if (iarg+1 > narg) 
+	error->universe_all(FLERR,"Invalid command-line argument");
+      helpflag = 1;
+      iarg += 1;
+    } else error->universe_all(FLERR,"Invalid command-line argument");
   }
 
   // if procs was not a command-line switch, universe is one world w/ all procs
@@ -91,12 +98,12 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
   // sum of procs in all worlds must equal total # of procs
 
   if (!universe->consistent())
-    error->universe_all("Processor partitions are inconsistent");
+    error->universe_all(FLERR,"Processor partitions are inconsistent");
 
   // multiple-world universe must define input file
 
   if (universe->nworlds > 1 && inflag == 0)
-    error->universe_all("Must use -in switch with multiple partitions");
+    error->universe_all(FLERR,"Must use -in switch with multiple partitions");
 
   // set universe screen and logfile
 
@@ -108,18 +115,18 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
     else {
       universe->uscreen = fopen(arg[screenflag],"w");
       if (universe->uscreen == NULL) 
-	error->universe_one("Cannot open universe screen file");
+	error->universe_one(FLERR,"Cannot open universe screen file");
     }
     if (logflag == 0) {
       universe->ulogfile = fopen("log.spparks","w");
       if (universe->ulogfile == NULL) 
-	error->universe_one("Cannot open log.spparks");
+	error->universe_one(FLERR,"Cannot open log.spparks");
     } else if (strcmp(arg[logflag],"none") == 0)
       universe->ulogfile = NULL;
     else {
       universe->ulogfile = fopen(arg[logflag],"w");
       if (universe->ulogfile == NULL) 
-	error->universe_one("Cannot open universe log file");
+	error->universe_one(FLERR,"Cannot open universe log file");
     }
   }
 
@@ -146,7 +153,7 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
       if (infile == NULL) {
 	char str[128];
 	sprintf(str,"Cannot open input script %s",arg[inflag]);
-	error->one(str);
+	error->one(FLERR,str);
       }
     }
 
@@ -170,14 +177,14 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
 	char str[32];
 	sprintf(str,"screen.%d",universe->iworld);
 	screen = fopen(str,"w");
-	if (screen == NULL) error->one("Cannot open screen file");
+	if (screen == NULL) error->one(FLERR,"Cannot open screen file");
       } else if (strcmp(arg[screenflag],"none") == 0)
 	screen = NULL;
       else {
 	char str[128];
 	sprintf(str,"%s.%d",arg[screenflag],universe->iworld);
 	screen = fopen(str,"w");
-	if (screen == NULL) error->one("Cannot open screen file");
+	if (screen == NULL) error->one(FLERR,"Cannot open screen file");
       }
     } else screen = NULL;
     
@@ -186,14 +193,14 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
 	char str[32];
 	sprintf(str,"log.spparks.%d",universe->iworld);
 	logfile = fopen(str,"w");
-	if (logfile == NULL) error->one("Cannot open logfile");
+	if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
       } else if (strcmp(arg[logflag],"none") == 0)
 	logfile = NULL;
       else {
 	char str[128];
 	sprintf(str,"%s.%d",arg[logflag],universe->iworld);
 	logfile = fopen(str,"w");
-	if (logfile == NULL) error->one("Cannot open logfile");
+	if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
       }
     } else logfile = NULL;
     
@@ -202,7 +209,7 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
       if (infile == NULL) {
 	char str[128];
 	sprintf(str,"Cannot open input script %s",arg[inflag]);
-	error->one(str);
+	error->one(FLERR,str);
       }
     } else infile = NULL;
     
@@ -236,19 +243,21 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
   // check datatype settings in spparks.h
 
   if (sizeof(smallint) != sizeof(int))
-    error->all("Smallint setting in spktype.h is invalid");
+    error->all(FLERR,"Smallint setting in spktype.h is invalid");
   if (sizeof(tagint) < sizeof(smallint))
-    error->all("Tagint setting in spktype.h is invalid");
+    error->all(FLERR,"Tagint setting in spktype.h is invalid");
   if (sizeof(bigint) < sizeof(tagint))
-    error->all("Bigint setting in spktype.h is invalid");
+    error->all(FLERR,"Bigint setting in spktype.h is invalid");
 
   int mpisize;
   MPI_Type_size(MPI_SPK_TAGINT,&mpisize);
   if (mpisize != sizeof(tagint))
-      error->all("MPI_SPK_TAGINT and tagint in spktype.h are not compatible");
+      error->all(FLERR,
+		 "MPI_SPK_TAGINT and tagint in spktype.h are not compatible");
   MPI_Type_size(MPI_SPK_BIGINT,&mpisize);
   if (mpisize != sizeof(bigint))
-      error->all("MPI_SPK_BIGINT and bigint in spktype.h are not compatible");
+      error->all(FLERR,
+		 "MPI_SPK_BIGINT and bigint in spktype.h are not compatible");
 
   // allocate input class now that MPI is fully setup
 
@@ -257,6 +266,13 @@ SPPARKS::SPPARKS(int narg, char **arg, MPI_Comm communicator)
   // allocate top-level classes
 
   create();
+
+  // if helpflag set, print help and exit
+
+  if (helpflag) {
+    if (universe->me == 0) print_styles();
+    error->done();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -317,4 +333,62 @@ void SPPARKS::destroy()
   delete ranmaster;
   delete output;
   delete timer;
+}
+
+/* ----------------------------------------------------------------------
+   for each style, print name of all child classes build into executable
+------------------------------------------------------------------------- */
+
+void SPPARKS::print_styles()
+{
+  printf("\nList of style options included in this executable:\n\n");
+
+  printf("App styles:");
+#define APP_CLASS
+#define AppStyle(key,Class) printf(" %s",#key);
+#include "style_app.h"
+#undef APP_CLASS
+  printf("\n\n");
+
+  printf("Solve styles:");
+#define SOLVE_CLASS
+#define SolveStyle(key,Class) printf(" %s",#key);
+#include "style_solve.h"
+#undef SOLVE_CLASS
+  printf("\n\n");
+
+  printf("Diag styles:");
+#define DIAG_CLASS
+#define DiagStyle(key,Class) printf(" %s",#key);
+#include "style_diag.h"
+#undef DIAG_CLASS
+  printf("\n\n");
+
+  printf("Dump styles:");
+#define DUMP_CLASS
+#define DumpStyle(key,Class) printf(" %s",#key);
+#include "style_dump.h"
+#undef DUMP_CLASS
+  printf("\n\n");
+
+  printf("Pair styles:");
+#define PAIR_CLASS
+#define PairStyle(key,Class) printf(" %s",#key);
+#include "style_pair.h"
+#undef PAIR_CLASS
+  printf("\n\n");
+
+  printf("Region styles:");
+#define REGION_CLASS
+#define RegionStyle(key,Class) printf(" %s",#key);
+#include "style_region.h"
+#undef REGION_CLASS
+  printf("\n\n");
+
+  printf("Command styles (add-on input script commands):");
+#define COMMAND_CLASS
+#define CommandStyle(key,Class) printf(" %s",#key);
+#include "style_command.h"
+#undef COMMAND_CLASS
+  printf("\n");
 }

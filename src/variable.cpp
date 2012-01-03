@@ -79,7 +79,7 @@ Variable::~Variable()
 
 void Variable::set(int narg, char **arg)
 {
-  if (narg < 3) error->all("Illegal variable command");
+  if (narg < 3) error->all(FLERR,"Illegal variable command");
 
   // if var already exists, just skip (except EQUAL vars)
 
@@ -112,7 +112,7 @@ void Variable::set(int narg, char **arg)
   // num = N, index = 1st value, data = list of NULLS since never used
 
   } else if (strcmp(arg[1],"loop") == 0) {
-    if (narg != 3) error->all("Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command");
     style[nvar] = LOOP;
     num[nvar] = atoi(arg[2]);
     index[nvar] = 0;
@@ -125,10 +125,10 @@ void Variable::set(int narg, char **arg)
   // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
 
   } else if (strcmp(arg[1],"equal") == 0) {
-    if (narg != 3) error->all("Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command");
     if (find(arg[0]) >= 0) {
       if (style[find(arg[0])] != EQUAL)
-	error->all("Cannot redefine variable as a different style");
+	error->all(FLERR,"Cannot redefine variable as a different style");
       remove(find(arg[0]));
     }
     style[nvar] = EQUAL;
@@ -146,7 +146,7 @@ void Variable::set(int narg, char **arg)
     style[nvar] = WORLD;
     num[nvar] = narg - 2;
     if (num[nvar] != universe->nworlds)
-      error->all("World variable count doesn't match # of partitions");
+      error->all(FLERR,"World variable count doesn't match # of partitions");
     index[nvar] = universe->iworld;
     data[nvar] = new char*[num[nvar]];
     copy(num[nvar],&arg[2],data[nvar]);
@@ -165,7 +165,7 @@ void Variable::set(int narg, char **arg)
       data[nvar] = new char*[num[nvar]];
       copy(num[nvar],&arg[2],data[nvar]);
     } else {
-      if (narg != 3) error->all("Illegal variable command");
+      if (narg != 3) error->all(FLERR,"Illegal variable command");
       style[nvar] = ULOOP;
       num[nvar] = atoi(arg[2]);
       data[nvar] = new char*[num[nvar]];
@@ -173,7 +173,7 @@ void Variable::set(int narg, char **arg)
     }
 
     if (num[nvar] < universe->nworlds)
-      error->all("Universe/uloop variable count < # of partitions");
+      error->all(FLERR,"Universe/uloop variable count < # of partitions");
     index[nvar] = universe->iworld;
 
     if (universe->me == 0) {
@@ -185,7 +185,7 @@ void Variable::set(int narg, char **arg)
     for (int jvar = 0; jvar < nvar; jvar++)
       if (num[jvar] && (style[jvar] == UNIVERSE || style[jvar] == ULOOP) && 
 	  num[nvar] != num[jvar])
-	error->all("All universe/uloop variables must have same # of values");
+	error->all(FLERR,"All universe/uloop variables must have same # of values");
 
     if (me == 0) {
       if (universe->uscreen)
@@ -198,7 +198,7 @@ void Variable::set(int narg, char **arg)
 		arg[0],index[nvar]+1,universe->iworld);
     }
 
-  } else error->all("Illegal variable command");
+  } else error->all(FLERR,"Illegal variable command");
 
   // set name of variable
   // must come at end, since EQUAL reset may have removed name
@@ -210,7 +210,7 @@ void Variable::set(int narg, char **arg)
 
   for (int i = 0; i < n-1; i++)
     if (!isalnum(names[nvar][i]) && names[nvar][i] != '_')
-      error->all("Variable name must be alphanumeric or underscore characters");
+      error->all(FLERR,"Variable name must be alphanumeric or underscore characters");
 
   nvar++;
 }
@@ -239,25 +239,25 @@ int Variable::next(int narg, char **arg)
 {
   int ivar;
 
-  if (narg == 0) error->all("Illegal next command");
+  if (narg == 0) error->all(FLERR,"Illegal next command");
 
   // check that variables exist and are all the same style
   // exception: UNIVERSE and ULOOP variables can be mixed in same next command
 
   for (int iarg = 0; iarg < narg; iarg++) {
     ivar = find(arg[iarg]);
-    if (ivar == -1) error->all("Invalid variable in next command");
+    if (ivar == -1) error->all(FLERR,"Invalid variable in next command");
     if (style[ivar] == ULOOP && style[find(arg[0])] == UNIVERSE) continue;
     else if (style[ivar] == UNIVERSE && style[find(arg[0])] == ULOOP) continue;
     else if (style[ivar] != style[find(arg[0])])
-      error->all("All variables in next command must be same style");
+      error->all(FLERR,"All variables in next command must be same style");
   }
 
   // invalid styles EQUAL or WORLD
 
   int istyle = style[find(arg[0])];
   if (istyle == EQUAL || istyle == WORLD)
-    error->all("Invalid variable style with next command");
+    error->all(FLERR,"Invalid variable style with next command");
 
   // increment all variables in list
   // if any variable is exhausted, set flag = 1 and remove var to allow re-use
@@ -460,7 +460,7 @@ double Variable::evaluate(char *str)
     // ----------------
 
     else if (onechar == '(') {
-      if (expect == OP) error->all("Invalid syntax in variable formula");
+      if (expect == OP) error->all(FLERR,"Invalid syntax in variable formula");
       expect = OP;
 
       char *contents;
@@ -478,7 +478,7 @@ double Variable::evaluate(char *str)
     // ----------------
 
     } else if (isdigit(onechar) || onechar == '.') {
-      if (expect == OP) error->all("Invalid syntax in variable formula");
+      if (expect == OP) error->all(FLERR,"Invalid syntax in variable formula");
       expect = OP;
 
       // istop = end of number, including scientific notation
@@ -505,7 +505,7 @@ double Variable::evaluate(char *str)
     // ----------------
 
     } else if (islower(onechar)) {
-      if (expect == OP) error->all("Invalid syntax in variable formula");
+      if (expect == OP) error->all(FLERR,"Invalid syntax in variable formula");
       expect = OP;
 
       // istop = end of word
@@ -530,11 +530,11 @@ double Variable::evaluate(char *str)
 	strcpy(id,&word[2]);
 
 	int ivar = find(id);
-	if (ivar < 0) error->all("Invalid variable name in variable formula");
+	if (ivar < 0) error->all(FLERR,"Invalid variable name in variable formula");
 
 	char *var = retrieve(id);
 	if (var == NULL)
-	  error->all("Invalid variable evaluation in variable formula");
+	  error->all(FLERR,"Invalid variable evaluation in variable formula");
 	argstack[nargstack++] = atof(var);
 
 	delete [] id;
@@ -553,7 +553,7 @@ double Variable::evaluate(char *str)
 	  i++;
 
 	  if (math_function(word,contents,argstack,nargstack));
-	  else error->all("Invalid math function in variable formula");
+	  else error->all(FLERR,"Invalid math function in variable formula");
 
 	  delete [] contents;
 
@@ -567,7 +567,7 @@ double Variable::evaluate(char *str)
 
 	} else {
 	  int flag = keyword(word,value1);
-	  if (flag) error->all("Invalid keyword in variable formula");
+	  if (flag) error->all(FLERR,"Invalid keyword in variable formula");
 	  argstack[nargstack++] = value1;
 	}
       }
@@ -592,7 +592,7 @@ double Variable::evaluate(char *str)
 	continue;
       }
 
-      if (expect == ARG) error->all("Invalid syntax in variable formula");
+      if (expect == ARG) error->all(FLERR,"Invalid syntax in variable formula");
       expect = ARG;
 
       // evaluate stack as deep as possible while respecting precedence
@@ -610,10 +610,10 @@ double Variable::evaluate(char *str)
 	else if (opprevious == MULTIPLY)
 	  argstack[nargstack++] = value1 * value2;
 	else if (opprevious == DIVIDE) {
-	  if (value2 == 0.0) error->all("Divide by 0 in variable formula");
+	  if (value2 == 0.0) error->all(FLERR,"Divide by 0 in variable formula");
 	  argstack[nargstack++] = value1 / value2;
 	} else if (opprevious == CARAT) {
-	  if (value2 == 0.0) error->all("Power by 0 in variable formula");
+	  if (value2 == 0.0) error->all(FLERR,"Power by 0 in variable formula");
 	  argstack[nargstack++] = pow(value1,value2);
 	} else if (opprevious == UNARY)
 	  argstack[nargstack++] = -value2;
@@ -627,14 +627,14 @@ double Variable::evaluate(char *str)
 
       opstack[nopstack++] = op;
 
-    } else error->all("Invalid syntax in variable formula");
+    } else error->all(FLERR,"Invalid syntax in variable formula");
   }
 
-  if (nopstack) error->all("Invalid syntax in variable formula");
+  if (nopstack) error->all(FLERR,"Invalid syntax in variable formula");
 
   // return remaining arg
 
-  if (nargstack != 1) error->all("Invalid syntax in variable formula");
+  if (nargstack != 1) error->all(FLERR,"Invalid syntax in variable formula");
   return argstack[0];
 }
 
@@ -657,7 +657,7 @@ int Variable::find_matching_paren(char *str, int i,char *&contents)
     else if (str[i] == ')' && ilevel) ilevel--;
     else if (str[i] == ')') break;
   }
-  if (!str[i]) error->all("Invalid syntax in variable formula");
+  if (!str[i]) error->all(FLERR,"Invalid syntax in variable formula");
   int istop = i;
 
   int n = istop - istart - 1;
@@ -697,16 +697,16 @@ int Variable::math_function(char *word, char *contents,
   value = evaluate(contents);
     
   if (strcmp(word,"sqrt") == 0) {
-    if (value < 0.0) error->all("Sqrt of negative in variable formula");
+    if (value < 0.0) error->all(FLERR,"Sqrt of negative in variable formula");
     argstack[nargstack++] = sqrt(value);
 
   } else if (strcmp(word,"exp") == 0) {
     argstack[nargstack++] = exp(value);
   } else if (strcmp(word,"ln") == 0) {
-    if (value <= 0.0) error->all("Log of zero/negative in variable formula");
+    if (value <= 0.0) error->all(FLERR,"Log of zero/negative in variable formula");
     argstack[nargstack++] = log(value);
   } else if (strcmp(word,"log") == 0) {
-    if (value <= 0.0) error->all("Log of zero/negative in variable formula");
+    if (value <= 0.0) error->all(FLERR,"Log of zero/negative in variable formula");
     argstack[nargstack++] = log10(value);
 
   } else if (strcmp(word,"sin") == 0) {
@@ -718,11 +718,11 @@ int Variable::math_function(char *word, char *contents,
 
   } else if (strcmp(word,"asin") == 0) {
     if (value < -1.0 || value > 1.0) 
-      error->all("Arcsin of invalid value in variable formula");
+      error->all(FLERR,"Arcsin of invalid value in variable formula");
     argstack[nargstack++] = asin(value);
   } else if (strcmp(word,"acos") == 0) {
     if (value < -1.0 || value > 1.0) 
-      error->all("Arccos of invalid value in variable formula");
+      error->all(FLERR,"Arccos of invalid value in variable formula");
     argstack[nargstack++] = acos(value);
   } else if (strcmp(word,"atan") == 0) {
     argstack[nargstack++] = atan(value);

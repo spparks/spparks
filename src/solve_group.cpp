@@ -29,23 +29,23 @@ using namespace SPPARKS_NS;
 SolveGroup::SolveGroup(SPPARKS *spk, int narg, char **arg) :
   Solve(spk, narg, arg)
 {
-  if (narg < 3) error->all("Illegal solve command");
+  if (narg < 3) error->all(FLERR,"Illegal solve command");
   
   hi = atof(arg[1]);
   lo = atof(arg[2]);
 
   if (lo <= 0.0 || lo >= hi)
-    error->all("Invalid probability bounds for solve_style group");
+    error->all(FLERR,"Invalid probability bounds for solve_style group");
 
   ngroups = 0;
 
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"ngroup") == 0) {
-      if (iarg+2 > narg) error->all("Illegal solve_style group command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal solve_style group command");
       ngroups = atoi(arg[iarg+1]);
       iarg += 2;
-    } else error->all("Illegal solve_style group command");
+    } else error->all(FLERR,"Illegal solve_style group command");
   }
 
   random = new RandomPark(ranmaster->uniform());
@@ -239,9 +239,9 @@ void SolveGroup::round_check()
     char str[128];
     sprintf(str,"%d propensities were reset to lo value, max lo = %g",
 	    nlo,lomaxall);
-    error->warning(str);
+    error->warning(FLERR,str);
     sprintf(str,"%d propensities were reset to hi value, max hi = %g",
 	    nhi,himaxall);
-    error->warning(str);
+    error->warning(FLERR,str);
   }
 }

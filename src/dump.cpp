@@ -33,7 +33,7 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 
   // parse dump args
 
-  if (narg < 4) error->all("Illegal dump command");
+  if (narg < 4) error->all(FLERR,"Illegal dump command");
 
   int n = strlen(arg[0]) + 1;
   id = new char[n];
@@ -44,7 +44,7 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   strcpy(style,arg[1]);
 
   delta = atof(arg[2]);
-  if (delta <= 0.0) error->all("Illegal dump command");
+  if (delta <= 0.0) error->all(FLERR,"Illegal dump command");
 
   n = strlen(arg[3]) + 1;
   filename = new char[n];
@@ -92,7 +92,7 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
     appoff = (AppOffLattice *) app;
     latticeflag = 0;
   } else
-    error->all("Dump command can only be used for spatial applications");
+    error->all(FLERR,"Dump command can only be used for spatial applications");
 
   // dump params
 
@@ -231,50 +231,50 @@ void Dump::write(double time)
 
 void Dump::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all("Illegal dump_modify command");
+  if (narg == 0) error->all(FLERR,"Illegal dump_modify command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"flush") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) flush_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) flush_flag = 0;
-      else error->all("Illegal dump_modify command");
+      else error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"delta") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       delta = atof(arg[iarg+1]);
-      if (delta <= 0.0) error->all("Illegal dump_modify command");
+      if (delta <= 0.0) error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"logfreq") == 0) {
-      if (iarg+3 > narg) error->all("Illegal dump_modify command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal dump_modify command");
       nrepeat = atoi(arg[iarg+1]);
       scale = atof(arg[iarg+2]);
-      if (nrepeat < 0) error->all("Illegal dump_modify command");
+      if (nrepeat < 0) error->all(FLERR,"Illegal dump_modify command");
       if (nrepeat == 0) logfreq = 0;
       else logfreq = 1;
       iarg += 3;
     } else if (strcmp(arg[iarg],"loglinfreq") == 0) {
-      if (iarg+3 > narg) error->all("Illegal dump_modify command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal dump_modify command");
       nrepeat = atoi(arg[iarg+1]);
       scale = atof(arg[iarg+2]);
-      if (nrepeat < 0) error->all("Illegal dump_modify command");
+      if (nrepeat < 0) error->all(FLERR,"Illegal dump_modify command");
       if (nrepeat == 0) logfreq = 0;
       else logfreq = 2;
       iarg += 3;
     } else if (strcmp(arg[iarg],"delay") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       delay = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"pad") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       padflag = atoi(arg[iarg+1]);
-      if (padflag < 0) error->all("Illegal dump_modify command");
+      if (padflag < 0) error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
 
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);
-      if (n == 0) error->all("Illegal dump_modify command");
+      if (n == 0) error->all(FLERR,"Illegal dump_modify command");
       iarg += n;
     }
   }
@@ -315,7 +315,7 @@ void Dump::openfile()
       sprintf(gzip,"gzip -6 > %s",filecurrent);
       fp = popen(gzip,"w");
 #else
-      error->one("Cannot open gzipped file");
+      error->one(FLERR,"Cannot open gzipped file");
 #endif
     } else if (binary) {
       fp = fopen(filecurrent,"wb");
@@ -323,7 +323,7 @@ void Dump::openfile()
       fp = fopen(filecurrent,"w");
     }
 
-    if (fp == NULL) error->one("Cannot open dump file");
+    if (fp == NULL) error->one(FLERR,"Cannot open dump file");
   } else fp = NULL;
 
   // delete string with timestep replaced

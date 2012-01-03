@@ -40,7 +40,7 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) :
   Diag(spk,narg,arg)
 {
   if (app->appclass != App::LATTICE)
-    error->all("Diag style incompatible with app style");
+    error->all(FLERR,"Diag style incompatible with app style");
 
   cluster_ids = NULL;
   comm = NULL;
@@ -60,9 +60,9 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) :
       if (iarg < narg) {
 	if (me == 0) {
 	  fp = fopen(arg[iarg],"w");
-	  if (!fp) error->one("Cannot open diag_style cluster output file");
+	  if (!fp) error->one(FLERR,"Cannot open diag_style cluster output file");
 	}
-      } else error->all("Illegal diag_style cluster command");
+      } else error->all(FLERR,"Illegal diag_style cluster command");
     } else if (strcmp(arg[iarg],"dump") == 0) {
       iarg++;
       if (iarg < narg) {
@@ -74,9 +74,9 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) :
 	    if (me == 0) {
 	      fpdump = fopen(arg[iarg],"w");
 	      if (!fpdump)
-		error->one("Cannot open diag_style cluster dump file");
+		error->one(FLERR,"Cannot open diag_style cluster dump file");
 	    }
-	  } else error->all("Illegal diag_style cluster command");
+	  } else error->all(FLERR,"Illegal diag_style cluster command");
 	} else if (strcmp(arg[iarg],"opendx") == 0) {
 	  idump = 1;
 	  dump_style = OPENDX;
@@ -86,12 +86,12 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) :
 	    opendxroot = new char[n];
 	    strcpy(opendxroot,arg[iarg]);
 	    opendxcount = 0;
-	  } else error->all("Illegal diag_style cluster command");
+	  } else error->all(FLERR,"Illegal diag_style cluster command");
 	} else if (strcmp(arg[iarg],"none") == 0) {
 	  idump = 0;
-	} else error->all("Illegal diag_style cluster command");
-      } else error->all("Illegal diag_style cluster command");
-    } else error->all("Illegal diag_style cluster command");
+	} else error->all(FLERR,"Illegal diag_style cluster command");
+      } else error->all(FLERR,"Illegal diag_style cluster command");
+    } else error->all(FLERR,"Illegal diag_style cluster command");
     iarg++;
   }
 
@@ -119,7 +119,7 @@ void DiagCluster::init()
   applattice = (AppLattice *) app;
   Lattice *lattice = domain->lattice;
   if (lattice == NULL) 
-    error->all("Cannot use diag_style cluster without a lattice defined");
+    error->all(FLERR,"Cannot use diag_style cluster without a lattice defined");
 
   nlocal = applattice->nlocal;
   nghost = applattice->nghost;
@@ -152,11 +152,11 @@ void DiagCluster::init()
       ny_global = domain->ny;
       nz_global = 1;
     } else {
-      error->all("Diag_style cluster incompatible with lattice style");
+      error->all(FLERR,"Diag_style cluster incompatible with lattice style");
     }
 
     if (nx_global == 0 || ny_global == 0 || nz_global == 0)
-      error->all("Diag_style cluster nx,ny,nz = 0");
+      error->all(FLERR,"Diag_style cluster nx,ny,nz = 0");
   }
 
   if (first_run) {
@@ -315,7 +315,7 @@ void DiagCluster::generate_clusters()
   MPI_Allreduce(&nclusterme,&nclustertot,1,MPI_SPK_TAGINT,MPI_SUM,world);
 
   if (nclustertot > MAXSMALLINT) 
-     error->all("Diag cluster does not work if ncluster > 2^31");
+     error->all(FLERR,"Diag cluster does not work if ncluster > 2^31");
 
   MPI_Scan(&ncluster,&idoffset,1,MPI_INT,MPI_SUM,world);
   idoffset = idoffset-ncluster+1;
@@ -371,7 +371,7 @@ void DiagCluster::generate_clusters()
     }
     
     if (me_size != m) {
-      error->one("Mismatch in counting for dbufclust");
+      error->one(FLERR,"Mismatch in counting for dbufclust");
     }
 
   }
@@ -441,10 +441,10 @@ void DiagCluster::generate_clusters()
 	for (int j = 0; j < clustlist[ii].nneigh; j++) {
 	  jneigh = neighs[j]-idoffset;
 	  if (clustlist[jneigh].ivalue != iv) {
-	    error->one("Diag cluster ivalue in neighboring clusters do not match");
+	    error->one(FLERR,"Diag cluster ivalue in neighboring clusters do not match");
 	  }
 	  if (clustlist[jneigh].dvalue != dv) {
-	    error->one("Diag cluster dvalue in neighboring clusters do not match");
+	    error->one(FLERR,"Diag cluster dvalue in neighboring clusters do not match");
 	  }
 	  if (clustlist[jneigh].volume != 0.0) {
 	    cluststack.push(jneigh);
@@ -540,13 +540,13 @@ void DiagCluster::dump_clusters(double time)
       if (lnum < 5) lnum = 5;
       char filetmp[100];
       if (99 < lroot+lnum+lsuf)
-	error->one("Diag style cluster dump file name too long");
+	error->one(FLERR,"Diag style cluster dump file name too long");
       strcpy(filetmp,opendxroot);
       sprintf(filetmp+lroot,"%05d",opendxcount);
       sprintf(filetmp+lroot+lnum,"%s",".dx");
       if (me == 0) {
 	fpdump = fopen(filetmp,"w");
-	if (!fpdump) error->one("Cannot open diag style cluster dump file");
+	if (!fpdump) error->one(FLERR,"Cannot open diag style cluster dump file");
       }
 
       opendxcount++;

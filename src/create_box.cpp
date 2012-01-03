@@ -29,26 +29,26 @@ CreateBox::CreateBox(SPPARKS *spk) : Pointers(spk) {}
 
 void CreateBox::command(int narg, char **arg)
 {
-  if (app == NULL) error->all("Create_box command before app_style set");
+  if (app == NULL) error->all(FLERR,"Create_box command before app_style set");
 
-  if (narg != 1) error->all("Illegal create_box command");
+  if (narg != 1) error->all(FLERR,"Illegal create_box command");
 
   if (app->appclass == App::GENERAL)
-    error->all("Cannot create box with this application style");
+    error->all(FLERR,"Cannot create box with this application style");
   if (domain->box_exist) 
-    error->all("Cannot create box after simulation box is defined");
+    error->all(FLERR,"Cannot create box after simulation box is defined");
   if (domain->dimension == 2 && domain->zperiodic == 0)
-    error->all("Cannot run 2d simulation with nonperiodic Z dimension");
+    error->all(FLERR,"Cannot run 2d simulation with nonperiodic Z dimension");
   if (domain->dimension == 1 && 
       (domain->yperiodic == 0 || domain->zperiodic == 0))
-    error->all("Cannot run 1d simulation with nonperiodic Y or Z dimension");
+    error->all(FLERR,"Cannot run 1d simulation with nonperiodic Y or Z dimension");
 
   // region check
 
   int iregion = domain->find_region(arg[0]);
-  if (iregion == -1) error->all("Create_box region ID does not exist");
+  if (iregion == -1) error->all(FLERR,"Create_box region ID does not exist");
   if (domain->regions[iregion]->interior == 0)
-    error->all("Create_box region must be of type inside");
+    error->all(FLERR,"Create_box region must be of type inside");
 
   // setup simulation box from region extent
 

@@ -42,7 +42,7 @@ AppErbium::AppErbium(SPPARKS *spk, int narg, char **arg) :
 
   create_arrays();
 
-  if (narg != 1) error->all("Illegal app_style command");
+  if (narg != 1) error->all(FLERR,"Illegal app_style command");
 
   firsttime = 1;
   esites = NULL;
@@ -96,22 +96,22 @@ AppErbium::~AppErbium()
 void AppErbium::input_app(char *command, int narg, char **arg)
 {
   if (strcmp(command,"event") == 0) {
-    if (narg < 1) error->all("Illegal event command");
+    if (narg < 1) error->all(FLERR,"Illegal event command");
     int rstyle = atoi(arg[0]);
     grow_reactions(rstyle);
 
     if (rstyle == 1) {
-      if (narg != 5) error->all("Illegal event command");
+      if (narg != 5) error->all(FLERR,"Illegal event command");
 
       if (strcmp(arg[1],"fcc") == 0) stype[none] = FCC;
       else if (strcmp(arg[1],"oct") == 0) stype[none] = OCTA;
       else if (strcmp(arg[1],"tet") == 0) stype[none] = TETRA;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
       if (strcmp(arg[2],"er") == 0) sinput[none] = ERBIUM;
       else if (strcmp(arg[2],"h") == 0) sinput[none] = HYDROGEN;
       else if (strcmp(arg[2],"he") == 0) sinput[none] = HELIUM;
       else if (strcmp(arg[2],"vac") == 0) sinput[none] = VACANCY;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
 
       srate[none] = atof(arg[3]);
 
@@ -119,31 +119,31 @@ void AppErbium::input_app(char *command, int narg, char **arg)
       else if (strcmp(arg[4],"h") == 0) soutput[none] = HYDROGEN;
       else if (strcmp(arg[4],"he") == 0) soutput[none] = HELIUM;
       else if (strcmp(arg[4],"vac") == 0) soutput[none] = VACANCY;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
 
       none++;
       
     } else if (rstyle == 2) {
-      if (narg != 8) error->all("Illegal event command");
+      if (narg != 8) error->all(FLERR,"Illegal event command");
 
       if (strcmp(arg[1],"fcc") == 0) dtype[ntwo][0] = FCC;
       else if (strcmp(arg[1],"oct") == 0) dtype[ntwo][0] = OCTA;
       else if (strcmp(arg[1],"tet") == 0) dtype[ntwo][0] = TETRA;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
       if (strcmp(arg[2],"fcc") == 0) dtype[ntwo][1] = FCC;
       else if (strcmp(arg[2],"oct") == 0) dtype[ntwo][1] = OCTA;
       else if (strcmp(arg[2],"tet") == 0) dtype[ntwo][1] = TETRA;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
       if (strcmp(arg[3],"er") == 0) dinput[ntwo][0] = ERBIUM;
       else if (strcmp(arg[3],"h") == 0) dinput[ntwo][0] = HYDROGEN;
       else if (strcmp(arg[3],"he") == 0) dinput[ntwo][0] = HELIUM;
       else if (strcmp(arg[3],"vac") == 0) dinput[ntwo][0] = VACANCY;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
       if (strcmp(arg[4],"er") == 0) dinput[ntwo][1] = ERBIUM;
       else if (strcmp(arg[4],"h") == 0) dinput[ntwo][1] = HYDROGEN;
       else if (strcmp(arg[4],"he") == 0) dinput[ntwo][1] = HELIUM;
       else if (strcmp(arg[4],"vac") == 0) dinput[ntwo][1] = VACANCY;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
 
       drate[ntwo] = atof(arg[5]);
 
@@ -151,45 +151,45 @@ void AppErbium::input_app(char *command, int narg, char **arg)
       else if (strcmp(arg[6],"h") == 0) doutput[ntwo][0] = HYDROGEN;
       else if (strcmp(arg[6],"he") == 0) doutput[ntwo][0] = HELIUM;
       else if (strcmp(arg[6],"vac") == 0) doutput[ntwo][0] = VACANCY;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
       if (strcmp(arg[7],"er") == 0) doutput[ntwo][1] = ERBIUM;
       else if (strcmp(arg[7],"h") == 0) doutput[ntwo][1] = HYDROGEN;
       else if (strcmp(arg[7],"he") == 0) doutput[ntwo][1] = HELIUM;
       else if (strcmp(arg[7],"vac") == 0) doutput[ntwo][1] = VACANCY;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
 
       ntwo++;
 
     } else if (rstyle == 3) {
-      if (narg != 11) error->all("Illegal event command");
+      if (narg != 11) error->all(FLERR,"Illegal event command");
 
       if (strcmp(arg[1],"fcc") == 0) ttype[nthree][0] = FCC;
       else if (strcmp(arg[1],"oct") == 0) ttype[nthree][0] = OCTA;
       else if (strcmp(arg[1],"tet") == 0) ttype[nthree][0] = TETRA;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
       if (strcmp(arg[2],"fcc") == 0) ttype[nthree][1] = FCC;
       else if (strcmp(arg[2],"oct") == 0) ttype[nthree][1] = OCTA;
       else if (strcmp(arg[2],"tet") == 0) ttype[nthree][1] = TETRA;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
       if (strcmp(arg[3],"fcc") == 0) ttype[nthree][2] = FCC;
       else if (strcmp(arg[3],"oct") == 0) ttype[nthree][2] = OCTA;
       else if (strcmp(arg[3],"tet") == 0) ttype[nthree][2] = TETRA;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
       if (strcmp(arg[4],"er") == 0) tinput[nthree][0] = ERBIUM;
       else if (strcmp(arg[4],"h") == 0) tinput[nthree][0] = HYDROGEN;
       else if (strcmp(arg[4],"he") == 0) tinput[nthree][0] = HELIUM;
       else if (strcmp(arg[4],"vac") == 0) tinput[nthree][0] = VACANCY;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
       if (strcmp(arg[5],"er") == 0) tinput[nthree][1] = ERBIUM;
       else if (strcmp(arg[5],"h") == 0) tinput[nthree][1] = HYDROGEN;
       else if (strcmp(arg[5],"he") == 0) tinput[nthree][1] = HELIUM;
       else if (strcmp(arg[5],"vac") == 0) tinput[nthree][1] = VACANCY;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
       if (strcmp(arg[6],"er") == 0) tinput[nthree][2] = ERBIUM;
       else if (strcmp(arg[6],"h") == 0) tinput[nthree][2] = HYDROGEN;
       else if (strcmp(arg[6],"he") == 0) tinput[nthree][2] = HELIUM;
       else if (strcmp(arg[6],"vac") == 0) tinput[nthree][2] = VACANCY;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
 
       trate[nthree] = atof(arg[7]);
 
@@ -197,22 +197,22 @@ void AppErbium::input_app(char *command, int narg, char **arg)
       else if (strcmp(arg[8],"h") == 0) toutput[nthree][0] = HYDROGEN;
       else if (strcmp(arg[8],"he") == 0) toutput[nthree][0] = HELIUM;
       else if (strcmp(arg[8],"vac") == 0) toutput[nthree][0] = VACANCY;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
       if (strcmp(arg[9],"er") == 0) toutput[nthree][1] = ERBIUM;
       else if (strcmp(arg[9],"h") == 0) toutput[nthree][1] = HYDROGEN;
       else if (strcmp(arg[9],"he") == 0) toutput[nthree][1] = HELIUM;
       else if (strcmp(arg[9],"vac") == 0) toutput[nthree][1] = VACANCY;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
       if (strcmp(arg[10],"er") == 0) toutput[nthree][2] = ERBIUM;
       else if (strcmp(arg[10],"h") == 0) toutput[nthree][2] = HYDROGEN;
       else if (strcmp(arg[10],"he") == 0) toutput[nthree][2] = HELIUM;
       else if (strcmp(arg[10],"vac") == 0) toutput[nthree][2] = VACANCY;
-      else error->all("Illegal event command");
+      else error->all(FLERR,"Illegal event command");
 
       nthree++;
 
-    } else error->all("Illegal event command");
-  } else error->all("Unrecognized command");
+    } else error->all(FLERR,"Illegal event command");
+  } else error->all(FLERR,"Unrecognized command");
 }
 
 /* ----------------------------------------------------------------------
@@ -252,7 +252,7 @@ void AppErbium::init_app()
   }
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("One or more sites have invalid values");
+  if (flagall) error->all(FLERR,"One or more sites have invalid values");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -271,7 +271,7 @@ void AppErbium::setup_app()
   // set propensities from rates
 
   if (temperature == 0.0)
-    error->all("Temperature cannot be 0.0 for app erbium");
+    error->all(FLERR,"Temperature cannot be 0.0 for app erbium");
 
   for (int m = 0; m < none; m++) {
     spropensity[m] = srate[m];

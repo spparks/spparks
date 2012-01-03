@@ -40,12 +40,12 @@ DiagArray::DiagArray(SPPARKS *spk, int narg, char **arg) :
 {
   if (app->appclass == App::LATTICE) latticeflag = 1;
   else if (app->appclass == App::OFF_LATTICE) latticeflag = 0;
-  else error->all("Diag style incompatible with app style");
+  else error->all(FLERR,"Diag style incompatible with app style");
   
   // check the number of arguments
 
   if (((narg-1) % 2) != 0)
-    error->all("Invalid diag_style command");
+    error->all(FLERR,"Invalid diag_style command");
   
   // list the number of output variables
 
@@ -67,12 +67,12 @@ DiagArray::DiagArray(SPPARKS *spk, int narg, char **arg) :
     if (arg[1+2*i][0] == 'i') {
       index_double[i]=false;
       if (index[i]>= app->ninteger) 
-        error->all("Invalid diag_style command");
+        error->all(FLERR,"Invalid diag_style command");
     } else if (arg[1+2*i][0] == 'd') {
       index_double[i]=true;
       if (index[i]>= app->ndouble) 
-        error->all("Invalid diag_style command");
-    } else error->all("Invalid diag_style command");
+        error->all(FLERR,"Invalid diag_style command");
+    } else error->all(FLERR,"Invalid diag_style command");
     
     // determine which stat is requested
 
@@ -85,7 +85,7 @@ DiagArray::DiagArray(SPPARKS *spk, int narg, char **arg) :
     else if ( strcmp(arg[1+2*i+1],"max") == 0)
       diag_method[i]=MAX;
     else
-      error->all("Invalid diag_style command");
+      error->all(FLERR,"Invalid diag_style command");
   }
 }
 

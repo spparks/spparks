@@ -39,9 +39,9 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  if (narg < 2) error->all("Illegal app_style command");
+  if (narg < 2) error->all(FLERR,"Illegal app_style command");
   if (strcmp(style,"potts") == 0 && narg != 2)
-    error->all("Illegal app_style command");
+    error->all(FLERR,"Illegal app_style command");
 
   nspins = atoi(arg[1]);
   dt_sweep = 1.0/nspins;
@@ -83,7 +83,7 @@ void AppPotts::init_app()
     if (spin[i] < 1 || spin[i] > nspins) flag = 1;
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("One or more sites have invalid values");
+  if (flagall) error->all(FLERR,"One or more sites have invalid values");
 }
 
 /* ----------------------------------------------------------------------

@@ -37,13 +37,13 @@ void Pair::init()
 {
   int i,j;
 
-  if (!allocated) error->all("All pair coeffs are not set");
+  if (!allocated) error->all(FLERR,"All pair coeffs are not set");
 
   // I,I coeffs must be set
   // init_one() will check if I,J is set explicitly or inferred by mixing
 
   for (i = 1; i <= ntypes; i++)
-    if (setflag[i][i] == 0) error->all("All pair coeffs are not set");
+    if (setflag[i][i] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   // style-specific initialization
 

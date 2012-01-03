@@ -43,6 +43,8 @@ class SPPARKS {
   ~SPPARKS();
   void create();
   void destroy();
+
+  void print_styles();
 };
 
 }

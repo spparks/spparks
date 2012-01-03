@@ -28,7 +28,7 @@ using namespace SPPARKS_NS;
 SolveLinear::SolveLinear(SPPARKS *spk, int narg, char **arg) : 
   Solve(spk, narg, arg)
 {
-  if (narg != 1) error->all("Illegal solve command");
+  if (narg != 1) error->all(FLERR,"Illegal solve command");
 
   random = new RandomPark(ranmaster->uniform());
   prob = NULL;

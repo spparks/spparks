@@ -33,7 +33,7 @@ AppPottsStrain::AppPottsStrain(SPPARKS *spk, int narg, char **arg) :
 
   recreate_arrays();
 
-  if (narg != 2) error->all("Illegal app_style command");
+  if (narg != 2) error->all(FLERR,"Illegal app_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -65,7 +65,7 @@ void AppPottsStrain::init_app()
   }
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("One or more sites have invalid values");
+  if (flagall) error->all(FLERR,"One or more sites have invalid values");
 }
 
 /* ----------------------------------------------------------------------

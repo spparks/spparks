@@ -129,27 +129,27 @@ void AppLattice::init()
   // error checks
 
   if (solve == NULL && sweepflag == NOSWEEP)
-    error->all("App needs a KMC or rejection KMC solver");
+    error->all(FLERR,"App needs a KMC or rejection KMC solver");
   if (solve && sweepflag != NOSWEEP)
-    error->all("App cannot use both a KMC and rejection KMC solver");
+    error->all(FLERR,"App cannot use both a KMC and rejection KMC solver");
 
   if (solve && allow_kmc == 0)
-    error->all("KMC events are not implemented in app");
+    error->all(FLERR,"KMC events are not implemented in app");
   if (sweepflag != NOSWEEP && allow_rejection == 0)
-    error->all("Rejection events are not implemented in app");
+    error->all(FLERR,"Rejection events are not implemented in app");
   if (sweepflag != NOSWEEP && Lmask && allow_masking == 0)
-    error->all("Mask logic not implemented in app");
+    error->all(FLERR,"Mask logic not implemented in app");
 
   if (nprocs > 1 && sectorflag == 0 && solve)
-    error->all("Cannot use KMC solver in parallel with no sectors");
+    error->all(FLERR,"Cannot use KMC solver in parallel with no sectors");
   if (nprocs > 1 && sectorflag == 0 && sweepflag == RANDOM)
-    error->all("Cannot use random rejection KMC in parallel with no sectors");
+    error->all(FLERR,"Cannot use random rejection KMC in parallel with no sectors");
   if (nprocs > 1 && sectorflag == 0 && sweepflag == RASTER)
-    error->all("Cannot use raster rejection KMC in parallel with no sectors");
+    error->all(FLERR,"Cannot use raster rejection KMC in parallel with no sectors");
   if (sectorflag && sweepflag == COLOR_STRICT)
-    error->all("Cannot use color/strict rejection KMC with sectors");
+    error->all(FLERR,"Cannot use color/strict rejection KMC with sectors");
 
-  if (sweepflag && dt_sweep == 0.0) error->all("App did not set dt_sweep");
+  if (sweepflag && dt_sweep == 0.0) error->all(FLERR,"App did not set dt_sweep");
 
   // if sectors, set number of sectors
 
@@ -165,18 +165,18 @@ void AppLattice::init()
     if (dimension == 3) {
       if (nsector == 2 && (domain->procgrid[1] != 1 || 
 			   domain->procgrid[2] != 1))
-	error->all("Invalid number of sectors");
+	error->all(FLERR,"Invalid number of sectors");
       if (nsector == 4 && domain->procgrid[2] != 1)
-	error->all("Invalid number of sectors");
+	error->all(FLERR,"Invalid number of sectors");
     }
     if (dimension == 2) {
       if (nsector == 2 && domain->procgrid[1] != 1)
-	error->all("Invalid number of sectors");
+	error->all(FLERR,"Invalid number of sectors");
       if (nsector == 8)
-	error->all("Invalid number of sectors");
+	error->all(FLERR,"Invalid number of sectors");
     }
     if (dimension == 1 && nsector != 2)
-      error->all("Invalid number of sectors");
+      error->all(FLERR,"Invalid number of sectors");
   }
 
   // if coloring, determine number of colors
@@ -187,12 +187,12 @@ void AppLattice::init()
   if (sweepflag == COLOR || sweepflag == COLOR_STRICT) {
     int delcolor = delevent + delpropensity;
     if (domain->lattice == NULL)
-      error->all("Cannot color without a lattice definition of sites");
+      error->all(FLERR,"Cannot color without a lattice definition of sites");
     if (contiguous_sites() == 0)
-      error->all("Cannot color without contiguous site IDs");
+      error->all(FLERR,"Cannot color without contiguous site IDs");
     ncolors = domain->lattice->ncolors(delcolor);
     if (ncolors == 0)
-      error->all("Cannot color this combination of lattice and app");
+      error->all(FLERR,"Cannot color this combination of lattice and app");
   }
 
   if (nsector > 1 && ncolors > 1) bothflag = 1;
@@ -407,7 +407,7 @@ void AppLattice::setup()
 
     dt_rkmc = ntotal/nglobal * dt_sweep;
     if (dt_rkmc == 0.0)
-      error->all("Choice of sector stop led to no rKMC events");
+      error->all(FLERR,"Choice of sector stop led to no rKMC events");
     dt_rkmc = MIN(dt_rkmc,stoptime-time);
   }
 
@@ -769,14 +769,14 @@ void AppLattice::sweep_mask_strict(int n, int *list)
 
 void AppLattice::input_app(char *command, int narg, char **arg)
 {
-  error->all("Unrecognized command");
+  error->all(FLERR,"Unrecognized command");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void AppLattice::set_sector(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal sector command");
+  if (narg < 1) error->all(FLERR,"Illegal sector command");
 
   nsector_user = 0;
   if (strcmp(arg[0],"yes") == 0) sectorflag = 1;
@@ -785,7 +785,7 @@ void AppLattice::set_sector(int narg, char **arg)
     sectorflag = 1;
     nsector_user = atoi(arg[0]);
     if (nsector_user != 2 && nsector_user != 4 && nsector_user != 8)
-      error->all("Illegal sector command");
+      error->all(FLERR,"Illegal sector command");
   }
 
   nstop = 1.0;
@@ -794,18 +794,18 @@ void AppLattice::set_sector(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"nstop") == 0) {
-      if (iarg+2 > narg) error->all("Illegal sector command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal sector command");
       nstop = atof(arg[iarg+1]);
-      if (nstop <= 0.0) error->all("Illegal sector command");
+      if (nstop <= 0.0) error->all(FLERR,"Illegal sector command");
       tstop = 0.0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"tstop") == 0) {
-      if (iarg+2 > narg) error->all("Illegal sector command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal sector command");
       tstop = atof(arg[iarg+1]);
-      if (tstop <= 0.0) error->all("Illegal sector command");
+      if (tstop <= 0.0) error->all(FLERR,"Illegal sector command");
       nstop = 0.0;
       iarg += 2;
-    } else error->all("Illegal sector command");
+    } else error->all(FLERR,"Illegal sector command");
   }
 }
 
@@ -813,25 +813,25 @@ void AppLattice::set_sector(int narg, char **arg)
 
 void AppLattice::set_sweep(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal sweep command");
+  if (narg < 1) error->all(FLERR,"Illegal sweep command");
   if (strcmp(arg[0],"random") == 0) sweepflag = RANDOM;
   else if (strcmp(arg[0],"raster") == 0) sweepflag = RASTER;
   else if (strcmp(arg[0],"color") == 0) sweepflag = COLOR;
   else if (strcmp(arg[0],"color/strict") == 0) sweepflag = COLOR_STRICT;
   else if (strcmp(arg[0],"none") == 0) sweepflag = NOSWEEP;
-  else error->all("Illegal sweep command");
+  else error->all(FLERR,"Illegal sweep command");
 
   Lmask = false;
 
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mask") == 0) {
-      if (iarg+2 > narg) error->all("Illegal sweep command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal sweep command");
       if (strcmp(arg[iarg+1],"no") == 0) Lmask = false;
       else if (strcmp(arg[iarg+1],"yes") == 0) Lmask = true;
-      else error->all("Illegal sweep command");
+      else error->all(FLERR,"Illegal sweep command");
       iarg += 2;
-    } else error->all("Illegal sweep command");
+    } else error->all(FLERR,"Illegal sweep command");
   }
 }
 
@@ -839,7 +839,7 @@ void AppLattice::set_sweep(int narg, char **arg)
 
 void AppLattice::set_temperature(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal temperature command");
+  if (narg != 1) error->all(FLERR,"Illegal temperature command");
   temperature = atof(arg[0]);
   if (temperature != 0.0) t_inverse = 1.0/temperature;
 }
@@ -848,13 +848,13 @@ void AppLattice::set_temperature(int narg, char **arg)
 
 void AppLattice::set_update_only(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal update_only command");
+  if (narg != 1) error->all(FLERR,"Illegal update_only command");
   if (strcmp(arg[0],"yes") == 0) update_only = 1;    
   else if (strcmp(arg[0],"no") == 0) update_only = 0;
-  else error->all("Illegal update_only command");
+  else error->all(FLERR,"Illegal update_only command");
 
   if (update_only && !allow_update)
-    error->all("App does not permit user_update yes");
+    error->all(FLERR,"App does not permit user_update yes");
 }
 
 /* ----------------------------------------------------------------------
@@ -1184,7 +1184,7 @@ void AppLattice::grow(int n)
   if (n == 0) nmax += DELTA;
   else nmax = n;
   if (nmax < 0 || nmax > MAXSMALLINT)
-    error->one("Per-processor system is too big");
+    error->one(FLERR,"Per-processor system is too big");
 
   memory->grow(id,nmax,"app:id");
   memory->grow(xyz,nmax,3,"app:xyz");

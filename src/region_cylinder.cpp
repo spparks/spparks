@@ -30,7 +30,7 @@ RegCylinder::RegCylinder(SPPARKS *spk, int narg, char **arg) :
   options(narg-8,&arg[8]);
 
   if (strcmp(arg[2],"x") && strcmp(arg[2],"y") && strcmp(arg[2],"z")) 
-    error->all("Illegal region cylinder command");
+    error->all(FLERR,"Illegal region cylinder command");
   axis = arg[2][0];
 
   if (axis == 'x') {
@@ -47,7 +47,7 @@ RegCylinder::RegCylinder(SPPARKS *spk, int narg, char **arg) :
 
   if (strcmp(arg[6],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (axis == 'x') {
       if (strcmp(arg[6],"INF") == 0) lo = -BIG;
       lo = domain->boxxlo;
@@ -68,7 +68,7 @@ RegCylinder::RegCylinder(SPPARKS *spk, int narg, char **arg) :
 
   if (strcmp(arg[7],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (axis == 'x') {
       if (strcmp(arg[7],"INF") == 0) hi = BIG;
       hi = domain->boxxhi;
@@ -89,7 +89,7 @@ RegCylinder::RegCylinder(SPPARKS *spk, int narg, char **arg) :
 
   // error check
 
-  if (radius < 0.0) error->all("Illegal region cylinder command");
+  if (radius < 0.0) error->all(FLERR,"Illegal region cylinder command");
 
   // extent of cylinder
 

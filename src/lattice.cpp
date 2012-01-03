@@ -34,7 +34,7 @@ Lattice::Lattice(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 {
   // parse style arg
 
-  if (narg < 1) error->all("Illegal lattice command");
+  if (narg < 1) error->all(FLERR,"Illegal lattice command");
 
   if (strcmp(arg[0],"none") == 0) style = NONE;
   else if (strcmp(arg[0],"line/2n") == 0) style = LINE_2N;
@@ -50,10 +50,10 @@ Lattice::Lattice(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   else if (strcmp(arg[0],"random/1d") == 0) style = RANDOM_1D;
   else if (strcmp(arg[0],"random/2d") == 0) style = RANDOM_2D;
   else if (strcmp(arg[0],"random/3d") == 0) style = RANDOM_3D;
-  else error->all("Illegal lattice command");
+  else error->all(FLERR,"Illegal lattice command");
 
   if (style == NONE) {
-    if (narg > 1) error->all("Illegal lattice command");
+    if (narg > 1) error->all(FLERR,"Illegal lattice command");
     return;
   }
 
@@ -61,12 +61,12 @@ Lattice::Lattice(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
       style == TRI || style == SC_6N || style == SC_26N ||
       style == FCC || style == BCC || style == DIAMOND || 
       style == FCC_OCTA_TETRA) {
-    if (narg != 2) error->all("Illegal lattice command");
+    if (narg != 2) error->all(FLERR,"Illegal lattice command");
     latconst = atof(arg[1]);
   }
 
   if (style == RANDOM_1D || style == RANDOM_2D || style == RANDOM_3D) {
-    if (narg != 3) error->all("Illegal lattice command");
+    if (narg != 3) error->all(FLERR,"Illegal lattice command");
     latconst = 1.0;
     nrandom = ATOTAGINT(arg[1]);
     cutoff = atof(arg[2]);
@@ -76,16 +76,16 @@ Lattice::Lattice(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
 
   if ((style == LINE_2N || style == RANDOM_1D) && 
       domain->dimension != 1)
-    error->all("Lattice style does not match dimension");
+    error->all(FLERR,"Lattice style does not match dimension");
   if ((style == SQ_4N || style == SQ_8N || style == TRI || 
        style == RANDOM_2D) && 
       domain->dimension != 2)
-    error->all("Lattice style does not match dimension");
+    error->all(FLERR,"Lattice style does not match dimension");
   if ((style == SC_6N || style == SC_26N || style == FCC || 
        style == BCC || style == DIAMOND || style == FCC_OCTA_TETRA ||
        style == RANDOM_3D) && 
       domain->dimension != 3)
-    error->all("Lattice style does not match dimension");
+    error->all(FLERR,"Lattice style does not match dimension");
 
   // set basis atoms for each style
 
@@ -188,32 +188,32 @@ int Lattice::ncolors(int delcolor)
   int ny = domain->ny;
   int nz = domain->nz;
   if (nx == 0 || ny == 0 || nz == 0)
-    error->all("Cannot use coloring without domain nx,ny,nz defined");
+    error->all(FLERR,"Cannot use coloring without domain nx,ny,nz defined");
 
   if (style == LINE_2N) {
     if (delcolor == 1) n = 2;
     if (nx % 2)
-      error->all("Color stencil is incommensurate with lattice size");
+      error->all(FLERR,"Color stencil is incommensurate with lattice size");
   } else if (style == SQ_4N) {
     if (delcolor == 1) n = 2;
     if (nx % 2 || ny % 2)
-      error->all("Color stencil is incommensurate with lattice size");
+      error->all(FLERR,"Color stencil is incommensurate with lattice size");
   } else if (style == SQ_8N) {
     n = (delcolor+1)*(delcolor+1);
     if (nx % (delcolor+1) || ny % (delcolor+1))
-      error->all("Color stencil is incommensurate with lattice size");
+      error->all(FLERR,"Color stencil is incommensurate with lattice size");
   } else if (style == TRI) {
     if (delcolor == 1) n = 4;
     if (nx % 2)
-      error->all("Color stencil is incommensurate with lattice size");
+      error->all(FLERR,"Color stencil is incommensurate with lattice size");
   } else if (style == SC_6N) {
     if (delcolor == 1) n = 2;
     if (nx % 2 || ny % 2 || nz % 2)
-      error->all("Color stencil is incommensurate with lattice size");
+      error->all(FLERR,"Color stencil is incommensurate with lattice size");
   } else if (style == SC_26N) {
     n = (delcolor+1)*(delcolor+1)*(delcolor+1);
     if (nx % (delcolor+1) || ny % (delcolor+1) || nz % (delcolor+1))
-      error->all("Color stencil is incommensurate with lattice size");
+      error->all(FLERR,"Color stencil is incommensurate with lattice size");
   } else if (style == FCC) {
     if (delcolor == 1) n = 4;
   } else if (style == BCC) {
@@ -236,7 +236,7 @@ int Lattice::id2color(tagint idsite, int delcolor)
   int ny = domain->ny;
   int nz = domain->nz;
   if (nx == 0 || ny == 0 || nz == 0)
-    error->all("Cannot use coloring without domain nx,ny,nz defined");
+    error->all(FLERR,"Cannot use coloring without domain nx,ny,nz defined");
 
   idsite--;
 

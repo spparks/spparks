@@ -52,15 +52,15 @@ CreateSites::CreateSites(SPPARKS *spk) : Pointers(spk) {}
 
 void CreateSites::command(int narg, char **arg)
 {
-  if (app == NULL) error->all("Create_sites command before app_style set");
+  if (app == NULL) error->all(FLERR,"Create_sites command before app_style set");
   if (domain->box_exist == 0) 
-    error->all("Create_sites command before simulation box is defined");
+    error->all(FLERR,"Create_sites command before simulation box is defined");
   if (app->sites_exist == 1) 
-    error->all("Cannot create sites after sites already exist");
+    error->all(FLERR,"Cannot create sites after sites already exist");
   if (domain->lattice == NULL)
-    error->all("Cannot create sites with undefined lattice");
+    error->all(FLERR,"Cannot create sites with undefined lattice");
 
-  if (narg < 1) error->all("Illegal create_sites command");
+  if (narg < 1) error->all(FLERR,"Illegal create_sites command");
 
   int iarg;
   if (strcmp(arg[0],"box") == 0) {
@@ -68,11 +68,11 @@ void CreateSites::command(int narg, char **arg)
     iarg = 1;
   } else if (strcmp(arg[0],"region") == 0) {
     style = REGION;
-    if (narg < 2) error->all("Illegal create_sites command");
+    if (narg < 2) error->all(FLERR,"Illegal create_sites command");
     nregion = domain->find_region(arg[1]);
-    if (nregion == -1) error->all("Create_sites region ID does not exist");
+    if (nregion == -1) error->all(FLERR,"Create_sites region ID does not exist");
     iarg = 2;
-  } else error->all("Illegal create_sites command");
+  } else error->all(FLERR,"Illegal create_sites command");
 
   // parse optional args
 
@@ -85,37 +85,37 @@ void CreateSites::command(int narg, char **arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"value") == 0) {
-      if (iarg+3 > narg) error->all("Illegal create_sites command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal create_sites command");
       valueflag = 1;
       if (strcmp(arg[iarg+1],"site") == 0) {
 	valueflag = IARRAY;
 	valueindex = 0;
 	if (app->iarray == NULL)
-	  error->all("Creating a quantity application does not support");
+	  error->all(FLERR,"Creating a quantity application does not support");
       } else if (arg[iarg+1][0] == 'i') {
 	valueflag = IARRAY;
 	valueindex = atoi(&arg[iarg+1][1]);
 	if (valueindex < 1 || valueindex > app->ninteger)
-	  error->all("Creating a quantity application does not support");
+	  error->all(FLERR,"Creating a quantity application does not support");
 	valueindex--;
       } else if (arg[iarg+1][0] == 'd') {
 	valueflag = DARRAY;
 	valueindex = atoi(&arg[iarg+1][1]);
 	if (valueindex < 1 || valueindex > app->ndouble)
-	  error->all("Creating a quantity application does not support");
+	  error->all(FLERR,"Creating a quantity application does not support");
 	valueindex--;
       }
       if (valueflag == IARRAY) ivalue = atoi(arg[iarg+2]);
       else dvalue = atof(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"basis") == 0) {
-      if (iarg+3 > narg) error->all("Illegal create_sites command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal create_sites command");
       if (valueflag == DUMMY) 
-	error->all("Must use value option before basis option "
+	error->all(FLERR,"Must use value option before basis option "
 		   "in create_sites command");
       int ilo,ihi;
       if (nbasis == 0) 
-	error->all("Cannot use create_sites basis with random lattice");
+	error->all(FLERR,"Cannot use create_sites basis with random lattice");
       potential->bounds(arg[iarg+1],nbasis,ilo,ihi);
       int count = 0;
       for (int i = ilo; i <= ihi; i++) {
@@ -124,9 +124,9 @@ void CreateSites::command(int narg, char **arg)
 	else if (valueflag == DARRAY) basis_dvalue[i] = atof(arg[iarg+2]);
 	count++;
       }
-      if (count == 0) error->all("Illegal create_sites command");
+      if (count == 0) error->all(FLERR,"Illegal create_sites command");
       iarg += 3;
-    } else error->all("Illegal create_sites command");
+    } else error->all(FLERR,"Illegal create_sites command");
   }
 
   // create sites, either on-lattice or off-lattice
@@ -224,13 +224,13 @@ void CreateSites::structured_lattice()
 
   if (xperiodic && 
       fabs(nx*xlattice - domain->xprd) > EPSILON)
-    error->all("Periodic box is not a multiple of lattice spacing");
+    error->all(FLERR,"Periodic box is not a multiple of lattice spacing");
   if (dimension > 1 && yperiodic &&
       fabs(ny*ylattice - domain->yprd) > EPSILON)
-    error->all("Periodic box is not a multiple of lattice spacing");
+    error->all(FLERR,"Periodic box is not a multiple of lattice spacing");
   if (dimension > 2 && zperiodic && 
       fabs(nz*zlattice - domain->zprd) > EPSILON)
-    error->all("Periodic box is not a multiple of lattice spacing");
+    error->all(FLERR,"Periodic box is not a multiple of lattice spacing");
 
   // set domain->nx,ny,nz iff style = BOX and system is fully periodic
   // else site IDs may be non-contiguous and/or ordered irregularly
@@ -370,7 +370,7 @@ void CreateSites::structured_lattice()
     nbig = nbasis;
     nbig = nbig*nx*ny*nz;
     if (style == BOX && app->nglobal != nbig)
-      error->all("Did not create correct number of sites");
+      error->all(FLERR,"Did not create correct number of sites");
   }
 }
 
@@ -522,7 +522,7 @@ void CreateSites::structured_connectivity()
       //printf("EEE %d %d: %d\n",i,j,gid);
 
       if (style == BOX && nonperiodic == 0 && (gid <= 0 || gid > nglobal))
-	error->all("Bad neighbor site ID");
+	error->all(FLERR,"Bad neighbor site ID");
 
       // add gid to neigh list of site I
 
@@ -619,7 +619,7 @@ void CreateSites::random_sites()
   }
 
   if (app->nglobal != nrandom)
-    error->all("Did not create correct number of sites");
+    error->all(FLERR,"Did not create correct number of sites");
 }
 
 /* ----------------------------------------------------------------------
@@ -836,7 +836,7 @@ void CreateSites::random_connectivity()
   int tmp = 0;
   for (i = 0; i < nlocal; i++) tmp = MAX(tmp,numneigh[i]);
   MPI_Allreduce(&tmp,&maxneigh,1,MPI_INT,MPI_MAX,world);
-  if (maxneigh == 0) error->all("Random lattice has no connectivity");
+  if (maxneigh == 0) error->all(FLERR,"Random lattice has no connectivity");
 
   memory->create(idneigh,app->nlocal,maxneigh,"create:idneigh");
 
@@ -1050,7 +1050,7 @@ void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
       m = i * nchunk;
       idghost = static_cast<tagint> (buf[m++]);
       owner_ghost = static_cast<int> (buf[m++]);
-      if (owner_ghost < 0) error->one("Ghost site was not found");
+      if (owner_ghost < 0) error->one(FLERR,"Ghost site was not found");
       index_ghost = static_cast<int> (buf[m++]);
       x = buf[m++];
       y = buf[m++];
@@ -1093,7 +1093,7 @@ void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
       } else if (i >= nlocal+npreviousghost) {
 	numneigh[i]--;
 	for (k = j; k < numneigh[i]; k++) idneigh[i][k] = idneigh[i][k+1];
-      } else error->one("Ghost connection was not found");
+      } else error->one(FLERR,"Ghost connection was not found");
     }
   }
 
@@ -1182,7 +1182,7 @@ void CreateSites::offsets_2d(int ibasis, double **basis,
 	dely = (j+basis[m][1])*ylattice - y0;
 	r = sqrt(delx*delx + dely*dely);
 	if (r > cutlo-EPSILON && r < cuthi+EPSILON) {
-	  if (n == ntarget) error->all("Incorrect lattice neighbor count");
+	  if (n == ntarget) error->all(FLERR,"Incorrect lattice neighbor count");
 	  cmapone[n][0] = i;
 	  cmapone[n][1] = j;
 	  cmapone[n][2] = 0;
@@ -1193,7 +1193,7 @@ void CreateSites::offsets_2d(int ibasis, double **basis,
     }
   }
 
-  if (n != ntarget) error->all("Incorrect lattice neighbor count");
+  if (n != ntarget) error->all(FLERR,"Incorrect lattice neighbor count");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1218,7 +1218,7 @@ void CreateSites::offsets_3d(int ibasis, double **basis,
 	  delz = (k+basis[m][2])*zlattice - z0;
 	  r = sqrt(delx*delx + dely*dely + delz*delz);
 	  if (r > cutlo-EPSILON && r < cuthi+EPSILON) {
-	    if (n == ntarget) error->all("Incorrect lattice neighbor count");
+	    if (n == ntarget) error->all(FLERR,"Incorrect lattice neighbor count");
 	    cmapone[n][0] = i;
 	    cmapone[n][1] = j;
 	    cmapone[n][2] = k;
@@ -1230,5 +1230,5 @@ void CreateSites::offsets_3d(int ibasis, double **basis,
     }
   }
 
-  if (n != ntarget) error->all("Incorrect lattice neighbor count");
+  if (n != ntarget) error->all(FLERR,"Incorrect lattice neighbor count");
 }

@@ -32,7 +32,7 @@ using namespace SPPARKS_NS;
 AppChemistry::AppChemistry(SPPARKS *spk, int narg, char **arg) : 
   App(spk,narg,arg)
 {
-  if (narg != 1) error->all("Illegal app_style command");
+  if (narg != 1) error->all(FLERR,"Illegal app_style command");
 
   // default settings
 
@@ -89,7 +89,7 @@ void AppChemistry::input(char *command, int narg, char **arg)
   else if (strcmp(command,"add_species") == 0) add_species(narg,arg);
   else if (strcmp(command,"count") == 0) set_count(narg,arg);
   else if (strcmp(command,"volume") == 0) set_volume(narg,arg);
-  else error->all("Unrecognized command");
+  else error->all(FLERR,"Unrecognized command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,10 +98,10 @@ void AppChemistry::init()
 {
   // error check
 
-  if (solve == NULL) error->all("No solver class defined");
-  if (volume <= 0.0) error->all("Invalid volume setting");
+  if (solve == NULL) error->all(FLERR,"No solver class defined");
+  if (volume <= 0.0) error->all(FLERR,"Invalid volume setting");
   if (nreactions == 0)
-    error->all("No reactions defined for chemistry app");
+    error->all(FLERR,"No reactions defined for chemistry app");
 
   factor_zero = AVOGADRO * volume;
   factor_dual = 1.0 / (AVOGADRO * volume);
@@ -234,13 +234,13 @@ void AppChemistry::stats_header(char *strtmp)
 
 void AppChemistry::set_count(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal count command");
+  if (narg != 2) error->all(FLERR,"Illegal count command");
   
   int ispecies = find_species(arg[0]);
   if (ispecies < 0) {
     char *str = new char[128];
     sprintf(str,"Species ID %s does not exist",arg[0]);
-    error->all(str);
+    error->all(FLERR,str);
   }
   pcount[ispecies] = atoi(arg[1]);
 }
@@ -249,14 +249,14 @@ void AppChemistry::set_count(int narg, char **arg)
 
 void AppChemistry::add_reaction(int narg, char **arg)
 {
-  if (narg < 3) error->all("Illegal reaction command");
+  if (narg < 3) error->all(FLERR,"Illegal reaction command");
 
   // store ID
 
   if (find_reaction(arg[0]) >= 0) {
     char *str = new char[128];
     sprintf(str,"Reaction ID %s already exists",arg[0]);
-    error->all(str);
+    error->all(FLERR,str);
   }
 
   int n = nreactions + 1;
@@ -286,11 +286,11 @@ void AppChemistry::add_reaction(int narg, char **arg)
 
   // error checks
 
-  if (iarg == narg) error->all("Reaction has no numeric rate");
+  if (iarg == narg) error->all(FLERR,"Reaction has no numeric rate");
   if (iarg < 1 || iarg > 3) 
-    error->all("Reaction must have 0,1,2 reactants");
+    error->all(FLERR,"Reaction must have 0,1,2 reactants");
   if (narg-1 - iarg > MAX_PRODUCT) 
-    error->all("Reaction cannot have more than MAX_PRODUCT products");
+    error->all(FLERR,"Reaction cannot have more than MAX_PRODUCT products");
 
   // extract reactant and product species names
   // if any species does not exist, create it
@@ -298,7 +298,7 @@ void AppChemistry::add_reaction(int narg, char **arg)
   nreactant[nreactions] = 0;
   for (int i = 1; i < iarg; i++) {
     int ispecies = find_species(arg[i]);
-    if (ispecies == -1) error->all("Unknown species in reaction command");
+    if (ispecies == -1) error->all(FLERR,"Unknown species in reaction command");
     reactants[nreactions][i-1] = ispecies;
     nreactant[nreactions]++;
   }
@@ -308,7 +308,7 @@ void AppChemistry::add_reaction(int narg, char **arg)
   nproduct[nreactions] = 0;
   for (int i = iarg+1; i < narg; i++) {
     int ispecies = find_species(arg[i]);
-    if (ispecies == -1) error->all("Unknown species in reaction command");
+    if (ispecies == -1) error->all(FLERR,"Unknown species in reaction command");
     products[nreactions][i - (iarg+1)] = ispecies;
     nproduct[nreactions]++;
   }
@@ -320,7 +320,7 @@ void AppChemistry::add_reaction(int narg, char **arg)
 
 void AppChemistry::add_species(int narg, char **arg)
 {
-  if (narg == 0) error->all("Illegal species command");
+  if (narg == 0) error->all(FLERR,"Illegal species command");
 
   // grow species arrays
 
@@ -334,7 +334,7 @@ void AppChemistry::add_species(int narg, char **arg)
     if (find_species(arg[iarg]) >= 0) {
       char *str = new char[128];
       sprintf(str,"Species ID %s already exists",arg[iarg]);
-      error->all(str);
+      error->all(FLERR,str);
     }
     int nlen = strlen(arg[iarg]) + 1;
     sname[nspecies+iarg] = new char[nlen];
@@ -348,7 +348,7 @@ void AppChemistry::add_species(int narg, char **arg)
 
 void AppChemistry::set_volume(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal volume command");
+  if (narg != 1) error->all(FLERR,"Illegal volume command");
   volume = atof(arg[0]);
 }
 

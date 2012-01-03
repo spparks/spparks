@@ -25,9 +25,9 @@ using namespace SPPARKS_NS;
 
 RegUnion::RegUnion(SPPARKS *spk, int narg, char **arg) : Region(spk, narg, arg)
 {
-  if (narg < 5) error->all("Illegal region command");
+  if (narg < 5) error->all(FLERR,"Illegal region command");
   int n = atoi(arg[2]);
-  if (n < 2) error->all("Illegal region command");
+  if (n < 2) error->all(FLERR,"Illegal region command");
   options(narg-(n+3),&arg[n+3]);
 
   // build list of regions to union
@@ -38,7 +38,7 @@ RegUnion::RegUnion(SPPARKS *spk, int narg, char **arg) : Region(spk, narg, arg)
   int iregion;
   for (int iarg = 0; iarg < n; iarg++) {
     iregion = domain->find_region(arg[iarg+3]);
-    if (iregion == -1) error->all("Region union region ID does not exist");
+    if (iregion == -1) error->all(FLERR,"Region union region ID does not exist");
     list[nregion++] = iregion;
   }
 

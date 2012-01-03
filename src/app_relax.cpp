@@ -37,7 +37,7 @@ AppRelax::AppRelax(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  if (narg != 2) error->all("Illegal app_style command");
+  if (narg != 2) error->all(FLERR,"Illegal app_style command");
 
   delta = atof(arg[1]);
   deltasq = delta*delta;
@@ -65,7 +65,7 @@ void AppRelax::init_app()
 {
   potential->init();
   pair = potential->pair;
-  if (pair == NULL) error->all("App relax requires a pair potential");
+  if (pair == NULL) error->all(FLERR,"App relax requires a pair potential");
 
   delpropensity = pair->cutoff;
   delevent = delta;
@@ -77,7 +77,7 @@ void AppRelax::init_app()
     if (type[i] < 1 || type[i] > ntypes) flag = 1;
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("One or more sites have invalid values");
+  if (flagall) error->all(FLERR,"One or more sites have invalid values");
 }
 
 /* ----------------------------------------------------------------------

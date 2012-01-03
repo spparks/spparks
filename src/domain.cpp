@@ -66,7 +66,7 @@ Domain::~Domain()
 void Domain::set_box()
 {
   if (boxxlo >= boxxhi || boxylo >= boxyhi || boxzlo >= boxzhi)
-    error->one("Box bounds are invalid");
+    error->one(FLERR,"Box bounds are invalid");
 
   xprd = boxxhi - boxxlo;
   yprd = boxyhi - boxylo;
@@ -94,9 +94,9 @@ void Domain::set_lattice(int narg, char **arg)
 
 void Domain::add_region(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal region command");
+  if (narg < 2) error->all(FLERR,"Illegal region command");
 
-  if (find_region(arg[0]) >= 0) error->all("Reuse of region ID");
+  if (find_region(arg[0]) >= 0) error->all(FLERR,"Reuse of region ID");
 
   // extend Region list if necessary
 
@@ -108,7 +108,7 @@ void Domain::add_region(int narg, char **arg)
 
   // create the Region
 
-  if (strcmp(arg[1],"none") == 0) error->all("Invalid region style");
+  if (strcmp(arg[1],"none") == 0) error->all(FLERR,"Invalid region style");
 
 #define REGION_CLASS
 #define RegionStyle(key,Class) \
@@ -117,7 +117,7 @@ void Domain::add_region(int narg, char **arg)
 #include "style_region.h"
 #undef REGION_CLASS
 
-  else error->all("Invalid region style");
+  else error->all(FLERR,"Invalid region style");
 
   nregion++;
 }
@@ -140,17 +140,17 @@ int Domain::find_region(char *name)
 
 void Domain::set_boundary(int narg, char **arg)
 {
-  if (narg != 3) error->all("Illegal boundary command");
+  if (narg != 3) error->all(FLERR,"Illegal boundary command");
 
   if (strcmp(arg[0],"n") == 0) xperiodic = 0;
   else if (strcmp(arg[0],"p") == 0) xperiodic = 1;
-  else error->all("Illegal boundary command");
+  else error->all(FLERR,"Illegal boundary command");
   if (strcmp(arg[1],"n") == 0) yperiodic = 0;
   else if (strcmp(arg[1],"p") == 0) yperiodic = 1;
-  else error->all("Illegal boundary command");
+  else error->all(FLERR,"Illegal boundary command");
   if (strcmp(arg[2],"n") == 0) zperiodic = 0;
   else if (strcmp(arg[2],"p") == 0) zperiodic = 1;
-  else error->all("Illegal boundary command");
+  else error->all(FLERR,"Illegal boundary command");
 
   periodicity[0] = xperiodic;
   periodicity[1] = yperiodic;
@@ -160,7 +160,7 @@ void Domain::set_boundary(int narg, char **arg)
   if (xperiodic == 0 || yperiodic == 0 || zperiodic == 0) nonperiodic = 1;
 
   if (nonperiodic && app->appclass != App::LATTICE)
-    error->all("Boundary command currently only supported by on-lattice apps");
+    error->all(FLERR,"Boundary command currently only supported by on-lattice apps");
 }
 
 /* ----------------------------------------------------------------------
@@ -171,7 +171,7 @@ void Domain::procs2domain_1d()
 {
   if (user_procgrid[0] || user_procgrid[1] || user_procgrid[2]) {
     if (user_procgrid[1] != 1 || user_procgrid[2] != 1)
-      error->all("App style proc count is not valid for 1d simulation");
+      error->all(FLERR,"App style proc count is not valid for 1d simulation");
     procgrid[0] = user_procgrid[0];
   } else {
     procgrid[0] = nprocs;
@@ -204,7 +204,7 @@ void Domain::procs2domain_2d()
 
   if (user_procgrid[0] || user_procgrid[1] || user_procgrid[2]) {
     if (user_procgrid[2] != 1)
-      error->all("App style proc count is not valid for 2d simulation");
+      error->all(FLERR,"App style proc count is not valid for 2d simulation");
     procgrid[0] = user_procgrid[0];
     procgrid[1] = user_procgrid[1];
 

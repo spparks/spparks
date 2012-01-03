@@ -62,15 +62,15 @@ ReadSites::~ReadSites()
 
 void ReadSites::command(int narg, char **arg)
 {
-  if (app == NULL) error->all("Read_sites command before app_style set");
+  if (app == NULL) error->all(FLERR,"Read_sites command before app_style set");
 
-  if (narg != 1) error->all("Illegal read_sites command");
+  if (narg != 1) error->all(FLERR,"Illegal read_sites command");
 
   if (domain->dimension == 2 && domain->zperiodic == 0)
-    error->all("Cannot run 2d simulation with nonperiodic Z dimension");
+    error->all(FLERR,"Cannot run 2d simulation with nonperiodic Z dimension");
   if (domain->dimension == 1 && 
       (domain->yperiodic == 0 || domain->zperiodic == 0))
-    error->all("Cannot run 1d simulation with nonperiodic Y or Z dimension");
+    error->all(FLERR,"Cannot run 1d simulation with nonperiodic Y or Z dimension");
 
   if (app->appclass == App::LATTICE) {
     applattice = (AppLattice *) app;
@@ -115,18 +115,18 @@ void ReadSites::command(int narg, char **arg)
   while (strlen(keyword)) {
     if (strcmp(keyword,"Sites") == 0) {
       if (app->sites_exist)
-	error->all("Cannot read Sites after sites already exist");
+	error->all(FLERR,"Cannot read Sites after sites already exist");
       sites();
       sitesflag = 1;
 
     } else if (strcmp(keyword,"Neighbors") == 0) {
       if (app->sites_exist) 
-	error->all("Cannot read Neighbors after sites already exist");
+	error->all(FLERR,"Cannot read Neighbors after sites already exist");
       if (latticeflag == 0) 
-	error->all("Can only read Neighbors for on-lattice applications");
+	error->all(FLERR,"Can only read Neighbors for on-lattice applications");
       if (maxneigh <= 0) 
-	error->all("Cannot read Neighbors unless max neighbors is set");
-      if (sitesflag == 0) error->all("Must read Sites before Neighbors");
+	error->all(FLERR,"Cannot read Neighbors unless max neighbors is set");
+      if (sitesflag == 0) error->all(FLERR,"Must read Sites before Neighbors");
 
       applattice->maxneigh = maxneigh;
       applattice->grow(app->nlocal);
@@ -135,14 +135,14 @@ void ReadSites::command(int narg, char **arg)
 
     } else if (strcmp(keyword,"Values") == 0) {
       if (app->sites_exist == 0 && sitesflag == 0) 
-	error->all("Cannot read Values before sites exist or are read");
+	error->all(FLERR,"Cannot read Values before sites exist or are read");
       values();
       valueflag = 1;
 
     } else {
       char str[128];
       sprintf(str,"Unknown identifier in data file: %s",keyword);
-      error->all(str);
+      error->all(FLERR,str);
     }
 
     parse_keyword(0);
@@ -151,12 +151,12 @@ void ReadSites::command(int narg, char **arg)
   // error checks
 
   if (sitesflag == 0 && neighflag == 0 && valueflag == 0)
-    error->all("Site file has no Sites, Neighbors, or Values");
+    error->all(FLERR,"Site file has no Sites, Neighbors, or Values");
 
   if (app->sites_exist == 0) {
-    if (sitesflag == 0) error->all("No Sites defined in site file");
+    if (sitesflag == 0) error->all(FLERR,"No Sites defined in site file");
     if (latticeflag && neighflag == 0) 
-      error->all("No Neighbors defined in site file");
+      error->all(FLERR,"No Neighbors defined in site file");
     app->sites_exist = 1;
   }
 
@@ -199,7 +199,7 @@ void ReadSites::header()
 
   if (me == 0) {
     char *eof = fgets(line,MAXLINE,fp);
-    if (eof == NULL) error->one("Unexpected end of data file");
+    if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
   }
 
   // defaults
@@ -241,44 +241,44 @@ void ReadSites::header()
       int dimension;
       sscanf(line,"%d",&dimension);
       if (domain->box_exist && dimension != domain->dimension)
-	error->all("Data file dimension does not match existing box");
+	error->all(FLERR,"Data file dimension does not match existing box");
       domain->dimension = dimension;
     } else if (strstr(line,"sites")) {
       tagint nglobal;
       sscanf(line,TAGINT_FORMAT,&nglobal);
       if (app->sites_exist && nglobal != app->nglobal)
-	error->all("Data file number of sites "
+	error->all(FLERR,"Data file number of sites "
 		   "does not match existing sites");
       app->nglobal = nglobal;
     } else if (strstr(line,"max neighbors")) {
       sscanf(line,"%d",&maxneigh);
       if (!latticeflag) 
-	error->all("Off-lattice application data file "
+	error->all(FLERR,"Off-lattice application data file "
 		   "cannot have maxneigh setting");
       if (app->sites_exist && maxneigh != applattice->maxneigh)
-	error->all("Data file maxneigh setting does not match existing sites");
+	error->all(FLERR,"Data file maxneigh setting does not match existing sites");
     } else if (strstr(line,"xlo xhi")) {
       sscanf(line,"%lg %lg",&boxxlo,&boxxhi);
       if (domain->box_exist && (fabs(domain->boxxlo-boxxlo) > EPSILON ||
 				fabs(domain->boxxhi-boxxhi) > EPSILON))
-	  error->all("Data file simluation box different that current box");
+	  error->all(FLERR,"Data file simluation box different that current box");
     } else if (strstr(line,"ylo yhi")) {
       sscanf(line,"%lg %lg",&boxylo,&boxyhi);
       if (domain->box_exist && (fabs(domain->boxylo-boxylo) > EPSILON ||
 				fabs(domain->boxyhi-boxyhi) > EPSILON))
-	  error->all("Data file simluation box different that current box");
+	  error->all(FLERR,"Data file simluation box different that current box");
     } else if (strstr(line,"zlo zhi")) {
       sscanf(line,"%lg %lg",&boxzlo,&boxzhi);
       if (domain->box_exist && (fabs(domain->boxzlo-boxzlo) > EPSILON ||
 				fabs(domain->boxzhi-boxzhi) > EPSILON))
-	  error->all("Data file simluation box different that current box");
+	  error->all(FLERR,"Data file simluation box different that current box");
     } else break;
   }
 
   // error check on total system size
 
   if (app->nglobal < 0 || app->nglobal > MAXTAGINT)
-    error->all("System in site file is too big");
+    error->all(FLERR,"System in site file is too big");
 
   // check that exiting string is a valid section keyword
 
@@ -288,7 +288,7 @@ void ReadSites::header()
   if (n == NSECTIONS) {
     char str[128];
     sprintf(str,"Unknown identifier in data file: %s",keyword);
-    error->all(str);
+    error->all(FLERR,str);
   }
 }
 
@@ -324,7 +324,7 @@ void ReadSites::sites()
       m = 0;
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
-	if (eof == NULL) error->one("Unexpected end of data file");
+	if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
       m++;
@@ -338,7 +338,7 @@ void ReadSites::sites()
     int nwords = count_words(buf);
     *next = '\n';
 
-    if (nwords != 4) error->all("Incorrect site format in data file");
+    if (nwords != 4) error->all(FLERR,"Incorrect site format in data file");
 
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
@@ -377,7 +377,7 @@ void ReadSites::sites()
   }
 
   if (nglobal != app->nglobal) 
-    error->all("Did not assign all sites correctly");
+    error->all(FLERR,"Did not assign all sites correctly");
   
   // check that sites IDs range from 1 to nglobal
   // not checking if site IDs are unique
@@ -388,7 +388,7 @@ void ReadSites::sites()
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
   if (flag_all)
-    error->all("Invalid site ID in Sites section of data file");
+    error->all(FLERR,"Invalid site ID in Sites section of data file");
 }
 
 /* ----------------------------------------------------------------------
@@ -429,7 +429,7 @@ void ReadSites::neighbors()
       m = 0;
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
-	if (eof == NULL) error->one("Unexpected end of data file");
+	if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
       m++;
@@ -453,7 +453,7 @@ void ReadSites::neighbors()
 	  nvalues++;
 	}
 
-	if (nvalues > maxneigh) error->one("Too many neighbors per site");
+	if (nvalues > maxneigh) error->one(FLERR,"Too many neighbors per site");
 	applattice->add_neighbors(loc->second,nvalues,values);
       }
 
@@ -516,7 +516,7 @@ void ReadSites::values()
       m = 0;
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
-	if (eof == NULL) error->one("Unexpected end of data file");
+	if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
       m++;
@@ -530,7 +530,7 @@ void ReadSites::values()
     int nwords = count_words(buf);
     *next = '\n';
 
-    if (nwords != nvalues+1) error->all("Incorrect value format in data file");
+    if (nwords != nvalues+1) error->all(FLERR,"Incorrect value format in data file");
 
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
@@ -578,14 +578,14 @@ void ReadSites::open(char *file)
     sprintf(gunzip,"gunzip -c %s",file);
     fp = popen(gunzip,"r");
 #else
-    error->one("Cannot open gzipped file");
+    error->one(FLERR,"Cannot open gzipped file");
 #endif
   }
 
   if (fp == NULL) {
     char str[128];
     sprintf(str,"Cannot open file %s",file);
-    error->one(str);
+    error->one(FLERR,str);
   }
 }
 

@@ -70,7 +70,7 @@ DumpText::DumpText(SPPARKS *spk, int narg, char **arg) : Dump(spk, narg, arg)
   ioptional = parse_fields(narg,argcopy);
 
   if (ioptional < narg && strcmp(style,"image") != 0)
-    error->all("Invalid attribute in dump text command");
+    error->all(FLERR,"Invalid attribute in dump text command");
   size_one = ioptional - 4;
 
   // setup vformat strings, one per field
@@ -166,13 +166,13 @@ void DumpText::init_style()
   for (int i = 0; i < nthresh; i++)
     if (thresh_array[i] == PROPENSITY) flag = 1;
   if (flag && !solve)
-    error->all("Dump requires propensity but no KMC solve performed");
+    error->all(FLERR,"Dump requires propensity but no KMC solve performed");
 
   // set index and check validity of region
 
   if (iregion >= 0) {
     iregion = domain->find_region(idregion);
-    if (iregion == -1) error->all("Region ID for dump text does not exist");
+    if (iregion == -1) error->all(FLERR,"Region ID for dump text does not exist");
   }
 
   // open single file, one time only
@@ -415,7 +415,7 @@ int DumpText::parse_fields(int narg, char **arg)
       pack_choice[i] = &DumpText::pack_site;
       vtype[i] = INT;
       if (app->iarray == NULL)
-	error->all("Dumping a quantity application does not support");
+	error->all(FLERR,"Dumping a quantity application does not support");
     } else if (strcmp(arg[iarg],"x") == 0) {
       pack_choice[i] = &DumpText::pack_x;
       vtype[i] = DOUBLE;
@@ -440,14 +440,14 @@ int DumpText::parse_fields(int narg, char **arg)
       vtype[i] = INT;
       vindex[i] = atoi(&arg[iarg][1]);
       if (latticeflag && (vindex[i] < 1 || vindex[i] > app->ninteger))
-	error->all("Invalid keyword in dump command");
+	error->all(FLERR,"Invalid keyword in dump command");
       vindex[i]--;
     } else if (arg[iarg][0] == 'd') {
       pack_choice[i] = &DumpText::pack_darray;
       vtype[i] = DOUBLE;
       vindex[i] = atoi(&arg[iarg][1]);
       if (latticeflag && (vindex[i] < 1 || vindex[i] > app->ndouble))
-	error->all("Invalid keyword in dump command");
+	error->all(FLERR,"Invalid keyword in dump command");
       vindex[i]--;
 
     } else return iarg;
@@ -461,11 +461,11 @@ int DumpText::parse_fields(int narg, char **arg)
 int DumpText::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"region") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     if (strcmp(arg[1],"none") == 0) iregion = -1;
     else {
       iregion = domain->find_region(arg[1]);
-      if (iregion == -1) error->all("Dump_modify region ID does not exist");
+      if (iregion == -1) error->all(FLERR,"Dump_modify region ID does not exist");
       int n = strlen(arg[1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[1]);
@@ -473,7 +473,7 @@ int DumpText::modify_param(int narg, char **arg)
     return 2;
 
   } else if (strcmp(arg[0],"thresh") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     if (strcmp(arg[1],"none") == 0) {
       if (nthresh) {
 	memory->sfree(thresh_array);
@@ -489,7 +489,7 @@ int DumpText::modify_param(int narg, char **arg)
       return 2;
     }
     
-    if (narg < 4) error->all("Illegal dump_modify command");
+    if (narg < 4) error->all(FLERR,"Illegal dump_modify command");
     
     // grow threshold arrays
     
@@ -513,7 +513,7 @@ int DumpText::modify_param(int narg, char **arg)
     
     else if (strcmp(arg[1],"site") == 0) {
       if (app->iarray == NULL)
-	error->all("Threshold for a quantity application does not support");
+	error->all(FLERR,"Threshold for a quantity application does not support");
       thresh_array[nthresh] = SITE;
     }
     
@@ -532,17 +532,17 @@ int DumpText::modify_param(int narg, char **arg)
       thresh_index[nthresh] = atoi(&arg[1][1]);
       if (thresh_index[nthresh] < 1 || 
 	  thresh_index[nthresh] > app->ninteger)
-	error->all("Threshold for a quantity application does not support");
+	error->all(FLERR,"Threshold for a quantity application does not support");
       thresh_index[nthresh]--;
     } else if (arg[1][0] == 'd') {
       thresh_array[nthresh] = DARRAY;
       thresh_index[nthresh] = atoi(&arg[1][1]);
       if (thresh_index[nthresh] < 1 || 
 	  thresh_index[nthresh] > app->ndouble)
-	error->all("Threshold for a quantity application does not support");
+	error->all(FLERR,"Threshold for a quantity application does not support");
       thresh_index[nthresh]--;
       
-    } else error->all("Invalid dump_modify threshold operator");
+    } else error->all(FLERR,"Invalid dump_modify threshold operator");
     
     // set operation type of threshold
     
@@ -552,7 +552,7 @@ int DumpText::modify_param(int narg, char **arg)
     else if (strcmp(arg[2],">=") == 0) thresh_op[nthresh] = GE;
     else if (strcmp(arg[2],"==") == 0) thresh_op[nthresh] = EQ;
     else if (strcmp(arg[2],"!=") == 0) thresh_op[nthresh] = NEQ;
-    else error->all("Invalid dump_modify threshold operator");
+    else error->all(FLERR,"Invalid dump_modify threshold operator");
     
     // set threshold value
     

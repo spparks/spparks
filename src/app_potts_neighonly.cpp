@@ -27,7 +27,7 @@ AppPottsNeighOnly::AppPottsNeighOnly(SPPARKS *spk, int narg, char **arg) :
   // only error check for this class, not derived classes
 
   if (strcmp(arg[0],"potts/neighonly") == 0 && narg != 2)
-    error->all("Illegal app_style command");
+    error->all(FLERR,"Illegal app_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -49,7 +49,7 @@ void AppPottsNeighOnly::init_app()
     if (spin[i] < 1 || spin[i] > nspins) flag = 1;
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("One or more sites have invalid values");
+  if (flagall) error->all(FLERR,"One or more sites have invalid values");
 }
 
 /* ----------------------------------------------------------------------

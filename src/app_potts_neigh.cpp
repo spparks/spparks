@@ -23,7 +23,7 @@ using namespace SPPARKS_NS;
 AppPottsNeigh::AppPottsNeigh(SPPARKS *spk, int narg, char **arg) : 
   AppPotts(spk,narg,arg)
 {
-  if (narg != 2) error->all("Illegal app_style command");
+  if (narg != 2) error->all(FLERR,"Illegal app_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -45,7 +45,7 @@ void AppPottsNeigh::init_app()
     if (spin[i] < 1 || spin[i] > nspins) flag = 1;
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("One or more sites have invalid values");
+  if (flagall) error->all(FLERR,"One or more sites have invalid values");
 }
 
 /* ----------------------------------------------------------------------

@@ -32,7 +32,7 @@ enum{ER,H,HE,VAC,EVENTS,ONE,TWO,THREE};
 DiagErbium::DiagErbium(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
 {
   if (strcmp(app->style,"erbium") != 0)
-    error->all("Diag_style erbium requires app_style erbium");
+    error->all(FLERR,"Diag_style erbium requires app_style erbium");
 
   nlist = 0;
 
@@ -49,10 +49,10 @@ DiagErbium::DiagErbium(SPPARKS *spk, int narg, char **arg) : Diag(spk,narg,arg)
 	j++;
       }
       iarg = narg;
-    } else error->all("Illegal diag_style erbium command");
+    } else error->all(FLERR,"Illegal diag_style erbium command");
   }
 
-  if (nlist == 0) error->all("Illegal diag_style erbium command");
+  if (nlist == 0) error->all(FLERR,"Illegal diag_style erbium command");
   which = new int[nlist];
   index = new int[nlist];
   ivector = new int[nlist];
@@ -89,21 +89,21 @@ void DiagErbium::init()
       which[i] = ONE;
       int n = atoi(&list[i][1]);
       if (n < 1 || n > none) 
-	error->all("Invalid value setting in diag_style erbium");
+	error->all(FLERR,"Invalid value setting in diag_style erbium");
       index[i] = n - 1;
     } else if (list[i][0] == 'd') {
       which[i] = TWO;
       int n = atoi(&list[i][1]);
       if (n < 1 || n > ntwo) 
-	error->all("Invalid value setting in diag_style erbium");
+	error->all(FLERR,"Invalid value setting in diag_style erbium");
       index[i] = n - 1;
     } else if (list[i][0] == 't') {
       which[i] = THREE;
       int n = atoi(&list[i][1]);
       if (n < 1 || n > nthree) 
-	error->all("Invalid value setting in diag_style erbium");
+	error->all(FLERR,"Invalid value setting in diag_style erbium");
       index[i] = n - 1;
-    } else error->all("Invalid value setting in diag_style erbium");
+    } else error->all(FLERR,"Invalid value setting in diag_style erbium");
   }
 
   siteflag = 0;

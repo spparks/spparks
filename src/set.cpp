@@ -42,9 +42,9 @@ Set::Set(SPPARKS *spk) : Pointers(spk) {}
 
 void Set::command(int narg, char **arg)
 {
-  if (app->sites_exist == 0) error->all("Set command before sites exist");
+  if (app->sites_exist == 0) error->all(FLERR,"Set command before sites exist");
 
-  if (narg < 2) error->all("Illegal set command");
+  if (narg < 2) error->all(FLERR,"Illegal set command");
 
   int lhs,rhs;
 
@@ -52,18 +52,18 @@ void Set::command(int narg, char **arg)
     lhs = IARRAY;
     siteindex = 0;
     if (app->iarray == NULL)
-      error->all("Setting a quantity application does not support");
+      error->all(FLERR,"Setting a quantity application does not support");
   } else if (arg[0][0] == 'i') {
     lhs = IARRAY;
     siteindex = atoi(&arg[0][1]);
     if (siteindex < 1 || siteindex > app->ninteger)
-      error->all("Setting a quantity application does not support");
+      error->all(FLERR,"Setting a quantity application does not support");
     siteindex--;
   } else if (arg[0][0] == 'd') {
     lhs = DARRAY;
     siteindex = atoi(&arg[0][1]);
     if (siteindex < 1 || siteindex > app->ndouble)
-      error->all("Setting a quantity application does not support");
+      error->all(FLERR,"Setting a quantity application does not support");
     siteindex--;
   } else if (strcmp(arg[0],"x") == 0) {
     lhs = X;
@@ -73,18 +73,18 @@ void Set::command(int narg, char **arg)
     lhs = Z;
   } else if (strcmp(arg[0],"xyz") == 0) {
     lhs = XYZ;
-  } else error->all("Illegal set command");
+  } else error->all(FLERR,"Illegal set command");
 
   int iarg;
   if (strcmp(arg[1],"value") == 0) {
-    if (narg < 3) error->all("Illegal set command");
+    if (narg < 3) error->all(FLERR,"Illegal set command");
     rhs = VALUE;
     if (lhs == IARRAY) ivalue = atoi(arg[2]);
     else if (lhs == DARRAY) dvalue = atof(arg[2]);
-    else error->all("Illegal set command");
+    else error->all(FLERR,"Illegal set command");
     iarg = 3;
   } else if (strcmp(arg[1],"range") == 0) {
-    if (narg < 4) error->all("Illegal set command");
+    if (narg < 4) error->all(FLERR,"Illegal set command");
     rhs = RANGE;
     if (lhs == IARRAY) {
       ivaluelo = atoi(arg[2]);
@@ -92,20 +92,20 @@ void Set::command(int narg, char **arg)
     } else if (lhs == DARRAY) {
       dvaluelo = atof(arg[2]);
       dvaluehi = atof(arg[3]);
-    } else error->all("Illegal set command");
+    } else error->all(FLERR,"Illegal set command");
     iarg = 4;
   } else if (strcmp(arg[1],"unique") == 0) {
-    if (narg < 2) error->all("Illegal set command");
+    if (narg < 2) error->all(FLERR,"Illegal set command");
     rhs = UNIQUE;
     iarg = 2;
   } else if (strcmp(arg[1],"displace") == 0) {
-    if (narg < 3) error->all("Illegal set command");
+    if (narg < 3) error->all(FLERR,"Illegal set command");
     rhs = DISPLACE;
     if (lhs != X && lhs != Y && lhs != Z && lhs != XYZ)
-      error->all("Illegal set command");
+      error->all(FLERR,"Illegal set command");
     dvalue = atof(arg[2]);
     iarg = 3;
-  } else error->all("Illegal set command");
+  } else error->all(FLERR,"Illegal set command");
     
   // parse optional args
 
@@ -117,25 +117,25 @@ void Set::command(int narg, char **arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"fraction") == 0) {
-      if (iarg+2 > narg) error->all("Illegal set command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       fraction = atof(arg[iarg+1]);
-      if (fraction <= 0.0 || fraction > 1.0) error->all("Illegal set command");
+      if (fraction <= 0.0 || fraction > 1.0) error->all(FLERR,"Illegal set command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all("Illegal set command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       iregion = domain->find_region(arg[iarg+1]);
-      if (iregion < 0) error->all("Set command region ID does not exist");
+      if (iregion < 0) error->all(FLERR,"Set command region ID does not exist");
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"loop") == 0) {
-      if (iarg+2 > narg) error->all("Illegal set command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strcmp(arg[iarg+1],"all") == 0) loopflag = 1;
       else if (strcmp(arg[iarg+1],"local") == 0) loopflag = 0;
-      else error->all("Illegal set command");
+      else error->all(FLERR,"Illegal set command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"if") == 0) {
-      if (iarg+4 > narg) error->all("Illegal set command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
       cond = (Condition *) memory->srealloc(cond,
 					    (ncondition+1)*sizeof(Condition),
 					    "set:cond");
@@ -158,7 +158,7 @@ void Set::command(int narg, char **arg)
       } else if (arg[iarg+1][0] == 'i') {
 	int index = atoi(&arg[iarg+1][1]);
 	if (index < 1 || index > app->ninteger)
-	  error->all("Set if test on quantity application does not support");
+	  error->all(FLERR,"Set if test on quantity application does not support");
 	index--;
 	cond[ncondition].lhs = IARRAY;
 	cond[ncondition].type = INT;
@@ -167,13 +167,13 @@ void Set::command(int narg, char **arg)
       } else if (arg[iarg+1][0] == 'd') {
 	int index = atoi(&arg[iarg+1][1]);
 	if (index < 1 || index > app->ndouble)
-	  error->all("Set if test on quantity application does not support");
+	  error->all(FLERR,"Set if test on quantity application does not support");
 	index--;
 	cond[ncondition].lhs = DARRAY;
 	cond[ncondition].type = DOUBLE;
 	cond[ncondition].index = index;
 	cond[ncondition].stride = 1;
-      } else error->all("Illegal set command");
+      } else error->all(FLERR,"Illegal set command");
 
       if (strcmp(arg[iarg+2],"<") == 0) cond[ncondition].op = LT;
       else if (strcmp(arg[iarg+2],"<=") == 0) cond[ncondition].op = LE;
@@ -181,7 +181,7 @@ void Set::command(int narg, char **arg)
       else if (strcmp(arg[iarg+2],">=") == 0) cond[ncondition].op = GE;
       else if (strcmp(arg[iarg+2],"=") == 0) cond[ncondition].op = EQ;
       else if (strcmp(arg[iarg+2],"!=") == 0) cond[ncondition].op = NEQ;
-      else error->all("Illegal set command");
+      else error->all(FLERR,"Illegal set command");
 
       if (cond[ncondition].type == INT)
 	cond[ncondition].irhs = atoi(arg[iarg+3]);
@@ -190,7 +190,7 @@ void Set::command(int narg, char **arg)
       ncondition++;
       iarg += 4;
 
-    } else error->all("Illegal set command");
+    } else error->all(FLERR,"Illegal set command");
   }
 
   if (domain->me == 0 && screen) fprintf(screen,"Setting site values ...\n");

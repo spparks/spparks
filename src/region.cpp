@@ -47,7 +47,7 @@ Region::~Region()
 
 void Region::options(int narg, char **arg)
 {
-  if (narg < 0) error->all("Illegal region command");
+  if (narg < 0) error->all(FLERR,"Illegal region command");
 
   // option defaults
 
@@ -56,18 +56,18 @@ void Region::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"side") == 0) {
-      if (iarg+2 > narg) error->all("Illegal region command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal region command");
       if (strcmp(arg[iarg+1],"in") == 0) interior = 1;
       else if (strcmp(arg[iarg+1],"out") == 0) interior = 0;
-      else error->all("Illegal region command");
+      else error->all(FLERR,"Illegal region command");
       iarg += 2;
-    } else error->all("Illegal region command");
+    } else error->all(FLERR,"Illegal region command");
   }
 
   // setup scaling
 
   if (domain->lattice == NULL)
-    error->all("Use of region with undefined lattice");
+    error->all(FLERR,"Use of region with undefined lattice");
 
   xscale = domain->lattice->xlattice;
   yscale = domain->lattice->ylattice;

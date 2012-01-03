@@ -186,10 +186,10 @@ double Output::compute(double time, int done)
 
 void Output::set_stats(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal stats command");
+  if (narg < 1) error->all(FLERR,"Illegal stats command");
   stats_delta = atof(arg[0]);
-  if (stats_delta < 0.0) error->all("Illegal stats command");
-  if (stats_delta == 0.0 && narg > 1) error->all("Illegal stats command");
+  if (stats_delta < 0.0) error->all(FLERR,"Illegal stats command");
+  if (stats_delta == 0.0 && narg > 1) error->all(FLERR,"Illegal stats command");
 
   stats_delay = 0.0;
   stats_logfreq = 0;
@@ -197,27 +197,27 @@ void Output::set_stats(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"delay") == 0) {
-      if (iarg+2 > narg) error->all("Illegal stats command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal stats command");
       stats_delay = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"logfreq") == 0) {
-      if (iarg+3 > narg) error->all("Illegal stats command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal stats command");
       stats_nrepeat = atoi(arg[iarg+1]);
       stats_scale = atof(arg[iarg+2]);
-      if (stats_scale <= 0) error->all("Illegal stats command");
-      if (stats_nrepeat < 0) error->all("Illegal stats command");
+      if (stats_scale <= 0) error->all(FLERR,"Illegal stats command");
+      if (stats_nrepeat < 0) error->all(FLERR,"Illegal stats command");
       if (stats_nrepeat == 0) stats_logfreq = 0;
       else stats_logfreq = 1;
       iarg += 3;
     } else if (strcmp(arg[iarg],"loglinfreq") == 0) {
-      if (iarg+3 > narg) error->all("Illegal stats command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal stats command");
       stats_nrepeat = atoi(arg[iarg+1]);
       stats_scale = atof(arg[iarg+2]);
-      if (stats_nrepeat < 0) error->all("Illegal stats command");
+      if (stats_nrepeat < 0) error->all(FLERR,"Illegal stats command");
       if (stats_nrepeat == 0) stats_logfreq = 0;
       else stats_logfreq = 2;
       iarg += 3;
-    } else error->all("Illegal stats command");
+    } else error->all(FLERR,"Illegal stats command");
   }
 }
 
@@ -225,10 +225,10 @@ void Output::set_stats(int narg, char **arg)
 
 void Output::add_dump(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal dump command");
+  if (narg < 2) error->all(FLERR,"Illegal dump command");
 
   for (int i = 0; i < ndump; i++)
-    if (strcmp(dumplist[i]->id,arg[0]) == 0) error->all("Reuse of dump ID");
+    if (strcmp(dumplist[i]->id,arg[0]) == 0) error->all(FLERR,"Reuse of dump ID");
 
   // extend Dump list if necessary
 
@@ -248,7 +248,7 @@ void Output::add_dump(int narg, char **arg)
 #include "style_dump.h"
 #undef DUMP_CLASS
 
-  else error->all("Invalid dump style");
+  else error->all(FLERR,"Invalid dump style");
 
   ndump++;
 }
@@ -260,15 +260,15 @@ void Output::add_dump(int narg, char **arg)
 
 void Output::dump_one(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal dump_one command");
+  if (narg != 1) error->all(FLERR,"Illegal dump_one command");
 
   int i;
   for (i = 0; i < ndump; i++)
     if (strcmp(dumplist[i]->id,arg[0]) == 0) break;
-  if (i == ndump) error->all("Could not find dump ID in dump_one command");
+  if (i == ndump) error->all(FLERR,"Could not find dump ID in dump_one command");
 
   if (dumplist[i]->idump == 0)
-    error->all("Cannot use dump_one for first snapshot in dump file");
+    error->all(FLERR,"Cannot use dump_one for first snapshot in dump file");
 
   dumplist[i]->write(app->time);
 }
@@ -277,12 +277,12 @@ void Output::dump_one(int narg, char **arg)
 
 void Output::dump_modify(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal dump_modify command");
+  if (narg < 1) error->all(FLERR,"Illegal dump_modify command");
 
   int i;
   for (i = 0; i < ndump; i++)
     if (strcmp(dumplist[i]->id,arg[0]) == 0) break;
-  if (i == ndump) error->all("Could not find dump ID in dump_modify command");
+  if (i == ndump) error->all(FLERR,"Could not find dump ID in dump_modify command");
 
   dumplist[i]->modify_params(narg-1,&arg[1]);
 }
@@ -291,12 +291,12 @@ void Output::dump_modify(int narg, char **arg)
 
 void Output::undump(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal undump command");
+  if (narg != 1) error->all(FLERR,"Illegal undump command");
 
   int i;
   for (i = 0; i < ndump; i++)
     if (strcmp(dumplist[i]->id,arg[0]) == 0) break;
-  if (i == ndump) error->all("Could not find dump ID in undump command");
+  if (i == ndump) error->all(FLERR,"Could not find dump ID in undump command");
 
   delete [] dumplist[i];
   for (int j = i; j < ndump-1; j++) dumplist[j] = dumplist[j+1];

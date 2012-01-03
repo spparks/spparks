@@ -44,7 +44,7 @@ AppMembrane::AppMembrane(SPPARKS *spk, int narg, char **arg) :
 
   // parse arguments
 
-  if (narg != 4) error->all("Illegal app_style command");
+  if (narg != 4) error->all(FLERR,"Illegal app_style command");
 
   w01 = atof(arg[1]);
   w11 = atof(arg[2]);
@@ -77,7 +77,7 @@ AppMembrane::~AppMembrane()
 void AppMembrane::input_app(char *command, int narg, char **arg)
 {
   if (strcmp(command,"inclusion") == 0) {
-    if (narg != 4) error->all("Illegal inclusion command");
+    if (narg != 4) error->all(FLERR,"Illegal inclusion command");
     double xc = atof(arg[0]);
     double yc = atof(arg[1]);
     double zc = atof(arg[2]);
@@ -91,7 +91,7 @@ void AppMembrane::input_app(char *command, int narg, char **arg)
       rsq = dx*dx + dy*dy + dz*dz;
       if (sqrt(rsq) < r) spin[i] = PROTEIN;
     }
-  } else error->all("Unrecognized command");
+  } else error->all(FLERR,"Unrecognized command");
 }
 
 /* ----------------------------------------------------------------------
@@ -118,7 +118,7 @@ void AppMembrane::init_app()
     if (spin[i] < LIPID || spin[i] > PROTEIN) flag = 1;
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("One or more sites have invalid values");
+  if (flagall) error->all(FLERR,"One or more sites have invalid values");
 }
 
 /* ----------------------------------------------------------------------

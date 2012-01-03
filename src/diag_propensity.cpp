@@ -28,7 +28,7 @@ DiagPropensity::DiagPropensity(SPPARKS *spk, int narg, char **arg) :
   Diag(spk,narg,arg)
 {
   if (app->appclass != App::LATTICE)
-    error->all("Diag style incompatible with app style");
+    error->all(FLERR,"Diag style incompatible with app style");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -36,7 +36,7 @@ DiagPropensity::DiagPropensity(SPPARKS *spk, int narg, char **arg) :
 void DiagPropensity::init()
 {
   if (!solve)
-    error->all("Diag propensity requires KMC solve be performed");
+    error->all(FLERR,"Diag propensity requires KMC solve be performed");
 
   applattice = (AppLattice *) app;
   nlocal = app->nlocal;

@@ -35,7 +35,7 @@ using namespace SPPARKS_NS;
 AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
   App(spk, narg, arg)
 {
-  if (narg < 6) error->all("Illegal app_style command");
+  if (narg < 6) error->all(FLERR,"Illegal app_style command");
 
   nevents = atoi(arg[1]);
   ndep = atoi(arg[2]);
@@ -43,11 +43,11 @@ AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
   pmin = atof(arg[4]);
   tweak = atof(arg[5]);
 
-  if (nevents == 0) error->all("Invalid event count for app_style test/group");
+  if (nevents == 0) error->all(FLERR,"Invalid event count for app_style test/group");
   if (pmin <= 0.0 || pmin >= pmax) 
-    error->all("Invalid probability bounds for app_style test/group");
+    error->all(FLERR,"Invalid probability bounds for app_style test/group");
   if (tweak >= 100.0)
-    error->all("Invalid probability delta for app_style test/group");
+    error->all(FLERR,"Invalid probability delta for app_style test/group");
  
   pmax -= EPSILON*pmax;
   tweak = 2.0*tweak / 100.0;
@@ -59,12 +59,12 @@ AppTestGroup::AppTestGroup(SPPARKS *spk, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"lomem") == 0) {
-      if (iarg+2 > narg) error->all("Illegal app_style command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal app_style command");
       if (strcmp(arg[iarg+1],"yes") == 0) dep_graph = false;
       else if (strcmp(arg[iarg+1],"no") == 0) dep_graph = true;
-      else error->all("Illegal app_style command");
+      else error->all(FLERR,"Illegal app_style command");
       iarg += 2;
-    } else error->all("Illegal app_style command");
+    } else error->all(FLERR,"Illegal app_style command");
   }
 
   propensity = NULL;
@@ -96,7 +96,7 @@ AppTestGroup::~AppTestGroup()
 
 void AppTestGroup::input(char *command, int narg, char **arg)
 {
-  error->all("Unrecognized command");
+  error->all(FLERR,"Unrecognized command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,7 +105,7 @@ void AppTestGroup::init()
 {
   // error check
 
-  if (solve == NULL) error->all("No solver class defined");
+  if (solve == NULL) error->all(FLERR,"No solver class defined");
 
   memory->destroy(ndepends);
   memory->destroy(depends);

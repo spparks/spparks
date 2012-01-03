@@ -131,23 +131,23 @@ void AppOffLattice::init()
   // error checks
 
   if (solve == NULL && sweepflag == NOSWEEP)
-    error->all("App needs a KMC or rejection KMC solver");
+    error->all(FLERR,"App needs a KMC or rejection KMC solver");
   if (solve && sweepflag != NOSWEEP)
-    error->all("App cannot use both a KMC and rejection KMC solver");
+    error->all(FLERR,"App cannot use both a KMC and rejection KMC solver");
 
   if (solve && allow_kmc == 0)
-    error->all("KMC events are not implemented in app");
+    error->all(FLERR,"KMC events are not implemented in app");
   if (sweepflag != NOSWEEP && allow_rejection == 0)
-    error->all("Rejection events are not implemented in app");
+    error->all(FLERR,"Rejection events are not implemented in app");
 
   if (nprocs > 1 && sectorflag == 0 && solve)
-    error->all("Cannot use KMC solver in parallel with no sectors");
+    error->all(FLERR,"Cannot use KMC solver in parallel with no sectors");
   if (nprocs > 1 && sectorflag == 0 && sweepflag == RANDOM)
-    error->all("Cannot use random rejection KMC in parallel with no sectors");
+    error->all(FLERR,"Cannot use random rejection KMC in parallel with no sectors");
   if (nprocs > 1 && sectorflag == 0 && sweepflag == RASTER)
-    error->all("Cannot use raster rejection KMC in parallel with no sectors");
+    error->all(FLERR,"Cannot use raster rejection KMC in parallel with no sectors");
 
-  if (sweepflag && dt_sweep == 0.0) error->all("App did not set dt_sweep");
+  if (sweepflag && dt_sweep == 0.0) error->all(FLERR,"App did not set dt_sweep");
 
   // total size of a site = id + xyz + per-site quantities
 
@@ -178,18 +178,18 @@ void AppOffLattice::init()
     if (dimension == 3) {
       if (nsector == 2 && (domain->procgrid[1] != 1 || 
 			   domain->procgrid[2] != 1))
-	error->all("Invalid number of sectors");
+	error->all(FLERR,"Invalid number of sectors");
       if (nsector == 4 && domain->procgrid[2] != 1)
-	error->all("Invalid number of sectors");
+	error->all(FLERR,"Invalid number of sectors");
     }
     if (dimension == 2) {
       if (nsector == 2 && domain->procgrid[1] != 1)
-	error->all("Invalid number of sectors");
+	error->all(FLERR,"Invalid number of sectors");
       if (nsector == 8)
-	error->all("Invalid number of sectors");
+	error->all(FLERR,"Invalid number of sectors");
     }
     if (dimension == 1 && nsector != 2)
-      error->all("Invalid number of sectors");
+      error->all(FLERR,"Invalid number of sectors");
   }
 
   // create sets based on sectors
@@ -275,7 +275,7 @@ void AppOffLattice::setup()
 
     dt_rkmc = ntotal/nglobal * dt_sweep;
     if (dt_rkmc == 0.0)
-      error->all("Choice of sector stop led to no rKMC events");
+      error->all(FLERR,"Choice of sector stop led to no rKMC events");
     dt_rkmc = MIN(dt_rkmc,stoptime-time);
   }
   */
@@ -613,7 +613,7 @@ void AppOffLattice::check(char *str, int flag, int iset)
     if (site2bin(i) != bin[i] || bin[i] < 0 || bin[i] > nbins-1) {
       printf("%s SITE %d: %d " TAGINT_FORMAT " %d: %g %g %g\n",
 	     str,me,i,id[i],bin[i],xyz[i][0],xyz[i][1],xyz[i][2]);
-      error->one("SITE MISMATCH");
+      error->one(FLERR,"SITE MISMATCH");
     }
   }
 
@@ -625,7 +625,7 @@ void AppOffLattice::check(char *str, int flag, int iset)
     while (m >= 0) {
       if (m >= nlocal) {
 	printf("%s GHOST %d: %d %d %d\n",str,me,m,nlocal,i);
-	error->one("GHOST IN OWNED BIN");
+	error->one(FLERR,"GHOST IN OWNED BIN");
       }
       m = next[m];
     }
@@ -641,7 +641,7 @@ void AppOffLattice::check(char *str, int flag, int iset)
 	printf("%s LINK me %d: m %d id " TAGINT_FORMAT 
 	       " bin %d prev %d mprev %d nloc %d\n",
 	       str,me,m,id[m],bin[m],prev[m],mprev,nlocal);
-	error->one("LINK MISMATCH");
+	error->one(FLERR,"LINK MISMATCH");
       }
       mprev = m;
       m = next[m];
@@ -656,7 +656,7 @@ void AppOffLattice::check(char *str, int flag, int iset)
       if (bin[m] != i) {
 	printf("%s BIN %d: %d " TAGINT_FORMAT " %d %d %d\n",
 	       str,me,m,id[m],bin[m],i,site2bin(m));
-	error->one("BIN MISMATCH");
+	error->one(FLERR,"BIN MISMATCH");
       }
       m = next[m];
     }
@@ -676,7 +676,7 @@ void AppOffLattice::check(char *str, int flag, int iset)
   if (count != nall) {
     printf("SITES NOT IN BINS %d %d %d %d %d\n",
 	   count,nlocal,nghost,nall,flag);
-    error->one("SITES NOT IN BINS");
+    error->one(FLERR,"SITES NOT IN BINS");
   }
 
   // test that no bin has too many sites
@@ -690,7 +690,7 @@ void AppOffLattice::check(char *str, int flag, int iset)
     }
     if (count > maxcount) {
       printf("%s COUNT %d %d %d\n",str,me,i,count);
-      error->one("COUNT MISMATCH");
+      error->one(FLERR,"COUNT MISMATCH");
     }
   }
 
@@ -702,14 +702,14 @@ void AppOffLattice::check(char *str, int flag, int iset)
 
 void AppOffLattice::input_app(char *command, int narg, char **arg)
 {
-  error->all("Unrecognized command");
+  error->all(FLERR,"Unrecognized command");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void AppOffLattice::set_sector(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal sector command");
+  if (narg < 1) error->all(FLERR,"Illegal sector command");
 
   nsector_user = 0;
   if (strcmp(arg[0],"yes") == 0) sectorflag = 1;
@@ -718,7 +718,7 @@ void AppOffLattice::set_sector(int narg, char **arg)
     sectorflag = 1;
     nsector_user = atoi(arg[0]);
     if (nsector_user != 2 && nsector_user != 4 && nsector_user != 8)
-      error->all("Illegal sector command");
+      error->all(FLERR,"Illegal sector command");
   }
 
   nstop = 1.0;
@@ -727,18 +727,18 @@ void AppOffLattice::set_sector(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"nstop") == 0) {
-      if (iarg+2 > narg) error->all("Illegal sector command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal sector command");
       nstop = atof(arg[iarg+1]);
-      if (nstop <= 0.0) error->all("Illegal sector command");
+      if (nstop <= 0.0) error->all(FLERR,"Illegal sector command");
       tstop = 0.0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"tstop") == 0) {
-      if (iarg+2 > narg) error->all("Illegal sector command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal sector command");
       tstop = atof(arg[iarg+1]);
-      if (tstop <= 0.0) error->all("Illegal sector command");
+      if (tstop <= 0.0) error->all(FLERR,"Illegal sector command");
       nstop = 0.0;
       iarg += 2;
-    } else error->all("Illegal sector command");
+    } else error->all(FLERR,"Illegal sector command");
   }
 }
 
@@ -746,18 +746,18 @@ void AppOffLattice::set_sector(int narg, char **arg)
 
 void AppOffLattice::set_sweep(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal sweep command");
+  if (narg != 1) error->all(FLERR,"Illegal sweep command");
   if (strcmp(arg[0],"random") == 0) sweepflag = RANDOM;
   else if (strcmp(arg[0],"raster") == 0) sweepflag = RASTER;
   else if (strcmp(arg[0],"none") == 0) sweepflag = NOSWEEP;
-  else error->all("Illegal sweep command");
+  else error->all(FLERR,"Illegal sweep command");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void AppOffLattice::set_temperature(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal temperature command");
+  if (narg != 1) error->all(FLERR,"Illegal temperature command");
   temperature = atof(arg[0]);
   if (temperature != 0.0) t_inverse = 1.0/temperature;
 }
@@ -872,13 +872,13 @@ void AppOffLattice::init_bins()
   if (nsector == 8) nbinz = nbinz/2 * 2;
 
   if (nsector >= 2 && nbinx < 2)
-    error->all("Application cutoff is too big for processor sub-domain");
+    error->all(FLERR,"Application cutoff is too big for processor sub-domain");
   if (nsector >= 4 && nbiny < 2)
-    error->all("Application cutoff is too big for processor sub-domain");
+    error->all(FLERR,"Application cutoff is too big for processor sub-domain");
   if (nsector == 8 && nbinz < 2)
-    error->all("Application cutoff is too big for processor sub-domain");
+    error->all(FLERR,"Application cutoff is too big for processor sub-domain");
   if (nbinx < 1 || nbiny < 1 || nbinz < 1)
-    error->all("Application cutoff is too big for processor sub-domain");
+    error->all(FLERR,"Application cutoff is too big for processor sub-domain");
 
   binx = xprd/procgrid[0] / nbinx;
   biny = yprd/procgrid[1] / nbiny;
@@ -1074,7 +1074,7 @@ void AppOffLattice::neighbor(int i, double cut)
     // DEBUG CHECK - can remove
     if (ibin+stencil[k] < 0 || ibin+stencil[k] >= nbins) {
       printf("BAD STENCIL %d %d %d\n",i,ibin,ibin+stencil[k]);
-      error->one("BAD STENCIL");
+      error->one(FLERR,"BAD STENCIL");
     }
 
     for (j = binhead[ibin+stencil[k]]; j >= 0; j = next[j]) {
@@ -1086,14 +1086,14 @@ void AppOffLattice::neighbor(int i, double cut)
       // SHOULD DELETE THIS TEST eventually
       if (numneigh == MAXNEIGH) {
 	printf("NEIGH %d %d %d\n",i,ibin,numneigh);
-	error->one("Too many neighbors per site");
+	error->one(FLERR,"Too many neighbors per site");
       }
 
       if (rsq <= cutsq && i != j) neighs[numneigh++] = j;
     }
   }
 
-  if (numneigh > MAXNEIGH) error->one("Too many neighbors per site");
+  if (numneigh > MAXNEIGH) error->one(FLERR,"Too many neighbors per site");
 }
 
 /* ----------------------------------------------------------------------
@@ -1201,7 +1201,7 @@ void AppOffLattice::move(int i)
     xyz[i][1] -= pbcoffset[newbin][1]*yprd;
     xyz[i][2] -= pbcoffset[newbin][2]*zprd;
     newbin = site2bin(i);
-    if (binflag[newbin] != EDGE) error->one("PBC remap of site failed");
+    if (binflag[newbin] != EDGE) error->one(FLERR,"PBC remap of site failed");
     delete_from_bin(i,oldbin);
     add_to_bin(i,newbin);
     bin[i] = newbin;
@@ -1229,7 +1229,7 @@ int AppOffLattice::site2bin(int i)
 	   me,i,bin[i],nlocal,xyz[i][0],xyz[i][1],xyz[i][2],id[i]);
     printf("MY DOMAIN: %g %g %g: %g %g %g\n",subxlo,subylo,
 	   subzlo,subxhi,subyhi,subzhi);
-    error->one("Site not in my bin domain");
+    error->one(FLERR,"Site not in my bin domain");
   }
 
   int ix,iy,iz;
@@ -1276,13 +1276,13 @@ void AppOffLattice::add_to_bin(int i, int ibin)
   // DEBUG check that I is in IBIN - can delete eventually
 
   if (ibin < 0 || ibin >= nbins)
-    error->one("Adding site to illegal bin");
+    error->one(FLERR,"Adding site to illegal bin");
 
   if (site2bin(i) != ibin) {
     printf("BAD BIN: %d %d %d: %g %g %g\n",
 	   me,i,nlocal,xyz[i][0],xyz[i][1],xyz[i][2]);
     printf("IBIN: %d\n",ibin);
-    error->one("Adding site to bin it is not in");
+    error->one(FLERR,"Adding site to bin it is not in");
   }
 
   if (binhead[ibin] < 0) {
@@ -1585,7 +1585,7 @@ void AppOffLattice::grow(int n)
   if (n == 0) nmax += DELTA;
   else nmax = n;
   if (nmax < 0 || nmax > MAXSMALLINT)
-    error->one("Per-processor system is too big");
+    error->one(FLERR,"Per-processor system is too big");
 
   memory->grow(id,nmax,"app:id");
   memory->grow(bin,nmax,"app:bin");

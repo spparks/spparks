@@ -30,7 +30,7 @@ using namespace SPPARKS_NS;
 AppPottsPin::AppPottsPin(SPPARKS *spk, int narg, char **arg) : 
   AppPotts(spk,narg,arg)
 {
-  if (narg != 2) error->all("Illegal app_style command");
+  if (narg != 2) error->all(FLERR,"Illegal app_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -40,15 +40,15 @@ AppPottsPin::AppPottsPin(SPPARKS *spk, int narg, char **arg) :
 void AppPottsPin::input_app(char *command, int narg, char **arg)
 {
   if (strcmp(command,"pin") == 0) {
-    if (narg != 3) error->all("Illegal pin command");
+    if (narg != 3) error->all(FLERR,"Illegal pin command");
     pfraction = atof(arg[0]);
     multi = atoi(arg[1]);
     nthresh = atoi(arg[2]);
-    if (pfraction < 0.0 || pfraction > 1.0) error->all("Illegal pin command");
-    if (multi != 0 && multi != 1) error->all("Illegal pin command");
-    if (nthresh < 0) error->all("Illegal pin command");
+    if (pfraction < 0.0 || pfraction > 1.0) error->all(FLERR,"Illegal pin command");
+    if (multi != 0 && multi != 1) error->all(FLERR,"Illegal pin command");
+    if (nthresh < 0) error->all(FLERR,"Illegal pin command");
     pin_create();
-  } else error->all("Unrecognized command");
+  } else error->all(FLERR,"Unrecognized command");
 }
 
 /* ----------------------------------------------------------------------
@@ -68,7 +68,7 @@ void AppPottsPin::init_app()
     if (spin[i] < 1 || spin[i] > nspins+1) flag = 1;
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("One or more sites have invalid values");
+  if (flagall) error->all(FLERR,"One or more sites have invalid values");
 }
 
 

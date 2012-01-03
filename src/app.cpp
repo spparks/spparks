@@ -81,12 +81,12 @@ void App::recreate_arrays()
 void App::run(int narg, char **arg)
 {
   if (appclass != GENERAL && domain->box_exist == 0)
-    error->all("Cannot run application until simulation box is defined");
+    error->all(FLERR,"Cannot run application until simulation box is defined");
 
-  if (narg < 1) error->all("Illegal run command");
+  if (narg < 1) error->all(FLERR,"Illegal run command");
 
   stoptime = time + atof(arg[0]);
-  if (stoptime < time) error->all("Illegal run command");
+  if (stoptime < time) error->all(FLERR,"Illegal run command");
 
   // read optional args
 
@@ -97,29 +97,29 @@ void App::run(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"upto") == 0) {
-      if (iarg+1 > narg) error->all("Illegal run command");
+      if (iarg+1 > narg) error->all(FLERR,"Illegal run command");
       uptoflag = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"pre") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
       if (strcmp(arg[iarg+1],"no") == 0) preflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) preflag = 1;
-      else error->all("Illegal run command");
+      else error->all(FLERR,"Illegal run command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"post") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
       if (strcmp(arg[iarg+1],"no") == 0) postflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) postflag = 1;
-      else error->all("Illegal run command");
+      else error->all(FLERR,"Illegal run command");
       iarg += 2;
-    } else error->all("Illegal run command");
+    } else error->all(FLERR,"Illegal run command");
   }
 
   // adjust stoptime if upto was specified
 
   if (uptoflag) stoptime -= time;
   if (uptoflag && stoptime < 0.0)
-    error->all("Run upto value is before current time");
+    error->all(FLERR,"Run upto value is before current time");
 
   // perform a single run via app's init(), setup(), and iterate()
   // if pre or 1st run, do app init

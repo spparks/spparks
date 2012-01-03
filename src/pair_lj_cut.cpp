@@ -113,7 +113,7 @@ void PairLJCut::allocate()
 
 void PairLJCut::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal pair_style command");
+  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
   ntypes = atoi(arg[0]);
   cut_global = atof(arg[1]);
@@ -134,7 +134,7 @@ void PairLJCut::settings(int narg, char **arg)
 
 void PairLJCut::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -158,7 +158,7 @@ void PairLJCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
