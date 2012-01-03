@@ -138,6 +138,10 @@ You cannot define both a solver and sweep option. :dd
 
 Internal SPPARKS error. :dd
 
+{App does not permit user_update yes} :dt
+
+UNDOCUMENTED :dd
+
 {App needs a KMC or rejection KMC solver} :dt
 
 You must define either a solver or sweep option. :dd
@@ -175,17 +179,45 @@ Argument of arccos() must be between -1 and 1. :dd
 
 Argument of arcsin() must be between -1 and 1. :dd
 
-{Bad connectivity result} :dt
+{BAD DONE} :dt
 
-Internal SPPARKS error.  Should not occur. :dd
+UNDOCUMENTED :dd
+
+{BAD STENCIL} :dt
+
+UNDOCUMENTED :dd
+
+{BIN MISMATCH} :dt
+
+UNDOCUMENTED :dd
+
+{Bad neighbor site ID} :dt
+
+UNDOCUMENTED :dd
+
+{Bigint setting in spktype.h is invalid} :dt
+
+UNDOCUMENTED :dd
+
+{Boundary command after simulation box is defined} :dt
+
+UNDOCUMENTED :dd
+
+{Boundary command currently only supported by on-lattice apps} :dt
+
+UNDOCUMENTED :dd
 
 {Box bounds are invalid} :dt
 
 Lo bound >= hi bound. :dd
 
-{Can only read neighbors for on-lattice applications} :dt
+{COUNT MISMATCH} :dt
 
-Self-explanatory. :dd
+UNDOCUMENTED :dd
+
+{Can only read Neighbors for on-lattice applications} :dt
+
+UNDOCUMENTED :dd
 
 {Can only use ecoord command with app_style diffusion nonlinear} :dt
 
@@ -196,9 +228,13 @@ Self-explanatory. :dd
 Coloring is not supported on this lattice for the neighbor
 dependencies of this application. :dd
 
-{Cannot color wihtout a lattice definition of sites} :dt
+{Cannot color without a lattice definition of sites} :dt
 
-Self-explanatory. :dd
+UNDOCUMENTED :dd
+
+{Cannot color without contiguous site IDs} :dt
+
+UNDOCUMENTED :dd
 
 {Cannot create box after simulation box is defined} :dt
 
@@ -216,9 +252,17 @@ Self-explanatory. :dd
 
 Must use lattice commands first to define a lattice. :dd
 
+{Cannot create/grow a vector/array of pointers for %s} :dt
+
+UNDOCUMENTED :dd
+
 {Cannot define Schwoebel barrier without Schwoebel model} :dt
 
 Self-explanatory. :dd
+
+{Cannot dump JPG file} :dt
+
+UNDOCUMENTED :dd
 
 {Cannot open diag style cluster dump file} :dt
 
@@ -252,11 +296,11 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Cannot open logfile %s} :dt
+{Cannot open logfile} :dt
 
 Self-explanatory. :dd
 
-{Cannot open logfile} :dt
+{Cannot open logfile %s} :dt
 
 Self-explanatory. :dd
 
@@ -278,18 +322,42 @@ For a multi-partition run, the master screen file cannot be opened.
 Check that the directory you are running in allows for files to be
 created. :dd
 
-{Cannot read neighbors unless max neighbors is set} :dt
+{Cannot perform deposition in parallel} :dt
 
-This is a setting in the header of the sites file. :dd
+UNDOCUMENTED :dd
 
-{Cannot read sites after sites already exist} :dt
+{Cannot perform deposition with multiple sectors} :dt
 
-Self-explanatory. :dd
+UNDOCUMENTED :dd
+
+{Cannot read Neighbors after sites already exist} :dt
+
+UNDOCUMENTED :dd
+
+{Cannot read Neighbors unless max neighbors is set} :dt
+
+UNDOCUMENTED :dd
+
+{Cannot read Sites after sites already exist} :dt
+
+UNDOCUMENTED :dd
+
+{Cannot read Values before sites exist or are read} :dt
+
+UNDOCUMENTED :dd
 
 {Cannot redefine variable as a different style} :dt
 
 An equal-style variable can be re-defined but only if it was
 originally an equal-style variable. :dd
+
+{Cannot run 1d simulation with nonperiodic Y or Z dimension} :dt
+
+UNDOCUMENTED :dd
+
+{Cannot run 2d simulation with nonperiodic Z dimension} :dt
+
+UNDOCUMENTED :dd
 
 {Cannot run application until simulation box is defined} :dt
 
@@ -306,6 +374,10 @@ Self-explanatory. :dd
 {Cannot use color/strict rejection KMC with sectors} :dt
 
 Self-explanatory. :dd
+
+{Cannot use coloring without domain nx,ny,nz defined} :dt
+
+UNDOCUMENTED :dd
 
 {Cannot use create_sites basis with random lattice} :dt
 
@@ -383,13 +455,33 @@ The application defines what variables it supports.  You cannot set a
 variable with the create_sites command for a variable that isn't
 supported. :dd
 
-{Diag dump_style does not work if ncluster > 2^31} :dt
+{Data file dimension does not match existing box} :dt
 
-Self-explanatory. :dd
+UNDOCUMENTED :dd
 
-{Diag dump_style incompatible with lattice style} :dt
+{Data file maxneigh setting does not match existing sites} :dt
 
-Not all lattice styles can be output as OpenDx files. :dd
+UNDOCUMENTED :dd
+
+{Data file number of sites does not match existing sites} :dt
+
+UNDOCUMENTED :dd
+
+{Data file simluation box different that current box} :dt
+
+UNDOCUMENTED :dd
+
+{Diag cluster does not work if ncluster > 2^31} :dt
+
+UNDOCUMENTED :dd
+
+{Diag cluster dvalue in neighboring clusters do not match} :dt
+
+Internal SPPARKS error. :dd
+
+{Diag cluster ivalue in neighboring clusters do not match} :dt
+
+Internal SPPARKS error. :dd
 
 {Diag propensity requires KMC solve be performed} :dt
 
@@ -404,13 +496,13 @@ Self-explanatory. :dd
 The lattice styles of the diagnostic and the on-lattice application
 must match. :dd
 
-{Diag cluster dvalue in neighboring clusters do not match} :dt
+{Diag_style cluster incompatible with lattice style} :dt
 
-Internal SPPARKS error. :dd
+UNDOCUMENTED :dd
 
-{Diag cluster ivalue in neighboring clusters do not match} :dt
+{Diag_style cluster nx,ny,nz = 0} :dt
 
-Internal SPPARKS error. :dd
+UNDOCUMENTED :dd
 
 {Diag_style command before app_style set} :dt
 
@@ -419,6 +511,10 @@ Self-explanatory. :dd
 {Diag_style diffusion requires app_style diffusion} :dt
 
 Self-explanatory. :dd
+
+{Diag_style erbium requires app_style erbium} :dt
+
+UNDOCUMENTED :dd
 
 {Did not assign all sites correctly} :dt
 
@@ -429,6 +525,10 @@ a processor correctly. :dd
 
 One or more created sites were not assigned to a processor
 correctly. :dd
+
+{Did not reach event propensity threshhold} :dt
+
+UNDOCUMENTED :dd
 
 {Dimension command after lattice is defined} :dt
 
@@ -442,10 +542,6 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Dump ID already exists} :dt
-
-Self-explanatory. :dd
-
 {Dump command before app_style set} :dt
 
 Self-explanatory. :dd
@@ -454,6 +550,30 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Dump image boundary requires lattice app} :dt
+
+UNDOCUMENTED :dd
+
+{Dump image crange must be set} :dt
+
+UNDOCUMENTED :dd
+
+{Dump image drange must be set} :dt
+
+UNDOCUMENTED :dd
+
+{Dump image persp option is not yet supported} :dt
+
+UNDOCUMENTED :dd
+
+{Dump image requires one snapshot per file} :dt
+
+UNDOCUMENTED :dd
+
+{Dump image with quantity application does not support} :dt
+
+UNDOCUMENTED :dd
+
 {Dump requires propensity but no KMC solve performed} :dt
 
 Only KMC solvers compute propensity for sites. :dd
@@ -461,6 +581,18 @@ Only KMC solvers compute propensity for sites. :dd
 {Dump_modify command before app_style set} :dt
 
 Self-explanatory. :dd
+
+{Dump_modify region ID does not exist} :dt
+
+UNDOCUMENTED :dd
+
+{Dump_modify scolor requires integer attribute for dump image color} :dt
+
+UNDOCUMENTED :dd
+
+{Dump_modify sdiam requires integer attribute for dump image diameter} :dt
+
+UNDOCUMENTED :dd
 
 {Dump_one command before app_style set} :dt
 
@@ -480,6 +612,10 @@ smaller simulation or on more processors. :dd
 
 Your SPPARKS simulation has run out of memory.  You need to run a
 smaller simulation or on more processors. :dd
+
+{GHOST IN OWNED BIN} :dt
+
+UNDOCUMENTED :dd
 
 {Ghost connection was not found} :dt
 
@@ -520,10 +656,42 @@ This is a hard (very large) limit defined in the input.cpp file. :dd
 
 This is a hard (very large) limit defined in the input.cpp file. :dd
 
+{Invalid attribute in dump text command} :dt
+
+UNDOCUMENTED :dd
+
+{Invalid color in dump_modify command} :dt
+
+UNDOCUMENTED :dd
+
 {Invalid command-line argument} :dt
 
 One or more command-line arguments is invalid.  Check the syntax of
 the command you are using to launch SPPARKS. :dd
+
+{Invalid diag_style command} :dt
+
+UNDOCUMENTED :dd
+
+{Invalid dump image filename} :dt
+
+UNDOCUMENTED :dd
+
+{Invalid dump image persp value} :dt
+
+UNDOCUMENTED :dd
+
+{Invalid dump image theta value} :dt
+
+UNDOCUMENTED :dd
+
+{Invalid dump image zoom value} :dt
+
+UNDOCUMENTED :dd
+
+{Invalid dump style} :dt
+
+UNDOCUMENTED :dd
 
 {Invalid dump_modify threshold operator} :dt
 
@@ -533,9 +701,21 @@ Self-explanatory. :dd
 
 Number of events must be > 0. :dd
 
+{Invalid image color range} :dt
+
+UNDOCUMENTED :dd
+
+{Invalid image up vector} :dt
+
+UNDOCUMENTED :dd
+
 {Invalid keyword in dump command} :dt
 
 Self-explanatory. :dd
+
+{Invalid keyword in variable formula} :dt
+
+UNDOCUMENTED :dd
 
 {Invalid math function in variable formula} :dt
 
@@ -573,6 +753,10 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Invalid value setting in diag_style erbium} :dt
+
+UNDOCUMENTED :dd
+
 {Invalid variable evaluation in variable formula} :dt
 
 A variable used in a formula could not be evaluated. :dd
@@ -581,13 +765,13 @@ A variable used in a formula could not be evaluated. :dd
 
 Self-explanatory. :dd
 
-{Invalid variable name in variable formula} :dt
-
-Variable name is not recognized. :dd
-
 {Invalid variable name} :dt
 
 Variable name used in an input script line is invalid. :dd
+
+{Invalid variable name in variable formula} :dt
+
+Variable name is not recognized. :dd
 
 {Invalid variable style with next command} :dt
 
@@ -601,6 +785,10 @@ Volume must be set to value > 0. :dd
 {KMC events are not implemented in app} :dt
 
 Not every application supports KMC solvers. :dd
+
+{LINK MISMATCH} :dt
+
+UNDOCUMENTED :dd
 
 {Label wasn't found in input script} :dt
 
@@ -618,6 +806,14 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{MPI_SPK_BIGINT and bigint in spktype.h are not compatible} :dt
+
+UNDOCUMENTED :dd
+
+{MPI_SPK_TAGINT and tagint in spktype.h are not compatible} :dt
+
+UNDOCUMENTED :dd
+
 {Mask logic not implemented in app} :dt
 
 Not every application supports masking. :dd
@@ -630,22 +826,22 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Must read Sites before Values} :dt
-
-Self-explanatory. :dd
-
 {Must use -in switch with multiple partitions} :dt
 
 A multi-partition simulation cannot read the input script from stdin.
 The -in command-line option must be used to specify a file. :dd
 
-{Must use create_sites box for on-lattice applications} :dt
-
-Self-explanatory. :dd
-
 {Must use value option before basis option in create_sites command} :dt
 
 Self-explanatory. :dd
+
+{No Neighbors defined in site file} :dt
+
+UNDOCUMENTED :dd
+
+{No Sites defined in site file} :dt
+
+UNDOCUMENTED :dd
 
 {No reactions defined for chemistry app} :dt
 
@@ -655,10 +851,13 @@ Use the add_reaction command to specify one or more reactions. :dd
 
 Self-explanatory. :dd
 
-{Number of sites does not match existing sites} :dt
+{Off-lattice application data file cannot have maxneigh setting} :dt
 
-File being read by read_sites command is not consistent with sites
-already defined. :dd
+UNDOCUMENTED :dd
+
+{One or more Hamiltonian params are unset} :dt
+
+UNDOCUMENTED :dd
 
 {One or more sites have invalid values} :dt
 
@@ -680,6 +879,18 @@ Self-explanatory. :dd
 {Pair_style command before app_style set} :dt
 
 Self-explanatory. :dd
+
+{Per-processor solve tree is too big} :dt
+
+UNDOCUMENTED :dd
+
+{Per-processor system is too big} :dt
+
+UNDOCUMENTED :dd
+
+{Periodic box is not a multiple of lattice spacing} :dt
+
+UNDOCUMENTED :dd
 
 {Power by 0 in variable formula} :dt
 
@@ -718,9 +929,9 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Read_sites simluation box different that current box} :dt
+{Region ID for dump text does not exist} :dt
 
-Self-explanatory. :dd
+UNDOCUMENTED :dd
 
 {Region command before app_style set} :dt
 
@@ -742,6 +953,10 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Reuse of dump ID} :dt
+
+UNDOCUMENTED :dd
+
 {Reuse of region ID} :dt
 
 Self-explanatory. :dd
@@ -753,6 +968,14 @@ Self-explanatory. :dd
 {Run upto value is before current time} :dt
 
 Self-explanatory. :dd
+
+{SITE MISMATCH} :dt
+
+UNDOCUMENTED :dd
+
+{SITES NOT IN BINS} :dt
+
+UNDOCUMENTED :dd
 
 {Seed command has not been used} :dt
 
@@ -777,10 +1000,9 @@ if test with the set command on a variable that isn't supported. :dd
 The application defines what variables it supports.  You cannot set a
 variable with the set command on a variable that isn't supported. :dd
 
-{Simulation box is not multiple of current lattice settings} :dt
+{Site file has no Sites, Neighbors, or Values} :dt
 
-This likely occurred because the lattice was re-defined after the
-simulation box was created. :dd
+UNDOCUMENTED :dd
 
 {Site not in my bin domain} :dt
 
@@ -789,6 +1011,10 @@ Internal SPPARKS error. :dd
 {Site-site interaction was not found} :dt
 
 Internal SPPARKS error. :dd
+
+{Smallint setting in spktype.h is invalid} :dt
+
+UNDOCUMENTED :dd
 
 {Solve_style command before app_style set} :dt
 
@@ -813,6 +1039,18 @@ Self-explanatory. :dd
 {Substitution for illegal variable} :dt
 
 Self-explanatory. :dd
+
+{System in site file is too big} :dt
+
+UNDOCUMENTED :dd
+
+{Tagint setting in spktype.h is invalid} :dt
+
+UNDOCUMENTED :dd
+
+{Temperature cannot be 0.0 for app erbium} :dt
+
+UNDOCUMENTED :dd
 
 {Threshold for a quantity application does not support} :dt
 
@@ -863,6 +1101,46 @@ known to SPPARKS.  Check the input script. :dd
 
 The lattice command must be used before defining a geometric region. :dd
 
+{Variable for dump image center is invalid style} :dt
+
+UNDOCUMENTED :dd
+
+{Variable for dump image persp is invalid style} :dt
+
+UNDOCUMENTED :dd
+
+{Variable for dump image phi is invalid style} :dt
+
+UNDOCUMENTED :dd
+
+{Variable for dump image theta is invalid style} :dt
+
+UNDOCUMENTED :dd
+
+{Variable for dump image zoom is invalid style} :dt
+
+UNDOCUMENTED :dd
+
+{Variable name for dump image center does not exist} :dt
+
+UNDOCUMENTED :dd
+
+{Variable name for dump image persp does not exist} :dt
+
+UNDOCUMENTED :dd
+
+{Variable name for dump image phi does not exist} :dt
+
+UNDOCUMENTED :dd
+
+{Variable name for dump image theta does not exist} :dt
+
+UNDOCUMENTED :dd
+
+{Variable name for dump image zoom does not exist} :dt
+
+UNDOCUMENTED :dd
+
 {Variable name must be alphanumeric or underscore characters} :dt
 
 Self-explanatory. :dd
@@ -878,4 +1156,17 @@ Warnings: :h4,link(warn)
 
 :dlb
 
+{%d propensities were reset to hi value, max hi = %g} :dt
+
+UNDOCUMENTED :dd
+
+{%d propensities were reset to lo value, max lo = %g} :dt
+
+UNDOCUMENTED :dd
+
+{Using dump image boundary with spheres} :dt
+
+UNDOCUMENTED :dd
+
 :dle
+

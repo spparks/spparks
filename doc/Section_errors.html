@@ -141,6 +141,10 @@ still being processed.
 
 <DD>Internal SPPARKS error. 
 
+<DT><I>App does not permit user_update yes</I> 
+
+<DD>UNDOCUMENTED 
+
 <DT><I>App needs a KMC or rejection KMC solver</I> 
 
 <DD>You must define either a solver or sweep option. 
@@ -178,17 +182,45 @@ where sectoring occurs.
 
 <DD>Argument of arcsin() must be between -1 and 1. 
 
-<DT><I>Bad connectivity result</I> 
+<DT><I>BAD DONE</I> 
 
-<DD>Internal SPPARKS error.  Should not occur. 
+<DD>UNDOCUMENTED 
+
+<DT><I>BAD STENCIL</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>BIN MISMATCH</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Bad neighbor site ID</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Bigint setting in spktype.h is invalid</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Boundary command after simulation box is defined</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Boundary command currently only supported by on-lattice apps</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Box bounds are invalid</I> 
 
 <DD>Lo bound >= hi bound. 
 
-<DT><I>Can only read neighbors for on-lattice applications</I> 
+<DT><I>COUNT MISMATCH</I> 
 
-<DD>Self-explanatory. 
+<DD>UNDOCUMENTED 
+
+<DT><I>Can only read Neighbors for on-lattice applications</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Can only use ecoord command with app_style diffusion nonlinear</I> 
 
@@ -199,9 +231,13 @@ where sectoring occurs.
 <DD>Coloring is not supported on this lattice for the neighbor
 dependencies of this application. 
 
-<DT><I>Cannot color wihtout a lattice definition of sites</I> 
+<DT><I>Cannot color without a lattice definition of sites</I> 
 
-<DD>Self-explanatory. 
+<DD>UNDOCUMENTED 
+
+<DT><I>Cannot color without contiguous site IDs</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Cannot create box after simulation box is defined</I> 
 
@@ -219,9 +255,17 @@ dependencies of this application.
 
 <DD>Must use lattice commands first to define a lattice. 
 
+<DT><I>Cannot create/grow a vector/array of pointers for %s</I> 
+
+<DD>UNDOCUMENTED 
+
 <DT><I>Cannot define Schwoebel barrier without Schwoebel model</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Cannot dump JPG file</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Cannot open diag style cluster dump file</I> 
 
@@ -255,11 +299,11 @@ dependencies of this application.
 
 <DD>Self-explanatory. 
 
-<DT><I>Cannot open logfile %s</I> 
+<DT><I>Cannot open logfile</I> 
 
 <DD>Self-explanatory. 
 
-<DT><I>Cannot open logfile</I> 
+<DT><I>Cannot open logfile %s</I> 
 
 <DD>Self-explanatory. 
 
@@ -281,18 +325,42 @@ created.
 Check that the directory you are running in allows for files to be
 created. 
 
-<DT><I>Cannot read neighbors unless max neighbors is set</I> 
+<DT><I>Cannot perform deposition in parallel</I> 
 
-<DD>This is a setting in the header of the sites file. 
+<DD>UNDOCUMENTED 
 
-<DT><I>Cannot read sites after sites already exist</I> 
+<DT><I>Cannot perform deposition with multiple sectors</I> 
 
-<DD>Self-explanatory. 
+<DD>UNDOCUMENTED 
+
+<DT><I>Cannot read Neighbors after sites already exist</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Cannot read Neighbors unless max neighbors is set</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Cannot read Sites after sites already exist</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Cannot read Values before sites exist or are read</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Cannot redefine variable as a different style</I> 
 
 <DD>An equal-style variable can be re-defined but only if it was
 originally an equal-style variable. 
+
+<DT><I>Cannot run 1d simulation with nonperiodic Y or Z dimension</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Cannot run 2d simulation with nonperiodic Z dimension</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Cannot run application until simulation box is defined</I> 
 
@@ -309,6 +377,10 @@ originally an equal-style variable.
 <DT><I>Cannot use color/strict rejection KMC with sectors</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Cannot use coloring without domain nx,ny,nz defined</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Cannot use create_sites basis with random lattice</I> 
 
@@ -386,13 +458,33 @@ must fit an integer number of times into a periodic lattice.
 variable with the create_sites command for a variable that isn't
 supported. 
 
-<DT><I>Diag dump_style does not work if ncluster > 2^31</I> 
+<DT><I>Data file dimension does not match existing box</I> 
 
-<DD>Self-explanatory. 
+<DD>UNDOCUMENTED 
 
-<DT><I>Diag dump_style incompatible with lattice style</I> 
+<DT><I>Data file maxneigh setting does not match existing sites</I> 
 
-<DD>Not all lattice styles can be output as OpenDx files. 
+<DD>UNDOCUMENTED 
+
+<DT><I>Data file number of sites does not match existing sites</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Data file simluation box different that current box</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Diag cluster does not work if ncluster > 2^31</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Diag cluster dvalue in neighboring clusters do not match</I> 
+
+<DD>Internal SPPARKS error. 
+
+<DT><I>Diag cluster ivalue in neighboring clusters do not match</I> 
+
+<DD>Internal SPPARKS error. 
 
 <DT><I>Diag propensity requires KMC solve be performed</I> 
 
@@ -407,13 +499,13 @@ supported.
 <DD>The lattice styles of the diagnostic and the on-lattice application
 must match. 
 
-<DT><I>Diag cluster dvalue in neighboring clusters do not match</I> 
+<DT><I>Diag_style cluster incompatible with lattice style</I> 
 
-<DD>Internal SPPARKS error. 
+<DD>UNDOCUMENTED 
 
-<DT><I>Diag cluster ivalue in neighboring clusters do not match</I> 
+<DT><I>Diag_style cluster nx,ny,nz = 0</I> 
 
-<DD>Internal SPPARKS error. 
+<DD>UNDOCUMENTED 
 
 <DT><I>Diag_style command before app_style set</I> 
 
@@ -422,6 +514,10 @@ must match.
 <DT><I>Diag_style diffusion requires app_style diffusion</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Diag_style erbium requires app_style erbium</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Did not assign all sites correctly</I> 
 
@@ -432,6 +528,10 @@ a processor correctly.
 
 <DD>One or more created sites were not assigned to a processor
 correctly. 
+
+<DT><I>Did not reach event propensity threshhold</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Dimension command after lattice is defined</I> 
 
@@ -445,10 +545,6 @@ correctly.
 
 <DD>Self-explanatory. 
 
-<DT><I>Dump ID already exists</I> 
-
-<DD>Self-explanatory. 
-
 <DT><I>Dump command before app_style set</I> 
 
 <DD>Self-explanatory. 
@@ -457,6 +553,30 @@ correctly.
 
 <DD>Self-explanatory. 
 
+<DT><I>Dump image boundary requires lattice app</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Dump image crange must be set</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Dump image drange must be set</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Dump image persp option is not yet supported</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Dump image requires one snapshot per file</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Dump image with quantity application does not support</I> 
+
+<DD>UNDOCUMENTED 
+
 <DT><I>Dump requires propensity but no KMC solve performed</I> 
 
 <DD>Only KMC solvers compute propensity for sites. 
@@ -464,6 +584,18 @@ correctly.
 <DT><I>Dump_modify command before app_style set</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Dump_modify region ID does not exist</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Dump_modify scolor requires integer attribute for dump image color</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Dump_modify sdiam requires integer attribute for dump image diameter</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Dump_one command before app_style set</I> 
 
@@ -483,6 +615,10 @@ smaller simulation or on more processors.
 
 <DD>Your SPPARKS simulation has run out of memory.  You need to run a
 smaller simulation or on more processors. 
+
+<DT><I>GHOST IN OWNED BIN</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Ghost connection was not found</I> 
 
@@ -523,10 +659,42 @@ line.
 
 <DD>This is a hard (very large) limit defined in the input.cpp file. 
 
+<DT><I>Invalid attribute in dump text command</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Invalid color in dump_modify command</I> 
+
+<DD>UNDOCUMENTED 
+
 <DT><I>Invalid command-line argument</I> 
 
 <DD>One or more command-line arguments is invalid.  Check the syntax of
 the command you are using to launch SPPARKS. 
+
+<DT><I>Invalid diag_style command</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Invalid dump image filename</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Invalid dump image persp value</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Invalid dump image theta value</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Invalid dump image zoom value</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Invalid dump style</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Invalid dump_modify threshold operator</I> 
 
@@ -536,9 +704,21 @@ the command you are using to launch SPPARKS.
 
 <DD>Number of events must be > 0. 
 
+<DT><I>Invalid image color range</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Invalid image up vector</I> 
+
+<DD>UNDOCUMENTED 
+
 <DT><I>Invalid keyword in dump command</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Invalid keyword in variable formula</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Invalid math function in variable formula</I> 
 
@@ -576,6 +756,10 @@ the command you are using to launch SPPARKS.
 
 <DD>Self-explanatory. 
 
+<DT><I>Invalid value setting in diag_style erbium</I> 
+
+<DD>UNDOCUMENTED 
+
 <DT><I>Invalid variable evaluation in variable formula</I> 
 
 <DD>A variable used in a formula could not be evaluated. 
@@ -584,13 +768,13 @@ the command you are using to launch SPPARKS.
 
 <DD>Self-explanatory. 
 
-<DT><I>Invalid variable name in variable formula</I> 
-
-<DD>Variable name is not recognized. 
-
 <DT><I>Invalid variable name</I> 
 
 <DD>Variable name used in an input script line is invalid. 
+
+<DT><I>Invalid variable name in variable formula</I> 
+
+<DD>Variable name is not recognized. 
 
 <DT><I>Invalid variable style with next command</I> 
 
@@ -604,6 +788,10 @@ command.
 <DT><I>KMC events are not implemented in app</I> 
 
 <DD>Not every application supports KMC solvers. 
+
+<DT><I>LINK MISMATCH</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Label wasn't found in input script</I> 
 
@@ -621,6 +809,14 @@ command.
 
 <DD>Self-explanatory. 
 
+<DT><I>MPI_SPK_BIGINT and bigint in spktype.h are not compatible</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>MPI_SPK_TAGINT and tagint in spktype.h are not compatible</I> 
+
+<DD>UNDOCUMENTED 
+
 <DT><I>Mask logic not implemented in app</I> 
 
 <DD>Not every application supports masking. 
@@ -633,22 +829,22 @@ command.
 
 <DD>Self-explanatory. 
 
-<DT><I>Must read Sites before Values</I> 
-
-<DD>Self-explanatory. 
-
 <DT><I>Must use -in switch with multiple partitions</I> 
 
 <DD>A multi-partition simulation cannot read the input script from stdin.
 The -in command-line option must be used to specify a file. 
 
-<DT><I>Must use create_sites box for on-lattice applications</I> 
-
-<DD>Self-explanatory. 
-
 <DT><I>Must use value option before basis option in create_sites command</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>No Neighbors defined in site file</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>No Sites defined in site file</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>No reactions defined for chemistry app</I> 
 
@@ -658,10 +854,13 @@ The -in command-line option must be used to specify a file.
 
 <DD>Self-explanatory. 
 
-<DT><I>Number of sites does not match existing sites</I> 
+<DT><I>Off-lattice application data file cannot have maxneigh setting</I> 
 
-<DD>File being read by read_sites command is not consistent with sites
-already defined. 
+<DD>UNDOCUMENTED 
+
+<DT><I>One or more Hamiltonian params are unset</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>One or more sites have invalid values</I> 
 
@@ -683,6 +882,18 @@ values.
 <DT><I>Pair_style command before app_style set</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Per-processor solve tree is too big</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Per-processor system is too big</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Periodic box is not a multiple of lattice spacing</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Power by 0 in variable formula</I> 
 
@@ -721,9 +932,9 @@ of processors LAMMPS is running on.
 
 <DD>Self-explanatory. 
 
-<DT><I>Read_sites simluation box different that current box</I> 
+<DT><I>Region ID for dump text does not exist</I> 
 
-<DD>Self-explanatory. 
+<DD>UNDOCUMENTED 
 
 <DT><I>Region command before app_style set</I> 
 
@@ -745,6 +956,10 @@ of processors LAMMPS is running on.
 
 <DD>Self-explanatory. 
 
+<DT><I>Reuse of dump ID</I> 
+
+<DD>UNDOCUMENTED 
+
 <DT><I>Reuse of region ID</I> 
 
 <DD>Self-explanatory. 
@@ -756,6 +971,14 @@ of processors LAMMPS is running on.
 <DT><I>Run upto value is before current time</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>SITE MISMATCH</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>SITES NOT IN BINS</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Seed command has not been used</I> 
 
@@ -780,10 +1003,9 @@ if test with the set command on a variable that isn't supported.
 <DD>The application defines what variables it supports.  You cannot set a
 variable with the set command on a variable that isn't supported. 
 
-<DT><I>Simulation box is not multiple of current lattice settings</I> 
+<DT><I>Site file has no Sites, Neighbors, or Values</I> 
 
-<DD>This likely occurred because the lattice was re-defined after the
-simulation box was created. 
+<DD>UNDOCUMENTED 
 
 <DT><I>Site not in my bin domain</I> 
 
@@ -792,6 +1014,10 @@ simulation box was created.
 <DT><I>Site-site interaction was not found</I> 
 
 <DD>Internal SPPARKS error. 
+
+<DT><I>Smallint setting in spktype.h is invalid</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Solve_style command before app_style set</I> 
 
@@ -816,6 +1042,18 @@ simulation box was created.
 <DT><I>Substitution for illegal variable</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>System in site file is too big</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Tagint setting in spktype.h is invalid</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Temperature cannot be 0.0 for app erbium</I> 
+
+<DD>UNDOCUMENTED 
 
 <DT><I>Threshold for a quantity application does not support</I> 
 
@@ -866,6 +1104,46 @@ known to SPPARKS.  Check the input script.
 
 <DD>The lattice command must be used before defining a geometric region. 
 
+<DT><I>Variable for dump image center is invalid style</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Variable for dump image persp is invalid style</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Variable for dump image phi is invalid style</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Variable for dump image theta is invalid style</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Variable for dump image zoom is invalid style</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Variable name for dump image center does not exist</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Variable name for dump image persp does not exist</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Variable name for dump image phi does not exist</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Variable name for dump image theta does not exist</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Variable name for dump image zoom does not exist</I> 
+
+<DD>UNDOCUMENTED 
+
 <DT><I>Variable name must be alphanumeric or underscore characters</I> 
 
 <DD>Self-explanatory. 
@@ -880,6 +1158,18 @@ number of processor partitions.
 <H4><A NAME = "warn"></A>Warnings: 
 </H4>
 <DL>
+
+<DT><I>%d propensities were reset to hi value, max hi = %g</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>%d propensities were reset to lo value, max lo = %g</I> 
+
+<DD>UNDOCUMENTED 
+
+<DT><I>Using dump image boundary with spheres</I> 
+
+<DD>UNDOCUMENTED 
 
 
 </DL>
