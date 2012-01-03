@@ -795,7 +795,8 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
     proball += events[ievent].propensity;
     if (proball >= threshhold) break;
     ievent = events[ievent].next;
-    if (ievent < 0) error->one(FLERR,"Did not reach event propensity threshhold");
+    if (ievent < 0) error->one(FLERR,
+			       "Did not reach event propensity threshhold");
   }
 
   // deposition or hop event
