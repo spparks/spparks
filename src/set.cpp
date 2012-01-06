@@ -456,7 +456,7 @@ void Set::set_range(int lhs, int rhs)
 	  if (loc == hash.end()) continue;
 	  i = loc->second;
 	  if (ncondition && condition(i)) continue;
-	  iarray[siteindex][i] = ivalue-1 - ivaluelo;
+	  iarray[siteindex][i] = ivalue-1 + ivaluelo;
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
@@ -467,7 +467,7 @@ void Set::set_range(int lhs, int rhs)
 	  i = loc->second;
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
-	    iarray[siteindex][i] = ivalue-1 - ivaluelo;
+	    iarray[siteindex][i] = ivalue-1 + ivaluelo;
 	    count++;
 	  }
 	}
@@ -479,7 +479,7 @@ void Set::set_range(int lhs, int rhs)
 	  if (loc == hash.end()) continue;
 	  i = loc->second;
 	  if (ncondition && condition(i)) continue;
-	  iarray[siteindex][i] = ivalue-1 - ivaluelo;
+	  iarray[siteindex][i] = ivalue-1 + ivaluelo;
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -491,7 +491,7 @@ void Set::set_range(int lhs, int rhs)
 	  i = loc->second;
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
-	    iarray[siteindex][i] = ivalue-1 - ivaluelo;
+	    iarray[siteindex][i] = ivalue-1 + ivaluelo;
 	    count++;
 	  }
 	}
@@ -556,21 +556,21 @@ void Set::set_range(int lhs, int rhs)
       if (regionflag == 0 && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
-	  iarray[siteindex][i] = random->irandom(range)-1 - ivaluelo;
+	  iarray[siteindex][i] = random->irandom(range)-1 + ivaluelo;
 	  count++;
 	}
       } else if (regionflag && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (ncondition && condition(i)) continue;
-	    iarray[siteindex][i] = random->irandom(range)-1 - ivaluelo;
+	    iarray[siteindex][i] = random->irandom(range)-1 + ivaluelo;
 	    count++;
 	  }
       } else if (regionflag == 0 && fraction < 1.0) {
 	for (i = 0; i < nlocal; i++) {
 	  if (random->uniform() >= fraction) continue;
 	  if (ncondition && condition(i)) continue;
-	  iarray[siteindex][i] = random->irandom(range)-1 - ivaluelo;
+	  iarray[siteindex][i] = random->irandom(range)-1 + ivaluelo;
 	  count++;
 	}
       } else if (regionflag && fraction < 1.0) {
@@ -578,7 +578,7 @@ void Set::set_range(int lhs, int rhs)
 	  if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
 	    if (random->uniform() >= fraction) continue;
 	    if (ncondition && condition(i)) continue;
-	    iarray[siteindex][i] = random->irandom(range)-1 - ivaluelo;
+	    iarray[siteindex][i] = random->irandom(range)-1 + ivaluelo;
 	    count++;
 	  }
       }
