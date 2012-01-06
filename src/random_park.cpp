@@ -26,7 +26,7 @@ using namespace SPPARKS_NS;
 /* ---------------------------------------------------------------------- 
    Park/Miller RNG
    assume iseed is a positive int
- ------------------------------------------------------------------------*/
+------------------------------------------------------------------------ */
 
 RandomPark::RandomPark(int iseed)
 {
@@ -36,7 +36,7 @@ RandomPark::RandomPark(int iseed)
 /* ---------------------------------------------------------------------- 
    set seed to positive int
    assume 0.0 <= rseed < 1.0
- ------------------------------------------------------------------------*/
+------------------------------------------------------------------------ */
 
 RandomPark::RandomPark(double rseed)
 {
@@ -50,7 +50,7 @@ RandomPark::RandomPark(double rseed)
    fmod() insures no overflow when static cast to int
    warmup the new RNG if requested
    typically used to setup one RN generator per proc or site or particle
- ------------------------------------------------------------------------*/
+------------------------------------------------------------------------ */
 
 void RandomPark::reset(double rseed, int offset, int warmup)
 {
