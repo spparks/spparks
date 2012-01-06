@@ -1,0 +1,11 @@
+4Jan12 version files changed by 6Jan12 upgrade:
+
+doc/Manual.pdf
+src/app_diffusion.cpp
+src/dump_image.cpp
+src/image.cpp
+src/math_const.h
+src/random_mars.cpp
+src/random_park.cpp
+src/set.cpp
+src/version.h

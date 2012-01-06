@@ -35,6 +35,16 @@ describe the version you have. :ule,l
 :line
 :line
 
+[6 Jan 2012]
+
+Fixed a glitch in the 4Jan12 patch and added a missing file
+that didn't make it into the SVN repository.
+
+This is the "list of changed files"_patches/files.6Jan12 from the 4
+Jan 2012 version.
+
+:line
+
 [4 Jan 2012]
 
 Eric Homer (BYU) found and fixed a bug in the "set site
