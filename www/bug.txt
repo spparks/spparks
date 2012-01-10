@@ -35,6 +35,18 @@ describe the version you have. :ule,l
 :line
 :line
 
+[10 Jan 2012]
+
+Eric Homer (BYU) suggested a change in the dump image command so that
+it will be consistent with other views when viewed from theta = 0 of
+180, which is nominally a degenerate view angle.  This patch attempts
+to remedy that.
+
+This is the "list of changed files"_patches/files.10Jan12 from the 6
+Jan 2012 version.
+
+:line
+
 [6 Jan 2012]
 
 Fixed a glitch in the 4Jan12 patch and added a missing file
