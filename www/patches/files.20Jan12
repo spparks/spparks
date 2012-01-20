@@ -1,0 +1,8 @@
+10Jan12 version files changed by 20Jan12 upgrade:
+
+doc/Manual.pdf
+src/Make.csh
+src/Make.sh
+src/Makefile
+src/Makefile.lib
+src/version.h

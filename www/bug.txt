@@ -35,6 +35,17 @@ describe the version you have. :ule,l
 :line
 :line
 
+[20 Jan 2012]
+
+Changed the Makefile to use a Make.sh script for finding style files
+instead of a Make.csh script.  Csh is no longer included in some Linux
+distribution, but "sh" always is.
+
+This is the "list of changed files"_patches/files.20Jan12 from the 10
+Jan 2012 version.
+
+:line
+
 [10 Jan 2012]
 
 Eric Homer (BYU) suggested a change in the dump image command so that
