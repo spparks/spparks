@@ -1,0 +1,27 @@
+[A Constant-Time Kinetic Monte Carlo Algorithm for Simulation of Large
+Biochemical Reaction Networks]
+
+A. Slepoy, A. P. Thompson, S. J. Plimpton, J Chem Phys, 128, 205101
+(2008).
+
+The time evolution of species concentrations in biochemical reaction
+networks is often modeled using the stochastic simulation algorithm
+(SSA) [Gillespie, J. Phys. Chem. 81, 2340 (1977)]. The computational
+cost of the original SSA scaled linearly with the number of reactions
+in the network. Gibson and Bruck developed a logarithmic scaling
+version of the SSA which uses a priority queue or binary tree for more
+efficient reaction selection [Gibson and Bruck, J. Phys. Chem. A 104,
+1876 (2000)]. More generally, this problem is one of dynamic discrete
+random variate generation which finds many uses in kinetic Monte Carlo
+and discrete event simulation. We present here a constant-time
+algorithm, whose cost is independent of the number of reactions,
+enabled by a slightly more complex underlying data structure. While
+applicable to kinetic Monte Carlo simulations in general, we describe
+the algorithm in the context of biochemical simulations and
+demonstrate its competitive performance on small- and medium-size
+networks, as well as its superior constant-time performance on very
+large networks, which are becoming necessary to represent the
+increasing complexity of biochemical data for pathways that mediate
+cell function.
+
+Return to "Publications page"_../papers.html

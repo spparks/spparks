@@ -13,10 +13,10 @@ its applications and algorithms.  Please cite this report and the
 Carlo], S. Plimpton, C. Battaile, M. Chandross, L. Holm,
 A. Thompson, V. Tikare, G. Wagner, E. Webb, X. Zhou, C. Garcia
 Cardona, A. Slepoy, Sandia report SAND2009-6226, October
-2009. ("abstract"_../abstracts/sand09.html)
+2009. ("abstract"_abstracts/sand09.html)
 
 You can download the entire report via "this
-link"_../papers/sand09.pdf, but note that it is a 45 Mb file!
+link"_pdf/sand09.pdf, but note that it is a 45 Mb file!
 
 :line
 
@@ -28,7 +28,7 @@ available events:
 [A Constant-Time Kinetic Monte Carlo Algorithm for Simulation of Large
 Biochemical Reaction Networks], A. Slepoy, A. P. Thompson,
 S. J. Plimpton, J Chem Phys, 128, 205101
-(2008). ("abstract"_../abstracts/jcp08.html)
+(2008). ("abstract"_abstracts/jcp08.html)
 
 :line
 
