@@ -2,7 +2,7 @@
 "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc - "Next
 Section"_Section_perf.html :c
 
-:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sws,http://spparks.sandia.gov)
 :link(sd,Manual.html)
 :link(sc,Section_commands.html#comm)
 
