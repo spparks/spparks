@@ -1,0 +1,142 @@
+<HTML>
+<CENTER><H3>SPPARKS Kinetic Monte Carlo Simulator 
+</H3></CENTER>
+<CENTER><I>Anyone who considers arithmetical methods of producing random digits is,
+of course, in a state of sin.</I> -- John von Neumann 
+</CENTER>
+<CENTER><I>God does not play dice</I> -- Albert Einstein 
+</CENTER>
+<HR>
+
+<P>This is the home page for the kinetic Monte Carlo code SPPARKS, an
+acronym for Stochastic Parallel PARticle Kinetic Simulator.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "features.html">Features</A></TD><TD ><A HREF = "doc/Manual.html">Documentation</A></TD><TD ><A HREF = "doc/Section_commands.html#3_5">Commands</A></TD><TD ><A HREF = "pictures.html">Pictures & Movies</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "http://www.sandia.gov/~sjplimp/download.html">Download</A></TD><TD ><A HREF = "bug.html">Latest features & bug fixes</A></TD><TD ><A HREF = "performance.html">Performance</A></TD><TD ><A HREF = "open_source.html">Open source</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "http://pizza.sandia.gov">Pizza.py Toolkit</A></TD><TD ><A HREF = "papers.html">Publications</A></TD><TD ><A HREF = "thanks.html">Thanks</A> 
+</TD></TR></TABLE></DIV>
+
+
+
+
+
+<P>SPPARKS is a parallel Monte Carlo code for on-lattice and off-lattice
+models that includes algorithms for kinetic Monte Carlo (KMC),
+rejection kinetic Monte Carlo (rKMC), and Metropolis Monte Carlo
+(MMC).  It implements several KMC solvers whose serial computational
+complexity ranges from O(N) to O(NlogN) to O(1) in the number of
+events N owned by a processor.  In a generic sense the solvers catalog
+a list of "events", each with an associated probability, choose a
+single event to perform, and advance time by the correct amount.
+Events may be chosen individually at random, or by sweeping over sites
+in a more ordered fashion.
+</P>
+<P>Applications that are packaged with SPPARKS, or which a user adds to
+the code, define sites and events and probabilities, as well as how
+the execution of an event changes the state of the model.
+</P>
+<P>SPPARKS runs on single processors or in parallel using message-passing
+techniques and a spatial-decomposition of the simulation domain.  The
+code is designed to be easy to modify or extend with new
+functionality.
+</P>
+<P>SPPARKS is distributed as an <A HREF = "open_source.html">open source
+code</A> under the terms of the <A HREF = "http://www.gnu.org/copyleft/gpl.html">GPL</A>.  The
+current version can be downloaded <A HREF = "http://www.sandia.gov/~sjplimp/download.html">here</A>.
+</P>
+<P>SPPARKS was developed at <A HREF = "http://www.sandia.gov">Sandia National Laboratories</A>, a US
+<A HREF = "http://www.doe.gov">Department of Energy</A> laboratory.  The authors are <A HREF = "http://www.sandia.gov/~sjplimp">Steve
+Plimpton</A> and Aidan Thompson and Alex Slepoy who can be contacted
+at sjplimp at sandia.gov, athomps at sandia.gov, and alexander.slepoy
+at nnsa.doe.gov, respectively.  Funding for SPPARKS development has
+come from the DOE and is <A HREF = "thanks.html">acknowledged here</A>,
+along with the contributions of others.
+</P>
+<P>The SPPARKS WWW site is hosted by Sandia, which has this <A HREF = "http://www.sandia.gov/general/privacy-security/index.html">Privacy and
+Security statement</A>.
+</P>
+
+
+
+
+
+
+
+
+
+
+<HR>
+
+<CENTER><H4>Recent SPPARKS News 
+</H4></CENTER>
+<UL><LI><IMG SRC = "images/new.gif"> (11/09) Release of 11 Nov 2009 version of
+SPPARKS.  New commands and features include: <A HREF = "doc/app_diffusion.html">app_style
+diffusion</A>, <A HREF = "doc/app_relax.html">app_style
+relax</A>, <A HREF = "doc/barrier.html">barrier</A>,
+<A HREF = "doc/create_box.html">create_box</A>,
+<A HREF = "doc/create_sites.html">create_sites</A>,
+<A HREF = "doc/deposition.html">deposition</A>, <A HREF = "doc/diag_propensity.html">diag_style
+propensity</A>,
+<A HREF = "doc/dimension.html">dimension</A>,
+<A HREF = "doc/dump_modify.html">dump_modify</A>,
+<A HREF = "doc/dump_one.html">dump_one</A>,
+<A HREF = "doc/lattice.html">lattice</A>
+<A HREF = "doc/pair_coeff.html">pair_coeff</A>,
+<A HREF = "doc/pair_style.html">pair_style</A>,
+<A HREF = "doc/processors.html">processors</A>,
+<A HREF = "doc/read_sites.html">read_sites</A>,
+<A HREF = "doc/region.html">region</A>, <A HREF = "doc/set.html">set</A>,
+<A HREF = "doc/undump.html">undump</A>, and Schwoebel hops via the
+<A HREF = "doc/app_diffusion.html">app_style diffusion</A> command.  See
+details <A HREF = "bug.html#11Nov09">here</A>. 
+
+<LI><IMG SRC = "images/new.gif"> (9/09) First <A HREF = "doc/app_style.html">off-lattice parallel
+application</A> added. 
+
+<LI><IMG SRC = "images/new.gif"> (4/09) Initial open-source release of
+SPPARKS. 
+</UL>
+<HR>
+
+<CENTER><H4>SPPARKS Highlight 
+</H4></CENTER>
+<CENTER>(see the <A HREF = "pictures.html">Pictures & Movies</A> page for more examples of
+SPPARKS calculations) 
+</CENTER>
+<P>This is work by Liz Holm (eaholm at sandia.gov) at Sandia and Todd
+Hoffmann (todd.hoffmann at asu.edu) and his advisor at Carnegie
+Mellon, to study the mechanisms and statistics associated with
+abnormal grain growth. In grain growth, when the system is annealed,
+grain boundaries will move and rearrange so as to increase the average
+grain size and decrease the grain boundary area per unit volume. In
+normal grain growth, this occurs relatively uniformly, but in abnormal
+grain growth, one grain grows at the expense of the others. Abnormal
+grain growth can have many causes. Here the effects of static particle
+dispersions on grain growth are studied. Particles should pin grain
+boundaries in positions that maximize their contact with the
+particles, so that grain growth cannot proceed. However, occasionally
+one grain breaks free and is able to grow at the expense of others,
+leading to abnormal growth.
+</P>
+<P>The images and movies show typical results for a 300x300x300 lattice,
+run for a million Monte Carlo steps (sweep over all lattice istes),
+with 5 volume percent pinning particles, inserted when the average
+grain radius was 10 sites.  In the normal case, the system becomes
+fully pinned.  In the second case, abnormal growth eventually occurs.
+</P>
+<A HREF = "spparks/images/normal.jpg"><IMG SRC = "spparks/images/normal_small.jpg"></A>
+
+<A HREF = "spparks/images/abnormal.jpg"><IMG SRC = "spparks/images/abnormal_small.jpg"></A>
+
+<A HREF = "spparks/movies/normal.avi"><IMG SRC = "spparks/images/normal_small.jpg"></A>
+
+<A HREF = "spparks/movies/abnormal.avi"><IMG SRC = "spparks/images/abnormal_small.jpg"></A>
+
+<P>Two images and two 1.5 Mb AVI movies
+</P>
+<!-- Past SPPARKS highlights:
+2 Oct 2009, Liz abnormal grain growth
+-->
+
+</HTML>
