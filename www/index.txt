@@ -125,10 +125,10 @@ with 5 volume percent pinning particles, inserted when the average
 grain radius was 10 sites.  In the normal case, the system becomes
 fully pinned.  In the second case, abnormal growth eventually occurs.
 
-:image(spparks/images/normal_small.jpg,spparks/images/normal.jpg)
-:image(spparks/images/abnormal_small.jpg,spparks/images/abnormal.jpg)
-:image(spparks/images/normal_small.jpg,spparks/movies/normal.avi)
-:image(spparks/images/abnormal_small.jpg,spparks/movies/abnormal.avi)
+:image(images/normal_small.jpg,spparks/images/normal.jpg)
+:image(images/abnormal_small.jpg,spparks/images/abnormal.jpg)
+:image(images/normal_small.jpg,spparks/movies/normal.avi)
+:image(images/abnormal_small.jpg,spparks/movies/abnormal.avi)
 
 Two images and two 1.5 Mb AVI movies
 
