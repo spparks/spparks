@@ -464,8 +464,6 @@ void CreateSites::structured_connectivity()
       yneigh = (jneigh + basis[mneigh][1])*ylattice + yorig;
       zneigh = (kneigh + basis[mneigh][2])*zlattice + zorig;
 
-      //printf("BBB %d %d: %g %g %g\n",i,j,xneigh,yneigh,zneigh);
-
       // remap neighbor coords and indices into periodic box
 
       if (xperiodic) {
@@ -502,9 +500,6 @@ void CreateSites::structured_connectivity()
 	}
       }
 
-      //printf("CCC %d %d: %d %d %d %d\n",i,j,ineigh,jneigh,kneigh,mneigh);
-      //printf("DDD %d %d: %g %g %g\n",i,j,xneigh,yneigh,zneigh);
-
       // discard neighs that are outside non-periodic box or region
 
       if (nonperiodic) {
@@ -521,8 +516,6 @@ void CreateSites::structured_connectivity()
       gid = (kneigh-zlo)*(yhi-ylo+1)*(xhi-xlo+1)*nbasis + 
 	(jneigh-ylo)*(xhi-xlo+1)*nbasis + (ineigh-xlo)*nbasis + mneigh + 1;
 
-      //printf("EEE %d %d: %d\n",i,j,gid);
-
       if (style == BOX && nonperiodic == 0 && (gid <= 0 || gid > nglobal))
 	error->all(FLERR,"Bad neighbor site ID");
 
@@ -530,11 +523,6 @@ void CreateSites::structured_connectivity()
 
       idneigh[i][numneigh[i]++] = gid;
     }
-
-    //printf("NEIGH %d: %d\n",id[i],numneigh[i]);
-    //for (int m = 0; m < numneigh[i]; m++)
-    //  printf(" %d",idneigh[i][m]);
-    //printf("\n");
   }
 
   // delete siteijk and connectivity offsets
@@ -904,6 +892,27 @@ void CreateSites::random_connectivity()
   memory->sfree(bufsend);
   memory->sfree(bufcopy);
   memory->sfree(bufrecv);
+}
+
+/* ----------------------------------------------------------------------
+   set maxneigh and initialize idneigh when lattice created via read_sites
+   called from read_sites when it reads in sites and neighbors
+ ------------------------------------------------------------------------- */
+
+void CreateSites::read_sites(AppLattice *apl)
+{
+  int i,j;
+
+  maxneigh = apl->maxneigh;
+  memory->create(idneigh,app->nlocal,maxneigh,"create:idneigh");
+
+  int *numneigh = apl->numneigh;
+  int **neighbor = apl->neighbor;
+  int nlocal = app->nlocal;
+
+  for (i = 0; i < nlocal; i++)
+    for (j = 0; j < numneigh[i]; j++)
+      idneigh[i][j] = neighbor[i][j];
 }
 
 /* ----------------------------------------------------------------------

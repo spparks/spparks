@@ -70,7 +70,8 @@ void ReadSites::command(int narg, char **arg)
     error->all(FLERR,"Cannot run 2d simulation with nonperiodic Z dimension");
   if (domain->dimension == 1 && 
       (domain->yperiodic == 0 || domain->zperiodic == 0))
-    error->all(FLERR,"Cannot run 1d simulation with nonperiodic Y or Z dimension");
+    error->all(FLERR,
+	       "Cannot run 1d simulation with nonperiodic Y or Z dimension");
 
   if (app->appclass == App::LATTICE) {
     applattice = (AppLattice *) app;
@@ -164,6 +165,7 @@ void ReadSites::command(int narg, char **arg)
 
   if (neighflag) {
     CreateSites *cs = new CreateSites(spk);
+    cs->read_sites(applattice);
     cs->ghosts_from_connectivity(applattice,applattice->delpropensity);
     applattice->print_connectivity();
     delete cs;
@@ -193,7 +195,7 @@ void ReadSites::header()
   int n;
   char *ptr;
 
-  char *section_keywords[NSECTIONS] = {"Sites","Neighbors","Values",};
+  char *section_keywords[NSECTIONS] = {"Sites","Neighbors","Values"};
   
   // skip 1st line of file
 
@@ -256,22 +258,26 @@ void ReadSites::header()
 	error->all(FLERR,"Off-lattice application data file "
 		   "cannot have maxneigh setting");
       if (app->sites_exist && maxneigh != applattice->maxneigh)
-	error->all(FLERR,"Data file maxneigh setting does not match existing sites");
+	error->all(FLERR,
+		   "Data file maxneigh setting does not match existing sites");
     } else if (strstr(line,"xlo xhi")) {
       sscanf(line,"%lg %lg",&boxxlo,&boxxhi);
       if (domain->box_exist && (fabs(domain->boxxlo-boxxlo) > EPSILON ||
 				fabs(domain->boxxhi-boxxhi) > EPSILON))
-	  error->all(FLERR,"Data file simluation box different that current box");
+	  error->all(FLERR,
+		     "Data file simluation box different that current box");
     } else if (strstr(line,"ylo yhi")) {
       sscanf(line,"%lg %lg",&boxylo,&boxyhi);
       if (domain->box_exist && (fabs(domain->boxylo-boxylo) > EPSILON ||
 				fabs(domain->boxyhi-boxyhi) > EPSILON))
-	  error->all(FLERR,"Data file simluation box different that current box");
+	  error->all(FLERR,
+		     "Data file simluation box different that current box");
     } else if (strstr(line,"zlo zhi")) {
       sscanf(line,"%lg %lg",&boxzlo,&boxzhi);
       if (domain->box_exist && (fabs(domain->boxzlo-boxzlo) > EPSILON ||
 				fabs(domain->boxzhi-boxzhi) > EPSILON))
-	  error->all(FLERR,"Data file simluation box different that current box");
+	  error->all(FLERR,
+		     "Data file simluation box different that current box");
     } else break;
   }
 
@@ -530,7 +536,8 @@ void ReadSites::values()
     int nwords = count_words(buf);
     *next = '\n';
 
-    if (nwords != nvalues+1) error->all(FLERR,"Incorrect value format in data file");
+    if (nwords != nvalues+1) 
+      error->all(FLERR,"Incorrect value format in data file");
 
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');

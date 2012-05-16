@@ -29,6 +29,7 @@ class CreateSites : protected Pointers {
  public:
   CreateSites(class SPPARKS *);
   void command(int, char **);
+  void read_sites(class AppLattice *);
   void ghosts_from_connectivity(class AppLattice *, int);
 
  private:
