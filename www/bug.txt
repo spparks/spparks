@@ -35,6 +35,20 @@ describe the version you have. :ule,l
 :line
 :line
 
+[19 May 2012]
+
+Xiaowang Zhou (Sandia) ran into a bug with the
+"create_sites"_doc/create_sites.html command when it was calculating
+lattice connectivity with periodic lattices defined for simulation
+boxes that were specified at arbitrary positions (not at the origin).
+Due to a round-off issue, site-to-site connectitivy was sometimes
+mixed up.  This patch should fix the problem.
+
+This is the "list of changed files"_patches/files.19May12 from the 18
+May 2012 version.
+
+:line
+
 [18 May 2012]
 
 Greg Ho (Lockheed Martin) identified a bug when lattice sites
