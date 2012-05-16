@@ -35,6 +35,18 @@ describe the version you have. :ule,l
 :line
 :line
 
+[17 May 2012]
+
+Seyed Mehdi Vaez Allaei and Morteza Jalalvand (U Tehran) found and
+fixed a indexing bug when using "off-lattice
+applications"_doc/app_style.html and reading in per-site values from a
+file via the "read_sites"_doc/read_sites.html command.
+
+This is the "list of changed files"_patches/files.17May12 from the 16
+May 2012 version.
+
+:line
+
 [16 May 2012]
 
 Craig Jolley flagged a bug with the "solve_style

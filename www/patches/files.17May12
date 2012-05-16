@@ -1,0 +1,5 @@
+16May12 version files changed by 17May12 upgrade:
+
+doc/Manual.pdf
+src/app_off_lattice.cpp
+src/version.h
