@@ -244,11 +244,11 @@ void CreateSites::structured_lattice()
   }
 
   // if dim is periodic:
-  // lattice origin = lower box boundary
-  // loop bounds = 0 to N-1
+  //   lattice origin = lower box boundary
+  //   loop bounds = 0 to N-1
   // if dim is non-periodic:
-  // lattice origin = 0.0
-  // loop bounds = enough to tile box completely, with all basis atoms
+  //   lattice origin = 0.0
+  //   loop bounds = enough to tile box completely, with all basis atoms
 
   if (xperiodic) {
     xorig = boxxlo;
@@ -293,7 +293,7 @@ void CreateSites::structured_lattice()
   }
   
   // generate xyz coords and store them with site ID
-  // tile the simulation box from origin at (0,0,0) respecting PBC
+  // tile the simulation box from origin, respecting PBC
   // site IDs should be contiguous if style = BOX and fully periodic
   // for non-periodic dims, check if site is within global box
   // for style = REGION, check if site is within region
@@ -340,8 +340,6 @@ void CreateSites::structured_lattice()
 	  siteijk[nlocal-1][1] = j;
 	  siteijk[nlocal-1][2] = k;
 	  siteijk[nlocal-1][3] = m;
-
-	  //printf("SITE %d: %d %d %d %d: %g %g %g\n",n,i,j,k,m,x,y,z);
 
 	  if (valueflag == IARRAY) {
 	    if (basisflag[m+1])
@@ -455,8 +453,6 @@ void CreateSites::structured_connectivity()
       kneigh = siteijk[i][2] + cmap[m][j][2];
       mneigh = cmap[m][j][3];
 
-      //printf("AAA %d %d: %d %d %d %d\n",i,j,ineigh,jneigh,kneigh,mneigh);
-
       // xyz neigh = coords of neighbor site
       // calculated in same manner that structured_lattice() generated coords
 
@@ -464,36 +460,36 @@ void CreateSites::structured_connectivity()
       yneigh = (jneigh + basis[mneigh][1])*ylattice + yorig;
       zneigh = (kneigh + basis[mneigh][2])*zlattice + zorig;
 
-      // remap neighbor coords and indices into periodic box
+      // remap neighbor coords and indices into periodic box via ijk neigh
 
       if (xperiodic) {
-	if (xneigh < boxxlo) {
+	if (ineigh < 0) {
 	  xneigh += xprd;
 	  ineigh += nx;
 	}
-	if (xneigh >= boxxhi) {
+	if (ineigh >= nx) {
 	  xneigh -= xprd;
 	  xneigh = MAX(xneigh,boxxlo);
 	  ineigh -= nx;
 	}
       }
       if (yperiodic) {
-	if (yneigh < boxylo) {
+	if (jneigh < 0) {
 	  yneigh += yprd;
 	  jneigh += ny;
 	}
-	if (yneigh >= boxyhi) {
+	if (jneigh >= ny) {
 	  yneigh -= yprd;
 	  yneigh = MAX(yneigh,boxylo);
 	  jneigh -= ny;
 	}
       }
       if (zperiodic) {
-	if (zneigh < boxzlo) {
+	if (kneigh < 0) {
 	  zneigh += zprd;
 	  kneigh += nz;
 	}
-	if (zneigh >= boxzhi) {
+	if (kneigh >= nz) {
 	  zneigh -= zprd;
 	  zneigh = MAX(zneigh,boxzlo);
 	  kneigh -= nz;

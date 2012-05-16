@@ -15,6 +15,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "ctype.h"
 #include "input.h"
 #include "universe.h"
 #include "variable.h"
@@ -108,20 +109,24 @@ Input::~Input()
 
 void Input::file()
 {
-  int n;
+  int m,n;
 
   while (1) {
     
     // read one line from input script
     // if line ends in continuation char '&', concatenate next line(s)
-    // n = str length of line
-    
+    // n = length of line including str terminator, 0 if end of file
+    // m = position of last printable char in line or -1 if blank line
+
     if (me == 0) {
-      if (fgets(line,MAXLINE,infile) == NULL) n = 0;
-      else n = strlen(line) + 1;
-      while (n >= 3 && line[n-3] == '&') {
-	if (fgets(&line[n-3],MAXLINE-n+3,infile) == NULL) n = 0;
+      m = 0;
+      while (1) {
+	if (fgets(&line[m],MAXLINE-m,infile) == NULL) n = 0;
 	else n = strlen(line) + 1;
+	if (n == 0) break;
+	m = n-2;
+	while (m >= 0 && isspace(line[m])) m--;
+	if (m < 0 || line[m] != '&') break;
       }
     }
 
