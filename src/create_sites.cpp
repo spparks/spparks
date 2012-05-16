@@ -52,7 +52,8 @@ CreateSites::CreateSites(SPPARKS *spk) : Pointers(spk) {}
 
 void CreateSites::command(int narg, char **arg)
 {
-  if (app == NULL) error->all(FLERR,"Create_sites command before app_style set");
+  if (app == NULL) 
+    error->all(FLERR,"Create_sites command before app_style set");
   if (domain->box_exist == 0) 
     error->all(FLERR,"Create_sites command before simulation box is defined");
   if (app->sites_exist == 1) 
@@ -70,7 +71,8 @@ void CreateSites::command(int narg, char **arg)
     style = REGION;
     if (narg < 2) error->all(FLERR,"Illegal create_sites command");
     nregion = domain->find_region(arg[1]);
-    if (nregion == -1) error->all(FLERR,"Create_sites region ID does not exist");
+    if (nregion == -1) 
+      error->all(FLERR,"Create_sites region ID does not exist");
     iarg = 2;
   } else error->all(FLERR,"Illegal create_sites command");
 

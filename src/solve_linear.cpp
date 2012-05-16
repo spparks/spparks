@@ -124,6 +124,8 @@ int SolveLinear::event(double *pdt)
   }
 
   *pdt = -1.0/sum * log(random->uniform());
-  return m;
+
+  if (m < nevents) return m;
+  return nevents-1;
 }
 

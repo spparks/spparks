@@ -814,7 +814,8 @@ void CommLattice::create_recv_from_list(int nsite, Site *buf, Swap *swap)
   // error if any site is not filled in
 
   for (i = 0; i < nsite; i++) {
-    if (buf[i].proc == -1) error->one(FLERR,"Site-site interaction was not found");
+    if (buf[i].proc == -1) 
+      error->one(FLERR,"Site-site interaction was not found");
 
     // if sending proc not in rproc[], add proc to recv list and to hash
     // irecv = location of this proc in recv lists
