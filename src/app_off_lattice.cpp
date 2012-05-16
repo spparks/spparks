@@ -143,11 +143,14 @@ void AppOffLattice::init()
   if (nprocs > 1 && sectorflag == 0 && solve)
     error->all(FLERR,"Cannot use KMC solver in parallel with no sectors");
   if (nprocs > 1 && sectorflag == 0 && sweepflag == RANDOM)
-    error->all(FLERR,"Cannot use random rejection KMC in parallel with no sectors");
+    error->all(FLERR,
+	       "Cannot use random rejection KMC in parallel with no sectors");
   if (nprocs > 1 && sectorflag == 0 && sweepflag == RASTER)
-    error->all(FLERR,"Cannot use raster rejection KMC in parallel with no sectors");
+    error->all(FLERR,
+	       "Cannot use raster rejection KMC in parallel with no sectors");
 
-  if (sweepflag && dt_sweep == 0.0) error->all(FLERR,"App did not set dt_sweep");
+  if (sweepflag && dt_sweep == 0.0) 
+    error->all(FLERR,"App did not set dt_sweep");
 
   // total size of a site = id + xyz + per-site quantities
 
@@ -1698,6 +1701,6 @@ void AppOffLattice::add_site(tagint n, double x, double y, double z)
 
 void AppOffLattice::add_values(int i, char **values)
 {
-  for (int m = 0; m < ninteger; m++) iarray[m][i] = atoi(values[i]);
-  for (int m = 0; m < ndouble; m++) darray[m][i] = atof(values[i+ninteger]);
+  for (int m = 0; m < ninteger; m++) iarray[m][i] = atoi(values[m]);
+  for (int m = 0; m < ndouble; m++) darray[m][i] = atof(values[m+ninteger]);
 }
