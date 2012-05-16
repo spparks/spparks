@@ -35,6 +35,20 @@ describe the version you have. :ule,l
 :line
 :line
 
+[18 May 2012]
+
+Greg Ho (Lockheed Martin) identified a bug when lattice sites
+(positions and neighbors) are read in thru a
+"read_sites"_doc/read_sites.html command, as opposed to being
+intialized thru a "create_sites"_doc/create_sites.html command and
+just having their values setup via a read_sites file.  I believe this
+bug was introduced by some of the changes to SPPARKS last fall.
+
+This is the "list of changed files"_patches/files.18May12 from the 17
+May 2012 version.
+
+:line
+
 [17 May 2012]
 
 Seyed Mehdi Vaez Allaei and Morteza Jalalvand (U Tehran) found and
