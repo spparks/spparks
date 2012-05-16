@@ -35,6 +35,18 @@ describe the version you have. :ule,l
 :line
 :line
 
+[16 May 2012]
+
+Craig Jolley flagged a bug with the "solve_style
+linear"_doc/solve_style.html command, that can occasionally occur due
+to round-off when adding up a long list of probabilities.  This patch
+should fix it.
+
+This is the "list of changed files"_patches/files.16May12 from the 20
+Jan 2012 version.
+
+:line
+
 [20 Jan 2012]
 
 Changed the Makefile to use a Make.sh script for finding style files
