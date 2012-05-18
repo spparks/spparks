@@ -195,7 +195,7 @@ void ReadSites::header()
   int n;
   char *ptr;
 
-  char *section_keywords[NSECTIONS] = {"Sites","Neighbors","Values"};
+  const char *section_keywords[NSECTIONS] = {"Sites","Neighbors","Values"};
   
   // skip 1st line of file
 
