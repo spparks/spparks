@@ -228,7 +228,8 @@ void Output::add_dump(int narg, char **arg)
   if (narg < 2) error->all(FLERR,"Illegal dump command");
 
   for (int i = 0; i < ndump; i++)
-    if (strcmp(dumplist[i]->id,arg[0]) == 0) error->all(FLERR,"Reuse of dump ID");
+    if (strcmp(dumplist[i]->id,arg[0]) == 0) 
+      error->all(FLERR,"Reuse of dump ID");
 
   // extend Dump list if necessary
 
@@ -265,7 +266,8 @@ void Output::dump_one(int narg, char **arg)
   int i;
   for (i = 0; i < ndump; i++)
     if (strcmp(dumplist[i]->id,arg[0]) == 0) break;
-  if (i == ndump) error->all(FLERR,"Could not find dump ID in dump_one command");
+  if (i == ndump) 
+    error->all(FLERR,"Could not find dump ID in dump_one command");
 
   if (dumplist[i]->idump == 0)
     error->all(FLERR,"Cannot use dump_one for first snapshot in dump file");
@@ -282,7 +284,8 @@ void Output::dump_modify(int narg, char **arg)
   int i;
   for (i = 0; i < ndump; i++)
     if (strcmp(dumplist[i]->id,arg[0]) == 0) break;
-  if (i == ndump) error->all(FLERR,"Could not find dump ID in dump_modify command");
+  if (i == ndump) 
+    error->all(FLERR,"Could not find dump ID in dump_modify command");
 
   dumplist[i]->modify_params(narg-1,&arg[1]);
 }
