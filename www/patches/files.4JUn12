@@ -1,0 +1,6 @@
+19May12 version files changed by 4JUn12 upgrade:
+
+doc/Manual.pdf
+src/output.cpp
+src/read_sites.cpp
+src/version.h

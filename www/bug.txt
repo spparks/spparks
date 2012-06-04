@@ -35,6 +35,16 @@ describe the version you have. :ule,l
 :line
 :line
 
+[4 Jun 2012]
+
+Eric Homer (BYU) fixed a memory bug with the "undump"_doc/undump.html
+command.
+
+This is the "list of changed files"_patches/files.4Jun12 from the 19
+May 2012 version.
+
+:line
+
 [19 May 2012]
 
 Xiaowang Zhou (Sandia) ran into a bug with the
