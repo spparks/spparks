@@ -298,7 +298,7 @@ void Output::undump(int narg, char **arg)
     if (strcmp(dumplist[i]->id,arg[0]) == 0) break;
   if (i == ndump) error->all(FLERR,"Could not find dump ID in undump command");
 
-  delete [] dumplist[i];
+  delete dumplist[i];
   for (int j = i; j < ndump-1; j++) dumplist[j] = dumplist[j+1];
   ndump--;
 }
