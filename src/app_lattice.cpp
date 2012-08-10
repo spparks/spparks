@@ -476,8 +476,6 @@ void AppLattice::iterate_kmc_global(double stoptime)
     isite = solve->event(&dt_step);
     timer->stamp(TIME_SOLVE);
 
-    printf("TIME: %d %g\n",isite,dt_step);
-
     if (isite >= 0) {
       time += dt_step;
       if (time <= stoptime) {
@@ -574,8 +572,6 @@ void AppLattice::iterate_kmc_sector(double stoptime)
 	isite = solve->event(&dt);
 	timer->stamp(TIME_SOLVE);
 	
-        printf("SECTOR TIME: %d %g\n",isite,dt);
-
 	if (isite < 0) done = 1;
 	else {
 	  timesector += dt;
