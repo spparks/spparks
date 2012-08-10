@@ -158,7 +158,8 @@ void Set::command(int narg, char **arg)
       } else if (arg[iarg+1][0] == 'i') {
 	int index = atoi(&arg[iarg+1][1]);
 	if (index < 1 || index > app->ninteger)
-	  error->all(FLERR,"Set if test on quantity application does not support");
+	  error->all(FLERR,
+                     "Set if test on quantity application does not support");
 	index--;
 	cond[ncondition].lhs = IARRAY;
 	cond[ncondition].type = INT;
@@ -167,7 +168,8 @@ void Set::command(int narg, char **arg)
       } else if (arg[iarg+1][0] == 'd') {
 	int index = atoi(&arg[iarg+1][1]);
 	if (index < 1 || index > app->ndouble)
-	  error->all(FLERR,"Set if test on quantity application does not support");
+	  error->all(FLERR,
+                     "Set if test on quantity application does not support");
 	index--;
 	cond[ncondition].lhs = DARRAY;
 	cond[ncondition].type = DOUBLE;

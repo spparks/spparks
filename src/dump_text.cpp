@@ -47,12 +47,12 @@ DumpText::DumpText(SPPARKS *spk, int narg, char **arg) : Dump(spk, narg, arg)
     def = 1;
     narg = 9;
     argcopy = new char*[narg];
-    argcopy[4] = "id";
+    argcopy[4] = (char *) "id";
     argcopy[5] = new char[6];
     strcpy(argcopy[5],"site");
-    argcopy[6] = "x";
-    argcopy[7] = "y";
-    argcopy[8] = "z";
+    argcopy[6] = (char *) "x";
+    argcopy[7] = (char *) "y";
+    argcopy[8] = (char *) "z";
   } else argcopy = arg;
 
   // size_one may be shrunk below if additional optional args exist
@@ -77,9 +77,9 @@ DumpText::DumpText(SPPARKS *spk, int narg, char **arg) : Dump(spk, narg, arg)
 
   for (int i = 0; i < size_one; i++) {
     char *format;
-    if (vtype[i] == INT) format = "%d ";
-    else if (vtype[i] == DOUBLE) format = "%g ";
-    else if (vtype[i] == TAGINT) format = TAGINT_FORMAT " ";
+    if (vtype[i] == INT) format = (char *) "%d ";
+    else if (vtype[i] == DOUBLE) format = (char *) "%g ";
+    else if (vtype[i] == TAGINT) format = (char *) TAGINT_FORMAT " ";
     int n = strlen(format) + 1;
     vformat[i] = new char[n];
     strcpy(vformat[i],format);

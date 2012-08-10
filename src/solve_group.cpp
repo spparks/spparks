@@ -78,7 +78,7 @@ SolveGroup *SolveGroup::clone()
   arg[0] = style;
   arg[1] = new char[16];
   arg[2] = new char[16];
-  arg[3] = "ngroup";
+  arg[3] = (char *) "ngroup";
   arg[4] = new char[16];
 
   sprintf(arg[1],"%g",hi);

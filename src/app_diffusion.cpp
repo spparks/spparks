@@ -75,8 +75,6 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
 
   create_arrays();
 
-  dt_sweep = 1.0/maxneigh;
-
   esites = psites = NULL;
   echeck = pcheck = NULL;
   maxevent = 0;
@@ -195,7 +193,8 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
       barrier = sbarrier;
     } else error->all(FLERR,"Illegal barrier command");
     if (barrier == sbarrier && hopstyle != SCHWOEBEL)
-      error->all(FLERR,"Cannot define Schwoebel barrier without Schwoebel model");
+      error->all(FLERR,
+                 "Cannot define Schwoebel barrier without Schwoebel model");
 
     if (narg < 2 || narg > 4) error->all(FLERR,"Illegal barrier command");
     if (narg == 2) {
@@ -252,6 +251,7 @@ void AppDiffusion::init_app()
   allocated = 1;
 
   dimension = domain->dimension;
+  dt_sweep = 1.0/maxneigh;
 
   // site validity
 
