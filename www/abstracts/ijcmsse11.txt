@@ -1,0 +1,15 @@
+[Parallel Simulation of 3D Sintering]
+
+C. G. Cardona, V. Tikare, S. J. Plimpton, Int J Comp Materials Science
+and Surface Engineering, 4, 37-54 (2011).
+
+A three-dimensional parallel implementation of a Monte Carlo model for
+the microstructure evolution during sintering is presented. The model
+accounts for the main phenomena occurring during sintering, including
+grain growth, pore migration and vacancy annihilation. The parallel
+implementation is based on the SPPARKS code and enables the simulation
+of systems with large number of particles. Several examples are shown
+and results are compared with a serial implementation as well as
+experimental data available.
+
+Return to "Publications page"_../papers.html
