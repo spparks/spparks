@@ -20,6 +20,16 @@ link"_pdf/sand09.pdf, but note that it is a 45 Mb file!
 
 :line
 
+This paper is about a sintering application developed for SPPARKS by
+Cristina Garcia Cardona.  Time-evolution pictures of the process the
+model can simlulate can be found on "this page"_pictures.html.
+
+[Parallel Simulation of 3D Sintering], C. G. Cardona, V. Tikare,
+S. J. Plimpton, Int J Computational Materials Science and Surface
+Engineering, 4, 37-54 (2011).  ("abstract"_abstracts/ijcmsse11.html)
+
+:line
+
 This paper describes the most novel KMC or event-selection algorithm
 in SPPARKS, a constant-time composition-rejection algorithm, whose
 cost to select a single event is independent of the total number of
