@@ -88,5 +88,5 @@ class spparks:
     return None
 
   def energy(self):
+    self.lib.spparks_energy.restype = c_double
     return self.lib.spparks_energy(self.spk)
-
