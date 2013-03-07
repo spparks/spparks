@@ -1,0 +1,26 @@
+# SPPARKS Ising tests on generic lattice
+
+seed		 56789
+
+app_style	 ising
+
+dimension	 2
+lattice		 sq/4n 1.0
+region		 box block 0 50 0 50 -0.5 0.5
+create_box	 box
+create_sites	 box
+set		 site range 1 2
+
+sweep		 random
+#sweep		 raster mask yes
+#solve_style      tree
+sector		  yes
+
+diag_style       energy
+
+temperature	 0.0
+
+stats            10.0
+dump             1 text 10.0 dump.ising
+
+run              100.0
