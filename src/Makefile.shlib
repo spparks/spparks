@@ -1,17 +1,17 @@
-# SPPARKS library multiple-machine Makefile
+# LAMMPS shared library multiple-machine Makefile
 
 SHELL = /bin/sh
 
 # Definitions
 
 ROOT =	spparks
-EXE =	lib$(ROOT)_$@.a
+EXE =	lib$(ROOT)_$@.so
 
 SRC =	app.cpp app_chemistry.cpp app_cpm.cpp app_diffusion.cpp app_erbium.cpp app_ising.cpp app_ising_single.cpp app_lattice.cpp app_lwrf.cpp app_membrane.cpp app_off_lattice.cpp app_potts.cpp app_potts_neigh.cpp app_potts_neighonly.cpp app_potts_pin.cpp app_potts_strain.cpp app_relax.cpp app_sinter.cpp app_sos.cpp app_test_group.cpp cluster.cpp comm_lattice.cpp comm_off_lattice.cpp create_box.cpp create_sites.cpp diag.cpp diag_array.cpp diag_cluster.cpp diag_diffusion.cpp diag_energy.cpp diag_erbium.cpp diag_propensity.cpp diag_sinter_avg_neck_area.cpp diag_sinter_density.cpp diag_sinter_free_energy_pore.cpp diag_sinter_pore_curvature.cpp diag_sinter_total_neck_area.cpp domain.cpp dump.cpp dump_image.cpp dump_text.cpp error.cpp finish.cpp groups.cpp hash.cpp image.cpp input.cpp lattice.cpp library.cpp  math_extra.cpp memory.cpp output.cpp pair.cpp pair_lj_cut.cpp potential.cpp random_mars.cpp random_park.cpp read_sites.cpp region.cpp region_block.cpp region_cylinder.cpp region_intersect.cpp region_sphere.cpp region_union.cpp set.cpp shell.cpp solve.cpp solve_group.cpp solve_linear.cpp solve_tree.cpp spparks.cpp timer.cpp universe.cpp variable.cpp 
 
 INC =	app.h app_chemistry.h app_cpm.h app_diffusion.h app_erbium.h app_ising.h app_ising_single.h app_lattice.h app_lwrf.h app_membrane.h app_off_lattice.h app_potts.h app_potts_neigh.h app_potts_neighonly.h app_potts_pin.h app_potts_strain.h app_relax.h app_sinter.h app_sos.h app_test_group.h cluster.h comm_lattice.h comm_off_lattice.h create_box.h create_sites.h diag.h diag_array.h diag_cluster.h diag_diffusion.h diag_energy.h diag_erbium.h diag_propensity.h diag_sinter_avg_neck_area.h diag_sinter_density.h diag_sinter_free_energy_pore.h diag_sinter_pore_curvature.h diag_sinter_total_neck_area.h domain.h dump.h dump_image.h dump_text.h error.h finish.h groups.h hash.h image.h input.h lattice.h library.h math_const.h math_extra.h memory.h output.h pair.h pair_lj_cut.h pointers.h potential.h random_mars.h random_park.h read_sites.h region.h region_block.h region_cylinder.h region_intersect.h region_sphere.h region_union.h set.h shell.h solve.h solve_group.h solve_linear.h solve_tree.h spktype.h spparks.h style_app.h style_command.h style_diag.h style_dump.h style_pair.h style_region.h style_solve.h timer.h universe.h variable.h version.h 
 
-OBJ = 	$(SRC:.cpp=.o)
+OBJ =	$(SRC:.cpp=.o)
 
 # Targets
 
@@ -22,14 +22,17 @@ help:
 	for file in $$files; do head -1 $$file; done
 
 clean:
-	rm -rf Obj_*
+	rm -rf Obj_shlib_*
 
 .DEFAULT:
 	@test -f MAKE/Makefile.$@
-	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
-	@cp -p $(SRC) $(INC) Obj_$@
-	@cp MAKE/Makefile.$@ Obj_$@/Makefile
-	@cd Obj_$@; \
-	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
-          "EXE = ../$(EXE)" lib
-	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -r $(SRC) $(INC) Makefile*; fi
+	@if [ ! -d Obj_shlib_$@ ]; then mkdir Obj_shlib_$@; fi
+	@cp -p $(SRC) $(INC) Obj_shlib_$@
+	@cp MAKE/Makefile.$@ Obj_shlib_$@/Makefile
+	@cd Obj_shlib_$@; \
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" \
+          "INC = $(INC)" "EXE = ../$(EXE)" shlib
+	@rm -f libspparks.so
+	@ln -s $(EXE) libspparks.so
+	@if [ -d Obj_shlib_$@ ]; then cd Obj_shlib_$@; \
+          rm -f $(SRC) $(INC) Makefile*; fi

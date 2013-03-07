@@ -21,8 +21,14 @@ help:
 	@echo 'make clean-machine       delete object files for one machine'
 	@echo 'make tar                 spk_src.tar.gz of src dir'
 	@echo 'make tar-full            spk_full.tgz of repository trunk'
-	@echo 'make makelib             update Makefile.lib for library build'
-	@echo 'make makelist            update Makefile.list used by old makes'
+	@echo 'make makelib             create Makefile.lib for static library build'
+	@echo 'make makeshlib           create Makefile.shlib for shared library build'
+	@echo 'make makelist            create Makefile.list used by old makes'
+	@echo 'make -f Makefile.lib machine      build SPPARKS as static library for machine'
+	@echo 'make -f Makefile.shlib machine    build SPPARKS as shared library for machine'
+	@echo 'make -f Makefile.list machine     build SPPARKS from explicit list of files'
+	@echo 'make stubs               build dummy MPI library in STUBS'
+	@echo 'make install-python      install SPPARKS wrapper in Python'
 	@echo ''
 	@echo 'make machine             build SPPARKS where machine is one of:'
 	@echo ''
@@ -39,7 +45,8 @@ help:
 	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@cd Obj_$@; \
-	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
+	  "EXE = ../$(EXE)" ../$(EXE)
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm *.cpp *.h Makefile*; fi
 
 # Remove machine-specific object files
@@ -54,7 +61,7 @@ clean-all:
 clean-%:
 	rm -rf Obj_$(@:clean-%=%)
 
-# Create a tarball of working copy of src dir
+# Create a tarball of src dir
 
 tar:
 	@cd STUBS; make clean
@@ -72,15 +79,29 @@ tar-full:
 	tar -zcvf ../spk_full.tgz spparks/trunk; \
 	cd ..; rm -rf tmp_tardir
 
-# Update Makefile.lib and Makefile.list
+# Make MPI STUBS library
+
+stubs:
+	@cd STUBS; make clean; make
+
+# Create Makefile.lib, Makefile.shlib, and Makefile.list
 
 makelib:
 	@$(SHELL) Make.sh style
 	@$(SHELL) Make.sh Makefile.lib
 
+makeshlib:
+	@$(SHELL) Make.sh style
+	@$(SHELL) Make.sh Makefile.shlib
+
 makelist:
 	@$(SHELL) Make.sh style
 	@$(SHELL) Make.sh Makefile.list
+
+# install LAMMPS shared lib and Python wrapper for Python usage
+
+install-python:
+	@python ../python/install.py
 
 # The test feature is not documented on purpose
 # Run the tests in directory ../test using Makefile.$(TESTMACHINE)
