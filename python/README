@@ -39,8 +39,8 @@ demo.py	  	    invoke various SPPARKS library interface routines
 
 You can run a particular script in either of the following ways:
 
-% trivial.py in.trivial
-% python -i trivial.py in.trivial
+% trivial.py in.ising
+% python -i trivial.py in.ising
 
 The former assumes that you have changed the first line of the script
 to point to the Python installed on your box.
@@ -48,14 +48,14 @@ to point to the Python installed on your box.
 Run the Python scripts with the following SPPARKS input scripts and
 arguments:
 
-trivial.py in.trivial
+trivial.py in.ising
 demo.py
 
 You can un-comment the Pypar calls if you want to run these in
 parallel.  Then, for example, you can type:
 
-% mpirun -np 4 trivial.py in.trivial
-% mpirun -np 4 python trivial.py in.trivial
+% mpirun -np 4 trivial.py in.ising
+% mpirun -np 4 python trivial.py in.ising
 
 Each script has more documentation in the file that explains how to
 use it and what it is doing.
