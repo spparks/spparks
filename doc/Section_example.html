@@ -48,4 +48,20 @@ spk_linux < in.potts               # run the problem
 <P>Running the simulation produces the files <I>dump.potts</I> and
 <I>log.spparks</I>.
 </P>
+<P>If you add <A HREF = "dump_image.html">dump image</A> line(s) to the input script a
+series of JPG images will be produced by the run.  These can be viewed
+individually or turned into a movie or animated by tools like
+ImageMagick or QuickTime or various Windows-based tools.  See the
+<A HREF = "dump_image.html">dump image</A> doc page for more details.  E.g. this
+Imagemagick command would create a GIF file suitable for viewing in a
+browser.
+</P>
+<PRE>% convert -loop 1 *.jpg foo.gif 
+</PRE>
+<HR>
+
+<P>There is also a COUPLE directory with examples of how to use SPPARKS
+as a library, either by itself or in tandem with another code or
+library.  See the COUPLE/README file to get started.
+</P>
 </HTML>

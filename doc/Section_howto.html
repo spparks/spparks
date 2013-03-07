@@ -151,55 +151,46 @@ add a new command to SPPARKS.
 other code is the driver and calls SPPARKS as needed.  Or a wrapper
 code could link and call both SPPARKS and another code as libraries.
 </P>
-<P><A HREF = "Section_start.html#2_4">This section</A> of the documentation describes
-how to build SPPARKS as a library.  Once this is done, you can
-interface with SPPARKS either via C++, C, or Fortran (or any other
-language that supports a vanilla C-like interface, e.g. a scripting
-language).  For example, from C++ you could create one (or more)
-"instances" of SPPARKS, pass it an input script to process, or execute
-individual commands, all by invoking the correct class methods in
-SPPARKS.  From C or Fortran you can make function calls to do the same
-things.  Library.cpp and library.h contain such a C interface with the
-functions:
+<P>Examples of driver codes that call SPPARKS as a library are included in
+the examples/COUPLE directory of the SPPARKS distribution; see
+examples/COUPLE/README for more details:
 </P>
-<PRE>void spparks_open(int, char **, MPI_Comm, void **);
-void spparks_close(void *);
-void spparks_file(void *, char *);
-char *spparks_command(void *, char *); 
-</PRE>
-<P>The functions contain C++ code you could write in a C++ application
-that was invoking SPPARKS directly.  Note that SPPARKS classes are
-defined within a SPPARKS namespace (SPPARKS_NS) if you use them
-from another C++ application.
+<UL><LI>simple: simple driver programs in C++ and C which invoke SPPARKS as a
+library (NOTE: not yet available)  
+
+<LI>lammps_spparks: coupling of SPPARKS and <A HREF = "http://www.sandia.gov/~sjplimp/lammps.html">LAMMPS</A>, to couple a
+kinetic Monte Carlo model for grain growth using MD to calculate
+strain induced across grain boundaries 
+</UL>
+
+
+<P><A HREF = "Section_start.html#start_5">This section</A> of the documentation
+describes how to build SPPARKS as a library.  Once this is done, you
+can interface with SPPARKS either via C++, C, Fortran, or Python (or
+any other language that supports a vanilla C-like interface).  For
+example, from C++ you could create one (or more) "instances" of
+SPPARKS, pass it an input script to process, or execute individual
+commands, all by invoking the correct class methods in SPPARKS.  From
+C or Fortran you can make function calls to do the same things.  See
+<A HREF = "Section_python.html">Section_python</A> of the manual for a description
+of the Python wrapper provided with SPPARKS that operates through the
+SPPARKS library interface.
 </P>
-<P>Two of the routines in library.cpp are of particular note.  The
-SPPARKS_open() function initiates SPPARKS and takes an MPI communicator
-as an argument.  It returns a pointer to a SPPARKS "object".  As with
-C++, the SPPARKS_open() function can be called multiple times, to
-create multiple instances of SPPARKS.
+<P>The files src/library.cpp and library.h contain the C-style interface
+to SPPARKS.  See <A HREF = "Section_howto.html#howto_3">Section_howto 3</A> of the
+manual for a description of the interface and how to extend it for
+your needs.
 </P>
-<P>SPPARKS will run on the set of processors in the communicator.  This
-means the calling code can run SPPARKS on all or a subset of
-processors.  For example, a wrapper script might decide to alternate
-between SPPARKS and another code, allowing them both to run on all the
-processors.  Or it might allocate half the processors to SPPARKS and
-half to the other code and run both codes simultaneously before
-syncing them up periodically.
-</P>
-<P>Library.cpp contains a SPPARKS_command() function to which the caller
-passes a single SPPARKS command (a string).  Thus the calling code can
-read or generate a series of SPPARKS commands (e.g. an input script)
-one line at a time and pass it thru the library interface to setup a
-problem and then run it.
-</P>
-<P>A few other sample functions are included in library.cpp, but the key
-idea is that you can write any functions you wish to define an
-interface for how your code talks to SPPARKS and add them to
-library.cpp and library.h.  The routines you add can access any SPPARKS
-data.  The examples/couple directory has example C++ and C codes which
-show how a stand-alone code can link SPPARKS as a library, run SPPARKS
-on a subset of processors, grab data from SPPARKS, change it, and put
-it back into SPPARKS.
+<P>Note that the spparks_open() function that creates an instance of
+SPPARKS takes an MPI communicator as an argument.  This means that
+instance of SPPARKS will run on the set of processors in the
+communicator.  Thus the calling code can run SPPARKS on all or a subset
+of processors.  For example, a wrapper script might decide to
+alternate between SPPARKS and another code, allowing them both to run
+on all the processors.  Or it might allocate half the processors to
+SPPARKS and half to the other code and run both codes simultaneously
+before syncing them up periodically.  Or it might instantiate multiple
+instances of SPPARKS to perform different calculations.
 </P>
 <HR>
 

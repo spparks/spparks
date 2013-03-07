@@ -430,7 +430,11 @@ When used from a C or Fortran program or a scripting language like
 Python, the library has a simple function-style interface, provided in
 src/library.cpp and src/library.h.
 
-See "Section_python"_Section_python.html of the manual for a
+See the sample codes in examples/COUPLE/simple for examples of C++ and
+C and Fortran codes that invoke SPPARKS thru its library interface.
+There are other examples as well in the COUPLE directory which are
+discussed in "Section_howto 2"_Section_howto.html#howto_2 of the
+manual.  See "Section_python"_Section_python.html of the manual for a
 description of the Python wrapper provided with SPPARKS that operates
 through the SPPARKS library interface.
 
