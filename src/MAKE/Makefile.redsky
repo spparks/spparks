@@ -8,13 +8,17 @@ SHELL = /bin/sh
 
 CC =		mpicxx
 CCFLAGS =	-O
+SHFLAGS =	-fPIC
 DEPFLAGS =	-M
+
 LINK =		mpicxx
 LINKFLAGS =	-O
 LIB =	  	-lstdc++ -lm
+SIZE =		size
+
 ARCHIVE =	ar
 ARFLAGS =	-rc
-SIZE =		size
+SHLIBFLAGS =	-shared
 
 # ---------------------------------------------------------------------
 # SPPARKS-specific settings
@@ -56,53 +60,22 @@ $(EXE):	$(OBJ)
 	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
-# Library target
+# Library targets
 
 lib:	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
+shlib:	$(OBJ)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
+        $(OBJ) $(EXTRA_LIB) $(LIB)
+
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
-
-# Individual dependencies
-
-DEPENDS = $(OBJ:.o=.d)
-include $(DEPENDS)
-
-
-
-SHELL = /bin/sh
-.IGNORE:
-
-# System-specific settings
-
-CC =		mpicxx
-CCFLAGS =	-O
-DEPFLAGS =	-M
-LINK =		mpicxx
-LINKFLAGS =	-O
-USRLIB =	
-SYSLIB =	-lstdc++ -lm
-SIZE =		size
-
-# Link rule
-
-$(EXE):	$(OBJ)
-	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
-	$(SIZE) $(EXE)
-
-# Compilation rules
-
-%.o:%.cpp
-	$(CC) $(CCFLAGS) -c $<
-
-%.d:%.cpp
-	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
 
