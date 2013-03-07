@@ -18,10 +18,21 @@
 
 #include "mpi.h"
 
-void spparks_open(int, char **, MPI_Comm, void **);  /* start-up SPPARKS */
-void spparks_close(void *);                          /* shut-down SPPARKS */
-void spparks_file(void *, char *);                   /* run an input script */
-char *spparks_command(void *, char *);               /* execute a command */
+/* ifdefs allow this file to be included in a C program */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void spparks_open(int, char **, MPI_Comm, void **);
+void spparks_open_no_mpi(int, char **, void **);
+void spparks_close(void *);
+void spparks_file(void *, char *);
+char *spparks_command(void *, char *);
 
 void *spparks_extract(void *, char *);
 double spparks_energy(void *);
+
+#ifdef __cplusplus
+}
+#endif

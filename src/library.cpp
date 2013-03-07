@@ -37,6 +37,29 @@ void spparks_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 }
 
 /* ----------------------------------------------------------------------
+   create an instance of SPPARKS and return pointer to it
+   caller doesn't know MPI communicator, so use MPI_COMM_WORLD
+   intialize MPI if needed
+------------------------------------------------------------------------- */
+
+void spparks_open_no_mpi(int argc, char **argv, void **ptr)
+{
+  int flag;
+  MPI_Initialized(&flag);
+
+  if (!flag) {
+    int argc = 0;
+    char **argv = NULL;
+    MPI_Init(&argc,&argv);
+  }
+
+  MPI_Comm communicator = MPI_COMM_WORLD;
+
+  SPPARKS *spk = new SPPARKS(argc,argv,communicator);
+  *ptr = (void *) spk;
+}
+
+/* ----------------------------------------------------------------------
    destruct an instance of SPPARKS
 ------------------------------------------------------------------------- */
 
