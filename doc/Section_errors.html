@@ -16,13 +16,13 @@ Section</A>
 <P>This section describes the various kinds of errors you can encounter
 when using SPPARKS.
 </P>
-9.1 <A HREF = "#9_1">Common problems</A><BR>
-9.2 <A HREF = "#9_2">Reporting bugs</A><BR>
-9.3 <A HREF = "#9_3">Error & warning messages</A> <BR>
+10.1 <A HREF = "#err_1">Common problems</A><BR>
+10.2 <A HREF = "#err_2">Reporting bugs</A><BR>
+10.3 <A HREF = "#err_3">Error & warning messages</A> <BR>
 
 <HR>
 
-<A NAME = "9_1"></A><H4>9.1 Common problems 
+<A NAME = "err_1"></A><H4>9.1 Common problems 
 </H4>
 <P>A SPPARKS simulation typically has two stages, setup and run.  Many
 SPPARKS errors are detected at setup time; others may not occur until
@@ -52,8 +52,8 @@ variable.
 gracefully when it encounters a fatal error.  Sometimes it will print
 a WARNING and continue on; you can decide if the WARNING is important
 or not.  If SPPARKS crashes or hangs without spitting out an error
-message first then it could be a bug (see <A HREF = "#9_2">this section</A>) or one
-of the following cases:
+message first then it could be a bug (see <A HREF = "#err_2">this section</A>) or
+one of the following cases:
 </P>
 <P>SPPARKS runs in the available memory each processor can allocate.  All
 large memory allocations in the code are done via C-style malloc's
@@ -76,7 +76,7 @@ buffering or boost the sizes of messages that can be buffered.
 </P>
 <HR>
 
-<A NAME = "9_2"></A><H4>9.2 Reporting bugs 
+<A NAME = "err_2"></A><H4>9.2 Reporting bugs 
 </H4>
 <P>If you are confident that you have found a bug in SPPARKS, please send
 an email to the developers.
@@ -94,7 +94,7 @@ request your input script and data files if necessary.
 </P>
 <HR>
 
-<H4><A NAME = "9_3"></A>9.3 Error & warning messages 
+<H4><A NAME = "err_3"></A>9.3 Error & warning messages 
 </H4>
 <P>These are two alphabetic lists of the <A HREF = "#error">ERROR</A> and
 <A HREF = "#warn">WARNING</A> messages SPPARKS prints out and the reason why.  If the

@@ -15,16 +15,16 @@ Section</A>
 </H3>
 <P>This section describes how to unpack, make, and run SPPARKS.
 </P>
-2.1 <A HREF = "#2_1">What's in the SPPARKS distribution</A><BR>
-2.2 <A HREF = "#2_2">Making SPPARKS</A><BR>
-2.3 <A HREF = "#2_3">Making SPPARKS with optional packages</A><BR>
-2.4 <A HREF = "#2_4">Building SPPARKS as a library</A><BR>
-2.5 <A HREF = "#2_5">Running SPPARKS</A><BR>
-2.6 <A HREF = "#2_6">Command-line options</A> <BR>
+2.1 <A HREF = "#start_1">What's in the SPPARKS distribution</A><BR>
+2.2 <A HREF = "#start_2">Making SPPARKS</A><BR>
+2.3 <A HREF = "#start_3">Making SPPARKS with optional packages</A><BR>
+2.4 <A HREF = "#start_4">Building SPPARKS as a library</A><BR>
+2.5 <A HREF = "#start_5">Running SPPARKS</A><BR>
+2.6 <A HREF = "#start_6">Command-line options</A> <BR>
 
 <HR>
 
-<H4><A NAME = "2_1"></A>2.1 What's in the SPPARKS distribution 
+<H4><A NAME = "start_1"></A>2.1 What's in the SPPARKS distribution 
 </H4>
 <P>When you download SPPARKS you will need to unzip and untar the
 downloaded file with the following commands, after placing the tarball
@@ -46,21 +46,21 @@ sub-directories:
 
 <HR>
 
-<H4><A NAME = "2_2"></A>2.2 Making SPPARKS 
+<H4><A NAME = "start_2"></A>2.2 Making SPPARKS 
 </H4>
 <P>This section has the following sub-sections:
 </P>
-<UL><LI><A HREF = "#2_2_1">Read this first</A>
-<LI><A HREF = "#2_2_2">Building a SPPARKS executable</A>
-<LI><A HREF = "#2_2_3">Common errors that can occur when making SPPARKS</A>
-<LI><A HREF = "#2_2_4">Editing a new low-level Makefile</A>
-<LI><A HREF = "#2_2_5">Additional build tips</A>
-<LI><A HREF = "#2_2_6">Building for a Mac</A>
-<LI><A HREF = "#2_2_7">Building for Windows</A> 
+<UL><LI><A HREF = "#start_2_1">Read this first</A>
+<LI><A HREF = "#start_2_2">Building a SPPARKS executable</A>
+<LI><A HREF = "#start_2_3">Common errors that can occur when making SPPARKS</A>
+<LI><A HREF = "#start_2_4">Editing a new low-level Makefile</A>
+<LI><A HREF = "#start_2_5">Additional build tips</A>
+<LI><A HREF = "#start_2_6">Building for a Mac</A>
+<LI><A HREF = "#start_2_7">Building for Windows</A> 
 </UL>
 <HR>
 
-<A NAME = "2_2_1"></A><B><I>Read this first:</I></B> 
+<A NAME = "start_2_1"></A><B><I>Read this first:</I></B> 
 
 <P>Building SPPARKS can be non-trivial.  You will likely need to edit a
 makefile, there are compiler options, additional libraries can be used
@@ -71,7 +71,7 @@ you.
 </P>
 <HR>
 
-<A NAME = "2_2_2"></A><B><I>Building a SPPARKS executable:</I></B> 
+<A NAME = "start_2_2"></A><B><I>Building a SPPARKS executable:</I></B> 
 
 <P>The src directory contains the C++ source and header files for SPPARKS.
 It also contains a top-level Makefile and a MAKE sub-directory with
@@ -92,7 +92,7 @@ produced, you're done; it's your lucky day.
 </P>
 <HR>
 
-<A NAME = "2_2_3"></A><B><I>Common errors that can occur when making SPPARKS:</I></B> 
+<A NAME = "start_2_3"></A><B><I>Common errors that can occur when making SPPARKS:</I></B> 
 
 <P>(1) If the make command breaks immediately with errors that indicate
 it can't find files with a "*" in their names, this can be because
@@ -117,7 +117,7 @@ point.  See the next section for more instructions.
 </P>
 <HR>
 
-<A NAME = "2_2_4"></A><B><I>Editing a new low-level Makefile.foo:</I></B> 
+<A NAME = "start_2_4"></A><B><I>Editing a new low-level Makefile.foo:</I></B> 
 
 <P>These are the issues you need to address when editing a low-level
 Makefile for your machine.  With a couple exceptions, the only portion
@@ -234,7 +234,7 @@ gmake foo
 </P>
 <HR>
 
-<A NAME = "2_2_5"></A><B><I>Additional build tips:</I></B> 
+<A NAME = "start_2_5"></A><B><I>Additional build tips:</I></B> 
 
 <P>(1) Building SPPARKS for multiple platforms.
 </P>
@@ -279,13 +279,13 @@ per processor (2^31), which should not normally be a restriction since
 such a problem would have a huge per-processor memory footprint due to
 neighbor lists and would run very slowly in terms of CPU time.
 </P>
-<A NAME = "2_2_6"></A><B><I>Building for a Mac:</I></B> 
+<A NAME = "start_2_6"></A><B><I>Building for a Mac:</I></B> 
 
 <P>OS X is BSD Unix, so it already works.  See the Makefile.mac file.
 </P>
 <HR>
 
-<A NAME = "2_2_7"></A><B><I>Building for Windows:</I></B> 
+<A NAME = "start_2_7"></A><B><I>Building for Windows:</I></B> 
 
 <P>SPPARKS is just C++ with MPI calls, so it should be possible to build
 it for a Windows box, either using a Linux installation such as cygwin
@@ -298,7 +298,7 @@ to do this as part of SPPARKS.
 </P>
 <HR>
 
-<H4><A NAME = "2_3"></A>2.3 Making SPPARKS with optional packages 
+<H4><A NAME = "start_3"></A>2.3 Making SPPARKS with optional packages 
 </H4>
 <P>NOTE: this sub-section is currently a placeholder.  There are no
 packages distributed with the current version of SPPARKS.
@@ -336,58 +336,117 @@ versions of the same files.
 </P>
 <HR>
 
-<H4><A NAME = "2_4"></A>2.4 Building SPPARKS as a library 
+<H4><A NAME = "start_5"></A>2.4 Building SPPARKS as a library 
 </H4>
-<P>SPPARKS can be built as a library, which can then be called from
-another application or a scripting language.
-Building SPPARKS as a library is done by typing
+<P>SPPARKS can be built as either a static or shared library, which can
+then be called from another application or a scripting language.  See
+<A HREF = "Section_howto.html#howto_2">this section</A> for more info on coupling
+SPPARKS to other codes.  See <A HREF = "Section_python.html">this section</A> for
+more info on wrapping and running SPPARKS from Python.
+</P>
+<H5><B>Static library:</B> 
+</H5>
+<P>To build SPPARKS as a static library (*.a file on Linux), type
 </P>
 <PRE>make makelib
 make -f Makefile.lib foo 
 </PRE>
-<P>where foo is the machine name.  The first "make" command will create a
-current Makefile.lib with all the file names in your src dir.  The 2nd
-"make" command will use it to build SPPARKS as a library.  This
-requires that Makefile.foo have a library target (lib) and
-system-specific settings for ARCHIVE and ARFLAGS.  See Makefile.linux
-for an example.  The build will create the file libspk_foo.a which
-another application can link to.
+<P>where foo is the machine name.  This kind of library is typically used
+to statically link a driver application to SPPARKS, so that you can
+insure all dependencies are satisfied at compile time.  Note that
+inclusion or exclusion of any desired optional packages should be done
+before typing "make makelib".  The first "make" command will create a
+current Makefile.lib with all the file names in your src dir.  The
+second "make" command will use it to build SPPARKS as a static
+library, using the ARCHIVE and ARFLAGS settings in
+src/MAKE/Makefile.foo.  The build will create the file
+libspparks_foo.a which another application can link to.
 </P>
-<P>When used from a C++ program, the library allows one or more SPPARKS
-objects to be instantiated.  All of SPPARKS is wrapped in a SPPARKS_NS
-namespace; you can safely use any of its classes and methods from
-within your application code, as needed.
+<H5><B>Shared library:</B> 
+</H5>
+<P>To build SPPARKS as a shared library (*.so file on Linux), which can
+be dynamically loaded, e.g. from Python, type
 </P>
-<P>When used from a C or Fortran program or a scripting language, the
-library has a simple function-style interface, provided in library.cpp
-and library.h.
-</P>
-<P>You can add as many functions as you wish to library.cpp and
-library.h.  In a general sense, those functions can access SPPARKS data
-and return it to the caller or set SPPARKS data values as specified by
-the caller.  These 4 functions are currently included in library.cpp:
-</P>
-<PRE>void spparks_open(int, char **, MPI_Comm, void **ptr);
-void spparks_close(void *ptr);
-int spparks_file(void *ptr, char *);
-int spparks_command(void *ptr, char *); 
+<PRE>make makeshlib
+make -f Makefile.shlib foo 
 </PRE>
-<P>The SPPARKS_open() function is used to initialize SPPARKS, passing in a
-list of strings as if they were <A HREF = "#2_6">command-line arguments</A> when
-SPPARKS is run from the command line and a MPI communicator for SPPARKS
-to run under.  It returns a ptr to the SPPARKS object that is created,
-and which should be used in subsequent library calls.  Note that
-SPPARKS_open() can be called multiple times to create multiple SPPARKS
-objects.
+<P>where foo is the machine name.  This kind of library is required when
+wrapping SPPARKS with Python; see <A HREF = "Section_python.html">Section_python</A>
+for details.  Again, note that inclusion or exclusion of any desired
+optional packages should be done before typing "make makelib".  The
+first "make" command will create a current Makefile.shlib with all the
+file names in your src dir.  The second "make" command will use it to
+build SPPARKS as a shared library, using the SHFLAGS and SHLIBFLAGS
+settings in src/MAKE/Makefile.foo.  The build will create the file
+libspparks_foo.so which another application can link to dyamically.
+It will also create a soft link libspparks.so, which the Python
+wrapper uses by default.
 </P>
-<P>The SPPARKS_close() function is used to shut down SPPARKS and free all
-its memory.  The SPPARKS_file() and SPPARKS_command() functions are used
-to pass a file or string to SPPARKS as if it were an input file or
-single command read from an input script.
+<P>Note that for a shared library to be usable by a calling program, all
+the auxiliary libraries it depends on must also exist as shared
+libraries.  This will be the case for libraries included with SPPARKS,
+such as the dummy MPI library in src/STUBS since they are always built
+as shared libraries with the -fPIC switch.  However, if a library like
+MPI does not exist as a shared library, the second make command will
+generate an error.  This means you will need to install a shared
+library version of the package.  The build instructions for the
+library should tell you how to do this.
+</P>
+<P>As an example, here is how to build and install the <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH
+library</A>, a popular open-source version of MPI, distributed by
+Argonne National Labs, as a shared library in the default
+/usr/local/lib location:
+</P>
+
+
+<PRE>./configure --enable-shared
+make
+make install 
+</PRE>
+<P>You may need to use "sudo make install" in place of the last line if
+you do not have write privileges for /usr/local/lib.  The end result
+should be the file /usr/local/lib/libmpich.so.
+</P>
+<H5><B>Additional requirement for using a shared library:</B> 
+</H5>
+<P>The operating system finds shared libraries to load at run-time using
+the environment variable LD_LIBRARY_PATH.  So you may wish to copy the
+file src/libspparks.so or src/libspparks_g++.so (for example) to a place
+the system can find it by default, such as /usr/local/lib, or you may
+wish to add the SPPARKS src directory to LD_LIBRARY_PATH, so that the
+current version of the shared library is always available to programs
+that use it.
+</P>
+<P>For the csh or tcsh shells, you would add something like this to your
+~/.cshrc file:
+</P>
+<PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/spparks/src 
+</PRE>
+<H5><B>Calling the SPPARKS library:</B> 
+</H5>
+<P>Either flavor of library (static or shared0 allows one or more SPPARKS
+objects to be instantiated from the calling program.
+</P>
+<P>When used from a C++ program, all of SPPARKS is wrapped in a SPPARKS_NS
+namespace; you can safely use any of its classes and methods from
+within the calling code, as needed.
+</P>
+<P>When used from a C or Fortran program or a scripting language like
+Python, the library has a simple function-style interface, provided in
+src/library.cpp and src/library.h.
+</P>
+<P>See <A HREF = "Section_python.html">Section_python</A> of the manual for a
+description of the Python wrapper provided with SPPARKS that operates
+through the SPPARKS library interface.
+</P>
+<P>The files src/library.cpp and library.h define the C-style API for
+using SPPARKS as a library.  See <A HREF = "Section_howto.html#howto_3">Section_howto
+3</A> of the manual for a description of the
+interface and how to extend it for your needs.
 </P>
 <HR>
 
-<H4><A NAME = "2_5"></A>2.5 Running SPPARKS 
+<H4><A NAME = "start_5"></A>2.5 Running SPPARKS 
 </H4>
 <P>By default, SPPARKS runs by reading commands from stdin;
 e.g. spk_linux < in.file.  This means you first create an input script
@@ -435,7 +494,7 @@ memory, you must run on more processors or setup a smaller problem.
 </P>
 <HR>
 
-<H4><A NAME = "2_6"></A>2.6 Command-line options 
+<H4><A NAME = "start_6"></A>2.6 Command-line options 
 </H4>
 <P>At run time, SPPARKS recognizes several optional command-line switches
 which may be used in any order.  For example, spk_ibm might be

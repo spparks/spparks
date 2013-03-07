@@ -16,15 +16,15 @@ Section</A>
 <P>This section describes how a SPPARKS input script is formatted and
 what commands are used to define a simulation.
 </P>
-3.1 <A HREF = "#3_1">SPPARKS input script</A><BR>
-3.2 <A HREF = "#3_2">Parsing rules</A><BR>
-3.3 <A HREF = "#3_3">Input script structure</A><BR>
-3.4 <A HREF = "#3_4">Commands listed by category</A><BR>
-3.5 <A HREF = "#3_5">Commands listed alphabetically</A> <BR>
+3.1 <A HREF = "#cmd_1">SPPARKS input script</A><BR>
+3.2 <A HREF = "#cmd_2">Parsing rules</A><BR>
+3.3 <A HREF = "#cmd_3">Input script structure</A><BR>
+3.4 <A HREF = "#cmd_4">Commands listed by category</A><BR>
+3.5 <A HREF = "#cmd_5">Commands listed alphabetically</A> <BR>
 
 <HR>
 
-<A NAME = "3_1"></A><H4>3.1 SPPARKS input script 
+<A NAME = "cmd_1"></A><H4>3.1 SPPARKS input script 
 </H4>
 <P>SPPARKS executes by reading commands from a input script (text file),
 one line at a time.  When the input script ends, SPPARKS exits.  Each
@@ -74,7 +74,7 @@ command lists restrictions on how the command can be used.
 </P>
 <HR>
 
-<A NAME = "3_2"></A><H4>3.2 Parsing rules 
+<A NAME = "cmd_2"></A><H4>3.2 Parsing rules 
 </H4>
 <P>Each non-blank line in the input script is treated as a command.
 SPPARKS commands are case sensitive.  Command names are lower-case, as
@@ -117,7 +117,7 @@ comment or substituted for as a variable.
 </P>
 <HR>
 
-<H4><A NAME = "3_3"></A>3.3 Input script structure 
+<H4><A NAME = "cmd_3"></A>3.3 Input script structure 
 </H4>
 <P>This section describes the structure of a typical SPPARKS input
 script.  The "examples" directory in the SPPARKS distribution contains
@@ -162,10 +162,10 @@ setup various diagnostic computations to perform during a simulation.
 </P>
 <HR>
 
-<A NAME = "3_4"></A><H4>3.4 Commands listed by category 
+<A NAME = "cmd_4"></A><H4>3.4 Commands listed by category 
 </H4>
 <P>This section lists all SPPARKS commands, grouped by category.  The
-<A HREF = "#3_5">next section</A> lists the same commands alphabetically.  Note that
+<A HREF = "#cmd_5">next section</A> lists the same commands alphabetically.  Note that
 some commands are only usable with certain applications.  Also, some
 style options for some commands are part of specific SPPARKS packages,
 which means they cannot be used unless the package was included when
@@ -239,16 +239,16 @@ documentation.
 </P>
 <HR>
 
-<H4><A NAME = "3_5"></A><A NAME = "comm"></A>3.5 Individual commands 
+<H4><A NAME = "cmd_5"></A><A NAME = "comm"></A>3.5 Individual commands 
 </H4>
 <P>This section lists all SPPARKS commands alphabetically, with a
 separate listing below of styles within certain commands.  The
-<A HREF = "#3_4">previous section</A> lists the same commands, grouped by category.
-Note that some commands are only usable with certain applications.
-Also, some style options for some commands are part of specific
-SPPARKS packages, which means they cannot be used unless the package
-was included when SPPARKS was built.  Not all packages are included in
-a default SPPARKS build.  These dependencies are listed as
+<A HREF = "#cmd_4">previous section</A> lists the same commands, grouped by
+category.  Note that some commands are only usable with certain
+applications.  Also, some style options for some commands are part of
+specific SPPARKS packages, which means they cannot be used unless the
+package was included when SPPARKS was built.  Not all packages are
+included in a default SPPARKS build.  These dependencies are listed as
 Restrictions in the command's documentation.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >

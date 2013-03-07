@@ -13,13 +13,13 @@ Section"_Section_future.html :c
 This section describes the various kinds of errors you can encounter
 when using SPPARKS.
 
-9.1 "Common problems"_#9_1
-9.2 "Reporting bugs"_#9_2
-9.3 "Error & warning messages"_#9_3 :all(b)
+10.1 "Common problems"_#err_1
+10.2 "Reporting bugs"_#err_2
+10.3 "Error & warning messages"_#err_3 :all(b)
 
 :line
 
-9.1 Common problems :link(9_1),h4
+9.1 Common problems :link(err_1),h4
 
 A SPPARKS simulation typically has two stages, setup and run.  Many
 SPPARKS errors are detected at setup time; others may not occur until
@@ -49,8 +49,8 @@ Generally, SPPARKS will print a message to the screen and exit
 gracefully when it encounters a fatal error.  Sometimes it will print
 a WARNING and continue on; you can decide if the WARNING is important
 or not.  If SPPARKS crashes or hangs without spitting out an error
-message first then it could be a bug (see "this section"_#9_2) or one
-of the following cases:
+message first then it could be a bug (see "this section"_#err_2) or
+one of the following cases:
 
 SPPARKS runs in the available memory each processor can allocate.  All
 large memory allocations in the code are done via C-style malloc's
@@ -73,7 +73,7 @@ buffering or boost the sizes of messages that can be buffered.
 
 :line
 
-9.2 Reporting bugs :link(9_2),h4
+9.2 Reporting bugs :link(err_2),h4
 
 If you are confident that you have found a bug in SPPARKS, please send
 an email to the developers.
@@ -91,7 +91,7 @@ request your input script and data files if necessary.
 
 :line
 
-9.3 Error & warning messages :h4,link(9_3)
+9.3 Error & warning messages :h4,link(err_3)
 
 These are two alphabetic lists of the "ERROR"_#error and
 "WARNING"_#warn messages SPPARKS prints out and the reason why.  If the

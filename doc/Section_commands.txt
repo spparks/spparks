@@ -13,15 +13,15 @@ Section"_Section_howto.html :c
 This section describes how a SPPARKS input script is formatted and
 what commands are used to define a simulation.
 
-3.1 "SPPARKS input script"_#3_1
-3.2 "Parsing rules"_#3_2
-3.3 "Input script structure"_#3_3
-3.4 "Commands listed by category"_#3_4
-3.5 "Commands listed alphabetically"_#3_5 :all(b)
+3.1 "SPPARKS input script"_#cmd_1
+3.2 "Parsing rules"_#cmd_2
+3.3 "Input script structure"_#cmd_3
+3.4 "Commands listed by category"_#cmd_4
+3.5 "Commands listed alphabetically"_#cmd_5 :all(b)
 
 :line
 
-3.1 SPPARKS input script :link(3_1),h4
+3.1 SPPARKS input script :link(cmd_1),h4
 
 SPPARKS executes by reading commands from a input script (text file),
 one line at a time.  When the input script ends, SPPARKS exits.  Each
@@ -71,7 +71,7 @@ command lists restrictions on how the command can be used.
 
 :line
 
-3.2 Parsing rules :link(3_2),h4
+3.2 Parsing rules :link(cmd_2),h4
 
 Each non-blank line in the input script is treated as a command.
 SPPARKS commands are case sensitive.  Command names are lower-case, as
@@ -114,7 +114,7 @@ comment or substituted for as a variable.
 
 :line
 
-3.3 Input script structure :h4,link(3_3)
+3.3 Input script structure :h4,link(cmd_3)
 
 This section describes the structure of a typical SPPARKS input
 script.  The "examples" directory in the SPPARKS distribution contains
@@ -159,10 +159,10 @@ A kinetic or Metropolis Monte Carlo simulation is performed using the
 
 :line
 
-3.4 Commands listed by category :link(3_4),h4
+3.4 Commands listed by category :link(cmd_4),h4
 
 This section lists all SPPARKS commands, grouped by category.  The
-"next section"_#3_5 lists the same commands alphabetically.  Note that
+"next section"_#cmd_5 lists the same commands alphabetically.  Note that
 some commands are only usable with certain applications.  Also, some
 style options for some commands are part of specific SPPARKS packages,
 which means they cannot be used unless the package was included when
@@ -236,16 +236,16 @@ Miscellaneous:
 
 :line
 
-3.5 Individual commands :h4,link(3_5),link(comm)
+3.5 Individual commands :h4,link(cmd_5),link(comm)
 
 This section lists all SPPARKS commands alphabetically, with a
 separate listing below of styles within certain commands.  The
-"previous section"_#3_4 lists the same commands, grouped by category.
-Note that some commands are only usable with certain applications.
-Also, some style options for some commands are part of specific
-SPPARKS packages, which means they cannot be used unless the package
-was included when SPPARKS was built.  Not all packages are included in
-a default SPPARKS build.  These dependencies are listed as
+"previous section"_#cmd_4 lists the same commands, grouped by
+category.  Note that some commands are only usable with certain
+applications.  Also, some style options for some commands are part of
+specific SPPARKS packages, which means they cannot be used unless the
+package was included when SPPARKS was built.  Not all packages are
+included in a default SPPARKS build.  These dependencies are listed as
 Restrictions in the command's documentation.
 
 "add_reaction"_add_reaction.html,

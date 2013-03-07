@@ -13,8 +13,9 @@ Section"_Section_example.html :c
 The following sections describe how to perform various operations in
 SPPARKS.
 
-4.1 "Running multiple simulations from one input script"_#4_1
-4.2 "Coupling SPPARKS to other codes"_#4_2 :all(b)
+4.1 "Running multiple simulations from one input script"_#howto_1
+4.2 "Coupling SPPARKS to other codes"_#howto_2
+4.3 "Library interface to SPPARKS"_#howto_3 :all(b)
 
 The example input scripts included in the SPPARKS distribution and
 highlighted in "this section"_Section_example.html also show how to
@@ -22,7 +23,7 @@ setup and run various kinds of problems.
 
 :line 
 
-4.1 Running multiple simulations from one input script :link(4_1),h4
+4.1 Running multiple simulations from one input script :link(howto_1),h4
 
 This can be done in several ways.  See the documentation for
 individual commands for more details on how these examples work.
@@ -106,7 +107,7 @@ start the 4th simulation, and so forth, until all 8 were completed.
 
 :line 
 
-4.2 Coupling SPPARKS to other codes :link(4_2),h4
+4.2 Coupling SPPARKS to other codes :link(howto_2),h4
 
 SPPARKS is designed to allow it to be coupled to other codes.  For
 example, an atomistic code might relax atom positions and pass those
@@ -196,3 +197,78 @@ data.  The examples/couple directory has example C++ and C codes which
 show how a stand-alone code can link SPPARKS as a library, run SPPARKS
 on a subset of processors, grab data from SPPARKS, change it, and put
 it back into SPPARKS.
+
+:line 
+
+4.3 Library interface to SPPARKS :link(howto_3),h4
+
+As described in "Section_start 4"_Section_start.html#start_4, SPPARKS
+can be built as a library, so that it can be called by another code,
+used in a "coupled manner"_Section_howto.html#howto_2 with other
+codes, or driven through a "Python interface"_Section_python.html.
+
+All of these methodologies use a C-style interface to SPPARKS that is
+provided in the files src/library.cpp and src/library.h.  The
+functions therein have a C-style argument list, but contain C++ code
+you could write yourself in a C++ application that was invoking
+SPPARKS directly.  The C++ code in the functions illustrates how to
+invoke internal SPPARKS operations.  Note that SPPARKS classes are
+defined within a SPPARKS namespace (SPPARKS_NS) if you use them from
+another C++ application.
+
+Library.cpp contains these 4 functions:
+
+void spparks_open(int, char **, MPI_Comm, void **);
+void spparks_close(void *);
+void spparks_file(void *, char *);
+char *spparks_command(void *, char *); :pre
+
+The spparks_open() function is used to initialize SPPARKS, passing in
+a list of strings as if they were "command-line
+arguments"_Section_start.html#start_6 when SPPARKS is run in
+stand-alone mode from the command line, and a MPI communicator for
+SPPARKS to run under.  It returns a ptr to the SPPARKS object that is
+created, and which is used in subsequent library calls.  The
+spparks_open() function can be called multiple times, to create
+multiple instances of SPPARKS.
+
+SPPARKS will run on the set of processors in the communicator.  This
+means the calling code can run SPPARKS on all or a subset of
+processors.  For example, a wrapper script might decide to alternate
+between SPPARKS and another code, allowing them both to run on all the
+processors.  Or it might allocate half the processors to SPPARKS and
+half to the other code and run both codes simultaneously before
+syncing them up periodically.  Or it might instantiate multiple
+instances of SPPARKS to perform different calculations.
+
+The spparks_close() function is used to shut down an instance of SPPARKS
+and free all its memory.
+
+The spparks_file() and spparks_command() functions are used to pass a
+file or string to SPPARKS as if it were an input script or single
+command in an input script.  Thus the calling code can read or
+generate a series of SPPARKS commands one line at a time and pass it
+thru the library interface to setup a problem and then run it,
+interleaving the spparks_command() calls with other calls to extract
+information from SPPARKS, perform its own operations, or call another
+code's library.
+
+Other useful functions are also included in library.cpp.  For example:
+
+void *spparks_extract(void *, char *)
+double *spparks_energy() :pre
+
+These can extract various global or per-site quantities from SPPARKS
+so that a driver application can access the values or even reset them.
+See the library.cpp file and its associated header file library.h for
+details.
+
+The key idea of the library interface is that you can write any
+functions you wish to define how your code talks to SPPARKS and add
+them to src/library.cpp and src/library.h, as well as to the "Python
+interface"_Section_python.html.  The routines you add can access or
+change any SPPARKS data you wish.  The examples/COUPLE and python
+directories have example C++ and C and Python codes which show how a
+driver code can link to SPPARKS as a library, run SPPARKS on a subset
+of processors, grab data from SPPARKS, change it, and put it back into
+SPPARKS.

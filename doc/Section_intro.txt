@@ -14,14 +14,14 @@ These sections provide an overview of what SPPARKS can do, describe
 what it means for SPPARKS to be an open-source code, and acknowledge
 the funding and people who have contributed to SPPARKS.
 
-1.1 "What is SPPARKS"_#1_1
-1.2 "SPPARKS features"_#1_2
-1.3 "Open source distribution"_#1_4
-1.4 "Acknowledgments and citations"_#1_5 :all(b)
+1.1 "What is SPPARKS"_#intro_1
+1.2 "SPPARKS features"_#intro_2
+1.3 "Open source distribution"_#intro_3
+1.4 "Acknowledgments and citations"_#intro_4 :all(b)
 
 :line
 
-1.1 What is SPPARKS :link(1_1),h4
+1.1 What is SPPARKS :link(intro_1),h4
 
 SPPARKS is a Monte Carlo code that has algorithms for kinetic Monte
 Carlo (KMC), rejection KMC (rKMC), and Metropolis Monte Carlo (MMC).
@@ -85,14 +85,14 @@ SPPARKS is a freely-available open-source code.  See the "SPPARKS WWW
 Site"_sws for download information.  It is distributed under the terms
 of the "GNU Public License"_gnu, which means you can use or modify the
 code however you wish.  The only restrictions imposed by the GPL are
-on how you distribute the code further.  See "this section"_#1_4 for a
-brief discussion of the open-source philosophy.
+on how you distribute the code further.  See "this section"_#intro_3
+for a brief discussion of the open-source philosophy.
 
 :link(gnu,http://www.gnu.org/copyleft/gpl.html)
 
 :line
 
-1.2 SPPARKS features :link(1_2),h4
+1.2 SPPARKS features :link(intro_2),h4
 
 These are three kinds of applications in SPPARKS:
 
@@ -142,7 +142,7 @@ Pizza.py WWW site"_pizza.
 
 :line
 
-1.4 Open source distribution :link(1_4),h4
+1.3 Open source distribution :link(intro_3),h4
 
 SPPARKS comes with no warranty of any kind.  As each source file states
 in its header, it is a copyrighted code that is distributed free-of-
@@ -181,7 +181,7 @@ page.
 
 :line
 
-1.4 Acknowledgments and citations :h4,link(1_5)
+1.4 Acknowledgments and citations :h4,link(intro_4)
 
 SPPARKS is distributed by "Sandia National Laboratories"_sandia.
 SPPARKS development has been funded by the "US Department of
