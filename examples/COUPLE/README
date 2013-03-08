@@ -1,0 +1,36 @@
+This directory has examples of how to use SPPARKS as a library, either
+by itself or in tandem with another code or library.
+
+These examples is meant to illustrate what is possible when coupling
+codes or calling SPPARKS as a library.  The examples are provided for
+demonstration purposes.  The physics they calculate is too simple to
+model a realistic problem.
+
+See these sections of the SPPARKS manaul for details:
+
+2.5 Building SPPARKS as a library (doc/Section_start.html#start_5)
+6.2 Coupling SPPARKS to other codes (doc/Section_howto.html#howto_2)
+
+In all of the examples included here, SPPARKS must first be built as a
+library.  Basically, you type something like
+
+make makelib
+make -f Makefile.lib g++
+
+in the SPPARKS src directory to create liblammps_g++.a
+
+The library interface to SPPARKS is in src/library.cpp.  Routines can
+be easily added to this file so an external program can perform the
+SPPARKS tasks desired.
+
+-------------------------------------------------------------------
+
+These are the sub-directories included in this directory:
+
+lammps_spparks	    grain-growth Monte Carlo with strain via MD,
+		    coupling to LAMMPS molecular dynamic code
+library		    collection of useful inter-code communication routines
+simple		    simple example of driver code calling SPPARKS as library
+                    NOTE: this does not yet exist
+
+Each sub-directory has its own README.
