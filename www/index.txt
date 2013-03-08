@@ -86,6 +86,10 @@ Security statement"_security.
 
 Recent SPPARKS News :c,h4
 
+<IMG SRC = "images/new.gif"> (3/12) Release of Python wrapper for
+SPPARKS in python dir with additional examples of using SPPARKS as a
+library in the example/COUPLE dir. :ulb,l
+
 <IMG SRC = "images/new.gif"> (11/09) Release of 11 Nov 2009 version of
 SPPARKS.  New commands and features include: "app_style
 diffusion"_doc/app_diffusion.html, "app_style
@@ -105,7 +109,7 @@ propensity"_doc/diag_propensity.html,
 "region"_doc/region.html, "set"_doc/set.html,
 "undump"_doc/undump.html, and Schwoebel hops via the
 "app_style diffusion"_doc/app_diffusion.html command.  See
-details "here"_bug.html#11Nov09. :ulb,l
+details "here"_bug.html#11Nov09. :l
 
 <IMG SRC = "images/new.gif"> (9/09) First "off-lattice parallel
 application"_doc/app_style.html added. :l
