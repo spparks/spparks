@@ -51,3 +51,20 @@ site at www.cs.sandia.gov/~sjplimp/pizza.html.
 
 Animated versions of the dump files produced by these examples can be
 viewed on the SPPARKS WWW site.
+
+If you add dump image line(s) to the input script a series of JPG
+images will be produced by the run.  These can be viewed individually
+or turned into a movie or animated by tools like ImageMagick or
+QuickTime or various Windows-based tools.  See the dump image doc page
+for more details.  E.g. this Imagemagick command would create a GIF
+file suitable for viewing in a browser.
+
+% convert -loop 1 *.jpg foo.gif
+
+------------------------------------------
+
+Upper-case directories
+
+The COUPLE directory has examples of how to use SPPARKS as a library,
+either by itself or in tandem with another code or library.  See the
+COUPLE/README file to get started.
