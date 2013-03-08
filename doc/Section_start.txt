@@ -37,7 +37,9 @@ README: text file
 LICENSE: the GNU General Public License (GPL)
 doc: documentation
 examples: test problems
-src: source files :tb(s=:)
+python: Python wrapper
+src: source files
+tools: auxiliary tools :tb(s=:)
 
 :line
 
@@ -331,7 +333,7 @@ versions of the same files.
 
 :line
 
-2.4 Building SPPARKS as a library :h4,link(start_5)
+2.4 Building SPPARKS as a library :h4,link(start_4)
 
 SPPARKS can be built as either a static or shared library, which can
 then be called from another application or a scripting language.  See
