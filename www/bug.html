@@ -38,6 +38,33 @@ describe the version you have.
 
 <HR>
 
+<P><B>7 Mar 2013</B>
+</P>
+<P>Added a Python wrapper to SPPARKS, along with documentation for how to
+build SPPARKS as a shared library, how to use the library interface,
+and how to couple SPPARKS to other codes.  See new additions to the
+manual in these sections:
+</P>
+<UL><LI><A HREF = "doc/Section_start.html">Section start</A>
+<LI><A HREF = "doc/Section_howto.html">Section howto</A>
+<LI><A HREF = "doc/Section_python.html">Section python</A> 
+</UL>
+<P>Also see these new directories in the distro:
+</P>
+<UL><LI>python
+<LI>examples/COUPLE 
+</UL>
+<P>The python dir has examples of Python scripts that invoke SPPARKS.
+The COUPLE dir has an example of a coupled
+SPPARKS/<A HREF = "http::lammps.sandia.gov">LAMMPS</A> application using kinetic
+Monte Carlo and molecular dynamics.  It also includes a small library
+that does communication of data back-and-forth between the 2 codes.
+</P>
+<P>This is the <A HREF = "patches/files.7Mar13">list of changed files</A> from the 4
+Jun 2012 version.
+</P>
+<HR>
+
 <P><B>4 Jun 2012</B>
 </P>
 <P>Eric Homer (BYU) fixed a memory bug with the <A HREF = "doc/undump.html">undump</A>
