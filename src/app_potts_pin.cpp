@@ -44,7 +44,8 @@ void AppPottsPin::input_app(char *command, int narg, char **arg)
     pfraction = atof(arg[0]);
     multi = atoi(arg[1]);
     nthresh = atoi(arg[2]);
-    if (pfraction < 0.0 || pfraction > 1.0) error->all(FLERR,"Illegal pin command");
+    if (pfraction < 0.0 || pfraction > 1.0) 
+      error->all(FLERR,"Illegal pin command");
     if (multi != 0 && multi != 1) error->all(FLERR,"Illegal pin command");
     if (nthresh < 0) error->all(FLERR,"Illegal pin command");
     pin_create();

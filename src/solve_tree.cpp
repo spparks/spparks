@@ -31,7 +31,12 @@ SolveTree::SolveTree(SPPARKS *spk, int narg, char **arg) :
 {
   if (narg != 1) error->all(FLERR,"Illegal solve command");
 
+  // each proc uses different initial RNG seed
+
   random = new RandomPark(ranmaster->uniform());
+  double seed = ranmaster->uniform();
+  random->reset(seed,spk->domain->me,100);
+
   tree = NULL;
 }
 

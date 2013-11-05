@@ -119,7 +119,8 @@ void Set::command(int narg, char **arg)
     if (strcmp(arg[iarg],"fraction") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       fraction = atof(arg[iarg+1]);
-      if (fraction <= 0.0 || fraction > 1.0) error->all(FLERR,"Illegal set command");
+      if (fraction <= 0.0 || fraction > 1.0) 
+        error->all(FLERR,"Illegal set command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");

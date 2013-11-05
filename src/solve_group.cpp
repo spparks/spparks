@@ -48,7 +48,12 @@ SolveGroup::SolveGroup(SPPARKS *spk, int narg, char **arg) :
     } else error->all(FLERR,"Illegal solve_style group command");
   }
 
+  // each proc uses different initial RNG seed
+
   random = new RandomPark(ranmaster->uniform());
+  double seed = ranmaster->uniform();
+  random->reset(seed,spk->domain->me,100);
+
   groups = new Groups(spk,hi,lo,ngroups);
   p = NULL;
 
