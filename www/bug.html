@@ -38,6 +38,20 @@ describe the version you have.
 
 <HR>
 
+<P><B>5 Nov 2013</B>
+</P>
+<P>Made the initial random number seed used by each of the <A HREF = "doc/solve_style.html">solve
+styles</A> depend on processor ID, so that each
+solver generates a different random stream.  For many models this
+isn't needed, but if you start a simulation with a homogeneous lattice
+on every proc, you need more randomness to avoid correlations between
+processors.
+</P>
+<P>This is the <A HREF = "patches/files.5Nov13">list of changed files</A> from the 7
+Mar 2013 version.
+</P>
+<HR>
+
 <P><B>7 Mar 2013</B>
 </P>
 <P>Added a Python wrapper to SPPARKS, along with documentation for how to

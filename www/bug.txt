@@ -35,6 +35,20 @@ describe the version you have. :ule,l
 :line
 :line
 
+[5 Nov 2013]
+
+Made the initial random number seed used by each of the "solve
+styles"_doc/solve_style.html depend on processor ID, so that each
+solver generates a different random stream.  For many models this
+isn't needed, but if you start a simulation with a homogeneous lattice
+on every proc, you need more randomness to avoid correlations between
+processors.
+
+This is the "list of changed files"_patches/files.5Nov13 from the 7
+Mar 2013 version.
+
+:line
+
 [7 Mar 2013]
 
 Added a Python wrapper to SPPARKS, along with documentation for how to
