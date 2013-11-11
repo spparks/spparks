@@ -5,6 +5,7 @@
 
 Pictures & Movies from SPPARKS Simulations :h3
 
+"hafnium dioxide"_#hafnium:       hafnium dioxide surface growth
 "abnormal"_#abnormal:       abnormal grain growth
 "erbium hydrides"_#erbium:  diffusion in Erbium hydrides
 "thin film growth"_#thinfilm: thin film growth
@@ -17,6 +18,39 @@ view a larger version.
 
 For movies on this page, click on the small image to trigger the
 animation.
+
+:line
+
+Hafnium dioxide surface growth :h4,link(hafnium)
+
+This is work by Mahdi Shirazi (mahdi.shirazi at tyndall.ie) and Simon
+Elliott (simon.elliott at tyndall.ie) at the Tyndall National
+Institute in Cork, Ireland.  Movie editing was by Kevin
+Berwick(kevin.berwick at dit.ie) of the Dublin Institute of
+Technology.  The movie shows the the growth of Hafnium dioxide by
+Atomic Layer Deposition (ALD).  Hafnium dioxide is used in
+microelectronics as a high-k dielectric in modern transistors.
+
+In this study, activation energies, which affect the growth rate and
+the time evolution of the film, have been obtained by {ab initio}
+calculations using Density Functional Theory (DFT).  Multiple proton
+diffusion, steric effects, structural relaxation and cooperative
+effects are included for the first time in an ALD growth simulation,
+using SPPARKS.  The movie shows 40 growth cycles, simulated on the
+Stokes supercomputer at the Irish Centre for High-End Computing.
+
+:image(images/hafnium_small.jpg,images/hafnium.png)
+:image(images/hafnium_small.jpg,movies/hafnium.mpg)
+
+Image and a 36 Mb MPG movie
+
+This paper describes the DFT methodology used to calculate kMC input
+parameters:
+
+[Multiple Proton Diffusion and Film Densification in Atomic Layer
+Deposition Modeled by Density Functional Theory], M. Shirazi and
+S. D. Elliott, Chemistry of Materials, 25, 878-889 (2013).
+("abstract"_abstracts/cm13.html)
 
 :line
 
@@ -228,6 +262,12 @@ distributions for this system are in good agreement with experiment.
 
 :image(images/sinter_bulk2_small.png,images/sinter_bulk2.png)
 :image(images/sinter_slice2_small.png,images/sinter_slice2.png)
+
+This paper gives more details of the model and simulations:
+
+[Parallel Simulation of 3D Sintering], C. G. Cardona, V. Tikare,
+S. J. Plimpton, Int J Computational Materials Science and Surface
+Engineering, 4, 37-54 (2011).  ("abstract"_abstracts/ijcmsse11.html)
 
 :line
 
