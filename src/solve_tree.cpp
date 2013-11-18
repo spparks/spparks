@@ -17,6 +17,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "solve_tree.h"
+#include "domain.h"
 #include "random_mars.h"
 #include "random_park.h"
 #include "memory.h"
