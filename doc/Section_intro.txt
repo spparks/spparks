@@ -83,12 +83,15 @@ distributed- or shared-memory machines.
 
 SPPARKS is a freely-available open-source code.  See the "SPPARKS WWW
 Site"_sws for download information.  It is distributed under the terms
-of the "GNU Public License"_gnu, which means you can use or modify the
-code however you wish.  The only restrictions imposed by the GPL are
-on how you distribute the code further.  See "this section"_#intro_3
-for a brief discussion of the open-source philosophy.
+of the "GNU Public License (GPL)"_gnu, or sometimes by request under
+the terms of the "GNU Lesser Public License (LGPL)"_gnu2, which means
+you can use or modify the code however you wish.  The only
+restrictions imposed by the GPL or LGPL are on how you distribute the
+code further.  See "this section"_#intro_3 for a brief discussion of
+the open-source philosophy.
 
 :link(gnu,http://www.gnu.org/copyleft/gpl.html)
+:link(gnu2,http://www.gnu.org/licenses/lgpl-2.1.html)
 
 :line
 
@@ -144,13 +147,15 @@ Pizza.py WWW site"_pizza.
 
 1.3 Open source distribution :link(intro_3),h4
 
-SPPARKS comes with no warranty of any kind.  As each source file states
-in its header, it is a copyrighted code that is distributed free-of-
-charge, under the terms of the "GNU Public License"_gnu (GPL).  This
-is often referred to as open-source distribution - see
-"www.gnu.org"_gnuorg or "www.opensource.org"_opensource for more
-details.  The legal text of the GPL is in the LICENSE file that is
-included in the SPPARKS distribution.
+SPPARKS comes with no warranty of any kind.  As each source file
+states in its header, it is a copyrighted code that is distributed
+free-of- charge, under the terms of the "GNU Public License"_gnu
+(GPL), or sometimes by request under the terms of the "GNU Lesser
+Public License (LGPL)"_gnu2.  This is often referred to as open-source
+distribution - see "www.gnu.org"_gnuorg or
+"www.opensource.org"_opensource for more details.  The legal text of
+the GPL is in the LICENSE file that is included in the SPPARKS
+distribution.
 
 :link(gnuorg,http://www.gnu.org)
 :link(opensource,http://www.opensource.org)
