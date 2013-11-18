@@ -61,9 +61,10 @@ techniques and a spatial-decomposition of the simulation domain.  The
 code is designed to be easy to modify or extend with new
 functionality.
 
-SPPARKS is distributed as an "open source
-code"_open_source.html under the terms of the "GPL"_gpl.  The
-current version can be downloaded "here"_download.
+SPPARKS is distributed as an "open source code"_open_source.html under
+the terms of the "GPL"_gpl, or sometimes by request under the terms of
+the "GNU Lesser Public License (LGPL)"_gnu2.  The current version can
+be downloaded "here"_download.
 
 SPPARKS was developed at "Sandia National Laboratories"_snl, a US
 "Department of Energy"_doe laboratory.  The authors are "Steve
@@ -77,6 +78,7 @@ The SPPARKS WWW site is hosted by Sandia, which has this "Privacy and
 Security statement"_security.
 
 :link(gpl,http://www.gnu.org/copyleft/gpl.html)
+:link(gnu2,http://www.gnu.org/licenses/lgpl-2.1.html)
 :link(snl,http://www.sandia.gov)
 :link(doe,http://www.doe.gov)
 :link(sjp,http://www.sandia.gov/~sjplimp)
