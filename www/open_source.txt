@@ -8,8 +8,8 @@ Open-Source Distribution :h3
 SPPARKS comes with no warranty of any kind.  As each source file
 states in its header, it is a copyrighted code that is distributed
 free-of-charge, under the terms of the "GNU Public License"_gnu (GPL),
-or sometimes by request under the terms of the "GNU Lesser Public
-License (LGPL)"_gnu2.  This is often referred to as open-source
+or sometimes by request under the terms of the "GNU Lesser General
+Public License (LGPL)"_gnu2.  This is often referred to as open-source
 distribution - see "www.gnu.org"_gnuorg or
 "www.opensource.org"_opensource.  The legal text of the GPL or LGPL is
 in the LICENSE file that is included in the SPPARKS distribution.
