@@ -7,6 +7,11 @@ DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
 certain rights in this software.  This software is distributed under
 the GNU General Public License.
 
+NOTE: In special cases, by request, SPPARKS can also be released under
+the GNU Lesser General Public License or LGPL, not the GPL.  This is
+the case if you have a README.LGPL and LICENSE.LGPL file.  If not,
+this is a GPL version of SPPARKS.
+
 ----------------------------------------------------------------------
 
 SPPARKS is a kinetic Monte Carlo (KMC) code designed to run
