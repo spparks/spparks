@@ -35,6 +35,17 @@ describe the version you have. :ule,l
 :line
 :line
 
+[18 Nov 2013]
+
+Have now allowed SPPARKS to be released (only in certain cases, by
+request) under the LPGL (GNU Lesser General Public License).  Some doc
+pages and README and LICENSE files were amended to state this.
+
+This is the "list of changed files"_patches/files.18Nov13 from the 5
+Nov 2013 version.
+
+:line
+
 [5 Nov 2013]
 
 Made the initial random number seed used by each of the "solve
