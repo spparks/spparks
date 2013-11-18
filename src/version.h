@@ -1,1 +1,1 @@
-#define SPPARKS_VERSION "5 Nov 2013"
+#define SPPARKS_VERSION "18 Nov 2013"
