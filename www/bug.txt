@@ -35,6 +35,15 @@ describe the version you have. :ule,l
 :line
 :line
 
+[19 Nov 2013]
+
+Added a couple missing header files, due to the 5 Nov 13 change.
+
+This is the "list of changed files"_patches/files.19Nov13 from the 18
+Nov 2013 version.
+
+:line
+
 [18 Nov 2013]
 
 Have now allowed SPPARKS to be released (only in certain cases, by
