@@ -9,9 +9,11 @@ This page is a continuous listing of new features and bug fixes for
 the SPPARKS simulator.
 
 To stay up-to-date with the current SPPARKS, you can download the
-current tarball from the "download page"_download.html at any time,
-which will include all the features/fixes listed below, and re-build
-SPPARKS from scratch.
+current tarball from the "download page"_download at any time, which
+will include all the features/fixes listed below, and re-build SPPARKS
+from scratch.
+
+:link(download,http://www.sandia.gov/~sjplimp/download.html)
 
 :line
 
