@@ -1,7 +1,7 @@
 <HEAD>
     <TITLE> SPPARKS Kinetic Monte Carlo Simulator </TITLE>
     <meta name="Description" content="SPPARKS home page">
-    <meta name="keywords" content="SPPARKS, kinetic Monte Carlo">
+    <meta name="keywords" content="SPPARKS, kinetic Monte Carlo, Metropolis Monte Carlo">
     <meta name="google-site-verification" content="jIe-V87O61oNvgWFgBXMeF5bFl35XjSaG0Fm8_7q5VU" />
     <meta name="review" content="04_01_2009" />
     <meta name="filename" content="index.html" />
