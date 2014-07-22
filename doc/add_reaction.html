@@ -13,22 +13,27 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>add_reaction reactant1 reactant2 rate product1 product2 ... 
+<PRE>add_reaction ID reactant1 reactant2 rate product1 product2 ... 
 </PRE>
-<UL><LI>reactant1,reactant2 = 0, 1, or 2 reactant species
+<UL><LI>ID = string identifier for the reaction
+<LI>reactant1,reactant2 = 0, 1, or 2 reactant species
 <LI>rate = reaction rate (see units below)
 <LI>product1, product2 = 0, 1, or more product species 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>add_reaction A B 1.0e10 C
-add_reaction 1.0 d
-add_reaction b2 1.0e-10 c3 d4 e3 
+<PRE>add_reaction 1 A B 1.0e10 C
+add_reaction Dreact 1.0 d
+add_reaction myReact b2 1.0e-10 c3 d4 e3 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This command defines a chemical reaction for use in the <A HREF = "app_chemistry.html">app_style
 chemistry</A> application.
+</P>
+<P>The ID is simply a unique string (alphanumeric characters, dashes,
+underscores, etc) which helps identify the reaction in an input script
+listing.
 </P>
 <P>Each reaction has 0, 1, or 2 reactants.  It also has 0, 1, or more
 products.  The reactants and products are specified by species ID

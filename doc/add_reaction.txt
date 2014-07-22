@@ -10,22 +10,27 @@ add_reaction command :h3
 
 [Syntax:]
 
-add_reaction reactant1 reactant2 rate product1 product2 ... :pre
+add_reaction ID reactant1 reactant2 rate product1 product2 ... :pre
 
+ID = string identifier for the reaction
 reactant1,reactant2 = 0, 1, or 2 reactant species
 rate = reaction rate (see units below)
 product1, product2 = 0, 1, or more product species :ul
 
 [Examples:]
 
-add_reaction A B 1.0e10 C
-add_reaction 1.0 d
-add_reaction b2 1.0e-10 c3 d4 e3 :pre
+add_reaction 1 A B 1.0e10 C
+add_reaction Dreact 1.0 d
+add_reaction myReact b2 1.0e-10 c3 d4 e3 :pre
 
 [Description:]
 
 This command defines a chemical reaction for use in the "app_style
 chemistry"_app_chemistry.html application.
+
+The ID is simply a unique string (alphanumeric characters, dashes,
+underscores, etc) which helps identify the reaction in an input script
+listing.
 
 Each reaction has 0, 1, or 2 reactants.  It also has 0, 1, or more
 products.  The reactants and products are specified by species ID
