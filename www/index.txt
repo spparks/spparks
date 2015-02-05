@@ -28,7 +28,7 @@ acronym for Stochastic Parallel PARticle Kinetic Simulator.
 
 "Features"_features.html,
 "Documentation"_doc/Manual.html,
-"Commands"_doc/Section_commands.html#3_5,
+"Commands"_doc/Section_commands.html#cmd_5,
 "Pictures & Movies"_pictures.html,
 "Download"_download,
 "Latest features & bug fixes"_bug.html,
