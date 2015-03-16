@@ -34,7 +34,7 @@
 <P><B>Examples:</B>
 </P>
 <PRE>diag_style cluster
-diag_style cluster stats no delt 1.0 filename cluster3d.a.0.1.dat dump opendx cluster3d.a.0.1.dump 
+diag_style cluster stats no delt 1.0 filename cluster.a.0.1.dat dump opendx cluster.a.0.1.dump 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -48,8 +48,8 @@ command.
 (e.g. sites are adjacent and have same spin value) to identify the set
 of connected clusters.
 </P>
-<P>The variants cluster, cluster2d, and cluster3d are used with
-applications based on lattice, lattice2d, and lattice3d, respectively.
+<P>Clustering can only be used with the lattice application, and 
+applications based on it.
 </P>
 <P>The <I>filename</I> keyword allows an output file to be specified.
 Every time the cluster analysis is performed, the key properties
@@ -60,17 +60,28 @@ of each cluster are appended to this file. The output format is:
 <LI>nprocs = <I>number of processors</I> 
 </UL>
 <UL><LI>Time = <I>time</I>
-<LI>ncluster = <I>total number of cluster</I>
-<LI>id ivalue dvalue size
-<LI><I>cluster id</I> <I>ivalue</I> <I>dvalue</I> <I>size</I> 
+<LI>ncluster = <I>total number of clusters</I>
+<LI>id ivalue dvalue size cx cy cz
+<LI><I>cluster id</I> <I>ivalue</I> <I>dvalue</I> <I>size</I> <I>cx</I> <I>cy</I> <I>cz</I> 
 </UL>
-<P>cluster_id is an arbitrary integer assigned uniquely to each cluster.
+<P><I>cluster_id</I> is an arbitrary integer assigned uniquely to each cluster.
 It will be different for different numbers of processors.
 </P>
-<P>ivalue is an application-specific integer associated with each cluster. 
-For lattice applications, it is the spin value of all sites in the cluster
-dvalue is an application-specific double associated with each cluster. 
-size is the numbers of sites in the cluster.
+<P><I>ivalue</I> is an application-specific integer associated with each cluster. 
+For lattice applications, it is the spin value of all sites in the cluster.
+<I>dvalue</I> is an application-specific double associated with each cluster. 
+For most lattice applications it is zero. <I>size</I> is the numbers of sites 
+in the cluster. <I>cx</I>, <I>cy</I>, <I>cz</I> are the coordinates of the centroid of the
+cluster i.e. the average of the x, y, and z coordinate of all the sites
+in the cluster. For clusters than are of finite extent in a periodic 
+dimension, the average is over the contiguous sites in a single periodic
+image, and the centroid is shifted by multiples of the period so as to
+lie inside the box. For clusters of infinite extent in x, y, or z, the 
+centroid is not defined, so the clustering algorithm will produce a result
+based on some arbitrary splitting of the cluster into finite periodic 
+repeat units. Except for this last case, the calculated <I>cx</I>, 
+<I>cy</I>, or <I>cz</I> will be not be affected by the numbers of processors
+used in the calculation. 
 </P>
 <P>The <I>dump</I> keyword causes the cluster ID for each site to be printed
 out in snapshot format which can be used for visualization purposes.
