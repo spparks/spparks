@@ -104,6 +104,7 @@ DiagCluster::~DiagCluster()
 {
   delete comm;
   memory->destroy(cluster_ids);
+  cluster_ids = NULL;
   free_clustlist();
   delete [] opendxroot;
   if (me == 0 ) {
@@ -134,13 +135,18 @@ void DiagCluster::init()
   boxzlo = domain->boxzlo;
   boxzhi = domain->boxzhi;
 
-  memory->destroy(cluster_ids);
-  memory->create(cluster_ids,nlocal+nghost,"diagcluster:cluster");
+  // If cluster_ids and comm already allocated
+  // assume we are just continuing previous run,
+  // so do nothing, otherwise allocate both
+  // Important that these two be consistent
+  // else comm will fail 
 
-  if (!comm) {
+  if (!cluster_ids  && !comm) {
+    memory->create(cluster_ids,nlocal+nghost,"diagcluster:cluster");
     comm = new CommLattice(spk);
     comm->init(1,0,0,cluster_ids);
-  }
+  } else if (!(cluster_ids && comm))
+    error->one(FLERR,"Diag_style cluster communication error \n");
 
   if (dump_style == OPENDX) {
     if (lattice->style == SC_6N || lattice->style == SC_26N) {
@@ -271,10 +277,10 @@ void DiagCluster::generate_clusters()
 
   int ii;
   int id;
-  double vol,volsum,voltot;
+  double vol,volsum;
+  double cx, cy, cz;
 
   ncluster = 0;
-  volsum = 0.0;
 
   // loop over all owned sites
 
@@ -290,7 +296,10 @@ void DiagCluster::generate_clusters()
       iv = site[i];
       dv = 0.0;
       vol = 0.0;
-      add_cluster(id,iv,dv,vol,0,NULL);
+      cx = 0.0;
+      cy = 0.0;
+      cz = 0.0;
+      add_cluster(id,iv,dv,vol,cx,cy,cz,0,NULL,NULL);
 
       while (cluststack.size()) {
 
@@ -299,19 +308,29 @@ void DiagCluster::generate_clusters()
 	ii = cluststack.top();
 	cluststack.pop();
 	vol++;
+	cx += xyz[ii][0];
+	cy += xyz[ii][1];
+	cz += xyz[ii][2];
+
 	applattice->push_connected_neighbors(ii,cluster_ids,
 					     ncluster,&cluststack);
       }
       clustlist[ncluster-1].volume = vol;
-      volsum+=vol;
+      clustlist[ncluster-1].cx = cx;
+      clustlist[ncluster-1].cy = cy;
+      clustlist[ncluster-1].cz = cz;
     }
   }
+
+  // wrap periodic images of xyz back into domain
+
+  for (int i = 0; i < nlocal; i++)
+    domain->pbcwrap(xyz[i]);
 
   int idoffset;
   tagint nclustertot,nclusterme;
   nclusterme = ncluster;
 
-  MPI_Allreduce(&volsum,&voltot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&nclusterme,&nclustertot,1,MPI_SPK_TAGINT,MPI_SUM,world);
 
   if (nclustertot > MAXSMALLINT) 
@@ -349,7 +368,7 @@ void DiagCluster::generate_clusters()
   
   me_size = 0;
   for (int i = 0; i < ncluster; i++) {
-    me_size += 5+clustlist[i].nneigh;
+    me_size += 8+4*clustlist[i].nneigh;
   }
   if (me == 0) me_size = 0;
 
@@ -364,16 +383,18 @@ void DiagCluster::generate_clusters()
       dbufclust[m++] = clustlist[i].ivalue;
       dbufclust[m++] = clustlist[i].dvalue;
       dbufclust[m++] = clustlist[i].volume;
+      dbufclust[m++] = clustlist[i].cx;
+      dbufclust[m++] = clustlist[i].cy;
+      dbufclust[m++] = clustlist[i].cz;
       dbufclust[m++] = clustlist[i].nneigh;
-      for (int j = 0; j < clustlist[i].nneigh; j++) {
+      for (int j = 0; j < clustlist[i].nneigh; j++)
 	dbufclust[m++] = clustlist[i].neighlist[j];
-      }
+      for (int j = 0; j < 3*clustlist[i].nneigh; j++)
+	dbufclust[m++] = clustlist[i].pbcflags[j];
     }
     
-    if (me_size != m) {
+    if (me_size != m)
       error->one(FLERR,"Mismatch in counting for dbufclust");
-    }
-
   }
 
   // proc 0 pings each proc, receives it's data, adds it to list
@@ -392,11 +413,15 @@ void DiagCluster::generate_clusters()
 	iv = static_cast<int> (dbufclust[m++]);
 	dv = dbufclust[m++];
 	vol = dbufclust[m++];
+	cx = dbufclust[m++];
+	cy = dbufclust[m++];
+	cz = dbufclust[m++];
 	nn = static_cast<int> (dbufclust[m++]);
-	add_cluster(id,iv,dv,vol,nn,&dbufclust[m]);
-	m+=nn;
-	volsum+=vol;
+	add_cluster(id,iv,dv,vol,cx,cy,cz,nn,&dbufclust[m],&dbufclust[m+nn]);
+	m+=4*nn;
       }
+      if (nrecv != m)
+	error->one(FLERR,"Mismatch in counting for nrecv");
     }
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
@@ -415,46 +440,70 @@ void DiagCluster::generate_clusters()
 
     // loop over all clusters
     for (int i = 0; i < ncluster; i++) {
-      
       // If already visited, skip
-      if (clustlist[i].volume == 0.0) {
+      if (clustlist[i].volume == 0.0)
 	continue;
-      }
       
       // Push first cluster onto stack
       id = clustlist[i].global_id;
+      if (i != id-idoffset) {
+	error->one(FLERR,"Diag cluster invalid offset");
+      }
       iv=clustlist[i].ivalue;
       dv=clustlist[i].dvalue;
       vol = 0.0;
+      cx = 0.0;
+      cy = 0.0;
+      cz = 0.0;
       ncluster_reduced++;
       
       cluststack.push(i);
       vol+=clustlist[i].volume;
+      cx+=clustlist[i].cx;
+      cy+=clustlist[i].cy;
+      cz+=clustlist[i].cz;
       clustlist[i].volume = 0.0;
       
       while (cluststack.size()) {
 	// First top then pop
 	ii = cluststack.top();
 	cluststack.pop();
-	
-	neighs = clustlist[ii].neighlist;
-	for (int j = 0; j < clustlist[ii].nneigh; j++) {
+
+	Cluster* iclust = &clustlist[ii];
+
+	neighs = iclust->neighlist;
+	for (int j = 0; j < iclust->nneigh; j++) {
 	  jneigh = neighs[j]-idoffset;
-	  if (clustlist[jneigh].ivalue != iv) {
+	  Cluster* jclust = &clustlist[jneigh];
+	  if (jclust->ivalue != iv) {
 	    error->one(FLERR,"Diag cluster ivalue in neighboring clusters do not match");
 	  }
-	  if (clustlist[jneigh].dvalue != dv) {
+	  if (jclust->dvalue != dv) {
 	    error->one(FLERR,"Diag cluster dvalue in neighboring clusters do not match");
 	  }
-	  if (clustlist[jneigh].volume != 0.0) {
+	  if (jclust->volume != 0.0) {
 	    cluststack.push(jneigh);
-	    vol+=clustlist[jneigh].volume;
-	    clustlist[jneigh].global_id = id;
-	    clustlist[jneigh].volume = 0.0;
+	    vol+=jclust->volume;
+	    jclust->pbcflagsself[0] += iclust->pbcflags[3*j] + iclust->pbcflagsself[0];
+	    jclust->pbcflagsself[1] += iclust->pbcflags[3*j+1] + iclust->pbcflagsself[1];
+	    jclust->pbcflagsself[2] += iclust->pbcflags[3*j+2] + iclust->pbcflagsself[2];
+	    cx += jclust->cx + jclust->volume*jclust->pbcflagsself[0]*domain->xprd;
+	    cy += jclust->cy + jclust->volume*jclust->pbcflagsself[1]*domain->yprd;
+	    cz += jclust->cz + jclust->volume*jclust->pbcflagsself[2]*domain->zprd;
+	    jclust->global_id = id;
+	    jclust->volume = 0.0;
 	  }
 	}
       }
       clustlist[i].volume = vol;
+      cx /= vol;
+      cy /= vol;
+      cz /= vol;
+      double xyztmp[3] = {cx, cy, cz};
+      domain->pbcwrap(xyztmp);
+      clustlist[i].cx = xyztmp[0];
+      clustlist[i].cy = xyztmp[1];
+      clustlist[i].cz = xyztmp[2];
     }
     
     volsum = 0.0;
@@ -474,13 +523,14 @@ void DiagCluster::generate_clusters()
       fprintf(fp,"ncluster = %d \n",ncluster_reduced);
       fprintf(fp,"<N> = %g \n",vav);
       fprintf(fp,"<R> = %g \n",rav);
-      fprintf(fp,"id ivalue dvalue size\n");
+      fprintf(fp,"id ivalue dvalue size cx cy cz\n");
       for (int i = 0; i < ncluster; i++) {
 // 	clustlist[i].print(fp);
 	if (clustlist[i].volume > 0.0) {
-	  fprintf(fp," %d %d %g %g\n",
+	  fprintf(fp," %d %d %g %g %g %g %g\n",
 		  clustlist[i].global_id,clustlist[i].ivalue,
-		  clustlist[i].dvalue,clustlist[i].volume);
+		  clustlist[i].dvalue,clustlist[i].volume,
+		  clustlist[i].cx,clustlist[i].cy,clustlist[i].cz);
 	}
       }
       fprintf(fp,"\n");
@@ -491,14 +541,16 @@ void DiagCluster::generate_clusters()
 
 /* ---------------------------------------------------------------------- */
 
-void DiagCluster::add_cluster(int id, int iv, double dv, double vol, int nn, double* neighs)
+void DiagCluster::add_cluster(int id, int iv, double dv, double vol, 
+			      double cx, double cy, double cz, int nn, 
+			      double* neighs, double* pbcflags)
 {
   // grow cluster array
 
   ncluster++;
   clustlist = (Cluster *) memory->srealloc(clustlist,ncluster*sizeof(Cluster),
 					 "diagcluster:clustlist");
-  clustlist[ncluster-1] = Cluster(id,iv,dv,vol,nn,neighs);
+  clustlist[ncluster-1] = Cluster(id,iv,dv,vol,cx,cy,cz,nn,neighs,pbcflags);
 }
 
 /* ----------------------------------------------------------------------
@@ -698,3 +750,4 @@ void DiagCluster::stats_header(char *strtmp)
 {
   sprintf(strtmp," %10s %10s %10s","Nclust","<N>","<R>");
 }
+

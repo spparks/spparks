@@ -57,6 +57,10 @@ class Domain : protected Pointers {
   void procs2domain_1d();
   void procs2domain_2d();
   void procs2domain_3d();
+
+  void pbcwrap(double *);
+  void pbcshift(double *, double *);
+  void set_pbcflags(double *, double *, int *);
 };
 
 }

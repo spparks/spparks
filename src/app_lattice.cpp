@@ -1142,6 +1142,7 @@ void AppLattice::push_connected_neighbors(int i, int* cluster_ids, int id,
     if (iarray[0][ii] == isite && cluster_ids[ii] == 0) {
       cluststack->push(ii);
       cluster_ids[ii] = id;
+      domain->pbcshift(xyz[i],xyz[ii]);
     }
   }
 }
@@ -1156,6 +1157,7 @@ void AppLattice::connected_ghosts(int i, int* cluster_ids,
   int iclust;
   int ii;
   int isite = iarray[0][i];
+  int pbcflags[3];
 
   // check if this was a site that was ignored
 
@@ -1169,6 +1171,8 @@ void AppLattice::connected_ghosts(int i, int* cluster_ids,
     ii = neighbor[i][j];
     if (iarray[0][ii] == isite && ii >= nlocal) {
       clustlist[iclust].add_neigh(cluster_ids[ii]);
+      domain->set_pbcflags(xyz[i],xyz[ii],pbcflags);
+      clustlist[iclust].add_pbcflags(cluster_ids[ii],pbcflags);
     }
   }
 }

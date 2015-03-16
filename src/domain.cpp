@@ -318,3 +318,117 @@ void Domain::procs2domain_3d()
     subzhi = boxzlo + (myloc[2]+1) * zprd/procgrid[2];
   else subzhi = boxzhi;
 }
+
+/* ----------------------------------------------------------------------
+   wrap xyz coords back into central domain
+ ------------------------------------------------------------------------- */
+
+void Domain::pbcwrap(double* xyz)
+{
+
+  // x coord
+
+  if (xperiodic) {
+    while (xyz[0] < boxxlo)
+      xyz[0] += xprd;
+    while (xyz[0] >= boxxhi)
+      xyz[0] -= xprd;
+  }
+  
+  // y coord
+  
+  if (yperiodic) {
+    while (xyz[1] < boxylo)
+      xyz[1] += yprd;
+    while (xyz[1] >= boxyhi)
+      xyz[1] -= yprd;
+  }
+  
+  // z coord
+  
+  if (zperiodic) {
+    while (xyz[2] < boxzlo)
+      xyz[2] += zprd;
+    while (xyz[2] >= boxzhi)
+      xyz[2] -=   zprd;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   shift xyz2 to periodic image closest to xyz1
+ ------------------------------------------------------------------------- */
+
+void Domain::pbcshift(double* xyz1, double* xyz2)
+{
+
+  // x coord
+
+  if (xperiodic) {
+    while ((xyz2[0] - xyz1[0])*2.0 < xprd)
+	 xyz2[0] += xprd;
+    while ((xyz2[0] - xyz1[0])*2.0 > xprd)
+	 xyz2[0] -= xprd;
+  }
+
+  // y coord
+
+  if (yperiodic) {
+    while ((xyz2[1] - xyz1[1])*2.0 < yprd)
+	 xyz2[1] += yprd;
+    while ((xyz2[1] - xyz1[1])*2.0 > yprd)
+	 xyz2[1] -= yprd;
+  }
+
+  // z coord
+
+  if (zperiodic) {
+    while ((xyz2[2] - xyz1[2])*2.0 < zprd)
+	 xyz2[2] += zprd;
+    while ((xyz2[2] - xyz1[2])*2.0 > zprd)
+	 xyz2[2] -= zprd;
+  }
+
+}
+
+/* ----------------------------------------------------------------------
+   integer shifts for periodic image of xyz2 closest to xyz1
+   only works for (neighbor distance)*2 < box length
+ ------------------------------------------------------------------------- */
+
+void Domain::set_pbcflags(double* xyz1, double* xyz2, int* pbcflags)
+{
+
+  // x coord
+
+  if (xperiodic) {
+    if ((xyz2[0] - xyz1[0])*2.0 < -xprd)
+	 pbcflags[0] = 1;
+    else if ((xyz2[0] - xyz1[0])*2.0 > xprd)
+	 pbcflags[0] = -1;
+    else
+	 pbcflags[0] = 0;
+  }
+
+  // y coord
+
+  if (yperiodic) {
+    if ((xyz2[1] - xyz1[1])*2.0 < -yprd)
+	 pbcflags[1] = 1;
+    else if ((xyz2[1] - xyz1[1])*2.0 > yprd)
+	 pbcflags[1] = -1;
+    else
+	 pbcflags[1] = 0;
+  }
+
+  // z coord
+
+  if (zperiodic) {
+    if ((xyz2[2] - xyz1[2])*2.0 < -zprd)
+	 pbcflags[2] = 1;
+    else if ((xyz2[2] - xyz1[2])*2.0 > zprd)
+	 pbcflags[2] = -1;
+    else
+	 pbcflags[2] = 0;
+  }
+}
+
