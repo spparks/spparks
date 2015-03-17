@@ -111,8 +111,31 @@ void Cluster::add_neigh(int id) {
 // and two processors in that direction.
 // centroid is not defined for infinite cluster
 // so we do not need to worry about it.
-// this case could be handled by storing separate 
-// flags for left and right boundaries.
+//
+// If it is desired to detect infinite periodic clusters,
+// three different cases have to be handled,
+// differing in the number of processors in
+// the spanning direction, say Px.
+//
+// 1. Px = 1. This can only be detected
+// in AppLattice::push_connected_neighbors(). If a 
+// neighbor has already been assigned to the cluster
+// and its distance in x is greater than lx/2, then
+// the cluster has wrapped around the periodic 
+// boundary in x, and so is infinite in x dir.
+//
+// 2. Px = 2. This can only be detected in
+// Cluster::add_pbcflags(), as mentioned above.
+//
+// 3. Px > 3. This can only be detected at
+// the level of the cluster analysis. If a 
+// neighbor cluster has already been processed
+// and its centroid distance is more than lx/2
+// then this has "probably" wrapped around. It
+// is easy to construct counter-examples. A more
+// rigorous test requires performing the same test
+// when the cluster is mapped onto the 1-D lattice 
+// of the processor grid.
 
 void Cluster::add_pbcflags(int id, int* pbcflags_in) {
   int ix = pbcflags_in[0];
