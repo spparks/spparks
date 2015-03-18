@@ -37,6 +37,17 @@ describe the version you have. :ule,l
 :line
 :line
 
+[18 Mar 2015]
+
+Aidan Thompson (SNL) upated the "diag_style
+cluster"_doc/diag_cluster.html comand to also compute and output the
+centroid of each cluster.
+
+This is the "list of changed files"_patches/files.18Mar15 from the 19
+Nov 2013 version.
+
+:line
+
 [19 Nov 2013]
 
 Added a couple missing header files, due to the 5 Nov 13 change.

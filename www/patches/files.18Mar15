@@ -1,0 +1,18 @@
+19Nov13 version files changed by 18Mar15 upgrade:
+
+doc/Manual.html
+doc/Manual.pdf
+doc/Manual.txt
+doc/add_reaction.html
+doc/add_reaction.txt
+doc/diag_cluster.html
+doc/diag_cluster.txt
+src/app_lattice.cpp
+src/cluster.cpp
+src/cluster.h
+src/diag_cluster.cpp
+src/diag_cluster.h
+src/domain.cpp
+src/domain.h
+src/image.cpp
+src/version.h
