@@ -1,0 +1,40 @@
+Summary of key points
++++++++++++++++++++++
+
+.. image:: n.128/images/grain_growth.0.png
+   :width: 25%
+
+.. image:: n.128/images/grain_growth.3.png
+   :width: 25%
+
+.. image:: n.128/images/grain_growth.28.png
+   :width: 25%
+
+Modeling and Analysis
+.....................
+
+* Model *normal* isotropic grain growth using the *potts* model
+* *spparks* can run *serial* or *parallel*, 2- or 3D
+* Visualize grains using *paraview* or render image files directly from *spparks*
+* Post process *dump* files for analysis
+
+*Rules of Thumb* for *Potts* Model
+..................................
+
+* Use large number of spin values :math:`Q` (thousands)
+* Use temperatures :math:`T_f\leq kT\leq T_r`
+
+ * :math:`T_r, T_f` depend on lattice and dimensionality
+
+ * Trends as :math:`kT` increases:
+
+         * Rate of grain growth increases 
+         * Standard deviation :math:`\sigma` decreases slightly
+
+* For :math:`kT\gt T_r`
+
+         * Model exhibits grain boundary roughening
+         * Excessive single site grains
+
+* Plot distributions as a sanity check 
+

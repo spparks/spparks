@@ -1,0 +1,63 @@
+=============================
+What can you do with SPPARKS?
+=============================
+
+* Model grain growth and evolution
+
+Motivations
+-----------
+* Strength, toughness and crack growth resistance are intimately tied to
+  microstructure
+* Significant effort goes into control of microstructure
+* Predictive tools such as *SPPARKS* have *potential* to enhance
+  understanding of heat treatment processes and perhaps shorten development
+  time of new processes
+
+Grain Growth
+------------
+
+.. image:: grain_growth/n.128/images/grain_growth.0.png
+   :width: 25%
+
+.. image:: grain_growth/n.128/images/grain_growth.3.png
+   :width: 25%
+
+.. image:: grain_growth/n.128/images/grain_growth.28.png
+   :width: 25%
+
+Grain Growth with Precipitates
+------------------------------
+
+.. image:: grain_growth_with_pinning/n.128/images/grain_growth.0.png
+   :width: 25%
+
+.. image:: grain_growth_with_pinning/n.128/images/grain_growth.3.png
+   :width: 25%
+
+.. image:: grain_growth_with_pinning/n.128/images/grain_growth.28.png
+   :width: 25%
+
+
+
+Vacancy Diffusion
+------------------
+
+.. image:: grain_growth/n.128/images/grain_growth.0.png
+   :width: 25%
+
+.. image:: grain_growth/n.128/images/grain_growth.3.png
+   :width: 25%
+
+.. image:: grain_growth/n.128/images/grain_growth.28.png
+   :width: 25%
+
+
+Additional Examples
+-------------------
+
+This tutorial has a focus on *grain growth* type applications but *spparks* can
+do a lot more than that.
+
+* Hafnium dioxide surface growth (SPPARKS website)
+* Abnormal grain growth (SPPARKS website)
+

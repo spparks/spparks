@@ -1,0 +1,10 @@
+===============
+Running SPPARKS
+===============
+* Command line
+* Command line variables: -var
+* Input file
+* Output files
+* Post-processing and visualizing results
+* Running parallel jobs
+

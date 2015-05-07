@@ -1,0 +1,23 @@
+*spparks* input file
+++++++++++++++++++++
+
+Grain growth example
+....................
+
+* Ordinary text file
+* Comments begin with *#* symbol
+* Unix *sed* like feature for substitution
+* Run *spparks*::
+
+    #!/bin/bash 
+    let N=128
+    let Q=2048
+    kT="0.05"
+    spk_flame.gnu -var kT $kT -var N $N -var Q $Q < grain_growth.in
+
+* :download:`Download 'grain_growth.in'  <n.128/grain_growth.in>`
+
+  .. literalinclude:: n.128/grain_growth.in
+     :language: bash
+
+

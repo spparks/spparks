@@ -1,0 +1,10 @@
+=========================
+Vacancy Diffusion Example
+=========================
+
+.. toctree::
+   :maxdepth: 2
+
+   intro
+   detailed
+

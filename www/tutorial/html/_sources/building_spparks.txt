@@ -1,0 +1,22 @@
+================
+Building SPPARKS
+================
+
+Prerequisites
+-------------
+
+
+* c++ compiler 
+* mpi (optional but recommended)
+* jpeg library (optional but recommend)
+
+
+Build, Test, and Install
+------------------------
+
+.. code-block:: bash
+
+   make
+   make test
+   make install
+

@@ -1,0 +1,26 @@
+
+What happens @ kT=1.0?
+----------------------
+        .. image:: images/N.1024.grainsize_versus_time_include_kT=1.0.jpg
+           :width: 75%
+
+        .. image:: images/N.1024.kT=0.050.12.jpg
+           :width: 45%
+
+        .. image:: images/N.1024.kT=0.250.12.jpg
+           :width: 45%
+
+        .. image:: images/N.1024.kT=0.500.12.jpg
+           :width: 45%
+
+        .. image:: images/N.1024.kT=1.0000.12.jpg
+           :width: 45%
+
+Moral of the story
+++++++++++++++++++
+
+Be aware of *mesh pinning* and *roughening* transition temperatures
+
+* :math:`kT=1.0` is above *roughening* transition temperature (more later)
+
+

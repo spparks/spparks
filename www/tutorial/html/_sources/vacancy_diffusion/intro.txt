@@ -1,0 +1,29 @@
+====================
+Grain Growth Example
+====================
+
+
+Contents
+
+.. toctree::
+   :maxdepth: 1
+
+Description
+-----------
+Model grain growth using  *spparks*
+
+Key Parameters
+--------------
+* Simulation temperature *kT*
+* Initialize *spin* values
+
+*SPPARKS* Modeling
+------------------
+
+Input Command Concepts
+++++++++++++++++++++++++
+* Lattice: extent/dimensions
+* Set: initialize *spin* values
+* App style: describes kinetics of grain growth
+* Solve style: *KMC* solver algorithm
+* Dump: output images, and diagostics
