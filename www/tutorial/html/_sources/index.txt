@@ -1,0 +1,24 @@
+.. SPPARKS TUTORIAL documentation master file, created by
+   sphinx-quickstart on Thu Apr  9 17:18:14 2015.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+========================================================
+Welcome to the *SPPARKS* TUTORIAL [#John]_, [#tutorial]_
+========================================================
+
+An Introduction to *SPPARKS*
+++++++++++++++++++++++++++++
+
+.. toctree::
+   :maxdepth: 1
+
+   what_is_spparks
+   what_can_you_do_with_spparks
+   spparks_documentation
+   kmc_modeling_and_computational_aspects_of_spparks
+   demonstration_calculations
+
+.. [#John] John A. Mitchell,
+    *Center for Computational Research*, Sandia National Laboratories
+.. [#tutorial] This tutorial can be found on the *spparks* website

@@ -1,0 +1,170 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Summary of key points &mdash; SPPARKS TUTORIAL .1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SPPARKS TUTORIAL .1 documentation" href="../index.html" />
+    <link rel="up" title="Grain Growth" href="grain_growth.html" />
+    <link rel="next" title="Hands on" href="hands_on_grain_growth.html" />
+    <link rel="prev" title="Scripting spparks" href="scripting_spparks.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="hands_on_grain_growth.html" title="Hands on"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="scripting_spparks.html" title="Scripting spparks"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">SPPARKS TUTORIAL .1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../demonstration_calculations.html" >Demonstration Calculations</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="grain_growth.html" accesskey="U">Grain Growth</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="summary-of-key-points">
+<h1>Summary of key points<a class="headerlink" href="#summary-of-key-points" title="Permalink to this headline">¶</a></h1>
+<a class="reference internal image-reference" href="../_images/grain_growth.0.png"><img alt="../_images/grain_growth.0.png" src="../_images/grain_growth.0.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="../_images/grain_growth.3.png"><img alt="../_images/grain_growth.3.png" src="../_images/grain_growth.3.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="../_images/grain_growth.28.png"><img alt="../_images/grain_growth.28.png" src="../_images/grain_growth.28.png" style="width: 25%;" /></a>
+<div class="section" id="modeling-and-analysis">
+<h2>Modeling and Analysis<a class="headerlink" href="#modeling-and-analysis" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Model <em>normal</em> isotropic grain growth using the <em>potts</em> model</li>
+<li><em>spparks</em> can run <em>serial</em> or <em>parallel</em>, 2- or 3D</li>
+<li>Visualize grains using <em>paraview</em> or render images directly from <em>spparks</em></li>
+<li>Post process <em>dump</em> files for analysis</li>
+</ul>
+</div>
+<div class="section" id="rules-of-thumb-for-potts-model">
+<span id="potts-rules-of-thumb"></span><h2><em>Rules of Thumb</em> for <em>Potts</em> Model<a class="headerlink" href="#rules-of-thumb-for-potts-model" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Use large number of spin values <span class="math">\(Q\)</span> (thousands)</li>
+<li>Use temperatures <span class="math">\(T_f\leq kT\leq T_r\)</span></li>
+</ul>
+<blockquote>
+<div><ul>
+<li><p class="first"><span class="math">\(T_r, T_f\)</span> depend on lattice and dimensionality</p>
+</li>
+<li><p class="first">Trends as <span class="math">\(kT\)</span> increases:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Rate of grain growth increases</li>
+<li>Standard deviation <span class="math">\(\sigma\)</span> decreases slightly</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<ul>
+<li><p class="first">For <span class="math">\(kT\gt T_r\)</span></p>
+<blockquote>
+<div><ul class="simple">
+<li>Model exhibits grain boundary roughening</li>
+<li>Excessive single site grains</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">Plot distributions as a sanity check</p>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Summary of key points</a><ul>
+<li><a class="reference internal" href="#modeling-and-analysis">Modeling and Analysis</a></li>
+<li><a class="reference internal" href="#rules-of-thumb-for-potts-model"><em>Rules of Thumb</em> for <em>Potts</em> Model</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="scripting_spparks.html"
+                        title="previous chapter">Scripting <em>spparks</em></a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="hands_on_grain_growth.html"
+                        title="next chapter">Hands on</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/grain_growth/grain_growth_summary.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, John A. Mitchell.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+      |
+      <a href="../_sources/grain_growth/grain_growth_summary.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,55 @@
+# SPPARKS 'potts' model for modeling 'grain' growth
+# let N=128
+# let Q=2048
+# kT="0.85"
+# spk_flame.gnu -var kT $kT -var N $N -var Q $Q < grain_growth.in
+
+seed		 5689
+
+# Use 'Potts' app to simulate grain growth;
+# Site 'spins' can assume values of its nearest neighbors.
+app_style	 potts/neighonly ${Q}
+
+# 2d lattice; Each site has 8 neighbors
+dimension	 2
+lattice		 sq/8n 1.0
+
+# Define lattice extent called 'square'; 
+region		 square block 0 ${N} 0 ${N} -1.0 1.0
+
+# Define 'axis' aligned simulation domain on 'square'
+create_box	 square
+
+# Creates sites on lattice defined above; 
+# Also creates neighborhood list for each site
+create_sites     box
+
+# Initializes sites randomly with values between 1 and {Q}
+set site range 1 ${Q}
+
+# Simulation temperature; Units of energy
+temperature	 ${kT}
+
+# KMC solver
+solve_style      tree
+# sectors are required to run 'tree' kmc in parallel
+sector yes
+
+# Diagnostic style energy computes the total energy for all sites
+diag_style       energy
+
+# Print diagnostic information to screen 50 steps 
+stats            50.0
+
+# Write snapshot of site values 
+#   to 'grain_growth.dump' every 50 steps
+dump  1 text  50.0 grain_growth.dump
+# Write 'cluster/grain' diagnostics
+diag_style       cluster stats no delt 50.0 filename grain_growth.cluster
+
+# Write 'image'; see 'dump' documentation
+dump grain_growth_image image 50 grain_growth.*.jpg site site crange 1 ${Q} drange 1 1 view 0.0 0.0 boundary site 1 shape cube box no 1
+dump_modify grain_growth_image boundcolor black backcolor white
+
+# Run for 1400 *spparks* steps
+run              1400.0

@@ -1,0 +1,16 @@
+===========================
+SPPARKS Information Online
+===========================
+
+.. _SPPARKS Website: http://spparks.sandia.gov
+.. _SPPARKS Documentation: http://spparks.sandia.gov/doc/Manual.html
+.. _SPPARKS Commands: http://spparks.sandia.gov/doc/Section_commands.html#comm
+
+
+Links
+-----
+* SPPARKS Website: http://spparks.sandia.gov
+* `SPPARKS Documentation`_ accessible from `SPPARKS Website`_
+* `SPPARKS Commands`_ accessible from `SPPARKS Website`_
+
+

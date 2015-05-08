@@ -1,0 +1,71 @@
+
+
+
+        .. image:: n.128/images/grain_growth.0.png
+           :width: 25%
+
+        .. image:: n.128/images/grain_growth.3.png
+           :width: 25%
+
+        .. image:: n.128/images/grain_growth.28.png
+           :width: 25%
+
+Commands & Concepts
++++++++++++++++++++
+* Create lattice [#lattice.source]_
+  
+  * `dimension`_ (1D|2D|3D), `lattice`_ (FCC,BCC,...), `region`_ (nx,ny,nz)
+
+* Initialize *spin* values
+  
+  * `set`_ (random or simple conditionals)
+  * `read sites`_ (read file, e.g. DREAM3D)
+
+* Select app style: `potts`_ (a model for grain growth)
+* Select solve style: `tree`_ (stores event probabilities in binary tree)
+* Set *kT*: `temperature`_/energy relevant to *potts* model
+* Request output text/images for analysis
+
+  * `dump text`_ and/or `dump image`_
+
+* Choose diag style
+
+  * `energy`_ (running energy tally for entire lattice)
+  * `cluster`_ (very useful: compute cluster volumes, centroids)
+
+*spparks* input file
+....................
+
+* Run *spparks*::
+
+    #!/bin/bash 
+    let N=128
+    let Q=2048
+    kT="0.85"
+    spk_flame.gnu -var kT $kT -var N $N -var Q $Q < grain_growth.in
+
+* :download:`Download 'grain_growth.in'  <n.128/grain_growth.in>`
+
+  .. literalinclude:: n.128/grain_growth.in
+     :language: bash
+
+
+----
+
+.. [#lattice.source] 
+        .. image:: images/cubic_lattice_bcc.gif
+
+        https://www.uwgb.edu/dutchs/symmetry/bravais.htm
+
+.. _dimension: http://spparks.sandia.gov/doc/dimension.html
+.. _lattice: http://spparks.sandia.gov/doc/lattice.html
+.. _region: http://spparks.sandia.gov/doc/region.html
+.. _set: http://spparks.sandia.gov/doc/set.html
+.. _read sites: http://spparks.sandia.gov/doc/read_sites.html
+.. _potts: http://spparks.sandia.gov/doc/app_potts.html
+.. _tree: http://spparks.sandia.gov/doc/solve_style.html
+.. _temperature: http://spparks.sandia.gov/doc/temperature.html
+.. _dump text: http://spparks.sandia.gov/doc/dump.html
+.. _dump image: http://spparks.sandia.gov/doc/dump_image.html
+.. _cluster: http://spparks.sandia.gov/doc/diag_cluster.html
+.. _energy: http://spparks.sandia.gov/doc/diag_energy.html

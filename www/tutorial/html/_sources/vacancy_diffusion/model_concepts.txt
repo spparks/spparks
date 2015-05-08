@@ -1,0 +1,29 @@
+
+
+.. image:: n.128/images/vacancy_diffusion.0.png
+   :width: 25%
+
+.. image:: n.128/images/vacancy_diffusion.10.png
+   :width: 25%
+
+.. image:: n.128/images/vacancy_diffusion.63.png
+   :width: 25%
+
+.. image:: n.128/images/vacancy_diffusion.66.png
+   :width: 25%
+
+.. image:: n.128/images/vacancy_diffusion.200.png
+   :width: 25%
+
+.. image:: n.128/images/vacancy_diffusion.label.png
+   :width: 25%
+
+
+Model Concepts
+++++++++++++++
+* Two phase model
+
+  * Voids diffusing in solid
+  * Ostwald ripening
+
+* Species conserving (Kawaski dynamics)
