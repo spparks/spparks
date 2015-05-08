@@ -1,7 +1,0 @@
-Detailed Description of *SPPARKS* Commands: Input File
-++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-Running Calculation
-....................
-Post Processing and Visualizing Results
-.......................................
