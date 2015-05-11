@@ -1,0 +1,79 @@
+=============================
+What can you do with SPPARKS?
+=============================
+
+This tutorial has a focus on *grain growth* type applications but *spparks* can
+do a lot more than that.
+
+* Sintering in a `nuclear fuel`_ (Veena Tikare)
+* Many more (see `Pictures and Movies`_) on *spparks* website
+* Model grain growth and evolution (*this tutorial*)
+
+Motivations
+-----------
+* Strength, toughness and crack growth resistance are intimately tied to
+  microstructure
+* Significant effort goes into control of microstructure
+* Predictive tools such as *SPPARKS* have *potential* to enhance understanding
+  of heat treatment processes and perhaps shorten development time of new
+  processes
+
+
+Grain Growth
+------------
+
+.. image:: grain_growth/n.128/images/grain_growth.0.png
+   :width: 35%
+
+.. image:: grain_growth/n.128/images/grain_growth.3.png
+   :width: 35%
+
+.. image:: grain_growth/n.128/images/grain_growth.28.png
+   :width: 35%
+
+.. image:: grain_growth/n.128/images/grain_growth.gif
+   :width: 35%
+
+Grain Growth with Precipitates
+------------------------------
+
+.. image:: grain_growth_with_pinning/n.128/images/grain_growth.0.png
+   :width: 35%
+
+.. image:: grain_growth_with_pinning/n.128/images/grain_growth.3.png
+   :width: 35%
+
+.. image:: grain_growth_with_pinning/n.128/images/grain_growth.28.png
+   :width: 35%
+
+.. image:: grain_growth_with_pinning/n.128/images/grain_growth.gif
+   :width: 35%
+
+
+Vacancy Diffusion
+------------------
+
+.. image:: vacancy_diffusion/n.128/images/vacancy_diffusion.0.png
+   :width: 25%
+
+.. image:: vacancy_diffusion/n.128/images/vacancy_diffusion.10.png
+   :width: 25%
+
+.. image:: vacancy_diffusion/n.128/images/vacancy_diffusion.63.png
+   :width: 25%
+
+.. image:: vacancy_diffusion/n.128/images/vacancy_diffusion.66.png
+   :width: 25%
+
+.. image:: vacancy_diffusion/n.128/images/vacancy_diffusion.200.png
+   :width: 25%
+
+.. image:: vacancy_diffusion/n.128/images/vacancy_diffusion.label.png
+   :width: 25%
+
+.. image:: vacancy_diffusion/n.128/images/vacancy_diffusion.gif
+   :width: 25%
+
+.. _nuclear fuel: http://spparks.sandia.gov/pictures.html#sintering
+.. _Fission gas transport: http://spparks.sandia.gov/pictures.html#bubble
+.. _Pictures and Movies: http://spparks.sandia.gov/pictures.html

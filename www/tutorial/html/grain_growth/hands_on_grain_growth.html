@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Hands on &mdash; SPPARKS TUTORIAL .1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SPPARKS TUTORIAL .1 documentation" href="../index.html" />
+    <link rel="up" title="Grain Growth" href="grain_growth.html" />
+    <link rel="next" title="Grain Growth with Precipitates" href="../grain_growth_with_pinning/grain_growth_with_pinning.html" />
+    <link rel="prev" title="Summary of key points" href="grain_growth_summary.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../grain_growth_with_pinning/grain_growth_with_pinning.html" title="Grain Growth with Precipitates"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="grain_growth_summary.html" title="Summary of key points"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">SPPARKS TUTORIAL .1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../demonstration_calculations.html" >Demonstration Calculations</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="grain_growth.html" accesskey="U">Grain Growth</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="hands-on">
+<h1>Hands on<a class="headerlink" href="#hands-on" title="Permalink to this headline">¶</a></h1>
+<a class="reference internal image-reference" href="../_images/grain_growth.0.png"><img alt="../_images/grain_growth.0.png" src="../_images/grain_growth.0.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="../_images/grain_growth.3.png"><img alt="../_images/grain_growth.3.png" src="../_images/grain_growth.3.png" style="width: 25%;" /></a>
+<a class="reference internal image-reference" href="../_images/grain_growth.28.png"><img alt="../_images/grain_growth.28.png" src="../_images/grain_growth.28.png" style="width: 25%;" /></a>
+<div class="section" id="try-these-variations-and-make-simple-observations">
+<h2>Try these variations and make simple observations<a class="headerlink" href="#try-these-variations-and-make-simple-observations" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">Run <em>lattice</em> <span class="math">\(128\times 128,\; kT=1.25\)</span></p>
+</li>
+<li><p class="first">Run <em>lattice</em> <span class="math">\(156\times 156,\; kT=.33\)</span></p>
+</li>
+<li><p class="first">Try a different lattice type (<a class="reference external" href="http://spparks.sandia.gov/doc/lattice.html">tri</a>)</p>
+</li>
+<li><p class="first">If you have an <em>mpi</em> build of <em>spparks</em></p>
+<div class="highlight-python"><div class="highlight"><pre>mpiexec -np 2 spk_flame.gnu -var kT $kT -var N $N -var Q $Q &lt; grain_growth.in
+</pre></div>
+</div>
+</li>
+<li><p class="first">What does the <em>energy</em> column/tally imply?</p>
+<div class="highlight-python"><div class="highlight"><pre>   Time    Naccept    Nreject    Nsweeps        CPU     Energy
+      0          0          0          0          0 8.3886e+06
+55.8037    8151847          0         16       5.76 1.22051e+06
+106.508   10436619          0         22       9.23     928128
+150.774   11995846          0         27       14.4     794076
+205.157   13620596          0         33       17.6     689672
+251.346   14834712          0         38         21     624934
+    300   15991604          0         44         26     572196
+</pre></div>
+</div>
+</li>
+<li><p class="first">Change the number of spin values <span class="math">\(Q\)</span></p>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Hands on</a><ul>
+<li><a class="reference internal" href="#try-these-variations-and-make-simple-observations">Try these variations and make simple observations</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="grain_growth_summary.html"
+                        title="previous chapter">Summary of key points</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../grain_growth_with_pinning/grain_growth_with_pinning.html"
+                        title="next chapter">Grain Growth with Precipitates</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/grain_growth/hands_on_grain_growth.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, John A. Mitchell.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+      |
+      <a href="../_sources/grain_growth/hands_on_grain_growth.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

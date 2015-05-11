@@ -1,0 +1,79 @@
+
+        .. image:: n.128/images/vacancy_diffusion.0.png
+           :width: 25%
+
+        .. image:: n.128/images/vacancy_diffusion.10.png
+           :width: 25%
+
+        .. image:: n.128/images/vacancy_diffusion.63.png
+           :width: 25%
+
+        .. image:: n.128/images/vacancy_diffusion.66.png
+           :width: 25%
+
+        .. image:: n.128/images/vacancy_diffusion.200.png
+           :width: 25%
+
+        .. image:: n.128/images/vacancy_diffusion.label.png
+           :width: 25%
+
+Commands & Concepts
++++++++++++++++++++
+* Create lattice [#lattice.source]_
+  
+  * `dimension`_ (1D|2D|3D), `lattice`_ (FCC,BCC,...), `region`_ (nx,ny,nz)
+
+* Initialize *spin* values
+  
+  * `set`_ (initialize sites to *1*)
+  * `set`_ (set fraction of sites to *2*)
+
+* Select app style: `diffusion`_ (a model for vacancy diffusion)
+* Select solve style: `tree`_ (stores event probabilities in binary tree)
+* Set *kT*: `temperature`_/energy relevant to *diffusion* model
+* Request output text/images for analysis
+
+  * `dump text`_ and/or `dump image`_
+
+* Choose diag style
+
+  * `energy`_ (running energy tally for entire lattice)
+
+
+*spparks* input file
+....................
+
+* Run *spparks*::
+
+   # SPPARKS 'diffusion' model for modeling vacancy diffusion
+   # let N=128
+   # Simulation temperature
+   # kT="1.0"
+   # Volume fraction of voids
+   # F="0.1"
+   spk_flame.gnu -var kT $kT -var N $N  -var F $F < vacancy_diffusion.in
+
+* :download:`Download 'vacancy_diffusion.in'  <n.128/vacancy_diffusion.in>`
+
+  .. literalinclude:: n.128/vacancy_diffusion.in
+     :language: bash
+
+----
+
+.. [#lattice.source] 
+        .. image:: ../grain_growth/images/cubic_lattice_bcc.gif
+
+        https://www.uwgb.edu/dutchs/symmetry/bravais.htm
+
+.. _dimension: http://spparks.sandia.gov/doc/dimension.html
+.. _lattice: http://spparks.sandia.gov/doc/lattice.html
+.. _region: http://spparks.sandia.gov/doc/region.html
+.. _set: http://spparks.sandia.gov/doc/set.html
+.. _read sites: http://spparks.sandia.gov/doc/read_sites.html
+.. _diffusion: http://spparks.sandia.gov/doc/app_diffusion.html
+.. _tree: http://spparks.sandia.gov/doc/solve_style.html
+.. _temperature: http://spparks.sandia.gov/doc/temperature.html
+.. _dump text: http://spparks.sandia.gov/doc/dump.html
+.. _dump image: http://spparks.sandia.gov/doc/dump_image.html
+.. _cluster: http://spparks.sandia.gov/doc/diag_cluster.html
+.. _energy: http://spparks.sandia.gov/doc/diag_energy.html

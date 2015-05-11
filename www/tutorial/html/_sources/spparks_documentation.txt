@@ -1,0 +1,25 @@
+===========================
+SPPARKS Information Online
+===========================
+
+.. _SPPARKS Website: http://spparks.sandia.gov
+.. _SPPARKS Documentation: http://spparks.sandia.gov/doc/Manual.html
+.. _SPPARKS Commands: http://spparks.sandia.gov/doc/Section_commands.html#comm
+.. _Building spparks: http://spparks.sandia.gov/doc/Section_start.html#start_2
+.. _On mac OS Yosemite: _static/SPPARKS_walkthru_OSX_10.9+.pdf
+
+
+Links
+-----
+* SPPARKS Website: http://spparks.sandia.gov
+* `SPPARKS Documentation`_ accessible from `SPPARKS Website`_
+* `Building spparks`_: generic instructions on `SPPARKS Website`_
+
+  * `On mac OS Yosemite`_ (provided by Jonathan Madison)
+
+* `SPPARKS Commands`_ accessible from `SPPARKS Website`_
+
+
+.. 
+
+

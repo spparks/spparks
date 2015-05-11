@@ -1,0 +1,52 @@
+# SPPARKS vacancy 'diffusion' model 
+# let N=128
+# Simulation temperature
+# kT="1.0"
+# Volume fraction of voids
+# F="0.1"
+# spk_flame.gnu -var kT $kT -var N $N  -var F $F < vacancy_diffusion.in
+
+seed		 56689
+
+app_style	 diffusion linear hop
+
+# 2d lattice; Each site has 8 neighbors
+dimension	 2
+lattice		 sq/8n 1.0
+
+# Define lattice extent called 'square'; 
+region		 square block 0 ${N} 0 ${N} -1.0 1.0
+
+# Define 'axis' aligned simulation domain on 'square'
+create_box	 square
+
+# Creates sites on lattice defined above; also creates neighborhood list for each site
+create_sites     box
+
+# Initializes sites to '1' and a fraction of sites to '2'
+set site value 1
+set site value 2 fraction ${F}
+
+# Simulation temperature; Units of energy
+temperature	 ${kT}
+
+# KMC solver
+solve_style      tree
+# sectors are required to run 'tree' kmc in parallel
+sector yes
+
+# Diagnostic style energy computes the total energy for all sites
+diag_style       energy
+
+# Print diagnostic information to screen 
+stats            5000.0
+
+# Write snapshot of site values to 'vacancy_diffusion.dump' 
+dump  1 text  5000.0 vacancy_diffusion.dump
+
+# Write 'image'; boundary between phases drawn with color = 0 0 0 aka 'black'
+dump vacancy_diffusion_image image 5000 vacancy_diffusion.*.jpg site site crange 1 2 drange 1 1 view 0.0 0.0 boundary site 1 shape cube box no 1 zoom 1.95
+dump_modify vacancy_diffusion_image boundcolor black backcolor white pad 4 
+
+# Run for 1 million *spparks* steps
+run              1000000
