@@ -1,0 +1,15 @@
+================================================
+Initialize *microstructure* using synthetic data
+================================================
+
+        .. image:: n.128/images/synthetic.0000.jpg
+           :width: 45%
+
+
+.. toctree::
+   :maxdepth: 1
+
+   intro
+   synthetic_anim
+
+

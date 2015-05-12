@@ -1,0 +1,70 @@
+
+Grain Size Distributions
+------------------------
+* Run *spparks*
+* Visualize 
+
+  * Lattice: 128x128; (*spparks* rendered): `dump image`_
+
+        .. image:: n.128/images/grain_growth.0.png
+           :width: 25%
+
+        .. image:: n.128/images/grain_growth.3.png
+           :width: 25%
+
+        .. image:: n.128/images/grain_growth.28.png
+           :width: 25%
+
+
+  * Lattice: 1024x1024; (*paraview* rendered)
+
+        .. image:: images/N.1024.kT=0.050.grains.0.png
+           :width: 25%
+
+        .. image:: images/N.1024.kT=0.050.grains.3.png
+           :width: 25%
+
+        .. image:: images/N.1024.kT=0.050.grains.12.png
+           :width: 25%
+
+* Post-process and analyze grain-size distributions 
+
+        * Use *python*/*fortran*/*c++* to process *dump* and/or *cluster* files
+
+          * *dump* file snippet
+
+            * header information
+            * typical dump file contains 1 or more time steps (depending)
+            * for brevity, snippet shows single time step
+            * for brevity, snippet clips all but 2 atoms 
+
+                  .. literalinclude:: dump.header
+
+        * Average growth size versus time; **Note trends**
+
+        .. image:: images/N.1024.grainsize_versus_time.jpg
+           :width: 75%
+
+        * Grain size distributions
+
+        .. image:: images/N.1024.kT=0.050.grains.12.png
+           :width: 40%
+
+        .. image:: images/N.1024.kT=0.050.12.jpg
+           :width: 40%
+
+        .. image:: images/N.1024.kT=0.250.grains.12.png
+           :width: 40%
+
+        .. image:: images/N.1024.kT=0.250.12.jpg
+           :width: 40%
+
+        .. image:: images/N.1024.kT=0.500.grains.12.png
+           :width: 40%
+
+        .. image:: images/N.1024.kT=0.500.12.jpg
+           :width: 40%
+
+
+.. _dump image: http://spparks.sandia.gov/doc/dump_image.html
+

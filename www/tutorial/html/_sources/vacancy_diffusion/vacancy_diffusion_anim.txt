@@ -1,0 +1,9 @@
+
+Vacancy diffusion animation
+===========================
+
+
+Lattice: :math:`128\times 128`, :math:`kT=1.0`, :math:`F=0.1`
+
+.. image:: n.128/images/vacancy_diffusion.gif
+   :width: 65%

@@ -1,0 +1,9 @@
+
+Synthetic initialization: grain growth animation
+================================================
+
+
+Lattice: :math:`128\times 128 \times 128`, :math:`kT=0.5`, :math:`Q=2048`
+
+.. image:: n.128/images/synthetic.gif
+   :width: 65%

@@ -1,0 +1,42 @@
+Hands on
+++++++++
+
+.. image:: n.128/images/grain_growth.0.png
+   :width: 25%
+
+.. image:: n.128/images/grain_growth.3.png
+   :width: 25%
+
+.. image:: n.128/images/grain_growth.28.png
+   :width: 25%
+
+Try these variations and make simple observations
+.................................................
+* Run *lattice* :math:`128\times 128,\; kT=1.25`
+* Run *lattice* :math:`156\times 156,\; kT=.33`
+* Try a different lattice type (`tri`_)
+* If you have an *mpi* build of *spparks*
+
+  ::
+
+        mpiexec -np 2 spk_flame.gnu -var kT $kT -var N $N -var Q $Q < grain_growth.in
+
+* What does the *energy* column/tally imply?
+
+  ::
+
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy
+         0          0          0          0          0 8.3886e+06
+   55.8037    8151847          0         16       5.76 1.22051e+06
+   106.508   10436619          0         22       9.23     928128
+   150.774   11995846          0         27       14.4     794076
+   205.157   13620596          0         33       17.6     689672
+   251.346   14834712          0         38         21     624934
+       300   15991604          0         44         26     572196
+
+
+* Change the number of spin values :math:`Q`
+
+
+.. _tri: http://spparks.sandia.gov/doc/lattice.html
+
