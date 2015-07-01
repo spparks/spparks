@@ -65,14 +65,13 @@ diagnostic may write more extensive output to its own files if
 requested by diagnostic-specific keywords.
 </P>
 <P>The <I>stats</I> keyword controls whether or not the diagnostic appends
-values to the statistical output.  If <I>stats</I> is set to <I>yes</I>, then none
-of the other keywords can be used, since the frequency of the
-<A HREF = "stats.html">stats</A> output will determine when the diagnostic is
-called.
+values to the statistical output.  If <I>stats</I> is set to <I>yes</I>, 
+then the frequency of the <A HREF = "stats.html">stats</A> output will determine 
+when the diagnostic is called, and none
+of the other keywords related to how often the diagnostic is called can be used. 
 </P>
-<P>If <I>stats</I> is set to <I>no</I>, then the other keywords can be used, since
-presumably the diagnostic will create its own output files.  The
-<I>delt</I> keyword specificies <I>Delta</I> = the interval of time between each
+<P>If <I>stats</I> is set to <I>no</I>, then the other keywords related to how often the diagnostic is called 
+may be used.  The <I>delt</I> keyword specificies <I>Delta</I> = the interval of time between each
 diagnostic calculation.  
 </P>
 <P>Similarly, the <I>logfreq</I> and <I>loglinfreq</I> keywords will cause

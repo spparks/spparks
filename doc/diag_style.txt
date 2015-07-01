@@ -59,14 +59,13 @@ diagnostic may write more extensive output to its own files if
 requested by diagnostic-specific keywords.
 
 The {stats} keyword controls whether or not the diagnostic appends
-values to the statistical output.  If {stats} is set to {yes}, then none
-of the other keywords can be used, since the frequency of the
-"stats"_stats.html output will determine when the diagnostic is
-called.
+values to the statistical output.  If {stats} is set to {yes}, 
+then the frequency of the "stats"_stats.html output will determine 
+when the diagnostic is called, and none
+of the other keywords related to how often the diagnostic is called can be used. 
 
-If {stats} is set to {no}, then the other keywords can be used, since
-presumably the diagnostic will create its own output files.  The
-{delt} keyword specificies {Delta} = the interval of time between each
+If {stats} is set to {no}, then the other keywords related to how often the diagnostic is called 
+may be used.  The {delt} keyword specificies {Delta} = the interval of time between each
 diagnostic calculation.  
 
 Similarly, the {logfreq} and {loglinfreq} keywords will cause
