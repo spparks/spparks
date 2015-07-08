@@ -1,0 +1,66 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style potts/grad command :h3
+
+[Syntax:]
+
+app_style style grad_style nspins m0 convert Q T0 grad_x arg grad_y arg grad_z arg :pre
+
+style = {potts/grad} :ulb,l
+grad_style = {temp} or {mob} :l
+nspins = number of possible spins :l
+m0 = mobility constant for {temp} grad_style or mobility at the center of domain for {mob} grad_style :l
+convert = conversion factor for the gradients :l
+Q = activation energy :l
+T0 = temperature at the center of domain (temperature units) :l
+grad_x = gradient in the x direction :l
+grad_y = gradient in the y direction :l
+grad_z = gradient in the z direction :l
+    {grad_x} arg = grad
+    {grad_y} arg = grad
+    {grad_z} arg = grad
+	grad = temperature or mobility gradient :pre
+:ule
+
+[Examples:]
+
+app_style potts/grad temp 10000 .0006 .25 1 350 grad_x 3   grad_y -3 gradz 1 
+app_style potts/grad temp 10000 .0006 .1  1 375 grad_x 3.5 grad_y  3 
+app_style potts/grad mob 15000  .5 1 0 0 grad_x .0024 grad_y 0 grad_z 0 :pre
+
+[Description:]
+
+This is an on-lattice application derived from the "app_style potts/neighonly"_app_potts.html application which applies gradients given in three directions x,y, and z.  The gradients can be either temperature or mobility gradients.  If grad_style {mob} is chosen, mobility gradients are used.  If grad_style {temp} is chosen, temperature gradients are used.  
+
+When the grad_style {temp} is used, the mobility of each site is assumed to depend on temperature, according to the equation m0 * exp(-Q/(KT)), where m0 is the mobility constant, K is Boltzmann's constant, T is the temperature of the site, and Q is the activation energy. The temperature of a site depends linearly on its position in the lattice. The linear function is uniquely defined by the value T0 at the center and the gradients in the x,y, and z directions, {grad_x}, {grad_y}, and {grad_z}, respectively.  The gradients are in units of temperature per lattice spacing (defined by the "lattice"_lattice.html constant). 
+
+When the grad_style {mob} is used each site is assigned a mobility directly from the mobility gradients.  The arguments Q and T0 are not used during a mobility gradient simulation.  m0 is the initial mobility at the center of the domain.  The mobility of each site depends linearly on its position in the lattice.  The linear function is defined by the mobility gradients.  The mobility gradients are in units of mobility per lattice spacing (defined by the "lattice"_lattice.html constant). 
+
+Convert is an argument multiplied by the given gradients and is used to convert units as a convience for the user.
+
+{grad_z} is an optional argument and will be defaulted to zero if not used.
+  
+:line
+
+[Restrictions:] :link(restriction) 
+
+Convert must be > 0.  
+
+Only compatible with square and square cubic lattices.
+
+Can only be evolved by a rejection KMC (rKMC) algorithm.  See "sweep"_sweep.html for more information.
+
+[Related commands:] 
+
+"app_style potts"_app_potts.html
+
+[Default:] 
+
+{grad_z} arg = 0
+
