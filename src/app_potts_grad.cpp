@@ -11,6 +11,10 @@
    See the README file in the top-level SPPARKS directory.
  ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Justin Roberts (BYU), John Mitchell (SNL)
+------------------------------------------------------------------------- */
+
 #include <cstdlib>
 #include <string>
 #include <cstring>
