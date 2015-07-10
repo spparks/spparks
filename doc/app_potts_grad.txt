@@ -56,6 +56,9 @@ Only compatible with square and square cubic lattices.
 
 Can only be evolved by a rejection KMC (rKMC) algorithm.  See "sweep"_sweep.html for more information.
 
+nspins must be greater than the possible spins set with the "set"_set.html
+ {site range} command.
+
 [Related commands:] 
 
 "app_style potts"_app_potts.html
@@ -64,3 +67,7 @@ Can only be evolved by a rejection KMC (rKMC) algorithm.  See "sweep"_sweep.html
 
 {grad_z} arg = 0
 
+:line
+
+:link(Garcia)
+[(Garcia)] A.L. Garcia, V. Tikare and E.A. Holm, "Three-Dimensional Simulation of Grain Growth of in a Thermal Gradient with Non-Uniform Grain Boundary Mobility", Scripta Met 59\[6\] 661- 664 (2008). 

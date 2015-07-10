@@ -298,7 +298,7 @@ Restrictions in the command's documentation.
 
 :line
 
-Application styles.  See the "app_style"_app_stlye.html command for
+Application styles.  See the "app_style"_app_style.html command for
 one-line descriptions of each style or click on the style itself for a
 full description:
 
@@ -312,6 +312,7 @@ full description:
 "potts/neigh"_app_potts.html,
 "potts/neighonly"_app_potts.html,
 "potts/pin"_app_potts_pin.html,
+"potts/grad"_app_potts_grad.html,
 "relax"_app_relax.html,
 "sos"_app_sos.html,
 "test/group"_app_test_group.html :tb(c=8,ea=c)
