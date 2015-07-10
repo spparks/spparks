@@ -1,0 +1,25 @@
+# SPPARKS Potts Gradient test on cubic lattice
+
+seed		 56789
+
+# app_style      style grad_style nspins m0 convert Q T0 grad_x arg grad_y arg grad_z arg 
+app_style        potts/grad temp 25000 0.0006 1.0 1.0 375.0 grad_x 1.5 grad_y 0.0 grad_z 0.0
+
+dimension	 3
+lattice		 sc/26n 1.0
+region		 box block 0 100 0 50 0 50
+create_box	 box
+create_sites	 box
+set		 site range 1 25000
+
+sweep		 color
+sector		 yes
+
+diag_style       energy
+
+temperature	 0.3
+
+stats            5.0
+dump             1 text 5.0 potts_grad.dump
+
+run              50
