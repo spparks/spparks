@@ -5,8 +5,9 @@
 
 Pictures & Movies from SPPARKS Simulations :h3
 
-"hafnium dioxide"_#hafnium:       hafnium dioxide surface growth
-"abnormal"_#abnormal:       abnormal grain growth
+"temperature growth"_#temp-growth: temperature-dependent grain growth
+"hafnium dioxide"_#hafnium: hafnium dioxide surface growth
+"abnormal"_#abnormal: abnormal grain growth
 "erbium hydrides"_#erbium:  diffusion in Erbium hydrides
 "thin film growth"_#thinfilm: thin film growth
 "nanoporous metals"_#nanoporous: diffusion in nanoporous metals
@@ -18,6 +19,34 @@ view a larger version.
 
 For movies on this page, click on the small image to trigger the
 animation.
+
+:line
+
+Temperature-dependent grain growth :h4,link(temp-growth)
+
+This is work by Veena Tikare (vtikare at sandia.gov), John Mitchell
+(jamitch at sandia.gov) both at Sandia, and Justin Roberts (jrober at
+sandia.gov) at Brigham Young University to simulate normal,
+curvature-driven grain growth with variation in grain boundary
+mobility due to a temperature gradient.  This is a modified Potts
+model of grain growth which includes the local mobility of grain
+boundaries based on the local temperature.  These images and movies
+show grain growth with a linear grain boundary mobility gradient
+applied in the X-direction.  The mobility is low at the left and high
+at the right.
+
+:image(images/temperature_growth_small.jpg,images/temperature_growth.jpg)
+:image(images/temperature_growth_small.jpg,movies/temperature_growth.avi)
+:image(images/temperature_growth_small.jpg,movies/temperature_growth.ogv)
+
+Image, 1 Mb AVI movie, 3 Mb OGV movie
+
+This paper describes the model and results of similar simulations:
+
+[Three-Dimensional Simulation of Grain Growth of in a Thermal Gradient
+with Non-Uniform Grain Boundary Mobility], A. L. Garcia, V. Tikare and
+E. A. Holm, Scripta Materialia 59, 661-664 (2008).
+("abstract"_abstracts/scripta08.html)
 
 :line
 
