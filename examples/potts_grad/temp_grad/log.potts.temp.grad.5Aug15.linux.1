@@ -1,0 +1,55 @@
+SPPARKS (8 Jul 2015)
+# SPPARKS Potts Gradient test on cubic lattice
+
+seed		 56789
+
+# app_style      style grad_style nspins m0 convert Q   T0   grad_x grad_y grad_z 
+app_style        potts/grad temp 25000 0.0006 1.0  1.0 375.0  1.5    0.0    0.0
+
+dimension	 3
+lattice		 sc/26n 1.0
+region		 box block 0 100 0 50 0 50
+create_box	 box
+Created box = (0 0 0) to (100 50 50)
+  1 by 1 by 1 processor grid
+create_sites	 box
+Creating sites ...
+  250000 sites
+  250000 sites have 26 neighbors
+set		 site range 1 25000
+  250000 settings made for site
+
+sweep		 color
+sector		 yes
+
+diag_style       energy
+
+temperature	 0.3
+
+stats            5.0
+dump             1 text 5.0 potts_grad.dump
+dump 		 grain_growth_image image 1 grain_growth.*.jpg site site crange 1 25000 drange 1 1 view 85 65 shape cube box no 1 zoom 1.5 size 550 550
+dump_modify 	 grain_growth_image backcolor white pad 4
+
+run              50
+Setting up run ...
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy
+         0          0          0          0          0 6.49974e+06
+   5.03846     493708   32256292        131       76.4 5.21442e+06
+   10.0385     626033   64623967        261        143 4.86225e+06
+   15.0385     714195   97035805        391        206 4.65119e+06
+        20     779950  129220050        520        266 4.50444e+06
+        25     831023  161668977        650        325 4.39518e+06
+        30     873303  194126697        780        382 4.30864e+06
+        35     911276  226588724        910        439 4.23482e+06
+        40     946570  259053430       1040        494 4.16598e+06
+        45     982320  291517680       1170        549 4.10152e+06
+        50    1015439  323984561       1300        603 4.04456e+06
+Loop time of 602.612 on 1 procs
+
+Solve time (%) = 523.756 (86.9142)
+Update time (%) = 0 (0)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 78.8501 (13.0847)
+App   time (%) = 0 (0)
+Other time (%) = 0.00644279 (0.00106914)

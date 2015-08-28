@@ -21,5 +21,7 @@ temperature	 0.3
 
 stats            5.0
 dump             1 text 5.0 potts_grad.dump
+dump 		 grain_growth_image image 1 grain_growth.*.jpg site site crange 1 25000 drange 1 1 view 85 65 shape cube box no 1 zoom 1.5 size 550 550
+dump_modify 	 grain_growth_image backcolor white pad 4
 
 run              50

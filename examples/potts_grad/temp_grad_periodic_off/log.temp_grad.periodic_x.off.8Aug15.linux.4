@@ -40,22 +40,24 @@ temperature	 1.0
 
 stats            5.0
 dump             1 text 5.0 temp_grad.periodic_x.off.dump
+dump 		 grain_growth_image image 1 grain_growth.*.jpg site site crange 1 25000 drange 1 1 view 85 65 shape cube box no 1 zoom 1.75 size 550 550
+dump_modify 	 grain_growth_image backcolor white pad 4 
 diag_style       cluster delt 5.0 stats no logfreq 9 10.0 filename temp_grad.periodic_x.off.cluster
 
 run              25.0
 Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
          0          0          0          0          0     516782
-   5.03846      90318    2529682        131       1.55     345978
-   10.0385     118317    5101683        261       2.91     300258
-   15.0385     138892    7681108        391       4.19     275852
-        20     155900   10244100        520       5.37     258596
-        25     171849   12828151        650       6.51     243772
-Loop time of 6.50798 on 4 procs
+   5.03846      90318    2529682        131       2.42     345978
+   10.0385     118317    5101683        261       4.66     300258
+   15.0385     138892    7681108        391        6.8     275852
+        20     155900   10244100        520       8.85     258596
+        25     171849   12828151        650       10.8     243772
+Loop time of 10.8468 on 4 procs
 
-Solve time (%) = 3.52654 (54.188)
+Solve time (%) = 3.52932 (32.538)
 Update time (%) = 0 (0)
-Comm  time (%) = 2.83058 (43.4941)
-Outpt time (%) = 0.143035 (2.19784)
+Comm  time (%) = 2.88833 (26.6285)
+Outpt time (%) = 4.42132 (40.7617)
 App   time (%) = 0 (0)
-Other time (%) = 0.00781512 (0.120085)
+Other time (%) = 0.00779319 (0.0718481)

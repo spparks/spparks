@@ -1,0 +1,63 @@
+SPPARKS (8 Jul 2015)
+# SPPARKS Potts Gradient test on cubic lattice
+# Causes the perodicity to be turned off in the x direction
+
+seed		 56789
+
+
+# app_style      style grad_style nspins    m0  convert Q   T0   grad_x grad_y grad_z 
+app_style        potts/grad temp 25000   0.0006   1.0  1.0 375.0  1.5    0.0    0.0
+
+dimension	 3
+
+lattice		 sc/26n 1.0
+region		 box block 0 50 0 20 0 20 
+create_box	 box
+Created box = (0 0 0) to (50 20 20)
+  1 by 1 by 1 processor grid
+create_sites     box
+Creating sites ...
+  20000 sites
+  20000 sites have 26 neighbors
+set              site range 1 25000
+  20000 settings made for site
+# Pins sites on left edge
+# Simply replace the x with y or z to turn off periodicity in the y or z direction
+# 1) assign spin=0
+# 2) assign mobility<0; this is treated specifically in the code so that
+#    sites i with neighbors j having mobility<0 cannot switch spin[j]
+set i1 value 0 if x < 1
+  400 settings made for i1
+set d2 value -1.0 if x < 1
+  400 settings made for d2
+
+sweep		 color 
+sector		 yes
+
+diag_style       energy
+
+temperature	 1.0
+
+stats            5.0
+dump             1 text 5.0 temp_grad.periodic_x.off.dump
+dump 		 grain_growth_image image 1 grain_growth.*.jpg site site crange 1 25000 drange 1 1 view 85 65 shape cube box no 1 zoom 1.75 size 550 550
+dump_modify 	 grain_growth_image backcolor white pad 4 
+diag_style       cluster delt 5.0 stats no logfreq 9 10.0 filename temp_grad.periodic_x.off.cluster
+
+run              25.0
+Setting up run ...
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy
+         0          0          0          0          0     516782
+   5.03846      89337    2530663        131       7.53     345802
+   10.0385     115079    5104921        261       13.8     281790
+   15.0385     128120    7691880        391       19.6     249056
+        20     136902   10263098        520       25.1     226254
+        25     143548   12856452        650       30.3     209758
+Loop time of 30.3392 on 1 procs
+
+Solve time (%) = 13.8854 (45.7673)
+Update time (%) = 0 (0)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 16.4505 (54.2219)
+App   time (%) = 0 (0)
+Other time (%) = 0.00327969 (0.0108101)
