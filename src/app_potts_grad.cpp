@@ -138,6 +138,8 @@ void AppPottsGrad::init_app()
 	   MPI_Allreduce(&max_T,&global_max,1,MPI_DOUBLE,MPI_MAX,world);
 	   max_T=global_max;
 	   for(int i=0;i<nlocal;i++){
+		  // skip this site if pinned
+		  if(M[i]<0.0) continue;
 		  M[i]=compute_mobility(T[i],max_T);
 	   }
    }
@@ -149,6 +151,8 @@ void AppPottsGrad::init_app()
    {
 	   double global_mob_max;
 	   for(int i=0;i<nlocal;i++){
+		  // skip this site if pinned
+		  if(M[i]<0.0) continue;
 		  M[i]=mobility_grad(i);
 		  if(max_M < M[i])
 			  max_M = M[i];
@@ -270,21 +274,32 @@ void AppPottsGrad::site_event_rejection(int i, RandomPark *random){
        * Finding unique neighbor spins
        */
 
-	   int j,m,value;
-	   int nevent = 0;
+	 std::set<int> my_unique;
+	  for (int j = 0; j < numneigh[i]; j++) {
+		 int value = spin[neighbor[i][j]];
+		 double j_mobility= M[neighbor[i][j]];
+		 // mobilities <= 0 are 'pinned' sites
+		 if (value == spin[i] || j_mobility < 0.0) continue;
+		 my_unique.insert(value);
+	  }
+	  // how many unique spins
+	  nevent=my_unique.size();
 
-	   for (j = 0; j < numneigh[i]; j++) {
-	     value = spin[neighbor[i][j]];
-	     if (value == spin[i]) continue;
-	     for (m = 0; m < nevent; m++)
-	       if (value == unique[m]) break;
-	     if (m < nevent) continue;
-	     unique[nevent++] = value;
-	   }
+	  // scale random number according number of unique neighbor spins
+	  if (nevent == 0) return;
+	  int iran = (int) (nevent*random->uniform());
+	  if (iran >= nevent) iran = nevent-1;
 
-	   if (nevent == 0) return;
-	   int iran = (int) (nevent*random->uniform());
-	   if (iran >= nevent) iran = nevent-1;
+
+	  {
+		 /*
+		  * Store unique spins
+		  */
+		 int c=0;
+		  for(std::set<int>::iterator i=my_unique.begin();i!=my_unique.end();i++){
+			unique[c++]=*i;
+		  }
+	  }
 
       spin[i] = unique[iran];
       double efinal = site_energy(i);
