@@ -51,7 +51,7 @@ app_style potts/grad mob 15000  .5 1 0 0 .0024 0 0
 </P>
 <P>When the grad_style <I>mob</I> is used each site is assigned a mobility directly from the mobility gradients.  The arguments Q and T0 are not used during a mobility gradient simulation.  m0 is the initial mobility at the center of the domain.  The mobility of each site depends linearly on its position in the lattice.  The linear function is defined by the mobility gradients.  The mobility gradients are in units of mobility per lattice spacing (defined by the <A HREF = "lattice.html">lattice</A> constant). 
 </P>
-<P>This app requires a special method to turn off periodicity.  Refer to the examples under <I>potts_grad</I> for more details.
+<P>Under most circumstances a gradient will break periodicity in the gradient direction.  This app requires a special method for turning off periodicity.  Refer to the examples under <I>potts_grad</I> for more details on how to turn periodicity off.
 </P>
 <P>Convert is an argument multiplied by the given gradients and is used to convert units as a convenience for the user.
 </P>

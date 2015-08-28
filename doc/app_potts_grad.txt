@@ -39,7 +39,7 @@ When the grad_style {temp} is used, the mobility of each site is assumed to depe
 
 When the grad_style {mob} is used each site is assigned a mobility directly from the mobility gradients.  The arguments Q and T0 are not used during a mobility gradient simulation.  m0 is the initial mobility at the center of the domain.  The mobility of each site depends linearly on its position in the lattice.  The linear function is defined by the mobility gradients.  The mobility gradients are in units of mobility per lattice spacing (defined by the "lattice"_lattice.html constant). 
 
-This app requires a special method to turn off periodicity.  Refer to the examples under {potts_grad} for more details.
+Under most circumstances a gradient will break periodicity in the gradient direction.  This app requires a special method for turning off periodicity.  Refer to the examples under {potts_grad} for more details on how to turn periodicity off.
 
 Convert is an argument multiplied by the given gradients and is used to convert units as a convenience for the user.
 
