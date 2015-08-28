@@ -2,8 +2,8 @@
 
 seed		 56789
 
-# app_style      style grad_style nspins m0 convert Q T0 grad_x arg grad_y arg grad_z arg 
-app_style        potts/grad temp 25000 0.0006 1.0 1.0 375.0 grad_x 1.5 grad_y 0.0 grad_z 0.0
+# app_style      style grad_style nspins m0 convert Q   T0   grad_x grad_y grad_z 
+app_style        potts/grad temp 25000 0.0006 1.0  1.0 375.0  1.5    0.0    0.0
 
 dimension	 3
 lattice		 sc/26n 1.0

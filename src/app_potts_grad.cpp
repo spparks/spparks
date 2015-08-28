@@ -11,10 +11,6 @@
    See the README file in the top-level SPPARKS directory.
  ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Justin Roberts (BYU), John Mitchell (SNL)
-------------------------------------------------------------------------- */
-
 #include <cstdlib>
 #include <string>
 #include <cstring>
@@ -48,7 +44,7 @@ AppPottsGrad::AppPottsGrad(SPPARKS *spk, int narg, char **arg) :
       error->all(FLERR,"Illegal app_style command");
 
    // check for number of arguments
-   if(narg < 11 || narg > 13)
+   if(narg < 9 || narg > 10)
 	  error->all(FLERR,"Invalid amount of AppPottsGrad args");
 
    int n = strlen(arg[1]) + 1;
@@ -65,9 +61,6 @@ AppPottsGrad::AppPottsGrad(SPPARKS *spk, int narg, char **arg) :
    if(convert <= 0)
 	   error->all(FLERR,"Invalid convert argument");
 
-   if(narg < 11)
-	   error->all(FLERR,"Invalid amount of AppPottsGrad args");
-
    activation_energy = atof(arg[5]);
    if(activation_energy < 0)
 	   error->all(FLERR,"Invalid activation energy argument");
@@ -76,31 +69,16 @@ AppPottsGrad::AppPottsGrad(SPPARKS *spk, int narg, char **arg) :
    if(T0 < 0)
 	   error->all(FLERR,"Invalid temperature argument");
 
-   // check for correct gradient arguments
-   if(strcmp(arg[7],"grad_x") == 0)
-	   grad_x = atof(arg[8]) * convert;
-   else
-	   error->all(FLERR,"Invalid AppPottsGrad argument");
+   grad_x = atof(arg[7]) * convert;
 
-   if(strcmp(arg[9],"grad_y") == 0)
-	   grad_y = atof(arg[10]) * convert;
-   else
-	   error->all(FLERR,"Invalid AppPottsGrad argument");
+   grad_y = atof(arg[8]) * convert;
 
-   // check for correct optional gradz argument
-   if(narg == 13){
-	   if(strcmp(arg[11],"grad_z") == 0)
-			 grad_z = atof(arg[12]) * convert;
-	   else
-			 error->all(FLERR,"Invalid AppPottsGrad argument");
+   if(narg == 10){
+	 grad_z = atof(arg[9]) * convert;
    }
-   else if(narg != 11)
-	   error->all(FLERR,"Invalid amount of AppPottsGrad args");
 
    if(!(strcmp(gradient_choice,"temp") == 0 || strcmp(gradient_choice,"mob") == 0))
 	   error->all(FLERR,"Invalid grad_style command");
-
-
 
    // adding temperature array 'T'
    // add mobility array 'M'
