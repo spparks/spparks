@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style style grad_style nspins m0 convert Q T0 grad_x arg grad_y arg grad_z arg 
+<PRE>app_style style grad_style nspins m0 convert Q T0 grad_x grad_y grad_z 
 </PRE>
 <UL><LI>style = <I>potts/grad</I> 
 
@@ -35,30 +35,25 @@
 
 <LI>grad_z = gradient in the z direction 
 
-<PRE>    <I>grad_x</I> arg = grad
-    <I>grad_y</I> arg = grad
-    <I>grad_z</I> arg = grad
-	grad = temperature or mobility gradient 
-</PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style potts/grad temp 10000 .0006 .25 1 350 grad_x 3   grad_y -3 gradz 1 
-app_style potts/grad temp 10000 .0006 .1  1 375 grad_x 3.5 grad_y  3 
-app_style potts/grad mob 15000  .5 1 0 0 grad_x .0024 grad_y 0 grad_z 0 
+<PRE>app_style potts/grad temp 10000 .0006 .25 1 350 3 -3 1 
+app_style potts/grad temp 10000 .0006 .1  1 375 3.5 3 
+app_style potts/grad mob 15000  .5 1 0 0 .0024 0 0 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This is an on-lattice application derived from the <A HREF = "app_potts.html">app_style potts/neighonly</A> application which applies gradients given in three directions x,y, and z.  The gradients can be either temperature or mobility gradients.  If grad_style <I>mob</I> is chosen, mobility gradients are used.  If grad_style <I>temp</I> is chosen, temperature gradients are used.  
 </P>
-<P>When the grad_style <I>temp</I> is used, the mobility of each site is assumed to depend on temperature, according to the equation m0 * exp(-Q/(KT)), where m0 is the mobility constant, K is Boltzmann's constant, T is the temperature of the site, and Q is the activation energy. The temperature of a site depends linearly on its position in the lattice. The linear function is uniquely defined by the value T0 at the center and the gradients in the x,y, and z directions, <I>grad_x</I>, <I>grad_y</I>, and <I>grad_z</I>, respectively.  The gradients are in units of temperature per lattice spacing (defined by the <A HREF = "lattice.html">lattice</A> constant). 
+<P>When the grad_style <I>temp</I> is used, the mobility of each site is assumed to depend on temperature, according to the equation m0 * exp(-Q/(KT)), where m0 is the mobility constant, K is Boltzmann's constant, T is the temperature of the site, and Q is the activation energy. The temperature of a site depends linearly on its position in the lattice. The linear function is uniquely defined by the value T0 at the center and the gradients in the x,y, and z directions, grad_x, grad_y, and grad_z, respectively.  The gradients are in units of temperature per lattice spacing (defined by the <A HREF = "lattice.html">lattice</A> constant). 
 </P>
 <P>When the grad_style <I>mob</I> is used each site is assigned a mobility directly from the mobility gradients.  The arguments Q and T0 are not used during a mobility gradient simulation.  m0 is the initial mobility at the center of the domain.  The mobility of each site depends linearly on its position in the lattice.  The linear function is defined by the mobility gradients.  The mobility gradients are in units of mobility per lattice spacing (defined by the <A HREF = "lattice.html">lattice</A> constant). 
 </P>
-<P>Convert is an argument multiplied by the given gradients and is used to convert units as a convience for the user.
+<P>Convert is an argument multiplied by the given gradients and is used to convert units as a convenience for the user.
 </P>
-<P><I>grad_z</I> is an optional argument and will be defaulted to zero if not used.
+<P>grad_z is an optional argument and will be defaulted to zero if not used.
 </P>
 <HR>
 
@@ -79,7 +74,7 @@ app_style potts/grad mob 15000  .5 1 0 0 grad_x .0024 grad_y 0 grad_z 0
 </P>
 <P><B>Default:</B> 
 </P>
-<P><I>grad_z</I> arg = 0
+<P>grad_z = 0
 </P>
 <HR>
 
