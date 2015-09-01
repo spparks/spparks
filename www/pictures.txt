@@ -32,7 +32,7 @@ mobility due to a temperature gradient.  This is a modified Potts
 model of grain growth which includes the local mobility of grain
 boundaries based on the local temperature.  These images and movies
 show grain growth with a linear grain boundary mobility gradient
-applied in the X-direction.  The mobility is low at the left and high
+applied in the X-direction.  The mobility is high at the left and low
 at the right.
 
 :image(images/temperature_growth_small.jpg,images/temperature_growth.jpg)
