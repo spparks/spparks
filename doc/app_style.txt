@@ -45,9 +45,9 @@ the list of on-lattice applications SPPARKS currently includes:
 "potts"_app_potts.html = Potts model for grain growth
 "potts/neigh"_app_potts.html = variant Potts model
 "potts/neighonly"_app_potts.html = variant Potts model
+"potts/grad"_app_potts_grad.html = Potts model with temperature gradient
 "potts/pin"_app_potts_pin.html = Potts model with pinning sites
-"potts/strain"_app_potts_strain.html = Potts model with per-site strain 
-"potts/grad"_app_potts_grad.html = Potts model with gradients :ul
+"potts/strain"_app_potts_strain.html = Potts model with per-site strain  :ul
 
 Off-lattice applications define a set of mobile sites in space on
 which events occur.  The sites typically represent particles.  Each
