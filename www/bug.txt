@@ -37,11 +37,24 @@ describe the version you have. :ule,l
 :line
 :line
 
+[21 Oct 2015]
+
+Updates to the new "app_style potts/grad"_doc/app_potts_grad.html
+command.  There is now a examples/potts_grad dir with 3 examples of
+how to use the application.  Some pictures and movies are on the
+"Pictures"_http://spparks.sandia.gov/pictures.html page of the web
+site.
+
+This is the "list of changed files"_patches/files.21Oct15 from the 8
+Jul 2015 version.
+
+:line
+
 [8 Jul 2015]
 
 Added a new on-lattice application, called "app_style
 potts/grad"_doc/app_potts_grad.html.  It is a Potts model which allows
-specificatino of linear gradients of temperature or mobility along a
+specification of linear gradients of temperature or mobility along a
 given direction, which affects grain growth.
 
 This is the "list of changed files"_patches/files.8Jul15 from the 18

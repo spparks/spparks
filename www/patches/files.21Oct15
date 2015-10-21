@@ -1,0 +1,22 @@
+8Jul15 version files changed by 21Oct15 upgrade:
+
+doc/Manual.html
+doc/Manual.pdf
+doc/Manual.txt
+doc/Section_commands.html
+doc/Section_commands.txt
+doc/app_potts_grad.html
+doc/app_potts_grad.txt
+doc/app_style.html
+doc/app_style.txt
+examples/potts_grad/mob_grad/in.potts_mob_grad
+examples/potts_grad/mob_grad/log.potts.mob.grad.5Aug15.linux.1
+examples/potts_grad/mob_grad/log.potts.mob.grad.5Aug15.linux.4
+examples/potts_grad/temp_grad/in.potts_temp_grad
+examples/potts_grad/temp_grad/log.potts.temp.grad.5Aug15.linux.1
+examples/potts_grad/temp_grad/log.potts.temp.grad.5Aug15.linux.4
+examples/potts_grad/temp_grad_periodic_off/in.temp_grad.periodic_x.off
+examples/potts_grad/temp_grad_periodic_off/log.temp_grad.periodic_x.off.8Aug15.linux.1
+examples/potts_grad/temp_grad_periodic_off/log.temp_grad.periodic_x.off.8Aug15.linux.4
+src/app_potts_grad.cpp
+src/version.h
