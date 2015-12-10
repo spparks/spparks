@@ -1,0 +1,101 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style potts/pfm command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style potts/pfm Q PFsteps lambda M_C KappaC a C1 C2 C3 C4 keyword value ... 
+</PRE>
+<UL><LI>potts/pfm = application style name 
+
+<LI>Q = number of spin states 
+
+<LI>PFsteps = number of phase field iterations per KMC/rMC iteration 
+
+<LI>lambda = concetration free energy parameter 
+
+<LI>M_C = Cahn-Hilliard mobility parameter 
+
+<LI>KappaC = Cahn-Hilliard interfacial energy parameter 
+
+<LI>a = bulk free energy parameter 
+
+<LI>C1 = bulk free energy parameter 
+
+<LI>C2 = bulk free energy parameter 
+
+<LI>C3 = bulk free energy parameter 
+
+<LI>C4 = bulk free energy parameter 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>reset_phasefield</I> or <I>print_connectivity</I> or <I>initialize_values</I> or <I>enforce_concentration_limits</I> 
+
+<PRE>  <I>reset_phasefield</I> value = yes or no
+    if yes, enforce concentration boundary conditions: C(xlo) = 0, C(xhi) = 1.0
+  <I>print_connectivity</I> value = yes or no
+    if yes, print the neighborlist indices in the finite difference stencil
+  <I>initialize_values</I> value = yes or no
+    if yes, initializes phases with equilibrium concentration dE/dC = 0
+  <I>enforce_concentration_limits</I> value = yes or no
+    if yes, constrain site concentrations to the physical range of [0,1] 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style	potts/pfm 200 10 0.3 1 1 0.5 0.25 0.75 0.05 0.95
+app_style	potts/pfm 200 10 0.3 1 1 0.5 0.25 0.75 0.05 0.95 &
+			reset_phasefield yes &
+			print_connectivity yes &
+			initialize_values yes &
+			enforce_concentration_limits yes 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This is an on-lattice application which evolves a Q-state Potts model
+in combination with a phase field Cahn-Hilliard model. It can be used
+to efficiently simulate grain growth in a two-phase system controlled 
+by diffusion. For a full description of the model, see the paper
+by <A HREF = "#Homer">Homer et al.</A>.
+</P>
+<HR>
+
+<P>The following additional commands are defined by this application:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_potts.html">app_style potts</A>
+</P>
+<P><B>Default:</B> 
+</P>
+<PRE>reset_phasefield = no
+print_connectivity = no
+initialize_values = no
+enforce_concentration_limits = no 
+</PRE>
+<HR>
+
+<A NAME = "Homer"></A>
+
+<P><B>(Homer)</B> Homer, Tikare, Holm, Comp.Mat.Sci (2013)
+</P>
+</HTML>

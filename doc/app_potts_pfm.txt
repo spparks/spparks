@@ -1,0 +1,80 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style potts/pfm command :h3
+
+[Syntax:]
+
+app_style potts/pfm Q PFsteps lambda M_C KappaC a C1 C2 C3 C4 keyword value ... :pre
+
+potts/pfm = application style name :ulb,l
+Q = number of spin states :l
+PFsteps = number of phase field iterations per KMC/rMC iteration :l
+lambda = concetration free energy parameter :l
+M_C = Cahn-Hilliard mobility parameter :l
+KappaC = Cahn-Hilliard interfacial energy parameter :l
+a = bulk free energy parameter :l
+C1 = bulk free energy parameter :l
+C2 = bulk free energy parameter :l
+C3 = bulk free energy parameter :l
+C4 = bulk free energy parameter :l
+
+zero or more keyword/value pairs may be appended :l
+keyword = {reset_phasefield} or {print_connectivity} or {initialize_values} or {enforce_concentration_limits} :l
+  {reset_phasefield} value = yes or no
+    if yes, enforce concentration boundary conditions: C(xlo) = 0, C(xhi) = 1.0
+  {print_connectivity} value = yes or no
+    if yes, print the neighborlist indices in the finite difference stencil
+  {initialize_values} value = yes or no
+    if yes, initializes phases with equilibrium concentration dE/dC = 0
+  {enforce_concentration_limits} value = yes or no
+    if yes, constrain site concentrations to the physical range of \[0,1\] :pre
+:ule
+
+[Examples:]
+
+app_style	potts/pfm 200 10 0.3 1 1 0.5 0.25 0.75 0.05 0.95
+app_style	potts/pfm 200 10 0.3 1 1 0.5 0.25 0.75 0.05 0.95 &
+			reset_phasefield yes &
+			print_connectivity yes &
+			initialize_values yes &
+			enforce_concentration_limits yes :pre
+
+[Description:]
+
+This is an on-lattice application which evolves a Q-state Potts model
+in combination with a phase field Cahn-Hilliard model. It can be used
+to efficiently simulate grain growth in a two-phase system controlled 
+by diffusion. For a full description of the model, see the paper
+by "Homer et al."_#Homer.
+
+:line
+
+The following additional commands are defined by this application:
+
+"temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
+
+:line
+
+[Restrictions:] none
+
+[Related commands:]
+
+"app_style potts"_app_potts.html
+
+[Default:] 
+
+reset_phasefield = no
+print_connectivity = no
+initialize_values = no
+enforce_concentration_limits = no :pre
+
+:line
+
+:link(Homer)
+[(Homer)] Homer, Tikare, Holm, Comp.Mat.Sci (2013)
