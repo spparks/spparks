@@ -60,7 +60,7 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   Lmask = false;
   mask = NULL;
 
-  allow_update = 0;
+  allow_app_update = 0;
 
   temperature = 0.0;
 
@@ -82,7 +82,7 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
   naccept = nattempt = 0;
   nsweeps = 0;
   
-  update_only = 0;
+  app_update_only = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,7 +118,7 @@ void AppLattice::input(char *command, int narg, char **arg)
   if (strcmp(command,"sector") == 0) set_sector(narg,arg);
   else if (strcmp(command,"sweep") == 0) set_sweep(narg,arg);
   else if (strcmp(command,"temperature") == 0) set_temperature(narg,arg);
-  else if (strcmp(command,"update_only") == 0) set_update_only(narg,arg);
+  else if (strcmp(command,"app_update_only") == 0) set_app_update_only(narg,arg);
   else input_app(command,narg,arg);
 }
 
@@ -439,13 +439,13 @@ void AppLattice::iterate()
   if (solve) {
     if (sectorflag == 0) 
       iterate_kmc_global(stoptime);
-    else if (allow_update && update_only)
-      iterate_update_only(stoptime,dt_kmc);
+    else if (allow_app_update && app_update_only)
+      iterate_app_update_only(stoptime,dt_kmc);
     else
       iterate_kmc_sector(stoptime);
   } else {
-    if (allow_update && update_only)
-      iterate_update_only(stoptime,dt_rkmc);
+    if (allow_app_update && app_update_only)
+      iterate_app_update_only(stoptime,dt_rkmc);
     else
       iterate_rejection(stoptime);
   }
@@ -590,7 +590,7 @@ void AppLattice::iterate_kmc_sector(double stoptime)
       }
     }
 
-    if (allow_update) user_update(dt_kmc);
+    if (allow_app_update) app_update(dt_kmc);
 
     // keep looping until overall time threshhold reached
 
@@ -690,7 +690,7 @@ void AppLattice::iterate_rejection(double stoptime)
       }
     }
 
-    if (allow_update) user_update(dt_rkmc);
+    if (allow_app_update) app_update(dt_rkmc);
 
     nsweeps++;
     time += dt_rkmc;
@@ -701,15 +701,15 @@ void AppLattice::iterate_rejection(double stoptime)
 }
 
 /* ----------------------------------------------------------------------
-   iterate the user_update routine only
-   app is responsible for doing communciation in user_update()
+   iterate the app_update routine only
+   app is responsible for doing communciation in app_update()
 ------------------------------------------------------------------------- */
 
-void AppLattice::iterate_update_only(double stoptime,double dt)
+void AppLattice::iterate_app_update_only(double stoptime,double dt)
 {
   int done = 0;
   while (!done) {
-    if (allow_update) user_update(dt);
+    if (allow_app_update) app_update(dt);
     
     time += dt;
     if (time >= stoptime) done = 1;
@@ -846,15 +846,15 @@ void AppLattice::set_temperature(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void AppLattice::set_update_only(int narg, char **arg)
+void AppLattice::set_app_update_only(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Illegal update_only command");
-  if (strcmp(arg[0],"yes") == 0) update_only = 1;    
-  else if (strcmp(arg[0],"no") == 0) update_only = 0;
-  else error->all(FLERR,"Illegal update_only command");
+  if (narg != 1) error->all(FLERR,"Illegal app_update_only command");
+  if (strcmp(arg[0],"yes") == 0) app_update_only = 1;    
+  else if (strcmp(arg[0],"no") == 0) app_update_only = 0;
+  else error->all(FLERR,"Illegal app_update_only command");
 
-  if (update_only && !allow_update)
-    error->all(FLERR,"App does not permit user_update yes");
+  if (app_update_only && !allow_app_update)
+    error->all(FLERR,"App does not permit app_update yes");
 }
 
 /* ----------------------------------------------------------------------

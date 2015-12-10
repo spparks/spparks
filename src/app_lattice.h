@@ -69,7 +69,7 @@ class AppLattice : public App {
   virtual void push_connected_neighbors(int, int *, int, std::stack<int>*);
   virtual void connected_ghosts(int, int *, class Cluster *, int);
 
-  virtual void user_update(double) {}
+  virtual void app_update(double) {}
 
  protected:
   int me,nprocs;
@@ -85,7 +85,7 @@ class AppLattice : public App {
   int allow_kmc;               // 1 if app supports KMC
   int allow_rejection;         // 1 if app supports rejection KMC
   int allow_masking;           // 1 if app supports rKMC masking
-  int allow_update;            // 1 if app provides user_update()
+  int allow_app_update;        // 1 if app provides app_update()
   int numrandom;               // # of RN used by rejection routine
 
   int sweepflag;               // set if rejection KMC solver
@@ -94,7 +94,7 @@ class AppLattice : public App {
   int nsector_user;            // 0 if default, else 2,4,8
   int ncolors;                 // # of colors, depends on lattice
   int bothflag;                // 1 if both sectors and colors
-  int update_only;             // 1 if skip other iteration techniques
+  int app_update_only;         // 1 if skip KMC and rKMC updates
 
   class RandomPark *ranapp;    // RN generator for KMC and rejection KMC
   class RandomPark *ranstrict; // RN generator for per-site strict rKMC
@@ -138,7 +138,7 @@ class AppLattice : public App {
   void iterate_kmc_global(double);
   void iterate_kmc_sector(double);
   virtual void iterate_rejection(double);
-  void iterate_update_only(double,double);
+  void iterate_app_update_only(double,double);
 
   typedef void (AppLattice::*FnPtrSweep)(int, int *);
   FnPtrSweep sweep;                         // ptr to< sweep functions
@@ -162,7 +162,7 @@ class AppLattice : public App {
   void set_sector(int, char **);
   void set_sweep(int, char **);
   void set_temperature(int, char **);
-  void set_update_only(int, char **);
+  void set_app_update_only(int, char **);
 
   void bounds(char *, int, int, int &, int &);
 };
@@ -246,9 +246,9 @@ documentation for the command.  You can use -echo screen as a
 command-line option when running SPPARKS to see the offending
 line.
 
-E: App does not permit user_update yes
+E: App does not permit app_update_only yes
 
-UNDOCUMENTED
+This app does not have it's own update method
 
 E: Per-processor system is too big
 
