@@ -69,12 +69,11 @@ The following additional commands are defined by this application:
 
 [Default:] 
 
-reset_phasefield = no
-print_connectivity = no
-initialize_values = no
-enforce_concentration_limits = no :pre
+The keyword defaults are reset_phasefield = no, print_connectivity =
+no, initialize_values = no, enforce_concentration_limits = no.
 
 :line
 
-:link(Homer)
-[(Homer)] Homer, Tikare, Holm, Comp.Mat.Sci (2013)
+:link(Homer) 
+[(Homer)] Homer, Tikare, Holm, Computational Materials Science, 69,
+414-423 (2013).
