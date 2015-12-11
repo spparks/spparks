@@ -37,6 +37,26 @@ describe the version you have. :ule,l
 :line
 :line
 
+[11 Dec 2015]
+
+Eric Homer (BYU) and Veena Tikare (Sandia) have written and added a
+new hybrid Cahn-Hilliard phase-field plus Potts model as a new
+"app_style potts/pfm"_doc/app_potts_pfm.html command for SPPARKS.  It
+can be used to efficiently simulate grain growth in a two-phase system
+controlled by diffusion.
+
+See the doc page for more details on how to use it in SPPARKS, and for
+a citation to their paper which gives a fuller explanation.
+
+There is also an examples/potts_pfm dir with an example script and the
+the "Pictures web page"_http://spparks.sandia.gov/pictures.html now
+has images of simulations performed with this command.
+
+This is the "list of changed files"_patches/files.11Dec15 from the 21
+Oct 2015 version.
+
+:line
+
 [21 Oct 2015]
 
 Updates to the new "app_style potts/grad"_doc/app_potts_grad.html
