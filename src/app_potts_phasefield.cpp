@@ -3,16 +3,16 @@
    http://www.cs.sandia.gov/~sjplimp/spparks.html
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
  
-   Class AppPottsPhaseField - added by Eric Homer, ehomer@sandia.gov
-   Mar 31, 2011 - Most recent version.  Most of this was copied from 
-   AppPotts and AppPottsNeighOnly.
-
    Copyright (2008) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under 
    the GNU General Public License.
 
    See the README file in the top-level SPPARKS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing authors: Eric Homer (BYU)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
