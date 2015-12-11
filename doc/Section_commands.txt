@@ -311,6 +311,7 @@ full description:
 "potts"_app_potts.html,
 "potts/neigh"_app_potts.html,
 "potts/neighonly"_app_potts.html,
+"potts/pfm"_app_potts_pfm.html,
 "potts/pin"_app_potts_pin.html,
 "potts/grad"_app_potts_grad.html,
 "relax"_app_relax.html,
