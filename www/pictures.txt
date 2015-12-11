@@ -5,6 +5,7 @@
 
 Pictures & Movies from SPPARKS Simulations :h3
 
+"hybrid phase field"_#phase-field: hybrid phase-field Potts model
 "temperature growth"_#temp-growth: temperature-dependent grain growth
 "hafnium dioxide"_#hafnium: hafnium dioxide surface growth
 "abnormal"_#abnormal: abnormal grain growth
@@ -19,6 +20,32 @@ view a larger version.
 
 For movies on this page, click on the small image to trigger the
 animation.
+
+:line
+
+Hybrid phase-field and Potts model for grain growth :h4,link(phase-field)
+
+This is work by Eric Homer (eric.homer at byu.edu) and Veena Tikare
+(vtikare at sandia.gov) and Liz Holm (CMU) on a hybrid model that uses
+both a Cahn-Hilliard phase-field model and Monte Carlo Potts model.
+It can be used to efficiently simulate grain growth in a two-phase
+system controlled by diffusion.  It is implemented in SPPARKS via the
+"app_style potts/pfm"_doc/app_potts_pfm.html" command.
+
+The left image shows snapshots of the grain structure, phase
+structure, and composition at various times for a two-component,
+two-phase system.  The right iamge shows the same for nucleation and
+phase transformations in the two-component, two-phase system.
+
+:image(images/phase_field1_small.jpg,images/phase_field1.jpg)
+:image(images/phase_field2_small.jpg,images/phase_field2.jpg)
+
+This paper describes the model in detail:
+
+[Hybrid Potts-phase field model for coupled
+microstructural-compositional evolution], E. R. Homer, V. Tikare,
+E. A. Holm, Computaional Materials Science, 69, 414-423
+(2013). ("abstract"_abstracts/cms13.html)
 
 :line
 
