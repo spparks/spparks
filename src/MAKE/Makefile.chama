@@ -1,4 +1,8 @@
-# g++ = RedHat Linux box, g++, MPICH
+# chama - Intel SandyBridge, mpic++, openmpi, no FFTW
+
+# need to load the following modules:
+# 1) intel/12.1
+# 2) openmpi-intel/1.8
 
 SHELL = /bin/sh
 
@@ -6,14 +10,14 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		g++
-CCFLAGS =	-g -O
+CC =		mpic++
+CCFLAGS =	-O3 -axAVX -funroll-loops -fstrict-aliasing -openmp
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		g++
-LINKFLAGS =	-g -O
-LIB =	  	
+LINK =		mpic++
+LINKFLAGS =	-O3 -axAVX -openmp
+LIB =	  	-lstdc++ -lm
 SIZE =		size
 
 ARCHIVE =	ar
@@ -26,16 +30,16 @@ SHLIBFLAGS =	-shared
 
 # SPPARKS ifdef options, see doc/Section_start.html
 
-SPK_INC =	-DSPPARKS_GZIP # -DSPPARKS_BIGBIG # -DSPPARKS_JPEG
+SPK_INC =	-DSPPARKS_GZIP -DSPPARKS_BIGBIG
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_SKIP_MPICXX
+MPI_INC =       
 MPI_PATH = 
-MPI_LIB =	-lmpich -lmpl -lpthread
+MPI_LIB =	
 
 # JPEG library, only needed if -DLAMMPS_JPEG listed with LMP_INC
 # INC = path for jpeglib.h
@@ -44,7 +48,7 @@ MPI_LIB =	-lmpich -lmpl -lpthread
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	-ljpeg
+JPG_LIB =	#/usr/local/lib/libjpeg.a
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
