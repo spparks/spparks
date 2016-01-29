@@ -25,12 +25,12 @@ animation.
 
 Hybrid phase-field and Potts model for grain growth :h4,link(phase-field)
 
-This is work by Eric Homer (eric.homer at byu.edu) and Veena Tikare
-(vtikare at sandia.gov) and Liz Holm (CMU) on a hybrid model that uses
-both a Cahn-Hilliard phase-field model and Monte Carlo Potts model.
-It can be used to efficiently simulate grain growth in a two-phase
-system controlled by diffusion.  It is implemented in SPPARKS via the
-"app_style potts/pfm"_doc/app_potts_pfm.html" command.
+This is work by Eric Homer (BYU, eric.homer at byu.edu) and Veena
+Tikare (Sandia, vtikare at sandia.gov) and Liz Holm (CMU) on a hybrid
+model that uses both a Cahn-Hilliard phase-field model and Monte Carlo
+Potts model.  It can be used to efficiently simulate grain growth in a
+two-phase system controlled by diffusion.  It is implemented in
+SPPARKS via the "app_style potts/pfm"_doc/app_potts_pfm.html" command.
 
 The left image shows snapshots of the grain structure, phase
 structure, and composition at various times for a two-component,
