@@ -53,6 +53,11 @@ to efficiently simulate grain growth in a two-phase system controlled
 by diffusion. For a full description of the model, see the paper
 by "Homer et al."_#Homer.
 
+See the examples/potts_pfm directory for an example script using this
+command.  See the "Pictures web
+page"_http://spparks.sandia.gov/pictures.html for images of
+simulations performed with this command.
+
 :line
 
 The following additional commands are defined by this application:

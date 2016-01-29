@@ -17,7 +17,8 @@ This section describes how to unpack, make, and run SPPARKS.
 2.3 "Making SPPARKS with optional packages"_#start_3
 2.4 "Building SPPARKS as a library"_#start_4
 2.5 "Running SPPARKS"_#start_5
-2.6 "Command-line options"_#start_6 :all(b)
+2.6 "Command-line options"_#start_6
+2.6 "SPPARKS screen output"_#start_7 :all(b)
 
 :line
 
@@ -155,7 +156,10 @@ system-dependent ifdefs within the SPPARKS code.  The settings
 that are currently recogized are:
 
 -DSPPARKS_GZIP
--DSPPARKS_JPEG :ul
+-DSPPARKS_JPEG 
+-DSPPARKS_SMALLBIG
+-DSPPARKS_BIGBIG
+-DSPPARKS_SMALLSMALL :ul
 
 The read_sites and dump commands will read/write gzipped files if you
 compile with -DSPPARKS_GZIP.  It requires that your Unix support the
@@ -166,6 +170,16 @@ able to write out JPEG image files.  If not, it will only be able to
 write out text-based PPM image files.  For JPEG files, you must also
 link SPPARKS with a JPEG library.  See section (3.c) below for more
 details on this.
+
+Use at most one of the -DSPPARKS_SMALLBIG, -DSPPARKS_BIGBIG,
+-DSPPARKS_SMALLSMALL settings.  The default is
+-DSPPARKS_SMALLBIG. These settings refer to use of 4-byte (small) vs
+8-byte (big) integers within SPPARKS, as specified in src/spktype.h.
+The only reason to use the BIGBIG setting is to enable simulation of
+systems with more than 2 billion sites.  Normally, the only reason to
+use SMALLSMALL is if your machine does not support 64-bit integers.
+See the "Additional build tips"_#start_2_4 section below for more
+details on these settings.
 
 (3.b) The 3 MPI variables are used to specify an MPI library to build
 SPPARKS with.
@@ -244,37 +258,37 @@ Obj_name where it stores the system-specific *.o files.
 Typing "make clean" will delete all *.o object files created when
 SPPARKS is built.
 
-(3) Changing the size limits in src/spktype.h
+(3) Changing the SPPARKS size limits via -DSPPARKS_SMALLBIG or
+-DSPPARKS_BIGBIG or -DSPPARKS_SMALLSMALL
 
-If you get an error that refers to size limits set in src/spktype.h
-then you may need to change one or more settings in that file and
-re-compile SPPARKS.
+As explained above, any of these 3 settings can be specified on the
+SPK_INC line in your low-level src/MAKE/Makefile.foo.
 
-By default the file is setup to allow models to be run with more than
-2 billions sites, limited only by available physical memory on your
-machine.  This requires the use of 64-bit integers for site IDs and
-tallying system statistics (e.g. number of accepted events).  If your
-system or MPI implementation does not support 64-bit integers, or you
-wish to save memory by using 32-bit integers for these quantities,
-then you can change the settings by editing the file.  If you use
-32-bit integers, then you will be limited to model with around 2
-billions sites.
+The default is -DSPPARKS_SMALLBIG which allows for systems with up to
+2^31 sites (about 2 billion).  This is because the site IDs are stored
+in 32-bit integers.
 
-As the documentation in that file explains, you have basically
-two choices to make:
+To allow for larger systems, compile with -DSPPARKS_BIGBIG.  This
+stores site IDs in 64-bit integers.  This enables systems with up to
+2^63 sites (about 9e18).
 
-set the data type size of integer site IDs to 4 or 8 bytes
-set the data type size of integers that store tallies to 4 or 8 bytes :ul
+If your system does not support 8-byte integers, you will need to
+compile with the -DSPPARKS_SMALLSMALL setting.  This will restrict the
+total number of sites to 2^31 (about 2 billion), as well as store some
+simulation statistics in 4-byte integers.
 
-Note that in src/spktype.h there are also settings for the MPI data
-types associated with the site IDs and system tally sizes, which need
-to be set consistent with the associated C data types.
+Note that in src/lmptype.h there are definitions of all these data
+types as well as the MPI data types associated with them.  The MPI
+types need to be consistent with the associated C data types, or else
+SPPARKS will generate a run-time error.  As far as we know, the
+settings defined in src/spktype.h are portable and work on every
+current system.
 
 In all cases, the size of problem that can be run on a per-processor
-basis is limited by 4-byte integer storage to about 2 billion sites
-per processor (2^31), which should not normally be a restriction since
-such a problem would have a huge per-processor memory footprint due to
-neighbor lists and would run very slowly in terms of CPU time.
+basis is limited by 4-byte integer storage to 2^31 sites per processor
+(about 2 billion). This should not normally be a limitation since such
+a problem would have a huge per-processor memory and would run very
+slowly in terms of CPU secs per Monte Carlo interation.
 
 [{Building for a Mac:}] :link(start_2_6)
 
@@ -469,8 +483,9 @@ cp spk_linux ../examples/lj
 cd ../examples/potts
 mpirun -np 4 spk_linux < in.potts :pre
 
-The screen output from SPPARKS is described in the next section.  As it
-runs, SPPARKS also writes a log.spparks file with the same information.
+The screen output from SPPARKS is described in a section below.  As it
+runs, SPPARKS also writes a log.spparks file with the same
+information.
 
 Note that this sequence of commands copies the SPPARKS executable
 (spk_linux) to the directory with the input files.  This may not be
@@ -584,3 +599,52 @@ variable in the input script, since variables cannot be re-defined.
 See the "variable"_variable.html command for more info on defining
 variables and "this section"_Section_commands.html#3_2 for more info
 on using variables in input scripts.
+
+2.7 SPPARKS screen output :h4,link(start_7)
+
+As SPPARKS reads an input script, it prints information to both the
+screen and a log file about significant actions it takes to setup a
+simulation.  When the simulation is ready to begin, SPPARKS performs
+various initializations and prints the amount of memory (in MBytes per
+processor) that the simulation requires.  An example output is shown
+here, for the examples/in.potts script run on 4 processors.
+
+SPPARKS (11 Dec 2015)
+Created box = (0 0 0) to (20 20 20)
+  1 by 2 by 2 processor grid
+Creating sites ...
+  8000 sites
+  8000 sites have 26 neighbors
+Setting site values ...
+  8000 settings made for site
+Setting up run ...
+Memory usage per processor = 4.375 Mbytes :pre
+
+During the run itself, statistical information is printed
+periodically, for every delta of simulation time, as specified by the
+"stats"_stats.html commmand.  When the run concludes, SPPARKS
+prints final statistical info and a total run time for the simulation.
+
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy
+         0          0          0          0          0     205912
+     10.01      88437    7919563       1001      0.195      72506
+        20      94828   15905172       2000      0.379      57038
+        30      98345   23901655       3000      0.565      49948
+        40     101449   31898551       4000      0.749      44316
+     50.01     103978   39904022       5001      0.933      39334
+     60.01     105578   47902422       6001       1.12      36902
+     70.01     106938   55901062       7001        1.3      34428
+        80     108491   63891509       8000       1.49      31668
+        90     110211   71889789       9000       1.67      27994
+       100     112074   79887926      10000       1.86      21894
+Loop time of 1.86084 on 4 procs :pre
+
+It then appends statistics about the breakdown of CPU time for
+the simulation.
+
+Solve time (%) = 1.52001 (81.6842)
+Update time (%) = 0 (0)
+Comm  time (%) = 0.245275 (13.1809)
+Outpt time (%) = 0.0892967 (4.79874)
+App   time (%) = 0 (0)
+Other time (%) = 0.00625533 (0.336157) :pre
