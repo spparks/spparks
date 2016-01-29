@@ -140,7 +140,7 @@ void AppChemistry::setup()
 
   // setup of output
 
-  nextoutput = output->setup(time);
+  nextoutput = output->setup(time,first_run);
 }
 
 /* ----------------------------------------------------------------------

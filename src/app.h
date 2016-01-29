@@ -45,7 +45,9 @@ class App : protected Pointers {
   void run(int, char **);
   void reset_time(double);
   void *extract(char *);
+  tagint min_site_ID();
   tagint max_site_ID();
+  virtual bigint memory_usage() {return 0;}
 
   // pure virtual functions, must be defined in child class
   

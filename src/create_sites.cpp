@@ -509,8 +509,11 @@ void CreateSites::structured_connectivity()
       // gid = global ID of neighbor
       // calculated in same manner that structured_lattice() generated IDs
 
-      gid = (kneigh-zlo)*(yhi-ylo+1)*(xhi-xlo+1)*nbasis + 
-	(jneigh-ylo)*(xhi-xlo+1)*nbasis + (ineigh-xlo)*nbasis + mneigh + 1;
+      tagint one = 1;   // use this to avoid int overflow in calc of gid
+
+      gid = one*(kneigh-zlo)*(yhi-ylo+1)*(xhi-xlo+1)*nbasis + 
+	one*(jneigh-ylo)*(xhi-xlo+1)*nbasis + one*(ineigh-xlo)*nbasis + 
+        mneigh + 1;
 
       if (style == BOX && nonperiodic == 0 && (gid <= 0 || gid > nglobal))
 	error->all(FLERR,"Bad neighbor site ID");

@@ -40,8 +40,40 @@
 
 namespace SPPARKS_NS {
 
-// default settings, allows for models with over 2B sites
+// default to 32-bit smallint and tagint, 64-bit bigint
+
+#if !defined(SPPARKS_SMALLSMALL) && !defined(SPPARKS_BIGBIG) && !defined(SPPARKS_SMALLBIG)
+#define SPPARKS_SMALLBIG
+#endif
+
+// default settings, models restricted to less than 2B sites
+// 32-bit smallint and tagint, 64-bit bigint
+
+#ifdef SPPARKS_SMALLBIG
+
+typedef int smallint;
+typedef int tagint;
+typedef int64_t bigint;
+
+#define MAXSMALLINT INT_MAX
+#define MAXTAGINT INT_MAX
+#define MAXBIGINT INT64_MAX
+
+#define MPI_SPK_TAGINT MPI_INT
+#define MPI_SPK_BIGINT MPI_LONG_LONG
+
+#define TAGINT_FORMAT "%d"
+#define BIGINT_FORMAT "%" PRId64
+
+#define ATOTAGINT atoi
+#define ATOBIGINT atoll
+
+#endif
+
+// for models with over 2B sites
 // 32-bit smallint, 64-bit tagint and bigint
+
+#ifdef SPPARKS_BIGBIG
 
 typedef int smallint;
 typedef int64_t tagint;
@@ -60,32 +92,13 @@ typedef int64_t bigint;
 #define ATOTAGINT atoll
 #define ATOBIGINT atoll
 
-// old settings, models restricted to less than 2B sites
-// 32-bit smallint and tagint, 64-bit bigint
-
-/*
-typedef int smallint;
-typedef int tagint;
-typedef int64_t bigint;
-
-#define MAXSMALLINT INT_MAX
-#define MAXTAGINT INT_MAX
-#define MAXBIGINT INT64_MAX
-
-#define MPI_SPK_TAGINT MPI_INT
-#define MPI_SPK_BIGINT MPI_LONG_LONG
-
-#define TAGINT_FORMAT "%d"
-#define BIGINT_FORMAT "%" PRId64
-
-#define ATOTAGINT atoi
-#define ATOBIGINT atoll
-*/
+#endif
 
 // for machines that do not support 64-bit ints
 // 32-bit smallint and tagint and bigint
 
-/*
+#ifdef SPPARKS_SMALLSMALL
+
 typedef int smallint;
 typedef int tagint;
 typedef int bigint;
@@ -102,7 +115,8 @@ typedef int bigint;
 
 #define ATOTAGINT atoi
 #define ATOBIGINT atoi
-*/
+
+#endif
 
 }
 

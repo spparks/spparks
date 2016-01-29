@@ -304,7 +304,7 @@ void AppOffLattice::setup()
 
   // setup future output
 
-  nextoutput = output->setup(time);
+  nextoutput = output->setup(time,first_run);
 }
 
 /* ---------------------------------------------------------------------- */

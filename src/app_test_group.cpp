@@ -153,7 +153,7 @@ void AppTestGroup::setup()
   // setup of output
 
 #ifdef OUTPUT
-  nextoutput = output->setup(time);
+  nextoutput = output->setup(time,first_run);
 #endif
 }
 

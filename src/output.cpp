@@ -74,7 +74,7 @@ void Output::init(double time)
    return tnext = next time any output is needed
 ------------------------------------------------------------------------- */
 
-double Output::setup(double time)
+double Output::setup(double time, int memflag)
 {
   // if dump has never occured, write initial snapshot
   // needs to happen in setup() in case propensity is output
@@ -102,6 +102,10 @@ double Output::setup(double time)
 		diaglist[i]->nrepeat,diaglist[i]->scale,diaglist[i]->delay);
     diag_time = MIN(diag_time,diaglist[i]->next_time);
   }
+
+  // print memory usage unless being called between multiple runs
+
+  if (memflag) memory_usage();
 
   // perform stats output
   // set next time for stats
@@ -411,4 +415,24 @@ double Output::next_time(double tcurrent, int logfreq, double delta,
 
   tnew = MAX(tnew,delay);
   return tnew;
+}
+
+/* ----------------------------------------------------------------------
+   sum and print memory usage
+   result is only memory on proc 0, not averaged across procs
+------------------------------------------------------------------------- */
+
+void Output::memory_usage()
+{
+  bigint bytes = 0;
+  bytes += app->memory_usage();
+
+  double mbytes = bytes/1024.0/1024.0;
+
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,"Memory usage per processor = %g Mbytes\n",mbytes);
+    if (logfile)
+      fprintf(logfile,"Memory usage per processor = %g Mbytes\n",mbytes);
+  }
 }

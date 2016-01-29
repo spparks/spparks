@@ -126,10 +126,7 @@ void App::run(int narg, char **arg)
   // setup computes initial propensities
   // if post, do full Finish, else just print time
 
-  if (preflag || first_run) {
-    init();
-    first_run = 0;
-  }
+  if (preflag || first_run) init();
 
   if (domain->me == 0) {
     if (screen) fprintf(screen,"Setting up run ...\n");
@@ -138,6 +135,8 @@ void App::run(int narg, char **arg)
 
   timer->init();
   setup();
+  first_run = 0;
+
   if (stoptime > time) iterate();
 
   Finish finish(spk,postflag);
@@ -189,6 +188,20 @@ void *App::extract(char *name)
   }
 
   return extract_app(name);
+}
+
+/* ----------------------------------------------------------------------
+   return min ID
+   may not be 1 if site IDs are not contiguous
+ ------------------------------------------------------------------------- */
+
+tagint App::min_site_ID()
+{
+  tagint min = MAXTAGINT;
+  for (int i = 0; i < nlocal; i++) min = MIN(min,id[i]);
+  tagint all;
+  MPI_Allreduce(&min,&all,1,MPI_SPK_TAGINT,MPI_MIN,world);
+  return all;
 }
 
 /* ----------------------------------------------------------------------

@@ -41,6 +41,7 @@ class AppLattice : public App {
   void init();
   void setup();
   void iterate();
+  virtual bigint memory_usage();
 
   void grow(int);
   void add_site(tagint, double, double, double);

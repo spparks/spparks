@@ -20,7 +20,7 @@ class Output : protected Pointers {
   Output(class SPPARKS *);
   ~Output();
   void init(double);
-  double setup(double);
+  double setup(double, int memflag=1);
   double compute(double, int);
   void set_stats(int, char **);
   void add_dump(int, char **);
@@ -46,6 +46,7 @@ class Output : protected Pointers {
   void stats(int);
   void stats_header();
   double next_time(double, int, double, int, double, double);
+  void memory_usage();               // print out memory usage
 };
 
 }

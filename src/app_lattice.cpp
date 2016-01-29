@@ -31,7 +31,7 @@
 
 using namespace SPPARKS_NS;
 
-#define DELTA 10000
+#define DELTA 32768
 
 enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};
 
@@ -427,7 +427,7 @@ void AppLattice::setup()
 
   // setup future output
 
-  nextoutput = output->setup(time);
+  nextoutput = output->setup(time,first_run);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -930,7 +930,7 @@ void AppLattice::create_set(int iset, int isector, int icolor, Solve *oldsolve)
 
       if (isector != msector) flag = 0;
     }
-
+    
     if (icolor > 0) {
       mcolor = domain->lattice->id2color(id[i],delcolor);
       if (icolor != mcolor) flag = 0;
@@ -1352,4 +1352,24 @@ void AppLattice::print_connectivity()
 
   delete [] count;
   delete [] countall;
+}
+
+/* ----------------------------------------------------------------------
+   sum and print memory usage
+   result is only memory on proc 0, not averaged across procs
+------------------------------------------------------------------------- */
+
+bigint AppLattice::memory_usage()
+{
+  bigint bytes = 0;
+
+  bytes += nmax * sizeof(tagint);           // id
+  bytes += nmax*3 * sizeof(double);         // xyz
+  bytes += ninteger*nmax * sizeof(int);     // iarray
+  bytes += ndouble*nmax * sizeof(double);   // darray
+  
+  bytes += nmax * sizeof(int);              // numneigh
+  bytes += nmax*maxneigh * sizeof(int);     // neighbor
+
+  return bytes;
 }
