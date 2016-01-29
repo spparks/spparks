@@ -81,7 +81,7 @@ it gives quick access to documentation for all SPPARKS commands.
   2.3 "Making SPPARKS with optional packages"_start_3 :b
   2.4 "Building SPPARKS as a library"_start_4 :b
   2.5 "Running SPPARKS"_start_5 :b
-  2.6 "Command-line options"_start_6
+  2.6 "Command-line options"_start_6 :b
   2.7 "SPPARKS screen output"_start_7 :ule,b
 "Commands"_Section_commands.html :l
   3.1 "SPPARKS input script"_cmd_1 :ulb,b

@@ -18,7 +18,7 @@ This section describes how to unpack, make, and run SPPARKS.
 2.4 "Building SPPARKS as a library"_#start_4
 2.5 "Running SPPARKS"_#start_5
 2.6 "Command-line options"_#start_6
-2.6 "SPPARKS screen output"_#start_7 :all(b)
+2.7 "SPPARKS screen output"_#start_7 :all(b)
 
 :line
 
@@ -599,6 +599,8 @@ variable in the input script, since variables cannot be re-defined.
 See the "variable"_variable.html command for more info on defining
 variables and "this section"_Section_commands.html#3_2 for more info
 on using variables in input scripts.
+
+:line 
 
 2.7 SPPARKS screen output :h4,link(start_7)
 
