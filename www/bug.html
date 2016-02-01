@@ -40,6 +40,21 @@ describe the version you have.
 
 <HR>
 
+<P><B>1 Feb 2016</B>
+</P>
+<P>Changes to enable 64-bit site IDs and thus to run problems with over
+2^31 ~ 2 billion lattice sites.  There is now a -DSPPARKS_BIGBIG
+compiler flag to enable building SPPARKS with support for the 64-bit
+IDs.  See the <A HREF = "doc/Section_start.html">Section_start.html</A> doc page
+for details.  SPPARKS now prints out its per-processor memory
+footprint to assist in estimating how many MPI tasks you
+need to run a large problem.
+</P>
+<P>This is the <A HREF = "patches/files.11Dec15">list of changed files</A> from the 21
+Oct 2015 version.
+</P>
+<HR>
+
 <P><B>11 Dec 2015</B>
 </P>
 <P>Eric Homer (BYU) and Veena Tikare (Sandia) have written and added a
