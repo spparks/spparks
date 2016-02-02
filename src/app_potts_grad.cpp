@@ -36,8 +36,8 @@ enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
 AppPottsGrad::AppPottsGrad(SPPARKS *spk, int narg, char **arg) : 
    AppPotts(spk,narg,arg), T0(0.0), 
    grad_x(0.0), grad_y(0.0), grad_z(0.0),
-   max_T(std::numeric_limits<double>::min()), T(0), 
-   m0(1.0), M(0), activation_energy(1.0), convert(1.0), max_M(0.0)
+   max_T(std::numeric_limits<double>::min()),
+   max_M(0.0), T(0), m0(1.0), M(0), activation_energy(1.0), convert(1.0)
 {
    // only error check for this class, not derived classes
    if (strcmp(arg[0],"potts/grad") != 0 )
