@@ -58,15 +58,15 @@ class DumpText : public Dump {
   virtual void init_style();
   int count();
   void pack();
-  void write_header(int, double);
+  void write_header(bigint, double);
   void write_data(int, double *);
   int parse_fields(int, char **);
   virtual int modify_param(int, char **);
 
-  typedef void (DumpText::*FnPtrHeader)(int, double);
+  typedef void (DumpText::*FnPtrHeader)(bigint, double);
   FnPtrHeader header_choice;           // ptr to write header functions
-  void header_binary(int, double);
-  void header_text(int, double);
+  void header_binary(bigint, double);
+  void header_text(bigint, double);
 
   typedef void (DumpText::*FnPtrData)(int, double *);
   FnPtrData write_choice;              // ptr to write data functions

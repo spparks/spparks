@@ -172,7 +172,8 @@ void DumpText::init_style()
 
   if (iregion >= 0) {
     iregion = domain->find_region(idregion);
-    if (iregion == -1) error->all(FLERR,"Region ID for dump text does not exist");
+    if (iregion == -1) 
+      error->all(FLERR,"Region ID for dump text does not exist");
   }
 
   // open single file, one time only
@@ -322,7 +323,7 @@ void DumpText::pack()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpText::write_header(int ndump, double time)
+void DumpText::write_header(bigint ndump, double time)
 {
   if (multiproc) (this->*header_choice)(ndump,time);
   else if (me == 0) (this->*header_choice)(ndump,time);
@@ -337,11 +338,11 @@ void DumpText::write_data(int n, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpText::header_binary(int ndump, double time)
+void DumpText::header_binary(bigint ndump, double time)
 {
   fwrite(&idump,sizeof(int),1,fp);
   fwrite(&time,sizeof(double),1,fp);
-  fwrite(&ndump,sizeof(int),1,fp);
+  fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&boxxlo,sizeof(double),1,fp);
   fwrite(&boxxhi,sizeof(double),1,fp);
   fwrite(&boxylo,sizeof(double),1,fp);
@@ -357,12 +358,12 @@ void DumpText::header_binary(int ndump, double time)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpText::header_text(int ndump, double time)
+void DumpText::header_text(bigint ndump, double time)
 {
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,"%d %10g\n",idump,time);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,"%d\n",ndump);
+  fprintf(fp,BIGINT_FORMAT "\n",ndump);
   fprintf(fp,"ITEM: BOX BOUNDS\n");
   fprintf(fp,"%g %g\n",boxxlo,boxxhi);
   fprintf(fp,"%g %g\n",boxylo,boxyhi);

@@ -59,7 +59,7 @@ class Dump : protected Pointers {
   virtual void init_style() = 0;
   void openfile();
   virtual int modify_param(int, char **) {return 0;}
-  virtual void write_header(int, double) = 0;
+  virtual void write_header(bigint, double) = 0;
   virtual int count() = 0;
   virtual void pack() = 0;
   virtual void write_data(int, double *) = 0;
