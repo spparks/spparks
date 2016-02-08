@@ -131,7 +131,8 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
 	boundvalue = IARRAY;
 	boundindex = 0;
 	if (app->iarray == NULL)
-	  error->all(FLERR,"Dump image with quantity application does not support");
+	  error->all(FLERR,"Dump image with quantity application "
+                     "does not support");
       } else if (strcmp(arg[iarg+1],"x") == 0) {
 	boundvalue = X;
       } else if (strcmp(arg[iarg+1],"y") == 0) {
@@ -142,13 +143,15 @@ DumpImage::DumpImage(SPPARKS *spk, int narg, char **arg) :
 	boundvalue = IARRAY;
 	boundindex = atoi(&arg[iarg+1][1]);
 	if (boundindex < 1 || boundindex > app->ninteger)
-	  error->all(FLERR,"Dump image with quantity application does not support");
+	  error->all(FLERR,"Dump image with quantity application "
+                     "does not support");
 	boundindex--;
       } else if (arg[iarg+1][0] == 'd') {
 	boundvalue = DARRAY;
 	boundindex = atoi(&arg[iarg+1][1]);
 	if (boundindex < 1 || boundindex > app->ndouble)
-	  error->all(FLERR,"Dump image with quantity application does not support");
+	  error->all(FLERR,"Dump image with quantity application "
+                     "does not support");
 	boundindex--;
       } else error->all(FLERR,"Illegal dump image command");
 
@@ -395,7 +398,8 @@ DumpImage::~DumpImage()
 
 void DumpImage::init_style()
 {
-  if (multifile == 0) error->all(FLERR,"Dump image requires one snapshot per file");
+  if (multifile == 0) 
+    error->all(FLERR,"Dump image requires one snapshot per file");
 
   DumpText::init_style();
 
@@ -492,7 +496,13 @@ void DumpImage::write(double time)
   // set minmax color range if using color map
   // create my portion of image for my particles
   
+  MPI_Barrier(world);
+  if (me == 0) printf("AAA\n");
+
   int nme = count();
+
+  MPI_Barrier(world);
+  if (me == 0) printf("BBB\n");
 
   if (nme > maxbuf) {
     maxbuf = nme;
@@ -500,14 +510,35 @@ void DumpImage::write(double time)
     memory->create(buf,maxbuf*size_one,"dump:buf");
   }
 
+  MPI_Barrier(world);
+  if (me == 0) printf("CCC\n");
+
   pack();
+
+  MPI_Barrier(world);
+  if (me == 0) printf("DDD\n");
+
   if (scolor == DATTRIBUTE) image->color_minmax(nchoose,buf,size_one);
+
+  MPI_Barrier(world);
+  if (me == 0) printf("EEE\n");
 
   // create image on each proc, then merge them
 
   image->clear();
+
+  MPI_Barrier(world);
+  if (me == 0) printf("FFF\n");
+
   create_image();
+
+  MPI_Barrier(world);
+  if (me == 0) printf("GGG\n");
+
   image->merge();
+
+  MPI_Barrier(world);
+  if (me == 0) printf("HHH\n");
 
   // write image file
 
