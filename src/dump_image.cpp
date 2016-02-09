@@ -401,7 +401,13 @@ void DumpImage::init_style()
   if (multifile == 0) 
     error->all(FLERR,"Dump image requires one snapshot per file");
 
+  MPI_Barrier(world);
+  if (me == 0) printf("PRE INITSTYLE\n");
+
   DumpText::init_style();
+
+  MPI_Barrier(world);
+  if (me == 0) printf("POST INITSTYLE\n");
 
   // check variables
 
@@ -483,12 +489,19 @@ void DumpImage::write(double time)
 {
   // open new file
 
+  MPI_Barrier(world);
+  if (me == 0) printf("AAA0\n");
+
   openfile();
   idump++;
 
   // reset box center and view parameters if dynamic
 
   if (cflag == DYNAMIC) box_center();
+
+  MPI_Barrier(world);
+  if (me == 0) printf("AAA1\n");
+
   if (viewflag == DYNAMIC) view_params();
 
   // nme = # of atoms this proc will contribute to dump
@@ -497,7 +510,7 @@ void DumpImage::write(double time)
   // create my portion of image for my particles
   
   MPI_Barrier(world);
-  if (me == 0) printf("AAA\n");
+  if (me == 0) printf("AAA2\n");
 
   int nme = count();
 

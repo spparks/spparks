@@ -81,6 +81,9 @@ double Output::setup(double time, int memflag)
   // b/c app not ready to compute propensities until setup_app() is called
   // set next time for each dump
 
+  MPI_Barrier(world);
+  if (me == 0) printf("OUTPUT SETUP\n");
+
   double dump_time = app->stoptime;
   for (int i = 0; i < ndump; i++) {
     if (dumplist[i]->idump == 0 && time >= dumplist[i]->delay)
@@ -90,6 +93,9 @@ double Output::setup(double time, int memflag)
 		dumplist[i]->nrepeat,dumplist[i]->scale,dumplist[i]->delay);
     dump_time = MIN(dump_time,dumplist[i]->next_time);
   }
+
+  MPI_Barrier(world);
+  if (me == 0) printf("OUTPUT POST-SETUP\n");
 
   // if a diagnostic is drven by stats, compute the diagnostic
   // set next time for each diagnostic
