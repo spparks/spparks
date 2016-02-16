@@ -401,13 +401,7 @@ void DumpImage::init_style()
   if (multifile == 0) 
     error->all(FLERR,"Dump image requires one snapshot per file");
 
-  MPI_Barrier(world);
-  if (me == 0) printf("PRE INITSTYLE\n");
-
   DumpText::init_style();
-
-  MPI_Barrier(world);
-  if (me == 0) printf("POST INITSTYLE\n");
 
   // check variables
 
@@ -489,19 +483,12 @@ void DumpImage::write(double time)
 {
   // open new file
 
-  MPI_Barrier(world);
-  if (me == 0) printf("AAA0\n");
-
   openfile();
   idump++;
 
   // reset box center and view parameters if dynamic
 
   if (cflag == DYNAMIC) box_center();
-
-  MPI_Barrier(world);
-  if (me == 0) printf("AAA1\n");
-
   if (viewflag == DYNAMIC) view_params();
 
   // nme = # of atoms this proc will contribute to dump
@@ -509,49 +496,22 @@ void DumpImage::write(double time)
   // set minmax color range if using color map
   // create my portion of image for my particles
   
-  MPI_Barrier(world);
-  if (me == 0) printf("AAA2\n");
-
   int nme = count();
-
-  MPI_Barrier(world);
-  if (me == 0) printf("BBB\n");
-
   if (nme > maxbuf) {
     maxbuf = nme;
     memory->destroy(buf);
     memory->create(buf,maxbuf*size_one,"dump:buf");
   }
 
-  MPI_Barrier(world);
-  if (me == 0) printf("CCC\n");
-
   pack();
 
-  MPI_Barrier(world);
-  if (me == 0) printf("DDD\n");
-
   if (scolor == DATTRIBUTE) image->color_minmax(nchoose,buf,size_one);
-
-  MPI_Barrier(world);
-  if (me == 0) printf("EEE\n");
 
   // create image on each proc, then merge them
 
   image->clear();
-
-  MPI_Barrier(world);
-  if (me == 0) printf("FFF\n");
-
   create_image();
-
-  MPI_Barrier(world);
-  if (me == 0) printf("GGG\n");
-
   image->merge();
-
-  MPI_Barrier(world);
-  if (me == 0) printf("HHH\n");
 
   // write image file
 
