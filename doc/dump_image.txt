@@ -156,7 +156,7 @@ the site will not be drawn.
 
 :line
 
-The various kewords listed above control how the image is rendered.
+The various keywords listed above control how the image is rendered.
 As listed below, all of the keywords have defaults, most of which you
 will likely not need to change.  The "dump modify"_dump_modify.html
 also has options specific to the dump image style, particularly for
