@@ -14,7 +14,7 @@ dump_modify dump-ID keyword values ... :pre
 
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
-keyword = {backcolor} or {boundcolor} or {boxcolor} or {color} or {delay} or {delta} or {flush} or {logfreq} or {loglinfreq} or {pad} or {region} or {scolor} or {sdiam} or {smap} or {thresh} :l
+keyword = {backcolor} or {boundcolor} or {boxcolor} or {color} or {cwrap} or {delay} or {delta} or {dwrap} or {flush} or {logfreq} or {loglinfreq} or {pad} or {region} or {scolor} or {sdiam} or {smap} or {thresh} :l
   {backcolor} arg = color
     color = name of color for background
   {boundcolor} arg = color
@@ -24,10 +24,14 @@ keyword = {backcolor} or {boundcolor} or {boxcolor} or {color} or {delay} or {de
   {color} args = name R G B
     name = name of color
     R,G,B = red/green/blue numeric values from 0.0 to 1.0
+  {cwrap} arg = {yes} or {no}
+    yes/no = do or do not wrap out-of-range color values into the defined crange
   {delay} value = tdelay
     tdelay = delay dump until at least this time (seconds)
   {delta} arg = dt
     dt = time increment between dumps (seconds)
+  {dwrap} arg = {yes} or {no}
+    yes/no = do or do not wrap out-of-range diameter values into the defined drange
   {flush} arg = {yes} or {no}
   {logfreq} or {loglinfreq} values = N factor
     N = number of repetitions per interval
@@ -121,6 +125,29 @@ pre-defined color names with new RBG values.
 
 :line
 
+The {cwrap} keyword applies only to the dump {image} style.  It
+enables wrapping of integer values used to deterimine site colors in
+the image, into the range specified by the {crange} keyword in the
+"dump image"_dump_image.html command.
+
+The {crange} keyword defines a range of values {lo} to {hi}.  If the
+{cwrap} argument is {no}, which is the default, then values outside
+the range {lo} to {hi} are clipped to that range.  I.e. values < {lo}
+become {lo} and values > {hi} become hi.  This means out-of-range
+values will all be drawn with either the {lo} or {hi} color, which may
+not be what you want.
+
+If the {cwrap} argument is {yes}, then values outside the range {lo}
+to {hi} are wrapped back into the range.  E.g. a value of hi+1 becomes
+lo, hi+2 becomes lo+1, etc.  Similarly, a value of lo-1 becomes hi,
+lo-2 becomes hi-1, etc.  This is a way to map a huge number N of
+possible integer values into a smaller number of M {crange} colors.
+This may be required if N = 2 billion spin values, since memory for
+that many colors cannot be allocated.  Using a {crange} with M = 10000
+would work in that scenario.
+
+:line
+
 The {delay} keyword will suppress output until {tdelay} time has
 elapsed.
 
@@ -128,6 +155,15 @@ elapsed.
 
 The {delta} keyword will suppress output until {tdelay} time has
 elapsed.
+
+:line
+
+The {dwrap} keyword applies only to the dump {image} style.  It
+enables wrapping of integer values used to deterimine site diameters
+in the image, into the range specified by the {drange} keyword in the
+"dump image"_dump_image.html command.  It's purpose and the way it
+operates on diamenters is exactly the same as how the {cwrap} keyword
+operates of colors, as described above.
 
 :line
 
@@ -353,14 +389,16 @@ backcolor = black
 boundcolor = white
 boxcolor = yellow
 color = 140 color names are pre-defined as listed below
+cwrap = no
 delay = 0.0
 delta = value used in the "dump"_dump.html command
+dwrap = no
 flush = yes
 logfreq = off
 loglinfreq = off
 pad = 0
 region = none
-scolor = * red/green/blue/yellow/aqua/cyan
+scolor = * c1/c2/.../c140 where c1-c140 are the names of the 140 pre-defined colors
 sdiam = * 1.0
 smap = min max cf 2 min blue max red
 thresh = none :ul

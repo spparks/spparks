@@ -219,7 +219,14 @@ boundcolor</A> command.
 an integer attribute such as <I>site</I> or <I>i2</I>.  The <I>lo</I> and <I>hi</I> values
 are the range of values that the attribute can have.  For example,
 if spins in a Potts model will range from 1 to 100 (inclusive), then
-<I>lo</I> nd <I>hi</I> should be specified as 1 and 100.
+<I>lo</I> and <I>hi</I> should be specified as 1 and 100.
+</P>
+<P>Note that internally the code allocates a vector of color values that
+is of length <I>hi</I>-<I>lo</I>+1.  Thus you may run out of memory if <I>crange</I>
+encompasses N values and N is very large, e.g. 2 billion.  In this
+case you should choose a smaller N, e.g. 10000, and use the
+<A HREF = "dump_modify.html">dump_modify cwrap yes</A> command to wrap the 2 billion
+possible values into N smaller values.
 </P>
 <HR>
 
@@ -228,7 +235,14 @@ is an integer attribute such as <I>site</I> or <I>i2</I>, unless the <I>sdiam</I
 keyword is used, in which case the <I>diameter</I> setting is ignored.  The
 <I>lo</I> and <I>hi</I> values are the range of values that the attribute can
 have.  For example, if the <I>i2</I> attibute will take on the values -1,
-0, or 1, then then <I>lo</I> nd <I>hi</I> should be specified as -1 and 1
+0, or 1, then then <I>lo</I> and <I>hi</I> should be specified as -1 and 1
+</P>
+<P>Note that internally the code allocates a vector of diameter values
+that is of length <I>hi</I>-<I>lo</I>+1.  Thus you may run out of memory if
+<I>drange</I> encompasses N values and N is very large, e.g. 2 billion.  In
+this case you should choose a smaller N, e.g. 10000, and use the
+<A HREF = "dump_modify.html">dump_modify dwrap yes</A> command to wrap the 2 billion
+possible values into N smaller values.
 </P>
 <HR>
 

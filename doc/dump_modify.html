@@ -19,7 +19,7 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>backcolor</I> or <I>boundcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>delay</I> or <I>delta</I> or <I>flush</I> or <I>logfreq</I> or <I>loglinfreq</I> or <I>pad</I> or <I>region</I> or <I>scolor</I> or <I>sdiam</I> or <I>smap</I> or <I>thresh</I> 
+<LI>keyword = <I>backcolor</I> or <I>boundcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>cwrap</I> or <I>delay</I> or <I>delta</I> or <I>dwrap</I> or <I>flush</I> or <I>logfreq</I> or <I>loglinfreq</I> or <I>pad</I> or <I>region</I> or <I>scolor</I> or <I>sdiam</I> or <I>smap</I> or <I>thresh</I> 
 
 <PRE>  <I>backcolor</I> arg = color
     color = name of color for background
@@ -30,10 +30,14 @@
   <I>color</I> args = name R G B
     name = name of color
     R,G,B = red/green/blue numeric values from 0.0 to 1.0
+  <I>cwrap</I> arg = <I>yes</I> or <I>no</I>
+    yes/no = do or do not wrap out-of-range color values into the defined crange
   <I>delay</I> value = tdelay
     tdelay = delay dump until at least this time (seconds)
   <I>delta</I> arg = dt
     dt = time increment between dumps (seconds)
+  <I>dwrap</I> arg = <I>yes</I> or <I>no</I>
+    yes/no = do or do not wrap out-of-range diameter values into the defined drange
   <I>flush</I> arg = <I>yes</I> or <I>no</I>
   <I>logfreq</I> or <I>loglinfreq</I> values = N factor
     N = number of repetitions per interval
@@ -128,6 +132,29 @@ pre-defined color names with new RBG values.
 </P>
 <HR>
 
+<P>The <I>cwrap</I> keyword applies only to the dump <I>image</I> style.  It
+enables wrapping of integer values used to deterimine site colors in
+the image, into the range specified by the <I>crange</I> keyword in the
+<A HREF = "dump_image.html">dump image</A> command.
+</P>
+<P>The <I>crange</I> keyword defines a range of values <I>lo</I> to <I>hi</I>.  If the
+<I>cwrap</I> argument is <I>no</I>, which is the default, then values outside
+the range <I>lo</I> to <I>hi</I> are clipped to that range.  I.e. values < <I>lo</I>
+become <I>lo</I> and values > <I>hi</I> become hi.  This means out-of-range
+values will all be drawn with either the <I>lo</I> or <I>hi</I> color, which may
+not be what you want.
+</P>
+<P>If the <I>cwrap</I> argument is <I>yes</I>, then values outside the range <I>lo</I>
+to <I>hi</I> are wrapped back into the range.  E.g. a value of hi+1 becomes
+lo, hi+2 becomes lo+1, etc.  Similarly, a value of lo-1 becomes hi,
+lo-2 becomes hi-1, etc.  This is a way to map a huge number N of
+possible integer values into a smaller number of M <I>crange</I> colors.
+This may be required if N = 2 billion spin values, since memory for
+that many colors cannot be allocated.  Using a <I>crange</I> with M = 10000
+would work in that scenario.
+</P>
+<HR>
+
 <P>The <I>delay</I> keyword will suppress output until <I>tdelay</I> time has
 elapsed.
 </P>
@@ -135,6 +162,15 @@ elapsed.
 
 <P>The <I>delta</I> keyword will suppress output until <I>tdelay</I> time has
 elapsed.
+</P>
+<HR>
+
+<P>The <I>dwrap</I> keyword applies only to the dump <I>image</I> style.  It
+enables wrapping of integer values used to deterimine site diameters
+in the image, into the range specified by the <I>drange</I> keyword in the
+<A HREF = "dump_image.html">dump image</A> command.  It's purpose and the way it
+operates on diamenters is exactly the same as how the <I>cwrap</I> keyword
+operates of colors, as described above.
 </P>
 <HR>
 
@@ -360,14 +396,16 @@ details.
 <LI>boundcolor = white
 <LI>boxcolor = yellow
 <LI>color = 140 color names are pre-defined as listed below
+<LI>cwrap = no
 <LI>delay = 0.0
 <LI>delta = value used in the <A HREF = "dump.html">dump</A> command
+<LI>dwrap = no
 <LI>flush = yes
 <LI>logfreq = off
 <LI>loglinfreq = off
 <LI>pad = 0
 <LI>region = none
-<LI>scolor = * red/green/blue/yellow/aqua/cyan
+<LI>scolor = * c1/c2/.../c140 where c1-c140 are the names of the 140 pre-defined colors
 <LI>sdiam = * 1.0
 <LI>smap = min max cf 2 min blue max red
 <LI>thresh = none 

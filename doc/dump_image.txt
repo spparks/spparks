@@ -206,7 +206,14 @@ The {crange} keyword must be used if the specified {color} setting is
 an integer attribute such as {site} or {i2}.  The {lo} and {hi} values
 are the range of values that the attribute can have.  For example,
 if spins in a Potts model will range from 1 to 100 (inclusive), then
-{lo} nd {hi} should be specified as 1 and 100.
+{lo} and {hi} should be specified as 1 and 100.
+
+Note that internally the code allocates a vector of color values that
+is of length {hi}-{lo}+1.  Thus you may run out of memory if {crange}
+encompasses N values and N is very large, e.g. 2 billion.  In this
+case you should choose a smaller N, e.g. 10000, and use the
+"dump_modify cwrap yes"_dump_modify.html command to wrap the 2 billion
+possible values into N smaller values.
 
 :line
 
@@ -215,7 +222,14 @@ is an integer attribute such as {site} or {i2}, unless the {sdiam}
 keyword is used, in which case the {diameter} setting is ignored.  The
 {lo} and {hi} values are the range of values that the attribute can
 have.  For example, if the {i2} attibute will take on the values -1,
-0, or 1, then then {lo} nd {hi} should be specified as -1 and 1
+0, or 1, then then {lo} and {hi} should be specified as -1 and 1
+
+Note that internally the code allocates a vector of diameter values
+that is of length {hi}-{lo}+1.  Thus you may run out of memory if
+{drange} encompasses N values and N is very large, e.g. 2 billion.  In
+this case you should choose a smaller N, e.g. 10000, and use the
+"dump_modify dwrap yes"_dump_modify.html command to wrap the 2 billion
+possible values into N smaller values.
 
 :line
 
