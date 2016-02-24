@@ -37,6 +37,24 @@ describe the version you have. :ule,l
 :line
 :line
 
+[24 Feb 2016]
+
+Added {cwrap} and {dwrap} keywords to the
+"dump_modify"_doc/dump_modify.html command to allow very large
+per-site color or diameter values to be wrapped into a smaller set of
+color or size values when rendered by the "dump
+image"_doc/dump_image.html command.  This allows, for example, 2
+billion possible spin values to be drawn as one of 10000 colors,
+instead of requiring memory allocation for 2 billion colors.
+
+Also fixed a bug to allow the dump command to printing a 64-bit site
+count (> 2B) correctly without integer overflow.
+
+This is the "list of changed files"_patches/files.24Feb16 from the 1
+Feb 2016 version.
+
+:line
+
 [1 Feb 2016]
 
 Changes to enable 64-bit site IDs and thus to run problems with over
@@ -47,8 +65,8 @@ for details.  SPPARKS now prints out its per-processor memory
 footprint to assist in estimating how many MPI tasks you
 need to run a large problem.
 
-This is the "list of changed files"_patches/files.11Dec15 from the 21
-Oct 2015 version.
+This is the "list of changed files"_patches/files.1Feb16 from the 11
+Dec 2015 version.
 
 :line
 

@@ -40,6 +40,24 @@ describe the version you have.
 
 <HR>
 
+<P><B>24 Feb 2016</B>
+</P>
+<P>Added <I>cwrap</I> and <I>dwrap</I> keywords to the
+<A HREF = "doc/dump_modify.html">dump_modify</A> command to allow very large
+per-site color or diameter values to be wrapped into a smaller set of
+color or size values when rendered by the <A HREF = "doc/dump_image.html">dump
+image</A> command.  This allows, for example, 2
+billion possible spin values to be drawn as one of 10000 colors,
+instead of requiring memory allocation for 2 billion colors.
+</P>
+<P>Also fixed a bug to allow the dump command to printing a 64-bit site
+count (> 2B) correctly without integer overflow.
+</P>
+<P>This is the <A HREF = "patches/files.24Feb16">list of changed files</A> from the 1
+Feb 2016 version.
+</P>
+<HR>
+
 <P><B>1 Feb 2016</B>
 </P>
 <P>Changes to enable 64-bit site IDs and thus to run problems with over
@@ -50,8 +68,8 @@ for details.  SPPARKS now prints out its per-processor memory
 footprint to assist in estimating how many MPI tasks you
 need to run a large problem.
 </P>
-<P>This is the <A HREF = "patches/files.11Dec15">list of changed files</A> from the 21
-Oct 2015 version.
+<P>This is the <A HREF = "patches/files.1Feb16">list of changed files</A> from the 11
+Dec 2015 version.
 </P>
 <HR>
 
