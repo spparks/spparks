@@ -50,6 +50,7 @@ class DumpImage : public DumpText {
   int zoomvar,perspvar;            // index to zoom,persp vars
   int boxflag,axesflag;            // 0/1 for draw box and axes
   double boxdiam,axeslen,axesdiam; // params for drawing box and axes
+  int cwrap,dwrap;                 // 0/1 for wrapping color/diam to c/drange
 
   int viewflag;                    // overall view is static or dynamic
 
