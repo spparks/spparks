@@ -324,13 +324,7 @@ void AppLattice::setup()
 {
   // app-specific setup, before propensities are computed
 
-  MPI_Barrier(world);
-  if (me == 0) printf("APP SETUP\n");
-
   setup_app();
-
-  MPI_Barrier(world);
-  if (me == 0) printf("APP SETUP2\n");
 
   // initialize propensities for KMC solver within each set
   // comm insures ghost sites are up to date
@@ -343,9 +337,6 @@ void AppLattice::setup()
       set[i].solve->init(set[i].nlocal,set[i].propensity);
     }
   }
-
-  MPI_Barrier(world);
-  if (me == 0) printf("APP SETUP3\n");
 
   // convert per-sector time increment info to KMC params
 
@@ -374,9 +365,6 @@ void AppLattice::setup()
 
     dt_kmc = MIN(dt_kmc,stoptime-time);
   }
-
-  MPI_Barrier(world);
-  if (me == 0) printf("APP SETUP4\n");
 
   // convert rejection info to rKMC params
   // nloop and nselect are set whether sectoring is used or not
@@ -423,9 +411,6 @@ void AppLattice::setup()
     dt_rkmc = MIN(dt_rkmc,stoptime-time);
   }
 
-  MPI_Barrier(world);
-  if (me == 0) printf("APP SETUP5\n");
-
   // setup sitelist if sweepflag = RANDOM
   // do this every run since sector timestep could have changed
 
@@ -436,22 +421,13 @@ void AppLattice::setup()
     memory->create(sitelist,n,"app:sitelist");
   }
 
-  MPI_Barrier(world);
-  if (me == 0) printf("APP SETUP6\n");
-
   // second stage of app-specific setup
 
   setup_end_app();
 
-  MPI_Barrier(world);
-  if (me == 0) printf("APP SETUP7\n");
-
   // setup future output
 
   nextoutput = output->setup(time,first_run);
-
-  MPI_Barrier(world);
-  if (me == 0) printf("APP SETUP8\n");
 }
 
 /* ---------------------------------------------------------------------- */

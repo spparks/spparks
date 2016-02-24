@@ -822,16 +822,16 @@ int DumpImage::modify_param(int narg, char **arg)
 
   if (strcmp(arg[0],"cwrap") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"yes") == 1) cwrap = 1;
-    else if (strcmp(arg[1],"no") == 1) cwrap = 0;
+    if (strcmp(arg[1],"yes") == 0) cwrap = 1;
+    else if (strcmp(arg[1],"no") == 0) cwrap = 0;
     else error->all(FLERR,"Illegal dump_modify command");
     return 2;
   }
 
   if (strcmp(arg[0],"dwrap") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"yes") == 1) dwrap = 1;
-    else if (strcmp(arg[1],"no") == 1) dwrap = 0;
+    if (strcmp(arg[1],"yes") == 0) dwrap = 1;
+    else if (strcmp(arg[1],"no") == 0) dwrap = 0;
     else error->all(FLERR,"Illegal dump_modify command");
     return 2;
   }
