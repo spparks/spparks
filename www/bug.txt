@@ -37,12 +37,12 @@ describe the version you have. :ule,l
 :line
 :line
 
-[25 Feb 2016]
+[26 Feb 2016]
 
 Left some debug print statements in the code for the previous
 version.
 
-This is the "list of changed files"_patches/files.25Feb16 from the 24
+This is the "list of changed files"_patches/files.26Feb16 from the 24
 Feb 2016 version.
 
 :line
