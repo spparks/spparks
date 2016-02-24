@@ -1,0 +1,8 @@
+24Feb16 version files changed by 25Feb16 upgrade:
+
+doc/Manual.html
+doc/Manual.pdf
+doc/Manual.txt
+doc/dump_image.html
+doc/dump_image.txt
+src/version.h
