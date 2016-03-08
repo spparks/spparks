@@ -418,7 +418,7 @@ double Output::next_time(double tcurrent, int logfreq, double delta,
 }
 
 /* ----------------------------------------------------------------------
-   sum and print memory usage
+   sum and print memory usage and precision
    result is only memory on proc 0, not averaged across procs
 ------------------------------------------------------------------------- */
 
@@ -430,9 +430,12 @@ void Output::memory_usage()
   double mbytes = bytes/1024.0/1024.0;
 
   if (me == 0) {
-    if (screen)
+    if (screen) {
+      fprintf(screen,"Running with %d-bit site IDs\n",8*sizeof(tagint));
       fprintf(screen,"Memory usage per processor = %g Mbytes\n",mbytes);
-    if (logfile)
+    } if (logfile) {
+      fprintf(logfile,"Running with %d-bit site IDs\n",8*sizeof(tagint));
       fprintf(logfile,"Memory usage per processor = %g Mbytes\n",mbytes);
+    }
   }
 }
