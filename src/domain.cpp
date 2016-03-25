@@ -398,6 +398,10 @@ void Domain::pbcshift(double* xyz1, double* xyz2)
 void Domain::set_pbcflags(double* xyz1, double* xyz2, int* pbcflags)
 {
 
+  pbcflags[0] = 0.0;
+  pbcflags[1] = 0.0;
+  pbcflags[2] = 0.0;
+
   // x coord
 
   if (xperiodic) {
@@ -405,8 +409,6 @@ void Domain::set_pbcflags(double* xyz1, double* xyz2, int* pbcflags)
 	 pbcflags[0] = 1;
     else if ((xyz2[0] - xyz1[0])*2.0 > xprd)
 	 pbcflags[0] = -1;
-    else
-	 pbcflags[0] = 0;
   }
 
   // y coord
@@ -416,8 +418,6 @@ void Domain::set_pbcflags(double* xyz1, double* xyz2, int* pbcflags)
 	 pbcflags[1] = 1;
     else if ((xyz2[1] - xyz1[1])*2.0 > yprd)
 	 pbcflags[1] = -1;
-    else
-	 pbcflags[1] = 0;
   }
 
   // z coord
@@ -427,8 +427,6 @@ void Domain::set_pbcflags(double* xyz1, double* xyz2, int* pbcflags)
 	 pbcflags[2] = 1;
     else if ((xyz2[2] - xyz1[2])*2.0 > zprd)
 	 pbcflags[2] = -1;
-    else
-	 pbcflags[2] = 0;
   }
 }
 
