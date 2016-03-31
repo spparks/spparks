@@ -1,0 +1,24 @@
+# SPPARKS sinter tests on a powder compact 
+
+seed		 56789
+
+app_style	 sinter 
+
+read_sites	 Cu03
+
+event_ratios 	 2.0 1.0 10.0
+
+events_temperatures 1.0 1.0 15.0
+
+sweep		 random
+#sweep		 raster mask yes
+#solve_style      tree
+sector		 yes
+
+diag_style       energy
+
+stats            1.0
+dump             10.0 dumpCu.sinter
+diag_style       cluster delt 1.0 stats no logfreq 10 500.0 filename clusterCu.dat
+
+run              10.0
