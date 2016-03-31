@@ -1,0 +1,45 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>event_temperatures command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>event_temperatures Tgg Tpm Tv 
+</PRE>
+<UL><LI>Tgg = value of temperature for grain growth in Monte Carlo simulation of sintering 
+</UL>
+<UL><LI>Tpm = value of temperature for pore migration in Monte Carlo simulation of sintering
+</UL>
+<UL><LI>Tv = value of temperature for vacancy creation and annihilation in Monte Carlo simulation of sintering
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>event_temperatures 2.0 1.0 15.0
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command sets the event temperature as used in the sintering application. The typical would be as part of a Boltzmann factor that alters the probabilities of event acceptance and rejection.
+</P>
+<P><B>Restrictions:</B> these should be positive values
+</P>
+<P>This command can only be used as part of the sintering application.  See the doc pages for the sintering application defined by the <A HREF = "app_sinter.html">app_style sinter</A> command for
+further details.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "event_ratios.html">event_ratios</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The default event temperatures are 1.0 1.0 15.0.
+</P>
+</HTML>

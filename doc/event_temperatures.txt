@@ -1,0 +1,37 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+event_temperatures command :h3
+
+[Syntax:]
+
+event_temperatures Tgg Tpm Tv :pre
+
+Tgg = value of temperature for grain growth in Monte Carlo simulation of sintering 
+Tpm = value of temperature for pore migration in Monte Carlo simulation of sintering 
+Tv = value of temperature for vacancy creation and annihilation in Monte Carlo simulation of sintering :ul
+
+[Examples:]
+
+event_temperatures 2.0 1.0 15.0 :pre
+
+[Description:]
+
+This command sets the event temperature as used in the sintering application. The typical would be as part of a Boltzmann factor that alters the probabilities of event acceptance and rejection. 
+
+[Restrictions:] these should be positive values. 
+
+This command can only be used as part of the sintering application. See the doc pages for the sintering application defined by the "app_style sinter"_app_sinter.html command for further details.
+
+[Related commands:] 
+
+"event_ratios"_event_ratios.html
+
+[Default:]
+
+The default temperatures are 1.0 1.0 15.0.

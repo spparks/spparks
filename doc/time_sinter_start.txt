@@ -1,0 +1,33 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+time_sinter_start command :h3
+
+[Syntax:]
+
+time_sinter_start tss :pre
+
+tss = value of time to start the vacancy creation and annihilation event in Monte Carlo sintering simulation :ul
+
+[Examples:]
+
+time_sinter_start 250 :pre
+
+[Description:]
+
+This command sets the time to start the calculation of the vacancy creation and annihilation event in the sintering application. Prior to that time the sintering simulation just entails grain growth and pore migration with virtually no densification. The typical usage would be as part of a random initialization where the grain structure should acquire certain size before attempting any densification stage. 
+
+[Restrictions:] this should be a positive value
+
+This command can only be used as part of the sintering application. See the doc pages for the sintering application defined by the "app_style sinter"_app_sinter.html command for further details.
+
+[Related commands:] none
+
+[Default:]
+
+The default time to start sintering is 50.

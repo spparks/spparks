@@ -1,0 +1,37 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+event_ratios command :h3
+
+[Syntax:]
+
+event_ratios Rgg Rpm Rv :pre
+
+Rgg = value of number of attempts for grain growth event in Monte Carlo simulation of sintering
+Rpm = value of number of attempt for pore migration event in Monte Carlo simulation of sintering 
+Rv = value of number of attempts for vacancy creation and annihilation event in Monte Carlo simulation of sintering  :ul
+
+[Examples:]
+
+event_ratios 2.0 1.0 4.0 :pre
+
+[Description:]
+
+This command sets the number of attempts for each event in the sintering application. Each event is attempted with a frequency proportional to the ratio between the particular number of attempts given and the sum of the number of attempts for all the events. The typical usage would be to alter the frequency of occurrence of the events. The events correspond to: grain growth, pore migration and vacancy creation and annihilation. 
+
+[Restrictions:] these should be positive values. 
+
+This command can only be used as part of the sintering application. See the doc pages for the sintering application defined by the "app_style sinter"_app_sinter.html command for further details.
+
+[Related commands:] 
+
+"event_temperatures"_event_temperatures.html
+
+[Default:]
+
+The default event ratios are 1.0 1.0 1.0.

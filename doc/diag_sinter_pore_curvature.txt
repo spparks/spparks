@@ -1,0 +1,45 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+diag_style sinter_pore_curvature command :h3
+
+[Syntax:]
+
+diag_style sinter_pore_curvature keyword value keyword value ... :pre
+
+sinter_pore_curvature = style name of this diagnostic
+see the "diag_style"_diag_style.html command for additional keywords that can be appended to a diagnostic command :ul
+
+[Examples:]
+
+diag_style sinter_pore_curvature :pre
+
+[Description:]
+
+The sinter pore curvature diagnostic computes the mean integral curvature of
+the pores in the powder compact simulated. In addition the triple line length
+is also computed. The calculation is done over the 1/27th central
+parallelepiped in order to avoid border effects. The pore curvature and the
+triple line length are printed as stats output via the "stats"_stats.html
+command.
+
+The method used to measure pore curvature is described in detail in "On
+Sintering Stress in Complex Powder Compacts", Cristina G. Cardona, Veena Tikare,
+Burton R. Patterson and Eugene Olevsky, J. Am. Ceram. Soc., 1-11 (2012)
+
+[Restrictions:]
+
+This diagnostic can only be used for the sintering application.
+
+[Related commands:]
+
+"diag_style"_diag_style.html, "stats"_stats.html
+
+[Default:] none
+
+

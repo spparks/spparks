@@ -1,0 +1,126 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style sinter command :h3
+
+[Syntax:]
+
+app_style style :pre
+
+style = {sinter} 
+
+[Examples:]
+
+app_style sinter
+
+[Description:]
+
+This is on-lattice application which evolve a N-state Ising model or Potts
+model of sintering. Each lattice site has a spin value from -1 to N, with
+values of 0 representing internal pores sites, positive values representing
+grain sites and values of -1 representing the space outside the sintering
+compact.  Sites change their spin to simulate microstructural evolution during
+sintering.
+
+The Hamiltonian representing the energy of site i is as follows:
+
+Hi = Sum_j delta_ij 
+
+where Sum_j is a sum over all the neighbor sites of site i and
+delta_ij is 0 if the spin of sites i and j are the same and 1 if they
+are different.  The energy of the entire system is the sum of Hi over
+all sites.
+
+A complete description of the sintering model and its parameters can be found in the paper: 
+
+Numerical simulation of microstructural evolution during sintering at the
+mesoscale in a 3D powder compact, V. Tikare, M. Braginsky, D. Bouvard and A.
+Vagnon, Comp. Mater. Sci., 48\[2\], 317-325, (2010).
+
+This application mainly performs Kawasaki dynamics, meaning the spins on two
+neighboring sites are swapped. See "app_style pots"_app_potts.html for an Ising
+model, which performs Glauber dynamics, meaning the spin is flipped on a single
+site.
+
+As currently implemented, this application can be evolved only by the rejection
+KMC (rKMC) algorithm.  You must thus define a sweeping method to be used with
+the application via the "sweep"_sweep.html command.
+
+For solution by a rKMC algorithm, three different events are programmed: grain
+growth, pore migration and vacancy creation and annihilation.  If the site
+selected is a grain site, a grain growth event is attempted: a new spin is
+chosen randomly from the values held by neighbor grain sites. If the site
+selected is a pore site, a pore migration or a vacancy creation and
+annihilation event is attempted. For the pore migration event, a new spin is
+chosen from the values held by neighboring grain sites such that the flip
+results in the minimum possible energy. For a vacancy creation and annihilation
+event, a pore site is moved to a neighboring grain site such that the resulting
+pore site is completely surrounded by grain sites (vacancy creation at grain
+boundary) with the subsequent movement of the vacancy to the surface of the
+sintering compact. In all the events, dE = Efinal - Einitial is calculated, as
+is a uniform random number R between 0 and 1.  The new state is accepted if R <
+min\[1,exp(-dE/kT)\], else it is rejected. T is the temperature for simulating
+the event, so there is one temperature for grain growth, another for pore
+migration and a third temperature for vacancy creation and annihilation. These
+temperatures are defined by "event_temperatures"_event_temperatures.html
+command (which includes the Boltzmann constant k implicitly). 
+
+Parallel implementation of the Monte Carlo model of sintering using the SPPARKS code is described in: 
+
+Parallel simulation of 3D sintering, C. Garcia Cardona, V. Tikare and S. J. Plimpton, IJCMSSE, 4\[1\], 37-54, (2011). 
+
+[Initialization:]
+
+There are two methods to initialize the simulation space: randomly or from a spins file.
+
+To do it randomly use the commands:
+set i1 unique :pre
+set i1 value 0 fraction p :ul
+
+The first command sets the spin of each site in the simulation space to a
+different value. The second command sets a fraction p of the spins to value 0,
+i.e. it defines the initial porosity of the sample. In this case, allow the
+grain structure to grow before starting sintering. This can be done by
+increasing the time to start the vacancy creation and annihilation event, using
+the "time_sinter_start"_time_sinter_start.html command.
+
+To read from a spins file use the command:
+read_sites filename :pre
+
+In this case the initial configuration of spins is read directly from the file.
+See the documentation for the "read_sites"_read_sites.html command. You should
+have defined previously the size of the corresponding simulation region and box
+by using the commands: "region"_region.html, "create_box"_create_box.html and
+"create_sites"_create_sites.htm
+
+:line
+
+The following additional commands are defined by this application:
+
+"event_temperatures"_event_temperatures.html : set Monte Carlo temperature for each event :tb(s=:)
+"event_ratios"_event_ratios.html : set frequency to attempt each event :tb(s=:)
+"time_sinter_start"_time_sinter_start.html : set time to start attempting the vacancy creation and annihilation event :tb(s=:)
+"diag_sinter_density"_diag_sinter_density.html : calculate density of the porous compact :tb(s=:)
+"diag_sinter_avg_neck_area"_diag_sinter_avg_neck_area.html : calculate average neck area of the porous compact :tb(s=:)
+"diag_sinter_free_energy_pore"_diag_sinter_free_energy_pore.html : calculate surface pore area of the porous compact :tb(s=:)
+"diag_sinter_pore_curvature"_diag_sinter_pore_curvature.html : calculate pore curvature of the porous compact :tb(s=:)
+
+Calculation of pore curvature can be used to determine the sintering stress as described in:
+
+On Sintering Stress in Complex Powder Compacts, C. Garcia Cardona, V. Tikare, B. Patterson, E.A. Olevsky J. Am. Ceram. Soc., 95 \[8\] 2372-2382 (2012).
+
+:line
+
+[Restrictions:] none
+
+[Related commands:]
+
+"app_style potts"_app_potts.html
+
+[Default:] none
+

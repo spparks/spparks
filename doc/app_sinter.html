@@ -1,0 +1,151 @@
+<HTML>
+<CENTER><A HREF = "http://www.cs.sandia.gov/~sjplimp/spparks.html">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style sinter command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style style 
+</PRE>
+<P>style = <I>sinter</I> 
+</P>
+<P><B>Examples:</B>
+</P>
+<P>app_style sinter
+</P>
+<P><B>Description:</B>
+</P>
+<P>This is on-lattice application which evolve a N-state Ising model or Potts
+model of sintering. Each lattice site has a spin value from -1 to N, with
+values of 0 representing internal pores sites, positive values representing
+grain sites and values of -1 representing the space outside the sintering
+compact.  Sites change their spin to simulate microstructural evolution during
+sintering.
+</P>
+<P>The Hamiltonian representing the energy of site i is as follows:
+</P>
+<P>Hi = Sum_j delta_ij 
+</P>
+<P>where Sum_j is a sum over all the neighbor sites of site i and
+delta_ij is 0 if the spin of sites i and j are the same and 1 if they
+are different.  The energy of the entire system is the sum of Hi over
+all sites.
+</P>
+<P>A complete description of the sintering model and its parameters can be found in the paper: 
+</P>
+<P>Numerical simulation of microstructural evolution during sintering at the
+mesoscale in a 3D powder compact, V. Tikare, M. Braginsky, D. Bouvard and A.
+Vagnon, Comp. Mater. Sci., 48[2], 317-325, (2010).
+</P>
+<P>This application mainly performs Kawasaki dynamics, meaning the spins on two
+neighboring sites are swapped. See <A HREF = "app_potts.html">app_style pots</A> for an Ising
+model, which performs Glauber dynamics, meaning the spin is flipped on a single
+site.
+</P>
+<P>As currently implemented, this application can be evolved only by the rejection
+KMC (rKMC) algorithm.  You must thus define a sweeping method to be used with
+the application via the <A HREF = "sweep.html">sweep</A> command.
+</P>
+<P>For solution by a rKMC algorithm, three different events are programmed: grain
+growth, pore migration and vacancy creation and annihilation.  If the site
+selected is a grain site, a grain growth event is attempted: a new spin is
+chosen randomly from the values held by neighbor grain sites. If the site
+selected is a pore site, a pore migration or a vacancy creation and
+annihilation event is attempted. For the pore migration event, a new spin is
+chosen from the values held by neighboring grain sites such that the flip
+results in the minimum possible energy. For a vacancy creation and annihilation
+event, a pore site is moved to a neighboring grain site such that the resulting
+pore site is completely surrounded by grain sites (vacancy creation at grain
+boundary) with the subsequent movement of the vacancy to the surface of the
+sintering compact. In all the events, dE = Efinal - Einitial is calculated, as
+is a uniform random number R between 0 and 1.  The new state is accepted if R <
+min[1,exp(-dE/kT)], else it is rejected. T is the temperature for simulating
+the event, so there is one temperature for grain growth, another for pore
+migration and a third temperature for vacancy creation and annihilation. These
+temperatures are defined by <A HREF = "event_temperatures.html">event_temperatures</A>
+command (which includes the Boltzmann constant k implicitly). 
+</P>
+<P>Parallel implementation of the Monte Carlo model of sintering using the SPPARKS code is described in: 
+</P>
+<P>Parallel simulation of 3D sintering, C. Garcia Cardona, V. Tikare and S. J. Plimpton, IJCMSSE, 4[1], 37-54, (2011). 
+</P>
+<P><B>Initialization:</B>
+</P>
+<P>There are two methods to initialize the simulation space: randomly or from a spins file.
+</P>
+<PRE>To do it randomly use the commands:
+set i1 unique 
+</PRE>
+<UL><LI>set i1 value 0 fraction p 
+</UL>
+<P>The first command sets the spin of each site in the simulation space to a
+different value. The second command sets a fraction p of the spins to value 0,
+i.e. it defines the initial porosity of the sample. In this case, allow the
+grain structure to grow before starting sintering. This can be done by
+increasing the time to start the vacancy creation and annihilation event, using
+the <A HREF = "time_sinter_start.html">time_sinter_start</A> command.
+</P>
+<PRE>To read from a spins file use the command:
+read_sites filename 
+</PRE>
+<P>In this case the initial configuration of spins is read directly from the file.
+See the documentation for the <A HREF = "read_sites.html">read_sites</A> command. You should
+have defined previously the size of the corresponding simulation region and box
+by using the commands: <A HREF = "region.html">region</A>, <A HREF = "create_box.html">create_box</A> and
+<A HREF = "create_sites.htm">create_sites</A>
+</P>
+<HR>
+
+<P>The following additional commands are defined by this application:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "event_temperatures.html">event_temperatures</A> </TD><TD > set Monte Carlo temperature for each event 
+</TD></TR></TABLE></DIV>
+
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "event_ratios.html">event_ratios</A> </TD><TD > set frequency to attempt each event 
+</TD></TR></TABLE></DIV>
+
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "time_sinter_start.html">time_sinter_start</A> </TD><TD > set time to start attempting the vacancy creation and annihilation event 
+</TD></TR></TABLE></DIV>
+
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "diag_sinter_density.html">diag_sinter_density</A> </TD><TD > calculate density of the porous compact 
+</TD></TR></TABLE></DIV>
+
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "diag_sinter_avg_neck_area.html">diag_sinter_avg_neck_area</A> </TD><TD > calculate average neck area of the porous compact 
+</TD></TR></TABLE></DIV>
+
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "diag_sinter_free_energy_pore.html">diag_sinter_free_energy_pore</A> </TD><TD > calculate surface pore area of the porous compact 
+</TD></TR></TABLE></DIV>
+
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "diag_sinter_pore_curvature.html">diag_sinter_pore_curvature</A> </TD><TD > calculate pore curvature of the porous compact 
+</TD></TR></TABLE></DIV>
+
+<P>Calculation of pore curvature can be used to determine the sintering stress as described in:
+</P>
+<P>On Sintering Stress in Complex Powder Compacts, C. Garcia Cardona, V. Tikare, B. Patterson, E.A. Olevsky J. Am. Ceram. Soc., 95 [8] 2372-2382 (2012).
+</P>
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_potts.html">app_style potts</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

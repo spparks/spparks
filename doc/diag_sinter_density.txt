@@ -1,0 +1,36 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://www.cs.sandia.gov/~sjplimp/spparks.html)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+diag_style sinter_density command :h3
+
+[Syntax:]
+
+diag_style sinter_density keyword value keyword value ... :pre
+
+sinter_density = style name of this diagnostic
+see the "diag_style"_diag_style.html command for additional keywords that can be appended to a diagnostic command :ul
+
+[Examples:]
+
+diag_style sinter_density :pre
+
+[Description:]
+
+The sinter density diagnostic computes the density of the powder compact simulated. The calculation is done over the 1/27th central parallelepiped in order to avoid border effects. The density is printed as stats output via the "stats"_stats.html command.
+
+[Restrictions:]
+
+This diagnostic can only be used for the sintering application.
+
+[Related commands:]
+
+"diag_style"_diag_style.html, "stats"_stats.html
+
+[Default:] none
+
+
