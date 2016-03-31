@@ -15,7 +15,7 @@ lattice style args :pre
 style = {none} or {line/2n} or {sq/4n} or {sq/8n} or {tri} or {sc/6n} or {sc/26n} or {bcc} or {fcc} or {diamond} or {fcc/octa/tetra} or {random/1d} or {random/2d or {random/3d}} :ulb,l
   {none} args: none
   all other styles except {random} = scale
-    scale = lattice constant (distance units) :pre
+    scale = lattice constant (distance units)
   {random/1d} args = Nrandom cutoff
   {random/2d} args = Nrandom cutoff
   {random/3d} args = Nrandom cutoff

@@ -15,27 +15,23 @@
 </P>
 <PRE>event_ratios Rgg Rpm Rv 
 </PRE>
-<UL><LI>Rgg = value of number of attempts for grain growth event in Monte Carlo simulation of sintering 
-</UL>
-<UL><LI>Rpm = value of number of attempt for pore migration event in Monte Carlo simulation of sintering
-</UL>
-<UL><LI>Rv = value of number of attempts for vacancy creation and annihilation event in Monte Carlo simulation of sintering
+<UL><LI>Rgg = value of number of attempts for grain growth event in Monte Carlo simulation of sintering
+<LI>Rpm = value of number of attempt for pore migration event in Monte Carlo simulation of sintering 
+<LI>Rv = value of number of attempts for vacancy creation and annihilation event in Monte Carlo simulation of sintering  
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>event_ratios 2.0 1.0 4.0
+<PRE>event_ratios 2.0 1.0 4.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command sets the number of attempts for each event in the sintering application. Each event is attempted with a frequency proportional to the ratio between the particular number of attempts given and the sum of the number of attempts for all the events.
-The typical usage would be to alter the frequency of occurrence of the events. The events correspond to: grain growth, pore migration and vacancy creation and annihilation.
+<P>This command sets the number of attempts for each event in the sintering application. Each event is attempted with a frequency proportional to the ratio between the particular number of attempts given and the sum of the number of attempts for all the events. The typical usage would be to alter the frequency of occurrence of the events. The events correspond to: grain growth, pore migration and vacancy creation and annihilation. 
 </P>
-<P><B>Restrictions:</B> these should be positive values
+<P><B>Restrictions:</B> these should be positive values. 
 </P>
-<P>This command can only be used as part of the sintering application.  See the doc pages for the sintering application defined by the <A HREF = "app_sinter.html">app_style sinter</A> command for
-further details.
+<P>This command can only be used as part of the sintering application. See the doc pages for the sintering application defined by the <A HREF = "app_sinter.html">app_style sinter</A> command for further details.
 </P>
-<P><B>Related commands:</B>
+<P><B>Related commands:</B> 
 </P>
 <P><A HREF = "event_temperatures.html">event_temperatures</A>
 </P>
