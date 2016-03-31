@@ -15,7 +15,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_sinter_v15.h"
+#include "app_sinter.h"
 #include "domain.h"
 #include "lattice.h"
 #include "comm_lattice.h"

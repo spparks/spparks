@@ -21,7 +21,7 @@
 #include "timer.h"
 #include "diag_sinter_density.h"
 #include "app_lattice.h"
-#include "app_sinter_v15.h"
+#include "app_sinter.h"
 #include "comm_lattice.h"
 #include "domain.h"
 
