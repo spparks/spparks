@@ -337,6 +337,7 @@ void ReadSites::sites()
     }
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
+    MPI_Barrier(world);   // prevent run-ahead MPI overflow by root
 
     buf = buffer;
     next = strchr(buf,'\n');
@@ -442,6 +443,7 @@ void ReadSites::neighbors()
     }
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
+    MPI_Barrier(world);   // prevent run-ahead MPI overflow by root
 
     buf = buffer;
     for (int i = 0; i < nchunk; i++) {
@@ -485,7 +487,6 @@ void ReadSites::neighbors()
 
 /* ----------------------------------------------------------------------
    read all per-site values
-   to find atoms, must build atom map if not a molecular system 
 ------------------------------------------------------------------------- */
 
 void ReadSites::values()
@@ -529,6 +530,7 @@ void ReadSites::values()
     }
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
+    MPI_Barrier(world);   // prevent run-ahead MPI overflow by root
 
     buf = buffer;
     next = strchr(buf,'\n');
