@@ -51,6 +51,7 @@ class Groups : protected Pointers {
   void grow_group(int);
   void allocate_memory(int);
   void release_memory();
+  int find_group(double pone);
   void sanity_check(double *p);
 };
 

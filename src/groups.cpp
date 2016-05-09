@@ -92,12 +92,14 @@ void Groups::partition(double *p, int size_in)
     for (int g = 0; g < ngroups; g++)
       ghibound[g] = lo + (g+1)*binsize;
     ghibound[ngroups-1] = hi;
+    ghibound[ngroups] = 0.0;
   } else {
     double top = hi;
     for (int g = 0; g < ngroups; g++) {
       ghibound[g] = top;
       top *= 0.5;
     }
+    ghibound[ngroups] = 0.0;
   }
 
   // count # of propensities in each group
@@ -106,14 +108,7 @@ void Groups::partition(double *p, int size_in)
   for (g = 0; g <= ngroups; g++) gcount[g] = 0;
 
   for (int i = 0; i < size; i++) {
-    if (p[i] == 0.0) g = ngroups;
-    else if (ngroups_flag) g = static_cast<int> ((p[i]-lo)*invbinsize);
-    else {
-      frexp(p[i]/hi,&g);
-      g = -g;
-      if (g < 0) g = 0;
-    }
-
+    g = find_group(p[i]);
     gcount[g]++;
     psum += p[i];
   }
@@ -140,14 +135,7 @@ void Groups::partition(double *p, int size_in)
   }
   
   for (int i = 0; i < size; i++) {
-    if (p[i] == 0.0) g = ngroups;
-    else if (ngroups_flag) g = static_cast<int> ((p[i]-lo)*invbinsize);
-    else {
-      frexp(p[i]/hi,&g);
-      g = -g;
-      if (g < 0) g = 0;
-    }
-
+    g = find_group(p[i]);
     p2g[i] = g;
     p2g_index[i] = gcount[g];
     g2p[g][gcount[g]++] = i;
@@ -172,14 +160,7 @@ void Groups::alter_element(int n, double *p, double p_new)
 
   // compute new group for p_new
 
-  int new_group;
-  if (p_new == 0.0) new_group = ngroups;
-  else if (ngroups_flag) new_group = static_cast<int> ((p_new-lo)*invbinsize);
-  else {
-    frexp(p_new/hi,&new_group);
-    new_group = -new_group;
-    if (new_group < 0) new_group = 0;
-  }
+  int new_group = find_group(p_new);
   
   // if group changed, delete propensity from old group, add to new group
   // index = where in old group this propensity is
@@ -304,6 +285,23 @@ void Groups::release_memory()
 
   memory->destroy(p2g);
   memory->destroy(p2g_index);
+}
+
+/* ----------------------------------------------------------------------
+   find group for event of propensity pone
+------------------------------------------------------------------------- */
+
+int Groups::find_group(double pone) {
+  int g;
+  
+  if (pone == 0.0) g = ngroups;
+  else if (ngroups_flag) g = static_cast<int> ((pone-lo)*invbinsize);
+  else {
+    frexp(pone/hi,&g);
+    g = -g;
+    if (g < 0) g = 0;
+  }
+  return g;
 }
 
 /* ----------------------------------------------------------------------
