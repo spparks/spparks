@@ -37,16 +37,15 @@ AppPotts::AppPotts(SPPARKS *spk, int narg, char **arg) :
 
   create_arrays();
 
-  // parse arguments
+  // parse arguments for Potts class only
 
-  if (narg < 2) error->all(FLERR,"Illegal app_style command");
-  if (strcmp(style,"potts") == 0 && narg != 2)
-    error->all(FLERR,"Illegal app_style command");
+  if (strcmp(style,"potts") == 0) {
+    if (narg != 2) error->all(FLERR,"Illegal app_style command");
 
-  nspins = atoi(arg[1]);
-  if (nspins <= 0) error->all(FLERR,"Illegal app_style command");
-
-  dt_sweep = 1.0/nspins;
+    nspins = atoi(arg[1]);
+    if (nspins <= 0) error->all(FLERR,"Illegal app_style command");
+    dt_sweep = 1.0/nspins;
+  }
 
   sites = unique = NULL;
 }
