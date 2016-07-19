@@ -11,19 +11,18 @@
    See the README file in the top-level SPPARKS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <string>
-#include <cstring>
-#include <cmath>
-#include <set>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "app_potts_grad.h"
 #include "random_park.h"
-#include "error.h"
 #include "domain.h"
-#include <iostream>
-#include <limits>
 #include "stdlib.h"
 #include "lattice.h"
+#include "error.h"
+
+#include <set>
+#include <limits>
 
 using namespace SPPARKS_NS;
 
@@ -39,13 +38,8 @@ AppPottsGrad::AppPottsGrad(SPPARKS *spk, int narg, char **arg) :
    max_T(std::numeric_limits<double>::min()),
    max_M(0.0), T(0), m0(1.0), M(0), activation_energy(1.0), convert(1.0)
 {
-   // only error check for this class, not derived classes
-   if (strcmp(arg[0],"potts/grad") != 0 )
-      error->all(FLERR,"Illegal app_style command");
-
-   // check for number of arguments
-   if(narg < 9 || narg > 10)
-	  error->all(FLERR,"Invalid amount of AppPottsGrad args");
+   if (narg < 9 || narg > 10)
+     error->all(FLERR,"Invalid amount of AppPottsGrad args");
 
    int n = strlen(arg[1]) + 1;
    gradient_choice = new char[n];
@@ -89,13 +83,13 @@ AppPottsGrad::AppPottsGrad(SPPARKS *spk, int narg, char **arg) :
 
    // add the double array
    recreate_arrays();
-
 }
 
 /* ----------------------------------------------------------------------
    initialize before each run
    check validity of site values
 ------------------------------------------------------------------------- */
+
 void AppPottsGrad::grow_app()
 {
   spin = iarray[0];
