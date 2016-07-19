@@ -37,6 +37,16 @@ describe the version you have. :ule,l
 :line
 :line
 
+[19 Jul 2016]
+
+Fixed a bug with processing args for the "app_style
+potts/grad"_doc/app_potts_gran.html command.
+
+This is the "list of changed files"_patches/files.19Jul16 from the 26
+Feb 2016 version.
+
+:line
+
 [26 Feb 2016]
 
 Left some debug print statements in the code for the previous
