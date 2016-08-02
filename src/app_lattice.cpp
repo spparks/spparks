@@ -149,8 +149,6 @@ void AppLattice::init()
   if (sectorflag && sweepflag == COLOR_STRICT)
     error->all(FLERR,"Cannot use color/strict rejection KMC with sectors");
 
-  if (sweepflag && dt_sweep == 0.0) error->all(FLERR,"App did not set dt_sweep");
-
   // if sectors, set number of sectors
 
   int dimension = domain->dimension;
@@ -312,6 +310,11 @@ void AppLattice::init()
   // app-specific initialization, after general initialization
 
   init_app();
+
+  // error checks that cannot be done until after init_app()
+
+  if (sweepflag && dt_sweep == 0.0) 
+    error->all(FLERR,"App did not set dt_sweep");
 
   // initialize output
 
