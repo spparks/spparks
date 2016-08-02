@@ -55,16 +55,21 @@ AppPottsPhaseField::AppPottsPhaseField(SPPARKS *spk, int narg, char **arg) :
   // add the double array
 
   recreate_arrays();
+
+  // parse arguments for PottsPhaseField class only, not children
+
+  if (strcmp(style,"potts/pfm") != 0) return;
+
+  if (narg < 11) error->all(FLERR,"Illegal app_style command");
   
   // check the number of spins
 
+  nspins = atoi(arg[1]);
+  if (nspins <= 0) error->all(FLERR,"Illegal app_style command");
   if (nspins % 2)
-    error->all(FLERR,"app potts/pfm must have even # of spins");
+    error->all(FLERR,"App potts/pfm must have even # of spins");
   
   phaseChangeInt = nspins/2;
-  
-  if (narg < 11)
-    error->all(FLERR,"Illegal app_style command - app potts/pfm");
   
   // dt_phasefield is set as a multiple of dt_rkmc in setup_end_app();
   // set the multiple here. ( dt_phasefield = dt_rkmc / dt_phasefield_mult )

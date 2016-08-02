@@ -38,6 +38,10 @@ AppPottsGrad::AppPottsGrad(SPPARKS *spk, int narg, char **arg) :
    max_T(std::numeric_limits<double>::min()),
    max_M(0.0), T(0), m0(1.0), M(0), activation_energy(1.0), convert(1.0)
 {
+  // parse arguments for PottsGran class only, not children
+
+  if (strcmp(style,"potts/grad") != 0) return;
+
    if (narg < 9 || narg > 10)
      error->all(FLERR,"Invalid amount of AppPottsGrad args");
 

@@ -13,6 +13,7 @@
 
 #include "math.h"
 #include "string.h"
+#include "stdlib.h"
 #include "app_potts_strain.h"
 #include "solve.h"
 #include "random_park.h"
@@ -33,7 +34,15 @@ AppPottsStrain::AppPottsStrain(SPPARKS *spk, int narg, char **arg) :
 
   recreate_arrays();
 
+  // parse arguments for PottsNeigh class only, not children
+
+  if (strcmp(style,"potts/strain") != 0) return;
+
   if (narg != 2) error->all(FLERR,"Illegal app_style command");
+  
+  nspins = atoi(arg[1]);
+  if (nspins <= 0) error->all(FLERR,"Illegal app_style command");
+  dt_sweep = 1.0/nspins;
 }
 
 /* ----------------------------------------------------------------------

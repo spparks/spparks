@@ -11,8 +11,9 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
 #include "math.h"
+#include "string.h"
+#include "stdlib.h"
 #include "app_potts_neighonly.h"
 #include "random_park.h"
 #include "error.h"
@@ -24,10 +25,14 @@ using namespace SPPARKS_NS;
 AppPottsNeighOnly::AppPottsNeighOnly(SPPARKS *spk, int narg, char **arg) : 
   AppPotts(spk,narg,arg)
 {
-  // only error check for this class, not derived classes
+  // parse arguments for PottsNeighOnly class only, not children
 
-  if (strcmp(arg[0],"potts/neighonly") == 0 && narg != 2)
-    error->all(FLERR,"Illegal app_style command");
+  if (strcmp(style,"potts/neighonly") != 0) return;
+
+  if (narg != 2) error->all(FLERR,"Illegal app_style command");
+  
+  nspins = atoi(arg[1]);
+  if (nspins <= 0) error->all(FLERR,"Illegal app_style command");
 }
 
 /* ----------------------------------------------------------------------
