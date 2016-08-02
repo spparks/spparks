@@ -37,6 +37,17 @@ describe the version you have. :ule,l
 :line
 :line
 
+[2 Aug 2016]
+
+Some of the Potts applications were no longer parsing their
+"app_style"_doc/app_style.html command arguments correctly due to the
+recent addition of several new derived Potts application variants.
+
+This is the "list of changed files"_patches/files.2Aug16 from the 19
+Jul 2016 version.
+
+:line
+
 [19 Jul 2016]
 
 Fixed a bug with processing args for the "app_style
