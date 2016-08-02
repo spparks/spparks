@@ -37,6 +37,15 @@ describe the version you have. :ule,l
 :line
 :line
 
+[3 Aug 2016]
+
+Missed one file in last patch.
+
+This is the "list of changed files"_patches/files.3Aug16 from the 2
+Aug 2016 version.
+
+:line
+
 [2 Aug 2016]
 
 Some of the Potts applications were no longer parsing their
