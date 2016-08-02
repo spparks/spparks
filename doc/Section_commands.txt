@@ -309,11 +309,12 @@ full description:
 "ising/single"_app_ising.html,
 "membrane"_app_membrane.html,
 "potts"_app_potts.html,
+"potts/grad"_app_potts_grad.html,
 "potts/neigh"_app_potts.html,
 "potts/neighonly"_app_potts.html,
 "potts/pfm"_app_potts_pfm.html,
 "potts/pin"_app_potts_pin.html,
-"potts/grad"_app_potts_grad.html,
+"potts/strain"_app_potts_strain.html,
 "relax"_app_relax.html,
 "sos"_app_sos.html,
 "test/group"_app_test_group.html :tb(c=8,ea=c)
