@@ -30,7 +30,15 @@ using namespace SPPARKS_NS;
 AppPottsPin::AppPottsPin(SPPARKS *spk, int narg, char **arg) : 
   AppPotts(spk,narg,arg)
 {
+  // parse arguments for PottsPin class only, not children
+
+  if (strcmp(style,"potts/pin") != 0) return;
+
   if (narg != 2) error->all(FLERR,"Illegal app_style command");
+  
+  nspins = atoi(arg[1]);
+  if (nspins <= 0) error->all(FLERR,"Illegal app_style command");
+  dt_sweep = 1.0/nspins;
 }
 
 /* ----------------------------------------------------------------------

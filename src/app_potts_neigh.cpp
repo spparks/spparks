@@ -12,6 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
+#include "string.h"
+#include "stdlib.h"
 #include "app_potts_neigh.h"
 #include "random_park.h"
 #include "error.h"
@@ -23,7 +25,14 @@ using namespace SPPARKS_NS;
 AppPottsNeigh::AppPottsNeigh(SPPARKS *spk, int narg, char **arg) : 
   AppPotts(spk,narg,arg)
 {
+  // parse arguments for PottsNeigh class only, not children
+
+  if (strcmp(style,"potts/neigh") != 0) return;
+
   if (narg != 2) error->all(FLERR,"Illegal app_style command");
+  
+  nspins = atoi(arg[1]);
+  if (nspins <= 0) error->all(FLERR,"Illegal app_style command");
 }
 
 /* ----------------------------------------------------------------------
