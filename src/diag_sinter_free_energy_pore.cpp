@@ -78,7 +78,7 @@ void DiagSinterFreeEnergyPore::compute()
 			total_sites++;
 		  
 			int ispin = spin[i];
-			long double surface = 0;
+			double surface = 0;
 			if ( ispin > VACANT ) { // If I am a grain site add the number of neighbors that are pore sites
 				for (int j = 0; j < numneigh[i]; j++)
 					if (spin[neighbor[i][j]] == VACANT) surface++;
@@ -127,9 +127,9 @@ void DiagSinterFreeEnergyPore::initialize_parameters_calculation()
    int nz = domain->nz;
 /*	
 	// Determine the central parallelepiped for calculating pore surface
-	long double gs = appsinter->count_grain_sites();
-	long double occupied_fraction = (long double) gs / (long double)( nx * ny * nz );
-	long double rcube_fraction = pow( occupied_fraction, 1. / 3.);
+	double gs = appsinter->count_grain_sites();
+	double occupied_fraction = (double) gs / (double)( nx * ny * nz );
+	double rcube_fraction = pow( occupied_fraction, 1. / 3.);
 	int nx_density = (int)floor( nx * rcube_fraction );
 	int ny_density = (int)floor( ny * rcube_fraction );
 	int nz_density = (int)floor( nz * rcube_fraction );

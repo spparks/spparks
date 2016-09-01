@@ -251,9 +251,9 @@ void AppSinter::setup_app()  // making sure that some i may be listed for annihi
 void AppSinter::initialize_parameters_density_calculation()
 {
 	// Determine the central parallelepiped for calculating density
-/*	long double gs = count_grain_sites();
-	long double occupied_fraction = (long double) gs / (long double)( nx * ny * nz );
-	long double rcube_fraction = pow( occupied_fraction, 1. / 3.);
+/*	double gs = count_grain_sites();
+	double occupied_fraction = (double) gs / (double)( nx * ny * nz );
+	double rcube_fraction = pow( occupied_fraction, 1. / 3.);
 	int nx_density = (int)floor( nx * rcube_fraction );
 	int ny_density = (int)floor( ny * rcube_fraction );
 	int nz_density = (int)floor( nz * rcube_fraction );
@@ -2518,26 +2518,26 @@ void AppSinter::stats_header(char *strtmp)
 
 void AppSinter::stats(char *strtmp)
 {
-  long double naccept_double = (long double)naccept;
-  long double naccept_double_all;
+  double naccept_double = (double)naccept;
+  double naccept_double_all;
   
-  long double vm_all=0;
-  long double vacm = (long double)vac_made;
+  double vm_all=0;
+  double vacm = (double)vac_made;
   
   if ( nprocs > 1 ) {
-	MPI_Allreduce(&naccept_double,&naccept_double_all,1,MPI_LONG_DOUBLE,MPI_SUM,world);	
-	MPI_Allreduce(&vacm,&vm_all,1,MPI_LONG_DOUBLE,MPI_SUM,world);
+	MPI_Allreduce(&naccept_double,&naccept_double_all,1,MPI_DOUBLE,MPI_SUM,world);	
+	MPI_Allreduce(&vacm,&vm_all,1,MPI_DOUBLE,MPI_SUM,world);
   }
   else {
 	naccept_double_all = naccept_double;
 	vm_all = vacm;
   }
-  if (solve) sprintf(strtmp,"%10g %12.0Lf %14d %10d %12.0Lf",time,naccept_double_all,0,0,vm_all);
+  if (solve) sprintf(strtmp,"%10g %12.0Lf %14d %<10d %12.0Lf",time,naccept_double_all,0,0,vm_all);
   else {
-    long double nattempt_double = (long double)nattempt;
-    long double nattempt_double_all;
+    double nattempt_double = (double)nattempt;
+    double nattempt_double_all;
     if ( nprocs > 1 ) {
-		MPI_Allreduce(&nattempt_double,&nattempt_double_all,1,MPI_LONG_DOUBLE,MPI_SUM,world);
+		MPI_Allreduce(&nattempt_double,&nattempt_double_all,1,MPI_DOUBLE,MPI_SUM,world);
 	}
 	else {
 		nattempt_double_all = nattempt_double;
@@ -2546,7 +2546,7 @@ void AppSinter::stats(char *strtmp)
 	    time,naccept_double_all,nattempt_double_all-naccept_double_all,nsweeps,vm_all);
   }
 //  check_state();
-//	long double dum = count_vacant();
+//	double dum = count_vacant();
   vac_made=0;	
 }
 
@@ -2556,15 +2556,15 @@ void AppSinter::stats(char *strtmp)
  count pore sites
  ------------------------------------------------------------------------- */
 
-long double AppSinter::count_vacant()
+double AppSinter::count_vacant()
 {// just checking for errors
-	long double vacant_sites = 0; 
+	double vacant_sites = 0; 
 	
 	for ( int i = 0; i < nlocal; ++i )
 		if ( spin[i] == VACANT )
 			vacant_sites++;
-	long double vacant_sites_all;
-	MPI_Allreduce(&vacant_sites, &vacant_sites_all, 1, MPI_LONG_DOUBLE, MPI_SUM, world);
+	double vacant_sites_all;
+	MPI_Allreduce(&vacant_sites, &vacant_sites_all, 1, MPI_DOUBLE, MPI_SUM, world);
 	
 	if ( me == 0 )
 		printf("time: %lf empty sites: %Lg\n", time, vacant_sites_all);
@@ -2576,15 +2576,15 @@ long double AppSinter::count_vacant()
  count grain sites
  ------------------------------------------------------------------------- */
 
-long double AppSinter::count_grain_sites()
+double AppSinter::count_grain_sites()
 {// just checking for errors
-	long double grain_sites = 0;
+	double grain_sites = 0;
 	
 	for ( int i = 0; i < nlocal; ++i )
 		if ( spin[i] != FRAME && spin[i] != VACANT )
 			grain_sites++;
-	long double grain_sites_all;
-	MPI_Allreduce(&grain_sites, &grain_sites_all, 1, MPI_LONG_DOUBLE, MPI_SUM, world);
+	double grain_sites_all;
+	MPI_Allreduce(&grain_sites, &grain_sites_all, 1, MPI_DOUBLE, MPI_SUM, world);
 	
 //	if ( me == 0 )
 //		printf("time: %lf grain sites: %d\n", time, grain_sites_all);
@@ -2600,8 +2600,8 @@ long double AppSinter::count_grain_sites()
 double AppSinter::calculate_density()
 {
 
-	long double grain_sites = 0;
-	long double total_sites = 0;
+	double grain_sites = 0;
+	double total_sites = 0;
 	
 	int xgrid, ygrid, zgrid;
 
@@ -2616,15 +2616,15 @@ double AppSinter::calculate_density()
 			}
 		}
 	}
-	vector<long double> local_density_info( 2 );
+	vector<double> local_density_info( 2 );
 	local_density_info[0] = grain_sites;
 	local_density_info[1] = total_sites;
 	
 //	printf( "grain sites: %d total sites: %d\n", (int)grain_sites, (int)total_sites );
 	
-	vector<long double> density_info_all( 2, 0 );
+	vector<double> density_info_all( 2, 0 );
 	
-	MPI_Allreduce(&local_density_info[0], &density_info_all[0], 2, MPI_LONG_DOUBLE, MPI_SUM, world);
+	MPI_Allreduce(&local_density_info[0], &density_info_all[0], 2, MPI_DOUBLE, MPI_SUM, world);
 	
 	double density = density_info_all[0] / density_info_all[1];
 	
