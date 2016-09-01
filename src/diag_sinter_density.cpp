@@ -122,9 +122,9 @@ void DiagSinterDensity::initialize_parameters_density_calculation()
    int nz = domain->nz;
 /*
 	// Determine the central parallelepiped for calculating density
-	long double gs = appsinter->count_grain_sites();
-	long double occupied_fraction = (long double) gs / (long double)( nx * ny * nz );
-	long double rcube_fraction = pow( occupied_fraction, 1. / 3.);
+	double gs = appsinter->count_grain_sites();
+	double occupied_fraction = (double) gs / (double)( nx * ny * nz );
+	double rcube_fraction = pow( occupied_fraction, 1. / 3.);
 	int nx_density = (int)floor( nx * rcube_fraction );
 	int ny_density = (int)floor( ny * rcube_fraction );
 	int nz_density = (int)floor( nz * rcube_fraction );

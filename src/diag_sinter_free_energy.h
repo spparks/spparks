@@ -38,7 +38,7 @@ class DiagSinterFreeEnergy : public Diag {
   class AppSinter *appsinter;
   int nlocal;
 //  double density;
-  long double interfacialFE;
+  double interfacialFE;
 };
 
 }

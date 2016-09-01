@@ -106,8 +106,8 @@ class AppSinter : public AppLattice {
   void stats(char *strtmp);
 
   // Checking lattice configurations
-  long double count_vacant();
-  long double count_grain_sites();
+  double count_vacant();
+  double count_grain_sites();
   double calculate_density();
 
 
