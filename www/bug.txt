@@ -37,6 +37,16 @@ describe the version you have. :ule,l
 :line
 :line
 
+[1 Sep 2016]
+
+Removed some "long double" definitions someone added which aren't needed and
+which broke the serial compile against the MPI stub library.
+
+This is the "list of changed files"_patches/files.1Sep16 from the 4
+Aug 2016 version.
+
+:line
+
 [3 Aug 2016]
 
 Missed one file in last patch.
