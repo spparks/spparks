@@ -15,31 +15,29 @@
 </P>
 <PRE>pulse A period 
 </PRE>
-<P>A = fractional amplification of potts/weld model pool size
-</P>
-<P>period = cyclic time period expressed in Monte Carlo steps (MCS)
-</P>
+<UL><LI>A = fractional amplification of potts/weld model pool size
+<LI>period = cyclic time period expressed in Monte Carlo steps (MCS) 
+</UL>
 <P><B>Examples:</B>
 </P>
 <PRE>pulse 0.25 64 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command defines an optional pulsed power simulation to the <A HREF = "app_potts_weld.html">app_style
-potts/weld</A> application.  The parameter <I>A</I> scales up the
-weld pool size reaching a maximum size proportional to <I>(1+A)</I>.  To simulate
-the pulsed aspect of the model, a time <I>period</I> is specified.  Note that this
-command generally produces a spatially periodic effect that also depends upon
-the <I>velocity</I> parameter in the <A HREF = "app_potts_weld.html">app_style potts/weld</A> 
-application.
+<P>This command defines an optional pulsed power simulation to the
+<A HREF = "app_potts_weld.html">app_style potts/weld</A> application.  The parameter
+<I>A</I> scales up the weld pool size reaching a maximum size proportional
+to <I>(1+A)</I>.  <I>A</I> must be > 0.0.  To simulate the pulsed aspect of the
+model, a time <I>period</I> is specified.  <I>Period</I> must be > 2.0.
 </P>
-<P><B>Restrictions:</B> 
+<P>Note that this command generally produces a spatially periodic effect
+that also depends upon the <I>velocity</I> parameter in the <A HREF = "app_potts_weld.html">app_style
+potts/weld</A> application.
 </P>
-<P>This command can only be used as part of the <A HREF = "app_potts_weld.html">app_style potts/weld</A> application.
+<P><B>Restrictions:</B>
 </P>
-<P><I>A</I>>0 
-</P>
-<P><I>N</I>>2 
+<P>This command can only be used as part of the <A HREF = "app_potts_weld.html">app_style
+potts/weld</A> application.
 </P>
 <P><B>Related commands:</B>
 </P>

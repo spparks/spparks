@@ -13,8 +13,7 @@ pulse command :h3
 pulse A period :pre
 
 A = fractional amplification of potts/weld model pool size
-
-period = cyclic time period expressed in Monte Carlo steps (MCS)
+period = cyclic time period expressed in Monte Carlo steps (MCS) :ul
 
 [Examples:]
 
@@ -22,22 +21,20 @@ pulse 0.25 64 :pre
 
 [Description:]
 
-This command defines an optional pulsed power simulation to the "app_style
-potts/weld"_app_potts_weld.html application.  The parameter {A} scales up the
-weld pool size reaching a maximum size proportional to {(1+A)}.  To simulate
-the pulsed aspect of the model, a time {period} is specified.  Note that this
-command generally produces a spatially periodic effect that also depends upon
-the {velocity} parameter in the "app_style potts/weld"_app_potts_weld.html 
-application.
+This command defines an optional pulsed power simulation to the
+"app_style potts/weld"_app_potts_weld.html application.  The parameter
+{A} scales up the weld pool size reaching a maximum size proportional
+to {(1+A)}.  {A} must be > 0.0.  To simulate the pulsed aspect of the
+model, a time {period} is specified.  {Period} must be > 2.0.
 
+Note that this command generally produces a spatially periodic effect
+that also depends upon the {velocity} parameter in the "app_style
+potts/weld"_app_potts_weld.html application.
 
-[Restrictions:] 
+[Restrictions:]
 
-This command can only be used as part of the "app_style potts/weld"_app_potts_weld.html application.
-
-{A}>0 
-
-{N}>2 
+This command can only be used as part of the "app_style
+potts/weld"_app_potts_weld.html application.
 
 [Related commands:]
 

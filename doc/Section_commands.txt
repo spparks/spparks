@@ -280,6 +280,7 @@ Restrictions in the command's documentation.
 "pin"_pin.html,
 "print"_print.html,
 "processors"_processors.html,
+"pulse"_pulse.html,
 "read_sites"_read_sites.html,
 "region"_region.html,
 "reset_time"_reset_time.html,
@@ -315,6 +316,7 @@ full description:
 "potts/pfm"_app_potts_pfm.html,
 "potts/pin"_app_potts_pin.html,
 "potts/strain"_app_potts_strain.html,
+"potts/weld"_app_potts_weld.html,
 "relax"_app_relax.html,
 "sos"_app_sos.html,
 "test/group"_app_test_group.html :tb(c=8,ea=c)
