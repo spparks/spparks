@@ -1,0 +1,45 @@
+===============
+Running Example 
+===============
+
+.. _`set`: http://spparks.sandia.gov/doc/set.html
+.. _`read_sites`: http://spparks.sandia.gov/doc/set.html
+
+Without base metal microstructure initialization
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+To simulate grain growth during welding, without 
+an initial microstructure representing base metal 
+of welded material, run *spparks*:
+
+.. code-block:: bash
+
+   mpiexec -np 16 spk_flamer.gnu < in.steady_weld
+
+Use a tool to view the images: top.*.jpg
+
+
+With an initial equiaxed microstructure
++++++++++++++++++++++++++++++++++++++++
+
+In this case, run the Potts model first:
+
+.. code-block:: bash
+
+   mpiexec -np 16 spk_flamer.gnu < in.potts_init
+
+
+Then process the dump file to write another file 
+called *site.init*.
+
+Edit *in.steady_weld* and comment out the 
+`set`_ command and uncomment out the `read_sites`_ 
+command; then run the potts/weld app:
+
+.. code-block:: bash
+
+   mpiexec -np 16 spk_flamer.gnu < in.steady_weld
+
+Use a tool to view the images: top.*.jpg; note the 
+differences in microstructures -- especially in the 
+heat affected zone.
