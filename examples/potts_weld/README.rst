@@ -30,7 +30,12 @@ In this case, run the Potts model first:
 
 
 Then process the dump file to write another file 
-called *site.init*.
+called *site.init*.  Run the script (no args).
+
+.. code-block:: bash
+
+   write_site_init.sh
+
 
 Edit *in.steady_weld* and comment out the 
 `set`_ command and uncomment out the `read_sites`_ 
