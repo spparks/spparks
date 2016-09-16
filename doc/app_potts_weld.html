@@ -36,13 +36,14 @@ nspins = number of possible Potts model spins
 </UL>
 <P><B>Examples:</B>
 </P>
-<P>app_style  potts/weld 10000   0   100.0   150.0   0.5   0.75   7.0   50.0
-</P>
-<P>This defines a potts/weld model with 10000 spins. The elliptical weld pool is 100 sites 
-wide and 150 sites long at the top surface of the plates welded; the parameter <I>alpha</I> 
-specifies that the elliptical pool shape at the bottom surface is 50 sites wide by 75 sites 
-long.  The Bezier control point parameter specifies an outwardly curved pool; the weld 
-speed is 7 MCS and the heat effect zone is 50 sites wide.
+<PRE>app_style potts/weld 10000 0 100.0 150.0 0.5 0.75 7.0 50.0 
+</PRE>
+<P>This defines a potts/weld model with 10000 spins. The elliptical weld
+pool is 100 sites wide and 150 sites long at the top surface of the
+plates welded; the parameter <I>alpha</I> specifies that the elliptical
+pool shape at the bottom surface is 50 sites wide by 75 sites long.
+The Bezier control point parameter specifies an outwardly curved pool;
+the weld speed is 7 MCS and the heat effect zone is 50 sites wide.
 </P>
 <P><B>Description:</B>
 </P>
@@ -53,64 +54,72 @@ speed is 7 MCS and the heat effect zone is 50 sites wide.
 <IMG SRC = "JPG/250x350_pool_curvature_schematic.png">
 
 <P>This is an on-lattice application derived from the <A HREF = "app_potts.html">app_style
-potts/neighonly</A>; it simulates grain growth associated with a
-butt-weld process. Two sheets of material of equal thickness are assumed to be
-just touching; this defines a joint to be welded. Grain growth associated with joining
-the plates in a weld process is simulated  by translating a weld pool
-(simulates melt) along the joint (aligned with the y-coordinate axis).  The
-weld pool is translated with a speed defined by <I>velocity</I>.  The weld pool
-geometry is defined by an ellipse <I>width</I> and <I>length</I> along the x and y
-coordinate axes respectively; this defines the pool size and shape at the top
-surface of the plates joined. It is assumed that the weld fully penetrates the
-thickess of the plates;  the parameter 1>=<I>alpha</I>>0 defines the ellipse <I>width</I> 
-and length at the bottom of the plates relative to the top.  The thickness 
-of the plates joined is assumed to be the number of lattice sites along the 
-z-axis defined in <A HREF = "region.html">region</A> command.
-Curvature of the pool in the plate thickness direction is controlled by the
-parameter 1>=<I>beta</I>>=0; when <I>beta</I> is less than 0.5, the slope of the pool surface
-is increasing from top to bottom; when <I>beta</I> is greater than 0.5, the slope of
-the pool surface is decreasing from top to bottom.
+potts/neighonly</A> command.  It simulates grain growth
+associated with a butt-weld process.  Two sheets of material of equal
+thickness are assumed to be just touching; this defines a joint to be
+welded.
 </P>
-<P>The model simulates melting and re-solidification by randomizing the spin at a
-lattice site when it falls within the melt pool's volume. Upon exiting the melt
-pool, a rejection kinetic Monte Carlo event is performed at the site, and the
-spin is flipped to the value of one of its neighbors (in the style of the
+<P>Grain growth associated with joining the plates in a weld process is
+simulated by translating a weld pool (simulates melt) along the joint
+(aligned with the y-coordinate axis).  The weld pool is translated
+with a speed defined by <I>velocity</I>.  The weld pool geometry is defined
+by an ellipse <I>width</I> and <I>length</I> along the x and y coordinate axes
+respectively; this defines the pool size and shape at the top surface
+of the plates joined. It is assumed that the weld fully penetrates the
+thickess of the plates; the parameter 1 >= <I>alpha</I> > 0 defines the
+ellipse <I>width</I> and length at the bottom of the plates relative to the
+top.  The thickness of the plates joined is assumed to be the number
+of lattice sites along the z-axis defined in <A HREF = "region.html">region</A>
+command.  Curvature of the pool in the plate thickness direction is
+controlled by the parameter 1 >= <I>beta</I> >= 0.  When <I>beta</I> is less
+than 0.5, the slope of the pool surface is increasing from top to
+bottom; when <I>beta</I> is greater than 0.5, the slope of the pool surface
+is decreasing from top to bottom.
+</P>
+<P>The model simulates melting and re-solidification by randomizing the
+spin at a lattice site when it falls within the melt pool's
+volume. Upon exiting the melt pool, a rejection kinetic Monte Carlo
+event is performed at the site, and the spin is flipped to the value
+of one of its neighbors (in the style of the
 <A HREF = "app_potts.html">potts/neighonly</A> application).
 </P>
-<P>The mobility of each site within the <I>haz</I> decreases linearly with increasing
-distance from the melt pool surface. The maximum mobility is 1 at the melt pool
-boundary and the minimum mobility is 0 at the outer boundary of the heat 
-affected zone as defined by <I>haz</I>. The mobility
-gradient is similar to that in <A HREF = "app_potts_grad.html">potts/grad</A>, but is
-restricted to a smaller portion of the simulation domain as defined by 
-the heat affected zone parameter <I>haz</I>.
+<P>The mobility of each site within the <I>haz</I> region decreases linearly
+with increasing distance from the melt pool surface. The maximum
+mobility is 1 at the melt pool boundary and the minimum mobility is 0
+at the outer boundary of the heat affected zone as defined by
+<I>haz</I>. The mobility gradient is similar to that in
+<A HREF = "app_potts_grad.html">potts/grad</A>, but is restricted to a smaller
+portion of the simulation domain as defined by the heat affected zone
+parameter <I>haz</I>.
 </P>
-<P>Outside of the melt pool and heat affected zone, grain boundary mobility is set
-to 0, and grain evolution does not occur.
+<P>Outside of the melt pool and heat affected zone, grain boundary
+mobility is set to 0, and grain evolution does not occur.
 </P>
-<P>Use the <A HREF = "read_sites.html">read_sites</A> command to initialize the microstructure
-of plates welded; alternatively the <A HREF = "set.html">set</A> command can be used to
-initialize the base metal microstructure.
-</P>
-<P>Use the <A HREF = "pulse.html">pulse</A> command to simulate pulsed arc power.
+<P>Use the <A HREF = "read_sites.html">read_sites</A> command to initialize the
+microstructure of plates welded; alternatively the <A HREF = "set.html">set</A>
+command can be used to initialize the base metal microstructure.
 </P>
 <HR>
 
-<A NAME = "restriction"></A><B>Restrictions:</B> 
+<P>The following additional commands are defined by this application:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "pulse.html">pulse</A> </TD><TD > apply pulsed arc power</TD></TR>
+<TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature 
+</TD></TR></TABLE></DIV>
 
-<P>1>=<I>alpha</I>>0 
+<HR>
+
+<P><B>Restrictions:</B>
 </P>
-<P>1>=<I>beta</I>>=0 
-</P>
-<P>Only compatible with square and square cubic lattices.
-</P>
-<P>Can only be evolved by a rejection KMC (rKMC) algorithm.  See <A HREF = "sweep.html">sweep</A> for more information.
+<P>This application is only compatible with square and square cubic
+lattices.  It can only be evolved by a rejection KMC (rKMC) algorithm.
+See <A HREF = "sweep.html">sweep</A> for more information.
 </P>
 <P><B>Related commands:</B> 
 </P>
-<P><A HREF = "app_potts.html">app_style potts</A>
-</P>
-<P><A HREF = "app_potts_grad.html">app_style potts/grad</A>
+<P><A HREF = "app_potts.html">app_style potts</A>, <A HREF = "app_potts_grad.html">app_style
+potts/grad</A>
 </P>
 <P><B>Default:</B> 
 </P>
