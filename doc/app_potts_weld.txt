@@ -1,0 +1,104 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style potts/weld command :h3
+
+[Syntax:]
+
+app_style style nspins yp width length alpha beta velocity haz
+
+style = potts/weld
+nspins = number of possible Potts model spins :l
+yp = initial melt pool position along y-axis :l
+width = principal dimension of ellipse and maximum width of the melt pool along x-axis :l
+length = principal dimension of ellipse and maximum width of the melt pool along y-axis :l
+alpha = controls relative size of melt pool shape at bottom compared to top :l
+beta = Bezier control point parameter that defines curvature of melt pool shape through thickness  :l
+velocity = velocity of melt pool motion (lattice sites per Monte Carlo step) :l
+haz = width of the heat affected zone (haz) surrounding the melt pool :l
+:ule
+
+[Examples:]
+
+app_style  potts/weld 10000   0   100.0   150.0   0.5   0.75   7.0   50.0
+
+This defines a potts/weld model with 10000 spins. The elliptical weld pool is 100 sites 
+wide and 150 sites long at the top surface of the plates welded; the parameter {alpha} 
+specifies that the elliptical pool shape at the bottom surface is 50 sites wide by 75 sites 
+long.  The Bezier control point parameter specifies an outwardly curved pool; the weld 
+speed is 7 MCS and the heat effect zone is 50 sites wide.
+
+[Description:]
+                                      
+:image(JPG/400x500_butt_weld_schematic_coordinate_system.png)
+:image(JPG/400x500_weld_schematic.png)
+:image(JPG/250x350_pool_curvature_schematic.png)
+
+This is an on-lattice application derived from the "app_style
+potts/neighonly"_app_potts.html; it simulates grain growth associated with a
+butt-weld process. Two sheets of material of equal thickness are assumed to be
+just touching; this defines a joint to be welded. Grain growth associated with joining
+the plates in a weld process is simulated  by translating a weld pool
+(simulates melt) along the joint (aligned with the y-coordinate axis).  The
+weld pool is translated with a speed defined by {velocity}.  The weld pool
+geometry is defined by an ellipse {width} and {length} along the x and y
+coordinate axes respectively; this defines the pool size and shape at the top
+surface of the plates joined. It is assumed that the weld fully penetrates the
+thickess of the plates;  the parameter 1>={alpha}>0 defines the ellipse {width} 
+and length at the bottom of the plates relative to the top.  The thickness 
+of the plates joined is assumed to be the number of lattice sites along the 
+z-axis defined in "region"_region.html command.
+Curvature of the pool in the plate thickness direction is controlled by the
+parameter 1>={beta}>=0; when {beta} is less than 0.5, the slope of the pool surface
+is increasing from top to bottom; when {beta} is greater than 0.5, the slope of
+the pool surface is decreasing from top to bottom.
+
+The model simulates melting and re-solidification by randomizing the spin at a
+lattice site when it falls within the melt pool's volume. Upon exiting the melt
+pool, a rejection kinetic Monte Carlo event is performed at the site, and the
+spin is flipped to the value of one of its neighbors (in the style of the
+"potts/neighonly"_app_potts.html application).
+
+The mobility of each site within the {haz} decreases linearly with increasing
+distance from the melt pool surface. The maximum mobility is 1 at the melt pool
+boundary and the minimum mobility is 0 at the outer boundary of the heat 
+affected zone as defined by {haz}. The mobility
+gradient is similar to that in "potts/grad"_app_potts_grad.html, but is
+restricted to a smaller portion of the simulation domain as defined by 
+the heat affected zone parameter {haz}.
+
+Outside of the melt pool and heat affected zone, grain boundary mobility is set
+to 0, and grain evolution does not occur.
+
+Use the "read_sites"_read_sites.html command to initialize the microstructure
+of plates welded; alternatively the "set"_set.html command can be used to
+initialize the base metal microstructure.
+
+Use the "pulse"_pulse.html command to simulate pulsed arc power.
+  
+:line
+
+[Restrictions:] :link(restriction) 
+
+1>={alpha}>0 
+
+1>={beta}>=0 
+
+Only compatible with square and square cubic lattices.
+
+Can only be evolved by a rejection KMC (rKMC) algorithm.  See "sweep"_sweep.html for more information.
+
+[Related commands:] 
+
+"app_style potts"_app_potts.html
+
+"app_style potts/grad"_app_potts_grad.html
+
+[Default:] 
+
+By default, this model runs without the affect of pulsed power.

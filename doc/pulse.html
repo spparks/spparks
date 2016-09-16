@@ -1,0 +1,54 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pulse command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pulse A period 
+</PRE>
+<P>A = fractional amplification of potts/weld model pool size
+</P>
+<P>period = cyclic time period expressed in Monte Carlo steps (MCS)
+</P>
+<P><B>Examples:</B>
+</P>
+<PRE>pulse 0.25 64 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command defines an optional pulsed power simulation to the <A HREF = "app_potts_weld.html">app_style
+potts/weld</A> application.  The parameter <I>A</I> scales up the
+weld pool size reaching a maximum size proportional to <I>(1+A)</I>.  To simulate
+the pulsed aspect of the model, a time <I>period</I> is specified.  Note that this
+command generally produces a spatially periodic effect that also depends upon
+the <I>velocity</I> parameter in the <A HREF = "app_potts_weld.html">app_style potts/weld</A> 
+application.
+</P>
+<P><B>Restrictions:</B> 
+</P>
+<P>This command can only be used as part of the <A HREF = "app_potts_weld.html">app_style potts/weld</A> application.
+</P>
+<P><I>A</I>>0 
+</P>
+<P><I>N</I>>2 
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_potts_weld.html">app_style potts/weld</A> 
+</P>
+<P><B>Default:</B> none
+</P>
+<P>If this command is not present in a weld simulation, then the pulse
+aspect of the <A HREF = "app_potts_weld.html">app_style potts/weld</A> application
+is not active.
+</P>
+</HTML>

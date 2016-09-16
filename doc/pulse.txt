@@ -1,0 +1,50 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+pulse command :h3
+
+[Syntax:]
+
+pulse A period :pre
+
+A = fractional amplification of potts/weld model pool size
+
+period = cyclic time period expressed in Monte Carlo steps (MCS)
+
+[Examples:]
+
+pulse 0.25 64 :pre
+
+[Description:]
+
+This command defines an optional pulsed power simulation to the "app_style
+potts/weld"_app_potts_weld.html application.  The parameter {A} scales up the
+weld pool size reaching a maximum size proportional to {(1+A)}.  To simulate
+the pulsed aspect of the model, a time {period} is specified.  Note that this
+command generally produces a spatially periodic effect that also depends upon
+the {velocity} parameter in the "app_style potts/weld"_app_potts_weld.html 
+application.
+
+
+[Restrictions:] 
+
+This command can only be used as part of the "app_style potts/weld"_app_potts_weld.html application.
+
+{A}>0 
+
+{N}>2 
+
+[Related commands:]
+
+"app_style potts/weld"_app_potts_weld.html 
+
+[Default:] none
+
+If this command is not present in a weld simulation, then the pulse
+aspect of the "app_style potts/weld"_app_potts_weld.html application
+is not active.
