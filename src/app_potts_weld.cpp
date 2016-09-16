@@ -11,6 +11,10 @@
    See the README file in the top-level SPPARKS directory.
  ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: John Mitchell (Sandia)
+------------------------------------------------------------------------- */
+
 #include <cstdlib>
 #include <cstddef>
 #include <string>
@@ -67,6 +71,8 @@ AppPottsWeld::AppPottsWeld(SPPARKS *spk, int narg, char **arg) :
 
 }
 
+/* ---------------------------------------------------------------------- */
+
 void AppPottsWeld::print_potts_weld_params() const {
 
    std::cout << "nspins: " << std::setw(7) << nspins << std::endl;
@@ -81,11 +87,14 @@ void AppPottsWeld::print_potts_weld_params() const {
    initialize before each run
    check validity of site values
 ------------------------------------------------------------------------- */
+
 void AppPottsWeld::grow_app()
 {
   spin = iarray[0];
   distance = darray[0];
 }
+
+/* ---------------------------------------------------------------------- */
 
 void AppPottsWeld::init_app()
 {
@@ -114,10 +123,10 @@ void AppPottsWeld::init_app()
    this->app_update(0.0);
 }
 
-
 /* ----------------------------------------------------------------------
    input script commands unique to this app
 ------------------------------------------------------------------------- */
+
 void AppPottsWeld::input_app(char *command, int narg, char **arg)
 {
   if (strcmp(command,"pulse") == 0) {
@@ -130,6 +139,8 @@ void AppPottsWeld::input_app(char *command, int narg, char **arg)
       error->all(FLERR,"Illegal pulse command");
   } else error->all(FLERR,"Unrecognized command");
 }
+
+/* ---------------------------------------------------------------------- */
 
 void AppPottsWeld::app_update(double dt)
 {
@@ -205,13 +216,12 @@ void AppPottsWeld::app_update(double dt)
          spin[i]=ran;
       }
    }
-
 }
-
 
 /* --------------------------------------------------------
   This function would make a nice 'lambda' in the future.
 ----------------------------------------------------------- */
+
 double AppPottsWeld::compute_mobility(int site) const {
 
    double d=distance[site];
@@ -285,5 +295,4 @@ void AppPottsWeld::site_event_rejection(int i, RandomPark *random){
   }
 
   if (spin[i] != oldstate) naccept++;
-
 }

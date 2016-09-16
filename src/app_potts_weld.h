@@ -19,7 +19,6 @@ AppStyle(potts/weld,AppPottsWeld)
 #ifndef SPK_APP_POTTSWELD_H
 #define SPK_APP_POTTSWELD_H
 
-
 #include "random_park.h"
 #include "app_potts.h"
 
