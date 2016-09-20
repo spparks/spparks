@@ -37,6 +37,18 @@ describe the version you have. :ule,l
 :line
 :line
 
+[20 Sep 2016]
+
+John Mitchell (Sandia) and collaborators have written a new "app_style
+potts/weld"_doc/app_potts_weld.html command which can be used to
+simulate the welding process to join two pieces of metal.  See the
+examples/potts_weld directory for an example script.
+
+This is the "list of changed files"_patches/files.20Sep16 from the 1
+Sep 2016 version.
+
+:line
+
 [1 Sep 2016]
 
 Removed some "long double" definitions someone added which aren't needed and

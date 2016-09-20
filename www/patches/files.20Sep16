@@ -1,0 +1,26 @@
+1Sep16 version files changed by 20Sep16 upgrade:
+
+doc/JPG/250x350_pool_curvature_schematic.png
+doc/JPG/400x500_butt_weld_schematic_coordinate_system.png
+doc/JPG/400x500_weld_schematic.png
+doc/Manual.html
+doc/Manual.pdf
+doc/Manual.txt
+doc/Section_commands.html
+doc/Section_commands.txt
+doc/app_potts_weld.html
+doc/app_potts_weld.txt
+doc/pulse.html
+doc/pulse.txt
+examples/README
+examples/potts_weld/README.html
+examples/potts_weld/README.rst
+examples/potts_weld/in.potts_init
+examples/potts_weld/in.steady_weld
+examples/potts_weld/write_site_init.sh
+src/MAKE/Makefile.flamer.gnu
+src/Makefile.list
+src/app_potts_weld.cpp
+src/app_potts_weld.h
+src/version.h
+src/weld_geometry.h
