@@ -1,7 +1,6 @@
 "SPPARKS WWW Site"_sws :c
 :link(sws,index.html)
 
-
 :line
 
 SPPARKS Papers :h3
