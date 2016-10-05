@@ -6,13 +6,13 @@
 
 :line
 
-app_style potts/weld_jom command :h3
+app_style potts/weld/jom command :h3
 
 [Syntax:]
 
-app_style potts/weld_jom nspins width length cap_length linear haz start_weld velocity weld_type exp_factor :pre
+app_style potts/weld/jom nspins width length cap_length linear haz start_weld velocity weld_type exp_factor :pre
 
-potts/weld_jom = application style name :l
+potts/weld/jom = application style name :l
 nspins = number of possible spins :l
 width = maximum width of the melt pool :l
 length = maximum length of the melt pool trailing the melt spot :l
@@ -27,7 +27,7 @@ exp_factor = Coefficient that controls the rate of exponential decay of the haz 
 
 [Examples:]
 
-app_style potts/weld_jom 10000  30	25	10	40	0	10.0	1	0.01
+app_style potts/weld/jom 10000  30	25	10	40	0	10.0	1	0.01
 
 [Description:]
 
@@ -54,7 +54,6 @@ The following additional commands are defined by this application:
 "ellipsoid_depth"_ellipsoid_depth.html : define the maximum depth of the ellipsoid-shaped melt pool, or the maximum depth of the shallow melt pool in the keyhole model
 "deep_width"_deep_width.html : define the maximum width of the deep ellipsoid in the keyhole model
 "deep_length"_deep_length.html : define the maximum length of the deep ellipsoid in the keyhole model :tb(s=:)
-
   
 :line
 
