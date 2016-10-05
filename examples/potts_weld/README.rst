@@ -34,7 +34,7 @@ called *site.init*.  Run the script (no args).
 
 .. code-block:: bash
 
-   write_site_init.sh
+   write_site_init.sh potts_init.dump site.init
 
 
 Edit *in.steady_weld* and comment out the 
