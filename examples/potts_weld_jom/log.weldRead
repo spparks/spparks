@@ -2,7 +2,7 @@
 seed		 56789
 
 #app_style	   #spins	weld_width	weld_length	 cap_length  Haz  start_weld velocity  weld_type  exp_factor
-app_style potts/weld_jom 1000000  30      	25    	 	 10          40   0          10.0      1  		  0.01
+app_style potts/weld/jom 1000000  30      	25    	 	 10          40   0          10.0      1  		  0.01
 
 #Set simulation dimensionality and lattice type
 dimension	 3
