@@ -10,13 +10,12 @@ Without base metal microstructure initialization
 
 To simulate grain growth during welding, without 
 an initial microstructure representing base metal 
-of welded material, run *spparks*:
+of welded material (each voxel begins with a randomly 
+assigned spin), run *spparks*:
 
 .. code-block:: bash
 
-   mpiexec -np 16 spk_flamer.gnu < in.steady_weld
-
-Use a tool to view the images: top.*.jpg
+   mpiexec -np 16 spk_mac_mpi < in.weldRandom
 
 
 With an initial equiaxed microstructure
@@ -26,7 +25,7 @@ In this case, run the Potts model first:
 
 .. code-block:: bash
 
-   mpiexec -np 16 spk_flamer.gnu < in.potts_init
+   mpiexec -np 16 spk_mac_mpi < in.potts3D
 
 
 Then process the dump file to write another file 
@@ -37,14 +36,11 @@ called *site.init*.  Run the script (no args).
    write_site_init.sh
 
 
-Edit *in.steady_weld* and comment out the 
-`set`_ command and uncomment out the `read_sites`_ 
-command; then run the potts/weld app:
+Then run the weld model using the in.weldRead 
+input file *in.weldRead*, which uses the `read_sites`_ 
+command rather than the `set`_ command to initialize
+an equiaxed grain microstructure:
 
 .. code-block:: bash
 
-   mpiexec -np 16 spk_flamer.gnu < in.steady_weld
-
-Use a tool to view the images: top.*.jpg; note the 
-differences in microstructures -- especially in the 
-heat affected zone.
+   mpiexec -np 16 spk_mac_mpi < in.weldRead

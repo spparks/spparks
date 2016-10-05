@@ -1,0 +1,42 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>ellipsoid_depth command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>ellipsoid_depth D 
+</PRE>
+<UL><LI>D = Maximum depth 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>ellipsoid_depth 30 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command is used in the ellipsoid mode of the potts/weld_jom application to define the maximum ellipsoid depth.
+</P>
+<P>It is also used in the keyhole mode of the potts/weld_jom application to define the maximum depth of the shallow ellipsoid.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used as part of the <A HREF = "app_potts_weld_jom.html">app_style potts/weld_jom</A> application.
+</P>
+<P>It must be a positive value.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "deep_length.html">deep_length</A>,
+<A HREF = "deep_width.html">deep_width</A>
+</P>
+<P><B>Default:</B> 1/4 * zhi</P>
+</HTML>

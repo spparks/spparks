@@ -1,0 +1,105 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style potts/weld_jom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style potts/weld_jom nspins width length cap_length linear haz start_weld velocity weld_type exp_factor 
+</PRE>
+<LI>potts/weld_jom = application style name 
+
+<LI>nspins = number of possible spins 
+
+<LI>width = maximum width of the melt pool 
+
+<LI>length = maximum length of the melt pool trailing the melt spot 
+
+<LI>cap_length = specify the length of the heat source region leading the melt spot 
+
+<LI>haz = width of the heat affected zone (haz) surrounding the melt pool 
+
+<LI>start_weld = timestep at which to begin welding (usually 0) 
+
+<LI>velocity = velocity of heat source motion (lattice sites per Monte Carlo step) 
+
+<LI>weld_type = Select the heat source shape (valid options are 1-5, see below for descriptions) 
+
+<LI>exp_factor = Coefficient that controls the rate of exponential decay of the haz mobility gradient 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<P>app_style potts/weld_jom 10000  30	25	10	40	0	10.0	1	0.01
+</P>
+<P><B>Description:</B>
+</P>
+<P>This is an on-lattice application derived from the <A HREF = "app_potts.html">app_style potts/neighonly</A> application which simulates a weld heat source traveling along the y-axis from y = 0 to yhi. The heat source is centered along the x-axis at x = xhi / 2 and top plane is located at zhi.
+</P>
+<P>The model simulates melting and re-solidification by randomizing the spin at a lattice site when it falls within the melt pool's volume. Upon exiting the melt pool, a rejection kinetic Monte Carlo event is performed at the site, and the spin is flipped to the value of one of its neighbors (in the style of the <A HREF = "app_potts.html">potts/neighonly</A> application).
+</P>
+<P>The mobility of each site within the haz decreases exponentially with increasing distance from the melt pool surface. The maximum mobility is 1 at the melt pool boundary and the minimum mobility is 0 at the outer haz boundary. The mobility gradient is similar to that in <A HREF = "app_potts_grad.html">potts/grad</A>, but is restricted to a portion of the simulation domain defined by haz.
+Outside of the melt pool and haz, grain boundary mobility is set to 0, and grain evolution does not occur.
+</P>
+<P>This program was used in the paper by <A HREF = "#Rodgers">Rodgers et al.</A>
+</P>
+<P>There are five different heat source shapes available defined by the integer (between 1 and 5) of "weld_type":
+</P>
+<LI>1 = "ellipsoid", An Goldak-style double ellipsoid heat source whose melt pool dimensions are defined with "width", "length", "cap_length", and <A HREF = "ellipsoid_depth.html">ellipsoid_depth</A> 
+
+<LI>2 = "keyhole", A keyhole heat source comprised of the union of two ellipsoids. A "shallow" ellipsoid whose dimensions are defined with "width", "length", and <A HREF = "ellipsoid_depth.html">ellipsoid_depth</A>, and a "deep" ellipsoid whose dimensions are defined with <A HREF = "deep_width.html">deep_width</A> and <A HREF = "deep_length.html">deep_length</A>. The "deep" ellipsoid is assumed to penetrate the entire depth of the simulation domain 
+
+<LI>3 = "linear", A heat source with linearly varying boundaries. The heat source's cross-section is constant along the z-axis 
+
+<LI>4 = "cap", A heat source with a power-law dependent boundaries. The heat source's cross-section is constant along the z-axis 
+
+<LI>5 = "circle", A heat source with circular boundaries. The heat source's cross-section is constant along the z-axis 
+
+<HR>
+
+<P>The following additional commands are defined by this application:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "ellipsoid_depth.html">ellipsoid_depth</A> </TD><TD > define the maximum depth of the ellipsoid-shaped melt pool, or the maximum depth of the shallow melt pool in the keyhole model</TD></TR>
+<TR><TD ><A HREF = "deep_width.html">deep_width</A> </TD><TD > define the maximum width of the deep ellipsoid in the keyhole model</TD></TR>
+<TR><TD ><A HREF = "deep_length.html">deep_length</A> </TD><TD > define the maximum length of the deep ellipsoid in the keyhole model 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<A NAME = "restriction"></A><B>Restrictions:</B> 
+
+<P>Only compatible with square and square cubic lattices.
+</P>
+<P>Can only be evolved by a rejection KMC (rKMC) algorithm.  See <A HREF = "sweep.html">sweep</A> for more information.
+</P>
+<P>Melt pool width + haz must be =< xhi.
+</P>
+<P><B>Related commands:</B> 
+</P>
+<P><A HREF = "app_potts.html">app_style potts</A>
+</P>
+<P><A HREF = "app_potts_grad.html">app_style potts/grad</A>
+</P>
+<P><A HREF = "app_potts_weld.html">app_style potts/weld</A>
+</P>
+<P><B>Default:</B> 
+</P>
+<P>none
+</P>
+<HR>
+
+<A NAME = "Garcia"></A>
+
+<P><B>(Rodgers)</B> T.M. Rodgers, J.D. Madison and V. Tikare, "Predicting Mesoscale Microstructural Evolution in Electron Beam Welding", JOM 68[5] 1419- 1426 (2016). 
+</P>
+</HTML>

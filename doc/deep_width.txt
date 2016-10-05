@@ -1,0 +1,36 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+deep_width command :h3
+
+[Syntax:]
+
+deep_width W :pre
+
+W = Maximum width of the deep ellipsoid used in the keyhole weld model :ul
+
+[Examples:]
+
+deep_width 30 :pre
+
+[Description:]
+
+This command is used in the keyhole mode of the potts/weld_jom application to define the maximum width of the deep ellipsoid, which extends through the entire z-axis of the domain.
+
+[Restrictions:]
+
+This command can only be used as part of the "app_style potts/weld_jom"_app_potts_weld_jom.html application.
+
+It must be a positive value.
+
+[Related commands:]
+
+"deep_length"_deep_length.html,
+"ellipsoid_depth"_ellipsoid_depth.html
+
+[Default:] 1/3 * xhi
