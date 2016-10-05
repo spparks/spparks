@@ -37,6 +37,18 @@ describe the version you have. :ule,l
 :line
 :line
 
+[5 Oct 2016]
+
+Theron Rogers (Sandia) and collaborators have written a new "app_style
+potts/weld/jom"_doc/app_potts_weld_jom.html command, which is similar
+to the recently released "app_style potts/weld"_doc/app_potts_weld.html
+command, but handles the geometry of the weld pool in a different manner.
+
+This is the "list of changed files"_patches/files.5Oct16 from the 20
+Sep 2016 version.
+
+:line
+
 [20 Sep 2016]
 
 John Mitchell (Sandia) and collaborators have written a new "app_style
