@@ -1,0 +1,46 @@
+#SPPARKS weld test using initial random grain structure
+
+log		 	 log.weldRead
+
+seed		 56789
+
+#app_style	   #spins	weld_width	weld_length	 cap_length  Haz  start_weld velocity  weld_type  exp_factor
+app_style potts/weld_jom 1000000  30      	25    	 	 10          40   0          10.0      1  		  0.01
+
+#Set simulation dimensionality and lattice type
+dimension	 3
+lattice	 	 sc/26n 1.0
+
+#Create the simulation volume used
+region		 box block 0 100 0 100 0 100
+boundary 	 n n n
+create_box	 box
+create_sites box
+read_sites   site.init
+
+#Set the parameters for an ellipsoid heat source (weld_type = 1)
+#ellipsoid_depth 30
+
+#Set the parameters for a keyhole heat source (weld_type = 2)
+ellipsoid_depth 30
+deep_width 15
+deep_length 10
+
+#Set the initial random grain structure and set all mobilities to zero
+#set			 i1 range 1 1000000
+set			 d1 value 0.0
+
+#Define the solver method used
+sweep		 raster mask yes
+sector		 yes
+
+#Set the "background" simulation temperature. For weld simulations, this is generally set to zero.
+temperature	 0.0
+
+#Define the output formatting
+stats        1.0
+diag_style   energy
+dump         1 text 1.0 dump.3dweld-2.* id i1 d1 x y z
+
+#Decide how many timesteps the simulation should run for. This should be adjusted by the user depending on how long it takes for the heat source to scan through the domain.
+run          20

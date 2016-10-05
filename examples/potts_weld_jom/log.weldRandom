@@ -1,0 +1,102 @@
+
+seed		 56789
+
+#app_style	   #spins	weld_width	weld_length	 cap_length  Haz  start_weld velocity  weld_type  exp_factor
+app_style potts/weld_jom 1000000  30      	25    	 	 10          40   0          10.0      1  		  0.01
+
+#Set simulation dimensionality and lattice type
+dimension	 3
+lattice	 	 sc/26n 1.0
+
+#Create the simulation volume used
+region		 box block 0 100 0 100 0 100
+boundary 	 n n n
+create_box	 box
+Created box = (0 0 0) to (100 100 100)
+  1 by 2 by 5 processor grid
+create_sites box
+Creating sites ...
+  1000000 sites
+  8 sites have 7 neighbors
+  0 sites have 8 neighbors
+  0 sites have 9 neighbors
+  0 sites have 10 neighbors
+  1176 sites have 11 neighbors
+  0 sites have 12 neighbors
+  0 sites have 13 neighbors
+  0 sites have 14 neighbors
+  0 sites have 15 neighbors
+  0 sites have 16 neighbors
+  57624 sites have 17 neighbors
+  0 sites have 18 neighbors
+  0 sites have 19 neighbors
+  0 sites have 20 neighbors
+  0 sites have 21 neighbors
+  0 sites have 22 neighbors
+  0 sites have 23 neighbors
+  0 sites have 24 neighbors
+  0 sites have 25 neighbors
+  941192 sites have 26 neighbors
+
+#Set the parameters for an ellipsoid heat source (weld_type = 1)
+#ellipsoid_depth 30
+
+#Set the parameters for a keyhole heat source (weld_type = 2)
+ellipsoid_depth 30
+deep_width 15
+deep_length 10
+
+#Set the initial random grain structure and set all mobilities to zero
+set			 i1 range 1 1000000
+  1000000 settings made for i1
+set			 d1 value 0.0
+  1000000 settings made for d1
+
+#Define the solver method used
+sweep		 raster mask yes
+sector		 yes
+
+#Set the "background" simulation temperature. For weld simulations, this is generally set to zero.
+temperature	 0.0
+
+#Define the output formatting
+stats        1.0
+diag_style   energy
+dump         1 text 1.0 dump.3dweld-2.* id i1 d1 x y z
+
+#Decide how many timesteps the simulation should run for. This should be adjusted by the user depending on how long it takes for the heat source to scan through the domain.
+run          20
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 18.5 Mbytes
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy
+         0          0          0          0          0 2.54636e+07
+   1.03846      71013   26928987         27       1.87 2.5424e+07
+         2     300877   51699123         52       3.74 2.53719e+07
+   3.03846     677389   78322611         79       5.85 2.52392e+07
+   4.03846    1055598  103944402        105       7.62 2.50733e+07
+   5.03846    1433906  129566094        131       9.51 2.49054e+07
+   6.03846    1811981  155188019        157       11.3 2.47379e+07
+   7.03846    2189872  180810128        183       13.2 2.45773e+07
+   8.03846    2568178  206431822        209       15.1 2.44135e+07
+   9.03846    2946260  232053740        235         17 2.42524e+07
+   10.0385    3321378  257678622        261         19 2.40966e+07
+   11.0385    3629760  283370240        287       20.9 2.39721e+07
+   12.0385    3766942  309233058        313       22.8 2.38644e+07
+   13.0385    3780260  335219740        339       24.7 2.3827e+07
+   14.0385    3780260  361219740        365       26.6 2.3827e+07
+   15.0385    3780260  387219740        391       28.4 2.3827e+07
+   16.0385    3780260  413219740        417       30.4 2.3827e+07
+   17.0385    3780260  439219740        443       32.2 2.3827e+07
+        18    3780260  464219740        468       33.9 2.3827e+07
+        19    3780260  490219740        494       35.8 2.3827e+07
+        20    3780260  516219740        520       37.5 2.3827e+07
+Loop time of 37.4976 on 10 procs
+
+Solve time (%) = 5.56962 (14.8533)
+Update time (%) = 0 (0)
+Comm  time (%) = 2.07472 (5.53296)
+Outpt time (%) = 29.8345 (79.5637)
+App   time (%) = 0 (0)
+Other time (%) = 0.0187505 (0.0500046)
+

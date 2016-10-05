@@ -1,0 +1,38 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+ellipsoid_depth command :h3
+
+[Syntax:]
+
+ellipsoid_depth D :pre
+
+D = Maximum depth :ul
+
+[Examples:]
+
+ellipsoid_depth 30 :pre
+
+[Description:]
+
+This command is used in the ellipsoid mode of the potts/weld_jom application to define the maximum ellipsoid depth.
+
+It is also used in the keyhole mode of the potts/weld_jom application to define the maximum depth of the shallow ellipsoid.
+
+[Restrictions:]
+
+This command can only be used as part of the "app_style potts/weld_jom"_app_potts_weld_jom.html application.
+
+It must be a positive value.
+
+[Related commands:]
+
+"deep_length"_deep_length.html,
+"deep_width"_deep_width.html
+
+[Default:] 1/4 * zhi
