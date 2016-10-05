@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
-AppStyle(potts/weld_jom,AppPottsWeldJOM)
+AppStyle(potts/weld/jom,AppPottsWeldJOM)
 
 #else
 
