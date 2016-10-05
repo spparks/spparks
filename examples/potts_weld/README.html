@@ -360,7 +360,7 @@ mpiexec -np <span class="literal number">16</span> spk_flamer.gnu &lt; in.potts_
 <p>Then process the dump file to write another file
 called <em>site.init</em>.  Run the script (no args).</p>
 <pre class="code bash literal-block">
-write_site_init.sh
+write_site_init.sh potts_init.dump site.init
 </pre>
 <p>Edit <em>in.steady_weld</em> and comment out the
 <a class="reference external" href="http://spparks.sandia.gov/doc/set.html">set</a> command and uncomment out the <a class="reference external" href="http://spparks.sandia.gov/doc/read_sites.html">read_sites</a>
