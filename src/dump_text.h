@@ -57,7 +57,7 @@ class DumpText : public Dump {
 
   virtual void init_style();
   int count();
-  void pack();
+  void pack(tagint *);
   void write_header(bigint, double);
   void write_data(int, double *);
   int parse_fields(int, char **);

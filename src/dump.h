@@ -28,6 +28,10 @@ class Dump : protected Pointers {
   double scale,delay;
   int logfreq,nrepeat;
 
+  // static variable across all Dump objects
+
+  static Dump *dumpptr;         // holds a ptr to Dump currently being used
+
   Dump(class SPPARKS *, int, char **);
   virtual ~Dump();
   void init();
@@ -45,10 +49,33 @@ class Dump : protected Pointers {
   int flush_flag;            // 0 if no flush, 1 if flush every dump
   int padflag;               // timestep padding in filename
 
-  double *buf;               // memory for site quantities
+  int sort_flag;             // 1 if sorted output
+  int sortcol;               // 0 to sort on ID, 1-N on columns
+  int sortcolm1;             // sortcol - 1
+  int sortorder;             // ASCEND or DESCEND
+
   int maxbuf;                // size of buf
+  double *buf;               // memory for site quantities
+
   FILE *fp;                  // file to write dump to
   int size_one;              // # of quantities for one site
+  int nme;                   // # of sites in this dump from me
+  bigint ntotal;             // total # of per-site lines in snapshot
+
+  int maxids;                // size of ids
+  int maxsort;               // size of bufsort, idsort, index
+  int maxproc;               // size of proclist
+  int reorderflag;           // 1 if OK to reorder instead of sort
+  int ntotal_reorder;        // # of sites that must be in snapshot
+  int nme_reorder;           // # of sites I must own in snapshot
+  tagint idlo;               // lowest ID I own when reordering
+
+  tagint *ids;               // list of site IDs, if sorting on IDs
+  double *bufsort;
+  tagint *idsort;
+  int *index,*proclist;
+
+  class Irregular *irregular;
 
   int latticeflag;           // 1 for on-lattice, 0 for off-lattice app
   class AppLattice *applattice;
@@ -61,8 +88,13 @@ class Dump : protected Pointers {
   virtual int modify_param(int, char **) {return 0;}
   virtual void write_header(bigint, double) = 0;
   virtual int count() = 0;
-  virtual void pack() = 0;
+  virtual void pack(tagint *) = 0;
   virtual void write_data(int, double *) = 0;
+
+  void sort();
+  static int idcompare(const void *, const void *);
+  static int bufcompare(const void *, const void *);
+  static int bufcompare_reverse(const void *, const void *);
 };
 
 }

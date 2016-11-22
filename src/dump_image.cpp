@@ -504,7 +504,7 @@ void DumpImage::write(double time)
     memory->create(buf,maxbuf*size_one,"dump:buf");
   }
 
-  pack();
+  pack(NULL);
 
   if (scolor == DATTRIBUTE) image->color_minmax(nchoose,buf,size_one);
 
