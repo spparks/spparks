@@ -1,0 +1,21 @@
+5Oct16 version files changed by 22Nov16 upgrade:
+
+doc/Manual.html
+doc/Manual.pdf
+doc/Manual.txt
+doc/dump.html
+doc/dump.txt
+doc/dump_modify.html
+doc/dump_modify.txt
+doc/read_sites.html
+doc/read_sites.txt
+src/dump.cpp
+src/dump.h
+src/dump_image.cpp
+src/dump_text.cpp
+src/dump_text.h
+src/irregular.cpp
+src/irregular.h
+src/read_sites.cpp
+src/spparks.h
+src/version.h
