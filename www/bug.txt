@@ -37,6 +37,19 @@ describe the version you have. :ule,l
 :line
 :line
 
+[22 Nov 2016]
+
+Added a "dump_modify sort"_doc/dump_modify.html command to enable
+sorting of "dump"_doc/dump.html output within each snapshot by site
+IDs or a chosen column of per-site information.  For parallel runs,
+the sorting is done across all processors, which is not enabled by
+default, since it requires extra memory and communication.
+
+This is the "list of changed files"_patches/files.22Nov16 from the 5
+Oct 2016 version.
+
+:line
+
 [5 Oct 2016]
 
 Theron Rogers (Sandia) and collaborators have written a new "app_style

@@ -40,6 +40,19 @@ describe the version you have.
 
 <HR>
 
+<P><B>22 Nov 2016</B>
+</P>
+<P>Added a <A HREF = "doc/dump_modify.html">dump_modify sort</A> command to enable
+sorting of <A HREF = "doc/dump.html">dump</A> output within each snapshot by site
+IDs or a chosen column of per-site information.  For parallel runs,
+the sorting is done across all processors, which is not enabled by
+default, since it requires extra memory and communication.
+</P>
+<P>This is the <A HREF = "patches/files.22Nov16">list of changed files</A> from the 5
+Oct 2016 version.
+</P>
+<HR>
+
 <P><B>5 Oct 2016</B>
 </P>
 <P>Theron Rogers (Sandia) and collaborators have written a new <A HREF = "doc/app_potts_weld_jom.html">app_style
