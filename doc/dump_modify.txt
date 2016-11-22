@@ -77,7 +77,7 @@ keyword = {backcolor} or {boundcolor} or {boxcolor} or {color} or {cwrap} or
       lo/hi = number or {min} or {max} = lower/upper bound of subset of range
       color = name of color used for that subset of values
     entry = color (for sequential style)
-      color = name of color used for a bin of values
+      color = name of color used for a bin of values :pre
 :ule
 
 [Examples:]
