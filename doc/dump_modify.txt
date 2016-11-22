@@ -14,7 +14,31 @@ dump_modify dump-ID keyword values ... :pre
 
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
-keyword = {backcolor} or {boundcolor} or {boxcolor} or {color} or {cwrap} or {delay} or {delta} or {dwrap} or {flush} or {logfreq} or {loglinfreq} or {pad} or {region} or {scolor} or {sdiam} or {smap} or {thresh} :l
+these keywords apply to various dump styles :l
+keyword = {delay} or {delta} or {flush} or {logfreq} or {loglinfreq} or {pad} or {region} or {sort} or {thresh} :l
+  {delay} value = tdelay
+    tdelay = delay dump until at least this time (seconds)
+  {delta} arg = dt
+    dt = time increment between dumps (seconds)
+  {flush} arg = {yes} or {no}
+  {logfreq} or {loglinfreq} values = N factor
+    N = number of repetitions per interval
+    factor = scale factor between intervals
+  {pad} arg = Nchar = # of characters to convert timestep to
+  {region} arg = region-ID or "none"
+  {sort} arg = {off} or {id} or N or -N
+     off = no sorting of per-site lines within a snapshot
+     id = sort per-site lines by atom ID
+     N = sort per-site lines in ascending order by the Nth column
+     -N = sort per-site lines in descending order by the Nth column
+  {thresh} args = attribute operation value
+    attribute = same fields (id,lattice,x,etc) used by "dump"_dump.html command
+    operation = "<" or "<=" or ">" or ">=" or "==" or "!="
+    value = numeric value to compare to
+    these 3 args can be replaced by the word "none" to turn off thresholding :pre
+these keywords apply only to the {image} and {movie} "styles"_dump_image.html :l
+keyword = {backcolor} or {boundcolor} or {boxcolor} or {color} or {cwrap} or 
+{dwrap} or {scolor} or {sdiam} or {smap} :l
   {backcolor} arg = color
     color = name of color for background
   {boundcolor} arg = color
@@ -26,18 +50,8 @@ keyword = {backcolor} or {boundcolor} or {boxcolor} or {color} or {cwrap} or {de
     R,G,B = red/green/blue numeric values from 0.0 to 1.0
   {cwrap} arg = {yes} or {no}
     yes/no = do or do not wrap out-of-range color values into the defined crange
-  {delay} value = tdelay
-    tdelay = delay dump until at least this time (seconds)
-  {delta} arg = dt
-    dt = time increment between dumps (seconds)
   {dwrap} arg = {yes} or {no}
     yes/no = do or do not wrap out-of-range diameter values into the defined drange
-  {flush} arg = {yes} or {no}
-  {logfreq} or {loglinfreq} values = N factor
-    N = number of repetitions per interval
-    factor = scale factor between intervals
-  {pad} arg = Nchar = # of characters to convert timestep to
-  {region} arg = region-ID or "none"
   {scolor} args = I color
     I = integer value or range of values (see below)
     color = name of color or color1/color2/... or {random}
@@ -64,11 +78,6 @@ keyword = {backcolor} or {boundcolor} or {boxcolor} or {color} or {cwrap} or {de
       color = name of color used for that subset of values
     entry = color (for sequential style)
       color = name of color used for a bin of values
-  {thresh} args = attribute operation value
-    attribute = same fields (id,lattice,x,etc) used by "dump"_dump.html command
-    operation = "<" or "<=" or ">" or ">=" or "==" or "!="
-    value = numeric value to compare to
-    these 3 args can be replaced by the word "none" to turn off thresholding :pre
 :ule
 
 [Examples:]
@@ -80,71 +89,14 @@ dump_modify mine thresh energy > 0.0 thresh id <= 1000 :pre
 [Description:]
 
 Modify the parameters of a previously defined dump command.  Not all
-parameters are relevant to both the {text} and {image} dump styles.
+parameters are relevant to all dump styles.
 
 :line
-
-The {backcolor} keyword applies only to the dump {image} style.  It
-sets the background color of the images.  The color name can be any of
-the 140 pre-defined colors (see below) or a color name defined by the
-dump_modify color option.
-
 :line
 
-The {boundcolor} keyword applies only to the dump {image} style.  It
-sets the color used to draw boundaries between sites, each of which is
-a set of 4 cylinders, as described in the "dump image"_dump_image.html
-doc page.  The color name can be any of the 140 pre-defined colors
-(see below) or a color name defined by the dump_modify color option.
-
-The drawing of boundaries between neighboring sites is enabled by the
-{boundary} keyword of the "dump image"_dump_image.html command.
-
-:line
-
-The {boxcolor} keyword applies only to the dump {image} style.  It
-sets the color of the simulation box drawn around the sites in each
-image.  See the "dump image box" command for how to specify that a box
-be drawn.  The color name can be any of the 140 pre-defined colors
-(see below) or a color name defined by the dump_modify color option.
-
-:line
-
-The {color} keyword applies only to the dump {image} style.  It allows
-definition of a new color name, in addition to the 140-predefined
-colors (see below), and associates 3 red/green/blue RGB values with
-that color name.  The color name can then be used with any other
-dump_modify keyword that takes a color name as a value.  The RGB
-values should each be floating point values between 0.0 and 1.0
-inclusive.
-
-When a color name is converted to RGB values, the user-defined color
-names are searched first, then the 140 pre-defined color names.  This
-means you can also use the {color} keyword to overwrite one of the
-pre-defined color names with new RBG values.
-
-:line
-
-The {cwrap} keyword applies only to the dump {image} style.  It
-enables wrapping of integer values used to deterimine site colors in
-the image, into the range specified by the {crange} keyword in the
-"dump image"_dump_image.html command.
-
-The {crange} keyword defines a range of values {lo} to {hi}.  If the
-{cwrap} argument is {no}, which is the default, then values outside
-the range {lo} to {hi} are clipped to that range.  I.e. values < {lo}
-become {lo} and values > {hi} become hi.  This means out-of-range
-values will all be drawn with either the {lo} or {hi} color, which may
-not be what you want.
-
-If the {cwrap} argument is {yes}, then values outside the range {lo}
-to {hi} are wrapped back into the range.  E.g. a value of hi+1 becomes
-lo, hi+2 becomes lo+1, etc.  Similarly, a value of lo-1 becomes hi,
-lo-2 becomes hi-1, etc.  This is a way to map a huge number N of
-possible integer values into a smaller number of M {crange} colors.
-This may be required if N = 2 billion spin values, since memory for
-that many colors cannot be allocated.  Using a {crange} with M = 10000
-would work in that scenario.
+These keywords apply to various dump styles, including the "dump
+image"_dump_image.html and "dump movie"_dump_image.html styles.  The
+description gives details.
 
 :line
 
@@ -155,15 +107,6 @@ elapsed.
 
 The {delta} keyword will suppress output until {tdelay} time has
 elapsed.
-
-:line
-
-The {dwrap} keyword applies only to the dump {image} style.  It
-enables wrapping of integer values used to deterimine site diameters
-in the image, into the range specified by the {drange} keyword in the
-"dump image"_dump_image.html command.  It's purpose and the way it
-operates on diamenters is exactly the same as how the {cwrap} keyword
-operates of colors, as described above.
 
 :line
 
@@ -208,11 +151,118 @@ or "outside" of a geometric shape, and it can be the "union" or
 
 :line
 
-The {scolor} keyword applies only to the dump {image} style.  It can
-be used with the "dump image"_dump_image.html command, when its site
-color setting is an integer attribute, and a {crange} setting from
-{lo} to {hi} has been specified to set the color associated with each
-integer value.
+The {sort} keyword determines whether lines of per-site output in a
+snapshot are sorted or not.  A sort value of {off} means they will
+typically be written in indeterminate order, at least in parallel,
+since the sites are written to file in per-processor chunks.  A sort
+value of {id} means sort the output by site ID.  A sort value of N or
+-N means sort the output by the value in the Nth column of per-site
+info in either ascending or descending order.
+
+If multiple processors are writing the dump file, via the "%" wildcard
+in the dump filename, then sorting cannot be performed.
+
+IMPORTANT NOTE: Sorting dump file output requires extra overhead in
+terms of CPU and communication cost, as well as memory, versus
+unsorted output.
+
+:line
+
+The {thresh} keyword allows sub-selection of lattice sites to output.
+Multiple thresholds can be specified.  Specifying "none" turns off all
+threshold criteria.  If thresholds are specified, only sites whose
+attributes meet all the threshold criteria are written to the dump
+file or included in the image.  The possible attributes that can be
+tested for are the same as the fields that can be specified in the
+"dump"_dump.html command.  Note that different attributes can be
+output by the dump command than are used as threshold criteria by the
+dump_modify command.  E.g. you can output the coordinates and
+propensity of sites whose energy is above some threshold.
+
+:line
+:line
+
+These keywords apply only to the "dump image"_dump_image.html and
+"dump movie"_dump_image.html styles.  Any keyword that affects an
+image, also affects a movie, since the movie is simply a collection of
+images.  Some of the keywords only affect the "dump
+movie"_dump_image.html style.  The descriptions give details.
+
+:line
+
+The {backcolor} sets the background color of the images.  The color
+name can be any of the 140 pre-defined colors (see below) or a color
+name defined by the dump_modify color option.
+
+:line
+
+The {boundcolor} keyword sets the color used to draw boundaries
+between sites, each of which is a set of 4 cylinders, as described in
+the "dump image"_dump_image.html doc page.  The color name can be any
+of the 140 pre-defined colors (see below) or a color name defined by
+the dump_modify color option.
+
+The drawing of boundaries between neighboring sites is enabled by the
+{boundary} keyword of the "dump image"_dump_image.html command.
+
+:line
+
+The {boxcolor} keyword sets the color of the simulation box drawn
+around the sites in each image.  See the "dump image box" command for
+how to specify that a box be drawn.  The color name can be any of the
+140 pre-defined colors (see below) or a color name defined by the
+dump_modify color option.
+
+:line
+
+The {color} keyword allows definition of a new color name, in addition
+to the 140-predefined colors (see below), and associates 3
+red/green/blue RGB values with that color name.  The color name can
+then be used with any other dump_modify keyword that takes a color
+name as a value.  The RGB values should each be floating point values
+between 0.0 and 1.0 inclusive.
+
+When a color name is converted to RGB values, the user-defined color
+names are searched first, then the 140 pre-defined color names.  This
+means you can also use the {color} keyword to overwrite one of the
+pre-defined color names with new RBG values.
+
+:line
+
+The {cwrap} keyword enables wrapping of integer values used to
+deterimine site colors in the image, into the range specified by the
+{crange} keyword in the "dump image"_dump_image.html command.
+
+The {crange} keyword defines a range of values {lo} to {hi}.  If the
+{cwrap} argument is {no}, which is the default, then values outside
+the range {lo} to {hi} are clipped to that range.  I.e. values < {lo}
+become {lo} and values > {hi} become hi.  This means out-of-range
+values will all be drawn with either the {lo} or {hi} color, which may
+not be what you want.
+
+If the {cwrap} argument is {yes}, then values outside the range {lo}
+to {hi} are wrapped back into the range.  E.g. a value of hi+1 becomes
+lo, hi+2 becomes lo+1, etc.  Similarly, a value of lo-1 becomes hi,
+lo-2 becomes hi-1, etc.  This is a way to map a huge number N of
+possible integer values into a smaller number of M {crange} colors.
+This may be required if N = 2 billion spin values, since memory for
+that many colors cannot be allocated.  Using a {crange} with M = 10000
+would work in that scenario.
+
+:line
+
+The {dwrap} keyword enables wrapping of integer values used to
+deterimine site diameters in the image, into the range specified by
+the {drange} keyword in the "dump image"_dump_image.html command.
+It's purpose and the way it operates on diamenters is exactly the same
+as how the {cwrap} keyword operates of colors, as described above.
+
+:line
+
+The {scolor} keyword can be used with the "dump image"_dump_image.html
+command, when its site color setting is an integer attribute, and a
+{crange} setting from {lo} to {hi} has been specified to set the color
+associated with each integer value.
 
 The specified {I} value should be an integer from {lo} to {hi}
 inclusive.  A wildcard asterisk can be used in place of or in
@@ -239,23 +289,22 @@ by name.
 
 :line
 
-The {sdiam} keyword applies only to the dump {image} style.  It can be
-used with the "dump image"_dump_image.html command, when its site
-diameter setting is an integer attribute, and a {drange} setting from
-{lo} to {hi} has been specified to set the diameter associated with
-each integer value.  The specified {I} value should be an integer from
-{lo} to {hi}.  As with the {scolor} keyword, a wildcard asterisk can
-be used as part of the {I} argument to specify a range of values.
+The {sdiam} keyword can be used with the "dump image"_dump_image.html
+command, when its site diameter setting is an integer attribute, and a
+{drange} setting from {lo} to {hi} has been specified to set the
+diameter associated with each integer value.  The specified {I} value
+should be an integer from {lo} to {hi}.  As with the {scolor} keyword,
+a wildcard asterisk can be used as part of the {I} argument to specify
+a range of values.
 
 :line
 
-The {smap} keyword applies only to the dump {image} style.  It can be
-used with the "dump image"_dump_image.html command, when its site
-color setting is a floating point attribute, to setup a color map.
-The color map is used to assign a specific RGB (red/green/blue) color
-value to an individual site when it is drawn, based on the atom's
-attribute, which is a numeric value, e.g. its x coordinate, if the
-attribute "x" was specified.
+The {smap} keyword can be used with the "dump image"_dump_image.html
+command, when its site color setting is a floating point attribute, to
+setup a color map.  The color map is used to assign a specific RGB
+(red/green/blue) color value to an individual site when it is drawn,
+based on the atom's attribute, which is a numeric value, e.g. its x
+coordinate, if the attribute "x" was specified.
 
 The basic idea of a color map is that the site-attribute will be
 within a range of values, and that range is associated with a series
@@ -359,17 +408,7 @@ sequential color map is really a shorthand way of defining a discrete
 color map without having to specify where all the bin boundaries are.
 
 :line
-
-The {thresh} keyword allows sub-selection of lattice sites to output.
-Multiple thresholds can be specified.  Specifying "none" turns off all
-threshold criteria.  If thresholds are specified, only sites whose
-attributes meet all the threshold criteria are written to the dump
-file or included in the image.  The possible attributes that can be
-tested for are the same as the fields that can be specified in the
-"dump"_dump.html command.  Note that different attributes can be
-output by the dump command than are used as threshold criteria by the
-dump_modify command.  E.g. you can output the coordinates and
-propensity of sites whose energy is above some threshold.
+:line
 
 [Restrictions:]
 
