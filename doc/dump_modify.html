@@ -19,9 +19,37 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>backcolor</I> or <I>boundcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>cwrap</I> or <I>delay</I> or <I>delta</I> or <I>dwrap</I> or <I>flush</I> or <I>logfreq</I> or <I>loglinfreq</I> or <I>pad</I> or <I>region</I> or <I>scolor</I> or <I>sdiam</I> or <I>smap</I> or <I>thresh</I> 
+<LI>these keywords apply to various dump styles 
 
-<PRE>  <I>backcolor</I> arg = color
+<LI>keyword = <I>delay</I> or <I>delta</I> or <I>flush</I> or <I>logfreq</I> or <I>loglinfreq</I> or <I>pad</I> or <I>region</I> or <I>sort</I> or <I>thresh</I> 
+
+<PRE>  <I>delay</I> value = tdelay
+    tdelay = delay dump until at least this time (seconds)
+  <I>delta</I> arg = dt
+    dt = time increment between dumps (seconds)
+  <I>flush</I> arg = <I>yes</I> or <I>no</I>
+  <I>logfreq</I> or <I>loglinfreq</I> values = N factor
+    N = number of repetitions per interval
+    factor = scale factor between intervals
+  <I>pad</I> arg = Nchar = # of characters to convert timestep to
+  <I>region</I> arg = region-ID or "none"
+  <I>sort</I> arg = <I>off</I> or <I>id</I> or N or -N
+     off = no sorting of per-site lines within a snapshot
+     id = sort per-site lines by atom ID
+     N = sort per-site lines in ascending order by the Nth column
+     -N = sort per-site lines in descending order by the Nth column
+  <I>thresh</I> args = attribute operation value
+    attribute = same fields (id,lattice,x,etc) used by <A HREF = "dump.html">dump</A> command
+    operation = "<" or "<=" or ">" or ">=" or "==" or "!="
+    value = numeric value to compare to
+    these 3 args can be replaced by the word "none" to turn off thresholding 
+</PRE>
+<LI>these keywords apply only to the <I>image</I> and <I>movie</I> <A HREF = "dump_image.html">styles</A> 
+
+<LI>keyword = <I>backcolor</I> or <I>boundcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>cwrap</I> or 
+<I>dwrap</I> or <I>scolor</I> or <I>sdiam</I> or <I>smap</I> 
+
+  <I>backcolor</I> arg = color
     color = name of color for background
   <I>boundcolor</I> arg = color
     color = name of color for boundaries between sites
@@ -32,18 +60,8 @@
     R,G,B = red/green/blue numeric values from 0.0 to 1.0
   <I>cwrap</I> arg = <I>yes</I> or <I>no</I>
     yes/no = do or do not wrap out-of-range color values into the defined crange
-  <I>delay</I> value = tdelay
-    tdelay = delay dump until at least this time (seconds)
-  <I>delta</I> arg = dt
-    dt = time increment between dumps (seconds)
   <I>dwrap</I> arg = <I>yes</I> or <I>no</I>
     yes/no = do or do not wrap out-of-range diameter values into the defined drange
-  <I>flush</I> arg = <I>yes</I> or <I>no</I>
-  <I>logfreq</I> or <I>loglinfreq</I> values = N factor
-    N = number of repetitions per interval
-    factor = scale factor between intervals
-  <I>pad</I> arg = Nchar = # of characters to convert timestep to
-  <I>region</I> arg = region-ID or "none"
   <I>scolor</I> args = I color
     I = integer value or range of values (see below)
     color = name of color or color1/color2/... or <I>random</I>
@@ -70,12 +88,6 @@
       color = name of color used for that subset of values
     entry = color (for sequential style)
       color = name of color used for a bin of values
-  <I>thresh</I> args = attribute operation value
-    attribute = same fields (id,lattice,x,etc) used by <A HREF = "dump.html">dump</A> command
-    operation = "<" or "<=" or ">" or ">=" or "==" or "!="
-    value = numeric value to compare to
-    these 3 args can be replaced by the word "none" to turn off thresholding 
-</PRE>
 
 </UL>
 <P><B>Examples:</B>
@@ -87,71 +99,15 @@ dump_modify mine thresh energy > 0.0 thresh id <= 1000
 <P><B>Description:</B>
 </P>
 <P>Modify the parameters of a previously defined dump command.  Not all
-parameters are relevant to both the <I>text</I> and <I>image</I> dump styles.
+parameters are relevant to all dump styles.
 </P>
 <HR>
 
-<P>The <I>backcolor</I> keyword applies only to the dump <I>image</I> style.  It
-sets the background color of the images.  The color name can be any of
-the 140 pre-defined colors (see below) or a color name defined by the
-dump_modify color option.
-</P>
 <HR>
 
-<P>The <I>boundcolor</I> keyword applies only to the dump <I>image</I> style.  It
-sets the color used to draw boundaries between sites, each of which is
-a set of 4 cylinders, as described in the <A HREF = "dump_image.html">dump image</A>
-doc page.  The color name can be any of the 140 pre-defined colors
-(see below) or a color name defined by the dump_modify color option.
-</P>
-<P>The drawing of boundaries between neighboring sites is enabled by the
-<I>boundary</I> keyword of the <A HREF = "dump_image.html">dump image</A> command.
-</P>
-<HR>
-
-<P>The <I>boxcolor</I> keyword applies only to the dump <I>image</I> style.  It
-sets the color of the simulation box drawn around the sites in each
-image.  See the "dump image box" command for how to specify that a box
-be drawn.  The color name can be any of the 140 pre-defined colors
-(see below) or a color name defined by the dump_modify color option.
-</P>
-<HR>
-
-<P>The <I>color</I> keyword applies only to the dump <I>image</I> style.  It allows
-definition of a new color name, in addition to the 140-predefined
-colors (see below), and associates 3 red/green/blue RGB values with
-that color name.  The color name can then be used with any other
-dump_modify keyword that takes a color name as a value.  The RGB
-values should each be floating point values between 0.0 and 1.0
-inclusive.
-</P>
-<P>When a color name is converted to RGB values, the user-defined color
-names are searched first, then the 140 pre-defined color names.  This
-means you can also use the <I>color</I> keyword to overwrite one of the
-pre-defined color names with new RBG values.
-</P>
-<HR>
-
-<P>The <I>cwrap</I> keyword applies only to the dump <I>image</I> style.  It
-enables wrapping of integer values used to deterimine site colors in
-the image, into the range specified by the <I>crange</I> keyword in the
-<A HREF = "dump_image.html">dump image</A> command.
-</P>
-<P>The <I>crange</I> keyword defines a range of values <I>lo</I> to <I>hi</I>.  If the
-<I>cwrap</I> argument is <I>no</I>, which is the default, then values outside
-the range <I>lo</I> to <I>hi</I> are clipped to that range.  I.e. values < <I>lo</I>
-become <I>lo</I> and values > <I>hi</I> become hi.  This means out-of-range
-values will all be drawn with either the <I>lo</I> or <I>hi</I> color, which may
-not be what you want.
-</P>
-<P>If the <I>cwrap</I> argument is <I>yes</I>, then values outside the range <I>lo</I>
-to <I>hi</I> are wrapped back into the range.  E.g. a value of hi+1 becomes
-lo, hi+2 becomes lo+1, etc.  Similarly, a value of lo-1 becomes hi,
-lo-2 becomes hi-1, etc.  This is a way to map a huge number N of
-possible integer values into a smaller number of M <I>crange</I> colors.
-This may be required if N = 2 billion spin values, since memory for
-that many colors cannot be allocated.  Using a <I>crange</I> with M = 10000
-would work in that scenario.
+<P>These keywords apply to various dump styles, including the <A HREF = "dump_image.html">dump
+image</A> and <A HREF = "dump_image.html">dump movie</A> styles.  The
+description gives details.
 </P>
 <HR>
 
@@ -162,15 +118,6 @@ elapsed.
 
 <P>The <I>delta</I> keyword will suppress output until <I>tdelay</I> time has
 elapsed.
-</P>
-<HR>
-
-<P>The <I>dwrap</I> keyword applies only to the dump <I>image</I> style.  It
-enables wrapping of integer values used to deterimine site diameters
-in the image, into the range specified by the <I>drange</I> keyword in the
-<A HREF = "dump_image.html">dump image</A> command.  It's purpose and the way it
-operates on diamenters is exactly the same as how the <I>cwrap</I> keyword
-operates of colors, as described above.
 </P>
 <HR>
 
@@ -215,11 +162,119 @@ or "outside" of a geometric shape, and it can be the "union" or
 </P>
 <HR>
 
-<P>The <I>scolor</I> keyword applies only to the dump <I>image</I> style.  It can
-be used with the <A HREF = "dump_image.html">dump image</A> command, when its site
-color setting is an integer attribute, and a <I>crange</I> setting from
-<I>lo</I> to <I>hi</I> has been specified to set the color associated with each
-integer value.
+<P>The <I>sort</I> keyword determines whether lines of per-site output in a
+snapshot are sorted or not.  A sort value of <I>off</I> means they will
+typically be written in indeterminate order, at least in parallel,
+since the sites are written to file in per-processor chunks.  A sort
+value of <I>id</I> means sort the output by site ID.  A sort value of N or
+-N means sort the output by the value in the Nth column of per-site
+info in either ascending or descending order.
+</P>
+<P>If multiple processors are writing the dump file, via the "%" wildcard
+in the dump filename, then sorting cannot be performed.
+</P>
+<P>IMPORTANT NOTE: Sorting dump file output requires extra overhead in
+terms of CPU and communication cost, as well as memory, versus
+unsorted output.
+</P>
+<HR>
+
+<P>The <I>thresh</I> keyword allows sub-selection of lattice sites to output.
+Multiple thresholds can be specified.  Specifying "none" turns off all
+threshold criteria.  If thresholds are specified, only sites whose
+attributes meet all the threshold criteria are written to the dump
+file or included in the image.  The possible attributes that can be
+tested for are the same as the fields that can be specified in the
+<A HREF = "dump.html">dump</A> command.  Note that different attributes can be
+output by the dump command than are used as threshold criteria by the
+dump_modify command.  E.g. you can output the coordinates and
+propensity of sites whose energy is above some threshold.
+</P>
+<HR>
+
+<HR>
+
+<P>These keywords apply only to the <A HREF = "dump_image.html">dump image</A> and
+<A HREF = "dump_image.html">dump movie</A> styles.  Any keyword that affects an
+image, also affects a movie, since the movie is simply a collection of
+images.  Some of the keywords only affect the <A HREF = "dump_image.html">dump
+movie</A> style.  The descriptions give details.
+</P>
+<HR>
+
+<P>The <I>backcolor</I> sets the background color of the images.  The color
+name can be any of the 140 pre-defined colors (see below) or a color
+name defined by the dump_modify color option.
+</P>
+<HR>
+
+<P>The <I>boundcolor</I> keyword sets the color used to draw boundaries
+between sites, each of which is a set of 4 cylinders, as described in
+the <A HREF = "dump_image.html">dump image</A> doc page.  The color name can be any
+of the 140 pre-defined colors (see below) or a color name defined by
+the dump_modify color option.
+</P>
+<P>The drawing of boundaries between neighboring sites is enabled by the
+<I>boundary</I> keyword of the <A HREF = "dump_image.html">dump image</A> command.
+</P>
+<HR>
+
+<P>The <I>boxcolor</I> keyword sets the color of the simulation box drawn
+around the sites in each image.  See the "dump image box" command for
+how to specify that a box be drawn.  The color name can be any of the
+140 pre-defined colors (see below) or a color name defined by the
+dump_modify color option.
+</P>
+<HR>
+
+<P>The <I>color</I> keyword allows definition of a new color name, in addition
+to the 140-predefined colors (see below), and associates 3
+red/green/blue RGB values with that color name.  The color name can
+then be used with any other dump_modify keyword that takes a color
+name as a value.  The RGB values should each be floating point values
+between 0.0 and 1.0 inclusive.
+</P>
+<P>When a color name is converted to RGB values, the user-defined color
+names are searched first, then the 140 pre-defined color names.  This
+means you can also use the <I>color</I> keyword to overwrite one of the
+pre-defined color names with new RBG values.
+</P>
+<HR>
+
+<P>The <I>cwrap</I> keyword enables wrapping of integer values used to
+deterimine site colors in the image, into the range specified by the
+<I>crange</I> keyword in the <A HREF = "dump_image.html">dump image</A> command.
+</P>
+<P>The <I>crange</I> keyword defines a range of values <I>lo</I> to <I>hi</I>.  If the
+<I>cwrap</I> argument is <I>no</I>, which is the default, then values outside
+the range <I>lo</I> to <I>hi</I> are clipped to that range.  I.e. values < <I>lo</I>
+become <I>lo</I> and values > <I>hi</I> become hi.  This means out-of-range
+values will all be drawn with either the <I>lo</I> or <I>hi</I> color, which may
+not be what you want.
+</P>
+<P>If the <I>cwrap</I> argument is <I>yes</I>, then values outside the range <I>lo</I>
+to <I>hi</I> are wrapped back into the range.  E.g. a value of hi+1 becomes
+lo, hi+2 becomes lo+1, etc.  Similarly, a value of lo-1 becomes hi,
+lo-2 becomes hi-1, etc.  This is a way to map a huge number N of
+possible integer values into a smaller number of M <I>crange</I> colors.
+This may be required if N = 2 billion spin values, since memory for
+that many colors cannot be allocated.  Using a <I>crange</I> with M = 10000
+would work in that scenario.
+</P>
+<HR>
+
+<P>The <I>dwrap</I> keyword enables wrapping of integer values used to
+deterimine site diameters in the image, into the range specified by
+the <I>drange</I> keyword in the <A HREF = "dump_image.html">dump image</A> command.
+It's purpose and the way it operates on diamenters is exactly the same
+as how the <I>cwrap</I> keyword operates of colors, as described above.
+</P>
+<HR>
+
+<P>The <I>scolor</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
+command, when its site color setting is an integer attribute, and a
+<I>crange</I> setting from <I>lo</I> to <I>hi</I> has been specified to set the color
+associated with each integer value.
 </P>
 <P>The specified <I>I</I> value should be an integer from <I>lo</I> to <I>hi</I>
 inclusive.  A wildcard asterisk can be used in place of or in
@@ -246,23 +301,22 @@ by name.
 </P>
 <HR>
 
-<P>The <I>sdiam</I> keyword applies only to the dump <I>image</I> style.  It can be
-used with the <A HREF = "dump_image.html">dump image</A> command, when its site
-diameter setting is an integer attribute, and a <I>drange</I> setting from
-<I>lo</I> to <I>hi</I> has been specified to set the diameter associated with
-each integer value.  The specified <I>I</I> value should be an integer from
-<I>lo</I> to <I>hi</I>.  As with the <I>scolor</I> keyword, a wildcard asterisk can
-be used as part of the <I>I</I> argument to specify a range of values.
+<P>The <I>sdiam</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
+command, when its site diameter setting is an integer attribute, and a
+<I>drange</I> setting from <I>lo</I> to <I>hi</I> has been specified to set the
+diameter associated with each integer value.  The specified <I>I</I> value
+should be an integer from <I>lo</I> to <I>hi</I>.  As with the <I>scolor</I> keyword,
+a wildcard asterisk can be used as part of the <I>I</I> argument to specify
+a range of values.
 </P>
 <HR>
 
-<P>The <I>smap</I> keyword applies only to the dump <I>image</I> style.  It can be
-used with the <A HREF = "dump_image.html">dump image</A> command, when its site
-color setting is a floating point attribute, to setup a color map.
-The color map is used to assign a specific RGB (red/green/blue) color
-value to an individual site when it is drawn, based on the atom's
-attribute, which is a numeric value, e.g. its x coordinate, if the
-attribute "x" was specified.
+<P>The <I>smap</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
+command, when its site color setting is a floating point attribute, to
+setup a color map.  The color map is used to assign a specific RGB
+(red/green/blue) color value to an individual site when it is drawn,
+based on the atom's attribute, which is a numeric value, e.g. its x
+coordinate, if the attribute "x" was specified.
 </P>
 <P>The basic idea of a color map is that the site-attribute will be
 within a range of values, and that range is associated with a series
@@ -367,17 +421,8 @@ color map without having to specify where all the bin boundaries are.
 </P>
 <HR>
 
-<P>The <I>thresh</I> keyword allows sub-selection of lattice sites to output.
-Multiple thresholds can be specified.  Specifying "none" turns off all
-threshold criteria.  If thresholds are specified, only sites whose
-attributes meet all the threshold criteria are written to the dump
-file or included in the image.  The possible attributes that can be
-tested for are the same as the fields that can be specified in the
-<A HREF = "dump.html">dump</A> command.  Note that different attributes can be
-output by the dump command than are used as threshold criteria by the
-dump_modify command.  E.g. you can output the coordinates and
-propensity of sites whose energy is above some threshold.
-</P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
 <P>This command can only be used as part of the lattice-based

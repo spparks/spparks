@@ -59,9 +59,11 @@ appropriate format, a snapshot from a dump file can easily be
 converted into a data file suitable for input via the
 <A HREF = "read_sites.html">read_sites</A> command to restart a simulation.
 </P>
-<P>IMPORTANT NOTE: When running in parallel, the order of sites as
-printed to the dump file will be in chunks by processor, not ordered
-by ID.  The order will be the same in every snapshot.
+<P>IMPORTANT NOTE: When running in parallel, unless the <A HREF = "dump_modify.html">dump_modify
+sort</A> option is invoked, the lines of per-site
+information written to dump files will be in an indeterminate order,
+i.e. not ordered by site ID.  The order will be the same in every
+snapshot.
 </P>
 <P>The <A HREF = "dump_modify">dump_modify</A> command can be used to alter the times
 at which snapshots are written out as well as defined a subset of
@@ -70,24 +72,60 @@ sites to write out.
 <P>The text-based dump file is in the format of a <A HREF = "http://lammps.sandia.gov">LAMMPS dump
 file</A> which can thus be read-in by the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py
 toolkit</A>, converted to other formats, or used for visualization.
-An important modification to the LAMMPS-style header for each snapshot
-is the addition of real time to the line containing the snapshot
-number, i.e.
+</P>
+<HR>
+
+<P>Each snapshot in the dump file(s) begins with lines like these:
 </P>
 <PRE>ITEM: TIMESTEP TIME
 100   3.23945 
 </PRE>
-<P>The entry for "NUMBER OF ATOMS" is really number of sites, and will
-reflect any reduction in site count due to the
-<A HREF = "dump_modify.html">dump_modify</A> command, i.e.
+<P>The first field "100" denotes which snapshot it is, numbered as
+0,1,2,etc.  Snapshot 0 is thus typically for the state of the system
+before the first <A HREF = "run.html">run</A> command.  The second field "3.23945"
+is the simualtion time when the snapshot is generated.
+</P>
+<P>IMPORTANT NOTE: The second simulation time field is an addition to the
+standard LAMMPS-style header for each snapshot.
+</P>
+<P>The next lines are like these:
 </P>
 <PRE>ITEM: NUMBER OF ATOMS
 314159 
 </PRE>
-<P>If fields are listed, then only those quantities will be printed for
-each site.  If no fields are listed, then a default set of fields are
-output, namely "id site x y z".  These are the possible field values
-which may be specified.
+<P>The word "ATOMS" is LAMMPS syntax, but simply means the number of
+sites in a SPPARKS simulation.  The number "314159" will reflect any
+reduction in dumped site count due to the
+<A HREF = "dump_modify.html">dump_modify</A> command.
+</P>
+<P>The next lines are like these:
+</P>
+<PRE>ITEM: BOX BOUNDS
+0 50
+0 50
+0 50 
+</PRE>
+<P>which denote the simulation box size in x,y,z.  E.g, the last
+line is zlo and zhi.
+</P>
+<P>The next line is like this:
+</P>
+<P>ITEM: ATOMS id type x y z 
+</P>
+<P>which begins the per-site information.  One line per site follows.
+The trailing "id type x y z" are labels for the per-site columns,
+using the requested fields in the dump command.  The word "site" is
+converted to "type" so as to be compatible with how LAMMPS-style dump
+files are visualized.  The LAMMPS default is to use the "type" value
+to color the object (e.g. a sphere) drawn at each site.
+</P>
+<HR>
+
+<P>Only the specified fields will be included in the dump file for each
+site.  each site.  If no fields are listed, then a default set of
+fields are output, namely "id site x y z".
+</P>
+<P>these are the possible field values which may be specified.
 </P>
 <P>The <I>id</I> is a unique integer ID for each site.
 </P>

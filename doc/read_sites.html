@@ -46,15 +46,14 @@ applications.  The Values section is optional, since these can be set
 later via the <A HREF = "set.html">set</A> command.
 </P>
 <P>If a simulation box has already been defined (by the "create_box"
-command or a previous read_sites command), but no sites have previosly
-been defined, then the data file must define Sites.  It must also
-define Neighbors for on-lattice applications.  The Values section is
-optional.
+command), but no sites have previosly been defined, then the data file
+must define Sites.  It must also define Neighbors for on-lattice
+applications.  The Values section is optional.
 </P>
 <P>If a simulation box has already been defined, and sites have previosly
 been defined (by the "create_sites" command or a previous read_sites
 command), then no Sites or Neighbors can be specfied, but the Values
-section may be used.  This is a means of restarting a simulation using
+section is used.  This is a means of restarting a simulation using
 per-site info written out by the <A HREF = "dump.html">dump</A> command and
 reformatted into a data file so it can be input by this command.
 </P>
@@ -203,8 +202,9 @@ The lines can appear in any order.
 </P>
 <P>The number of values per site that should be listed depends on the
 application which defines the number of integer and floating-point
-values per site.  These are listed in order, with the integer values
-first, followed by the floating-point values.
+values per site.  All per-site values must be listed on each line.
+They are listed in order, with the integer values first, followed by
+the floating-point values.
 </P>
 <HR>
 
