@@ -61,7 +61,7 @@ the command you are using to launch SPPARKS.
 E: Processor partitions are inconsistent
 
 The total number of processors in all partitions must match the number
-of processors LAMMPS is running on.
+of processors SPPARKS is running on.
 
 E: Must use -in switch with multiple partitions
 
