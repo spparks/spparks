@@ -316,9 +316,15 @@ int DumpText::count()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpText::pack()
+void DumpText::pack(tagint *ids)
 {
   for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
+
+  if (ids) {
+    tagint *id = app->id;
+    for (int i = 0; i < nchoose; i++)
+      ids[i] = id[clist[i]];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -466,7 +472,8 @@ int DumpText::modify_param(int narg, char **arg)
     if (strcmp(arg[1],"none") == 0) iregion = -1;
     else {
       iregion = domain->find_region(arg[1]);
-      if (iregion == -1) error->all(FLERR,"Dump_modify region ID does not exist");
+      if (iregion == -1) 
+        error->all(FLERR,"Dump_modify region ID does not exist");
       int n = strlen(arg[1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[1]);
@@ -514,7 +521,8 @@ int DumpText::modify_param(int narg, char **arg)
     
     else if (strcmp(arg[1],"site") == 0) {
       if (app->iarray == NULL)
-	error->all(FLERR,"Threshold for a quantity application does not support");
+	error->all(FLERR,"Threshold for a quantity "
+                   "application does not support");
       thresh_array[nthresh] = SITE;
     }
     
@@ -533,14 +541,16 @@ int DumpText::modify_param(int narg, char **arg)
       thresh_index[nthresh] = atoi(&arg[1][1]);
       if (thresh_index[nthresh] < 1 || 
 	  thresh_index[nthresh] > app->ninteger)
-	error->all(FLERR,"Threshold for a quantity application does not support");
+	error->all(FLERR,"Threshold for a quantity "
+                   "application does not support");
       thresh_index[nthresh]--;
     } else if (arg[1][0] == 'd') {
       thresh_array[nthresh] = DARRAY;
       thresh_index[nthresh] = atoi(&arg[1][1]);
       if (thresh_index[nthresh] < 1 || 
 	  thresh_index[nthresh] > app->ndouble)
-	error->all(FLERR,"Threshold for a quantity application does not support");
+	error->all(FLERR,"Threshold for a quantity "
+                   "application does not support");
       thresh_index[nthresh]--;
       
     } else error->all(FLERR,"Invalid dump_modify threshold operator");
