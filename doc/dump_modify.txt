@@ -124,7 +124,7 @@ The {fileper} keyword is documented below with the {nfile} keyword.
 :line
 
 The {first} keyword can be used to set the counter used to enumerate
-successive snapshots.  This can be useful when restarting/continuing a
+successive snapshots.  This can be useful when continuing/restarting a
 previous simulation, so as not to overlap new snapshots with previous
 output.
 

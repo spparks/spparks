@@ -53,10 +53,10 @@ If a simulation box has already been defined, and sites have previosly
 been defined (by the "create_sites" command or a previous read_sites
 command), then no Sites or Neighbors can be specfied, but the Values
 section is used to set all or a subset of the per-site values defined
-by the application.  This is a means of restarting (continuing) a
-simulation using per-site info written out by the "dump
-sites"_dump.html command, which can write an output dump file in the
-format that this command reads.
+by the application.  This is a means of continuing a previous
+simulation using a file written by the "dump sites"_dump.html command
+as a restart file, since it writes in the format that this command
+reads.
 
 Note that the periodicity of the simulation box, as defined by the
 "boundary"_boundary.html command is not considered by this command
@@ -105,7 +105,7 @@ simulation box), then the values in the data file must match.
 {dimension} = dimension of system = 1,2,3
 {sites} = number of sites
 {max neighbors} = max # of neighbors of any site
-{label1 label2 ... labelN columns} = column labels for Values section
+{label1 label2 ... labelN values} = column labels for Values section
 {xlo xhi} = simulation box boundaries in x dimension
 {ylo yhi} = simulation box boundaries in y dimension
 {zlo zhi} = simulation box boundaries in z dimension :ul
@@ -113,11 +113,11 @@ simulation box), then the values in the data file must match.
 The {max neighbors} setting is only needed if the file contains a
 Neighbors section, which is only used for on-lattice applications.
 
-The {columns} setting is only needed if a Values section is included
-in the file, and it does not list per-site info for all the integer
+The {values} setting is only needed if a Values section is included in
+the file, and if it does not list per-site info for all the integer
 and floating point values defined by the application.  If only a
-subset of per-site values are listed in each line, then the {columns}
-setting defines what they are.  The labels have the same syntax as
+subset of per-site values are listed in each line, then the {values}
+setting labels what they are.  The labels have the same syntax as
 those defined by the "dump sites"_dump.html command, namely "id",
 "site", "iN", or "dN".  Note that "id" must always be included and
 come first, so that SPPARKS can assign the values that follow to the

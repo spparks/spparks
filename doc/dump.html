@@ -57,8 +57,8 @@ toolkit</A>, converted to other formats, or used for visualization.
 </P>
 <P>The <I>sites</I> style dump file is in the same format that is read by the
 <A HREF = "read_sites.html">read_sites</A> command.  The dumped files can thus be
-used to restart a simulation, using the <A HREF = "read_sites.html">read_sites</A>
-command.
+used as restart files to continue a simulation, using the
+<A HREF = "read_sites.html">read_sites</A> command.
 </P>
 <P>The <I>vkt</I> style dump file is in the VTI format that can be read by
 various visualization programs, including
@@ -164,7 +164,7 @@ with a single snapshot.
 </P>
 <P>IMPORTANT NOTE: This style of dump command will not write "Sites" or
 "Neighbors" sections to the sites file.  When using the sites file to
-restart a simulation, it is assumed that the restart script will
+continue a simulation, it is assumed that the restart script will
 define the sites and their neighbors in an alternate way, e.g. via the
 "create_box" and "create_sites" commands.  Or by reading a separate
 sites file with that information via an earlies "read sites" command.
@@ -199,11 +199,11 @@ for details on these lattice types.
 <P>If a <A HREF = "lattice.html">lattice</A> command was used to create sites, then
 SPPARKS will check that the lattice is one of these valid styles.
 However, if a <A HREF = "read_sites.html">read_sites</A> command was used to define
-sites, e.g. by reading a previous <I>sites</I>-style dump file to restart a
-simulation, then no lattice is defined and SPPARKS cannot check this.
-It is up to you to insure the VTK output meets this restriction.
-Otherwise a visualization program may not be able to render a useful
-image.
+sites, e.g. by reading a previous <I>sites</I>-style dump file to continue
+a simulation, then no lattice is defined and SPPARKS cannot check
+this.  It is up to you to insure the VTK output meets this
+restriction.  Otherwise a visualization program may not be able to
+render a useful image.
 </P>
 <P>IMPORTANT NOTE: The <A HREF = "dump_modify.html">dump_modify sort</A> command must
 be used to insure the per-site info for the regular lattice is written
