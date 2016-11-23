@@ -83,7 +83,7 @@ double Output::setup(double time, int memflag)
 
   double dump_time = app->stoptime;
   for (int i = 0; i < ndump; i++) {
-    if (dumplist[i]->idump == 0 && time >= dumplist[i]->delay)
+    if (dumplist[i]->firstflag && time >= dumplist[i]->delay)
       dumplist[i]->write(time);
     dumplist[i]->next_time = 
       next_time(time,dumplist[i]->logfreq,dumplist[i]->delta,
@@ -273,7 +273,7 @@ void Output::dump_one(int narg, char **arg)
   if (i == ndump) 
     error->all(FLERR,"Could not find dump ID in dump_one command");
 
-  if (dumplist[i]->idump == 0)
+  if (dumplist[i]->firstflag)
     error->all(FLERR,"Cannot use dump_one for first snapshot in dump file");
 
   dumplist[i]->write(app->time);
