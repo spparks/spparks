@@ -52,8 +52,9 @@ up to the specified time.  E.g. if the current time is 10.0 and "run
 100.0 upto" is used, then an additional 90.0 seconds will be run.
 This can be useful for very long runs on a machine that allocates
 chunks of time and terminate your job when time is exceeded.  If you
-need to restart your script multiple times (reading in the last
-restart file), you can keep restarting your script with the same run
+need to restart your script multiple times (after reading in the last
+<A HREF = "dump.html">dump sites</A> snapshot via the <A HREF = "read_sites.html">read_sites</A>
+command), you can keep restarting your script with the same run
 command until the simulation finally completes.
 </P>
 <P>The <I>pre</I> and <I>post</I> keywords can be used to streamline the setup,
