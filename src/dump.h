@@ -24,6 +24,7 @@ class Dump : protected Pointers {
   char *id;                  // user-defined name of Dump
   char *style;               // style of Dump
   int idump;                 // counter for output snapshots
+  int firstflag;             // 1 if no dump yet written, 0 if not first
   double next_time,delta;    // params governing output times
   double scale,delay;
   int logfreq,nrepeat;

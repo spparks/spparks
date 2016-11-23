@@ -131,6 +131,7 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   index = proclist = NULL;
   irregular = NULL;
 
+  firstflag = 1;
   idump = 0;
 }
 
@@ -274,6 +275,7 @@ void Dump::write(double time)
 
   if (filewriter) write_header(nheader,time);
 
+  firstflag = 0;
   idump++;
 
   // grow communication buffer if necessary
