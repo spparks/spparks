@@ -679,6 +679,12 @@ void Dump::modify_params(int narg, char **arg)
       *ptr = '%';
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"first") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      idump = atoi(arg[iarg+1]);
+      if (idump < 0.0) error->all(FLERR,"Illegal dump_modify command");
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"flush") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) flush_flag = 1;

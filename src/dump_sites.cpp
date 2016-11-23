@@ -55,7 +55,7 @@ void DumpSites::write_header(bigint ndump, double time)
           id,idump,time);
   fprintf(fp,"%d dimension\n",domain->dimension);
   fprintf(fp,BIGINT_FORMAT " sites\n",ndump);
-  fprintf(fp,"%s columns\n",columns_orig);
+  fprintf(fp,"%s values\n",columns_orig);
   fprintf(fp,"%g %g xlo xhi\n",boxxlo,boxxhi);
   fprintf(fp,"%g %g ylo yhi\n",boxylo,boxyhi);
   fprintf(fp,"%g %g zlo zhi\n",boxzlo,boxzhi);
