@@ -37,6 +37,34 @@ describe the version you have. :ule,l
 :line
 :line
 
+[23 Nov 2016]
+
+Added some more input/output options to make it easier to use
+SPPARKS in different workflows.
+
+"dump_modify"_doc/dump_modify.html fileper and nfile and first options = write N dump files from P procs where 1 < N < P
+new "dump sites"_doc/dump.html command = write out dump snapshots in read_sites format
+new "dump vtk"_doc/dump.html command = write out dump snapshots in VTK format
+read_sites option to read only specified per-site values :ul
+
+The new "dump modify"_doc/dump_modify.html options can be useful when
+running large problems on a large number P of processors, to allow
+other choices besides 1 (huge) output file or P files.
+
+The new "dump sites"_doc/dump.html style and
+"read_sites"_doc/read_sites.html options mean that SPPARKS dump output
+can be used directly by the read_sites command to continue or restart
+a previous simulation.
+
+The new "dump vtk"_dump.html style makes it easier to directly
+visualize some kinds of SPPARKS output directly in VTK-compatible
+visulizers, like "ParaView"_http://www.paraview.org.
+
+This is the "list of changed files"_patches/files.23Nov16 from the 22
+Nov 2016 version.
+
+:line
+
 [22 Nov 2016]
 
 Added a "dump_modify sort"_doc/dump_modify.html command to enable

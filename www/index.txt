@@ -89,9 +89,17 @@ Security statement"_security.
 
 Recent SPPARKS News :c,h4
 
+<IMG SRC = "images/new.gif"> (11/16) A variety of new input/output
+options were added, including "dump sites"_doc/dump.html and "dump
+vtk"_doc/dump.html styles, and "dump_modify"_dump_modify.html and
+"read_sites"_doc/read_sites.html options.  These make it easier to use
+SPPARKS with VTK-compatible visualizers, like
+"ParaView"_http://www.paraview.org, and to continue/restart SPPARKS
+simulations using dump file snapshots as a restart file. :ulb,l
+
 <IMG SRC = "images/new.gif"> (3/12) Release of Python wrapper for
 SPPARKS in python dir with additional examples of using SPPARKS as a
-library in the example/COUPLE dir. :ulb,l
+library in the example/COUPLE dir. :l
 
 <IMG SRC = "images/new.gif"> (11/09) Release of 11 Nov 2009 version of
 SPPARKS.  New commands and features include: "app_style
