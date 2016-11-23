@@ -27,15 +27,15 @@ read_sites ../run7/data.potts.gz
 <P>Read in a data file containing information SPPARKS needs to setup an
 <A HREF = "app_style.html">on-lattice or off-lattice application</A>.  The file can
 be ASCII text or a gzipped text file (detected by a .gz suffix).  This
-is one of 2 ways to specify event sites ; see the
+is one of 2 ways to specify event sites; see the
 <A HREF = "create_sites.html">create_sites</A> command for another method.
 </P>
 <P>A data file has a header and a body, as described below.  The body of
-the file contains up to 3 sections: Sites, Neighbors, Values.  Sites
-defines the coordinates of event sites.  Neighbors define the
-neighbors of each site (only for on-lattice applications).  Values
-assign per-site values to each site, which can also be done via the
-<A HREF = "set.html">set</A> command.
+the file contains up to 3 sections in the following order: Sites,
+Neighbors, Values.  Sites defines the coordinates of event sites.
+Neighbors define the neighbors of each site (only for on-lattice
+applications).  Values assign per-site values to each site, which can
+also be done via the <A HREF = "set.html">set</A> command.
 </P>
 <P>The read_sites command can be used in one of 3 scenarios:
 </P>
@@ -46,25 +46,29 @@ applications.  The Values section is optional, since these can be set
 later via the <A HREF = "set.html">set</A> command.
 </P>
 <P>If a simulation box has already been defined (by the "create_box"
-command), but no sites have previosly been defined, then the data file
-must define Sites.  It must also define Neighbors for on-lattice
-applications.  The Values section is optional.
+command), but no sites have previously been defined, then the data
+file must define Sites.  It must also define Neighbors for on-lattice
+applications.  The Values section is optional.  If the data file
+defines a box size, it must be consistent with the simulation box that
+already exists.
 </P>
 <P>If a simulation box has already been defined, and sites have previosly
 been defined (by the "create_sites" command or a previous read_sites
 command), then no Sites or Neighbors can be specfied, but the Values
-section is used.  This is a means of restarting a simulation using
-per-site info written out by the <A HREF = "dump.html">dump</A> command and
-reformatted into a data file so it can be input by this command.
+section is used to set all or a subset of the per-site values defined
+by the application.  This is a means of restarting (continuing) a
+simulation using per-site info written out by the <A HREF = "dump.html">dump
+sites</A> command, which can write an output dump file in the
+format that this command reads.
 </P>
 <P>Note that the periodicity of the simulation box, as defined by the
 <A HREF = "boundary.html">boundary</A> command is not considered by this command
 when defining sites or neighbors.  It is up to you to insure sites are
 not duplicated on a periodic boundary, or that a site's neighbor list
 does not include sites that are on the other side of the simulation
-box, across a non-periodic boundary.  This is in contrast to the
+box when the boundary is not periodic.  This is in contrast to the
 <A HREF = "create_sites.html">create_sites</A> command which accounts for both of
-these issues when creating sites and neighbor lists.
+these issues when defining sites and their neighbors.
 </P>
 <HR>
 
@@ -95,21 +99,32 @@ words - e.g. two spaces or a tab between "xlo and "xhi" is not valid.
 any order.  The value(s) are read from the beginning of the line.
 Thus the keyword <I>sites</I> should be in a line like "1000 sites"; the
 keyword <I>ylo yhi</I> should be in a line like "-10.0 10.0 ylo yhi".  All
-these settings have a default value of 0, except the lo/hi box size
-defaults which are -0.5 and 0.5.  A line need only appear if the value
-is different than the default.  If the keyword values have already
-been defined (e.g. box sizes for a previously created simulation box),
-then the values in the data file must match.
+these numeric settings have a default value of 0, except the lo/hi box
+size defaults which are -0.5 and 0.5.  A line need only appear if the
+value is different than the default.  If the keyword values have
+already been defined (e.g. box sizes for a previously created
+simulation box), then the values in the data file must match.
 </P>
 <UL><LI><I>dimension</I> = dimension of system = 1,2,3
 <LI><I>sites</I> = number of sites
 <LI><I>max neighbors</I> = max # of neighbors of any site
+<LI><I>label1 label2 ... labelN columns</I> = column labels for Values section
 <LI><I>xlo xhi</I> = simulation box boundaries in x dimension
 <LI><I>ylo yhi</I> = simulation box boundaries in y dimension
 <LI><I>zlo zhi</I> = simulation box boundaries in z dimension 
 </UL>
 <P>The <I>max neighbors</I> setting is only needed if the file contains a
 Neighbors section, which is only used for on-lattice applications.
+</P>
+<P>The <I>columns</I> setting is only needed if a Values section is included
+in the file, and it does not list per-site info for all the integer
+and floating point values defined by the application.  If only a
+subset of per-site values are listed in each line, then the <I>columns</I>
+setting defines what they are.  The labels have the same syntax as
+those defined by the <A HREF = "dump.html">dump sites</A> command, namely "id",
+"site", "iN", or "dN".  Note that "id" must always be included and
+come first, so that SPPARKS can assign the values that follow to the
+correct site.
 </P>
 <P>The simulation box size is determined by the lo/hi settings.  For 2d
 simulations, the <I>zlo zhi</I> values should be set to bound the z coords
@@ -184,11 +199,10 @@ individual site can be listed in any order.
 </P>
 <UL><LI>one line per site 
 
-<LI>line syntax: ID i1 i2 ... iN d1 d2 ... dN 
+<LI>line syntax: ID value1 value2 ... 
 
 <PRE>ID = global site ID (1-N)
-i1,i2,...iN = integer values for the site
-d1,d2,...dN = floating point values for the site 
+value1,value2,... = integer or floating point values for the site 
 </PRE>
 <LI>example: 
 
@@ -200,11 +214,15 @@ d1,d2,...dN = floating point values for the site
 defined by the <I>sites</I> keyword in the header section of the file.
 The lines can appear in any order.
 </P>
-<P>The number of values per site that should be listed depends on the
-application which defines the number of integer and floating-point
-values per site.  All per-site values must be listed on each line.
-They are listed in order, with the integer values first, followed by
-the floating-point values.
+<P>The number of values per site depends on the <I>comment</I> keyword
+in the header section of the file.  If it is not defined, then
+the default line syntax is assumed to be:
+</P>
+<LI>line syntax: ID i1 i2 ... iN d1 d2 ... dN 
+
+<P>meaning that all per-site values must be listed on each line.  In the
+default case, they are listed in order, with the integer values first,
+followed by the floating-point values.
 </P>
 <HR>
 

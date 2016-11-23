@@ -19,7 +19,7 @@
 </PRE>
 <UL><LI>dump-ID = user-assigned name for the dump 
 
-<LI>style = <I>text</I> or <I>image</I> 
+<LI>style = <I>text</I> or <I>sites</I> or <I>vtk</I> or <I>image</I> 
 
 <LI>delta = time increment between dumps (seconds) 
 
@@ -27,9 +27,10 @@
 
 <LI>fields = list of arguments for a particular style 
 
-<PRE>  <I>image</I> fields = discussed on <A HREF = "dump_image.html">dump image</A> doc page
-  <I>text</I> fields = <I>id</I> or <I>site</I> or <I>x</I> or <I>y</I> or <I>z</I> or
-                  <I>energy</I> or <I>propensity</I> or <I>iN</I> or <I>dN</I> 
+<PRE>  <I>text</I> or <I>sites</I> or <I>vtk</I> fields =
+     <I>id</I> or <I>site</I> or <I>x</I> or <I>y</I> or <I>z</I> or
+     <I>energy</I> or <I>propensity</I> or <I>iN</I> or <I>dN</I>
+  <I>image</I> fields = discussed on <A HREF = "dump_image.html">dump image</A> doc page 
 </PRE>
 
 </UL>
@@ -37,45 +38,55 @@
 </P>
 <PRE>dump 1 text 0.25 tmp.dump
 dump 1 text 1.0 my.dump id site x y z
+dump 1 sites 1.0 my.sites.* id site i2 i3
+dump 1 vtk 1.0 my.vkt.* site
 dump mydump text 5.0 snap.ising id site energy i1 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>text</I> style dumps a snapshot of site values to one or more files
-at time intervals of <I>delta</I> during a simulation.  The <I>image</I> style
-creates a JPG or PPM image file of the site configuration every at
-time intervals of <I>delta</I>, as discussed on the <A HREF = "dump_image.html">dump
-image</A> doc page.  The remainder of this page
-refers to the <I>text</I> style.
+<P>The <I>text</I>, <I>sites</I>, and <I>vtk</I> styles dump a snapshot of site values
+to one or more files at time intervals of <I>delta</I> during a simulation.
+The <I>image</I> style creates a JPG or PPM image file of the site
+configuration every at time intervals of <I>delta</I>, as discussed on the
+<A HREF = "dump_image.html">dump image</A> doc page.  The remainder of this page
+refers to the <I>text</I>, <I>sites</I>, and <I>vtk</I> styles.
+</P>
+<P>The <I>text</I> style dump file is in the format of a <A HREF = "http://lammps.sandia.gov">LAMMPS dump
+file</A> which can thus be read-in by the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py
+toolkit</A>, converted to other formats, or used for visualization.
+</P>
+<P>The <I>sites</I> style dump file is in the same format that is read by the
+<A HREF = "read_sites.html">read_sites</A> command.  The dumped files can thus be
+used to restart a simulation, using the <A HREF = "read_sites.html">read_sites</A>
+command.
+</P>
+<P>The <I>vkt</I> style dump file is in the VTI format that can be read by
+various visualization programs, including
+<A HREF = "http://www.paraview.org">ParaView</A>.
 </P>
 <P>As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file
-or one per processor).  The quantities printed are obtained from the
-application.  Only <A HREF = "app_style.html">on-lattice and off-lattice
-applications</A> support dumps since they are spatial in
-nature.  More that one dump command and file can be used during a
-simulation by giving each a unique dump-ID.  Note that if written in
-appropriate format, a snapshot from a dump file can easily be
-converted into a data file suitable for input via the
-<A HREF = "read_sites.html">read_sites</A> command to restart a simulation.
+or one per processor or one file per group of processors).  The fields
+included in each snapshot are obtained from the application.  Only
+<A HREF = "app_style.html">on-lattice and off-lattice applications</A> support dumps
+since they are spatial in nature.  More that one dump command and
+output file can be used during a simulation by giving each a unique
+dump-ID and unique filename.
 </P>
 <P>IMPORTANT NOTE: When running in parallel, unless the <A HREF = "dump_modify.html">dump_modify
 sort</A> option is invoked, the lines of per-site
 information written to dump files will be in an indeterminate order,
-i.e. not ordered by site ID.  The order will be the same in every
-snapshot.
+i.e. not ordered by site ID.  This is because the sites owned by each
+processor are written in a contiguous chunk.  The ordering will be the
+same in every snapshot.
 </P>
 <P>The <A HREF = "dump_modify">dump_modify</A> command can be used to alter the times
-at which snapshots are written out as well as defined a subset of
-sites to write out.
-</P>
-<P>The text-based dump file is in the format of a <A HREF = "http://lammps.sandia.gov">LAMMPS dump
-file</A> which can thus be read-in by the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py
-toolkit</A>, converted to other formats, or used for visualization.
+at which snapshots are written out as well as define a subset of sites
+to write out.
 </P>
 <HR>
 
-<P>Each snapshot in the dump file(s) begins with lines like these:
+<P>For the <I>text</I> format, each snapshot begins with lines like these:
 </P>
 <PRE>ITEM: TIMESTEP TIME
 100   3.23945 
@@ -121,18 +132,100 @@ to color the object (e.g. a sphere) drawn at each site.
 </P>
 <HR>
 
-<P>Only the specified fields will be included in the dump file for each
-site.  each site.  If no fields are listed, then a default set of
-fields are output, namely "id site x y z".
+<P>For the <I>sites</I> format, each snapshot begins with lines like these.
 </P>
-<P>these are the possible field values which may be specified.
+<PRE>Site file written by dump sites 2 command at time: 3 3.01 
+</PRE>
+<PRE>3 dimension
+1000 sites
+id site columns
+0 10 xlo xhi
+0 10 ylo yhi
+0 10 zlo zhi 
+</PRE>
+<P>This is followed by a "Values" section of per-site info, with one line
+per site.  Each line begins with a site ID, followed by the per-site
+values listed in the "columns" header line
+</P>
+<P>See the "read_sites" command for more explanation of this format.  The
+two time fields at the end of the first (comment) line are the same
+TIME info described above the the <I>text</I> style format.  The "id site"
+keywords that preceed "columns" define what per-site values are
+included in the file.  The keyword "id" must be the first value in
+each per-site line.  One or more per-site values can follow.  Note
+that it only makes sense to include the "site" or "iN" or "dN" fields
+as output values, since the <A HREF = "read_sites.html">read_sites</A> command can
+only process those as input.
+</P>
+<P>IMPORTANT NOTE: For this style, a filename with the "*" wildcard must
+be used so that a different file is written for each snapshot.  The is
+because the <A HREF = "read_sites.html">read_sites</A> command only reads a file
+with a single snapshot.
+</P>
+<P>IMPORTANT NOTE: This style of dump command will not write "Sites" or
+"Neighbors" sections to the sites file.  When using the sites file to
+restart a simulation, it is assumed that the restart script will
+define the sites and their neighbors in an alternate way, e.g. via the
+"create_box" and "create_sites" commands.  Or by reading a separate
+sites file with that information via an earlies "read sites" command.
+</P>
+<P>IMPORTANT NOTE: You must write information for all sites to the
+<I>sites</I> style dump file.  E.g. you cannot use the
+<A HREF = "dump_modify.html">dump_modify</A> command to limit the output to a subset
+of sites.  This is because the <A HREF = "read_sites.html">read_sites</A> requires
+information for all sites in the system.
+</P>
+<HR>
+
+<P>For the <I>vtk</I> format, each snapshot is wrapped with a VTK-specific
+header and footer.  Only a single field can be listed, which must be a
+per-site value, e.g. "site" or "iN" or "dN".  
+</P>
+<P>A VTK-compatible visualization program will read the information in
+the dump snapshot and display one object (e.g. a cube or sphere) at
+each point on a regular 1d or 2d or 3d lattice.
+</P>
+<P>IMPORTANT NOTE: Use of the "dump_modify vtk" command is required to
+use this dump style.  This is to make additional simulation-specific
+settings included in the VTK-compatible dump file.
+</P>
+<P>IMPORTANT NOTE: The <I>vtk</I> style can only be used to dump sites that
+are on a simple, regular lattice.  In 1d, this is a "line/2n" lattice.
+In 2d, this is a square lattice, "sq/4n" or "sq/8n".  In 3d, this is a
+simple cubic lattice, "sc/6n" or "sc/26n".  See the
+<A HREF = "lattice.html">lattice</A> and <A HREF = "create_sites.html">create_sites</A> commands
+for details on these lattice types.
+</P>
+<P>If a <A HREF = "lattice.html">lattice</A> command was used to create sites, then
+SPPARKS will check that the lattice is one of these valid styles.
+However, if a <A HREF = "read_sites.html">read_sites</A> command was used to define
+sites, e.g. by reading a previous <I>sites</I>-style dump file to restart a
+simulation, then no lattice is defined and SPPARKS cannot check this.
+It is up to you to insure the VTK output meets this restriction.
+Otherwise a visualization program may not be able to render a useful
+image.
+</P>
+<P>IMPORTANT NOTE: The <A HREF = "dump_modify.html">dump_modify sort</A> command must
+be used to insure the per-site info for the regular lattice is written
+to the dump file in the regular ordering that VTK expects.
+</P>
+<P>IMPORTANT NOTE: For this style, a filename with the "*" wildcard must
+be used so that a different file is written for each snapshot.
+</P>
+<HR>
+
+<P>Only the specified fields will be included in the dump file for each
+site.  If no fields are listed, then a default set of fields are
+output, namely "id site x y z".
+</P>
+<P>These are the possible field values which may be specified.
 </P>
 <P>The <I>id</I> is a unique integer ID for each site.
 </P>
 <P>The <I>site</I>, <I>iN</I>, and <I>dN</I> fields specify a per-site value.  <I>Site</I> is
-the same as <I>i1</I>.  <I>iN</I> fields are integer values; <I>dN</I> fields are
-floating-point value. The application defines how many integer and
-floating=point values are stored for each site.
+the same as <I>i1</I>.  <I>iN</I> fields are integer values for integer fields 1
+to N; <I>dN</I> fields are floating-point values.  The application defines
+how many integer and floating-point values are stored for each site.
 </P>
 <P>The <I>x</I>, <I>y</I>, <I>z</I> values are the coordinates of the site.
 </P>
@@ -152,6 +245,9 @@ MC, then no propensity is defined.
 The default is to write one large text file, which is opened when the
 dump command is invoked and closed when an <A HREF = "undump.html">undump</A>
 command is used or when SPPARKS exits.
+</P>
+<P>IMPORTANT NOTE: Not all dump styles support all the filename options
+described next.  See the Restrictions section below for details.
 </P>
 <P>Dump filenames can contain two wild-card characters.  If a "*"
 character appears in the filename, then one file per snapshot is
@@ -189,6 +285,10 @@ longer to write.
 <P>This command can only be used as part of on-lattice or off-lattice
 applications.  See the <A HREF = "app_style.html">app_style</A> command for further
 details.
+</P>
+<P>For the filename specified for the <I>sites</I> or <I>vtk</I> styles, a "*"
+wildcard must be used and a "%" wildcard cannot be used.  Likewise a
+"*.bin" suffix cannot be used, but a "*.gz" suffix can be used.
 </P>
 <P>To write gzipped dump files, you must compile SPPARKS with the
 -DSPPARKS_GZIP option - see the <A HREF = "Section_start.html#2_2">Making
