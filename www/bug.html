@@ -40,6 +40,34 @@ describe the version you have.
 
 <HR>
 
+<P><B>23 Nov 2016</B>
+</P>
+<P>Added some more input/output options to make it easier to use
+SPPARKS in different workflows.
+</P>
+<UL><LI><A HREF = "doc/dump_modify.html">dump_modify</A> fileper and nfile and first options = write N dump files from P procs where 1 < N < P
+<LI>new <A HREF = "doc/dump.html">dump sites</A> command = write out dump snapshots in read_sites format
+<LI>new <A HREF = "doc/dump.html">dump vtk</A> command = write out dump snapshots in VTK format
+<LI>read_sites option to read only specified per-site values 
+</UL>
+<P>The new <A HREF = "doc/dump_modify.html">dump modify</A> options can be useful when
+running large problems on a large number P of processors, to allow
+other choices besides 1 (huge) output file or P files.
+</P>
+<P>The new <A HREF = "doc/dump.html">dump sites</A> style and
+<A HREF = "doc/read_sites.html">read_sites</A> options mean that SPPARKS dump output
+can be used directly by the read_sites command to continue or restart
+a previous simulation.
+</P>
+<P>The new <A HREF = "dump.html">dump vtk</A> style makes it easier to directly
+visualize some kinds of SPPARKS output directly in VTK-compatible
+visulizers, like <A HREF = "http://www.paraview.org">ParaView</A>.
+</P>
+<P>This is the <A HREF = "patches/files.23Nov16">list of changed files</A> from the 22
+Nov 2016 version.
+</P>
+<HR>
+
 <P><B>22 Nov 2016</B>
 </P>
 <P>Added a <A HREF = "doc/dump_modify.html">dump_modify sort</A> command to enable
