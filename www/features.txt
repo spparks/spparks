@@ -38,8 +38,9 @@ The set of on-lattice applications currently in SPPARKS are:
 
 diffusion model
 Ising model
-Potts model
-membrane model :ul
+Potts model in many variants
+membrane model
+sintering model :ul
 
 The set of off-lattice applications currently in SPPARKS are:
 
