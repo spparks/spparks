@@ -238,11 +238,13 @@ command is used or when SPPARKS exits.
 IMPORTANT NOTE: Not all dump styles support all the filename options
 described next.  See the Restrictions section below for details.
 
-Dump filenames can contain two wild-card characters.  If a "*"
+Dump filenames can contain two wildcard characters.  If a "*"
 character appears in the filename, then one file per snapshot is
 written and the "*" character is replaced with the timestep value.
-For example, tmp.dump.* becomes tmp.dump.0, tmp.dump.10000,
-tmp.dump.20000, etc.
+This is a counter which starts at 0, and is incremented for each
+snapshot.  For example, tmp.dump.* becomes tmp.dump.0, tmp.dump.1,
+tmp.dump.2, etc.  The initial value for this counter defaults to 0,
+but can be reset via the "dump_modify first"_dump_modify.html command.
 
 If a "%" character appears in the filename, then one file is written
 for each processor and the "%" character is replaced with the
