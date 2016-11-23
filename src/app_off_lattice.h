@@ -34,7 +34,8 @@ class AppOffLattice : public App {
 
   void grow(int);
   void add_site(tagint, double, double, double);
-  void add_values(int, char **x);
+  void add_values(int, char **);
+  void add_value(int, int, int, char *);
 
   // pure virtual functions, must be defined in child class
 

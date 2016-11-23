@@ -37,7 +37,7 @@ class Domain : protected Pointers {
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;    // global box bounds
   double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;    // my portion of box
   int nx,ny,nz;               // size of box in lattice spacings
-                              // only set for periodic sites from create_sites
+                              // only set for periodic systems from create_sites
 
   class Lattice *lattice;                  // user-defined lattice
 

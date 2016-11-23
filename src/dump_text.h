@@ -32,6 +32,7 @@ class DumpText : public Dump {
  protected:
   int ioptional;             // where optional trailing args start
 
+  int *fields;               // descriptor for each field
   int *vtype;                // type of each vector (INT, DOUBLE)
   int *vindex;               // index into int,double packs
   char **vformat;            // format string for each vector element
@@ -46,6 +47,7 @@ class DumpText : public Dump {
   int *thresh_index;         // N index for iN and dN thresholds
 
   char *columns;             // text describing columns of dump output
+  char *columns_orig;        // same w/out "site" changed to "type"
 
   int nchoose;               // # of selected atoms
   int maxlocal;              // size of atom selection and variable arrays
@@ -58,8 +60,8 @@ class DumpText : public Dump {
   virtual void init_style();
   int count();
   void pack(tagint *);
-  void write_header(bigint, double);
-  void write_data(int, double *);
+  virtual void write_header(bigint, double);
+  virtual void write_data(int, double *);
   int parse_fields(int, char **);
   virtual int modify_param(int, char **);
 

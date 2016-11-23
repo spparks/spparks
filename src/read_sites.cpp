@@ -46,6 +46,7 @@ ReadSites::ReadSites(SPPARKS *spk) : Pointers(spk)
   buffer = new char[CHUNK*MAXLINE];
   narg = maxarg = 0;
   arg = NULL;
+  columns = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,6 +54,7 @@ ReadSites::ReadSites(SPPARKS *spk) : Pointers(spk)
 ReadSites::~ReadSites()
 {
   delete [] line;
+  delete [] columns;
   delete [] keyword;
   delete [] buffer;
   memory->sfree(arg);
@@ -209,6 +211,7 @@ void ReadSites::header()
   maxneigh = 0;
   boxxlo = boxylo = boxzlo = -0.5;
   boxxhi = boxyhi = boxzhi = 0.5;
+  columns = NULL;
 
   while (1) {
 
@@ -260,24 +263,32 @@ void ReadSites::header()
       if (app->sites_exist && maxneigh != applattice->maxneigh)
 	error->all(FLERR,
 		   "Data file maxneigh setting does not match existing sites");
+    } else if (strstr(line,"values")) {
+      delete [] columns;
+      ptr = strstr(line,"values");
+      *ptr = '\0';
+      n = strlen(line) + 1;
+      columns = new char[n];
+      strcpy(columns,line);
+
     } else if (strstr(line,"xlo xhi")) {
       sscanf(line,"%lg %lg",&boxxlo,&boxxhi);
       if (domain->box_exist && (fabs(domain->boxxlo-boxxlo) > EPSILON ||
 				fabs(domain->boxxhi-boxxhi) > EPSILON))
 	  error->all(FLERR,
-		     "Data file simluation box different that current box");
+		     "Data file simulation box different that current box");
     } else if (strstr(line,"ylo yhi")) {
       sscanf(line,"%lg %lg",&boxylo,&boxyhi);
       if (domain->box_exist && (fabs(domain->boxylo-boxylo) > EPSILON ||
 				fabs(domain->boxyhi-boxyhi) > EPSILON))
 	  error->all(FLERR,
-		     "Data file simluation box different that current box");
+		     "Data file simulation box different that current box");
     } else if (strstr(line,"zlo zhi")) {
       sscanf(line,"%lg %lg",&boxzlo,&boxzhi);
       if (domain->box_exist && (fabs(domain->boxzlo-boxzlo) > EPSILON ||
 				fabs(domain->boxzhi-boxzhi) > EPSILON))
 	  error->all(FLERR,
-		     "Data file simluation box different that current box");
+		     "Data file simulation box different that current box");
     } else break;
   }
 
@@ -405,7 +416,7 @@ void ReadSites::sites()
 
 void ReadSites::neighbors()
 {
-  int i,m,nchunk,nvalues;
+  int i,m,n,nchunk;
   tagint idone;
   char *next,*buf;
 
@@ -454,15 +465,15 @@ void ReadSites::neighbors()
       loc = hash.find(idone);
 
       if (loc != hash.end()) {
-	nvalues = 0;
-	while (nvalues <= maxneigh) {
-	  values[nvalues] = strtok(NULL," \t\n\r\f");
-	  if (values[nvalues] == NULL) break;
-	  nvalues++;
+	n = 0;
+	while (n <= maxneigh) {
+	  values[n] = strtok(NULL," \t\n\r\f");
+	  if (values[n] == NULL) break;
+	  n++;
 	}
 
-	if (nvalues > maxneigh) error->one(FLERR,"Too many neighbors per site");
-	applattice->add_neighbors(loc->second,nvalues,values);
+	if (n > maxneigh) error->one(FLERR,"Too many neighbors per site");
+	applattice->add_neighbors(loc->second,n,values);
       }
 
       buf = next + 1;
@@ -506,11 +517,51 @@ void ReadSites::values()
   for (i = 0; i < nlocal; i++)
     hash.insert(std::pair<tagint,int> (id[i],i));
 
-  // read and broadcast one CHUNK of lines at a time
-  // store site's values if I own its ID
+  // if values keyword not used in header:
+  //   nvalues = Ninteger + Ndouble 
+  // else:
+  //   parse columns string to determine fields
+  //   set nvalues, type[], which[]
+  // allocate values[] for parsing per-site line from file
 
-  int nvalues = app->ninteger + app->ndouble;
-  char **values = new char*[nvalues];
+  int nvalues;
+  int *type = NULL;
+  int *index = NULL;
+
+  if (columns == NULL) nvalues = app->ninteger + app->ndouble;
+  else {
+    nvalues = count_words(columns) - 1;
+    if (nvalues < 1) 
+      error->all(FLERR,"Read sites Values section has no values per site");
+    char *keyword = strtok(columns," \t\n\r\f");
+    if (strcmp(keyword,"id") != 0)
+      error->all(FLERR,"Read sites values header keyword must start with id");
+    type = new int[nvalues];
+    index = new int[nvalues];
+    for (i = 0; i < nvalues; i++) {
+      keyword = strtok(NULL," \t\n\r\f");
+      if (strcmp(keyword,"site") == 0) {
+        type[i] = 0;
+        index[i] = 1;
+      } else if (keyword[0] == 'i') {
+        type[i] = 0;
+        index[i] = atoi(&keyword[1]);
+        if (index[i] < 1 || index[i] > app->ninteger)
+          error->all(FLERR,"Invalid keyword in read sites values header");
+      } else if (keyword[0] == 'd') {
+        type[i] = 1;
+        index[i] = atoi(&keyword[1]);
+        if (index[i] < 1 || index[i] > app->ndouble)
+          error->all(FLERR,"Invalid keyword in read sites values header");
+      } else 
+        error->all(FLERR,"Invalid keyword in read sites values header");
+    }
+  }
+
+  char **sitevalues = new char*[nvalues];
+
+  // read and broadcast one CHUNK of lines at a time
+  // store sitevalues with site if I own its ID
 
   tagint nread = 0;
   tagint nglobal = app->nglobal;
@@ -547,10 +598,23 @@ void ReadSites::values()
       idone = ATOTAGINT(strtok(buf," \t\n\r\f"));
       loc = hash.find(idone);
 
+      // store values for one site
+      // either all value if columns = NULL
+      // or specific sites labeled in columns
+
       if (loc != hash.end()) {
-	for (m = 0; m < nvalues; m++) values[m] = strtok(NULL," \t\n\r\f");
-	if (latticeflag) applattice->add_values(loc->second,values);
-	else appoff->add_values(loc->second,values);
+        for (m = 0; m < nvalues; m++) sitevalues[m] = strtok(NULL," \t\n\r\f");
+        if (columns == NULL) {
+          if (latticeflag) applattice->add_values(loc->second,sitevalues);
+          else appoff->add_values(loc->second,sitevalues);
+        } else {
+          for (m = 0; m < nvalues; m++) {
+            if (latticeflag) 
+              applattice->add_value(loc->second,type[m],index[m],sitevalues[m]);
+            else 
+              appoff->add_value(loc->second,type[m],index[m],sitevalues[m]);
+          }
+        }
       }
 
       buf = next + 1;
@@ -559,7 +623,9 @@ void ReadSites::values()
     nread += nchunk;
   }
 
-  delete [] values;
+  delete [] sitevalues;
+  delete [] type;
+  delete [] index;
 
   bigint nbig = nglobal;
   if (me == 0) {

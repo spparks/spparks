@@ -42,6 +42,8 @@ class ReadSites : protected Pointers {
 
   int maxneigh;
   double boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi;
+  int nvalues;               // # of Values, not including leading ID
+  char *columns;             // text describing columns of Values section
 
   void open(char *);
   void header();

@@ -23,7 +23,7 @@
 
 using namespace SPPARKS_NS;
 
-// same as in create_sites.cpp and diag_cluster.cpp
+// same as in other files
 
 enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
        FCC_OCTA_TETRA,RANDOM_1D,RANDOM_2D,RANDOM_3D};

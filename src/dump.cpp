@@ -66,22 +66,30 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   //   else if ends in .gz = gzipped text file
   //   else ASCII text file
 
+  fp = NULL;
+  singlefile_opened = 0;
   compressed = 0;
   binary = 0;
   multifile = 0;
+
   multiproc = 0;
+  nclusterprocs = nprocs;
+  filewriter = 0;
+  if (me == 0) filewriter = 1;
+  fileproc = 0;
+  multiname = NULL;
 
   char *ptr;
-  if (ptr = strchr(filename,'%')) {
+  if ((ptr = strchr(filename,'%'))) {
     multiproc = 1;
-    char *extend = new char[strlen(filename) + 16];
+    nclusterprocs = 1;
+    filewriter = 1;
+    fileproc = me;
+    MPI_Comm_split(world,me,0,&clustercomm);
+    multiname = new char[strlen(filename) + 16];
     *ptr = '\0';
-    sprintf(extend,"%s%d%s",filename,me,ptr+1);
-    delete [] filename;
-    n = strlen(extend) + 1;
-    filename = new char[n];
-    strcpy(filename,extend);
-    delete [] extend;
+    sprintf(multiname,"%s%d%s",filename,me,ptr+1);
+    *ptr = '%';
   }
 
   if (strchr(filename,'*')) multifile = 1;
@@ -133,6 +141,7 @@ Dump::~Dump()
   delete [] id;
   delete [] style;
   delete [] filename;
+  delete [] multiname;
 
   memory->destroy(buf);
   memory->destroy(bufsort);
@@ -142,13 +151,13 @@ Dump::~Dump()
   memory->destroy(proclist);
   delete irregular;
 
+  if (multiproc) MPI_Comm_free(&clustercomm);
+
   if (multifile == 0 && fp != NULL) {
     if (compressed) {
-      if (multiproc) pclose(fp);
-      else if (me == 0) pclose(fp);
+      if (filewriter) pclose(fp);
     } else {
-      if (multiproc) fclose(fp);
-      else if (me == 0) fclose(fp);
+      if (filewriter) fclose(fp);
     }
   }
 }
@@ -253,9 +262,17 @@ void Dump::write(double time)
   else nmax = nme;
 
   // write timestep header
+  // for multiproc,
+  //   nheader = # of lines in this file via Allreduce on clustercomm
 
-  if (multiproc) write_header(bnme,time);
-  else write_header(ntotal,time);
+
+  // write timestep header
+
+  bigint nheader = ntotal;
+  if (multiproc)
+    MPI_Allreduce(&bnme,&nheader,1,MPI_SPK_BIGINT,MPI_SUM,clustercomm);
+
+  if (filewriter) write_header(nheader,time);
 
   idump++;
 
@@ -283,46 +300,46 @@ void Dump::write(double time)
   else pack(NULL);
   if (sort_flag) sort();
 
-  // multiproc = 1 = each proc writes own data to own file 
-  // multiproc = 0 = all procs write to one file thru proc 0
-  //   proc 0 pings each proc, receives it's data, writes to file
-  //   all other procs wait for ping, send their data to proc 0
+  // filewriter = 1 = this proc writes to file
+  // ping each proc in my cluster, receive its data, write data to file
+  // else wait for ping from fileproc, send my data to fileproc
 
-  if (multiproc) write_data(nme,buf);
-  else {
-    int tmp,nlines;
-    MPI_Status status;
-    MPI_Request request;
+  int tmp,nlines,nchars;
+  MPI_Status status;
+  MPI_Request request;
 
-    if (me == 0) {
-      for (int iproc = 0; iproc < nprocs; iproc++) {
-	if (iproc) {
-	  MPI_Irecv(buf,maxbuf*size_one,MPI_DOUBLE,iproc,0,world,&request);
-	  MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-	  MPI_Wait(&request,&status);
-	  MPI_Get_count(&status,MPI_DOUBLE,&nlines);
-	  nlines /= size_one;
-	} else nlines = nme;
+  // comm and output buf of doubles
 
-	write_data(nlines,buf);
-      }
-      if (flush_flag) fflush(fp);
+  if (filewriter) {
+    for (int iproc = 0; iproc < nclusterprocs; iproc++) {
+      if (iproc) {
+        MPI_Irecv(buf,maxbuf*size_one,MPI_DOUBLE,me+iproc,0,world,&request);
+        MPI_Send(&tmp,0,MPI_INT,me+iproc,0,world);
+        MPI_Wait(&request,&status);
+        MPI_Get_count(&status,MPI_DOUBLE,&nlines);
+        nlines /= size_one;
+      } else nlines = nme;
       
-    } else {
-      MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-      MPI_Rsend(buf,nme*size_one,MPI_DOUBLE,0,0,world);
+      write_data(nlines,buf);
     }
+    if (flush_flag) fflush(fp);
+    
+  } else {
+    MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,&status);
+    MPI_Rsend(buf,nme*size_one,MPI_DOUBLE,fileproc,0,world);
   }
 
-  // if file per timestep, close file
+  // write timestep footer, if needed
+
+  write_footer();
+
+  // if file per timestep, close file if I am filewriter
 
   if (multifile) {
     if (compressed) {
-      if (multiproc) pclose(fp);
-      else if (me == 0) pclose(fp);
+      if (filewriter) pclose(fp);
     } else {
-      if (multiproc) fclose(fp);
-      else if (me == 0) fclose(fp);
+      if (filewriter) fclose(fp);
     }
   }
 }
@@ -330,42 +347,57 @@ void Dump::write(double time)
 /* ----------------------------------------------------------------------
    generic opening of a dump file
    ASCII or binary or gzipped
+   derived classes may override this function
 ------------------------------------------------------------------------- */
 
 void Dump::openfile()
 {
+  // single file, already opened, so just return
+
+  if (singlefile_opened) return;
+  if (multifile == 0) singlefile_opened = 1;
+
   // if one file per timestep, replace '*' with current timestep
 
-  char *filecurrent;
-  if (multifile == 0) filecurrent = filename;
-  else {
-    filecurrent = new char[strlen(filename) + 16];
-    char *ptr = strchr(filename,'*');
+  char *filecurrent = filename;
+  if (multiproc) filecurrent = multiname;
+
+  if (multifile) {
+    char *filestar = filecurrent;
+    filecurrent = new char[strlen(filestar) + 16];
+    char *ptr = strchr(filestar,'*');
     *ptr = '\0';
-    if (padflag == 0) 
-      sprintf(filecurrent,"%s%d%s",filename,idump,ptr+1);
+    if (padflag == 0)
+      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
+              filestar,idump,ptr+1);
     else {
       char bif[8],pad[16];
-      strcpy(bif,"%d");
+      strcpy(bif,BIGINT_FORMAT);
       sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-      sprintf(filecurrent,pad,filename,idump,ptr+1);
+      sprintf(filecurrent,pad,filestar,idump,ptr+1);
     }
     *ptr = '*';
   }
 
-  // open one file on proc 0 or file on every proc
+  // each proc with filewriter = 1 opens a file
 
-  if (me == 0 || multiproc) {
+  if (filewriter) {
     if (compressed) {
 #ifdef SPPARKS_GZIP
       char gzip[128];
       sprintf(gzip,"gzip -6 > %s",filecurrent);
+#ifdef _WIN32
+      fp = _popen(gzip,"wb");
+#else
       fp = popen(gzip,"w");
+#endif
 #else
       error->one(FLERR,"Cannot open gzipped file");
 #endif
     } else if (binary) {
       fp = fopen(filecurrent,"wb");
+    //} else if (append_flag) {
+    // fp = fopen(filecurrent,"a");
     } else {
       fp = fopen(filecurrent,"w");
     }
@@ -609,16 +641,49 @@ void Dump::modify_params(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"flush") == 0) {
+    if (strcmp(arg[iarg],"delay") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) flush_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) flush_flag = 0;
-      else error->all(FLERR,"Illegal dump_modify command");
+      delay = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"delta") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       delta = atof(arg[iarg+1]);
       if (delta <= 0.0) error->all(FLERR,"Illegal dump_modify command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"fileper") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (!multiproc)
+	error->all(FLERR,"Cannot use dump_modify fileper "
+                   "without % in dump file name");
+      int nper = atoi(arg[iarg+1]);
+      if (nper <= 0) error->all(FLERR,"Illegal dump_modify command");
+      
+      multiproc = nprocs/nper;
+      if (nprocs % nper) multiproc++;
+      fileproc = me/nper * nper;
+      int fileprocnext = MIN(fileproc+nper,nprocs);
+      nclusterprocs = fileprocnext - fileproc;
+      if (me == fileproc) filewriter = 1;
+      else filewriter = 0;
+      int icluster = fileproc/nper;
+
+      MPI_Comm_free(&clustercomm);
+      MPI_Comm_split(world,icluster,0,&clustercomm);
+
+      delete [] multiname;
+      multiname = new char[strlen(filename) + 16];
+      char *ptr = strchr(filename,'%');
+      *ptr = '\0';
+      sprintf(multiname,"%s%d%s",filename,icluster,ptr+1);
+      *ptr = '%';
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"flush") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) flush_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) flush_flag = 0;
+      else error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"logfreq") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump_modify command");
@@ -636,10 +701,40 @@ void Dump::modify_params(int narg, char **arg)
       if (nrepeat == 0) logfreq = 0;
       else logfreq = 2;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"delay") == 0) {
+
+    } else if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      delay = atof(arg[iarg+1]);
+      if (!multiproc)
+	error->all(FLERR,"Cannot use dump_modify nfile "
+                   "without % in dump file name");
+      int nfile = atoi(arg[iarg+1]);
+      if (nfile <= 0) error->all(FLERR,"Illegal dump_modify command");
+      nfile = MIN(nfile,nprocs);
+
+      multiproc = nfile;
+      int icluster = static_cast<int> ((bigint) me * nfile/nprocs);
+      fileproc = static_cast<int> ((bigint) icluster * nprocs/nfile);
+      int fcluster = static_cast<int> ((bigint) fileproc * nfile/nprocs);
+      if (fcluster < icluster) fileproc++;
+      int fileprocnext = 
+        static_cast<int> ((bigint) (icluster+1) * nprocs/nfile);
+      fcluster = static_cast<int> ((bigint) fileprocnext * nfile/nprocs);
+      if (fcluster < icluster+1) fileprocnext++;
+      nclusterprocs = fileprocnext - fileproc;
+      if (me == fileproc) filewriter = 1;
+      else filewriter = 0;
+
+      MPI_Comm_free(&clustercomm);
+      MPI_Comm_split(world,icluster,0,&clustercomm);
+
+      delete [] multiname;
+      multiname = new char[strlen(filename) + 16];
+      char *ptr = strchr(filename,'%');
+      *ptr = '\0';
+      sprintf(multiname,"%s%d%s",filename,icluster,ptr+1);
+      *ptr = '%';
       iarg += 2;
+
     } else if (strcmp(arg[iarg],"pad") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       padflag = atoi(arg[iarg+1]);

@@ -46,8 +46,16 @@ class Dump : protected Pointers {
   int binary;                // 1 if dump file is written binary, 0 no
   int multifile;             // 0 = one big file, 1 = one file per timestep
   int multiproc;             // 0 = proc 0 writes for all, 1 = one file/proc
+                             // else # of procs writing files
+  int nclusterprocs;         // # of procs in my cluster that write to one file
+  int filewriter;            // 1 if this proc writes a file, else 0
+  int fileproc;              // ID of proc in my cluster who writes to file
+  char *multiname;           // filename with % converted to cluster ID
+  MPI_Comm clustercomm;      // MPI communicator within my cluster of procs
+
   int flush_flag;            // 0 if no flush, 1 if flush every dump
   int padflag;               // timestep padding in filename
+  int singlefile_opened;     // 1 = one big file, already opened, else 0
 
   int sort_flag;             // 1 if sorted output
   int sortcol;               // 0 to sort on ID, 1-N on columns
@@ -87,6 +95,7 @@ class Dump : protected Pointers {
   void openfile();
   virtual int modify_param(int, char **) {return 0;}
   virtual void write_header(bigint, double) = 0;
+  virtual void write_footer() {}
   virtual int count() = 0;
   virtual void pack(tagint *) = 0;
   virtual void write_data(int, double *) = 0;
