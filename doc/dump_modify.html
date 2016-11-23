@@ -21,16 +21,20 @@
 
 <LI>these keywords apply to various dump styles 
 
-<LI>keyword = <I>delay</I> or <I>delta</I> or <I>flush</I> or <I>logfreq</I> or <I>loglinfreq</I> or <I>pad</I> or <I>region</I> or <I>sort</I> or <I>thresh</I> 
+<LI>keyword = <I>delay</I> or <I>delta</I> or <I>fileper</I> or <I>flush</I> or <I>logfreq</I> or <I>loglinfreq</I> or <I>nfile</I> or <I>pad</I> or <I>region</I> or <I>sort</I> or <I>thresh</I> or <I>vtk</I> 
 
 <PRE>  <I>delay</I> value = tdelay
     tdelay = delay dump until at least this time (seconds)
   <I>delta</I> arg = dt
     dt = time increment between dumps (seconds)
+  <I>fileper</I> arg = Np
+    Np = write one file for every this many processors
   <I>flush</I> arg = <I>yes</I> or <I>no</I>
   <I>logfreq</I> or <I>loglinfreq</I> values = N factor
     N = number of repetitions per interval
     factor = scale factor between intervals
+  <I>nfile</I> arg = Nf
+    Nf = write this many files, one from each of Nf processors
   <I>pad</I> arg = Nchar = # of characters to convert timestep to
   <I>region</I> arg = region-ID or "none"
   <I>sort</I> arg = <I>off</I> or <I>id</I> or N or -N
@@ -44,7 +48,10 @@
     value = numeric value to compare to
     these 3 args can be replaced by the word "none" to turn off thresholding 
 </PRE>
-<LI>these keywords apply only to the <I>image</I> and <I>movie</I> <A HREF = "dump_image.html">styles</A> 
+<LI>  <I>vtk</I> args = Nx Ny Nz minval maxval
+    Nx,Ny,Nz = site extent in x,y,z dimensions
+    minval,maxval = min/max of any site's value
+these keywords apply only to the <I>image</I> <A HREF = "dump_image.html">style</A> 
 
 <LI>keyword = <I>backcolor</I> or <I>boundcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>cwrap</I> or 
 <I>dwrap</I> or <I>scolor</I> or <I>sdiam</I> or <I>smap</I> 
@@ -107,8 +114,8 @@ parameters are relevant to all dump styles.
 <HR>
 
 <P>These keywords apply to various dump styles, including the <A HREF = "dump_image.html">dump
-image</A> and <A HREF = "dump_image.html">dump movie</A> styles.  The
-description gives details.
+image</A> style, except as noted below.  The descriptions
+give details.
 </P>
 <HR>
 
@@ -122,6 +129,10 @@ elapsed.
 </P>
 <HR>
 
+<P>The <I>fileper</I> keyword is documented below with the <I>nfile</I> keyword.
+</P>
+<HR>
+
 <P>The <I>flush</I> option determines whether a flush operation in invoked
 after a dump snapshot is written to the dump file.  A flush insures
 the output in that file is current (no buffering by the OS), even if
@@ -130,14 +141,37 @@ only relevant to the <A HREF = "dump.html">dump text</A> style.
 </P>
 <HR>
 
-<P>The <I>logfreq</I> and <I>loglinfreq</I> keywords will produce output at progressively
-larger intervals during the course of a simulation.  There will be <I>N</I>
-outputs per interval where the size of each interval is initially
-<I>delta</I> and then scales up by <I>factor</I> each time. See the <A HREF = "stats.html">stats</A>
-command for more information on how the output times are specified.
+<P>The <I>logfreq</I> and <I>loglinfreq</I> keywords will produce output at
+progressively larger intervals during the course of a simulation.
+There will be <I>N</I> outputs per interval where the size of each interval
+is initially <I>delta</I> and then scales up by <I>factor</I> each time. See the
+<A HREF = "stats.html">stats</A> command for more information on how the output
+times are specified.
 </P>
 <P>If <I>N</I> is specified as 0, then this will turn off logarithmic output,
 and revert to regular output every <I>delta</I> seconds.
+</P>
+<HR>
+
+<P>The <I>nfile</I> or <I>fileper</I> keywords currently apply only to the <I>text</I>
+dump style.  They can be used in conjunction with the "%" wildcard
+character in the specified dump file name.  As explained on the
+<A HREF = "dump.html">dump</A> command doc page, the "%" character causes the dump
+file to be written in pieces, one piece for each of P processors.  By
+default P = the number of processors the simulation is running on.
+The <I>nfile</I> or <I>fileper</I> keyword can be used to set P to a smaller
+value, which can be more efficient when running on a large number of
+processors.
+</P>
+<P>The <I>nfile</I> keyword sets P to the specified Nf value.  For example, if
+Nf = 4, and the simulation is running on 100 processors, 4 files will
+be written, by processors 0,25,50,75.  Each will collect information
+from itself and the next 24 processors and write it to a dump file.
+</P>
+<P>For the <I>fileper</I> keyword, the specified value of Np means write one
+file for every Np processors.  For example, if Np = 4, every 4th
+processor (0,4,8,12,etc) will collect information from itself and the
+next 3 processors and write it to a dump file.
 </P>
 <HR>
 
@@ -193,13 +227,29 @@ propensity of sites whose energy is above some threshold.
 </P>
 <HR>
 
+<P>The <I>vtk</I> keyword only applies to the <I>vtk</I> style, for which it is
+required.  As explained on the <A HREF = "dump.html">dump vtk</A> doc page, this
+style can only be used to output a single per-site value for a regular
+lattice of sites.  The settings for this command provide information
+about the underlying lattice and site value bounds.
+</P>
+<P>The nx,ny,nz settings are the extent of the regular lattice of sites,
+whether it is periodic in any dimension or not.  Use a value of nz = 1
+for 2d simulations and ny = nz = 1 for 1d simulations.
+</P>
+<P>The minvalue and maxvalue settings are the min/max bounds within which
+all the per-site values for the specified single per-site field will
+fall.  Note that the actual values do not need to extend to these
+bounds.  E.g. the maximum initial spin value might be 1000 (e.g. for
+<A HREF = "app_potts.html">app_style potts</A>), but at later times an individual
+snapshot would have no spins > 900.
+</P>
 <HR>
 
-<P>These keywords apply only to the <A HREF = "dump_image.html">dump image</A> and
-<A HREF = "dump_image.html">dump movie</A> styles.  Any keyword that affects an
-image, also affects a movie, since the movie is simply a collection of
-images.  Some of the keywords only affect the <A HREF = "dump_image.html">dump
-movie</A> style.  The descriptions give details.
+<HR>
+
+<P>These keywords apply only to the <A HREF = "dump_image.html">dump image</A> style.
+The descriptions give details.
 </P>
 <HR>
 

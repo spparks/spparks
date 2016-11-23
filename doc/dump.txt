@@ -14,58 +14,69 @@ dump command :h3
 dump dump-ID style delta filename field1 field2 ... :pre
 
 dump-ID = user-assigned name for the dump :ulb,l
-style = {text} or {image} :l
+style = {text} or {sites} or {vtk} or {image} :l
 delta = time increment between dumps (seconds) :l
 filename = name of file to dump snapshots to :l
 fields = list of arguments for a particular style :l
-  {image} fields = discussed on "dump image"_dump_image.html doc page
-  {text} fields = {id} or {site} or {x} or {y} or {z} or
-                  {energy} or {propensity} or {iN} or {dN} :pre
+  {text} or {sites} or {vtk} fields =
+     {id} or {site} or {x} or {y} or {z} or
+     {energy} or {propensity} or {iN} or {dN}
+  {image} fields = discussed on "dump image"_dump_image.html doc page :pre
 :ule
 
 [Examples:]
 
 dump 1 text 0.25 tmp.dump
 dump 1 text 1.0 my.dump id site x y z
+dump 1 sites 1.0 my.sites.* id site i2 i3
+dump 1 vtk 1.0 my.vkt.* site
 dump mydump text 5.0 snap.ising id site energy i1 :pre
 
 [Description:]
 
-The {text} style dumps a snapshot of site values to one or more files
-at time intervals of {delta} during a simulation.  The {image} style
-creates a JPG or PPM image file of the site configuration every at
-time intervals of {delta}, as discussed on the "dump
-image"_dump_image.html doc page.  The remainder of this page
-refers to the {text} style.
+The {text}, {sites}, and {vtk} styles dump a snapshot of site values
+to one or more files at time intervals of {delta} during a simulation.
+The {image} style creates a JPG or PPM image file of the site
+configuration every at time intervals of {delta}, as discussed on the
+"dump image"_dump_image.html doc page.  The remainder of this page
+refers to the {text}, {sites}, and {vtk} styles.
+
+The {text} style dump file is in the format of a "LAMMPS dump
+file"_lammps which can thus be read-in by the "Pizza.py
+toolkit"_pizza, converted to other formats, or used for visualization.
+
+The {sites} style dump file is in the same format that is read by the
+"read_sites"_read_sites.html command.  The dumped files can thus be
+used to restart a simulation, using the "read_sites"_read_sites.html
+command.
+
+The {vkt} style dump file is in the VTI format that can be read by
+various visualization programs, including
+"ParaView"_http://www.paraview.org.
 
 As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file
-or one per processor).  The quantities printed are obtained from the
-application.  Only "on-lattice and off-lattice
-applications"_app_style.html support dumps since they are spatial in
-nature.  More that one dump command and file can be used during a
-simulation by giving each a unique dump-ID.  Note that if written in
-appropriate format, a snapshot from a dump file can easily be
-converted into a data file suitable for input via the
-"read_sites"_read_sites.html command to restart a simulation.
+or one per processor or one file per group of processors).  The fields
+included in each snapshot are obtained from the application.  Only
+"on-lattice and off-lattice applications"_app_style.html support dumps
+since they are spatial in nature.  More that one dump command and
+output file can be used during a simulation by giving each a unique
+dump-ID and unique filename.
 
 IMPORTANT NOTE: When running in parallel, unless the "dump_modify
 sort"_dump_modify.html option is invoked, the lines of per-site
 information written to dump files will be in an indeterminate order,
-i.e. not ordered by site ID.  The order will be the same in every
-snapshot.
+i.e. not ordered by site ID.  This is because the sites owned by each
+processor are written in a contiguous chunk.  The ordering will be the
+same in every snapshot.
 
 The "dump_modify"_dump_modify command can be used to alter the times
-at which snapshots are written out as well as defined a subset of
-sites to write out.
-
-The text-based dump file is in the format of a "LAMMPS dump
-file"_lammps which can thus be read-in by the "Pizza.py
-toolkit"_pizza, converted to other formats, or used for visualization.
+at which snapshots are written out as well as define a subset of sites
+to write out.
 
 :line
 
-Each snapshot in the dump file(s) begins with lines like these:
+For the {text} format, each snapshot begins with lines like these:
 
 ITEM: TIMESTEP TIME
 100   3.23945 :pre
@@ -111,18 +122,100 @@ to color the object (e.g. a sphere) drawn at each site.
 
 :line
 
-Only the specified fields will be included in the dump file for each
-site.  each site.  If no fields are listed, then a default set of
-fields are output, namely "id site x y z".
+For the {sites} format, each snapshot begins with lines like these.
 
-these are the possible field values which may be specified.
+Site file written by dump sites 2 command at time: 3 3.01 :pre
+
+3 dimension
+1000 sites
+id site columns
+0 10 xlo xhi
+0 10 ylo yhi
+0 10 zlo zhi :pre
+
+This is followed by a "Values" section of per-site info, with one line
+per site.  Each line begins with a site ID, followed by the per-site
+values listed in the "columns" header line
+
+See the "read_sites" command for more explanation of this format.  The
+two time fields at the end of the first (comment) line are the same
+TIME info described above the the {text} style format.  The "id site"
+keywords that preceed "columns" define what per-site values are
+included in the file.  The keyword "id" must be the first value in
+each per-site line.  One or more per-site values can follow.  Note
+that it only makes sense to include the "site" or "iN" or "dN" fields
+as output values, since the "read_sites"_read_sites.html command can
+only process those as input.
+
+IMPORTANT NOTE: For this style, a filename with the "*" wildcard must
+be used so that a different file is written for each snapshot.  The is
+because the "read_sites"_read_sites.html command only reads a file
+with a single snapshot.
+
+IMPORTANT NOTE: This style of dump command will not write "Sites" or
+"Neighbors" sections to the sites file.  When using the sites file to
+restart a simulation, it is assumed that the restart script will
+define the sites and their neighbors in an alternate way, e.g. via the
+"create_box" and "create_sites" commands.  Or by reading a separate
+sites file with that information via an earlies "read sites" command.
+
+IMPORTANT NOTE: You must write information for all sites to the
+{sites} style dump file.  E.g. you cannot use the
+"dump_modify"_dump_modify.html command to limit the output to a subset
+of sites.  This is because the "read_sites"_read_sites.html requires
+information for all sites in the system.
+
+:line
+
+For the {vtk} format, each snapshot is wrapped with a VTK-specific
+header and footer.  Only a single field can be listed, which must be a
+per-site value, e.g. "site" or "iN" or "dN".  
+
+A VTK-compatible visualization program will read the information in
+the dump snapshot and display one object (e.g. a cube or sphere) at
+each point on a regular 1d or 2d or 3d lattice.
+
+IMPORTANT NOTE: Use of the "dump_modify vtk" command is required to
+use this dump style.  This is to make additional simulation-specific
+settings included in the VTK-compatible dump file.
+
+IMPORTANT NOTE: The {vtk} style can only be used to dump sites that
+are on a simple, regular lattice.  In 1d, this is a "line/2n" lattice.
+In 2d, this is a square lattice, "sq/4n" or "sq/8n".  In 3d, this is a
+simple cubic lattice, "sc/6n" or "sc/26n".  See the
+"lattice"_lattice.html and "create_sites"_create_sites.html commands
+for details on these lattice types.
+
+If a "lattice"_lattice.html command was used to create sites, then
+SPPARKS will check that the lattice is one of these valid styles.
+However, if a "read_sites"_read_sites.html command was used to define
+sites, e.g. by reading a previous {sites}-style dump file to restart a
+simulation, then no lattice is defined and SPPARKS cannot check this.
+It is up to you to insure the VTK output meets this restriction.
+Otherwise a visualization program may not be able to render a useful
+image.
+
+IMPORTANT NOTE: The "dump_modify sort"_dump_modify.html command must
+be used to insure the per-site info for the regular lattice is written
+to the dump file in the regular ordering that VTK expects.
+
+IMPORTANT NOTE: For this style, a filename with the "*" wildcard must
+be used so that a different file is written for each snapshot.
+
+:line
+
+Only the specified fields will be included in the dump file for each
+site.  If no fields are listed, then a default set of fields are
+output, namely "id site x y z".
+
+These are the possible field values which may be specified.
 
 The {id} is a unique integer ID for each site.
 
 The {site}, {iN}, and {dN} fields specify a per-site value.  {Site} is
-the same as {i1}.  {iN} fields are integer values; {dN} fields are
-floating-point value. The application defines how many integer and
-floating=point values are stored for each site.
+the same as {i1}.  {iN} fields are integer values for integer fields 1
+to N; {dN} fields are floating-point values.  The application defines
+how many integer and floating-point values are stored for each site.
 
 The {x}, {y}, {z} values are the coordinates of the site.
 
@@ -141,6 +234,9 @@ The specified filename determines how the dump file(s) is written.
 The default is to write one large text file, which is opened when the
 dump command is invoked and closed when an "undump"_undump.html
 command is used or when SPPARKS exits.
+
+IMPORTANT NOTE: Not all dump styles support all the filename options
+described next.  See the Restrictions section below for details.
 
 Dump filenames can contain two wild-card characters.  If a "*"
 character appears in the filename, then one file per snapshot is
@@ -178,6 +274,10 @@ longer to write.
 This command can only be used as part of on-lattice or off-lattice
 applications.  See the "app_style"_app_style.html command for further
 details.
+
+For the filename specified for the {sites} or {vtk} styles, a "*"
+wildcard must be used and a "%" wildcard cannot be used.  Likewise a
+"*.bin" suffix cannot be used, but a "*.gz" suffix can be used.
 
 To write gzipped dump files, you must compile SPPARKS with the
 -DSPPARKS_GZIP option - see the "Making

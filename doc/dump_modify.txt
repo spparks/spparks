@@ -15,15 +15,19 @@ dump_modify dump-ID keyword values ... :pre
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
 these keywords apply to various dump styles :l
-keyword = {delay} or {delta} or {flush} or {logfreq} or {loglinfreq} or {pad} or {region} or {sort} or {thresh} :l
+keyword = {delay} or {delta} or {fileper} or {flush} or {logfreq} or {loglinfreq} or {nfile} or {pad} or {region} or {sort} or {thresh} or {vtk} :l
   {delay} value = tdelay
     tdelay = delay dump until at least this time (seconds)
   {delta} arg = dt
     dt = time increment between dumps (seconds)
+  {fileper} arg = Np
+    Np = write one file for every this many processors
   {flush} arg = {yes} or {no}
   {logfreq} or {loglinfreq} values = N factor
     N = number of repetitions per interval
     factor = scale factor between intervals
+  {nfile} arg = Nf
+    Nf = write this many files, one from each of Nf processors
   {pad} arg = Nchar = # of characters to convert timestep to
   {region} arg = region-ID or "none"
   {sort} arg = {off} or {id} or N or -N
@@ -36,7 +40,10 @@ keyword = {delay} or {delta} or {flush} or {logfreq} or {loglinfreq} or {pad} or
     operation = "<" or "<=" or ">" or ">=" or "==" or "!="
     value = numeric value to compare to
     these 3 args can be replaced by the word "none" to turn off thresholding :pre
-these keywords apply only to the {image} and {movie} "styles"_dump_image.html :l
+  {vtk} args = Nx Ny Nz minval maxval
+    Nx,Ny,Nz = site extent in x,y,z dimensions
+    minval,maxval = min/max of any site's value
+these keywords apply only to the {image} "style"_dump_image.html :l
 keyword = {backcolor} or {boundcolor} or {boxcolor} or {color} or {cwrap} or 
 {dwrap} or {scolor} or {sdiam} or {smap} :l
   {backcolor} arg = color
@@ -95,8 +102,8 @@ parameters are relevant to all dump styles.
 :line
 
 These keywords apply to various dump styles, including the "dump
-image"_dump_image.html and "dump movie"_dump_image.html styles.  The
-description gives details.
+image"_dump_image.html style, except as noted below.  The descriptions
+give details.
 
 :line
 
@@ -110,6 +117,10 @@ elapsed.
 
 :line
 
+The {fileper} keyword is documented below with the {nfile} keyword.
+
+:line
+
 The {flush} option determines whether a flush operation in invoked
 after a dump snapshot is written to the dump file.  A flush insures
 the output in that file is current (no buffering by the OS), even if
@@ -118,14 +129,37 @@ only relevant to the "dump text"_dump.html style.
 
 :line
 
-The {logfreq} and {loglinfreq} keywords will produce output at progressively
-larger intervals during the course of a simulation.  There will be {N}
-outputs per interval where the size of each interval is initially
-{delta} and then scales up by {factor} each time. See the "stats"_stats.html
-command for more information on how the output times are specified.
+The {logfreq} and {loglinfreq} keywords will produce output at
+progressively larger intervals during the course of a simulation.
+There will be {N} outputs per interval where the size of each interval
+is initially {delta} and then scales up by {factor} each time. See the
+"stats"_stats.html command for more information on how the output
+times are specified.
 
 If {N} is specified as 0, then this will turn off logarithmic output,
 and revert to regular output every {delta} seconds.
+
+:line
+
+The {nfile} or {fileper} keywords currently apply only to the {text}
+dump style.  They can be used in conjunction with the "%" wildcard
+character in the specified dump file name.  As explained on the
+"dump"_dump.html command doc page, the "%" character causes the dump
+file to be written in pieces, one piece for each of P processors.  By
+default P = the number of processors the simulation is running on.
+The {nfile} or {fileper} keyword can be used to set P to a smaller
+value, which can be more efficient when running on a large number of
+processors.
+
+The {nfile} keyword sets P to the specified Nf value.  For example, if
+Nf = 4, and the simulation is running on 100 processors, 4 files will
+be written, by processors 0,25,50,75.  Each will collect information
+from itself and the next 24 processors and write it to a dump file.
+
+For the {fileper} keyword, the specified value of Np means write one
+file for every Np processors.  For example, if Np = 4, every 4th
+processor (0,4,8,12,etc) will collect information from itself and the
+next 3 processors and write it to a dump file.
 
 :line
 
@@ -180,13 +214,29 @@ dump_modify command.  E.g. you can output the coordinates and
 propensity of sites whose energy is above some threshold.
 
 :line
+
+The {vtk} keyword only applies to the {vtk} style, for which it is
+required.  As explained on the "dump vtk"_dump.html doc page, this
+style can only be used to output a single per-site value for a regular
+lattice of sites.  The settings for this command provide information
+about the underlying lattice and site value bounds.
+
+The nx,ny,nz settings are the extent of the regular lattice of sites,
+whether it is periodic in any dimension or not.  Use a value of nz = 1
+for 2d simulations and ny = nz = 1 for 1d simulations.
+
+The minvalue and maxvalue settings are the min/max bounds within which
+all the per-site values for the specified single per-site field will
+fall.  Note that the actual values do not need to extend to these
+bounds.  E.g. the maximum initial spin value might be 1000 (e.g. for
+"app_style potts"_app_potts.html), but at later times an individual
+snapshot would have no spins > 900.
+
+:line
 :line
 
-These keywords apply only to the "dump image"_dump_image.html and
-"dump movie"_dump_image.html styles.  Any keyword that affects an
-image, also affects a movie, since the movie is simply a collection of
-images.  Some of the keywords only affect the "dump
-movie"_dump_image.html style.  The descriptions give details.
+These keywords apply only to the "dump image"_dump_image.html style.
+The descriptions give details.
 
 :line
 
