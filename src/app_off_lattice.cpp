@@ -1704,3 +1704,16 @@ void AppOffLattice::add_values(int i, char **values)
   for (int m = 0; m < ninteger; m++) iarray[m][i] = atoi(values[m]);
   for (int m = 0; m < ndouble; m++) darray[m][i] = atof(values[m+ninteger]);
 }
+
+/* ----------------------------------------------------------------------
+   set single value for owned site I
+   type = 0/1 for INT/DOUBLE
+   index = 1 to Ninteger or 1 to Ndouble
+   called from read_sites command
+ ------------------------------------------------------------------------- */
+
+void AppOffLattice::add_value(int i, int type, int index, char *value)
+{
+  if (type == 0) iarray[index-1][i] = atoi(value);
+  else if (type == 1) darray[index-1][i] = atof(value);
+}

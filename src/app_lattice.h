@@ -48,6 +48,7 @@ class AppLattice : public App {
   void add_ghost(tagint, double, double, double, int, int);
   void add_neighbors(int, int, char **);
   void add_values(int, char **);
+  void add_value(int, int, int, char *);
   void print_connectivity();
 
   // pure virtual functions, must be defined in child class
