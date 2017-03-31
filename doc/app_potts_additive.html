@@ -1,0 +1,111 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style potts/additive command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style potts/additive nspins spot_width melt_tail_length melt_depth cap_height HAZ tail_HAZ depth_HAZ cap_HAZ exp_factor 
+</PRE>
+<LI>potts/additive = application style name 
+
+<LI>nspins = number of possible spins 
+
+<LI>spot_width = maximum width of the melt pool 
+
+<LI>melt_tail_length = maximum length of the melt pool trailing the melt spot 
+
+<LI>melt_depth = maximum depth of the melt pool 
+
+<LI>cap_height = maximum length of the melt pool leading the melt spot 
+
+<LI>HAZ = width of the heat affected zone (haz) surrounding the melt pool (must be larger than width) 
+
+<LI>tail_HAZ = Length of the haz trailing the meltpool (must be larger than tail_length) 
+
+<LI>depth_HAZ = depth of the heat affect zone (haz) below the melt pool (must be larger than depth) 
+
+<LI>cap_HAZ = Length of haz leading the melt pool (must be larger than cap_length) 
+
+<LI>exp_factor = Coefficient that controls the rate of exponential decay of the haz mobility gradient 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<P>app_style potts/additive 1000 30 40 20 5	50 60 30 7 0.1
+</P>
+<P><B>Description:</B>
+</P>
+<P>This is an on-lattice application derived from the <A HREF = "app_potts.html">app_style
+potts/neighonly</A> application that simulates the rastering of a
+molten pool and its accompanying heat-affected zone (HAZ) through a domain.
+Rastering is achieved through the specification of layer-by-layer patterns,
+which can be combined into an overall pattern specifying the translation of the
+molten zone through the entire simulation domain. The application allows for
+arbitrary numbers of paths in each layer and an arbitrary number of layers in
+each pattern. Thus, the user can construct any scan strategy desired by
+specifying individual layer patterns and how these patterns should be repeated.
+</P>
+<P>The molten pool is defined as a double ellipsoid. The ellipsoids share
+identical values for two of their axes (defined by the <I>melt_width</I> and
+<I>melt_depth</I> parameters). The third axis of each ellipsoid is defined by either
+the <I>melt_tail_length</I> or <I>cap_height</I> parameters. The haz is also defined by
+four equivalent parameters: <I>HAZ</I>, <I>tail_HAZ</I>, <I>depth_HAZ</I>, and <I>cap_HAZ</I>. A
+schematic of these eight parameters is shown below.
+</P>
+<IMG SRC = "JPG/400am_pool_schematic.png">
+
+<P>The model also requires specification of the <I>exp_factor</I> variable, which
+determines the value of the coefficient in the mobility equation, <I>M =
+exp(-exp_factor * x)</I>, where <I>x</I> is the shortest distance from the lattice site
+to the molten pool boundary.
+</P>
+<P>The application requires the specification of these additional commands:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "am_pass.html">pass</A></TD><TD > Define the parameters for each type of single-track pass.</TD></TR>
+<TR><TD ><A HREF = "am_transverse_pass.html">transverse_pass</A></TD><TD > Define the parameters for the transverse increment (a.k.a. hatch spacing) between each pass.</TD></TR>
+<TR><TD ><A HREF = "am_cartesian_layer.html">cartesian_layer</A></TD><TD > Define the combination of passes and transverse_passes that comprise a layer. Limited to passes aligned along the +/-X or Y axes. </TD></TR>
+<TR><TD ><A HREF = "am_pattern.html">pattern</A></TD><TD > Define the combination of layers that comprise a pattern. 
+</TD></TR></TABLE></DIV>
+
+<P>Refer to the examples under <I>potts_additive</I> for example input files incorporating these additional commands.
+</P>
+<P>This program was used in the paper by <A HREF = "#Rodgers">Rodgers et al.</A>
+</P>
+<HR>
+
+<A NAME = "restriction"></A><B>Restrictions:</B> 
+
+<P>Only compatible with square and square cubic lattices.
+</P>
+<P>Can only be evolved by a rejection KMC (rKMC) algorithm.  See <A HREF = "sweep.html">sweep</A> for more information.
+</P>
+<P>Melt pool width + haz must be =< xhi & yhi.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_potts_weld.html">app_style potts/weld</A>
+</P>
+<P><A HREF = "app_potts_weld_jom.html">app_style potts/weld/jom</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>none
+</P>
+<HR>
+
+<A NAME = "Rodgers"></A>
+
+<P><B>(Rodgers)</B> T.M. Rodgers, J.D. Madison and V. Tikare, "Simulation of Metal Additive Manufacturing Microstructures Using Kinetic Monte Carlo", Computational Materials Science (2017). 
+</P>
+</HTML>
