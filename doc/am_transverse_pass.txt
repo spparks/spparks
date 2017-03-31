@@ -1,0 +1,53 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+transverse_pass command :h3
+
+[Syntax:]
+
+transverse_pass id distance D increment I :pre
+
+id = integer identification number for this transverse_pass. :ul
+distance D = keyword/value pair; {D} is a floating point number for the total length covered by the transverse pass (typically the box size transverse to the current pass direction). :ul
+increment I = keyword/value pair; {I} is a floating point specifying the transverse distance between each pass. Typically smaller than the molten zone width to achieve full coverage :ul
+
+[Examples:]
+
+pass 1 dir X distance 100.0 speed 10.0 :pre
+transverse_pass 1 distance 65.0 increment 10 :pre
+
+In the above example, a pass along the "spparks" {X} axis is defined.  The
+transverse_pass command defines the distance {increment 10} between each pass
+as well as implicitly defining the number of passes based upon the 
+keyword/value pair {distance 10.0}.  Schematic sketch below depicts example.
+
+:image(JPG/transverse_pass_schematic.png)
+
+[Description:]
+
+This command is used in the "potts/additive"_app_potts_additive.html
+application to specify the parameters of the transverse_pass subcomponent of a
+raster pattern. Multiple transverse passes can be defined in a single input
+file, using unique id values.
+
+The {increment I} key/value pair defines the transverse distance between 
+passes defined in the "pass"_am_pass.html command.  The {distance D} 
+key/value pair used together with {I} implicitly defines number passes 
+when used to define a "rectangular_layer"_am_cartesian_layer.html.
+
+[Restrictions:]
+
+This command can only be used as part of the "app_style potts/additive"_app_potts_additive.html application.
+
+[Related commands:]
+
+"pass"_am_pass.html
+"cartesian_layer"_am_cartesian_layer.html
+"pattern"_am_pattern.html
+
+[Default:] none
