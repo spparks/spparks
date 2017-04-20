@@ -187,7 +187,6 @@ void AppPottsAdditive::init_app()
    unique = new int[1 + maxneigh];
 
    dt_sweep = 1.0/maxneigh;
-   time_index = 0;
 
    int flag = 0;
    for (int i = 0; i < nlocal; i++)
@@ -224,9 +223,6 @@ void AppPottsAdditive::app_update(double dt)
    double layer_z=pattern.get_layer_z_elevation();
 
 
-   // HACK
-	
-   double d;
 	
 	//Use the new position as input to the mobility calculation
 	//Loop through all of the local sites and assign the new mobilities
@@ -235,10 +231,7 @@ void AppPottsAdditive::app_update(double dt)
 	RASTER::pool_shape::AmEllipsoid ae(spot_width, melt_depth, melt_tail_length, cap_height, HAZ, tail_HAZ);
 	
 	//Go through all the local sites and calculate the distance.
-	//I think we'll have access to the melt spot vector, which should allow us to put bounds on 
-	//the distance calculation.
-	//A value of -1 means that we're inside the pool, we should have another value indicating we're outside of
-	//the active region (-10)
+   double d;
 	for(int i=0;i<nlocal;i++){
 			
 		// SPPARKS lattice site
