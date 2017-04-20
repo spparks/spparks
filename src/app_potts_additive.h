@@ -52,20 +52,13 @@ class AppPottsAdditive : public AppPotts {
   
   double *MobilityOut;
 
- double layerheight;
  double spot_width;
  double melt_tail_length;
  double tail_HAZ;
- double WorkingHAZ;
  double exp_factor;
  double cap_height;
  double HAZ;
- double vel;
- int num_layers;
- int num_passes;
- int profile; // North = 11, East 22, South 33, West 44
  double melt_depth;
- int time_index;
  double cap_HAZ;
  double depth_HAZ;
 
