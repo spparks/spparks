@@ -11,6 +11,10 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: John Mitchell (Sandia)
+------------------------------------------------------------------------- */
+
 #include "math.h"
 #include "string.h"
 #include "stdlib.h"
