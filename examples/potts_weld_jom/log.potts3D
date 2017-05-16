@@ -5,25 +5,26 @@ app_style	 potts 1000000
 
 dimension	 3
 lattice		 sc/26n 1.0
-region		 box block 0 100 0 100 0 100
+region		 box block 0 50 0 50 0 50
+#region		 box block 0 100 0 100 0 100
 boundary n n n
 create_box	 box
-Created box = (0 0 0) to (100 100 100)
-  1 by 2 by 5 processor grid
+Created box = (0 0 0) to (50 50 50)
+  1 by 1 by 1 processor grid
 create_sites	 box
 Creating sites ...
-  1000000 sites
+  125000 sites
   8 sites have 7 neighbors
   0 sites have 8 neighbors
   0 sites have 9 neighbors
   0 sites have 10 neighbors
-  1176 sites have 11 neighbors
+  576 sites have 11 neighbors
   0 sites have 12 neighbors
   0 sites have 13 neighbors
   0 sites have 14 neighbors
   0 sites have 15 neighbors
   0 sites have 16 neighbors
-  57624 sites have 17 neighbors
+  13824 sites have 17 neighbors
   0 sites have 18 neighbors
   0 sites have 19 neighbors
   0 sites have 20 neighbors
@@ -32,9 +33,9 @@ Creating sites ...
   0 sites have 23 neighbors
   0 sites have 24 neighbors
   0 sites have 25 neighbors
-  941192 sites have 26 neighbors
+  110592 sites have 26 neighbors
 set		 site range 1 1000000
-  1000000 settings made for site
+  125000 settings made for site
 
 
 #sweep		 random
@@ -63,13 +64,13 @@ Setting up run ...
 Running with 32-bit site IDs
 Memory usage per processor = 17.5 Mbytes
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-         0          0          0          0          0 2.54636e+07
-         1    4280876          0          8         12 1.74428e+07
-Loop time of 12.0182 on 10 procs
+         0          0          0          0          0 3.11679e+06
+         1     527161          0          8       13.7 2.12504e+06
+Loop time of 13.73 on 1 procs
 
-Solve time (%) = 0.0789056 (0.65655)
+Solve time (%) = 0.112782 (0.821429)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.754821 (6.28064)
-Outpt time (%) = 1.49128 (12.4084)
-App   time (%) = 9.51356 (79.1594)
-Other time (%) = 0.179666 (1.49495)
+Comm  time (%) = 0.116957 (0.851838)
+Outpt time (%) = 0.19109 (1.39177)
+App   time (%) = 13.289 (96.788)
+Other time (%) = 0.0201814 (0.146988)

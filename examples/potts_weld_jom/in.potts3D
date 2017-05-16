@@ -8,7 +8,7 @@ app_style	 potts 1000000
 
 dimension	 3
 lattice		 sc/26n 1.0
-region		 box block 0 100 0 100 0 100
+region		 box block 0 50 0 50 0 50
 boundary n n n
 create_box	 box
 create_sites	 box
