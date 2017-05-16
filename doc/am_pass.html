@@ -9,54 +9,60 @@
 
 <HR>
 
-<H3>pass command 
+<H3>am_pass command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pass id dir d distance D velocity V 
+<PRE>am_pass id dir d distance D speed V 
 </PRE>
-<UL><LI>id = integer identification number for this pass. 
-</UL>
-<UL><LI>dir d = keyword/value pair; <I>d</I> is a single character <I>X</I> or <I>Y</I> which specifies direction of the cartesian pass 
-</UL>
-<UL><LI>distance D = keyword/value pair; <I>D</I> is floating point number specifying the total pass distance (typically the size of the simulation box in xy-plane) 
-</UL>
-<UL><LI>velocity V = keyword/value pair; <I>V</I> is a floating point number which specifes the scan velocity of the pass in sites/MCS 
+<UL><LI>id = integer identification number for this pass
+<LI>dir = required keyword
+<LI>d = <I>X</I> or <I>Y</I> which specifies direction of the cartesian pass
+<LI>distance = required keyword
+<LI>D = total pass distance 
+<LI>speed = required keyword
+<LI>V = scan velocity of the pass in sites/Monte-Carlo-sweep 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pass 1 dir X distance 100.0 speed 10.0 
+<PRE>am_pass 1 dir X distance 100.0 speed 10.0 
 </PRE>
-<PRE>pass 2 dir Y distance 100.0 speed 5.0 
+<PRE>am_pass 2 dir Y distance 100.0 speed 5.0 
 </PRE>
-<P>Two passes are defined each with a different orientation and speed.  The sketch
-below also illustrates the <I>overpass</I>; the pool position is always translated
-by the <I>distance</I> specfied plus an <I>overpass</I> increment.  The <I>overpass</I>
-increment is computed as shown based upon parameters set in
-<A HREF = "app_potts_additive.html">app_potts_additive</A>.
-</P>
-<IMG SRC = "JPG/pass_schematic.png">
-
 <P><B>Description:</B>
 </P>
 <P>This command is used in the <A HREF = "app_potts_additive.html">potts/additive</A>
-application to specify the parameters of the pass subcomponent of a raster
-pattern. Multiple passes can be defined in a single input file, using unique id
-values.  
+application to specify the parameters of the pass subcomponent of a
+raster pattern.  Multiple passes can be defined in a single input
+file, using unique id values.
 </P>
-<P>Note that <I>dir d</I> key/value pair specifies direction of motion and orientation
-of the molten pool during a pass.  The pool has its own local coordinate system <I>x,y</I> 
-so that the pool axis <I>x</I> is always oriented along <I>dir d</I>.
+<P>Note that the <I>dir</I> value specifies direction of motion and
+orientation of the molten pool during a pass.  The pool has its own
+local coordinate system <I>x,y</I> so that the pool axis <I>x</I> is always
+oriented along <I>dir d</I>.
 </P>
+<P>The <I>distance</I> value <I>D</I> should typically be the size of the
+simulation box in the xy-plane.
+</P>
+<P>The example commands above define two passes, each with a different
+orientation and speed.  The sketch below also illustrates the
+<I>overpass</I>; the pool position is always translated by the <I>distance</I>
+specfied plus an <I>overpass</I> increment.  The <I>overpass</I> increment is
+computed as shown based upon parameters set in the
+<A HREF = "app_potts_additive.html">app_potts_additive</A> command.
+</P>
+<IMG SRC = "JPG/pass_schematic.png">
+
 <P><B>Restrictions:</B>
 </P>
-<P>This command can only be used as part of the <A HREF = "app_potts_additive.html">app_style potts/additive</A> application.
+<P>This command can only be used as part of the <A HREF = "app_potts_additive.html">app_style
+potts/additive</A> application.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "am_transverse_pass.html">transverse_pass</A>
-<A HREF = "am_cartesian_layer.html">cartesian_layer</A>
-<A HREF = "am_pattern.html">pattern</A>
+<P><A HREF = "am_transverse_pass.html">am_transverse_pass</A>,
+<A HREF = "am_cartesian_layer.html">am_cartesian_layer</A>,
+<A HREF = "am_pattern.html">am_pattern</A>
 </P>
 <P><B>Default:</B> none
 </P>

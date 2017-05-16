@@ -6,50 +6,58 @@
 
 :line
 
-pass command :h3
+am_pass command :h3
 
 [Syntax:]
 
-pass id dir d distance D velocity V :pre
+am_pass id dir d distance D speed V :pre
 
-id = integer identification number for this pass. :ul
-dir d = keyword/value pair; {d} is a single character {X} or {Y} which specifies direction of the cartesian pass :ul
-distance D = keyword/value pair; {D} is floating point number specifying the total pass distance (typically the size of the simulation box in xy-plane) :ul
-velocity V = keyword/value pair; {V} is a floating point number which specifes the scan velocity of the pass in sites/MCS :ul
+id = integer identification number for this pass
+dir = required keyword
+d = {X} or {Y} which specifies direction of the cartesian pass
+distance = required keyword
+D = total pass distance 
+speed = required keyword
+V = scan velocity of the pass in sites/Monte-Carlo-sweep :ul
 
 [Examples:]
 
-pass 1 dir X distance 100.0 speed 10.0 :pre
-pass 2 dir Y distance 100.0 speed 5.0 :pre
-
-Two passes are defined each with a different orientation and speed.  The sketch
-below also illustrates the {overpass}; the pool position is always translated
-by the {distance} specfied plus an {overpass} increment.  The {overpass}
-increment is computed as shown based upon parameters set in
-"app_potts_additive"_app_potts_additive.html.
-
-
-:image(JPG/pass_schematic.png)
+am_pass 1 dir X distance 100.0 speed 10.0 :pre
+am_pass 2 dir Y distance 100.0 speed 5.0 :pre
 
 [Description:]
 
 This command is used in the "potts/additive"_app_potts_additive.html
-application to specify the parameters of the pass subcomponent of a raster
-pattern. Multiple passes can be defined in a single input file, using unique id
-values.  
+application to specify the parameters of the pass subcomponent of a
+raster pattern.  Multiple passes can be defined in a single input
+file, using unique id values.
 
-Note that {dir d} key/value pair specifies direction of motion and orientation
-of the molten pool during a pass.  The pool has its own local coordinate system {x,y} 
-so that the pool axis {x} is always oriented along {dir d}.
+Note that the {dir} value specifies direction of motion and
+orientation of the molten pool during a pass.  The pool has its own
+local coordinate system {x,y} so that the pool axis {x} is always
+oriented along {dir d}.
+
+The {distance} value {D} should typically be the size of the
+simulation box in the xy-plane.
+
+The example commands above define two passes, each with a different
+orientation and speed.  The sketch below also illustrates the
+{overpass}; the pool position is always translated by the {distance}
+specfied plus an {overpass} increment.  The {overpass} increment is
+computed as shown based upon parameters set in the
+"app_potts_additive"_app_potts_additive.html command.
+
+:image(JPG/pass_schematic.png)
 
 [Restrictions:]
 
-This command can only be used as part of the "app_style potts/additive"_app_potts_additive.html application.
+This command can only be used as part of the "app_style
+potts/additive"_app_potts_additive.html application.
 
 [Related commands:]
 
-"transverse_pass"_am_transverse_pass.html
-"cartesian_layer"_am_cartesian_layer.html
-"pattern"_am_pattern.html
+"am_transverse_pass"_am_transverse_pass.html,
+"am_cartesian_layer"_am_cartesian_layer.html,
+"am_pattern"_am_pattern.html
 
 [Default:] none

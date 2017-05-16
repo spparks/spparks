@@ -6,48 +6,59 @@
 
 :line
 
-transverse_pass command :h3
+am_transverse_pass command :h3
 
 [Syntax:]
 
-transverse_pass id distance D increment I :pre
+am_transverse_pass id distance D increment I :pre
 
-id = integer identification number for this transverse_pass. :ul
-distance D = keyword/value pair; {D} is a floating point number for the total length covered by the transverse pass (typically the box size transverse to the current pass direction). :ul
-increment I = keyword/value pair; {I} is a floating point specifying the transverse distance between each pass. Typically smaller than the molten zone width to achieve full coverage :ul
+id = integer identification number for this transverse pass
+distance = required keyword
+D = total transverse_pass distance
+increment = required keyword
+I = transverse distance between each pass :ul
 
 [Examples:]
 
-pass 1 dir X distance 100.0 speed 10.0 :pre
-transverse_pass 1 distance 65.0 increment 10 :pre
-
-In the above example, a pass along the "spparks" {X} axis is defined.  The
-transverse_pass command defines the distance {increment 10} between each pass
-as well as implicitly defining the number of passes based upon the 
-keyword/value pair {distance 10.0}.  Schematic sketch below depicts example.
-
-:image(JPG/transverse_pass_schematic.png)
+am_pass 1 dir X distance 100.0 speed 10.0
+am_transverse_pass 1 distance 65.0 increment 10 :pre
 
 [Description:]
 
 This command is used in the "potts/additive"_app_potts_additive.html
-application to specify the parameters of the transverse_pass subcomponent of a
-raster pattern. Multiple transverse passes can be defined in a single input
-file, using unique id values.
+application to specify the parameters of the transverse_pass
+subcomponent of a raster pattern. Multiple transverse passes can be
+defined in a single input file, using unique id values.
 
-The {increment I} key/value pair defines the transverse distance between 
-passes defined in the "pass"_am_pass.html command.  The {distance D} 
-key/value pair used together with {I} implicitly defines number passes 
-when used to define a "rectangular_layer"_am_cartesian_layer.html.
+The {distance} value {D} key/value should typically be the box size
+transverse to the current pass direction.
+
+The {increment} value {I} defines the transverse distance between
+passes defined in the "pass"_am_pass.html command.  It should
+typically be smaller than the molten zone width to achieve full
+coverage.
+
+Note that the {distance} and {increment} values together implicitly
+define the number of passes when used to define a "rectangular_layer"
+via the "am_cartesian_layer"_am_cartesian_layer.html command.
+
+In the above example, a pass along the {X} axis is defined.  The
+transverse_pass command defines the distance {increment 10} between
+each pass as well as implicitly defining the number of passes based
+upon the keyword/value pair {distance 10.0}.  The schematic below
+illustrates this geometry.
+
+:image(JPG/transverse_pass_schematic.png)
 
 [Restrictions:]
 
-This command can only be used as part of the "app_style potts/additive"_app_potts_additive.html application.
+This command can only be used as part of the "app_style
+potts/additive"_app_potts_additive.html application.
 
 [Related commands:]
 
-"pass"_am_pass.html
-"cartesian_layer"_am_cartesian_layer.html
-"pattern"_am_pattern.html
+"am_pass"_am_pass.html,
+"am_cartesian_layer"_am_cartesian_layer.html,
+"am_pattern"_am_pattern.html
 
 [Default:] none

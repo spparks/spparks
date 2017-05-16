@@ -9,64 +9,69 @@
 
 <HR>
 
-<H3>pattern command 
+<H3>am_pattern command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pattern id num_layers n layer_ids l_ids z_start z_init z_increment dz 
+<PRE>am_pattern id num_layers N layer_ids l_ids z_start z_init z_increment dz 
 </PRE>
-<UL><LI>id = integer pattern identification number. 
-</UL>
-<UL><LI>num_layers n = keyword/value pair; integer <I>n</I> specifies number of unique layers for this pattern. 
-</UL>
-<UL><LI>layer_ids 1..n = keyword/value pair; Array (length <I>n</I>) of integer ids specifying layer(s) which should be used in this pattern. Defined with <A HREF = "am_cartesian_layer.html">cartesian_layer</A>. 
-</UL>
-<UL><LI>z_start z_init = keyword/value pair; floating point value <I>z_init</I> is the initial z-value elevation for the pattern. Should typically be <= molten zone depth for complete coverage. 
-</UL>
-<UL><LI>z_increment dz = keyword/value pair; floating point value <I>dz</I> specifies z-elevation increment between layers. Should typically be <= molten zone depth for complete coverage and get overlap. 
+<UL><LI>id = integer identification number for this pattern
+<LI>num_layers = required keyword
+<LI>N = number of unique layers for this pattern
+<LI>layer_ids = required keyword
+<LI>layer_ids  = list of N integer IDs of the cartesian layers in this pattern
+<LI>z_start = required keyword
+<LI>z_init = initial z-value elevation for the pattern
+<LI>z_increment = required keyword
+<LI>dz = z-elevation increment between layers 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pass 1 dir X distance 100.0 speed 10.0 
+<PRE>am_pass 1 dir X distance 100.0 speed 10.0
+am_transverse_pass 1 distance 65.0 increment 10
+am_cartesian_layer 1 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 0
+am_cartesian_layer 2 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 1
+am_pattern 1 num_layers 2 layer_ids 1 2 z_start 0.0 z_increment 5.0 
 </PRE>
-<PRE>transverse_pass 1 distance 65.0 increment 10 
-</PRE>
-<PRE>cartesian_layer 1 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 0 
-</PRE>
-<PRE>cartesian_layer 2 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 1 
-</PRE>
-<PRE>pattern 1 num_layers 2 layer_ids 1 2 z_start 0.0 z_increment 5.0 
-</PRE>
-<P>The above <I>pattern</I> builds on the example from
-<A HREF = "am_cartesian_layer.html">cartesian_layer</A>; two layers are used to define a
-repeating raster <I>pattern</I> as the tool builds a <I>3D</I> volume layer by layer
-incrementally in the spparks <I>z</I> coordinate direction.  The first layer is
-added beginning with a <I>z</I> elevation of <I>z=z_start=0.0</I>; the second layer is
-added at an elevation of <I>z_increment=5.0</I>.  Since the <I>pattern</I> only has 2
-layers, it repeats <I>layer 1</I> beginning at <I>z=10.0</I> and <I>layer 2</I> at <I>z=15.0</I>;
-the pattern continues to repeat for the duration of the simulation with each
-layer added incrementally above the previous layer.
-</P>
 <P><B>Description:</B>
 </P>
 <P>This command is used in the <A HREF = "app_potts_additive.html">potts/additive</A>
-application to specify the raster pattern used in a simulation. A pattern allows
-for the use of multiple predefined layers.
+application to specify the raster pattern used in a simulation. A
+pattern allows for the use of multiple predefined layers.
 </P>
-<P>As mentioned above, a pattern can be defined with an arbitrary number of
-layers.  Each layer is seperated by an increment in the z-elevation.  Once all
-of the layers have been cycled through, the pattern repeats itself be cycling
-through the layers again and again until the simulation is completed.
+<P>As mentioned above, a pattern can be defined with an arbitrary number
+of layers.  Each layer is separated by an increment in the
+z-elevation.  Once all of the layers have been cycled through, the
+pattern repeats itself be cycling through the layers again and again
+until the simulation is completed.
+</P>
+<P>The <I>z_start</I> value <I>z_init</I> should typically be <= molten zone depth
+for complete coverage.
+</P>
+<P>The <I>z_increment</I> value <I>dz</I> should typically be <= molten zone depth
+for complete coverage and overlap.
+</P>
+<P>The above example commands build on the example from the
+<A HREF = "am_cartesian_layer.html">cartesian_layer</A> command.  Two layers are
+used to define a repeating raster <I>pattern</I> as the tool builds a <I>3D</I>
+volume layer by layer incrementally in the spparks <I>z</I> coordinate
+direction.  The first layer is added beginning with a <I>z</I> elevation of
+<I>z=z_start=0.0</I>.  The second layer is added at an elevation of
+<I>z_increment=5.0</I>.  Since the <I>pattern</I> only has 2 layers, it repeats
+<I>layer 1</I> beginning at <I>z=10.0</I> and <I>layer 2</I> at <I>z=15.0</I>.  The
+pattern continues to repeat for the duration of the simulation with
+each layer added incrementally above the previous layer.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This command can only be used as part of the <A HREF = "app_potts_additive.html">app_style potts/additive</A> application.
+<P>This command can only be used as part of the <A HREF = "app_potts_additive.html">app_style
+potts/additive</A> application.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "am_pass.html">pass</A>
-<A HREF = "am_transverse_pass.html">transverse_pass</A>
-<A HREF = "am_cartesian_layer.html">cartesian_layer</A>
+<P><A HREF = "am_pass.html">am_pass</A>,
+<A HREF = "am_transverse_pass.html">am_transverse_pass</A>,
+<A HREF = "am_cartesian_layer.html">am_cartesian_layer</A>
 </P>
 <P><B>Default:</B> none
 </P>

@@ -9,42 +9,38 @@
 
 <HR>
 
-<H3>app_style potts/strain/with/pinning command 
+<H3>app_style potts/strain/pin command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style potts/strain/with/pinning Q 
+<PRE>app_style potts/strain/pin Q 
 </PRE>
-<UL><LI>potts/strain/with/pinning = application style name
+<UL><LI>potts/strain/pin = application style name
 <LI>Q = number of spin states 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>app_style potts/strain/with/pinning 100 
+<PRE>app_style potts/strain/pin 100 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This is an on-lattice application which evolves a Q-state Potts model with a
-per-site strain, where each lattice site has a spin value from 1 to Q;  the app
-also allows for pinning of sites using a special spin value of Q+1.  Sites flip
-their spin as the model evolves but sites are not allowed to flip to a pinned
-value; sites with pinned values also do not flip.  Strain energy can influence
-grain growth.
+<P>This is an on-lattice application which evolves a Q-state Potts model
+with a per-site strain, where each lattice site has a spin value from
+1 to Q.  The application also allows for pinning of sites using a
+special spin value of Q+1.  Sites flip their spin as the model evolves
+but sites are not allowed to flip to a pinned value; sites with pinned
+values also do not flip.  Strain energy can influence grain growth.
 </P>
-<P>See <A HREF = "app_potts_strain.html">potts_strain</A> and <A HREF = "pin.html">pin</A> for details
-on how strain and pinned sites are incorporated into this app.
+<P>See the <A HREF = "app_potts_strain.html">potts_strain</A> and <A HREF = "pin.html">pin</A>
+commands for details on how strain and pinned sites are incorporated
+into this application.
 </P>
-
-
 <HR>
 
-<P>The following commands are used by this application:
+<P>The following additional commands are defined by this application:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature 
-</TD></TR></TABLE></DIV>
-
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature</TD></TR>
 <TR><TD ><A HREF = "pin.html">pin</A> </TD><TD > set pinning parameters 
 </TD></TR></TABLE></DIV>
 
@@ -54,8 +50,9 @@ on how strain and pinned sites are incorporated into this app.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "app_potts.html">app_style potts</A>
-<A HREF = "app_potts_strain.html">app_style potts_strain</A>
+<P><A HREF = "app_potts.html">app_style potts</A>,
+<A HREF = "app_potts_strain.html">app_style potts_strain</A>,
+<A HREF = "pin.html">pin</A>
 </P>
 <P><B>Default:</B> none
 </P>

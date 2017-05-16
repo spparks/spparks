@@ -6,45 +6,57 @@
 
 :line
 
-cartesian_layer command :h3
+am_cartesian_layer command :h3
 
 [Syntax:]
 
-cartesian_layer layer_id start_position x y pass_id p_id transverse_pass_id t_id serpentine switch :pre
+am_cartesian_layer layer_id start_position x y pass_id p_id transverse_pass_id t_id serpentine switch :pre
 
-layer_id = integer identification number for this cartesian_layer. :ul
-start_position x y = keyword/value pair; floating point values {(x,y)} specify coordinates of initial molten zone location (typically the bottom-left corner of the box). :ul
-pass_id p_id = keyword/value pair; integer {p_id} which identifies pass to use for this layer (specified by the "pass"_am_pass.html command). :ul
-transverse_pass_id t_id = keyword/value pair; integer {t_id} specifies transverse_pass to use on this layer (specified by the "transverse_pass"_am_transverse_pass.html command). :ul
-serpentine switch = keyword/value pair; integer {switch} specifying whether each pass should be parallel or anti-parallel to the previous one. {switch = 0} for parallel and {1} for anti-parallel. :ul
+layer_id = integer identification number for this cartesian_layer
+start_position = required keyword
+x y = coordinates of initial molten zone location
+pass_id = required keyword
+p_id = integer ID of the pass to use for this layer
+transverse_pass_id = required keyword
+t_id = integer ID of the transverse pass to use for this layer
+serpentine = required keyword
+switch = 0 for parallel, 1 for anti-parallel for successive passes :ul
 
 [Examples:]
 
-pass 1 dir X distance 100.0 speed 10.0 :pre
-transverse_pass 1 distance 65.0 increment 10 :pre
-cartesian_layer 1 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 0 :pre
-cartesian_layer 2 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 1 :pre
-
-In the above example, two unique layers (with and without serpentine) are
-created. Note re-use of "pass"_am_pass.html and
-"transverse_pass"_am_transverse_pass.html definitions.  Schematic sketch below
-depicts the two layers.  Note how {overpass} interacts with {serpentine}.
-
-:image(JPG/cartesian_layer_schematic.png)
-
+am_pass 1 dir X distance 100.0 speed 10.0
+am_transverse_pass 1 distance 65.0 increment 10
+am_cartesian_layer 1 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 0
+am_cartesian_layer 2 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 1 :pre
 
 [Description:]
 
 This command is used in the "potts/additive"_app_potts_additive.html
-application to specify the cartesian_layer subcomponent of a raster "pattern"_am_pattern.html.
-Multiple cartesian_layers can be defined in a single input file, using unique
-id values.
+application to specify the cartesian_layer subcomponent of a raster
+"pattern"_am_pattern.html.  Multiple cartesian_layers can be defined
+in a single input file, using unique id values.
 
-The {start_position (x,y)} key/value pair is "pass"_am_pass.html sensitive.  If
-a pass has {dir X}, then the start_position should be at the lower left corner
-of raster domain (as defined by the pass and transverse_pass). If on the other
-hand, the pass has {dir Y}, then the start position should be at the lower
-right corner of the raster domain; see sketch of such a case in the "pass"_am_pass.html command.
+The {start_position} values x,y are typically the bottom-left corner
+of the simulation domain.
+
+The {pass_id} value {p_id} is defined by the "pass"_am_pass.html
+command.  The {transverse_pass_id} value {t_id} is defined by the
+"transverse_pass"_am_transverse_pass.html command.
+
+Note that the x,y values are "pass"_am_pass.html sensitive.  If a pass
+defines {dir X}, then the start_position should be at the lower left
+corner of raster domain (as defined by the pass and
+transverse_pass). If the pass defined {dir Y}, then the start position
+should be at the lower right corner of the raster domain.  See a
+schematic of the latter case in the "pass"_am_pass.html command.
+
+In the above example, two unique layers (with and without serpentine)
+are created.  Note re-use of the "pass"_am_pass.html and
+"transverse_pass"_am_transverse_pass.html commands.  The schematic
+below depicts the two layers.  Note how {overpass} interacts with
+{serpentine}.
+
+:image(JPG/cartesian_layer_schematic.png)
 
 [Restrictions:]
 
@@ -53,8 +65,8 @@ potts/additive"_app_potts_additive.html application.
 
 [Related commands:]
 
-"pass"_am_pass.html
-"transverse_pass"_am_transverse_pass.html
-"pattern"_am_pattern.html
+"am_pass"_am_pass.html,
+"am_transverse_pass"_am_transverse_pass.html,
+"am_pattern"_am_pattern.html
 
 [Default:] none
