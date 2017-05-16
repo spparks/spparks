@@ -28,68 +28,75 @@ exp_factor = Coefficient that controls the rate of exponential decay of the haz 
 
 [Examples:]
 
-app_style potts/additive 1000 30 40 20 5	50 60 30 7 0.1
+app_style potts/additive 1000 30 40 20 5 50 60 30 7 0.1
 
 [Description:]
 
 This is an on-lattice application derived from the "app_style
-potts/neighonly"_app_potts.html application that simulates the rastering of a
-molten pool and its accompanying heat-affected zone (HAZ) through a domain.
-Rastering is achieved through the specification of layer-by-layer patterns,
-which can be combined into an overall pattern specifying the translation of the
-molten zone through the entire simulation domain. The application allows for
-arbitrary numbers of paths in each layer and an arbitrary number of layers in
-each pattern. Thus, the user can construct any scan strategy desired by
-specifying individual layer patterns and how these patterns should be repeated.
+potts/neighonly"_app_potts.html application that simulates the
+rastering of a molten pool and its accompanying heat-affected zone
+(HAZ) through a domain.  Rastering is achieved through the
+specification of layer-by-layer patterns, which can be combined into
+an overall pattern specifying the translation of the molten zone
+through the entire simulation domain. The application allows for
+arbitrary numbers of paths in each layer and an arbitrary number of
+layers in each pattern. Thus, the user can construct any scan strategy
+desired by specifying individual layer patterns and how these patterns
+should be repeated.
 
 The molten pool is defined as a double ellipsoid. The ellipsoids share
-identical values for two of their axes (defined by the {melt_width} and
-{melt_depth} parameters). The third axis of each ellipsoid is defined by either
-the {melt_tail_length} or {cap_height} parameters. The haz is also defined by
-four equivalent parameters: {HAZ}, {tail_HAZ}, {depth_HAZ}, and {cap_HAZ}. A
-schematic of these eight parameters is shown below.
+identical values for two of their axes (defined by the {melt_width}
+and {melt_depth} parameters). The third axis of each ellipsoid is
+defined by either the {melt_tail_length} or {cap_height}
+parameters. The haz is also defined by four equivalent parameters:
+{HAZ}, {tail_HAZ}, {depth_HAZ}, and {cap_HAZ}. A schematic of these
+eight parameters is shown below.
 
 :image(JPG/400am_pool_schematic.png)
 
-The model also requires specification of the {exp_factor} variable, which
-determines the value of the coefficient in the mobility equation, {M =
-exp(-exp_factor * x)}, where {x} is the shortest distance from the lattice site
-to the molten pool boundary.
+The model also requires specification of the {exp_factor} variable,
+which determines the value of the coefficient in the mobility
+equation, {M = exp(-exp_factor * x)}, where {x} is the shortest
+distance from the lattice site to the molten pool boundary.
 
-The application requires the specification of these additional commands:
+This application was used in the paper by "Rodgers and
+collaborators"_#Rodgers.
 
-"pass"_am_pass.html: Define the parameters for each type of single-track pass.
-"transverse_pass"_am_transverse_pass.html: Define the parameters for the transverse increment (a.k.a. hatch spacing) between each pass.
-"cartesian_layer"_am_cartesian_layer.html: Define the combination of passes and transverse_passes that comprise a layer. Limited to passes aligned along the +/-X or Y axes. 
-"pattern"_am_pattern.html: Define the combination of layers that comprise a pattern. :tb(s=:)
+:line
 
-Refer to the examples under {potts_additive} for example input files incorporating these additional commands.
+The following additional commands are defined by this application,
+and in fact must be specified to setup a simulation.
 
-This program was used in the paper by "Rodgers et al."_#Rodgers
+"am_pass"_am_pass.html: Define the parameters for each type of single-track pass.
+"am_transverse_pass"_am_transverse_pass.html: Define the parameters for the transverse increment (a.k.a. hatch spacing) between each pass.
+"am_cartesian_layer"_am_cartesian_layer.html: Define the combination of passes and transverse_passes that comprise a layer. Limited to passes aligned along the +/-X or Y axes. 
+"am_pattern"_am_pattern.html: Define the combination of layers that comprise a pattern. :tb(s=:)
+
+The examples/potts_additive directory has input files which illustrate
+how to use these additional commands.
 
 :line
 
 [Restrictions:] :link(restriction)
 
-Only compatible with square and square cubic lattices.
+This application is only compatible with square and square cubic
+lattices. 
 
-Can only be evolved by a rejection KMC (rKMC) algorithm.  See "sweep"_sweep.html for more information.
+This application can only be evolved by a rejection KMC (rKMC)
+algorithm.  See the "sweep"_sweep.html command for more details.
 
-Melt pool width + haz must be =< xhi & yhi.
-
+The settings for melt pool width + haz must be <= xhi & yhi.
 
 [Related commands:]
 
-"app_style potts/weld"_app_potts_weld.html
-
+"app_style potts/weld"_app_potts_weld.html,
 "app_style potts/weld/jom"_app_potts_weld_jom.html
 
-
-[Default:]
-
-none
+[Default:] none
 
 :line
 
 :link(Rodgers)
-[(Rodgers)] T.M. Rodgers, J.D. Madison and V. Tikare, "Simulation of Metal Additive Manufacturing Microstructures Using Kinetic Monte Carlo", Computational Materials Science (2017). 
+[(Rodgers)] T.M. Rodgers, J.D. Madison and V. Tikare, "Simulation of
+Metal Additive Manufacturing Microstructures Using Kinetic Monte
+Carlo", Computational Materials Science (2017).

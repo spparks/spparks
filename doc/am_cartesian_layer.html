@@ -9,52 +9,58 @@
 
 <HR>
 
-<H3>cartesian_layer command 
+<H3>am_cartesian_layer command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>cartesian_layer layer_id start_position x y pass_id p_id transverse_pass_id t_id serpentine switch 
+<PRE>am_cartesian_layer layer_id start_position x y pass_id p_id transverse_pass_id t_id serpentine switch 
 </PRE>
-<UL><LI>layer_id = integer identification number for this cartesian_layer. 
-</UL>
-<UL><LI>start_position x y = keyword/value pair; floating point values <I>(x,y)</I> specify coordinates of initial molten zone location (typically the bottom-left corner of the box). 
-</UL>
-<UL><LI>pass_id p_id = keyword/value pair; integer <I>p_id</I> which identifies pass to use for this layer (specified by the <A HREF = "am_pass.html">pass</A> command). 
-</UL>
-<UL><LI>transverse_pass_id t_id = keyword/value pair; integer <I>t_id</I> specifies transverse_pass to use on this layer (specified by the <A HREF = "am_transverse_pass.html">transverse_pass</A> command). 
-</UL>
-<UL><LI>serpentine switch = keyword/value pair; integer <I>switch</I> specifying whether each pass should be parallel or anti-parallel to the previous one. <I>switch = 0</I> for parallel and <I>1</I> for anti-parallel. 
+<UL><LI>layer_id = integer identification number for this cartesian_layer
+<LI>start_position = required keyword
+<LI>x y = coordinates of initial molten zone location
+<LI>pass_id = required keyword
+<LI>p_id = integer ID of the pass to use for this layer
+<LI>transverse_pass_id = required keyword
+<LI>t_id = integer ID of the transverse pass to use for this layer
+<LI>serpentine = required keyword
+<LI>switch = 0 for parallel, 1 for anti-parallel for successive passes 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pass 1 dir X distance 100.0 speed 10.0 
+<PRE>am_pass 1 dir X distance 100.0 speed 10.0
+am_transverse_pass 1 distance 65.0 increment 10
+am_cartesian_layer 1 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 0
+am_cartesian_layer 2 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 1 
 </PRE>
-<PRE>transverse_pass 1 distance 65.0 increment 10 
-</PRE>
-<PRE>cartesian_layer 1 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 0 
-</PRE>
-<PRE>cartesian_layer 2 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 1 
-</PRE>
-<P>In the above example, two unique layers (with and without serpentine) are
-created. Note re-use of <A HREF = "am_pass.html">pass</A> and
-<A HREF = "am_transverse_pass.html">transverse_pass</A> definitions.  Schematic sketch below
-depicts the two layers.  Note how <I>overpass</I> interacts with <I>serpentine</I>.
-</P>
-<IMG SRC = "JPG/cartesian_layer_schematic.png">
-
 <P><B>Description:</B>
 </P>
 <P>This command is used in the <A HREF = "app_potts_additive.html">potts/additive</A>
-application to specify the cartesian_layer subcomponent of a raster <A HREF = "am_pattern.html">pattern</A>.
-Multiple cartesian_layers can be defined in a single input file, using unique
-id values.
+application to specify the cartesian_layer subcomponent of a raster
+<A HREF = "am_pattern.html">pattern</A>.  Multiple cartesian_layers can be defined
+in a single input file, using unique id values.
 </P>
-<P>The <I>start_position (x,y)</I> key/value pair is <A HREF = "am_pass.html">pass</A> sensitive.  If
-a pass has <I>dir X</I>, then the start_position should be at the lower left corner
-of raster domain (as defined by the pass and transverse_pass). If on the other
-hand, the pass has <I>dir Y</I>, then the start position should be at the lower
-right corner of the raster domain; see sketch of such a case in the <A HREF = "am_pass.html">pass</A> command.
+<P>The <I>start_position</I> values x,y are typically the bottom-left corner
+of the simulation domain.
 </P>
+<P>The <I>pass_id</I> value <I>p_id</I> is defined by the <A HREF = "am_pass.html">pass</A>
+command.  The <I>transverse_pass_id</I> value <I>t_id</I> is defined by the
+<A HREF = "am_transverse_pass.html">transverse_pass</A> command.
+</P>
+<P>Note that the x,y values are <A HREF = "am_pass.html">pass</A> sensitive.  If a pass
+defines <I>dir X</I>, then the start_position should be at the lower left
+corner of raster domain (as defined by the pass and
+transverse_pass). If the pass defined <I>dir Y</I>, then the start position
+should be at the lower right corner of the raster domain.  See a
+schematic of the latter case in the <A HREF = "am_pass.html">pass</A> command.
+</P>
+<P>In the above example, two unique layers (with and without serpentine)
+are created.  Note re-use of the <A HREF = "am_pass.html">pass</A> and
+<A HREF = "am_transverse_pass.html">transverse_pass</A> commands.  The schematic
+below depicts the two layers.  Note how <I>overpass</I> interacts with
+<I>serpentine</I>.
+</P>
+<IMG SRC = "JPG/cartesian_layer_schematic.png">
+
 <P><B>Restrictions:</B>
 </P>
 <P>This command can only be used as part of the <A HREF = "app_potts_additive.html">app_style
@@ -62,9 +68,9 @@ potts/additive</A> application.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "am_pass.html">pass</A>
-<A HREF = "am_transverse_pass.html">transverse_pass</A>
-<A HREF = "am_pattern.html">pattern</A>
+<P><A HREF = "am_pass.html">am_pass</A>,
+<A HREF = "am_transverse_pass.html">am_transverse_pass</A>,
+<A HREF = "am_pattern.html">am_pattern</A>
 </P>
 <P><B>Default:</B> none
 </P>
