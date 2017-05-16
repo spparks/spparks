@@ -14,7 +14,7 @@
 #include "math.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_potts_strain_with_pinning.h"
+#include "app_potts_strain_pin.h"
 #include "solve.h"
 #include "random_mars.h"
 #include "random_park.h"
@@ -26,7 +26,7 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsStrainWithPinning::AppPottsStrainWithPinning(SPPARKS *spk, int narg, char **arg) : 
+AppPottsStrainPin::AppPottsStrainPin(SPPARKS *spk, int narg, char **arg) : 
   AppPotts(spk,narg,arg)
 {
   ninteger = 1;
@@ -50,7 +50,8 @@ AppPottsStrainWithPinning::AppPottsStrainWithPinning(SPPARKS *spk, int narg, cha
 /* ----------------------------------------------------------------------
    input script for 'pin' command
 ------------------------------------------------------------------------- */
-void AppPottsStrainWithPinning::input_app(char *command, int narg, char **arg)
+
+void AppPottsStrainPin::input_app(char *command, int narg, char **arg)
 {
   if (strcmp(command,"pin") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal pin command");
@@ -69,7 +70,7 @@ void AppPottsStrainWithPinning::input_app(char *command, int narg, char **arg)
    set site value ptrs each time iarray/darray are reallocated
 ------------------------------------------------------------------------- */
 
-void AppPottsStrainWithPinning::grow_app()
+void AppPottsStrainPin::grow_app()
 {
   spin = iarray[0];
   strain = darray[0];
@@ -80,7 +81,7 @@ void AppPottsStrainWithPinning::grow_app()
    check validity of site values
 ------------------------------------------------------------------------- */
 
-void AppPottsStrainWithPinning::init_app()
+void AppPottsStrainPin::init_app()
 {
   delete [] sites;
   delete [] unique;
@@ -102,9 +103,8 @@ void AppPottsStrainWithPinning::init_app()
    compute total propensity of owned site summed over possible events
 ------------------------------------------------------------------------- */
 
-double AppPottsStrainWithPinning::site_propensity(int i)
+double AppPottsStrainPin::site_propensity(int i)
 {
-
   // no events for a pinned site
   if (spin[i] > nspins) return 0.0;
 
@@ -155,7 +155,7 @@ double AppPottsStrainWithPinning::site_propensity(int i)
    choose and perform an event for site
 ------------------------------------------------------------------------- */
 
-void AppPottsStrainWithPinning::site_event(int i, RandomPark *random)
+void AppPottsStrainPin::site_event(int i, RandomPark *random)
 {
   int j,m,value;
 
@@ -216,7 +216,7 @@ void AppPottsStrainWithPinning::site_event(int i, RandomPark *random)
    return a pointer to a named internal variable
 ------------------------------------------------------------------------- */
 
-void *AppPottsStrainWithPinning::extract_app(char *name)
+void *AppPottsStrainPin::extract_app(char *name)
 {
   if (strcmp(name,"nspins") == 0) return (void *) &nspins;
   if (strcmp(name,"strain") == 0) return (void *) strain;
@@ -228,7 +228,7 @@ void *AppPottsStrainWithPinning::extract_app(char *name)
    user params = pfraction, multi, nthresh
 ------------------------------------------------------------------------- */
 
-void AppPottsStrainWithPinning::pin_create()
+void AppPottsStrainPin::pin_create()
 {
   int i,j,m,nattempt,nme,npin,ndiff;
   int flag,flags[2],flagall[2];
@@ -341,8 +341,8 @@ void AppPottsStrainWithPinning::pin_create()
    push new site onto stack and assign new id
  ------------------------------------------------------------------------- */
 
-void AppPottsStrainWithPinning::push_new_site(int i, int* cluster_ids, int id,
-					  std::stack<int>* cluststack)
+void AppPottsStrainPin::push_new_site(int i, int* cluster_ids, int id,
+                                      std::stack<int>* cluststack)
 {
   int isite = spin[i];
 
