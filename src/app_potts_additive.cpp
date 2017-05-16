@@ -3,26 +3,29 @@
    http://www.cs.sandia.gov/~sjplimp/spparks.html
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
    
-   AM App by Theron Rodgers, trodger@sandia.gov
-
    Copyright (2008) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under 
    the GNU General Public License.
 
    See the README file in the top-level SPPARKS directory.
- ------------------------------------------------------------------------- */
-#include <iostream>
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Theron Rodgers (Sandia)
+------------------------------------------------------------------------- */
+
 #include "string.h"
 #include "math.h"
 #include "app_potts_additive.h"
 #include "random_park.h"
-#include "error.h"
 #include "solve.h"
-#include "app_lattice.h"
 #include "lattice.h"
 #include "domain.h"
 #include "am_ellipsoid.h"
+#include "error.h"
+
+#include <iostream>
 
 using namespace SPPARKS_NS;
 using RASTER::point;
@@ -53,16 +56,15 @@ AppPottsAdditive::AppPottsAdditive(SPPARKS *spk, int narg, char **arg) :
   ndouble = 1;
   allow_app_update = 1;
   recreate_arrays();
-
 }
-
 
 /* ----------------------------------------------------------------------
    Define additional input commands for the AM app
 ------------------------------------------------------------------------- */
-void AppPottsAdditive::input_app(char *command, int narg, char **arg) {
 
-   if (strcmp(command,"pass") == 0) {
+void AppPottsAdditive::input_app(char *command, int narg, char **arg)
+{
+   if (strcmp(command,"am_pass") == 0) {
       if (narg != 7) error->all(FLERR,"Illegal pass command.");
       char* dir=nullptr;
       double distance=-1.0;
@@ -82,8 +84,8 @@ void AppPottsAdditive::input_app(char *command, int narg, char **arg) {
       else if(strcmp(dir,"Y")==0) d=DIR::Y;
       else {error->all(FLERR,"Illegal pass 'dir' command. Expected 'X|Y.'");}
       passes[id]=Pass(d,distance,speed);
-   }
-   if (strcmp(command,"transverse_pass") == 0) {
+
+   } else if (strcmp(command,"am_transverse_pass") == 0) {
       if (narg != 5) error->all(FLERR,"Illegal transverse_pass command.");
       double distance=-1.0;
       double increment=-1.0;
@@ -95,8 +97,8 @@ void AppPottsAdditive::input_app(char *command, int narg, char **arg) {
          increment=std::atof(arg[4]);
       } else {error->all(FLERR,"Illegal transverse_pass command. Expected 'increment.'");}
       transverse_passes[id]=TransversePass(distance,increment);
-   }
-   if (strcmp(command,"cartesian_layer") == 0) {
+
+   } else if (strcmp(command,"am_cartesian_layer") == 0) {
       if (narg != 10) error->all(FLERR,"Illegal cartesian_layer command.");
       double x=0.0, y=0.0;
       int pass_id=-1, transverse_pass_id=-1;
@@ -130,8 +132,8 @@ void AppPottsAdditive::input_app(char *command, int narg, char **arg) {
          double transverse_pass_increment=tp.get_increment();
          rectangular_layers[id]=RectangularLayer(start,dir,speed,pass_distance,overpass,transverse_pass_distance,transverse_pass_increment,serpentine);
       }
-   }
-   if (strcmp(command,"pattern") == 0) {
+
+   } else if (strcmp(command,"am_pattern") == 0) {
       int num_layers;
       vector<int> layer_ids;
       double z_start=-1.0;
@@ -159,9 +161,9 @@ void AppPottsAdditive::input_app(char *command, int narg, char **arg) {
          iarg+=1;
       } else {error->all(FLERR,"Illegal pattern command. Expected 'z_increment.'");}
       pattern=Pattern(layer_ids,z_start,z_increment);
-   }
-}
 
+   } else error->all(FLERR,"Unrecognized command");
+}
 
 /* ----------------------------------------------------------------------
    set site value ptrs each time iarray/darray are reallocated
@@ -172,7 +174,6 @@ void AppPottsAdditive::grow_app()
   spin = iarray[0];
   MobilityOut = darray[0];
 }
-
 
 /* ----------------------------------------------------------------------
    initialize before each run
@@ -206,11 +207,9 @@ void AppPottsAdditive::init_app()
 	Use app update to set the new position of the weld pool and determine the
 	mobilities for the new configuration
  ------------------------------------------------------------------------- */
+
 void AppPottsAdditive::app_update(double dt)
 {
-
-
-
    // Move pool
    if(active_layer.move(dt)){
    } else {
@@ -282,6 +281,7 @@ void AppPottsAdditive::app_update(double dt)
  Compute the mobility at the specified lattice site. Returns a double
  between 0 and 1 representing the mobility.
  ------------------------------------------------------------------------- */
+
 double AppPottsAdditive::compute_mobility(int site, double d)  {
     
 	//We're going to take care of categorizing all the little details of the mobility
@@ -290,7 +290,6 @@ double AppPottsAdditive::compute_mobility(int site, double d)  {
 	
 	return MobilityOut[site];
 }
-
 
 /* ----------------------------------------------------------------------
    rKMC method
@@ -303,7 +302,6 @@ void AppPottsAdditive::site_event_rejection(int site, RandomPark *random)
 {
   int oldstate = spin[site];
   double einitial = site_energy(site);
-  
 
   if (MobilityOut[site] < 0.0) {
    	MobilityOut[site] = 0.0;
@@ -370,8 +368,5 @@ if((MobilityOut[site] > 0.0) && (MobilityOut[site] < 1.0))    //(spin[i] != nspi
       for (int j = 0; j < numneigh[site]; j++)
 	mask[neighbor[site][j]] = 0;
   }
-
-  
+ }
 }
-}
-

@@ -68,7 +68,6 @@ class AppPottsAdditive : public AppPotts {
    map<int,RectangularLayer> rectangular_layers;
    Pattern pattern;
    RectangularLayer active_layer;
-
 };
 
 }

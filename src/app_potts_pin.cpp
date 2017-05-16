@@ -80,7 +80,6 @@ void AppPottsPin::init_app()
   if (flagall) error->all(FLERR,"One or more sites have invalid values");
 }
 
-
 /* ----------------------------------------------------------------------
    rKMC method
    perform a site event with null bin rejection
