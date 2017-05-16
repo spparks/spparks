@@ -12,21 +12,21 @@
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
-AppStyle(potts/strain,AppPottsStrain)
+AppStyle(potts/strain/pin,AppPottsStrainPin)
 
 #else
 
-#ifndef SPK_APP_POTTS_STRAIN_H
-#define SPK_APP_POTTS_STRAIN_H
+#ifndef SPK_APP_POTTS_STRAIN_PIN_H
+#define SPK_APP_POTTS_STRAIN_PIN_H
 
 #include "app_potts.h"
 
 namespace SPPARKS_NS {
 
-class AppPottsStrainWithPinning : public AppPotts {
+class AppPottsStrainPin : public AppPotts {
  public:
-  AppPottsStrainWithPinning(class SPPARKS *, int, char **);
-  ~AppPottsStrainWithPinning() {}
+  AppPottsStrainPin(class SPPARKS *, int, char **);
+  ~AppPottsStrainPin() {}
   void grow_app();
   void init_app();
   void input_app(char *, int, char **);
