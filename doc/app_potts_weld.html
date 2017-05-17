@@ -13,16 +13,13 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<P>app_style style nspins yp width length alpha beta velocity haz
+<P>app_style style nspins yp alpha beta velocity haz
 </P>
-<LI>style = potts/weld
-nspins = number of possible Potts model spins 
+<LI>style = potts/weld 
+
+<LI>nspins = number of possible Potts model spins 
 
 <LI>yp = initial melt pool position along y-axis 
-
-<LI>width = principal dimension of ellipse and maximum width of the melt pool along x-axis 
-
-<LI>length = principal dimension of ellipse and maximum width of the melt pool along y-axis 
 
 <LI>alpha = controls relative size of melt pool shape at bottom compared to top 
 
@@ -34,14 +31,25 @@ nspins = number of possible Potts model spins
 
 
 </UL>
+<P>This application requires one of the following commands to specify pool geometry: 
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "weld_shape_ellipse.html">weld_shape_ellipse</A></TD><TD > Specify elliptical pool shape specific parameters. </TD></TR>
+<TR><TD ><A HREF = "weld_shape_teardrop.html">weld_shape_teardrop</A></TD><TD > Specify teardrop pool shape specific parameters.  
+</TD></TR></TABLE></DIV>
+
 <P><B>Examples:</B>
 </P>
-<PRE>app_style potts/weld 10000 0 100.0 150.0 0.5 0.75 7.0 50.0 
+<PRE>app_style potts/weld 10000 0 0.5 0.75 7.0 50.0 
 </PRE>
-<P>This defines a potts/weld model with 10000 spins. The elliptical weld
-pool is 100 sites wide and 150 sites long at the top surface of the
-plates welded; the parameter <I>alpha</I> specifies that the elliptical
-pool shape at the bottom surface is 50 sites wide by 75 sites long.
+<PRE>weld_shape_ellipse 100.0 150.0 
+</PRE>
+<P>This defines a potts/weld model with 10000 spins. An elliptical 
+pool shape is specified with width and length of 100 and 150 sites
+respectively;  note these are pool dimensions at the 
+top surface of the weld.  The value <I>alpha=0.5</I> scales the 
+elliptical pool width and length at the top surface to 
+50 and 75 sites respectively at the bottom (root) surface of the weld.
 The Bezier control point parameter specifies an outwardly curved pool;
 the weld speed is 7 MCS and the heat effect zone is 50 sites wide.
 </P>
@@ -63,11 +71,12 @@ welded.
 simulated by translating a weld pool (simulates melt) along the joint
 (aligned with the y-coordinate axis).  The weld pool is translated
 with a speed defined by <I>velocity</I>.  The weld pool geometry is defined
-by an ellipse <I>width</I> and <I>length</I> along the x and y coordinate axes
-respectively; this defines the pool size and shape at the top surface
+using an elliptical pool <A HREF = "weld_shape_ellipse.html">(weld_shape_ellipse)</A> 
+or a teardrop shaped pool <A HREF = "weld_shape_teardrop.html">(weld_shape_teardrop)</A>;
+these commands define the pool size and shape at the top surface
 of the plates joined. It is assumed that the weld fully penetrates the
 thickess of the plates; the parameter 1 >= <I>alpha</I> > 0 defines the
-ellipse <I>width</I> and length at the bottom of the plates relative to the
+the pool size at the bottom (root) of the plates relative to the
 top.  The thickness of the plates joined is assumed to be the number
 of lattice sites along the z-axis defined in <A HREF = "region.html">region</A>
 command.  Curvature of the pool in the plate thickness direction is

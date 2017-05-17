@@ -1,0 +1,45 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>weld_shape_ellipse command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>weld_shape_ellipse width length 
+</PRE>
+<LI>width = principal dimension of ellipse and maximum width of the melt pool along x-axis 
+
+<LI>length = principal dimension of ellipse and maximum length of the melt pool along y-axis 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<P>weld_shape_ellipse 100 150
+</P>
+<P>Above command specifies an elliptical weld pool shape with width and length of 100 and 150 respectively.
+</P>
+<P><B>Description:</B>
+</P>
+<P>Specify size of elliptical shaped weld pool at top surface of weld.  Shape of pool 
+at root surface (bottom) is controlled by <I>alpha</I> in <A HREF = "app_potts_weld.html">potts/weld</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command is only valid when used with <A HREF = "app_potts_weld.html">potts/weld</A>.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "weld_shape_teardrop.html">weld_shape_teardrop</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>
