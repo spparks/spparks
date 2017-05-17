@@ -16,7 +16,6 @@
 
 #include <iostream>
 #include <vector>
-#include <tuple>
 
 using std::vector;
 
@@ -35,52 +34,44 @@ namespace pool_shape {
 
 }
 
-template<class value_type>
 class point {
 
 public:
-	inline point() : p{0,0,0} {}
-	inline point(value_type value) : p{value,value,value}  {}
-	inline point(value_type a, value_type b, value_type c) : p{a,b,c}  {}
-	inline point(const value_type q[3]) : p{q[0],q[1],q[2]}  {}
-	inline point& operator=(const point&) = default;
-	inline point& operator=(point&& t) = default;
+	inline point() {p[0]=0.0;p[1]=0.0;p[2]=0.0;}
+	inline point(double value) {p[0]=value; p[1]=value; p[2]=value;}
+	inline point(double a, double b, double c) { p[0]=a; p[1]=b; p[2]=c; }
+	inline point(const double q[3]) { p[0]=q[0]; p[1]=q[1]; p[2]=q[2]; }
 
-	inline point(const point&) = default;
-	inline point(point&&) = default;
+	inline point& operator=(const point& rhs) {
+      if(this != &rhs){
+         p[0]=rhs.p[0];
+         p[1]=rhs.p[1];
+         p[2]=rhs.p[2];
+      }
+      return *this;
+   }
 
-	inline value_type squared() const {
-		value_type x=p[X],y=p[Y],z=p[Z];
+	inline point(const point& copyMe) {
+         p[0]=copyMe.p[0];
+         p[1]=copyMe.p[1];
+         p[2]=copyMe.p[2];
+   }
+
+	inline double squared() const {
+		double x=p[X],y=p[Y],z=p[Z];
 		return x*x+y*y+z*z;
 	}
 
-	inline value_type operator[](int c) const { return p[c%3]; }
+	inline double operator[](int c) const { return p[c%3]; }
 
-	inline bool operator<=(const point& r) const {
-		return (
-            (p[X]<=r[X]) &&
-            (p[Y]<=r[Y]) &&
-            (p[Z]<=r[Z])
-            );
-
-	}
-
-	inline bool operator<(const point& r) const {
-		return (
-            (p[X]<r[X]) &&
-            (p[Y]<r[Y]) &&
-            (p[Z]<r[Z])
-            );
-	}
-
-  friend std::ostream& operator<<(std::ostream &os, const point<value_type> &p)  {
+  friend std::ostream& operator<<(std::ostream &os, const point &p)  {
     os << p[X] << ", " << p[Y] << ", " << p[Z] << std::endl;
     return os;
   }
 
 private:
    enum Component {NONE=-1,X=0,Y=1,Z=2};
-	value_type p[3];
+	double p[3];
 };
 
 enum DIR {NONE=-1,X=0,Y=1};
@@ -110,7 +101,7 @@ class TransversePass {
 class RectangularLayer {
 
    private:
-      point<double> _start; 
+      point _start; 
       double _pool_position[3];
       DIR _dir;
       double _speed;
@@ -136,7 +127,7 @@ class RectangularLayer {
        */
       RectangularLayer
          (
-          const point<double>& start, 
+          const point& start, 
           DIR dir,  
           double speed, 
           double pass_distance, 
@@ -222,7 +213,7 @@ class RectangularLayer {
        * global coordinate system
        *
        */
-      point<double> get_position() const {
+      point get_position() const {
          // Distance travel with respect to pool coordinates
          double d=_pool_position[0];
          double t=_pool_position[1];
@@ -239,7 +230,7 @@ class RectangularLayer {
          r[0]=_start[0]+dr[0];
          r[1]=_start[1]+dr[1];
          r[2]=_start[2]+dr[2];
-         return point<double>(r);
+         return point(r);
       }
 
       /*
@@ -251,10 +242,10 @@ class RectangularLayer {
        * layer_z: z-coordinate of layer managed elsewhere
        *
        */
-      point<double> compute_position_relative_to_pool(const double *xyz, double layer_z) const {
+      point compute_position_relative_to_pool(const double *xyz, double layer_z) const {
 
          // Pool position with respect to spparks coordinate system
-         point<double> pool=get_position();
+         point pool=get_position();
 
          // Relative position vector of 'xyz' site coordinate with respect SPPARKS coordinate system
          double x=xyz[0]-pool[0];
@@ -273,7 +264,7 @@ class RectangularLayer {
             yp=-yp;
          }
 
-         return point<double>(xp,yp,zp);
+         return point(xp,yp,zp);
       }
 };
 
