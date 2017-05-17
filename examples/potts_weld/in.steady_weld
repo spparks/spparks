@@ -2,9 +2,11 @@ seed		 123456
 
 # app_potts_weld input parameters
 #                                   POOL PARAMETERS 
-#                               ---------------------------------------
-#          app_name   num_spins yp   width  length  alpha   beta   velocity haz
-app_style  potts/weld 3500000     0  100.0  150.0   0.75    0.50     12.0   50.0
+#                               --------------------------------
+#          app_name   num_spins yp  alpha   beta   velocity haz
+app_style  potts/weld 3500000   0   0.75    0.50     12.0   50.0
+#                  width length
+weld_shape_ellipse 100.0 150.0
 
 # Run with 'pulse weld'
 #     0<=pulse_amplitude<=1   2<frequency
