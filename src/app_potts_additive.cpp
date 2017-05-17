@@ -34,35 +34,34 @@ using RASTER::DIR;
 /* ---------------------------------------------------------------------- */
 
 AppPottsAdditive::AppPottsAdditive(SPPARKS *spk, int narg, char **arg) :
-  AppPotts(spk,narg,arg), passes(), active_layer()
-{
-  // only error check for this class, not derived classes
+  AppPotts(spk,narg,arg), passes(), active_layer() {
 
-  if (strcmp(arg[0],"additive") == 0 && narg != 11 )
+   // only error check for this class, not derived classes
+   if (strcmp(arg[0],"additive") == 0 && narg != 11 )
     error->all(FLERR,"Illegal app_style command");
     
-  nspins = atoi(arg[1]); //Number of spins
-  spot_width = atof(arg[2]); //Width of the melt pool
-  melt_tail_length = atof(arg[3]); //Length of tail from meltpool midpoint
-  melt_depth = atof(arg[4]); //How many lattice sites deep the melt pool is
-  cap_height = atof(arg[5]); //Height of the cap leading the meltpool
-  HAZ = atof(arg[6]); //Size of the HAZ surrounding the melt pool (must be larger than spot_width)
-  tail_HAZ = atof(arg[7]); //Length of hot zone behind meltpool (must be larger than melt_tail_length)
-  depth_HAZ = atof(arg[8]); //Depth of the hot zone underneath the meltpool (must be larger than melt_depth)
-  cap_HAZ = atof(arg[9]); //Size of HAZ infront of the melt pool (must be larger than cap_height)
-  exp_factor = atof(arg[10]); //Exponential parameter for mobility decay in haz M(d) = exp(-exp_factor * d)
-  
-  //Define the layer object, this might work better in init_app
-  ndouble = 1;
-  allow_app_update = 1;
-  recreate_arrays();
+   nspins = atoi(arg[1]); //Number of spins
+   spot_width = atof(arg[2]); //Width of the melt pool
+   melt_tail_length = atof(arg[3]); //Length of tail from meltpool midpoint
+   melt_depth = atof(arg[4]); //How many lattice sites deep the melt pool is
+   cap_height = atof(arg[5]); //Height of the cap leading the meltpool
+   HAZ = atof(arg[6]); //Size of the HAZ surrounding the melt pool (must be larger than spot_width)
+   tail_HAZ = atof(arg[7]); //Length of hot zone behind meltpool (must be larger than melt_tail_length)
+   depth_HAZ = atof(arg[8]); //Depth of the hot zone underneath the meltpool (must be larger than melt_depth)
+   cap_HAZ = atof(arg[9]); //Size of HAZ infront of the melt pool (must be larger than cap_height)
+   exp_factor = atof(arg[10]); //Exponential parameter for mobility decay in haz M(d) = exp(-exp_factor * d)
+
+   //Define the layer object, this might work better in init_app
+   ndouble = 1;
+   allow_app_update = 1;
+   recreate_arrays();
 }
 
 /* ----------------------------------------------------------------------
    Define additional input commands for the AM app
 ------------------------------------------------------------------------- */
 
-void AppPottsAdditive::input_app(char *command, int narg, char **arg)
+void AppPottsAdditive::input_app(char *command, int narg, char **arg) 
 {
    if (strcmp(command,"am_pass") == 0) {
       if (narg != 7) error->all(FLERR,"Illegal pass command.");
@@ -120,7 +119,7 @@ void AppPottsAdditive::input_app(char *command, int narg, char **arg)
       } else {error->all(FLERR,"Illegal cartesian_layer command. Expected 'serpentine.'");}
       {
          // Create 'RectangularLayer'
-         point<double> start(x,y,0);
+         point start(x,y,0);
          Pass p=passes[pass_id];
          DIR dir=p.get_dir();
          double speed=p.get_speed();
@@ -236,7 +235,7 @@ void AppPottsAdditive::app_update(double dt)
 		// SPPARKS lattice site
 		double XYZ[]={xyz[i][0],xyz[i][1],xyz[i][2]};
 		// Lattice point location relative to 'pool' position
-		point<double> xyz_r_p=active_layer.compute_position_relative_to_pool(XYZ,layer_z);
+		point xyz_r_p=active_layer.compute_position_relative_to_pool(XYZ,layer_z);
 
 		//Temporary assignment of xo, xo is in the melt pool's reference frame!
 		double xo[]={xyz_r_p[0],xyz_r_p[1],xyz_r_p[2]};
@@ -297,76 +296,65 @@ double AppPottsAdditive::compute_mobility(int site, double d)  {
    flip to random neighbor spin without null bin
    technically this is an incorrect rejection-KMC algorithm
 ------------------------------------------------------------------------- */
+void AppPottsAdditive::site_event_rejection(int site, RandomPark *random) {
+   int oldstate = spin[site];
+   double einitial = site_energy(site);
 
-void AppPottsAdditive::site_event_rejection(int site, RandomPark *random)
-{
-  int oldstate = spin[site];
-  double einitial = site_energy(site);
-
-  if (MobilityOut[site] < 0.0) {
-   	MobilityOut[site] = 0.0;
-   	return;
-  }
-    
-  if(MobilityOut[site] >= 1.0){
-        //Mobility = 0.0;
-        spin[site] = (int) (nspins*random->uniform());
-        return;
+   if (MobilityOut[site] < 0.0) {
+      MobilityOut[site] = 0.0;
+      return;
+   }
+ 
+   if(MobilityOut[site] >= 1.0){
+      //Mobility = 0.0;
+      spin[site] = (int) (nspins*random->uniform());
+      return;
    }
 
-  // events = spin flips to neighboring site different than self
+   // events = spin flips to neighboring site different than self
+   int j,m,value;
+   int nevent = 0;
+   int z = xyz[site][2];
 
-  int j,m,value;
-  int nevent = 0;
-  int z = xyz[site][2];
-  
-	//point<double> p=active_layer.get_position();
-   //DIR dir=active_layer.get_dir();
-	
-	//Update the meltspot variables
-   // double layer_z=pattern.get_layer_z_elevation();
+   if((MobilityOut[site] > 0.0) && (MobilityOut[site] < 1.0)) {
+      //(spin[i] != nspins) another criteria to exclude gg interaction
+      for (j = 0; j < numneigh[site]; j++) {
+         value = spin[neighbor[site][j]];
+         if (value == spin[site] || value == nspins) continue;
+            for (m = 0; m < nevent; m++)
+               if (value == unique[m]) break;
+            if (m < nevent) continue;
+         unique[nevent++] = value;
+      }
 
+      if (nevent == 0) return;
+      int iran = (int) (nevent*random->uniform());
+      if (iran >= nevent) iran = nevent-1;
+         spin[site] = unique[iran];
+      double efinal = site_energy(site);
 
-if((MobilityOut[site] > 0.0) && (MobilityOut[site] < 1.0))    //(spin[i] != nspins) another criteria to exclude gg interaction
- {
-  for (j = 0; j < numneigh[site]; j++) {
-    value = spin[neighbor[site][j]];
-    if (value == spin[site] || value == nspins) continue;
-    for (m = 0; m < nevent; m++)
-      if (value == unique[m]) break;
-    if (m < nevent) continue;
-    unique[nevent++] = value;
-  }
+      // accept or reject via Boltzmann criterion
+      if (efinal <= einitial) {
+         if (random->uniform() > MobilityOut[site]){
+            spin[site] = oldstate;
+         }
+      } else if (temperature == 0.0) {
+         spin[site] = oldstate;
+      } else if (random->uniform() > MobilityOut[site] * exp((einitial-efinal)*t_inverse)) {
+         spin[site] = oldstate;
+      }
 
-  if (nevent == 0) return;
-  int iran = (int) (nevent*random->uniform());
-  if (iran >= nevent) iran = nevent-1;
-  spin[site] = unique[iran];
-  double efinal = site_energy(site);
+      if (spin[site] != oldstate) naccept++;
 
-  // accept or reject via Boltzmann criterion
+      // set mask if site could not have changed
+      // if site changed, unset mask of sites with affected propensity
+      // OK to change mask of ghost sites since never used
 
-  if (efinal <= einitial) {
-     if (random->uniform() > MobilityOut[site]){
-       spin[site] = oldstate;
-     }
-  } else if (temperature == 0.0) {
-    spin[site] = oldstate;
-  } else if (random->uniform() > MobilityOut[site] * exp((einitial-efinal)*t_inverse)) {
-    spin[site] = oldstate;
-  }
-  
-  if (spin[site] != oldstate) naccept++;
-
-  // set mask if site could not have changed
-  // if site changed, unset mask of sites with affected propensity
-  // OK to change mask of ghost sites since never used
-
-  if (Lmask) {
-    if (einitial < 0.5*numneigh[site]) mask[site] = 1;
-    if (spin[site] != oldstate)
-      for (int j = 0; j < numneigh[site]; j++)
-	mask[neighbor[site][j]] = 0;
-  }
- }
+      if (Lmask) {
+         if (einitial < 0.5*numneigh[site]) mask[site] = 1;
+         if (spin[site] != oldstate)
+         for (int j = 0; j < numneigh[site]; j++)
+            mask[neighbor[site][j]] = 0;
+      }
+   }
 }
