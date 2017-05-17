@@ -72,8 +72,6 @@ comfortable with makefiles, or building codes on a Unix platform, or
 running an MPI job on your machine, please find a local expert to help
 you.
 </P>
-<HR>
-
 <A NAME = "start_2_2"></A><B><I>Building a SPPARKS executable:</I></B> 
 
 <P>The src directory contains the C++ source and header files for SPPARKS.
@@ -83,16 +81,29 @@ directory, type "make" or "gmake".  You should see a list of available
 choices.  If one of those is the machine and options you want, you can
 type a command like:
 </P>
-<PRE>make linux
-gmake mac 
+<PRE>make serial
+make mpi
+gmake linux 
 </PRE>
+<P>Try the "serial" and "mpi" targets first, since they are generic and
+should typically work on any machine, assuming you have the GNU g++
+compiler (for the serial version) and MPI installed (for the mpi
+version).
+</P>
 <P>Note that on a multi-processor or multi-core platform you can launch a
 parallel make, by using the "-j" switch with the make command, which
 will typically build SPPARKS more quickly.
 </P>
-<P>If you get no errors and an executable like spk_linux or spk_mac is
+<P>If you get no errors and an executable like spk_serial or spk_mpi is
 produced, you're done; it's your lucky day.
 </P>
+<P>IMPORTANT NOTE: You need a C++ compiler that is C++11 compliant to
+build SPPARKS.  Almost all current C++ compilers are; you just need to
+use a -std=c++11 flag when compiling, as in the
+src/MAKE/Makefile.machine files provided with SPPARKS.
+</P>
+<HR>
+
 <HR>
 
 <A NAME = "start_2_3"></A><B><I>Common errors that can occur when making SPPARKS:</I></B> 
