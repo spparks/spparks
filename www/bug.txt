@@ -39,19 +39,21 @@ describe the version you have. :ule,l
 
 [17 May 2016]
 
-This patch contains a new app_style potts/strain/pin command written
-by John Mitchell (Sandia).
+This patch contains a new "app_style
+potts/strain/pin"_doc/app_potts_strain_pin.html command written by
+John Mitchell (Sandia).
 
-Also a new app_style potts/additive command written by by Theron
-Rodgers and John Mitchell (Sandia).  It can perform some sophisticated
-simulations of an additive manufacturing (AM) process where a laser
-beam (heat source) is rastered across a surface to induce grain
-growth.  The new application uses several new commands:
+Also a new "app_style potts/additive"_doc/app_potts_additive.html
+command written by by Theron Rodgers and John Mitchell (Sandia).  It
+can perform some sophisticated simulations of an additive
+manufacturing (AM) process where a laser beam (heat source) is
+rastered across a surface to induce grain growth.  The new application
+uses several new commands:
 
-"am_cartesian_layer"_am_cartesian_layer.html
-"am_pass"_am_pass.html
-"am_pattern"_am_pattern.html
-"am_transverse_pass"_am_transverse_pass.html :ul
+"am_cartesian_layer"_doc/am_cartesian_layer.html
+"am_pass"_doc/am_pass.html
+"am_pattern"_doc/am_pattern.html
+"am_transverse_pass"_doc/am_transverse_pass.html :ul
 
 to specify the AM process.
 
