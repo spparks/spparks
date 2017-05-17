@@ -19,15 +19,19 @@ AppStyle(potts/weld,AppPottsWeld)
 #ifndef SPK_APP_POTTSWELD_H
 #define SPK_APP_POTTSWELD_H
 
+#include <vector>
 #include "random_park.h"
 #include "app_potts.h"
+#include "pool_shape.h"
+
+using std::vector;
 
 namespace SPPARKS_NS {
 
 class AppPottsWeld : public AppPotts {
  public:
    AppPottsWeld(class SPPARKS *, int, char **);
-   virtual ~AppPottsWeld() {}
+   virtual ~AppPottsWeld() { }
    virtual void init_app();
    virtual void grow_app();
    virtual void site_event_rejection(int, class RandomPark *);
@@ -38,7 +42,6 @@ class AppPottsWeld : public AppPotts {
 
  private:
    double yp;
-   double width, length;
    double alpha, beta;
    double velocity;
    double haz;
@@ -46,6 +49,11 @@ class AppPottsWeld : public AppPotts {
    SPPARKS_NS::RandomPark random_park;
    double simulation_time;
    double pulse_amplitude, pulse_step_frequency;
+
+   // Pool shape parameters
+   weld::pool_shape::ShapeType shape_type;
+   double width, length;
+   vector<vector<double> > teardrop_control_points;
 
 };
 

@@ -1,0 +1,52 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+weld_shape_teardrop command :h3
+
+[Syntax:]
+
+weld_shape_teardrop width w case i :pre
+
+width w = keyword/value pair; w is pool width measured along y-axis :ul
+case i = keyword/value pair; i takes on allowable values of I or II or III designating one of the following 3 teardrop shapes :ul
+
+[Examples:]
+
+weld_shape_teardrop width 100.0 case I :pre
+weld_shape_teardrop width 100.0 case II :pre
+weld_shape_teardrop width 100.0 case III :pre
+
+The three examples above are depicted in the images below.  These images
+illustrate cases I, II and III for a fixed width of 100 sites.  Because the
+width is fixed, each case produces a different pool length.  NOTE: due to
+scaling for this documentation, constant {width=100} for each pool 
+shape is not perfectly rendered in images below although they are close.
+
+:image(JPG/teardrop_case_I.png)
+:image(JPG/teardrop_case_II.png)
+:image(JPG/teardrop_case_III.png)
+
+[Description:]
+
+Specify size and shape of weld pool at top surface of weld.  Shape of pool 
+at root surface (bottom) is controlled by {alpha} in "potts/weld"_app_potts_weld.html.
+The aspect ratio {length/width} for cases I, II, and III are 1.4, 1.8 and 2.2
+respectively.  If a specific width is desired then that is specified directly
+in the command and pool length is implied by the aspect ratio.  On the other hand, if a
+specific length desired, then the input width must be calculated by hand using the desired
+length and aspect ratio.
+
+[Restrictions:]
+
+This command is only valid when used with "potts/weld"_app_potts_weld.html.
+
+[Related commands:]
+
+"weld_shape_ellipse"_weld_shape_ellipse.html
+
+[Default:] none

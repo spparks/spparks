@@ -1,6 +1,10 @@
+#ifndef SPK_WELD_GEOMETRY_H
+#define SPK_WELD_GEOMETRY_H
+
 #include <math.h>
 #include <iostream>
 #include <iomanip>
+#include "pool_shape.h"
 
 namespace weld {
 
@@ -83,7 +87,10 @@ namespace pool_shape {
 
    };
 
-   class EllipticBezier {
+   class EllipticBezier : public PoolShape {
+      private:
+         const double a, b, T, alpha, beta;
+
       public:
          EllipticBezier 
             (
@@ -93,6 +100,8 @@ namespace pool_shape {
             a(pool_width/2), b(pool_length/2.0), T(plate_thickness),
             alpha(scale_param), beta(interpolate_param)
          { } 
+
+         virtual ~EllipticBezier() {}
          
          bool is_inside(const double *xyz) const {
             double x=*xyz;
@@ -110,7 +119,7 @@ namespace pool_shape {
             return x2/_a2 + y2/_b2 < 1.0;
          }
 
-         double distance(const double *xyz) const {
+         virtual double distance(const double *xyz) const {
             /**
              * For points 'xyz' outside of pool, 
              * computes closest point projection to 
@@ -368,13 +377,11 @@ namespace pool_shape {
             return y1[0]*y2[0]+y1[1]*y2[1]+y1[2]*y2[2];
          }
 
-      private:
-         const double a, b, T, alpha, beta;
    };
 
 
 }
 
-
-
 }
+
+#endif

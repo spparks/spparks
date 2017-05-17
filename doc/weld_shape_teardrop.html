@@ -1,0 +1,62 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>weld_shape_teardrop command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>weld_shape_teardrop width w case i 
+</PRE>
+<UL><LI>width w = keyword/value pair; w is pool width measured along y-axis 
+</UL>
+<UL><LI>case i = keyword/value pair; i takes on allowable values of I or II or III designating one of the following 3 teardrop shapes 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>weld_shape_teardrop width 100.0 case I 
+</PRE>
+<PRE>weld_shape_teardrop width 100.0 case II 
+</PRE>
+<PRE>weld_shape_teardrop width 100.0 case III 
+</PRE>
+<P>The three examples above are depicted in the images below.  These images
+illustrate cases I, II and III for a fixed width of 100 sites.  Because the
+width is fixed, each case produces a different pool length.  NOTE: due to
+scaling for this documentation, constant <I>width=100</I> for each pool 
+shape is not perfectly rendered in images below although they are close.
+</P>
+<IMG SRC = "JPG/teardrop_case_I.png">
+
+<IMG SRC = "JPG/teardrop_case_II.png">
+
+<IMG SRC = "JPG/teardrop_case_III.png">
+
+<P><B>Description:</B>
+</P>
+<P>Specify size and shape of weld pool at top surface of weld.  Shape of pool 
+at root surface (bottom) is controlled by <I>alpha</I> in <A HREF = "app_potts_weld.html">potts/weld</A>.
+The aspect ratio <I>length/width</I> for cases I, II, and III are 1.4, 1.8 and 2.2
+respectively.  If a specific width is desired then that is specified directly
+in the command and pool length is implied by the aspect ratio.  On the other hand, if a
+specific length desired, then the input width must be calculated by hand using the desired
+length and aspect ratio.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command is only valid when used with <A HREF = "app_potts_weld.html">potts/weld</A>.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "weld_shape_ellipse.html">weld_shape_ellipse</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

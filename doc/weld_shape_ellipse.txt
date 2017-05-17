@@ -1,0 +1,41 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+weld_shape_ellipse command :h3
+
+[Syntax:]
+
+weld_shape_ellipse width length :pre
+
+width = principal dimension of ellipse and maximum width of the melt pool along x-axis :l
+length = principal dimension of ellipse and maximum length of the melt pool along y-axis :l
+:ule
+
+
+[Examples:]
+
+weld_shape_ellipse 100 150
+
+Above command specifies an elliptical weld pool shape with width and length of 100 and 150 respectively.
+
+
+[Description:]
+
+Specify size of elliptical shaped weld pool at top surface of weld.  Shape of pool 
+at root surface (bottom) is controlled by {alpha} in "potts/weld"_app_potts_weld.html.
+
+
+[Restrictions:]
+
+This command is only valid when used with "potts/weld"_app_potts_weld.html.
+
+[Related commands:]
+
+"weld_shape_teardrop"_weld_shape_teardrop.html
+
+[Default:] none
