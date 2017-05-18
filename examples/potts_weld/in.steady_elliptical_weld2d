@@ -1,0 +1,55 @@
+seed		 123456
+
+# app_potts_weld input parameters
+#                                   POOL PARAMETERS 
+#                               --------------------------------
+#          app_name   num_spins yp  alpha   beta   velocity haz
+app_style  potts/weld 100000     0   0.75    0.50     12.0   50.0
+#                  width length
+weld_shape_ellipse 100.0 150.0
+
+# Run with 'pulse weld'
+#     0<=pulse_amplitude<=1   2<frequency
+# pulse    0.25                  32
+
+dimension	 3
+
+# periodic x
+# not periodic y 
+# not periodic z 
+boundary p n n
+
+# NOTE: spk2vti writer does not currently support a lattice constant different from '1.0'
+lattice		 sc/26n 1.0
+region		 box block 0 200 0 500 0 1
+create_box	 box
+create_sites     box
+
+# Initialize grains 
+read_sites site.init
+
+# Run without grain initialization from 'potts_init'
+# COMMENT out this line if using 'read_sites' above
+#set site range 1 100000
+
+sweep		 raster
+sector yes
+
+diag_style       energy
+
+# Simulation temperature
+temperature	 0.25
+
+stats            1.0
+
+# Write 'dump' files; see 'dump' documentation
+dump             1 text 52.0 steady_weld.dump
+dump_modify      1 delay 52.0
+diag_style       cluster stats no delay 52.0 delt 52.0 filename steady_weld.cluster
+
+# Write 'image'; see 'dump' documentation
+#    images written every 2 seconds
+dump top image 2 top.*.jpg site site crange 1 100000 drange 1 1 view 0.0 0.0 boundary site 1 shape cube box no 1 zoom 2.0 size 1024 1024 sdiam 1.05
+dump_modify top cwrap yes boundcolor black backcolor black pad 4 
+
+run             52.0

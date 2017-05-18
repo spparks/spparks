@@ -1,0 +1,40 @@
+seed		 5678910
+
+app_style  potts/neighonly 100000
+
+dimension	 3
+
+# periodic x
+# not periodic y 
+# not periodic z 
+boundary p n n
+
+# Number of microns per lattice site is approximately 20
+lattice		 sc/26n 1.0
+region		 box block 0 200 0 500 0 1
+create_box	 box
+create_sites     box
+
+set site range 1 100000
+
+sweep		 raster
+# solve_style tree
+sector yes
+
+diag_style       energy
+
+temperature	 0.25
+
+stats            1.0
+
+# Write 'dump' files; see 'dump' documentation
+dump         1 text 1.0 potts_init.dump
+dump_modify  1 delay 1.0 
+diag_style   cluster stats no delay 1.0 delt 1.0 filename potts_init.cluster
+
+# Write 'image'; see 'dump' documentation
+#    images written every second
+dump top image 1 potts_init.top.*.jpg site site crange 1  100000 drange 1 1 view 0.0 0.0 boundary site 1 shape cube box no 1 zoom 2.0 size 1024 1024 sdiam 1.05
+dump_modify top cwrap yes boundcolor black backcolor black pad 4 
+
+run            1.0 

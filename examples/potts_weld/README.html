@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="Docutils 0.12: http://docutils.sourceforge.net/" />
-<title>Running Example</title>
+<title>Running Example(s)</title>
 <style type="text/css">
 
 /*
@@ -338,16 +338,20 @@ ul.auto-toc {
 </style>
 </head>
 <body>
-<div class="document" id="running-example">
-<h1 class="title">Running Example</h1>
+<div class="document" id="running-example-s">
+<h1 class="title">Running Example(s)</h1>
 
+<p>There are 2d and 3d examples elliptical and teardrop shaped pools.
+Details of running the examples are described below for one case (3d elliptical
+pool) with and without microstructure initialization.  In the examples
+the spparks was compiled into the executable <em>spk_flamer.gnu</em>.</p>
 <div class="section" id="without-base-metal-microstructure-initialization">
 <h1>Without base metal microstructure initialization</h1>
 <p>To simulate grain growth during welding, without
 an initial microstructure representing base metal
 of welded material, run <em>spparks</em>:</p>
 <pre class="code bash literal-block">
-mpiexec -np <span class="literal number">16</span> spk_flamer.gnu &lt; in.steady_weld
+mpiexec -np <span class="literal number">16</span> spk_flamer.gnu &lt; in.steady_elliptical_weld
 </pre>
 <p>Use a tool to view the images: top.*.jpg</p>
 </div>
@@ -357,16 +361,17 @@ mpiexec -np <span class="literal number">16</span> spk_flamer.gnu &lt; in.steady
 <pre class="code bash literal-block">
 mpiexec -np <span class="literal number">16</span> spk_flamer.gnu &lt; in.potts_init
 </pre>
-<p>Then process the dump file to write another file
+<p>Using the example input file <em>in.potts_init</em>, <em>spparks</em> will dump the file
+<em>potts_init.dump</em> in the above run.  Process the dump file to write another file
 called <em>site.init</em>.  Run the script (no args).</p>
 <pre class="code bash literal-block">
 write_site_init.sh potts_init.dump site.init
 </pre>
-<p>Edit <em>in.steady_weld</em> and comment out the
+<p>Edit <em>in.steady_elliptical_weld</em> and comment out the
 <a class="reference external" href="http://spparks.sandia.gov/doc/set.html">set</a> command and uncomment out the <a class="reference external" href="http://spparks.sandia.gov/doc/read_sites.html">read_sites</a>
 command; then run the potts/weld app:</p>
 <pre class="code bash literal-block">
-mpiexec -np <span class="literal number">16</span> spk_flamer.gnu &lt; in.steady_weld
+mpiexec -np <span class="literal number">16</span> spk_flamer.gnu &lt; in.steady_elliptical_weld
 </pre>
 <p>Use a tool to view the images: top.*.jpg; note the
 differences in microstructures -- especially in the
