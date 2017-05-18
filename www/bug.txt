@@ -37,6 +37,22 @@ describe the version you have. :ule,l
 :line
 :line
 
+[18 May 2016]
+
+John Mitchell (Sandia) added a new
+"weld_shape_teardrop"_doc/weld_shape_teardrop.html command for use by
+the "app_style potts/weld"_doc/app_potts_weld.html application.  It
+allows the shape of the laser weld spot to be defined very generally.
+Also see the "weld_shape_ellipse"_doc/weld_shape_ellipse.html command
+for comparison.
+
+Examples of using both are in the examples/potts_weld directory.
+
+This is the "list of changed files"_patches/files.18May17 from the 17
+May 2017 version.
+
+:line
+
 [17 May 2016]
 
 This patch contains a new "app_style
