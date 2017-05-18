@@ -31,28 +31,28 @@
 
 
 </UL>
-<P>This application requires one of the following commands to specify pool geometry: 
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD ><A HREF = "weld_shape_ellipse.html">weld_shape_ellipse</A></TD><TD > Specify elliptical pool shape specific parameters. </TD></TR>
-<TR><TD ><A HREF = "weld_shape_teardrop.html">weld_shape_teardrop</A></TD><TD > Specify teardrop pool shape specific parameters.  
-</TD></TR></TABLE></DIV>
-
 <P><B>Examples:</B>
 </P>
-<PRE>app_style potts/weld 10000 0 0.5 0.75 7.0 50.0 
+<PRE>app_style potts/weld 10000 0 0.5 0.75 7.0 50.0
+weld_shape_ellipse 100.0 150.0 
 </PRE>
-<PRE>weld_shape_ellipse 100.0 150.0 
-</PRE>
-<P>This defines a potts/weld model with 10000 spins. An elliptical 
-pool shape is specified with width and length of 100 and 150 sites
-respectively;  note these are pool dimensions at the 
-top surface of the weld.  The value <I>alpha=0.5</I> scales the 
-elliptical pool width and length at the top surface to 
-50 and 75 sites respectively at the bottom (root) surface of the weld.
-The Bezier control point parameter specifies an outwardly curved pool;
-the weld speed is 7 MCS and the heat effect zone is 50 sites wide.
+<P>This defines a potts/weld model with 10000 spins. An elliptical pool
+shape is specified with width and length of 100 and 150 sites
+respectively; note these are pool dimensions at the top surface of the
+weld.  The value <I>alpha=0.5</I> scales the elliptical pool width and
+length at the top surface to 50 and 75 sites respectively at the
+bottom (root) surface of the weld.  The Bezier control point parameter
+specifies an outwardly curved pool; the weld speed is 7 MCS and the
+heat effect zone is 50 sites wide.
 </P>
+<P>This application also requires one of the following commands to
+specify pool geometry:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "weld_shape_ellipse.html">weld_shape_ellipse</A></TD><TD > specify elliptical pool shape parameters</TD></TR>
+<TR><TD ><A HREF = "weld_shape_teardrop.html">weld_shape_teardrop</A></TD><TD > specify teardrop pool shape parameters 
+</TD></TR></TABLE></DIV>
+
 <P><B>Description:</B>
 </P>
 <IMG SRC = "JPG/400x500_butt_weld_schematic_coordinate_system.png">
@@ -113,6 +113,8 @@ command can be used to initialize the base metal microstructure.
 <P>The following additional commands are defined by this application:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "weld_shape_ellipse.html">weld_shape_ellipse</A></TD><TD > specify elliptical pool shape parameters </TD></TR>
+<TR><TD ><A HREF = "weld_shape_teardrop.html">weld_shape_teardrop</A></TD><TD > specify teardrop pool shape parameters</TD></TR>
 <TR><TD ><A HREF = "pulse.html">pulse</A> </TD><TD > apply pulsed arc power</TD></TR>
 <TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature 
 </TD></TR></TABLE></DIV>

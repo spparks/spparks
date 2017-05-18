@@ -241,29 +241,16 @@ Miscellaneous:
 This section lists all SPPARKS commands alphabetically, with a
 separate listing below of styles within certain commands.  The
 "previous section"_#cmd_4 lists the same commands, grouped by
-category.  Note that some commands are only usable with certain
-applications.  Also, some style options for some commands are part of
-specific SPPARKS packages, which means they cannot be used unless the
-package was included when SPPARKS was built.  Not all packages are
-included in a default SPPARKS build.  These dependencies are listed as
-Restrictions in the command's documentation.
+category.  Note that commands which are only usable with certain
+applications are listed in the next section.
 
-"add_reaction"_add_reaction.html,
-"add_species"_add_species.html,
-"am_cartesian_layer"_am_cartersian_layer.html,
-"am_pass"_am_pass.html,
-"am_pattern"_am_pattern.html,
-"am_transverse_pass"_am_transverse_pass.html,
 "app_style"_app_style.html,
-"barrier"_barrier.html,
 "boundary"_boundary.html,
 "clear"_clear.html,
-"count"_count.html,
 "create_box"_create_box.html,
 "create_sites"_create_sites.html,
 "deep_length"_deep_length.html,
 "deep_width"_deep_width.html,
-"deposition"_deposition.html,
 "diag_style"_diag_style.html,
 "dimension"_dimension.html,
 "dump"_dump.html,
@@ -271,12 +258,8 @@ Restrictions in the command's documentation.
 "dump_modify"_dump_modify.html,
 "dump_one"_dump_one.html,
 "echo"_echo.html,
-"ecoord"_ecoord.html,
-"ellipsoid_depth"_ellipsoid_depth.html,
-"event"_event.html,
 "if"_if.html,
 "include"_include.html,
-"inclusion"_inclusion.html,
 "jump"_jump.html,
 "label"_label.html,
 "lattice"_lattice.html,
@@ -284,10 +267,8 @@ Restrictions in the command's documentation.
 "next"_next.html,
 "pair_coeff"_pair_coeff.html,
 "pair_style"_pair_style.html,
-"pin"_pin.html,
 "print"_print.html,
 "processors"_processors.html,
-"pulse"_pulse.html,
 "read_sites"_read_sites.html,
 "region"_region.html,
 "reset_time"_reset_time.html,
@@ -299,10 +280,40 @@ Restrictions in the command's documentation.
 "solve_style"_solve_style.html,
 "stats"_stats.html,
 "sweep"_sweep.html,
-"temperature"_temperature.html,
 "undump"_undump.html,
 "variable"_variable.html,
-"volume"_volume.html :tb(c=6,ea=c)
+:tb(c=6,ea=c)
+
+:line
+
+Application-specific commands.  These are commands defined only for
+use by one or more applications.  See the command doc page for
+details.  See the various "app_style"_app_style.html commands in the
+next section for a listing of all the commands defined for individual
+applications.
+
+"add_reaction"_add_reaction.html,
+"add_species"_add_species.html,
+"am_cartesian_layer"_am_cartersian_layer.html,
+"am_pass"_am_pass.html,
+"am_pattern"_am_pattern.html,
+"am_transverse_pass"_am_transverse_pass.html,
+"barrier"_barrier.html,
+"count"_count.html,
+"deep_width"_deep_width.html,
+"deep_length"_deep_length.html,
+"deposition"_deposition.html,
+"ecoord"_ecoord.html,
+"elliopsoid_depth"_ellipsoid_depth.html,
+"event"_event.html,
+"inclusion"_inclusion.html,
+"pin"_pin.html,
+"pulse"_pulse.html,
+"temperature"_temperature.html,
+"volume"_volume.html,
+"weld_shape_ellipse"_weld_shape_ellipse.html,
+"weld_shape_teardrop"_weld_shape_teardrop.html
+:tb(c=6,ea=c)
 
 :line
 
@@ -329,7 +340,8 @@ full description:
 "potts/weld/jom"_app_potts_weld_jom.html,
 "relax"_app_relax.html,
 "sos"_app_sos.html,
-"test/group"_app_test_group.html :tb(c=8,ea=c)
+"test/group"_app_test_group.html
+:tb(c=8,ea=c)
 
 :line
 
@@ -339,7 +351,8 @@ full description:
 
 "group"_solve_group.html,
 "linear"_solve_linear.html,
-"tree"_solve_tree.html :tb(c=6,ea=c)
+"tree"_solve_tree.html
+:tb(c=6,ea=c)
 
 :line
 
@@ -359,4 +372,5 @@ full description:
 "diffusion"_diag_diffusion.html,
 "erbium"_diag_erbium.html,
 "energy"_diag_energy.html,
-"propensity"_diag_propensity.html :tb(c=6,ea=c)
+"propensity"_diag_propensity.html
+:tb(c=6,ea=c)

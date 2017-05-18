@@ -21,25 +21,25 @@ velocity = velocity of melt pool motion (lattice sites per Monte Carlo step) :l
 haz = width of the heat affected zone (haz) surrounding the melt pool :l
 :ule
 
-This application requires one of the following commands to specify pool geometry: 
-
-"weld_shape_ellipse"_weld_shape_ellipse.html: Specify elliptical pool shape specific parameters. 
-"weld_shape_teardrop"_weld_shape_teardrop.html: Specify teardrop pool shape specific parameters.  :tb(s=:)
-
-
 [Examples:]
 
-app_style potts/weld 10000 0 0.5 0.75 7.0 50.0 :pre
+app_style potts/weld 10000 0 0.5 0.75 7.0 50.0
 weld_shape_ellipse 100.0 150.0 :pre
 
-This defines a potts/weld model with 10000 spins. An elliptical 
-pool shape is specified with width and length of 100 and 150 sites
-respectively;  note these are pool dimensions at the 
-top surface of the weld.  The value {alpha=0.5} scales the 
-elliptical pool width and length at the top surface to 
-50 and 75 sites respectively at the bottom (root) surface of the weld.
-The Bezier control point parameter specifies an outwardly curved pool;
-the weld speed is 7 MCS and the heat effect zone is 50 sites wide.
+This defines a potts/weld model with 10000 spins. An elliptical pool
+shape is specified with width and length of 100 and 150 sites
+respectively; note these are pool dimensions at the top surface of the
+weld.  The value {alpha=0.5} scales the elliptical pool width and
+length at the top surface to 50 and 75 sites respectively at the
+bottom (root) surface of the weld.  The Bezier control point parameter
+specifies an outwardly curved pool; the weld speed is 7 MCS and the
+heat effect zone is 50 sites wide.
+
+This application also requires one of the following commands to
+specify pool geometry:
+
+"weld_shape_ellipse"_weld_shape_ellipse.html: specify elliptical pool shape parameters
+"weld_shape_teardrop"_weld_shape_teardrop.html: specify teardrop pool shape parameters :tb(s=:)
 
 [Description:]
                                       
@@ -98,6 +98,8 @@ command can be used to initialize the base metal microstructure.
 
 The following additional commands are defined by this application:
 
+"weld_shape_ellipse"_weld_shape_ellipse.html: specify elliptical pool shape parameters 
+"weld_shape_teardrop"_weld_shape_teardrop.html: specify teardrop pool shape parameters
 "pulse"_pulse.html : apply pulsed arc power
 "temperature"_temperature.html : set Monte Carlo temperature :tb(s=:)
 
