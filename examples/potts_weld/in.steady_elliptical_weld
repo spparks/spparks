@@ -26,11 +26,11 @@ create_box	 box
 create_sites     box
 
 # Initialize grains 
-# read_sites site.init
+read_sites site.init
 
 # Run without grain initialization from 'potts_init'
 # COMMENT out this line if using 'read_sites' above
-set site range 1 3500000
+#set site range 1 3500000
 
 sweep		 raster
 sector yes

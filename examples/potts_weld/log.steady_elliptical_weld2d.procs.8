@@ -1,0 +1,130 @@
+SPPARKS (17 May 2017)
+seed		 123456
+
+# app_potts_weld input parameters
+#                                   POOL PARAMETERS 
+#                               --------------------------------
+#          app_name   num_spins yp  alpha   beta   velocity haz
+app_style  potts/weld 100000     0   0.75    0.50     12.0   50.0
+#                  width length
+weld_shape_ellipse 100.0 150.0
+
+# Run with 'pulse weld'
+#     0<=pulse_amplitude<=1   2<frequency
+# pulse    0.25                  32
+
+dimension	 3
+
+# periodic x
+# not periodic y 
+# not periodic z 
+boundary p n n
+
+# NOTE: spk2vti writer does not currently support a lattice constant different from '1.0'
+lattice		 sc/26n 1.0
+region		 box block 0 200 0 500 0 1
+create_box	 box
+Created box = (0 0 0) to (200 500 1)
+  2 by 4 by 1 processor grid
+create_sites     box
+Creating sites ...
+  100000 sites
+  400 sites have 5 neighbors
+  0 sites have 6 neighbors
+  0 sites have 7 neighbors
+  99600 sites have 8 neighbors
+
+# Initialize grains 
+read_sites site.init
+  200000 values
+
+# Run without grain initialization from 'potts_init'
+# COMMENT out this line if using 'read_sites' above
+#set site range 1 100000
+
+sweep		 raster
+sector yes
+
+diag_style       energy
+
+# Simulation temperature
+temperature	 0.25
+
+stats            1.0
+
+# Write 'dump' files; see 'dump' documentation
+dump             1 text 52.0 steady_weld.dump
+dump_modify      1 delay 52.0
+diag_style       cluster stats no delay 52.0 delt 52.0 filename steady_weld.cluster
+
+# Write 'image'; see 'dump' documentation
+#    images written every 2 seconds
+dump top image 2 top.*.jpg site site crange 1 100000 drange 1 1 view 0.0 0.0 boundary site 1 shape cube box no 1 zoom 2.0 size 1024 1024 sdiam 1.05
+dump_modify top cwrap yes boundcolor black backcolor black pad 4 
+
+run             52.0
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 4.625 Mbytes
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy
+         0          0          0          0          0     154018
+   1.03846      12152    2687848         27      0.851     156754
+         2      22507    5177493         52       1.64     160642
+   3.03846      33865    7866135         79       2.35     164252
+   4.03846      45096   10454904        105       3.16     166124
+   5.03846      56774   13043226        131       3.85     166236
+   6.03846      69829   15630171        157       4.62     164044
+   7.03846      83158   18216842        183       5.31     162014
+   8.03846      96978   20803022        209       6.07     159606
+   9.03846     111191   23388809        235       6.75     157218
+   10.0385     125002   25974998        261        7.5     155332
+   11.0385     139143   28560857        287       8.16     153348
+   12.0385     153108   31146892        313       8.91     151690
+   13.0385     167377   33732623        339       9.57     150064
+   14.0385     181824   36318176        365       10.3     147908
+   15.0385     195867   38904133        391         11     145746
+   16.0385     210299   41489701        417       11.7     143366
+   17.0385     224387   44075613        443       12.3     141540
+        18     237975   46562025        468         13     139738
+        19     252070   49147930        494       13.6     137222
+        20     266308   51733692        520       14.3     135156
+        21     279991   54320009        546         15     132962
+        22     293204   56906796        572       15.7     130814
+        23     306238   59493762        598       16.3     129380
+        24     320130   62079870        624       17.1     127630
+        25     334099   64665901        650       17.7     125414
+        26     347658   67252342        676       18.5     123334
+        27     361224   69838776        702       19.1     121312
+        28     374113   72425887        728       19.9     119822
+        29     387444   75012556        754       20.6     117978
+        30     401470   77598530        780       21.4     115858
+        31     415364   80184636        806         22     113932
+        32     429800   82770200        832       22.8     112016
+        33     443930   85356070        858       23.5     110162
+        34     457835   87942165        884       24.3     108248
+        35     470770   90529230        910         25     106676
+        36     482526   93117474        936       25.8     104828
+        37     492374   95707626        962       26.5     103406
+        38     501309   98298691        988       27.3      99124
+        39     508962  100891038       1014         28      93178
+        40     515181  103484819       1040       28.8      86460
+        41     520779  106079221       1066       29.5      79618
+        42     526264  108673736       1092       30.3      72586
+        43     531465  111268535       1118         31      65726
+        44     536037  113863963       1144       31.8      59204
+        45     539824  116460176       1170       32.6      53602
+        46     542821  119057179       1196       33.4      49552
+        47     544582  121655418       1222       34.1      48720
+        48     545304  124254696       1248         35      48660
+        49     545757  126854243       1274       35.7      48644
+        50     545935  129454065       1300       36.5      48642
+        51     545981  132054019       1326       37.3      48640
+        52     545981  134654019       1352       38.2      48640
+Loop time of 38.2407 on 8 procs
+
+Solve time (%) = 0.585135 (1.53014)
+Update time (%) = 0 (0)
+Comm  time (%) = 5.43333 (14.2082)
+Outpt time (%) = 32.1973 (84.1964)
+App   time (%) = 0 (0)
+Other time (%) = 0.0249464 (0.0652353)
