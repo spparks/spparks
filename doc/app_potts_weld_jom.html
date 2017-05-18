@@ -15,55 +15,73 @@
 </P>
 <PRE>app_style potts/weld/jom nspins width length cap_length linear haz start_weld velocity weld_type exp_factor 
 </PRE>
-<LI>potts/weld/jom = application style name 
-
-<LI>nspins = number of possible spins 
-
-<LI>width = maximum width of the melt pool 
-
-<LI>length = maximum length of the melt pool trailing the melt spot 
-
-<LI>cap_length = specify the length of the heat source region leading the melt spot 
-
-<LI>haz = width of the heat affected zone (haz) surrounding the melt pool 
-
-<LI>start_weld = timestep at which to begin welding (usually 0) 
-
-<LI>velocity = velocity of heat source motion (lattice sites per Monte Carlo step) 
-
-<LI>weld_type = Select the heat source shape (valid options are 1-5, see below for descriptions) 
-
-<LI>exp_factor = Coefficient that controls the rate of exponential decay of the haz mobility gradient 
-
+<UL><LI>potts/weld/jom = application style name
+<LI>nspins = number of possible spins
+<LI>width = maximum width of the melt pool
+<LI>length = maximum length of the melt pool trailing the melt spot
+<LI>cap_length = specify the length of the heat source region leading the melt spot
+<LI>haz = width of the heat affected zone (haz) surrounding the melt pool
+<LI>start_weld = timestep at which to begin welding (usually 0)
+<LI>velocity = velocity of heat source motion (lattice sites per Monte Carlo step)
+<LI>weld_type = heat source shape (valid options are 1-5, see below)
+<LI>exp_factor = rate of exponential decay of the haz mobility gradient 
+</UL>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<P>app_style potts/weld/jom 10000  30	25	10	40	0	10.0	1	0.01
-</P>
+<PRE>app_style potts/weld/jom 10000 30 25 10 40 0 10.0 1 0.01 
+</PRE>
 <P><B>Description:</B>
 </P>
-<P>This is an on-lattice application derived from the <A HREF = "app_potts.html">app_style potts/neighonly</A> application which simulates a weld heat source traveling along the y-axis from y = 0 to yhi. The heat source is centered along the x-axis at x = xhi / 2 and top plane is located at zhi.
+<P>This is an on-lattice application derived from the <A HREF = "app_potts.html">app_style
+potts/neighonly</A> application which simulates a weld
+heat source traveling along the y-axis from y = 0 to yhi. The heat
+source is centered along the x-axis at x = xhi / 2 and top plane is
+located at zhi.
 </P>
-<P>The model simulates melting and re-solidification by randomizing the spin at a lattice site when it falls within the melt pool's volume. Upon exiting the melt pool, a rejection kinetic Monte Carlo event is performed at the site, and the spin is flipped to the value of one of its neighbors (in the style of the <A HREF = "app_potts.html">potts/neighonly</A> application).
+<P>The model simulates melting and re-solidification by randomizing the
+spin at a lattice site when it falls within the melt pool's
+volume. Upon exiting the melt pool, a rejection kinetic Monte Carlo
+event is performed at the site, and the spin is flipped to the value
+of one of its neighbors (in the style of the
+<A HREF = "app_potts.html">potts/neighonly</A> application).
 </P>
-<P>The mobility of each site within the haz decreases exponentially with increasing distance from the melt pool surface. The maximum mobility is 1 at the melt pool boundary and the minimum mobility is 0 at the outer haz boundary. The mobility gradient is similar to that in <A HREF = "app_potts_grad.html">potts/grad</A>, but is restricted to a portion of the simulation domain defined by haz.
-Outside of the melt pool and haz, grain boundary mobility is set to 0, and grain evolution does not occur.
+<P>The mobility of each site within the haz decreases exponentially with
+increasing distance from the melt pool surface. The maximum mobility
+is 1 at the melt pool boundary and the minimum mobility is 0 at the
+outer haz boundary. The mobility gradient is similar to that in
+<A HREF = "app_potts_grad.html">potts/grad</A>, but is restricted to a portion of
+the simulation domain defined by haz.  Outside of the melt pool and
+haz, grain boundary mobility is set to 0, and grain evolution does not
+occur.
 </P>
 <P>This program was used in the paper by <A HREF = "#Rodgers">Rodgers et al.</A>
 </P>
-<P>There are five different heat source shapes available defined by the integer (between 1 and 5) of "weld_type":
+<P>There are five different heat source shapes available defined by the
+integer (between 1 and 5) of "weld_type":
 </P>
-<LI>1 = "ellipsoid", An Goldak-style double ellipsoid heat source whose melt pool dimensions are defined with "width", "length", "cap_length", and <A HREF = "ellipsoid_depth.html">ellipsoid_depth</A> 
+<UL><LI>1 = "ellipsoid", An Goldak-style double ellipsoid heat source whose
+melt pool dimensions are defined with "width", "length", "cap_length",
+and <A HREF = "ellipsoid_depth.html">ellipsoid_depth</A> 
 
-<LI>2 = "keyhole", A keyhole heat source comprised of the union of two ellipsoids. A "shallow" ellipsoid whose dimensions are defined with "width", "length", and <A HREF = "ellipsoid_depth.html">ellipsoid_depth</A>, and a "deep" ellipsoid whose dimensions are defined with <A HREF = "deep_width.html">deep_width</A> and <A HREF = "deep_length.html">deep_length</A>. The "deep" ellipsoid is assumed to penetrate the entire depth of the simulation domain 
+<LI>2 = "keyhole", A keyhole heat source comprised of the union of two
+ellipsoids. A "shallow" ellipsoid whose dimensions are defined with
+"width", "length", and <A HREF = "ellipsoid_depth.html">ellipsoid_depth</A>, and a
+"deep" ellipsoid whose dimensions are defined with
+<A HREF = "deep_width.html">deep_width</A> and <A HREF = "deep_length.html">deep_length</A>. The
+"deep" ellipsoid is assumed to penetrate the entire depth of the
+simulation domain 
 
-<LI>3 = "linear", A heat source with linearly varying boundaries. The heat source's cross-section is constant along the z-axis 
+<LI>3 = "linear", A heat source with linearly varying boundaries. The heat
+source's cross-section is constant along the z-axis 
 
-<LI>4 = "cap", A heat source with a power-law dependent boundaries. The heat source's cross-section is constant along the z-axis 
+<LI>4 = "cap", A heat source with a power-law dependent boundaries. The
+heat source's cross-section is constant along the z-axis 
 
-<LI>5 = "circle", A heat source with circular boundaries. The heat source's cross-section is constant along the z-axis 
-
+<LI>5 = "circle", A heat source with circular boundaries. The heat
+source's cross-section is constant along the z-axis 
+</UL>
 <HR>
 
 <P>The following additional commands are defined by this application:
@@ -86,20 +104,18 @@ Outside of the melt pool and haz, grain boundary mobility is set to 0, and grain
 </P>
 <P><B>Related commands:</B> 
 </P>
-<P><A HREF = "app_potts.html">app_style potts</A>
+<P><A HREF = "app_potts.html">app_style potts</A>,
+<A HREF = "app_potts_grad.html">app_style potts/grad</A>,
+<A HREF = "app_potts_weld.html">app_style potts/weld</A>
 </P>
-<P><A HREF = "app_potts_grad.html">app_style potts/grad</A>
-</P>
-<P><A HREF = "app_potts_weld.html">app_style potts/weld</A>
-</P>
-<P><B>Default:</B> 
-</P>
-<P>none
+<P><B>Default:</B> none
 </P>
 <HR>
 
-<A NAME = "Garcia"></A>
+<A NAME = "Rodgers"></A>
 
-<P><B>(Rodgers)</B> T.M. Rodgers, J.D. Madison and V. Tikare, "Predicting Mesoscale Microstructural Evolution in Electron Beam Welding", JOM 68[5] 1419- 1426 (2016). 
+<P><B>(Rodgers)</B> T.M. Rodgers, J.D. Madison and V. Tikare, "Predicting
+Mesoscale Microstructural Evolution in Electron Beam Welding", JOM
+68[5] 1419- 1426 (2016).
 </P>
 </HTML>
