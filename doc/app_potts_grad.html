@@ -15,27 +15,16 @@
 </P>
 <PRE>app_style style grad_style nspins m0 convert Q T0 grad_x grad_y grad_z 
 </PRE>
-<UL><LI>style = <I>potts/grad</I> 
-
-<LI>grad_style = <I>temp</I> or <I>mob</I> 
-
-<LI>nspins = number of possible spins 
-
-<LI>m0 = mobility constant for <I>temp</I> grad_style or mobility at the center of domain for <I>mob</I> grad_style 
-
-<LI>convert = conversion factor for the gradients 
-
-<LI>Q = activation energy 
-
-<LI>T0 = temperature at the center of domain (temperature units) 
-
-<LI>grad_x = gradient in the x direction 
-
-<LI>grad_y = gradient in the y direction 
-
+<UL><LI>style = <I>potts/grad</I>
+<LI>grad_style = <I>temp</I> or <I>mob</I>
+<LI>nspins = number of possible spins
+<LI>m0 = mobility constant for <I>temp</I> grad_style or mobility at the center of domain for <I>mob</I> grad_style
+<LI>convert = conversion factor for the gradients
+<LI>Q = activation energy
+<LI>T0 = temperature at the center of domain (temperature units)
+<LI>grad_x = gradient in the x direction
+<LI>grad_y = gradient in the y direction
 <LI>grad_z = gradient in the z direction 
-
-
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -45,43 +34,80 @@ app_style potts/grad mob 15000  .5 1 0 0 .0024 0 0
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This is an on-lattice application derived from the <A HREF = "app_potts.html">app_style potts/neighonly</A> application which applies gradients given in three directions x,y, and z.  The gradients can be either temperature or mobility gradients.  If grad_style <I>mob</I> is chosen, mobility gradients are used.  If grad_style <I>temp</I> is chosen, temperature gradients are used.  
+<P>This is an on-lattice application derived from the <A HREF = "app_potts.html">app_style
+potts/neighonly</A> application which applies gradients
+given in three directions x,y, and z.  The gradients can be either
+temperature or mobility gradients.  If grad_style <I>mob</I> is chosen,
+mobility gradients are used.  If grad_style <I>temp</I> is chosen,
+temperature gradients are used.
 </P>
-<P>When the grad_style <I>temp</I> is used, the mobility of each site is assumed to depend on temperature, according to the equation m0 * exp(-Q/(KT)), where m0 is the mobility constant, K is Boltzmann's constant, T is the temperature of the site, and Q is the activation energy. The temperature of a site depends linearly on its position in the lattice. The linear function is uniquely defined by the value T0 at the center and the gradients in the x,y, and z directions, grad_x, grad_y, and grad_z, respectively.  The gradients are in units of temperature per lattice spacing (defined by the <A HREF = "lattice.html">lattice</A> constant). 
+<P>When the grad_style <I>temp</I> is used, the mobility of each site is
+assumed to depend on temperature, according to the equation m0 *
+exp(-Q/(KT)), where m0 is the mobility constant, K is Boltzmann's
+constant, T is the temperature of the site, and Q is the activation
+energy. The temperature of a site depends linearly on its position in
+the lattice. The linear function is uniquely defined by the value T0
+at the center and the gradients in the x,y, and z directions, grad_x,
+grad_y, and grad_z, respectively.  The gradients are in units of
+temperature per lattice spacing (defined by the <A HREF = "lattice.html">lattice</A>
+constant).
 </P>
-<P>When the grad_style <I>mob</I> is used each site is assigned a mobility directly from the mobility gradients.  The arguments Q and T0 are not used during a mobility gradient simulation.  m0 is the initial mobility at the center of the domain.  The mobility of each site depends linearly on its position in the lattice.  The linear function is defined by the mobility gradients.  The mobility gradients are in units of mobility per lattice spacing (defined by the <A HREF = "lattice.html">lattice</A> constant). 
+<P>When the grad_style <I>mob</I> is used each site is assigned a mobility
+directly from the mobility gradients.  The arguments Q and T0 are not
+used during a mobility gradient simulation.  m0 is the initial
+mobility at the center of the domain.  The mobility of each site
+depends linearly on its position in the lattice.  The linear function
+is defined by the mobility gradients.  The mobility gradients are in
+units of mobility per lattice spacing (defined by the
+<A HREF = "lattice.html">lattice</A> constant).
 </P>
-<P>Under most circumstances a gradient will break periodicity in the gradient direction.  This app requires a special method for turning off periodicity.  Refer to the examples under <I>potts_grad</I> for more details on how to turn periodicity off.
+<P>Under most circumstances a gradient will break periodicity in the
+gradient direction.  This app requires a special method for turning
+off periodicity.  Refer to the examples under <I>potts_grad</I> for more
+details on how to turn periodicity off.
 </P>
-<P>Convert is an argument multiplied by the given gradients and is used to convert units as a convenience for the user.
+<P>Convert is an argument multiplied by the given gradients and is used
+to convert units as a convenience for the user.
 </P>
-<P>grad_z is an optional argument and will be defaulted to zero if not used.
+<P>Grad_z is an optional argument and will default to zero if not
+specified.
 </P>
 <HR>
 
-<A NAME = "restriction"></A><B>Restrictions:</B> 
+<P>The following additional commands are defined by these applications:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "temperature.html">temperature</A> </TD><TD > set Monte Carlo temperature 
+</TD></TR></TABLE></DIV>
 
-<P>Convert must be > 0.  
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>Convert must be > 0.
 </P>
 <P>Only compatible with square and square cubic lattices.
 </P>
-<P>Can only be evolved by a rejection KMC (rKMC) algorithm.  See <A HREF = "sweep.html">sweep</A> for more information.
+<P>Can only be evolved by a rejection KMC (rKMC) algorithm.  See
+<A HREF = "sweep.html">sweep</A> for more information.
 </P>
-<P>nspins must be greater than the possible spins set with the <A HREF = "set.html">set</A>
- <I>site range</I> command.
+<P>Nspins must be greater than the possible spins set with the
+<A HREF = "set.html">set</A> <I>site range</I> command.
 </P>
 <P><B>Related commands:</B> 
 </P>
 <P><A HREF = "app_potts.html">app_style potts</A>
 </P>
-<P><B>Default:</B> 
+<P><B>Default:</B>
 </P>
-<P>grad_z = 0
+<P>As explained above the default for grad_z = 0.0.
 </P>
 <HR>
 
 <A NAME = "Garcia"></A>
 
-<P><B>(Garcia)</B> A.L. Garcia, V. Tikare and E.A. Holm, "Three-Dimensional Simulation of Grain Growth of in a Thermal Gradient with Non-Uniform Grain Boundary Mobility", Scripta Met 59[6] 661- 664 (2008). 
+<P><B>(Garcia)</B> A.L. Garcia, V. Tikare and E.A. Holm, "Three-Dimensional
+Simulation of Grain Growth of in a Thermal Gradient with Non-Uniform
+Grain Boundary Mobility", Scripta Met 59[6] 661- 664 (2008).
 </P>
 </HTML>
