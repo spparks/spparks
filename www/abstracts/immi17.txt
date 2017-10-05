@@ -1,0 +1,27 @@
+[Process-Structure Linkages Using a Data Science Approach: Application
+to Simulated Additive Manufacturing Data]
+
+E. Popova, T. M. Rodgers, X. Gong, A, Cecen, J. D. Madison, and
+S. R. Kalidindi, Integrating Matererials and Manufacturing Innovation,
+6, 54–68 (2017).
+
+A novel data science workflow is developed and demonstrated to extract
+process-structure linkages (i.e., reduced-order model) for
+microstructure evolution problems when the final microstructure
+depends on (simulation or experimental) processing parameters. This
+workflow consists of four main steps: data pre-processing,
+microstructure quantification, dimensionality reduction, and
+extraction/validation of process-structure linkages. Methods that can
+be employed within each step vary based on the type and amount of
+available data. In this paper, this data-driven workflow is applied to
+a set of synthetic additive manufacturing microstructures obtained
+using the Potts-kinetic Monte Carlo (kMC) approach.  Additive
+manufacturing techniques inherently produce complex microstructures
+that can vary significantly with processing conditions. Using the
+developed workflow, a lowdimensional data-driven model was established
+to correlate process parameters with the predicted final
+microstructure.  Additionally, the modular workflows developed and
+presented in this work facilitate easy dissemination and curation by
+the broader community.
+
+Return to "Publications page"_../papers.html

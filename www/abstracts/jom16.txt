@@ -1,0 +1,23 @@
+[Predicting Mesoscale Microstructural Evolution in Electron Beam
+Welding]
+
+T. M. Rodgers, J. D. Madison, V. Tikare, and M. C. Maguire, of the
+Minerals, Metals & Materials Society (JOM), 68, 1419-1426 (2016).
+
+Using the kinetic Monte Carlo simulator, Stochastic Parallel PARticle
+Kinetic Simulator, from Sandia National Laboratories, a user routine
+has been developed to simulate mesoscale predictions of a grain
+structure near a moving heat source. Here, we demonstrate the use of
+this user routine to produce voxelized, synthetic, three-dimensional
+microstructures for electronbeam welding by comparing them with
+experimentally produced microstructures.  When simulation input
+parameters are matched to experimental process parameters, qualitative
+and quantitative agreement for both grain size and grain morphology
+are achieved. The method is capable of simulating both single- and
+multipass welds. The simulations provide an opportunity for not only
+accelerated design but also the integration of simulation and
+experiments in design such that simulations can receive parameter
+bounds from experiments and, in turn, provide predictions of a
+resultant microstructure.
+
+Return to "Publications page"_../papers.html
