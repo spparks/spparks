@@ -1,0 +1,28 @@
+[Simulation of metal additive manufacturing microstructures using
+kinetic Monte Carlo]
+
+T. M. Rodgers, J. D. Madison, V. Tikare, Computational Materials
+Science 135, 78–89 (2017).
+
+Additive manufacturing (AM) is of tremendous interest given its
+ability to realize complex, nontraditional geometries in engineered
+structural materials. However, microstructures generated from AM
+processes can be equally, if not more, complex than their
+conventionally processed counterparts.  While some microstructural
+features observed in AM may also occur in more traditional
+solidification processes, the introduction of spatially and temporally
+mobile heat sources can result in significant microstructural
+heterogeneity. While grain size and shape in metal AM structures are
+understood to be highly dependent on both local and global temperature
+profiles, the exact form of this relation is not well
+understood. Here, an idealized molten zone and temperature-dependent
+grain boundary mobility are implemented in a kinetic Monte Carlo model
+to predict three-dimensional grain structure in additively
+manufactured metals. To demonstrate the flexibility of the model,
+synthetic microstructures are generated under conditions mimicking
+relatively diverse experimental results present in the literature.
+Simulated microstructures are then qualitatively and quantitatively
+compared to their experimental complements and are shown to be in good
+agreement.
+
+Return to "Publications page"_../papers.html
