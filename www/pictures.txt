@@ -70,12 +70,15 @@ This is work by Theron Rodgers, Jon Madison, and Veena Tikare (Sandia)
 on models of the additive manufacturing (AM) process for laser melting
 and crystallization of metal powders.
 
-The first two images show a metal cube of microstructured metal,
-deposited and annealed one layer at a time.  The second is a link to a
-movie of the process.  The next two images are the same process for a
-cylindrical shell geometry, with a thermal diffusion term added to the
-model.
+The first image is a diagram of the AM process with both experimental
+and simulation results for microstructure side-by-side.  The next two
+images show a metal cube of microstructured metal, deposited and
+annealed one layer at a time.  The second is a link to a movie of the
+process.  The last two images are the same process for a cylindrical
+shell geometry, with a thermal diffusion term added to the model.
+Again the second image is a link to a movie.
 
+:image(images/am_expt_small.jpg,images/am_expt.jpg)
 :image(images/am_cross_hatch_brick_small.jpg,images/am_cross_hatch_brick.jpg)
 :image(images/am_cross_hatch_brick_small.jpg,movies/am_cross_hatch_brick.mov)
 :image(images/am_cylinder_diffusion_small.jpg,images/am_cylinder_diffusion.jpg)
