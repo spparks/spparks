@@ -36,15 +36,18 @@ microstructure creates the join.  Since grain growth is a strong
 function of temperature, the moving 3d temperature profile induces
 interesting patterns of grain growth.
 
-The first two images show the top surface of the weld as the arc spot
-passes over it.  The second is a link to a movie.  The next two images
-compare microstructures from the simulation to experimental weld
-micrographs.  The next two images show results from a simulation where
-the arc spot size/intensity is pulsed in time, and views of the
-top/bottom surfaces of the welded pieces.  The last two images are a
-snapshot and movie of how a heat source with particular shape can
-alter the microstructure of a material which has already been anealed.
+The first image is the cover image for one of the articles referenced
+below.  The next two images show the top surface of the weld as the
+arc spot passes over it.  The second is a link to a movie.  The next
+two images compare microstructures from the simulation to experimental
+weld micrographs.  The next image shows results from a simulation
+where the arc spot size/intensity is pulsed in time; the next image is
+views of the top/bottom surfaces of the welded pieces.  The last two
+images are a snapshot and movie of how a heat source with particular
+shape can alter the microstructure of a material which has already
+been annealed to an initial microstructure.
 
+:image(images/msmse17_small.jpg,images/msmse17.jpg)
 :image(images/weld_top_small.jpg,images/weld_top.jpg)
 :image(images/weld_top_small.jpg,movies/weld_top.mov)
 :image(images/weld_expt1_small.jpg,images/weld_expt1.jpg)
