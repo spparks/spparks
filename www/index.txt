@@ -151,7 +151,7 @@ one grain breaks free and is able to grow at the expense of others,
 leading to abnormal growth.
 
 The images and movies show typical results for a 300x300x300 lattice,
-run for a million Monte Carlo steps (sweep over all lattice istes),
+run for a million Monte Carlo steps (sweep over all lattice sites),
 with 5 volume percent pinning particles, inserted when the average
 grain radius was 10 sites.  In the normal case, the system becomes
 fully pinned.  In the second case, abnormal growth eventually occurs.
