@@ -5,6 +5,8 @@
 
 Pictures & Movies from SPPARKS Simulations :h3
 
+"welding"_#welding: welding models
+"additive manufacturing"_#am: additive manufacturing models
 "hybrid phase field"_#phase-field: hybrid phase-field Potts model
 "temperature growth"_#temp-growth: temperature-dependent grain growth
 "hafnium dioxide"_#hafnium: hafnium dioxide surface growth
@@ -20,6 +22,87 @@ view a larger version.
 
 For movies on this page, click on the small image to trigger the
 animation.
+
+:line
+:line
+
+Welding models :h4,link(welding)
+
+This is work by John Mitchell, Theron Rodgers, and Veena Tikare
+(Sandia) on models of the welding process to join two metal pieces
+together.  An arc welding spot passes over the surface, melting
+material in both pieces.  The recrystallization process and resulting
+microstructure creates the join.  Since grain growth is a strong
+function of temperature, the moving 3d temperature profile induces
+interesting patterns of grain growth.
+
+The first two images show the top surface of the weld as the arc spot
+passes over it.  The second is a link to a movie.  The next two images
+compare microstructures from the simulation to experimental weld
+micrographs.  The last two images show results from a simulation where
+the arc spot size/intensity is pulsed in time, and views of the
+top/bottom surfaces of the welded pieces.
+
+:image(images/weld_top_small.jpg,images/weld_top.jpg)
+:image(images/weld_top_small.jpg,movies/weld_top.mov)
+:image(images/weld_expt1_small.jpg,images/weld_expt1.jpg)
+:image(images/weld_expt2_small.jpg,images/weld_expt2.jpg)
+:image(images/weld_pulse_small.jpg,images/weld_pulse.jpg)
+:image(images/weld_top_bottom_small.jpg,images/weld_top_bottom.jpg)
+
+These papers describes the models in more detail:
+
+[A Monte Carlo model for 3D grain evolution during welding],
+T. M. Rodgers, J. A. Mitchell, and V. Tikare, Modelling and Simulation
+in Materials Science and Engineering, 25, 064006 (2017),
+("abstract"_abstracts/msmse17.html)
+
+[Predicting Mesoscale Microstructural Evolution in Electron Beam
+Welding], T. M. Rodgers, J. D. Madison, V. Tikare, and M. C. Maguire,
+of the Minerals, Metals & Materials Society (JOM), 68, 1419-1426
+(2016).  ("abstract"_abstracts/jom16.html)
+
+:line
+
+Additive manufacturing models :h4,link(am)
+
+This is work by Theron Rodgers, Jon Madison, and Veena Tikare (Sandia)
+on models of the additive manufacturing (AM) process for laser melting
+and crystallization of metal powders.
+
+The first two images show a metal cube of microstructured metal,
+deposited and annealed one layer at a time.  The second is a link to a
+movie of the process.  The next two images are the same process for a
+cylindrical shell geometry, with a thermal diffusion term added to the
+model.
+
+:image(images/am_cross_hatch_brick_small.jpg,images/am_cross_hatch_brick.jpg)
+:image(images/am_cross_hatch_brick_small.jpg,movies/am_cross_hatch_brick.mov)
+:image(images/am_cylinder_diffusion_small.jpg,images/am_cylinder_diffusion.jpg)
+:image(images/am_cylinder_diffusion_small.jpg,movies/am_cylinder_diffusion.mov)
+
+These papers describes the work in more detail:
+
+[Simulation of metal additive manufacturing microstructures using
+kinetic Monte Carlo], T. M. Rodgers, J. D. Madison, V. Tikare,
+Computational Materials Science 135, 78–89 (2017).
+("abstract"_abstracts/cms17.html)
+
+[Process-Structure Linkages Using a Data Science Approach: Application
+to Simulated Additive Manufacturing Data], E. Popova, T. M. Rodgers,
+X. Gong, A, Cecen, J. D. Madison, and S. R. Kalidindi, Integrating
+Matererials and Manufacturing Innovation, 6, 54–68 (2017).
+("abstract"_abstracts/immi17.html)
+
+[Modeling of additive manufacturing processes for metals: Challenges
+and opportunities], M. M. Francois, A. Sun, W. E. King, N. J. Henson,
+D. Tourret, C. A. Bronkhorst, N. N. Carlson, C. K. Newman, T. Haut,
+J. Bakosi, J. W. Gibbs, V. Livescu, S. A. Vander Wiel, A. J. Clarke,
+M. W. Schraad, T. Blacker, H. Lim, T. Rodgers, S. Owen, F. Abdeljawad,
+J. Madison, A. T. Anderson, J-L. Fattebert, R. M. Ferencz,
+N. E. Hodge, S. A. Khairallah, and O. Walton, Current Opinion in Solid
+State and Materials Science, 21, 198–206 (2017).
+("abstract"_abstracts/cossms17.html)
 
 :line
 

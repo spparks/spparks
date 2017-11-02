@@ -18,18 +18,6 @@ Cardona, A. Slepoy, Sandia report SAND2009-6226, October
 You can download the entire report via "this
 link"_pdf/sand09.pdf, but note that it is a 45 Mb file!
 
-:line
-
-This paper is about a sintering application developed for SPPARKS by
-Cristina Garcia Cardona.  Time-evolution pictures of the process the
-model can simlulate can be found on "this page"_pictures.html.
-
-[Parallel Simulation of 3D Sintering], C. G. Cardona, V. Tikare,
-S. J. Plimpton, Int J Computational Materials Science and Surface
-Engineering, 4, 37-54 (2011).  ("abstract"_abstracts/ijcmsse11.html)
-
-:line
-
 This paper describes the most novel KMC or event-selection algorithm
 in SPPARKS, a constant-time composition-rejection algorithm, whose
 cost to select a single event is independent of the total number of
@@ -41,7 +29,72 @@ S. J. Plimpton, J Chem Phys, 128, 205101
 (2008). ("abstract"_abstracts/jcp08.html)
 
 :line
+:line
 
-If you send us information about a paper that uses SPPARKS results,
-we'll be pleased to add info about it to this page.  Ditto for a
-picture or movie for the "Pictures & Movies"_pictures.html page.
+These are papers that used SPPARKS to perform simulations.  If you
+send us information about such a paper, we'll be pleased to add info
+about it to this page.  Ditto for a picture or movie for the "Pictures
+& Movies"_pictures.html page.  Several of the papers below have
+pictures on that page.
+
+[A Monte Carlo model for 3D grain evolution during welding],
+T. M. Rodgers, J. A. Mitchell, and V. Tikare, Modelling and Simulation
+in Materials Science and Engineering, 25, 064006 (2017),
+("abstract"_abstracts/msmse17.html)
+
+[Simulation of metal additive manufacturing microstructures using
+kinetic Monte Carlo], T. M. Rodgers, J. D. Madison, V. Tikare,
+Computational Materials Science 135, 78–89 (2017).
+("abstract"_abstracts/cms17.html)
+
+[Process-Structure Linkages Using a Data Science Approach: Application
+to Simulated Additive Manufacturing Data], E. Popova, T. M. Rodgers,
+X. Gong, A, Cecen, J. D. Madison, and S. R. Kalidindi, Integrating
+Matererials and Manufacturing Innovation, 6, 54–68 (2017).
+("abstract"_abstracts/immi17.html)
+
+[Modeling of additive manufacturing processes for metals: Challenges
+and opportunities], M. M. Francois, A. Sun, W. E. King, N. J. Henson,
+D. Tourret, C. A. Bronkhorst, N. N. Carlson, C. K. Newman, T. Haut,
+J. Bakosi, J. W. Gibbs, V. Livescu, S. A. Vander Wiel, A. J. Clarke,
+M. W. Schraad, T. Blacker, H. Lim, T. Rodgers, S. Owen, F. Abdeljawad,
+J. Madison, A. T. Anderson, J-L. Fattebert, R. M. Ferencz,
+N. E. Hodge, S. A. Khairallah, and O. Walton, Current Opinion in Solid
+State and Materials Science, 21, 198–206 (2017).
+("abstract"_abstracts/cossms17.html)
+
+[Empirical force field-based kinetic Monte Carlo simulation of
+precipitate evolution and growth in Al–Cu alloys], K. Joshi and
+S. Chaudhuri, Modelling and Simulation in Materials Science and
+Engineering, 24, 075012 (2016).  ("abstract"_abstracts/msmse16.html)
+
+[Predicting Mesoscale Microstructural Evolution in Electron Beam
+Welding], T. M. Rodgers, J. D. Madison, V. Tikare, and M. C. Maguire,
+of the Minerals, Metals & Materials Society (JOM), 68, 1419-1426
+(2016).  ("abstract"_abstracts/jom16.html)
+
+[Hybrid Potts-phase field model for coupled
+microstructural-compositional evolution], E. R. Homer, V. Tikare,
+E. A. Holm, Computaional Materials Science, 69, 414-423
+(2013). ("abstract"_abstracts/cms13.html)
+
+[Multiple Proton Diffusion and Film Densification in Atomic Layer
+Deposition Modeled by Density Functional Theory], M. Shirazi and
+S. D. Elliott, Chemistry of Materials, 25, 878-889 (2013).
+("abstract"_abstracts/cm13.html)
+
+[A hybrid simulation methodology for modeling dynamic
+recrystallization in UO2 LWR nuclear fuels], J. D. Madison, V.Tikare,
+E. A. Holm, Journal of Nuclear Materials 425, 173–180 (2012).
+("abstract"_abstracts/jnm12.html)
+
+[Parallel Simulation of 3D Sintering], C. G. Cardona, V. Tikare,
+S. J. Plimpton, Int J Computational Materials Science and Surface
+Engineering, 4, 37-54 (2011).  ("abstract"_abstracts/ijcmsse11.html)
+
+[Three-Dimensional Simulation of Grain Growth of in a Thermal Gradient
+with Non-Uniform Grain Boundary Mobility], A. L. Garcia, V. Tikare and
+E. A. Holm, Scripta Materialia 59, 661-664 (2008).
+("abstract"_abstracts/scripta08.html)
+
+
