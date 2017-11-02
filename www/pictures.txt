@@ -39,9 +39,11 @@ interesting patterns of grain growth.
 The first two images show the top surface of the weld as the arc spot
 passes over it.  The second is a link to a movie.  The next two images
 compare microstructures from the simulation to experimental weld
-micrographs.  The last two images show results from a simulation where
+micrographs.  The next two images show results from a simulation where
 the arc spot size/intensity is pulsed in time, and views of the
-top/bottom surfaces of the welded pieces.
+top/bottom surfaces of the welded pieces.  The last two images are a
+snapshot and movie of how a heat source with particular shape can
+alter the microstructure of a material which has already been anealed.
 
 :image(images/weld_top_small.jpg,images/weld_top.jpg)
 :image(images/weld_top_small.jpg,movies/weld_top.mov)
@@ -49,6 +51,8 @@ top/bottom surfaces of the welded pieces.
 :image(images/weld_expt2_small.jpg,images/weld_expt2.jpg)
 :image(images/weld_pulse_small.jpg,images/weld_pulse.jpg)
 :image(images/weld_top_bottom_small.jpg,images/weld_top_bottom.jpg)
+:image(images/weld_drag_small.png,images/weld_drag.png)
+:image(images/weld_drag_small.png,movies/weld_drag.mov)
 
 These papers describes the models in more detail:
 
@@ -74,8 +78,8 @@ The first image is a diagram of the AM process with both experimental
 and simulation results for microstructure side-by-side.  The next two
 images show a metal cube of microstructured metal, deposited and
 annealed one layer at a time.  The second is a link to a movie of the
-process.  The last two images are the same process for a cylindrical
-shell geometry, with a thermal diffusion term added to the model.
+process.  The next two images are the same process for a cylindrical
+shell geometry, with a thermal diffusion effect added to the model.
 Again the second image is a link to a movie.
 
 :image(images/am_expt_small.jpg,images/am_expt.jpg)
