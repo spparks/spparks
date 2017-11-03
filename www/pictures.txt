@@ -7,6 +7,7 @@ Pictures & Movies from SPPARKS Simulations :h3
 
 "welding"_#welding: welding models
 "additive manufacturing"_#am: additive manufacturing models
+"recyrstallize"_#recrystallize: recrystallization models
 "hybrid phase field"_#phase-field: hybrid phase-field Potts model
 "temperature growth"_#temp-growth: temperature-dependent grain growth
 "hafnium dioxide"_#hafnium: hafnium dioxide surface growth
