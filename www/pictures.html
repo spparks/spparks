@@ -33,9 +33,9 @@ animation.
 
 <H4><A NAME = "welding"></A>Welding models 
 </H4>
-<P>This is work by John Mitchell, Theron Rodgers, and Veena Tikare
-(Sandia) on models of the welding process to join two metal pieces
-together.  An arc welding spot passes over the surface, melting
+<P>This is work by John Mitchell, Theron Rodgers, Jon Madison, and Veena
+Tikare (Sandia) on models of the welding process to join two metal
+pieces together.  An arc welding spot passes over the surface, melting
 material in both pieces.  The recrystallization process and resulting
 microstructure creates the join.  Since grain growth is a strong
 function of temperature, the moving 3d temperature profile induces
@@ -44,13 +44,14 @@ interesting patterns of grain growth.
 <P>The first image is the cover image for one of the articles referenced
 below.  The next two images show the top surface of the weld as the
 arc spot passes over it.  The second is a link to a movie.  The next
-two images compare microstructures from the simulation to experimental
-weld micrographs.  The next image shows results from a simulation
-where the arc spot size/intensity is pulsed in time; the next image is
-views of the top/bottom surfaces of the welded pieces.  The last two
-images are a snapshot and movie of how a heat source with particular
-shape can alter the microstructure of a material which has already
-been annealed to an initial microstructure.
+two images compare simulation microstructures to experimental weld
+micrographs at the top and bottom (root) surfaces of the weld.  The
+next image shows results from a simulation where the arc spot
+size/intensity is pulsed in time; the next image is views of the
+top/bottom surfaces of the welded pieces.  The last two images are a
+snapshot and movie of how a heat source with particular shape can
+alter the microstructure of a material which has already been annealed
+to an initial microstructure.
 </P>
 <A HREF = "images/msmse17.jpg"><IMG SRC = "images/msmse17_small.jpg"></A>
 
@@ -130,6 +131,39 @@ J. Madison, A. T. Anderson, J-L. Fattebert, R. M. Ferencz,
 N. E. Hodge, S. A. Khairallah, and O. Walton, Current Opinion in Solid
 State and Materials Science, 21, 198–206 (2017).
 (<A HREF = "abstracts/cossms17.html">abstract</A>)
+</P>
+<HR>
+
+<H4><A NAME = "recrystallize"></A>Recrystallization models 
+</H4>
+<P>This is work by Jon Madison and Veena Tikare (Sandia) and Liz Holm
+(CMU) on modeling dynamic recrystallization with application to
+nuclear fuels.  The recyrstallization model allow for three distinct
+processes: damage accumulation, nucleation and growth of damage- free
+regions, and subsequent evolution of recrystallized grains.
+</P>
+<P>The two images below show a series of simulation times steps for (at
+top or left) a population of grains colored by an idealized "spin"
+value and (at bottom or right) the stored energy present at various
+locations throughout the microstructure.  Using a hybridized kinetic
+Monte Carlo and cellular automata approach, stored energy in the
+system is increased according to some incoming flux resulting in
+recrystallization events once that stored energy reaches a previously
+determined threshold value on a grain by grain basis. Simultaneously,
+curvature driven grain growth ensues before, during and following
+recrystallization providing for dyanimc recrystallization events
+throughout the microstructure spatially and temporally.
+</P>
+<A HREF = "images/recrystallize1.jpg"><IMG SRC = "images/recrystallize1_small.jpg"></A>
+
+<A HREF = "images/recrystallize2.jpg"><IMG SRC = "images/recrystallize2_small.jpg"></A>
+
+<P>This paper describes the model in more detail:
+</P>
+<P><B>A Hybrid Simulation Methodology for Modeling Dynamic Recrystallization
+in U02 LWR Nuclear Fuels</B>, J.D. Madison, V. Tikare, E.A. Holm, Journal
+of Nuclear Materials, 425, 173-180 (2012).
+(<A HREF = "abstracts/jnm12.html">abstract</A>)
 </P>
 <HR>
 
