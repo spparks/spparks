@@ -596,7 +596,6 @@ int DumpText::modify_param(int narg, char **arg)
   return 0;
 }
 
-
 /* ----------------------------------------------------------------------
    one method for every keyword dump can output
    the site quantity is packed into buf starting at n with stride size_one
