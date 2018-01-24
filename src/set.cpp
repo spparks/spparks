@@ -144,6 +144,11 @@ void Set::command(int narg, char **arg)
 	cond[ncondition].lhs = ID;
 	cond[ncondition].type = TAGINT;
 	cond[ncondition].stride = 1;
+      } else if (strcmp(arg[iarg+1],"site") == 0) {
+	cond[ncondition].lhs = IARRAY;
+	cond[ncondition].type = INT;
+	cond[ncondition].index = 0;
+	cond[ncondition].stride = 1;
       } else if (strcmp(arg[iarg+1],"x") == 0) {
 	cond[ncondition].lhs = X;
 	cond[ncondition].type = DOUBLE;
