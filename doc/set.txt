@@ -31,7 +31,7 @@ keyword = {fraction} or {region} or {loop} or {if} :l
     all = loop over all sites
     local = loop over only sites I own
   {if} args = label2 op nvalue2
-    label2 = {id} or {iN} or {dN} or {x} or {y} or {z}
+    label2 = {id} or {site} or {iN} or {dN} or {x} or {y} or {z}
     op = "<" or "<=" or ">" or "<=" or "=" or "!="
     nvalue2 = value to compare site value to :pre
 :ule
@@ -118,6 +118,8 @@ The keyword {if} sets a condition that must be met in order for the
 per-site quantity to be reset.  The per-site quantity specified by
 {label2} is compared to the numeric {nvalue2} and if the condition is
 not met, then the site is skipped.
+
+:line
 
 [Restrictions:] none
 
