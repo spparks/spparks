@@ -110,7 +110,6 @@ class AppLattice : public App {
   double tstop;                // requested time increment in sector
   double nstop;                // requested events per site in sector
 
-
                                // arrays for owned + ghost sites
   int *owner;                  // proc who owns the site
   int *index;                  // index of site on owning proc
