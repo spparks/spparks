@@ -1,4 +1,4 @@
-# serial = MPI with its default compiler
+# mpi = MPI with its default compiler
 
 SHELL = /bin/sh
 
