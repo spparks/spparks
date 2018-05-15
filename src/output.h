@@ -34,6 +34,7 @@ class Output : protected Pointers {
 
   double stats_time,stats_delta;     // stats info
   double stats_scale,stats_delay;
+  double stats_tolerance;
   int stats_logfreq,stats_nrepeat;
 
   int ndump;                         // list of dumps
