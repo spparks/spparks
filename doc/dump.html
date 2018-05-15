@@ -80,9 +80,24 @@ i.e. not ordered by site ID.  This is because the sites owned by each
 processor are written in a contiguous chunk.  The ordering will be the
 same in every snapshot.
 </P>
+<HR>
+
+<P>Dump snapshots will only be written on timesteps where the system time
+is a multiple of <I>delta</I>.  Depending on now time advances in the
+application and solver (kinetic MC or rejection MC), the system time
+for a snapshot may be somewhat larger than an exact multiple of
+<I>delta</I>.  I.e. SPPARKS will trigger the snapshot on the first timestep
+that the system time advances to a value >= a new delta interval.
+</P>
+<P>Note that this means snapshots will not be written at the beginning or
+very end of a run, if the system time is not a multiple of delta.
+If multiple runs are performed, the same snapshot will not be
+written at the end of one run and the beginning of the next.
+</P>
 <P>The <A HREF = "dump_modify">dump_modify</A> command can be used to alter the times
 at which snapshots are written out as well as define a subset of sites
-to write out.
+to write out.  See the <I>delay</I>, <I>delta</I>, <I>logfreq</I>, <I>loglinfreq</I>, and
+<I>tol</I> keywords of the <A HREF = "dump_modify">dump_modify</A> command for details.
 </P>
 <HR>
 
