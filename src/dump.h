@@ -27,6 +27,7 @@ class Dump : protected Pointers {
   int firstflag;             // 1 if no dump yet written, 0 if not first
   double next_time,delta;    // params governing output times
   double scale,delay;
+  double tolerance;
   int logfreq,nrepeat;
 
   // static variable across all Dump objects

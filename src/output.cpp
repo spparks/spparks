@@ -39,6 +39,7 @@ Output::Output(SPPARKS *spk) : Pointers(spk)
   stats_delta = 0.0;
   stats_logfreq = 0;
   stats_delay = 0.0;
+  stats_tolerance = 0.0;
 
   ndump = 0;
   max_dump = 0;
@@ -86,8 +87,10 @@ double Output::setup(double time, int memflag)
     if (dumplist[i]->firstflag && time >= dumplist[i]->delay)
       dumplist[i]->write(time);
     dumplist[i]->next_time = 
-      next_time(time,dumplist[i]->logfreq,dumplist[i]->delta,
-		dumplist[i]->nrepeat,dumplist[i]->scale,dumplist[i]->delay);
+      next_time(time+dumplist[i]->tolerance,dumplist[i]->logfreq,
+                dumplist[i]->delta,dumplist[i]->nrepeat,
+                dumplist[i]->scale,dumplist[i]->delay);
+    dumplist[i]->next_time -= dumplist[i]->tolerance;
     dump_time = MIN(dump_time,dumplist[i]->next_time);
   }
 
@@ -96,10 +99,11 @@ double Output::setup(double time, int memflag)
 
   double diag_time = app->stoptime;
   for (int i = 0; i < ndiag; i++) {
-    if  (diaglist[i]->stats_flag) diaglist[i]->compute();
+    if (diaglist[i]->stats_flag) diaglist[i]->compute();
     diaglist[i]->next_time = 
       next_time(time,diaglist[i]->logfreq,diaglist[i]->delta,
-		diaglist[i]->nrepeat,diaglist[i]->scale,diaglist[i]->delay);
+		diaglist[i]->nrepeat,diaglist[i]->scale,
+                diaglist[i]->delay);
     diag_time = MIN(diag_time,diaglist[i]->next_time);
   }
 
@@ -113,9 +117,11 @@ double Output::setup(double time, int memflag)
   stats_header();
   stats(0);
   stats_time = app->stoptime;
-  if (stats_delta > 0.0)
-    stats_time = next_time(time,stats_logfreq,stats_delta,
+  if (stats_delta > 0.0) {
+    stats_time = next_time(time+stats_tolerance,stats_logfreq,stats_delta,
 			   stats_nrepeat,stats_scale,stats_delay);
+    stats_time -= stats_tolerance;
+  }
 
   // tnext = next output time for anything
 
@@ -138,11 +144,13 @@ double Output::compute(double time, int done)
 
   double dump_time = app->stoptime;
   for (int i = 0; i < ndump; i++) {
-    if (time >= dumplist[i]->next_time) {
+    if (time >= dumplist[i]->next_time - dumplist[i]->tolerance) {
       dumplist[i]->write(time);
       dumplist[i]->next_time = 
-	next_time(time,dumplist[i]->logfreq,dumplist[i]->delta,
-		  dumplist[i]->nrepeat,dumplist[i]->scale,dumplist[i]->delay);
+	next_time(time+dumplist[i]->tolerance,dumplist[i]->logfreq,
+                  dumplist[i]->delta,dumplist[i]->nrepeat,
+                  dumplist[i]->scale,dumplist[i]->delay);
+      dumplist[i]->next_time -= dumplist[i]->tolerance;
       dump_time = MIN(dump_time,dumplist[i]->next_time);
     } else dump_time = MIN(dump_time,dumplist[i]->next_time);
   }
@@ -162,7 +170,8 @@ double Output::compute(double time, int done)
       diaglist[i]->compute();
       diaglist[i]->next_time = 
 	next_time(time,diaglist[i]->logfreq,diaglist[i]->delta,
-		  diaglist[i]->nrepeat,diaglist[i]->scale,diaglist[i]->delay);
+		  diaglist[i]->nrepeat,diaglist[i]->scale,
+                  diaglist[i]->delay);
       diag_time = MIN(diag_time,diaglist[i]->next_time);
     } else diag_time = MIN(diag_time,diaglist[i]->next_time);
   }
@@ -172,9 +181,11 @@ double Output::compute(double time, int done)
   if (sflag) {
     stats(1);
     stats_time = app->stoptime;
-    if (stats_delta)
-      stats_time = next_time(time,stats_logfreq,stats_delta,
+    if (stats_delta) {
+      stats_time = next_time(time+stats_tolerance,stats_logfreq,stats_delta,
 			     stats_nrepeat,stats_scale,stats_delay);
+      stats_time -= stats_tolerance;
+    }
   }
 
   // tnext = next output time for anything
@@ -221,6 +232,11 @@ void Output::set_stats(int narg, char **arg)
       if (stats_nrepeat == 0) stats_logfreq = 0;
       else stats_logfreq = 2;
       iarg += 3;
+    } else if (strcmp(arg[iarg],"tol") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal stats command");
+      stats_tolerance = atof(arg[iarg+1]);
+      if (stats_tolerance < 0.0) error->all(FLERR,"Illegal stats command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal stats command");
   }
 }
@@ -273,8 +289,7 @@ void Output::dump_one(int narg, char **arg)
   if (i == ndump) 
     error->all(FLERR,"Could not find dump ID in dump_one command");
 
-  if (dumplist[i]->firstflag)
-    error->all(FLERR,"Cannot use dump_one for first snapshot in dump file");
+  if (dumplist[i]->firstflag) dumplist[i]->init();
 
   dumplist[i]->write(app->time);
 }

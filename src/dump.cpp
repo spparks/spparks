@@ -124,6 +124,7 @@ Dump::Dump(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   flush_flag = 1;
   padflag = 0;
   sort_flag = 0;
+  tolerance = 0.0;
 
   maxbuf = maxids = maxsort = maxproc = 0;
   buf = bufsort = NULL;
@@ -647,6 +648,7 @@ void Dump::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       delay = atof(arg[iarg+1]);
       iarg += 2;
+
     } else if (strcmp(arg[iarg],"delta") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       delta = atof(arg[iarg+1]);
@@ -767,6 +769,12 @@ void Dump::modify_params(int narg, char **arg)
         }
         sortcolm1 = sortcol - 1;
       }
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"tol") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      tolerance = atof(arg[iarg+1]);
+      if (tolerance < 0.0) error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
 
     } else {
