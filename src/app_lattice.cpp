@@ -697,6 +697,7 @@ void AppLattice::iterate_rejection(double stoptime)
 
     nsweeps++;
     time += dt_rkmc;
+
     if (time >= stoptime) done = 1;
     if (done || time >= nextoutput) nextoutput = output->compute(time,done);
     timer->stamp(TIME_OUTPUT);
