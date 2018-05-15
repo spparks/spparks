@@ -21,7 +21,7 @@
 
 <LI>these keywords apply to various dump styles 
 
-<LI>keyword = <I>delay</I> or <I>delta</I> or <I>fileper</I> or <I>first</I> or <I>flush</I> or <I>logfreq</I> or <I>loglinfreq</I> or <I>nfile</I> or <I>pad</I> or <I>region</I> or <I>sort</I> or <I>thresh</I> or <I>vtk</I> 
+<LI>keyword = <I>delay</I> or <I>delta</I> or <I>fileper</I> or <I>first</I> or <I>flush</I> or <I>logfreq</I> or <I>loglinfreq</I> or <I>nfile</I> or <I>pad</I> or <I>region</I> or <I>sort</I> or <I>thresh</I> or <I>tol</I> or <I>vtk</I> 
 
 <PRE>  <I>delay</I> value = tdelay
     tdelay = delay dump until at least this time (seconds)
@@ -48,12 +48,14 @@
     attribute = same fields (id,lattice,x,etc) used by <A HREF = "dump.html">dump</A> command
     operation = "<" or "<=" or ">" or ">=" or "==" or "!="
     value = numeric value to compare to
-    these 3 args can be replaced by the word "none" to turn off thresholding 
-</PRE>
-<LI>  <I>vtk</I> args = Nx Ny Nz minval maxval
+    these 3 args can be replaced by the word "none" to turn off thresholding
+  <I>tol</I> value = epsilon
+    epsilon = output a snapshot if time is within epsilon of target time (seconds)
+  <I>vtk</I> args = Nx Ny Nz minval maxval
     Nx,Ny,Nz = site extent in x,y,z dimensions
-    minval,maxval = min/max of any site's value
-these keywords apply only to the <I>image</I> <A HREF = "dump_image.html">style</A> 
+    minval,maxval = min/max of any site's value 
+</PRE>
+<LI>these keywords apply only to the <I>image</I> <A HREF = "dump_image.html">style</A> 
 
 <LI>keyword = <I>backcolor</I> or <I>boundcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>cwrap</I> or 
 <I>dwrap</I> or <I>scolor</I> or <I>sdiam</I> or <I>smap</I> 
@@ -121,13 +123,14 @@ give details.
 </P>
 <HR>
 
-<P>The <I>delay</I> keyword will suppress output until <I>tdelay</I> time has
-elapsed.
+<P>The <I>delay</I> keyword will suppress output until the current time is
+<I>tdelay</I> or greater.  Note that <I>tdelay</I> is not an elapsed time since
+the start of the run, but an absolute time.
 </P>
 <HR>
 
-<P>The <I>delta</I> keyword will suppress output until <I>tdelay</I> time has
-elapsed.
+<P>The <I>delta</I> keyword will reset the dump interval <I>delta</I> used in the
+original <A HREF = "dump.html">dump</A> command.
 </P>
 <HR>
 
@@ -239,6 +242,19 @@ tested for are the same as the fields that can be specified in the
 output by the dump command than are used as threshold criteria by the
 dump_modify command.  E.g. you can output the coordinates and
 propensity of sites whose energy is above some threshold.
+</P>
+<HR>
+
+<P>The <I>tol</I> keyword will trigger a dump snapshot if the current time is
+within <I>epsilon</I> of the target time for dump output.
+</P>
+<P>This can be useful when running with the <A HREF = "sweep.html">sweep</A> command
+and the time interval per sweep leads to small round-off differences
+in time.  For example, if the time per sweep is 1/26 (for 26 neighbors
+per lattice site) and <I>delta</I> = 1.0, but an snapshot is not written at
+time 2.0 but at 2.0385 (0.385 = 1/26).  I.e. one sweep beyond the
+desired dump time.  Using a tol < 1/26 will give the desired snapshots
+at 1,2,3,4, etc.
 </P>
 <HR>
 
@@ -509,7 +525,7 @@ details.
 <LI>color = 140 color names are pre-defined as listed below
 <LI>cwrap = no
 <LI>delay = 0.0
-<LI>delta = value used in the <A HREF = "dump.html">dump</A> command
+<LI>delta = value for delta used in the <A HREF = "dump.html">dump</A> command
 <LI>dwrap = no
 <LI>flush = yes
 <LI>logfreq = off
@@ -519,7 +535,8 @@ details.
 <LI>scolor = * c1/c2/.../c140 where c1-c140 are the names of the 140 pre-defined colors
 <LI>sdiam = * 1.0
 <LI>smap = min max cf 2 min blue max red
-<LI>thresh = none 
+<LI>thresh = none
+<LI>tol = 0.0 
 </UL>
 <HR>
 

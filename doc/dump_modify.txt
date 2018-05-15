@@ -15,7 +15,7 @@ dump_modify dump-ID keyword values ... :pre
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
 these keywords apply to various dump styles :l
-keyword = {delay} or {delta} or {fileper} or {first} or {flush} or {logfreq} or {loglinfreq} or {nfile} or {pad} or {region} or {sort} or {thresh} or {vtk} :l
+keyword = {delay} or {delta} or {fileper} or {first} or {flush} or {logfreq} or {loglinfreq} or {nfile} or {pad} or {region} or {sort} or {thresh} or {tol} or {vtk} :l
   {delay} value = tdelay
     tdelay = delay dump until at least this time (seconds)
   {delta} arg = dt
@@ -41,10 +41,12 @@ keyword = {delay} or {delta} or {fileper} or {first} or {flush} or {logfreq} or 
     attribute = same fields (id,lattice,x,etc) used by "dump"_dump.html command
     operation = "<" or "<=" or ">" or ">=" or "==" or "!="
     value = numeric value to compare to
-    these 3 args can be replaced by the word "none" to turn off thresholding :pre
+    these 3 args can be replaced by the word "none" to turn off thresholding
+  {tol} value = epsilon
+    epsilon = output a snapshot if time is within epsilon of target time (seconds)
   {vtk} args = Nx Ny Nz minval maxval
     Nx,Ny,Nz = site extent in x,y,z dimensions
-    minval,maxval = min/max of any site's value
+    minval,maxval = min/max of any site's value :pre
 these keywords apply only to the {image} "style"_dump_image.html :l
 keyword = {backcolor} or {boundcolor} or {boxcolor} or {color} or {cwrap} or 
 {dwrap} or {scolor} or {sdiam} or {smap} :l
@@ -109,13 +111,14 @@ give details.
 
 :line
 
-The {delay} keyword will suppress output until {tdelay} time has
-elapsed.
+The {delay} keyword will suppress output until the current time is
+{tdelay} or greater.  Note that {tdelay} is not an elapsed time since
+the start of the run, but an absolute time.
 
 :line
 
-The {delta} keyword will suppress output until {tdelay} time has
-elapsed.
+The {delta} keyword will reset the dump interval {delta} used in the
+original "dump"_dump.html command.
 
 :line
 
@@ -227,6 +230,19 @@ tested for are the same as the fields that can be specified in the
 output by the dump command than are used as threshold criteria by the
 dump_modify command.  E.g. you can output the coordinates and
 propensity of sites whose energy is above some threshold.
+
+:line
+
+The {tol} keyword will trigger a dump snapshot if the current time is
+within {epsilon} of the target time for dump output.
+
+This can be useful when running with the "sweep"_sweep.html command
+and the time interval per sweep leads to small round-off differences
+in time.  For example, if the time per sweep is 1/26 (for 26 neighbors
+per lattice site) and {delta} = 1.0, but an snapshot is not written at
+time 2.0 but at 2.0385 (0.385 = 1/26).  I.e. one sweep beyond the
+desired dump time.  Using a tol < 1/26 will give the desired snapshots
+at 1,2,3,4, etc.
 
 :line
 
@@ -495,7 +511,7 @@ boxcolor = yellow
 color = 140 color names are pre-defined as listed below
 cwrap = no
 delay = 0.0
-delta = value used in the "dump"_dump.html command
+delta = value for delta used in the "dump"_dump.html command
 dwrap = no
 flush = yes
 logfreq = off
@@ -505,7 +521,8 @@ region = none
 scolor = * c1/c2/.../c140 where c1-c140 are the names of the 140 pre-defined colors
 sdiam = * 1.0
 smap = min max cf 2 min blue max red
-thresh = none :ul
+thresh = none
+tol = 0.0 :ul
 
 :line
 

@@ -25,14 +25,16 @@
     tdelay = delay stats until at least this time (seconds)
   <I>logfreq</I> or <I>loglinfreq</I> values = N factor
     N = number of repetitions per interval
-    factor = scale factor between intervals 
+    factor = scale factor between intervals
+  <I>tol</I> value = epsilon
+    epsilon = output stats if time is within epsilon of target time (seconds) 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>stats 0.1
-stats 0.1 delta 0.5
+stats 0.1 delay 0.5
 stats 1.0 loglinfreq 7 10.0 
 </PRE>
 <P><B>Description:</B>
@@ -52,8 +54,9 @@ application-specific quantities may also be reported.  Quantities such
 as the total energy of the system can be included in the output by
 creating diagnostics via the <A HREF = "diag_style.html">diag_style</A> command.
 </P>
-<P>The <I>delay</I> keyword will suppress output until <I>tdelay</I> time has
-elapsed.
+<P>The <I>delay</I> keyword will suppress output until the current time is
+<I>tdelay</I> or greater.  Note that <I>tdelay</I> is not an elapsed time
+since the start of the run, but an absolute time.
 </P>
 <P>Using the <I>logfreq</I> or <I>loglinfreq</I> keyword will produce statistical 
 output at progressively larger intervals during the course of a simulation.  
@@ -93,6 +96,17 @@ be produced. In practice, because time is incremented in discrete jumps, output
 <P>If <I>N</I> is specified as 0, then this will turn off logarithmic output,
 and revert to regular output every <I>delta</I> seconds.
 </P>
+<P>The <I>tol</I> keyword will trigger output if the current time is within
+<I>epsilon</I> of the target time for output.  
+</P>
+<P>This can be useful when running with the <A HREF = "sweep.html">sweep</A> command
+and the time interval per sweep leads to small round-off differences
+in time.  For example, if the time per sweep is 1/26 (for 26 neighbors
+per lattice site) and <I>delta</I> = 1.0, but output does not appear at
+time 2.0 but at 2.0385 (0.385 = 1/26).  I.e. one sweep beyond the
+desired output time.  Using a tol < 1/26 will give the desired outputs
+at 1,2,3,4, etc.
+</P>
 <HR>
 
 <P><B>Restrictions:</B>
@@ -107,7 +121,8 @@ for further details.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The default stats delta is 0.0.  The keyword defaults are delay = 0.0
-and no logarithmic output.
+<P>The default stats delta is 0.0 so that stats will only be output at
+the beginning and end of the run if the stats commandis not used.  The
+keyword defaults are delay = 0.0 no logarithmic output, tol = 0.0.
 </P>
 </HTML>
