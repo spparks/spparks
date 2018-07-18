@@ -37,7 +37,7 @@ describe the version you have. :ule,l
 :line
 :line
 
-[18 May 2016]
+[18 May 2017]
 
 John Mitchell (Sandia) added a new
 "weld_shape_teardrop"_doc/weld_shape_teardrop.html command for use by
@@ -53,7 +53,7 @@ May 2017 version.
 
 :line
 
-[17 May 2016]
+[17 May 2017]
 
 This patch contains a new "app_style
 potts/strain/pin"_doc/app_potts_strain_pin.html command written by
