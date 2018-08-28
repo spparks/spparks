@@ -27,7 +27,7 @@ SHLIBFLAGS =	-shared
 # SPPARKS ifdef options, see doc/Section_start.html
 
 SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG -DSPPARKS_BIGBIG
-SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG 
+SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG -DSTITCH_PARALLEL
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings
@@ -50,13 +50,17 @@ JPG_INC = -I/usr/include
 JPG_PATH = -L/usr/lib64	
 JPG_LIB = -ljpeg
 
+STITCH_INC = -I/home/jamitch/local/stitch/include
+STITCH_PATH = -L/home/jamitch/local/stitch/lib
+STITCH_LIB = -lstitch -ldl -lpthread
+
 # ---------------------------------------------------------------------
 # build rules and dependencies
 # no need to edit this section
 
-EXTRA_INC = $(SPK_INC) $(MPI_INC) $(JPG_INC)
-EXTRA_PATH = $(MPI_PATH) $(JPG_PATH)
-EXTRA_LIB = $(MPI_LIB) $(JPG_LIB)
+EXTRA_INC = $(SPK_INC) $(MPI_INC) $(JPG_INC) $(STITCH_INC)
+EXTRA_PATH = $(MPI_PATH) $(JPG_PATH) $(STITCH_PATH)
+EXTRA_LIB = $(STITCH_LIB) $(MPI_LIB) $(JPG_LIB)
 
 # Link target
 

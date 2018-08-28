@@ -50,9 +50,19 @@ JPG_LIB =
 # build rules and dependencies
 # no need to edit this section
 
-EXTRA_INC = $(SPK_INC) $(MPI_INC) $(JPG_INC)
-EXTRA_PATH = $(MPI_PATH) $(JPG_PATH)
-EXTRA_LIB = $(MPI_LIB) $(JPG_LIB)
+include	Makefile.package.settings
+include	Makefile.package
+
+EXTRA_INC = $(SPK_INC) $(PKG_INC) $(MPI_INC) $(JPG_INC) $(PKG_SYSINC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(JPG_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+EXTRA_CPP_DEPENDS = $(PKG_CPP_DEPENDS)
+EXTRA_LINK_DEPENDS = $(PKG_LINK_DEPENDS)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
 
 # Link target
 
@@ -79,5 +89,10 @@ shlib:	$(OBJ)
 
 # Individual dependencies
 
-DEPENDS = $(OBJ:.o=.d)
-include $(DEPENDS)
+depend : fastdep.exe $(SRC)
+	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
+
+fastdep.exe: ../DEPEND/fastdep.c
+	cc -O -o $@ $<
+
+sinclude .depend
