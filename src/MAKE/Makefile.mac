@@ -54,6 +54,11 @@ EXTRA_INC = $(SPK_INC) $(MPI_INC) $(JPG_INC)
 EXTRA_PATH = $(MPI_PATH) $(JPG_PATH)
 EXTRA_LIB = $(MPI_LIB) $(JPG_LIB)
 
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
+
 # Link target
 
 $(EXE):	$(OBJ)
