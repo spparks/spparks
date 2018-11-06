@@ -33,6 +33,18 @@ class AppLattice : public App {
   int *numneigh;               // # of neighbors of each site
   int **neighbor;              // local indices of neighbors of each site
 
+  // simple = 1 if lattice is simple and regular (square or cubic)
+  // xyz lo/hi simple = inclusive lattice index bounds of entire box
+  // xyz lo/hi me simple = inclusive lattice index bounds of my subdomain
+ 
+  int simple;                 
+  int xlo_simple,xhi_simple;
+  int ylo_simple,yhi_simple;
+  int zlo_simple,zhi_simple;
+  int xlo_me_simple,xhi_me_simple;
+  int ylo_me_simple,yhi_me_simple;
+  int zlo_me_simple,zhi_me_simple;
+
   class CommLattice *comm;
 
   AppLattice(class SPPARKS *, int, char **);

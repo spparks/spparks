@@ -13,21 +13,23 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>am_pass id dir d distance D speed V 
+<PRE>am_pass id dir d distance D speed V init_heading B 
 </PRE>
 <UL><LI>id = integer identification number for this pass
 <LI>dir = required keyword
 <LI>d = <I>X</I> or <I>Y</I> which specifies direction of the cartesian pass
 <LI>distance = required keyword
-<LI>D = total pass distance 
+<LI>D = total pass distance
 <LI>speed = required keyword
-<LI>V = scan velocity of the pass in sites/Monte-Carlo-sweep 
+<LI>V = scan velocity of the pass in sites/Monte-Carlo-sweep
+<LI>init_heading = optional keyword
+<LI>B = <I>0</I> or <I>1</I> for a pass heading in the negative-to-positive direction or vice versa 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>am_pass 1 dir X distance 100.0 speed 10.0 
 </PRE>
-<PRE>am_pass 2 dir Y distance 100.0 speed 5.0 
+<PRE>am_pass 2 dir Y distance 100.0 speed 5.0 init_heading 1 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -39,13 +41,14 @@ file, using unique id values.
 <P>Note that the <I>dir</I> value specifies direction of motion and
 orientation of the molten pool during a pass.  The pool has its own
 local coordinate system <I>x,y</I> so that the pool axis <I>x</I> is always
-oriented along <I>dir d</I>.
+oriented along <I>dir d</I>. <I>init_heading</I> can be specified to start movement
+along <I>dir</I> axis from negative to positive (<I>0</I>; default) or in reverse.
 </P>
 <P>The <I>distance</I> value <I>D</I> should typically be the size of the
 simulation box in the xy-plane.
 </P>
 <P>The example commands above define two passes, each with a different
-orientation and speed.  The sketch below also illustrates the
+orientation, speed, and heading.  The sketch below also illustrates the
 <I>overpass</I>; the pool position is always translated by the <I>distance</I>
 specfied plus an <I>overpass</I> increment.  The <I>overpass</I> increment is
 computed as shown based upon parameters set in the

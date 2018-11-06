@@ -10,20 +10,22 @@ am_pass command :h3
 
 [Syntax:]
 
-am_pass id dir d distance D speed V :pre
+am_pass id dir d distance D speed V init_heading B :pre
 
 id = integer identification number for this pass
 dir = required keyword
 d = {X} or {Y} which specifies direction of the cartesian pass
 distance = required keyword
-D = total pass distance 
+D = total pass distance
 speed = required keyword
-V = scan velocity of the pass in sites/Monte-Carlo-sweep :ul
+V = scan velocity of the pass in sites/Monte-Carlo-sweep
+init_heading = optional keyword
+B = {0} or {1} for a pass heading in the negative-to-positive direction or vice versa :ul
 
 [Examples:]
 
 am_pass 1 dir X distance 100.0 speed 10.0 :pre
-am_pass 2 dir Y distance 100.0 speed 5.0 :pre
+am_pass 2 dir Y distance 100.0 speed 5.0 init_heading 1 :pre
 
 [Description:]
 
@@ -35,13 +37,14 @@ file, using unique id values.
 Note that the {dir} value specifies direction of motion and
 orientation of the molten pool during a pass.  The pool has its own
 local coordinate system {x,y} so that the pool axis {x} is always
-oriented along {dir d}.
+oriented along {dir d}. {init_heading} can be specified to start movement
+along {dir} axis from negative to positive ({0}; default) or in reverse.
 
 The {distance} value {D} should typically be the size of the
 simulation box in the xy-plane.
 
 The example commands above define two passes, each with a different
-orientation and speed.  The sketch below also illustrates the
+orientation, speed, and heading.  The sketch below also illustrates the
 {overpass}; the pool position is always translated by the {distance}
 specfied plus an {overpass} increment.  The {overpass} increment is
 computed as shown based upon parameters set in the

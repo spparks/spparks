@@ -1,0 +1,91 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style potts/am/weld command :h3
+
+[Syntax:]
+
+app_style style nspins alpha beta haz
+
+style = potts/am/weld :l
+nspins = number of possible Potts model spins :l
+alpha = controls relative size of melt pool shape at bottom compared to top :l
+beta = Bezier control point parameter that defines curvature of melt pool shape through thickness  :l
+haz = width of the heat affected zone (haz) surrounding the melt pool :l
+:ule
+
+[Examples:]
+
+app_style potts/am/weld 10000 0.5 0.75 50.0
+weld_shape_ellipse 100.0 150.0 :pre
+
+The {app_style potts/am/weld} command uses a subset of the command parameters
+used by {app_style potts/weld} -- additional explanation provided below.  For
+an explanation of the above commands and parameters, see
+"potts/weld"_app_potts_weld.html example.  This application requires melt pool
+geometry commands -- per example above and explanation below.
+
+This application requires rastering commands -- per explanation given below.
+
+The "pulse"_pulse.html command is disabled in this application.
+
+[Description:]
+
+This is an application for 2D additive manufacturing simulations and is an
+adaptation of "potts/weld"_app_potts_weld.html; it can be viewed as a
+"potts/weld"_app_potts_weld.html model with rastering commands as defined and
+used by "potts_additive"_app_potts_additive.html. The 2D limitation of this app
+derives from the full penetration weld assumption; {potts/weld}; does not have
+a melt pool bottom that naturally occurs in an additive manufacturing build the
+{z}-direction.  Thickness of the lattice in the z-direction is taken as the
+plate thickness per description in the "potts/weld"_app_potts_weld.html; such
+simulations will produce meaningful 3D microstructures.  However, it is
+generally more efficient to run 2D calculations with this app using only one
+plane of lattice sites.
+
+Application {potts/am/weld} command values are all associated with
+"potts/weld"_app_potts_weld.html and have identical
+interpretations/meanings for {potts/am/weld}.  Some values, e.g.
+{yp,velocity},  used in {potts/weld}, have been moved to raster commands.
+
+The following commands must be used to specify pool geometry:
+
+"weld_shape_ellipse"_weld_shape_ellipse.html: specify elliptical pool shape parameters
+"weld_shape_teardrop"_weld_shape_teardrop.html: specify teardrop pool shape parameters :tb(s=:)
+
+The following commands must be used to describe rastering:
+
+"am_pass"_am_pass.html: Define the parameters for each type of single-track pass.
+"am_transverse_pass"_am_transverse_pass.html: Define the parameters for the transverse increment (a.k.a. hatch spacing) between each pass.
+"am_cartesian_layer"_am_cartesian_layer.html: Define the combination of passes and transverse_passes that comprise a layer. Limited to passes aligned along the +/-X or Y axes. 
+"am_pattern"_am_pattern.html: Define the combination of layers that comprise a pattern. :tb(s=:)
+
+{NOTE}: All rastering commands documented and linked through
+"potts_additive"_app_potts_additive.html are required.  However, because
+{potts/am/weld} is intended for {2D} simulations, only the first layer, as
+specified in the {am_pattern} command, is used and {z_increments} are ignored.
+The examples/potts_additive directory has input files which illustrate how to
+use rastering commands.  It is expected that this app will be extended to
+include {z_increments} and 3D capabilities for additive manufacturing.  
+
+The "temperature"_temperature.html command should be used to set simulation Monte Carlo temperature.
+
+:line
+
+[Restrictions:]
+
+This application is only compatible with square and square cubic
+lattices.  It can only be evolved by a rejection KMC (rKMC) algorithm.
+See "sweep"_sweep.html for more information.
+
+[Additional related commands:] 
+
+"app_style potts"_app_potts.html, "app_style potts/grad"_app_potts_grad.html,
+"app_style potts/additive"_app_potts_additive.html, "app_style potts/weld"_app_potts_weld.html,
+
+[Default:] 

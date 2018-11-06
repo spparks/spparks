@@ -1,0 +1,58 @@
+variable SEED equal              1
+variable T equal                 0.25
+variable NUM_SPINS equal         40000
+variable DT equal                2
+variable OUT universe            raster_with_equiaxed.st
+variable HAZ equal               33
+variable ABS_TOL equal           0.02
+
+seed             ${SEED}
+
+#          app_name       num_spins    alpha   beta  haz
+app_style  potts/am/weld  ${NUM_SPINS} 0.75   0.50  ${HAZ}
+weld_shape_teardrop width 66.0 case I
+
+#Define simulation domain and initialize site variables
+#———————————————————————————————————————————
+dimension	 3
+lattice	 	 sc/26n 1.0
+region		 box block 0 200 0 200 0 1
+
+boundary 	 n n p
+
+create_box	 box
+create_sites	 box
+
+# Set 'site spin' values;
+# Read 'stitch' file using 'first' time step in file
+#set site stitch equiaxed.st first
+# Read 'stitch' file using 'last' time step in file
+#set site stitch equiaxed.st last
+# Read 'stitch' file using specified time; must exist in stitch file
+set site stitch equiaxed.st 1.0
+#———————————————————————————————————————————
+
+#Define an additive scan pattern using a combination of pass, transverse_pass, cartesian_layer, and pattern
+#———————————————————————————————————————————
+am_pass 1 dir X distance 300.0 speed 5
+am_transverse_pass 1 distance 200.0 increment 100.0
+am_cartesian_layer 1 start_position -25 0 pass_id 1 transverse_pass_id 1 serpentine 1
+am_pattern 1 num_layers 1 layer_ids 1 z_start 0 z_increment 1
+#———————————————————————————————————————————
+
+#Setup the solver type and parameters. Must use a "sweep" style solver
+#——————————————————————————————————————————— 
+sector		 yes
+sweep		 random mask no
+temperature	 ${T}
+#——————————————————————————————————————————— 
+
+#Specify output commands and styles.
+#——————————————————————————————————————————— 
+diag_style   energy
+stats            1.0
+
+dump         dump.id stitch ${DT} ${OUT} site
+dump_modify dump.id tol ${ABS_TOL}
+
+run              100.0

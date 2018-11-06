@@ -46,6 +46,8 @@ AppLattice::AppLattice(SPPARKS *spk, int narg, char **arg) : App(spk,narg,arg)
 
   // default settings
 
+  simple = 0;
+
   sectorflag = 0;
   nset = 0;
   set = NULL;

@@ -56,7 +56,6 @@ class CreateSites : protected Pointers {
                                // 0,1,2 = i,j,k lattice unit cell offsets
                                // 3 = which basis atom in unit cell
 
-
   // geometry info for building structured lattice with neighbors
 
   int nx,ny,nz;
@@ -65,10 +64,19 @@ class CreateSites : protected Pointers {
   int latstyle,nbasis;
   double xlattice,ylattice,zlattice;
 
+  // geometric info for a simple, regular lattice
+  // xyz me = lattice index bounds of my subdomain
+
+  int xlo_me,xhi_me,ylo_me,yhi_me,zlo_me,zhi_me;
+
+  // site info to pack into a message from random lattices
+
   struct Site {
     int id,proc,index;
     double x,y,z;
   };
+
+  // local methods
 
   void structured_lattice();
   void structured_connectivity();

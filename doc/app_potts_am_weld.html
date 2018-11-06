@@ -1,0 +1,105 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style potts/am/weld command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<P>app_style style nspins alpha beta haz
+</P>
+<LI>style = potts/am/weld 
+
+<LI>nspins = number of possible Potts model spins 
+
+<LI>alpha = controls relative size of melt pool shape at bottom compared to top 
+
+<LI>beta = Bezier control point parameter that defines curvature of melt pool shape through thickness  
+
+<LI>haz = width of the heat affected zone (haz) surrounding the melt pool 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style potts/am/weld 10000 0.5 0.75 50.0
+weld_shape_ellipse 100.0 150.0 
+</PRE>
+<P>The <I>app_style potts/am/weld</I> command uses a subset of the command parameters
+used by <I>app_style potts/weld</I> -- additional explanation provided below.  For
+an explanation of the above commands and parameters, see
+<A HREF = "app_potts_weld.html">potts/weld</A> example.  This application requires melt pool
+geometry commands -- per example above and explanation below.
+</P>
+<P>This application requires rastering commands -- per explanation given below.
+</P>
+<P>The <A HREF = "pulse.html">pulse</A> command is disabled in this application.
+</P>
+<P><B>Description:</B>
+</P>
+<P>This is an application for 2D additive manufacturing simulations and is an
+adaptation of <A HREF = "app_potts_weld.html">potts/weld</A>; it can be viewed as a
+<A HREF = "app_potts_weld.html">potts/weld</A> model with rastering commands as defined and
+used by <A HREF = "app_potts_additive.html">potts_additive</A>. The 2D limitation of this app
+derives from the full penetration weld assumption; <I>potts/weld</I>; does not have
+a melt pool bottom that naturally occurs in an additive manufacturing build the
+<I>z</I>-direction.  Thickness of the lattice in the z-direction is taken as the
+plate thickness per description in the <A HREF = "app_potts_weld.html">potts/weld</A>; such
+simulations will produce meaningful 3D microstructures.  However, it is
+generally more efficient to run 2D calculations with this app using only one
+plane of lattice sites.
+</P>
+<P>Application <I>potts/am/weld</I> command values are all associated with
+<A HREF = "app_potts_weld.html">potts/weld</A> and have identical
+interpretations/meanings for <I>potts/am/weld</I>.  Some values, e.g.
+<I>yp,velocity</I>,  used in <I>potts/weld</I>, have been moved to raster commands.
+</P>
+<P>The following commands must be used to specify pool geometry:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "weld_shape_ellipse.html">weld_shape_ellipse</A></TD><TD > specify elliptical pool shape parameters</TD></TR>
+<TR><TD ><A HREF = "weld_shape_teardrop.html">weld_shape_teardrop</A></TD><TD > specify teardrop pool shape parameters 
+</TD></TR></TABLE></DIV>
+
+<P>The following commands must be used to describe rastering:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "am_pass.html">am_pass</A></TD><TD > Define the parameters for each type of single-track pass.</TD></TR>
+<TR><TD ><A HREF = "am_transverse_pass.html">am_transverse_pass</A></TD><TD > Define the parameters for the transverse increment (a.k.a. hatch spacing) between each pass.</TD></TR>
+<TR><TD ><A HREF = "am_cartesian_layer.html">am_cartesian_layer</A></TD><TD > Define the combination of passes and transverse_passes that comprise a layer. Limited to passes aligned along the +/-X or Y axes. </TD></TR>
+<TR><TD ><A HREF = "am_pattern.html">am_pattern</A></TD><TD > Define the combination of layers that comprise a pattern. 
+</TD></TR></TABLE></DIV>
+
+<P><I>NOTE</I>: All rastering commands documented and linked through
+<A HREF = "app_potts_additive.html">potts_additive</A> are required.  However, because
+<I>potts/am/weld</I> is intended for <I>2D</I> simulations, only the first layer, as
+specified in the <I>am_pattern</I> command, is used and <I>z_increments</I> are ignored.
+The examples/potts_additive directory has input files which illustrate how to
+use rastering commands.  It is expected that this app will be extended to
+include <I>z_increments</I> and 3D capabilities for additive manufacturing.  
+</P>
+<P>The <A HREF = "temperature.html">temperature</A> command should be used to set simulation Monte Carlo temperature.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This application is only compatible with square and square cubic
+lattices.  It can only be evolved by a rejection KMC (rKMC) algorithm.
+See <A HREF = "sweep.html">sweep</A> for more information.
+</P>
+<P><B>Additional related commands:</B> 
+</P>
+<P><A HREF = "app_potts.html">app_style potts</A>, <A HREF = "app_potts_grad.html">app_style potts/grad</A>,
+<A HREF = "app_potts_additive.html">app_style potts/additive</A>, <A HREF = "app_potts_weld.html">app_style potts/weld</A>,
+</P>
+<P><B>Default:</B> 
+</P>
+</HTML>

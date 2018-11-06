@@ -35,7 +35,7 @@ using namespace SPPARKS_NS;
 // same as in lattice.cpp
 
 enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
-       FCC_OCTA_TETRA,RANDOM_1D,RANDOM_2D,RANDOM_3D};
+     FCC_OCTA_TETRA,RANDOM_1D,RANDOM_2D,RANDOM_3D};
 
 enum{BOX,REGION};
 enum{DUMMY,IARRAY,DARRAY};
@@ -131,6 +131,9 @@ void CreateSites::command(int narg, char **arg)
     } else error->all(FLERR,"Illegal create_sites command");
   }
 
+  // error checks
+  // full option only allowed for on-lattice, style = BOX, simple lattices
+
   // create sites, either on-lattice or off-lattice
 
   if (domain->me == 0) {
@@ -140,6 +143,9 @@ void CreateSites::command(int narg, char **arg)
 
   app->sites_exist = 1;
 
+  int dimension = domain->dimension;
+  latstyle = domain->lattice->style;
+
   if (app->appclass == App::LATTICE) {
     applattice = (AppLattice *) app;
     latticeflag = 1;
@@ -147,9 +153,6 @@ void CreateSites::command(int narg, char **arg)
     appoff = (AppOffLattice *) app;
     latticeflag = 0;
   }
-
-  int dimension = domain->dimension;
-  latstyle = domain->lattice->style;
 
   if (latstyle == LINE_2N ||
       latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI || 
@@ -174,6 +177,8 @@ void CreateSites::command(int narg, char **arg)
     ghosts_from_connectivity(applattice,applattice->delpropensity);
     applattice->print_connectivity();
   }
+
+  // clean up
 
   delete [] basisflag;
   delete [] basis_ivalue;
@@ -225,13 +230,13 @@ void CreateSites::structured_lattice()
   else nz = 1;
 
   if (xperiodic && 
-      fabs(nx*xlattice - domain->xprd) > EPSILON)
+      fabs(nx*xlattice - domain->xprd) > EPSILON*xlattice)
     error->all(FLERR,"Periodic box is not a multiple of lattice spacing");
   if (dimension > 1 && yperiodic &&
-      fabs(ny*ylattice - domain->yprd) > EPSILON)
+      fabs(ny*ylattice - domain->yprd) > EPSILON*ylattice)
     error->all(FLERR,"Periodic box is not a multiple of lattice spacing");
   if (dimension > 2 && zperiodic && 
-      fabs(nz*zlattice - domain->zprd) > EPSILON)
+      fabs(nz*zlattice - domain->zprd) > EPSILON*zlattice)
     error->all(FLERR,"Periodic box is not a multiple of lattice spacing");
 
   // set domain->nx,ny,nz iff style = BOX and system is fully periodic
@@ -243,13 +248,21 @@ void CreateSites::structured_lattice()
     domain->nz = nz;
   }
 
+  // simple = 1 if lattice is square or cubic and fills entire box
+
+  int simple = 0;
+  if (style == BOX && 
+      (latstyle == SQ_4N || latstyle == SQ_8N ||
+       latstyle == SC_6N || latstyle == SC_26N)) simple = 1;
+
   // if dim is periodic:
   //   lattice origin = lower box boundary
   //   loop bounds = 0 to N-1
   // if dim is non-periodic:
   //   lattice origin = 0.0
   //   loop bounds = enough to tile box completely, with all basis atoms
-
+  //   exact boundary checks will be made later
+  
   if (xperiodic) {
     xorig = boxxlo;
     xlo = 0;
@@ -277,7 +290,7 @@ void CreateSites::structured_lattice()
     while (yhi*ylattice <= boxyhi) yhi++;
     yhi--;
   }
-
+  
   if (zperiodic) {
     zorig = boxzlo;
     zlo = 0;
@@ -291,26 +304,51 @@ void CreateSites::structured_lattice()
     while (zhi*zlattice <= boxzhi) zhi++;
     zhi--;
   }
-  
+
+  printf("XYZ lo/hi: %d %d: %d %d: %d %d\n",
+         xlo,xhi,ylo,yhi,zlo,zhi);
+
+  // check for possible overflow of site IDs
+
+  bigint nglobal = (xhi-xlo+1)*nbasis;
+  if (dimension >= 2) nglobal *= (yhi-ylo+1)*nbasis;
+  if (dimension == 3) nglobal *= (zhi-zlo+1)*nbasis;
+  if (nglobal > MAXTAGINT) 
+    error->all(FLERR,"Site IDs may exceed max ID value");
+
   // generate xyz coords and store them with site ID
   // tile the simulation box from origin, respecting PBC
-  // site IDs should be contiguous if style = BOX and fully periodic
   // for non-periodic dims, check if site is within global box
   // for style = REGION, check if site is within region
-  // if non-periodic or style = REGION, IDs may not be contiguous
+  // site IDs should be contiguous (1 to N) in any of these cases:
+  //   style = BOX and fully periodic
+  //   style = BOX and nonperiodic, simple lattice (sq or sc)
+  // site IDs may not be contiguous in any of these cases:
+  //   style = REGION
+  //   box is nonperiodic, lattice is not simple
 
   int i,j,k,m,nlocal;
+  tagint n,gid,ii,jj,kk;
   double x,y,z;
 
   int maxlocal = 0;
   siteijk = NULL;
 
-  tagint n = 0;
+  int xlo_me = xhi;
+  int xhi_me = xlo;
+  int ylo_me = yhi;
+  int yhi_me = ylo;
+  int zlo_me = zhi;
+  int zhi_me = zlo;
+
+  n = 0;
   for (k = zlo; k <= zhi; k++)
     for (j = ylo; j <= yhi; j++)
       for (i = xlo; i <= xhi; i++)
 	for (m = 0; m < nbasis; m++) {
 	  n++;
+          gid = n;
+
 	  x = (i + basis[m][0])*xlattice + xorig;
 	  y = (j + basis[m][1])*ylattice + yorig;
 	  z = (k + basis[m][2])*zlattice + zorig;
@@ -327,8 +365,8 @@ void CreateSites::structured_lattice()
 	      y < subylo || y >= subyhi || 
 	      z < subzlo || z >= subzhi) continue;
 
-	  if (latticeflag) applattice->add_site(n,x,y,z);
-	  else appoff->add_site(n,x,y,z);
+	  if (latticeflag) applattice->add_site(gid,x,y,z);
+	  else appoff->add_site(gid,x,y,z);
 	  nlocal = app->nlocal;
 
 	  if (nlocal > maxlocal) {
@@ -350,6 +388,15 @@ void CreateSites::structured_lattice()
 	      darray[valueindex][nlocal-1] = basis_dvalue[m+1];
 	    else darray[valueindex][nlocal-1] = dvalue;
 	  }
+
+          if (simple) {
+            xlo_me = MIN(i,xlo_me);
+            xhi_me = MAX(i,xhi_me);
+            ylo_me = MIN(j,ylo_me);
+            yhi_me = MAX(j,yhi_me);
+            zlo_me = MIN(k,zlo_me);
+            zhi_me = MAX(k,zhi_me);
+          }
 	}
 
   // print site count
@@ -372,6 +419,81 @@ void CreateSites::structured_lattice()
     if (style == BOX && app->nglobal != nbig)
       error->all(FLERR,"Did not create correct number of sites");
   }
+
+  // for simple latice, do further checking and store extents in AppLattice
+
+  if (simple) {
+
+    // convert SPPARKS loop bounds to Stitch integer indices
+
+    int delta;
+    if (xperiodic) {
+      delta = static_cast<int> (boxxlo);
+      xlo_me += delta;
+      xhi_me += delta;
+    }
+    if (yperiodic) {
+      delta = static_cast<int> (boxylo);
+      ylo_me += delta;
+      yhi_me += delta;
+    }
+    if (zperiodic) {
+      delta = static_cast<int> (boxzlo);
+      zlo_me += delta;
+      zhi_me += delta;
+    }
+
+    printf("XYZ ME: %d %d: %d %d: %d %d\n",
+           xlo_me,xhi_me,ylo_me,yhi_me,zlo_me,zhi_me);
+
+    // check that product of my extents = nlocal
+
+    int flag = 0;
+    int mine = (xhi_me-xlo_me+1) * (yhi_me-ylo_me+1) * (zhi_me-zlo_me+1);
+    if (mine != app->nlocal) flag = 1;
+    int flagall;
+    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
+    if (flagall) error->all(FLERR,"Local simple lattice is not correct");
+
+    // also check that product of global min/max = nglobal
+    
+    int xminlo = xhi;
+    int xmaxhi = xlo;
+
+    MPI_Allreduce(&xlo_me,&xminlo,1,MPI_INT,MPI_MIN,world);
+    MPI_Allreduce(&xhi_me,&xmaxhi,1,MPI_INT,MPI_MAX,world);
+
+    int yminlo = xhi;
+    int ymaxhi = xlo;
+    MPI_Allreduce(&ylo_me,&yminlo,1,MPI_INT,MPI_MIN,world);
+    MPI_Allreduce(&yhi_me,&ymaxhi,1,MPI_INT,MPI_MAX,world);
+
+    int zminlo = xhi;
+    int zmaxhi = xlo;
+    MPI_Allreduce(&zlo_me,&zminlo,1,MPI_INT,MPI_MIN,world);
+    MPI_Allreduce(&zhi_me,&zmaxhi,1,MPI_INT,MPI_MAX,world);
+
+    tagint all = (xmaxhi-xminlo+1) * (ymaxhi-yminlo+1) * (zmaxhi-zminlo+1);
+    if (all != app->nglobal) 
+      error->all(FLERR,"Global simple lattice is not consistent");
+
+    // store lattice bounds info in AppLattice
+    // this allows set and dump stitch commands to access the geometry info
+
+    applattice->simple = simple;
+    applattice->xlo_simple = xminlo;
+    applattice->xhi_simple = xmaxhi;
+    applattice->ylo_simple = yminlo;
+    applattice->yhi_simple = ymaxhi;
+    applattice->zlo_simple = zminlo;
+    applattice->zhi_simple = zmaxhi;
+    applattice->xlo_me_simple = xlo_me;
+    applattice->xhi_me_simple = xhi_me;
+    applattice->ylo_me_simple = ylo_me;
+    applattice->yhi_me_simple = yhi_me;
+    applattice->zlo_me_simple = zlo_me;
+    applattice->zhi_me_simple = zhi_me;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -387,6 +509,7 @@ void CreateSites::structured_connectivity()
   tagint gid;
   double xneigh,yneigh,zneigh;
 
+  int dimension = domain->dimension;
   int nonperiodic = domain->nonperiodic;
   int xperiodic = domain->xperiodic;
   int yperiodic = domain->yperiodic;
@@ -509,14 +632,14 @@ void CreateSites::structured_connectivity()
       // gid = global ID of neighbor
       // calculated in same manner that structured_lattice() generated IDs
 
-      tagint one = 1;   // use this to avoid int overflow in calc of gid
+      tagint one = 1;   // use this to avoid int overflow in gid calculation
 
       gid = one*(kneigh-zlo)*(yhi-ylo+1)*(xhi-xlo+1)*nbasis + 
-	one*(jneigh-ylo)*(xhi-xlo+1)*nbasis + one*(ineigh-xlo)*nbasis + 
+        one*(jneigh-ylo)*(xhi-xlo+1)*nbasis + one*(ineigh-xlo)*nbasis + 
         mneigh + 1;
 
       if (style == BOX && nonperiodic == 0 && (gid <= 0 || gid > nglobal))
-	error->all(FLERR,"Bad neighbor site ID");
+        error->all(FLERR,"Bad neighbor site ID");
 
       // add gid to neigh list of site I
 
@@ -1176,8 +1299,8 @@ void CreateSites::offsets(double **basis)
 /* ---------------------------------------------------------------------- */
 
 void CreateSites::offsets_2d(int ibasis, double **basis, 
-			    double cutlo, double cuthi,
-			    int ntarget, int **cmapone)
+                             double cutlo, double cuthi,
+                             int ntarget, int **cmapone)
 {
   int i,j,m,n;
   double x0,y0,delx,dely,r;
@@ -1192,7 +1315,8 @@ void CreateSites::offsets_2d(int ibasis, double **basis,
 	dely = (j+basis[m][1])*ylattice - y0;
 	r = sqrt(delx*delx + dely*dely);
 	if (r > cutlo-EPSILON && r < cuthi+EPSILON) {
-	  if (n == ntarget) error->all(FLERR,"Incorrect lattice neighbor count");
+	  if (n == ntarget) 
+            error->all(FLERR,"Incorrect lattice neighbor count");
 	  cmapone[n][0] = i;
 	  cmapone[n][1] = j;
 	  cmapone[n][2] = 0;
@@ -1209,8 +1333,8 @@ void CreateSites::offsets_2d(int ibasis, double **basis,
 /* ---------------------------------------------------------------------- */
 
 void CreateSites::offsets_3d(int ibasis, double **basis, 
-			    double cutlo, double cuthi, 
-			    int ntarget, int **cmapone)
+                             double cutlo, double cuthi, 
+                             int ntarget, int **cmapone)
 {
   int i,j,k,m,n;
   double x0,y0,z0,delx,dely,delz,r;
@@ -1228,7 +1352,8 @@ void CreateSites::offsets_3d(int ibasis, double **basis,
 	  delz = (k+basis[m][2])*zlattice - z0;
 	  r = sqrt(delx*delx + dely*dely + delz*delz);
 	  if (r > cutlo-EPSILON && r < cuthi+EPSILON) {
-	    if (n == ntarget) error->all(FLERR,"Incorrect lattice neighbor count");
+	    if (n == ntarget) 
+              error->all(FLERR,"Incorrect lattice neighbor count");
 	    cmapone[n][0] = i;
 	    cmapone[n][1] = j;
 	    cmapone[n][2] = k;

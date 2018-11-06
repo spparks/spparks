@@ -11,18 +11,22 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Theron Rodgers and John Mitchell (Sandia)
-------------------------------------------------------------------------- */
-
+#include <stdio.h>
+#include <cstdlib>
+#include <cstddef>
+#include <string>
+#include <cstring>
+#include <cmath>
+#include <set>
+#include <vector>
 #include "string.h"
 #include "math.h"
-#include "app_potts_additive.h"
+#include "app_potts_am_weld.h"
 #include "random_park.h"
 #include "solve.h"
 #include "lattice.h"
 #include "domain.h"
-#include "am_ellipsoid.h"
+#include "am_teardrop.h"
 #include "error.h"
 
 #include <iostream>
@@ -31,29 +35,93 @@ using namespace SPPARKS_NS;
 using RASTER::point;
 using RASTER::DIR;
 
+namespace RASTER {
+
+namespace pool_shape {
+
+namespace AM_TEARDROP {
+
+namespace DEMO {
+
+   enum InchesPerMinute {I=20,II=25,III=30};
+
+   vector< vector<double> > get_demo_control_points(InchesPerMinute ipm) {
+       int n=5;
+       vector< vector<double> > cp(n);
+       for(int i=0;i<n;i++)
+          cp[i]=vector<double>(2);
+       double a[]={0.0,0.0}, b[]={0.0,0.0}, c[]={0.0,0.0}, d[]={0.0,0.0}, e[]={0.0,0.0,};
+       switch(ipm){
+          case I:
+             a[0]=-6.35;  a[1]=0.00;
+             b[0]=a[0];   b[1]=1.50;
+             c[0]=-3.25;  c[1]=3.00;
+             d[0]=0.00;   d[1]=2.75;
+             e[0]=d[0];   e[1]=0.00;
+             break;
+          case II:
+             a[0]=-7.35;  a[1]=0.00;
+             b[0]=a[0];   b[1]=1.00;
+             c[0]=-3.75;  c[1]=2.60;
+             d[0]=0.00;   d[1]=2.80;
+             e[0]=d[0];   e[1]=0.00;
+             break;
+          case III:
+             a[0]=-7.35;  a[1]=0.00;
+             b[0]=a[0];   b[1]=0.70;
+             c[0]=-3.75;  c[1]=2.00;
+             d[0]=0.00;   d[1]=2.475;
+             e[0]=d[0];   e[1]=0.00;
+             break;
+       }
+       cp[0][0]= a[0];  cp[0][1]= a[1];
+       cp[1][0]= b[0];  cp[1][1]= b[1];
+       cp[2][0]= c[0];  cp[2][1]= c[1];
+       cp[3][0]= d[0];  cp[3][1]= d[1];
+       cp[4][0]= e[0];  cp[4][1]= e[1];
+       return cp;
+   }
+
+} // DEMO
+
+} // AM_TEARDROP
+
+
+} // pool_shape
+
+} // RASTER
+
+using RASTER::pool_shape::AM_TEARDROP::DEMO::InchesPerMinute;
+using RASTER::pool_shape::AM_TEARDROP::DEMO::get_demo_control_points;
+
 /* ---------------------------------------------------------------------- */
 
-AppPottsAdditive::AppPottsAdditive(SPPARKS *spk, int narg, char **arg) :
-  AppPotts(spk,narg,arg), passes(), active_layer() {
+AppPottsAmWeld::AppPottsAmWeld(SPPARKS *spk, int narg, char **arg) :
+   AppPotts(spk,narg,arg), alpha(0.5), beta(0.75), haz(-1.0), distance(nullptr),
+   random_park(std::atof(arg[2])), simulation_time(0.0),
+   width(-1.0), length(-1.0), teardrop_control_points(),
+   passes(), active_layer() {
 
    // only error check for this class, not derived classes
-   if (strcmp(arg[0],"additive") == 0 && narg != 11 )
-    error->all(FLERR,"Illegal app_style command");
+   if (std::strcmp(arg[0],"potts/am/weld") != 0 || narg != 5 )
+      error->all(FLERR,"Illegal app_style in 'potts/am/weld' command");
 
-   nspins = atoi(arg[1]); //Number of spins
-   spot_width = atof(arg[2]); //Width of the melt pool
-   melt_tail_length = atof(arg[3]); //Length of tail from meltpool midpoint
-   melt_depth = atof(arg[4]); //How many lattice sites deep the melt pool is
-   cap_height = atof(arg[5]); //Height of the cap leading the meltpool
-   HAZ = atof(arg[6]); //Size of the HAZ surrounding the melt pool (must be larger than spot_width)
-   tail_HAZ = atof(arg[7]); //Length of hot zone behind meltpool (must be larger than melt_tail_length)
-   depth_HAZ = atof(arg[8]); //Depth of the hot zone underneath the meltpool (must be larger than melt_depth)
-   cap_HAZ = atof(arg[9]); //Size of HAZ infront of the melt pool (must be larger than cap_height)
-   exp_factor = atof(arg[10]); //Exponential parameter for mobility decay in haz M(d) = exp(-exp_factor * d)
-
-   //Define the layer object, this might work better in init_app
+   // Flag which forces 'callback' to this app each step time 'time' is updated;
+   // See 'allow_app_update' in app_lattice.h
+   allow_app_update=1;
+   // Adding 'distance' array; number of 'double' values per site
+   // app.h
    ndouble = 1;
-   allow_app_update = 1;
+
+   // app_potts.cpp
+   nspins = atoi(arg[1]);
+
+   // app_potts_am_weld model parameters
+   alpha =     std::atof(arg[2]); // relative size of pool shape at bottom compared to top
+   beta =      std::atof(arg[3]); // defines curvature of pool shape through thickness
+   haz =       std::atof(arg[4]); // distance which defines 'heat affected zone'
+
+   // add the double array
    recreate_arrays();
 }
 
@@ -61,7 +129,7 @@ AppPottsAdditive::AppPottsAdditive(SPPARKS *spk, int narg, char **arg) :
    Define additional input commands for the AM app
 ------------------------------------------------------------------------- */
 
-void AppPottsAdditive::input_app(char *command, int narg, char **arg)
+void AppPottsAmWeld::input_app(char *command, int narg, char **arg)
 {
    if (strcmp(command,"am_pass") == 0) {
       if (narg < 7) error->all(FLERR,"Illegal pass command.");
@@ -132,8 +200,8 @@ void AppPottsAdditive::input_app(char *command, int narg, char **arg)
          double speed=p.get_speed();
          double pass_distance=p.get_distance();
          bool init_heading=p.get_heading();
-         //Define the "overpass", which will be determined by tail_HAZ + cap_height
-         double overpass = tail_HAZ + cap_HAZ;
+         //Define the "overpass", leading haz plus trailing haz
+         double overpass = haz + haz;
          TransversePass tp=transverse_passes[transverse_pass_id];
          double transverse_pass_distance=tp.get_distance();
          double transverse_pass_increment=tp.get_increment();
@@ -169,6 +237,18 @@ void AppPottsAdditive::input_app(char *command, int narg, char **arg)
       } else {error->all(FLERR,"Illegal pattern command. Expected 'z_increment.'");}
       pattern=Pattern(layer_ids,z_start,z_increment);
 
+   } else if(strcmp(command,"weld_shape_teardrop")==0) {
+      shape_type=RASTER::pool_shape::ShapeType::teardrop;
+      if(strcmp(arg[0],"width")==0){
+        width =  std::atof(arg[1]); // weld pool width (y-coordinate axis)
+      } else error->all(FLERR,"Unrecognized 'weld_shape_teardrop' command.  Expected 'width'.");
+      if(strcmp(arg[2],"case")==0){
+         if(strcmp("I",arg[3])==0) teardrop_control_points=get_demo_control_points(InchesPerMinute::I);
+         else if(strcmp("II",arg[3])==0) teardrop_control_points=get_demo_control_points(InchesPerMinute::II);
+         else if(strcmp("III",arg[3])==0) teardrop_control_points=get_demo_control_points(InchesPerMinute::III);
+         else if(strcmp("control_points",arg[3])==0) error->all(FLERR,"NOT IMPLEMENTED 'weld_shape_teardrop control_points' command.");
+         else error->all(FLERR,"Unrecognized 'weld_shape_teardrop case' command");
+      } else error->all(FLERR,"Unrecognized 'weld_shape_teardrop' command");
    } else error->all(FLERR,"Unrecognized command");
 }
 
@@ -176,10 +256,10 @@ void AppPottsAdditive::input_app(char *command, int narg, char **arg)
    set site value ptrs each time iarray/darray are reallocated
 ------------------------------------------------------------------------- */
 
-void AppPottsAdditive::grow_app()
+void AppPottsAmWeld::grow_app()
 {
   spin = iarray[0];
-  MobilityOut = darray[0];
+  distance = darray[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -187,7 +267,7 @@ void AppPottsAdditive::grow_app()
    check validity of site values
 ------------------------------------------------------------------------- */
 
-void AppPottsAdditive::init_app()
+void AppPottsAmWeld::init_app()
 {
    delete [] sites;
    delete [] unique;
@@ -215,7 +295,7 @@ void AppPottsAdditive::init_app()
 	mobilities for the new configuration
  ------------------------------------------------------------------------- */
 
-void AppPottsAdditive::app_update(double dt)
+void AppPottsAmWeld::app_update(double dt)
 {
    // Move pool
    if(active_layer.move(dt)){
@@ -228,16 +308,32 @@ void AppPottsAdditive::app_update(double dt)
    // z-elevation of active layer
    double layer_z=pattern.get_layer_z_elevation();
 
+   // HACK
+   // TODO: FIX ME
+   const Domain *domain=this->domain;
+   double lz=std::abs(domain->zprd);
+   double thickness=lz;
+   // std::cout << "Plate thickness: " << std::setw(5) << thickness << std::endl;
+   // END HACK
 
+   RASTER::pool_shape::PoolShape *shape=nullptr;
+   switch(shape_type) {
+      case RASTER::pool_shape::ShapeType::teardrop:
+         shape_type=RASTER::pool_shape::ShapeType::teardrop;
+         shape=new RASTER::pool_shape::AM_TEARDROP::Teardrop(thickness,width,alpha,beta,teardrop_control_points);
+         break;
+   }
 
-	//Use the new position as input to the mobility calculation
-	//Loop through all of the local sites and assign the new mobilities
-
-	//Specify the shape of the melt pool and then calculate the distance at each local site.
-	RASTER::pool_shape::AmEllipsoid ae(spot_width, melt_depth, melt_tail_length, cap_height, HAZ, tail_HAZ);
-
+   // DEBUG
+   // int my_rank;
+   // MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+   // if (0==my_rank){
+   //    point p_spparks=active_layer.get_position();
+   //    double p[]={p_spparks[0],p_spparks[1],p_spparks[2]};
+   //    std::cout << "position: " << std::setw(5) << p[0] << "," << p[1] << "," << p[2] << std::endl;
+   // }
+   // END DEBUG
 	//Go through all the local sites and calculate the distance.
-   double d;
 	for(int i=0;i<nlocal;i++){
 
 		// SPPARKS lattice site
@@ -248,37 +344,27 @@ void AppPottsAdditive::app_update(double dt)
 		//Temporary assignment of xo, xo is in the melt pool's reference frame!
 		double xo[]={xyz_r_p[0],xyz_r_p[1],xyz_r_p[2]};
 
+      // Compute distance for this site
+      // This function returns d=-1 for points within pool;
+      // Otherwise it returns the distance associated with the closest point
+      double d=shape->distance(xo);
+      // DEBUG
+      //if (0==my_rank){
+      //   std::cout << "Relative position: xo: " << std::setw(5) << xo[0] << "," << xo[1] << "," << xo[2] << "; distance d = " << d << std::endl;
+      //}
+      // END DEBUG
+      distance[i]=d;
 
-		if(xo[0] < 0 && xo[2] <= 0 && abs(xo[2]) <= depth_HAZ  && xo[0] > -tail_HAZ && abs(xo[1]) <= HAZ/2.0) {
+      /* -------------------------------------------------------------------
+      For sites within pool, assign random spins so that when they exit the
+      pool, they will be singleton spins and generally not part of a grain.
+      ---------------------------------------------------------------------- */
+      if(d<0){
+         // Random number between [1,nspins] inclusive
+         int ran = random_park.irandom(nspins);
+         spin[i]=ran;
+      }
 
-			//If we're in the fusion zone, calculate distance
-			if (abs(xo[1]) <= spot_width * 0.5 && abs(xo[0]) <= tail_HAZ) {
-				d = ae.distance(xo);
-			}
-			//If we're in the HAZ, calculate distance
-			else if (abs(xo[1]) <= HAZ/2.0 && abs(xo[0]) <tail_HAZ) {
-				d = ae.distance(xo);
-			}
-		}
-		//If we're in front of the pool, look out to a distance cap_HAZ away
-		else if (abs(xo[0]) <= cap_HAZ && xo[2] <=0 && abs(xo[2]) <= depth_HAZ && abs(xo[1]) <= HAZ/2.0) {
-			d = ae.distance(xo);
-		}
-		else d = -10;
-
-		//Only calculate mobilities for things inside the HAZ bounds and below the active layer
-		if (d >= 0) {
-			MobilityOut[i] =  compute_mobility(i, d);
-		}
-		//Inside the pool so set mobilty to 1 (which randomizes things)
-		else if (d > -5) {
-
-			MobilityOut[i] = 1;
-		}
-		//If we're outside the region of interest, make Mobility zero
-		else {
-			MobilityOut[i] = 0;
-		}
 	}
    // IT is/was a BUG (I think) to call move here.
    //active_layer.move(dt);
@@ -290,13 +376,16 @@ void AppPottsAdditive::app_update(double dt)
  between 0 and 1 representing the mobility.
  ------------------------------------------------------------------------- */
 
-double AppPottsAdditive::compute_mobility(int site, double d)  {
-
-	//We're going to take care of categorizing all the little details of the mobility
-	//gradient in app_update, so here we'll just calculate the mobility based on distance
-	MobilityOut[site] = exp(-exp_factor * d);
-
-	return MobilityOut[site];
+double AppPottsAmWeld::compute_mobility(int site)  {
+   double d=distance[site];
+   //   mobility = 0 @ d<0
+   //   mobility = 1 @ d=0 pool/solid interface
+   //   mobility = 0 @ d>=haz distance defining heat effected zone
+   //   Otherwise, mobility decreases linearly for 0<=d<haz
+   double mobility=1-d/haz;
+   if (d<0 || d>=haz)
+      mobility=0.0;
+   return mobility;
 }
 
 /* ----------------------------------------------------------------------
@@ -305,65 +394,56 @@ double AppPottsAdditive::compute_mobility(int site, double d)  {
    flip to random neighbor spin without null bin
    technically this is an incorrect rejection-KMC algorithm
 ------------------------------------------------------------------------- */
-void AppPottsAdditive::site_event_rejection(int site, RandomPark *random) {
-   int oldstate = spin[site];
-   double einitial = site_energy(site);
-
-   if (MobilityOut[site] < 0.0) {
-      MobilityOut[site] = 0.0;
-      return;
-   }
-
-   if(MobilityOut[site] >= 1.0){
-      //Mobility = 0.0;
-      spin[site] = (int) (nspins*random->uniform());
-      return;
-   }
-
-   // events = spin flips to neighboring site different than self
-   int j,m,value;
+void AppPottsAmWeld::site_event_rejection(int i, RandomPark *random) {
+   int oldstate = spin[i];
+   double einitial = site_energy(i);
+   double mobility=compute_mobility(i);
    int nevent = 0;
-   int z = xyz[site][2];
 
-   if((MobilityOut[site] > 0.0) && (MobilityOut[site] < 1.0)) {
-      //(spin[i] != nspins) another criteria to exclude gg interaction
-      for (j = 0; j < numneigh[site]; j++) {
-         value = spin[neighbor[site][j]];
-         if (value == spin[site] || value == nspins) continue;
-            for (m = 0; m < nevent; m++)
-               if (value == unique[m]) break;
-            if (m < nevent) continue;
-         unique[nevent++] = value;
+   if(mobility>0.0){
+      /*
+       * Finding unique neighbor spins
+       */
+      std::set<int> my_unique;
+      for (int j = 0; j < numneigh[i]; j++) {
+         int value = spin[neighbor[i][j]];
+         double j_distance = distance[neighbor[i][j]];
+         // Don't flip to 'spins' on interior since they are not 'grains'
+         // distance <= 0 are 'pinned' sites on the interior of weld pool;
+         if (value == spin[i] || j_distance < 0.0) continue;
+         my_unique.insert(value);
       }
+      // how many unique spins
+      nevent=my_unique.size();
 
+      // scale random number according number of unique neighbor spins
       if (nevent == 0) return;
       int iran = (int) (nevent*random->uniform());
       if (iran >= nevent) iran = nevent-1;
-         spin[site] = unique[iran];
-      double efinal = site_energy(site);
+
+      {
+         /*
+          * Store unique spins
+          */
+         int c=0;
+          for(std::set<int>::iterator i=my_unique.begin();i!=my_unique.end();i++){
+            unique[c++]=*i;
+          }
+      }
+      spin[i] = unique[iran];
+      double efinal = site_energy(i);
 
       // accept or reject via Boltzmann criterion
       if (efinal <= einitial) {
-         if (random->uniform() > MobilityOut[site]){
-            spin[site] = oldstate;
+         if (random->uniform() > mobility){
+               spin[i] = oldstate;
          }
-      } else if (temperature == 0.0) {
-         spin[site] = oldstate;
-      } else if (random->uniform() > MobilityOut[site] * exp((einitial-efinal)*t_inverse)) {
-         spin[site] = oldstate;
+      } else if (0.0==temperature) {
+         spin[i] = oldstate;
+      } else if (random->uniform() > mobility * exp((einitial-efinal)*t_inverse)) {
+         spin[i] = oldstate;
       }
+  }
 
-      if (spin[site] != oldstate) naccept++;
-
-      // set mask if site could not have changed
-      // if site changed, unset mask of sites with affected propensity
-      // OK to change mask of ghost sites since never used
-
-      if (Lmask) {
-         if (einitial < 0.5*numneigh[site]) mask[site] = 1;
-         if (spin[site] != oldstate)
-         for (int j = 0; j < numneigh[site]; j++)
-            mask[neighbor[site][j]] = 0;
-      }
-   }
+  if (spin[i] != oldstate) naccept++;
 }

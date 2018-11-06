@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>label = <I>site</I> or <I>iN</I> or <I>dN</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>xyz</I> 
 
-<LI>style = <I>value</I> or <I>range</I> or <I>displace</I> 
+<LI>style = <I>value</I> or <I>range</I> or <I>unique</I> or <I>displace</I> or <I>stitch</I> or <I>bfile</I> 
 
 <PRE>  <I>value</I> arg = nvalue
     nvalue = value to set sites to
@@ -26,6 +26,15 @@
   <I>unique</I> args = none
   <I>displace</I> arg = delta
      delta = max distance to displace the site 
+  <I>stitch</I> args = stitchfile <I>tstamp</I>
+     stitchfile = name of STITCH file
+     <I>tstamp</I> = "first" or "last" or floating point "time value" 
+     if "first", then site values from first timestamp in stitch file are read in
+     if "last", then site values from last timestamp in stitch file are read in
+     if "time value" is given, site values are read from stitch file for this "time" 
+</PRE>
+<PRE>  <I>bfile</I> args = bfilename 
+     bfilename = name of binary file 
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -51,6 +60,11 @@
 set d1 range 1.0 2.0 loop local
 set xyz displace 0.2
 set i1 range 1 50 if x < 20 if i2 = 3 
+set site stitch equiaxed.st first
+set site stitch equiaxed.st last
+set site stitch equiaxed.st 1.0
+set i1 stitch equiaxed.st 1.0
+set d1 stitch equiaxed.st 1.0 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -87,12 +101,50 @@ example, for setting the initial spin of each site to a unique value.
 The following text explains how it will work for off-lattice
 applications.
 </P>
-<P>For label <I>x</I> or <I>y</I> or <I>z</I> or <I>xyz</I>, the style <I>displace</I> must be
-used.  For <I>x</I> or <I>y</I> or <I>z</I>, the corresponding coordinate of each
+<P>For style <I>displace</I>, the <I>label</I> must be <I>x</I> or <I>y</I> or <I>z</I> or <I>xyz</I>
+For labels <I>x</I> or <I>y</I> or <I>z</I>, the corresponding coordinate of each
 site is displaced by a random distance between -<I>delta</I> and <I>delta</I>.
-For <I>xyz</I> the site is displaced to a new random point within a sphere
-of radius <I>delta</I> surrounding the site (or a circle for 2d models, or
-a line segement for 1d models).
+For lables <I>xyz</I> the site is displaced to a new random point within a
+sphere of radius <I>delta</I> surrounding the site (or a circle for 2d
+models, or a line segement for 1d models).
+</P>
+<P>Styles <I>stitch</I> and <I>bfile</I> can only be used for simple regular
+lattices.  This means lattice = line (line/2n) for 1d models, square
+(sq/4n or sq/8n) for 2d, or simple cubic (sc/6n or sc/26n) for 3d.
+See the <A HREF = "create_sites.html">create_sites</A> command for more details.
+The <I>fraction</I>, <I>loop</I>, <I>region</I> and <I>if</I> keywords are ignored for
+these styles; these styles set values for all sites in the system.
+</P>
+<P>For style <I>stitch</I>, a STITCH file is read to extract the values associated with
+the specified <I>label</I>.  The STITCH file can be created by the <A HREF = "dump.html">dump
+stitch</A> command or an external program.  A STITCH file can store
+multiple values for the same site; one value for each different time; and a
+different number of time values can be associated with each site.  The
+specified <I>tstamp</I> value is used to determine which of the multiple time values
+is used for initializing each site.  In general, the time value <I>label</I>
+specified should exist in the file on at least some sites; it can exist on all
+the sites or just some of the sites.  For example, if <I>tstamp</I> is given as 1.0
+then 1.0 should exist on at least some sites in the file; for sites that do not
+have values for 1.0 but have some earlier time, those sites will be set with
+values according to the most recent time value which is less than 1.0.  It is
+an error if the file does not contain any values for the time specified.  A
+subsequent set command can be used to initialize the value of the site in a
+different way.
+</P>
+<P>For style <I>bfile</I>, a binary file is read to extract the values associated with
+the specified <I>label</I>.  The binary file must be created by an external program.
+It should contain 3 integer header values: Nx, Ny, Nz.  These must match the
+size of the regular lattice defined for the enitre simulation box.  For 2d
+simulations, Nz = 1.
+</P>
+<P>The file must then contain N integer or double values, depending on
+whether the <I>label</I> is for integer or floating point site values.  N
+must be Nx * Ny * Nz.  The site values in the file must be ordered
+with x varying fastest, then y, and z slowest.  The binary file is
+read by a single processor, and the values are broadcast to all
+processors.  Each processor then extracts the subset of values
+from the 3d array of sites that correspond to the sites in its
+sub-domain of the simulation box.
 </P>
 <HR>
 

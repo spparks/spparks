@@ -34,6 +34,8 @@
 #include "style_diag.h"
 #include "style_solve.h"
 
+#include "stitch.h"
+
 using namespace SPPARKS_NS;
 
 #define MAXLINE 2048
@@ -783,11 +785,39 @@ void Input::region()
 void Input::reset_time()
 {
   if (app == NULL) error->all(FLERR,"Reset_time command before app_style set");
-  if (narg != 1) error->all(FLERR,"Illegal reset_time command");
+  if (narg < 1) error->all(FLERR,"Illegal reset_time command");
 
-  double time = atof(arg[0]);
+  double time;
+
+  // open Stitch database file, retrieve a time
+
+  if (strcmp(arg[0],"stitch") == 0) {
+    if (narg != 3) error->all(FLERR,"Illegal reset_time command");
+    char *filename = arg[1];
+    int tflag;
+    if (strcmp(arg[2],"first") == 0) tflag = 0;
+    else if (strcmp(arg[2],"last") == 0) tflag = 1;
+    else error->all(FLERR,"Illegal reset_time command");
+
+    StitchFile *stitch_file;
+    double first_time,last_time,tmp;
+    int64_t int_tmp=-1;
+
+    int err = stitch_open(&stitch_file,MPI_COMM_WORLD,filename);
+    err = stitch_get_parameters(stitch_file,&tmp,&tmp,&int_tmp,&first_time,&last_time);
+    err = stitch_close(&stitch_file);
+
+    if (tflag == 0) time = first_time;
+    else if (tflag == 1) time = last_time;
+
+  // numeric time
+
+  } else {
+    if (narg != 1) error->all(FLERR,"Illegal reset_time command");
+    time = atof(arg[0]);
+  }
+
   if (time < 0.0) error->all(FLERR,"Illegal reset_time command");
-
   app->reset_time(time);
 }
 
