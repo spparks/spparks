@@ -14,6 +14,8 @@
 #include "spktype.h"
 #include "stdlib.h"
 #include "string.h"
+#include "stdio.h"
+#include "unistd.h"
 #include "set.h"
 #include "app.h"
 #include "app_lattice.h"
@@ -26,11 +28,12 @@
 #include "error.h"
 
 #include <map>
+#include "stitch.h"
 
 using namespace SPPARKS_NS;
 
-enum{IARRAY,DARRAY,X,Y,Z,XYZ,ID};
-enum{VALUE,RANGE,UNIQUE,DISPLACE};
+enum{SITE,IARRAY,DARRAY,X,Y,Z,XYZ,ID};
+enum{VALUE,RANGE,UNIQUE,DISPLACE,STITCH,BFILE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE,TAGINT};
 
@@ -47,9 +50,11 @@ void Set::command(int narg, char **arg)
   if (narg < 2) error->all(FLERR,"Illegal set command");
 
   int lhs,rhs;
+  filename = NULL;
+  tstamp = NULL;
 
   if (strcmp(arg[0],"site") == 0) {
-    lhs = IARRAY;
+    lhs = SITE;
     siteindex = 0;
     if (app->iarray == NULL)
       error->all(FLERR,"Setting a quantity application does not support");
@@ -86,7 +91,7 @@ void Set::command(int narg, char **arg)
   } else if (strcmp(arg[1],"range") == 0) {
     if (narg < 4) error->all(FLERR,"Illegal set command");
     rhs = RANGE;
-    if (lhs == IARRAY) {
+    if (IARRAY==lhs || SITE==lhs) {
       ivaluelo = atoi(arg[2]);
       ivaluehi = atoi(arg[3]);
     } else if (lhs == DARRAY) {
@@ -104,6 +109,23 @@ void Set::command(int narg, char **arg)
     if (lhs != X && lhs != Y && lhs != Z && lhs != XYZ)
       error->all(FLERR,"Illegal set command");
     dvalue = atof(arg[2]);
+    iarg = 3;
+  } else if (strcmp(arg[1],"stitch") == 0) {
+    if (narg < 4) error->all(FLERR,"Illegal set command");
+    rhs = STITCH;
+    int n = strlen(arg[2]) + 1;
+    filename = new char[n];
+    strcpy(filename,arg[2]);
+    n = strlen(arg[3]) + 1;
+    tstamp = new char[n];
+    strcpy(tstamp,arg[3]);
+    iarg = 4;
+  } else if (strcmp(arg[1],"bfile") == 0) {
+    if (narg < 3) error->all(FLERR,"Illegal set command");
+    rhs = BFILE;
+    int n = strlen(arg[2]) + 1;
+    filename = new char[n];
+    strcpy(filename,arg[2]);
     iarg = 3;
   } else error->all(FLERR,"Illegal set command");
     
@@ -137,50 +159,46 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"if") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
-      cond = (Condition *) memory->srealloc(cond,
-					    (ncondition+1)*sizeof(Condition),
-					    "set:cond");
+      cond = (Condition *) memory->srealloc(cond, (ncondition+1)*sizeof(Condition), "set:cond");
       if (strcmp(arg[iarg+1],"id") == 0) {
-	cond[ncondition].lhs = ID;
-	cond[ncondition].type = TAGINT;
-	cond[ncondition].stride = 1;
+         cond[ncondition].lhs = ID;
+         cond[ncondition].type = TAGINT;
+         cond[ncondition].stride = 1;
       } else if (strcmp(arg[iarg+1],"site") == 0) {
-	cond[ncondition].lhs = IARRAY;
-	cond[ncondition].type = INT;
-	cond[ncondition].index = 0;
-	cond[ncondition].stride = 1;
+         cond[ncondition].lhs = IARRAY;
+         cond[ncondition].type = INT;
+         cond[ncondition].index = 0;
+         cond[ncondition].stride = 1;
       } else if (strcmp(arg[iarg+1],"x") == 0) {
-	cond[ncondition].lhs = X;
-	cond[ncondition].type = DOUBLE;
-	cond[ncondition].stride = 3;
+         cond[ncondition].lhs = X;
+         cond[ncondition].type = DOUBLE;
+         cond[ncondition].stride = 3;
       } else if (strcmp(arg[iarg+1],"y") == 0) {
-	cond[ncondition].lhs = Y;
-	cond[ncondition].type = DOUBLE;
-	cond[ncondition].stride = 3;
+         cond[ncondition].lhs = Y;
+         cond[ncondition].type = DOUBLE;
+         cond[ncondition].stride = 3;
       } else if (strcmp(arg[iarg+1],"z") == 0) {
-	cond[ncondition].lhs = Z;
-	cond[ncondition].type = DOUBLE;
-	cond[ncondition].stride = 3;
+         cond[ncondition].lhs = Z;
+         cond[ncondition].type = DOUBLE;
+         cond[ncondition].stride = 3;
       } else if (arg[iarg+1][0] == 'i') {
-	int index = atoi(&arg[iarg+1][1]);
-	if (index < 1 || index > app->ninteger)
-	  error->all(FLERR,
-                     "Set if test on quantity application does not support");
-	index--;
-	cond[ncondition].lhs = IARRAY;
-	cond[ncondition].type = INT;
-	cond[ncondition].index = index;
-	cond[ncondition].stride = 1;
+         int index = atoi(&arg[iarg+1][1]);
+         if (index < 1 || index > app->ninteger)
+           error->all(FLERR,"Set if test on quantity application does not support");
+         index--;
+         cond[ncondition].lhs = IARRAY;
+         cond[ncondition].type = INT;
+         cond[ncondition].index = index;
+         cond[ncondition].stride = 1;
       } else if (arg[iarg+1][0] == 'd') {
-	int index = atoi(&arg[iarg+1][1]);
-	if (index < 1 || index > app->ndouble)
-	  error->all(FLERR,
-                     "Set if test on quantity application does not support");
-	index--;
-	cond[ncondition].lhs = DARRAY;
-	cond[ncondition].type = DOUBLE;
-	cond[ncondition].index = index;
-	cond[ncondition].stride = 1;
+         int index = atoi(&arg[iarg+1][1]);
+         if (index < 1 || index > app->ndouble)
+            error->all(FLERR,"Set if test on quantity application does not support");
+         index--;
+         cond[ncondition].lhs = DARRAY;
+         cond[ncondition].type = DOUBLE;
+         cond[ncondition].index = index;
+         cond[ncondition].stride = 1;
       } else error->all(FLERR,"Illegal set command");
 
       if (strcmp(arg[iarg+2],"<") == 0) cond[ncondition].op = LT;
@@ -191,8 +209,7 @@ void Set::command(int narg, char **arg)
       else if (strcmp(arg[iarg+2],"!=") == 0) cond[ncondition].op = NEQ;
       else error->all(FLERR,"Illegal set command");
 
-      if (cond[ncondition].type == INT)
-	cond[ncondition].irhs = atoi(arg[iarg+3]);
+      if (cond[ncondition].type == INT) cond[ncondition].irhs = atoi(arg[iarg+3]);
       else cond[ncondition].drhs = atof(arg[iarg+3]);
 
       ncondition++;
@@ -207,6 +224,8 @@ void Set::command(int narg, char **arg)
   else if (rhs == RANGE) set_range(lhs,rhs);
   else if (rhs == UNIQUE) set_single(lhs,rhs);
   else if (rhs == DISPLACE) set_displace(lhs,rhs);
+  else if (rhs == STITCH) set_stitch(lhs,rhs);
+  else if (rhs == BFILE) set_binary_file(lhs,rhs);
 
   // statistics
 
@@ -221,6 +240,9 @@ void Set::command(int narg, char **arg)
 			 allcount,arg[0]);
   }
 
+  // cleanup
+
+  delete [] filename;
   memory->sfree(cond);
 }
 
@@ -456,7 +478,7 @@ void Set::set_range(int lhs, int rhs)
     std::map<tagint,int>::iterator loc;
     for (i = 0; i < nlocal; i++) hash.insert(std::pair<tagint,int> (id[i],i));
 
-    if (lhs == IARRAY) {
+    if (lhs == IARRAY || lhs==SITE) {
       int range = ivaluehi - ivaluelo + 1;
 
       if (regionflag == 0 && fraction == 1.0) {
@@ -632,11 +654,236 @@ void Set::set_range(int lhs, int rhs)
 }
 
 /* ----------------------------------------------------------------------
-   displace site coordinates
+   displace site coordinates - NOT YET implemented
 ------------------------------------------------------------------------- */
 
 void Set::set_displace(int lhs, int rhs)
 {
+}
+
+/* ----------------------------------------------------------------------
+   set sites from values in stitch file
+------------------------------------------------------------------------- */
+
+void Set::set_stitch(int lhs, int rhs)
+{
+  if (app->appclass != App::LATTICE)
+    error->all(FLERR,"Set stitch only allowed for on-lattice apps");
+
+  applattice = (AppLattice *) app;
+
+  if (!applattice->simple)
+    error->all(FLERR,"Set stitch requires simple square or cubic lattice");
+  if (IARRAY != lhs && SITE != lhs) error->all(FLERR,"Set stitch only supports integer values");
+
+  StitchFile *stitch_file;
+  int err = stitch_open(&stitch_file,MPI_COMM_WORLD,filename);
+  // TODO: process err
+  //
+
+  double time;
+  if (strcmp(tstamp,"first") == 0 || strcmp(tstamp,"last") == 0) {
+    double first_time,last_time,tmp;
+    int64_t int_tmp=-1;
+    err = stitch_get_parameters(stitch_file,&tmp,&tmp,&int_tmp,&first_time,&last_time);
+     // TODO: process err
+     //
+    if (strcmp(tstamp,"first") == 0) time = first_time;
+    else time = last_time;
+  } else time = atof(tstamp);
+
+  int block[6], uninitialized_bb[6];
+  block[0] = applattice->xlo_me_simple;
+  block[1] = applattice->xhi_me_simple+1;
+  block[2] = applattice->ylo_me_simple;
+  block[3] = applattice->yhi_me_simple+1;
+  block[4] = applattice->zlo_me_simple;
+  block[5] = applattice->zhi_me_simple+1;
+  int xlo = applattice->xlo_me_simple;
+  int xhi = applattice->xhi_me_simple+1;
+  int ylo = applattice->ylo_me_simple;
+  int yhi = applattice->yhi_me_simple+1;
+  int zlo = applattice->zlo_me_simple;
+  int zhi = applattice->zhi_me_simple+1;
+
+
+  // Get field id
+  int64_t field_id;
+  {
+     int err;
+     if(SITE==lhs) {
+        err=stitch_query_field (stitch_file,"site",&field_id);
+     } else if(IARRAY==lhs) {
+        char label[8];
+        sprintf(label,"i%d",siteindex+1);
+        err=stitch_query_field (stitch_file,label,&field_id);
+     } else if(DARRAY==lhs){
+        char label[8];
+        sprintf(label,"d%d",siteindex+1);
+        err=stitch_query_field (stitch_file,label,&field_id);
+     } else {
+       error->all(FLERR,"Set stitch command failed due to invalid field specification; must be 'site', i1,i2,..., or d1,d2,d3,....");
+     }
+     // TODO: process err
+     //
+     if(STITCH_FIELD_NOT_FOUND_ID==field_id){
+       error->all(FLERR,"Set stitch command failed on read; Specified field does not exist in file.");
+     }
+  }
+
+  {
+     int err;
+     // Get field data
+     int32_t is_new_time=-1;
+     if(SITE==lhs) {
+        int32_t *idata = app->iarray[0];
+        err=stitch_read_block_int32 (stitch_file,field_id,&time,block,idata,&is_new_time);
+     } else if(IARRAY==lhs) {
+        int32_t *idata = app->iarray[siteindex];
+        //For read:
+        //read_flag == True when time does not exist in the file, but data may be returned based on older times
+        //read_flag == False when exists in the database. The actual data returned will vary based on what is selected. It could be nothing.
+        // int stitch_read_block_int32 (const StitchFile * file, int64_t field_id, double * time, int32_t * bb, int32_t * buffer, int32_t * is_new_time);
+        err=stitch_read_block_int32 (stitch_file,field_id,&time,block,idata,&is_new_time);
+     } else if(DARRAY==lhs){
+        double *real_data = app->darray[siteindex];
+        err=stitch_read_block_float64(stitch_file,field_id,&time,block,real_data,&is_new_time);
+     }
+     // TODO: process err
+     //
+     if(is_new_time)
+       error->all(FLERR,"Set stitch command failed on read_block; libstitch did not match a time.");
+
+     err = stitch_close(&stitch_file);
+     // TODO: process err
+     //
+  }
+
+  /*
+  int read_flag=-1;
+  printf("0:Stitch read_block; time=%3.1f, read_flag=%d\n",time,read_flag);
+  err = stitch_read_block(stitch_file,&time,block,idata,uninitialized_bb,&read_flag);
+  printf("1:Stitch read_block; time=%3.1f, read_flag=%d\n",time,read_flag);
+  printf("2: block xlo, xhi, ylo, yhi, zlo, zli = %5d,%5d,%5d,%5d,%5d,%5d",xlo,xhi,ylo,yhi,zlo,zhi);
+  if(read_flag)
+    error->all(FLERR,"Set stitch command failed on read; libstitch did not match a time.");
+  err = stitch_close(&stitch_file);
+  */
+  count = app->nlocal;
+}
+
+/* ----------------------------------------------------------------------
+   set sites from values in a binary file
+------------------------------------------------------------------------- */
+
+void Set::set_binary_file(int lhs, int rhs)
+{
+  if (app->appclass != App::LATTICE)
+    error->all(FLERR,"Set bfile only allowed for on-lattice apps");
+ 
+  applattice = (AppLattice *) app;
+
+  if (!applattice->simple)
+    error->all(FLERR,"Set bfile requires simple square or cubic lattice");
+
+  int me;
+  MPI_Comm_rank(world,&me);
+
+  // xlo to zhi = extent of lattice indices for entire box
+  // xlo_me to zhi_me = extent of lattice indices for my subdomain
+  // nxyz = size of simulation box lattice
+  // nxyz_me = size of my portion of simulation box lattice
+
+  int xlo,xhi,ylo,yhi,zlo,zhi;
+  xlo = applattice->xlo_simple;
+  xhi = applattice->xhi_simple;
+  ylo = applattice->ylo_simple;
+  yhi = applattice->yhi_simple;
+  zlo = applattice->zlo_simple;
+  zhi = applattice->zhi_simple;
+
+  int xlo_me,xhi_me,ylo_me,yhi_me,zlo_me,zhi_me;
+  xlo_me = applattice->xlo_me_simple;
+  xhi_me = applattice->xhi_me_simple;
+  ylo_me = applattice->ylo_me_simple;
+  yhi_me = applattice->yhi_me_simple;
+  zlo_me = applattice->zlo_me_simple;
+  zhi_me = applattice->zhi_me_simple;
+
+  int nx = xhi-xlo + 1;
+  int ny = yhi-ylo + 1;
+  int nz = zhi-zlo + 1;
+  int nx_me = xhi_me-xlo_me + 1;
+  int ny_me = yhi_me-ylo_me + 1;
+  int nz_me = zhi_me-zlo_me + 1;
+
+  // read header of binary file
+  // insure it matches current simulation box
+
+  int i,m,ix,iy,iz,xfile,yfile,zfile;
+  int nxyz[3];
+  FILE *fp;
+
+  if (me == 0) {
+    fp = fopen(filename,"rb");
+    if (fp == NULL) error->one(FLERR,"Set could not open binary file");
+    fread(nxyz,sizeof(int),3,fp);
+    if (nxyz[0] != nx || nxyz[1] != ny || nxyz[2] != nz)
+      error->one(FLERR,"Set binary file does not match current lattice");
+  }
+
+  // proc 0 reads all data from file, bcasts it to all procs
+  // each proc extracts the subset for its sub-domain sites
+  // assume file stores info for all sites: x fastest, then y, z slowest
+
+  int nlocal = app->nlocal;
+
+  if (lhs == IARRAY) {
+    int *buf;
+    memory->create(buf,nx*ny*nz,"set:buf");
+
+    if (me == 0) fread(buf,sizeof(int),nx*ny*nz,fp);
+    MPI_Bcast(buf,nx*ny*nz,MPI_INT,0,world);
+
+    int *array = app->iarray[siteindex];
+    for (i = 0; i < nlocal; i++) {
+      ix = i % nx_me;
+      iy = (i/nx_me) % ny_me;
+      iz = i / (nx_me*ny_me);
+      xfile = xlo_me-xlo + ix;
+      yfile = ylo_me-ylo + iy;
+      zfile = zlo_me-zlo + iz;
+      m = nx*ny*zfile + nx*yfile + xfile;
+      array[i] = buf[m];
+    }
+
+    memory->destroy(buf);
+
+  } else if (lhs == DARRAY) {
+    double *buf;
+    memory->create(buf,nx*ny*nz,"set:buf");
+
+    if (me == 0) fread(buf,sizeof(double),nx*ny*nz,fp);
+    MPI_Bcast(buf,nx*ny*nz,MPI_INT,0,world);
+
+    double *array = app->darray[siteindex];
+    for (i = 0; i < nlocal; i++) {
+      ix = i % nx_me;
+      iy = (i/nx_me) % ny_me;
+      iz = i / (nx_me*ny_me);
+      xfile = xlo_me-xlo + ix;
+      yfile = ylo_me-ylo + iy;
+      zfile = zlo_me-zlo + iz;
+      m = nx*ny*zfile + nx*yfile + xfile;
+      array[i] = buf[m];
+    }
+
+    memory->destroy(buf);
+  }
+
+  if (me == 0) fclose(fp);
+
+  count = nlocal;
 }
 
 /* ----------------------------------------------------------------------

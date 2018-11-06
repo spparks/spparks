@@ -35,6 +35,7 @@ class Set : protected Pointers {
   double dvalue,dvaluelo,dvaluehi;
   int loopflag,regionflag,iregion;
   double fraction;
+  char *filename,*tstamp;
 
   struct Condition {                     // list of if-test conditions
     int lhs,type,index,stride;
@@ -52,6 +53,9 @@ class Set : protected Pointers {
   void set_single(int, int);
   void set_range(int, int);
   void set_displace(int, int);
+  void set_stitch(int, int);
+  void set_binary_file(int, int);
+
   int condition(int);
 };
 

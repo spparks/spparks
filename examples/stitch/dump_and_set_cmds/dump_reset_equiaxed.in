@@ -1,0 +1,41 @@
+# DEFINE parameters
+# SEED=$RANDOM
+variable SEED equal              1
+# T: simulation temperature
+variable T equal                 0.25
+# Number of spins
+variable Q equal         40000
+# DT: number of KMC steps
+variable DT equal    2
+# ABS_TOL: precision needed for hitting output times
+variable ABS_TOL equal    .01
+# Name of output stitch file
+variable OUT universe            reset_equiaxed.st
+
+
+seed		 ${SEED}
+app_style  potts/neighonly ${Q}
+dimension	 3
+boundary n n p
+
+lattice		 sc/26n 1.0
+region		 box block 0 200 0 200 0 1
+create_box	 box
+create_sites     box
+
+# Randomize site values
+set site range 1 ${Q}
+
+sweep		 raster
+sector yes
+diag_style       energy
+temperature	 ${T}
+stats            1.0
+
+# Do run before dump
+run             ${DT}
+
+# dump stitch file; write current state but with time=0.0
+reset_time   0.0
+dump         dump.id stitch 1 ${OUT} site
+dump_one     dump.id

@@ -23,7 +23,9 @@ keyword = {value} or {basis} :l
     nvalue = specific value to set all created sites to
   {basis} values = M nvalue
     M = which basis site (see asterisk form below)
-    nvalue = specific value to set all created basis sites to :pre
+    nvalue = specific value to set all created basis sites to 
+  {global} values = Xfull Yfull Zfull
+    XYZ full = extent of global lattice to generate site IDs from :pre
 :ule
 
 [Examples:]
@@ -31,6 +33,11 @@ keyword = {value} or {basis} :l
 create_sites box
 create_sites region surf value site 1
 create_sites box value i2 0 basis 1 1 basis 2* 2 :pre
+
+boundary n n n
+lattice sc/26n 1.0
+create_box box block 101 200.1 1001 1200.1 301 400.1
+create_sites box global 1000 2000 1000 :pre
 
 [Description:]
 
@@ -54,24 +61,30 @@ applications, a site is like a particle.  It moves and has a dynamic
 neighborhood of nearby particles with which it interacts.
 
 This command generates the set of lattice points that fall within the
-simulation box.  For any periodic dimension, as specified by the
-"boundary"_boundary.html command, the simulation box size must be an
-integer multiple of the lattice constant, to insure consistent
-placement of sites near periodic boundaries.  SPPARKS is careful to
-put exactly one site at a periodic boundary (on either side of the
-box), not zero or two.  For non-periodic dimensions, no checking near
-boundaries is done; if the point is inside or on the boundary, it is a
-site.  The one exception is that points that lie exactly on the upper
-boundary (in a non-periodic dimension) are considered to be outside
-the box.  Thus in non-periodic dimensions you may need to tweak the
+simulation box.  For any periodic dimension as specified by the
+"boundary"_boundary.html command, the origin of the lattice is the
+lower box boundary (in that dimension).  Thus coordinates begin at the
+lower boundary and increment by the lattice constant (in that
+dimension).  The simulation box size must be an integer multiple of
+the lattice constant, to insure consistent placement of sites near
+periodic boundaries.  SPPARKS is careful to put exactly one site on a
+periodic boundary (on the lower side of the box), not zero or two.
+
+For non-periodic dimensions, the origin of the lattice is 0.0 (in that
+dimension).  Thus coordinates begin at 0.0 and increment in both
+directions.  Only coordinate inside the simulation box become sites.
+If a lattice point is inside or on a lower boundary (in that
+dimension), it is a site.  Likewise if a lattice point is outside or
+on an upper boundary (in that dimension) it is considered outside the
+box.  Thus for non-periodic dimensions you may need to tweak the
 simulation box size to get precisely the sites you want.
 
 For the {box} style, all lattice points that fall inside the
 simulation box are stored as sites, as described in the preceding
-paragraph.  For the {region} style, a lattice point must additionally
+paragraphs.  For the {region} style, a lattice point must additionally
 be consistent with the region volume to be stored as a site.  Note
-that a region can be specified so that its volume is either inside or
-outside a geometric boundary.
+that a region can be specified so that its volume is inside or outside
+a box boundary.
 
 For on-lattice applications, after sites have been created, a neighbor
 list is also generated for each site, as defined by each "lattice
@@ -80,18 +93,41 @@ a central site, with which it interacts in the sense defined by an
 application.  If the simulation box is periodic in a dimension, the
 neighbors of a central site may include sites on the other side of the
 box.  This will not be the case for a non-periodic dimension.  If some
-sites do not exist, e.g. when using the {region} style, then some
+sites do not exist, e.g. when using the {region} style, then those
 sites will not have a complete set of neighbors.
 
 :line
 
 SPPARKS attempts to create sites with consecutive IDs from 1 to N,
 where N is the total number of sites that fill the simulation box.
-The numbering is the same, independent of the number of processors.
-Note that if the simulation box is non-periodic or the {region} style
-is used, some sites may not exist, so the site IDs will not typically
-be contiguous.  I.e. the largest ID will be greater than the number of
-created sites.
+But it cannot always do this.  In these scenarios consecutive IDs
+should be produced:
+
+{style} = box and the simulation box is fully periodic :ulb,l
+
+style = box, the simulation box is fully periodic or non-periodic (in
+one or more dimensions), a simple regular lattice is used, namely line
+(line/2n) for 1d models, square (sq/4n or sq/8n) for 2d, or simple
+cubic (sc/6n or sc/26n) for 3d, and the {global} keyword is not used
+:l,ule
+
+In the 2nd scenario the site IDs will vary fastest in x, then in y,
+and slowest in z.  So it easy to use another program to generate
+values on a regular lattice associated with the correct IDs.
+
+In all other cases, the site IDs may not be consecutive (1 to N).
+In particular, they may not be consecutive in any of these cases:
+
+{style} = region :ulb,l
+
+the {global} keyword is used :l
+
+the simulation box is non-periodic (in one or more dimensions) and the
+lattice is not one of the simple regular lattices listed above for 1d,
+2d, or 3d :l,ule
+
+Regardless of what the site IDs are, they will be the same independent
+of the number of processors used to run the simulation.
 
 Depending on the "application"_app_style.html, each site stores zero
 of more integer and floating-point values.  By default these are set
@@ -125,12 +161,167 @@ sites from 1 to n (inclusive).  A trailing asterisk means all sites
 from n to N (inclusive).  A middle asterisk means all sites from m to
 n (inclusive).
 
+:line
+
+The {global} keyword only affects generation of site IDs.  It can only
+be used for on-lattice applications, for {style} = box, and for simple
+regular lattices.  The latter requirement means lattice = line
+(line/2n) for 1d models, square (sq/4n or sq/8n) for 2d, or simple
+cubic (sc/6n or sc/26n) for 3d.
+
+It is useful when a series of SPPARKS simulations are being run on a
+global lattice of sites that is larger than the simulation box for an
+individual simulation, e.g. in an additive manufacturing model.  In
+this scenario, the per-site values used to initialize a simulation are
+typically read from a file (see the "read_sites"_read_sites.html or
+"set file"_set.html commands) and the per-site values generated by the
+simulation are archived to a file (see the "dump hdf5"_dump.html
+command).  In both cases the archive file contains sites for the
+entire global lattice and is accessed by site IDs.  This command
+allows an individual SPPARKS simulation to generate site IDs that
+match those in the file for the global lattice.
+
+The {Xfull}, {Yfull}, {Zfull} values are the size of the global
+lattice.  Its site IDs are assumed to run from 1 to N =
+Xfull*Yfull*Zfull.  Note that for a 2d model, Zfull = 1 is required.
+As described above for SPPARKS site IDs on a regular lattice, the
+global IDs vary fastest in x, then y, and slowest in z.
+
+To use the {global} option correctly, the simulation box created by
+the "create_box"_create_box.html command must be specified
+appropriately.
+
+If a dimension of the global lattice is intended to be non-periodic,
+because a single SPPARKS simulation will only model a portion of that
+dimension, then SPPARKS must set it to be non-periodic via the
+"boundary"_boundary.html command.  And the lo/hi box boundaries in
+that dimension, as specified by the "create_box"_create_box.html
+command, should be set so that lattice sites are generated that
+correspond to the desired portion of the global lattice.  
+
+For example, imagine a global lattice that is 1000x2000 for a 2d
+simulation with both dimensions non-periodic.  And you wish SPPARKS to
+model the lower left 100x100 corner of that global lattice.
+Assume the x and y lattice spacings are 1.0.
+
+The following commands would setup the sites for this simulation:
+
+dimension	 2
+boundary         p p p
+lattice		 sq/4n 1.0
+region		 box block 1 100.1 1 100.1 -0.5 0.5
+create_box	 box
+create_sites	 box global 1000 2000 1 :pre
+
+Picture the global lattice as a 1000x2000 array of sites numbered with
+IDs ranging from 1 to 2 million, where the lower left corner has ID =
+1, and the IDs increase fastest in x, and slowest in y.  SPPARKS will
+create sites with coordinates and IDs corresponding to the lower left
+100x100 corner of that array.  I.e. the sites in the 100x100 SPPARKS
+model will be ordered as follows:
+
+1,2,3, ..., 100                 # first row of x sites
+1001,1002,1003, ... 1100        # next row of x sites
+...
+99001,99002,99003, ... 99100    # last row of x sites :pre
+
+Note the need to use {xhi} = {yhi} = 100.1, instead of 100.0, in the
+"create_box" command for the upper bound of non-periodic dimensions.
+This is because, as explained above, a non-periodic box will not
+generate sites that lie exactly on the upper-boundary (in any
+dimension).  So if 100.0 were used, the size of the SPPARKS domain in
+that dimension would be one less than desired.
+
+Similarly, the same commands with this substitution:
+
+region		 box block 901 1000.1 901 1000.1 -0.5 0.5 :pre
+
+would model the upper right corner of the global lattice.  The site at
+the lower left corner of the 100x100 SPPARKS simulation would have ID
+= 1900901; the upper-right corner site would have ID = 2 million.
+
+Finally, if a dimension of the global lattice is intended to be
+periodic, then SPPARKS must set it to be periodic via the
+"boundary"_boundary.html command and each SPPARKS simulation must span
+that entire dimension.  As described above, the simulation box size in
+that dimension must thus be N lattice units in size, where N = Nfull
+for that dimension.  For example, if y is a periodic dimension, then
+the ylo and yhi parameters in the "create_box"_create_box.html command
+must be such that yhi-ylo = Yfull.  Any pair of ylo,yhi values that
+satisfy this constraint can be used.
+
+Here are more examples of several sets of SPPARKS create_sites
+commands using the {global} keyword, for 2d global lattices of 2
+different sizes, with either periodic or non-periodic boundaries.
+
+# global = 10x10, periodic in both x and y
+# SPPARKS models 100 sites, must model entire global lattice
+dimension	 2
+boundary         p p p
+lattice		 sq/4n 1.0
+region		 box block 0 10 0 10 -0.5 0.5
+create_box	 box
+create_sites	 box global 10 10 1 :pre
+
+# global = 10x10, non-periodic in both dims
+# SPPARKS models 25 sites = upper-left quarter
+dimension	 2
+boundary         n n p
+lattice		 sq/4n 1.0
+region		 box block 1 5.1 6 10.1 -0.5 0.5
+create_box	 box
+create_sites	 box global 10 10 1 :pre
+
+# global = 10x10, non-periodic in x, periodic in y
+# SPPARKS models 50 sites = right half, must model entire y dim
+dimension	 2
+boundary         n p p
+lattice		 sq/4n 1.0
+region		 box block 6 10.1 0 10 -0.5 0.5
+create_box	 box
+create_sites	 box global 10 10 1 :pre
+
+# global = 10x10, periodic in x, non-periodic in y
+# SPPARKS models 50 sites = middle section, must model entire x dim
+dimension	 2
+boundary         p n p
+lattice		 sq/4n 1.0
+region		 box block 0 10 3 7.1 -0.5 0.5
+create_box	 box
+create_sites	 box global 10 10 1 :pre
+
+# global = 100x100, non-periodic in both dims
+# SPPARKS models 100 sites = upper left corner
+dimension	 2
+boundary         n n p
+lattice		 sq/4n 1.0
+region		 box block 1 10.1 91 100.1 -0.5 0.5
+create_box	 box
+create_sites	 box global 100 100 1 :pre
+
+# global = 100x100, non-periodic in both dims
+# SPPARKS models 100 sites = lower middle section
+dimension	 2
+boundary         n n p
+lattice		 sq/4n 1.0
+region		 box block 45.0 54.1 1 10.1 -0.5 0.5
+create_box	 box
+create_sites	 box global 100 100 1 :pre
+
+:line
+
 [Restrictions:]
 
 The "app_style"_app_style.html command must be used to define an
 application before using the create_sites command.  The
 "create_box"_create_box.html command must be used to to define the
 simulation box before using the create_sites_command.
+
+As explained above, the {global} keyword only affects generation of
+site IDs.  It can only be used for on-lattice applications, for
+{style} = box, and for simple regular lattices.  The latter
+requirement means lattice = line (line/2n) for 1d models, square
+(sq/4n or sq/8n) for 2d, or simple cubic (sc/6n or sc/26n) for 3d.
 
 [Related commands:]
 

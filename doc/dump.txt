@@ -14,11 +14,11 @@ dump command :h3
 dump dump-ID style delta filename field1 field2 ... :pre
 
 dump-ID = user-assigned name for the dump :ulb,l
-style = {text} or {sites} or {vtk} or {image} :l
+style = {text} or {sites} or {vtk} or {stitch} or {image} :l
 delta = time increment between dumps (seconds) :l
 filename = name of file to dump snapshots to :l
 fields = list of arguments for a particular style :l
-  {text} or {sites} or {vtk} fields =
+  {text} or {sites} or {stitch} or {vtk} fields =
      {id} or {site} or {x} or {y} or {z} or
      {energy} or {propensity} or {iN} or {dN}
   {image} fields = discussed on "dump image"_dump_image.html doc page :pre
@@ -30,16 +30,17 @@ dump 1 text 0.25 tmp.dump
 dump 1 text 1.0 my.dump id site x y z
 dump 1 sites 1.0 my.sites.* id site i2 i3
 dump 1 vtk 1.0 my.vkt.* site
+dump 1 stitch 1.0 stitch_file.st site
 dump mydump text 5.0 snap.ising id site energy i1 :pre
 
 [Description:]
 
-The {text}, {sites}, and {vtk} styles dump a snapshot of site values
-to one or more files at time intervals of {delta} during a simulation.
-The {image} style creates a JPG or PPM image file of the site
-configuration every at time intervals of {delta}, as discussed on the
-"dump image"_dump_image.html doc page.  The remainder of this page
-refers to the {text}, {sites}, and {vtk} styles.
+The {text}, {sites}, {vtk}, and {stitch} styles dump a snapshot of site
+values to one or more files at time intervals of {delta} during a
+simulation.  The {image} style creates a JPG or PPM image file of the
+site configuration every at time intervals of {delta}, as discussed on
+the "dump image"_dump_image.html doc page.  The remainder of this page
+refers to the {text}, {sites}, {vtk}, and {stitch} styles.
 
 The {text} style dump file is in the format of a "LAMMPS dump
 file"_lammps which can thus be read-in by the "Pizza.py
@@ -53,6 +54,22 @@ used as restart files to continue a simulation, using the
 The {vkt} style dump file is in the VTI format that can be read by
 various visualization programs, including
 "ParaView"_http://www.paraview.org.
+
+The {stitch} style dump file has an sqlite format.  In principle, any tool or
+library which reads sqlite files should be able to read a {stitch} file but
+that is not recommended; for performance reasons, the {stitch} python or c-api
+should be used for reading and writing stitch files; SPPARKS reads {stitch}
+files using the "set stitch"_set.html command.  Only a filename representing a
+single file (no wildcards) can be used with this style.  A time stamp and
+associated SPPARKS simulation time for each snapshot is written into the file.  
+
+Note that styles {stitch} can only be used for simple regular lattices.
+This means lattice = line (line/2n) for 1d models, square (sq/4n or
+sq/8n) for 2d, or simple cubic (sc/6n or sc/26n) for 3d.  See the
+"create_sites"_create_sites.html command for more details.  Many of
+the "dump_modify"_dump_modify options are ignored for this styles;
+snapshots for the entire lattice are written to the file.  More info
+about the STITCH dump files will be added to this doc page later.
 
 As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file

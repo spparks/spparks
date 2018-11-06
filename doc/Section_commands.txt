@@ -327,6 +327,7 @@ full description:
 "membrane"_app_membrane.html,
 "potts"_app_potts.html,
 "potts/additive"_app_potts_additive.html,
+"potts/am/weld"_app_potts_am_weld.html,
 "potts/grad"_app_potts_grad.html,
 "potts/neigh"_app_potts.html,
 "potts/neighonly"_app_potts.html,

@@ -5,7 +5,7 @@
 
    Copyright (2008) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level SPPARKS directory.
@@ -23,7 +23,7 @@ namespace RASTER {
 
 namespace pool_shape {
 
-   enum ShapeType {undefined=-1, ellipsoid=0};
+   enum ShapeType {undefined=-1, ellipsoid=0, teardrop=1};
 
    class PoolShape {
       public:
@@ -80,12 +80,14 @@ class Pass {
    private:
       DIR _dir;
       double _distance, _speed;
+      bool _init_heading;
    public:
-      Pass(): _dir(DIR::NONE), _distance(-1), _speed(-1) {}
-      Pass(DIR d, double distance, double speed): _dir(d), _distance(distance), _speed(speed) {}
+      Pass(): _dir(DIR::NONE), _distance(-1), _speed(-1), _init_heading(false) {}
+      Pass(DIR d, double distance, double speed, bool init_heading=false): _dir(d), _distance(distance), _speed(speed), _init_heading(init_heading) {}
       DIR get_dir() const { return _dir; }
       double get_distance() const { return _distance; }
       double get_speed() const { return _speed; }
+      bool get_heading() const { return _init_heading; }
 };
 
 class TransversePass {
@@ -101,7 +103,7 @@ class TransversePass {
 class RectangularLayer {
 
    private:
-      point _start; 
+      point _start;
       double _pool_position[3];
       DIR _dir;
       double _speed;
@@ -114,11 +116,11 @@ class RectangularLayer {
 
    public:
       RectangularLayer()
-      : _start(), _pool_position{0,0,0}, _dir(X), _speed(0.0), _pass_distance(0.0), _overpass(0.0), 
-        _transverse_pass_distance(0.0), _transverse_pass_increment(0.0), 
+      : _start(), _pool_position{0,0,0}, _dir(X), _speed(0.0), _pass_distance(0.0), _overpass(0.0),
+        _transverse_pass_distance(0.0), _transverse_pass_increment(0.0),
         _pass_distance_traveled(0.0), _transverse_pass_distance_traveled(0.0),
-        _num_pass(0), _serpentine(false), _on_serpentine(false), 
-        c(1.0), s(0.0) {} 
+        _num_pass(0), _serpentine(false), _on_serpentine(false),
+        c(1.0), s(0.0) {}
 
       /*
        * NOTE
@@ -127,20 +129,21 @@ class RectangularLayer {
        */
       RectangularLayer
          (
-          const point& start, 
-          DIR dir,  
-          double speed, 
-          double pass_distance, 
-          double overpass, 
-          double transverse_pass_distance, 
+          const point& start,
+          DIR dir,
+          double speed,
+          double pass_distance,
+          double overpass,
+          double transverse_pass_distance,
           double transverse_pass_increment,
-          bool serpentine=false
+          bool serpentine=false,
+          bool on_serpentine=false
          )
-      : _start(start), _pool_position{0,0,0}, _dir(dir), _speed(speed), _pass_distance(pass_distance), _overpass(overpass), 
-        _transverse_pass_distance(transverse_pass_distance), _transverse_pass_increment(transverse_pass_increment), 
+      : _start(start), _pool_position{0,0,0}, _dir(dir), _speed(speed), _pass_distance(pass_distance), _overpass(overpass),
+        _transverse_pass_distance(transverse_pass_distance), _transverse_pass_increment(transverse_pass_increment),
         _pass_distance_traveled(0.0), _transverse_pass_distance_traveled(0.0),
-        _num_pass(0), _serpentine(serpentine), _on_serpentine(false),
-        c(1.0), s(0.0) 
+        _num_pass(0), _serpentine(serpentine), _on_serpentine(on_serpentine),
+        c(1.0), s(0.0)
          {
             // Compute 'cos(theta)' and 'sin(theta)' based upon input pass orientation
             switch(dir){
@@ -155,7 +158,7 @@ class RectangularLayer {
                  // throw exception here
             }
 
-         } 
+         }
 
       DIR get_dir() const { return _dir; }
       double get_speed() const { return _speed; }
@@ -173,7 +176,7 @@ class RectangularLayer {
             // Update distance traveled
             _pass_distance_traveled+=dx;
 
-            // Increment pool position; pay attention to whether or not we are on 
+            // Increment pool position; pay attention to whether or not we are on
             //    a serpentine 'pass'
             if(_on_serpentine) _pool_position[0]-=dx; else _pool_position[0]+=dx;
 
@@ -189,10 +192,11 @@ class RectangularLayer {
             _pass_distance_traveled=0.0;
 
             // If serpentine, then set direction for serpentine path reversal at odd intervals
-            if(_serpentine)  _on_serpentine = (1 ==_num_pass%2);
+            if (_serpentine) _on_serpentine = !_on_serpentine;
 
             // If NOT serpentine, reset  pool_position for travel along pool path
-            if(!_serpentine) _pool_position[0]=0.0;
+            if (!_serpentine) _pool_position[0] = 0.0;
+
             // If serpentine, we need to subtract the overpass from pool_position, so that
             // we start at the equivalent "_start" everytime
             else if (_on_serpentine)  _pool_position[0]-=_overpass;
@@ -209,7 +213,7 @@ class RectangularLayer {
       }
 
       /*
-       * Computes current pool position with respect to 'spparks' 
+       * Computes current pool position with respect to 'spparks'
        * global coordinate system
        *
        */
@@ -218,7 +222,7 @@ class RectangularLayer {
          double d=_pool_position[0];
          double t=_pool_position[1];
          double dz=0.0;
-         
+
          // Transform above distance traveled to 'spparks' coordinate system
          double dr[]={0.0,0.0,0.0};
          dr[0]= d*c-t*s;
@@ -235,7 +239,7 @@ class RectangularLayer {
 
       /*
        * Compute position of spparks site relative to pool position; Result
-       * is expressed with respect to pool local coordinates.  Pool is 
+       * is expressed with respect to pool local coordinates.  Pool is
        * always assumed to move along its local x-coordinate axis.
        *
        * xyz: spparks site coordinates triplet (x,y,z)
@@ -257,7 +261,7 @@ class RectangularLayer {
          double yp=-x*s+y*c;
          double zp=z;
 
-         // If on serpentine pass, then negate to properly orient site with respect to 
+         // If on serpentine pass, then negate to properly orient site with respect to
          //    pool rotated 180 degrees
          if(_on_serpentine){
             xp=-xp;
@@ -274,11 +278,11 @@ class Pattern {
       vector<int> _layer_ids;
       double _z0, _dz, _z;
       int _current_layer_index=0;
-      
+
    public:
-      Pattern() : _num_layers(0), _layer_ids(), _z0(0), _dz(0), _z(0.0), _current_layer_index(0) { } 
-      Pattern(const vector<int> layer_ids, double z0, double dz) : 
-         _num_layers(layer_ids.size()), _layer_ids(layer_ids), _z0(z0), _dz(dz), _z(z0), _current_layer_index(0) { } 
+      Pattern() : _num_layers(0), _layer_ids(), _z0(0), _dz(0), _z(0.0), _current_layer_index(0) { }
+      Pattern(const vector<int> layer_ids, double z0, double dz) :
+         _num_layers(layer_ids.size()), _layer_ids(layer_ids), _z0(z0), _dz(dz), _z(z0), _current_layer_index(0) { }
 
       double get_layer_z_elevation() const { return _z; }
 
@@ -287,16 +291,16 @@ class Pattern {
          _current_layer_index=1;
          // Initialize current elevation
          _z=_z0;
-         // return beginning index; 
+         // return beginning index;
          return _layer_ids[0];
       }
 
       int next() {
          int index;
          if(_num_layers==_current_layer_index) {
-            // Restart; 
+            // Restart;
             // Increment position to '1' since returning first value;
-            // return beginning index; 
+            // return beginning index;
             index=0;
             _current_layer_index=1;
 
@@ -323,4 +327,3 @@ class RotatedRectangularLayer {
    RotatedRectangularLayer(point<double> start, point<double> end, double angle, double start_offset,  double speed,  double overpass, double orthogonal_increment) {}
 };
 */
-

@@ -19,7 +19,7 @@
 </PRE>
 <UL><LI>dump-ID = user-assigned name for the dump 
 
-<LI>style = <I>text</I> or <I>sites</I> or <I>vtk</I> or <I>image</I> 
+<LI>style = <I>text</I> or <I>sites</I> or <I>vtk</I> or <I>stitch</I> or <I>image</I> 
 
 <LI>delta = time increment between dumps (seconds) 
 
@@ -27,7 +27,7 @@
 
 <LI>fields = list of arguments for a particular style 
 
-<PRE>  <I>text</I> or <I>sites</I> or <I>vtk</I> fields =
+<PRE>  <I>text</I> or <I>sites</I> or <I>stitch</I> or <I>vtk</I> fields =
      <I>id</I> or <I>site</I> or <I>x</I> or <I>y</I> or <I>z</I> or
      <I>energy</I> or <I>propensity</I> or <I>iN</I> or <I>dN</I>
   <I>image</I> fields = discussed on <A HREF = "dump_image.html">dump image</A> doc page 
@@ -40,16 +40,17 @@
 dump 1 text 1.0 my.dump id site x y z
 dump 1 sites 1.0 my.sites.* id site i2 i3
 dump 1 vtk 1.0 my.vkt.* site
+dump 1 stitch 1.0 stitch_file.st site
 dump mydump text 5.0 snap.ising id site energy i1 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>text</I>, <I>sites</I>, and <I>vtk</I> styles dump a snapshot of site values
-to one or more files at time intervals of <I>delta</I> during a simulation.
-The <I>image</I> style creates a JPG or PPM image file of the site
-configuration every at time intervals of <I>delta</I>, as discussed on the
-<A HREF = "dump_image.html">dump image</A> doc page.  The remainder of this page
-refers to the <I>text</I>, <I>sites</I>, and <I>vtk</I> styles.
+<P>The <I>text</I>, <I>sites</I>, <I>vtk</I>, and <I>stitch</I> styles dump a snapshot of site
+values to one or more files at time intervals of <I>delta</I> during a
+simulation.  The <I>image</I> style creates a JPG or PPM image file of the
+site configuration every at time intervals of <I>delta</I>, as discussed on
+the <A HREF = "dump_image.html">dump image</A> doc page.  The remainder of this page
+refers to the <I>text</I>, <I>sites</I>, <I>vtk</I>, and <I>stitch</I> styles.
 </P>
 <P>The <I>text</I> style dump file is in the format of a <A HREF = "http://lammps.sandia.gov">LAMMPS dump
 file</A> which can thus be read-in by the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py
@@ -63,6 +64,22 @@ used as restart files to continue a simulation, using the
 <P>The <I>vkt</I> style dump file is in the VTI format that can be read by
 various visualization programs, including
 <A HREF = "http://www.paraview.org">ParaView</A>.
+</P>
+<P>The <I>stitch</I> style dump file has an sqlite format.  In principle, any tool or
+library which reads sqlite files should be able to read a <I>stitch</I> file but
+that is not recommended; for performance reasons, the <I>stitch</I> python or c-api
+should be used for reading and writing stitch files; SPPARKS reads <I>stitch</I>
+files using the <A HREF = "set.html">set stitch</A> command.  Only a filename representing a
+single file (no wildcards) can be used with this style.  A time stamp and
+associated SPPARKS simulation time for each snapshot is written into the file.  
+</P>
+<P>Note that styles <I>stitch</I> can only be used for simple regular lattices.
+This means lattice = line (line/2n) for 1d models, square (sq/4n or
+sq/8n) for 2d, or simple cubic (sc/6n or sc/26n) for 3d.  See the
+<A HREF = "create_sites.html">create_sites</A> command for more details.  Many of
+the <A HREF = "dump_modify">dump_modify</A> options are ignored for this styles;
+snapshots for the entire lattice are written to the file.  More info
+about the STITCH dump files will be added to this doc page later.
 </P>
 <P>As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file
