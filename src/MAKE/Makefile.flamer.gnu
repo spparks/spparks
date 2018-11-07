@@ -28,6 +28,7 @@ SHLIBFLAGS =	-shared
 
 SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG -DSPPARKS_BIGBIG
 SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG -DSTITCH_PARALLEL
+SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG 
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings
@@ -37,9 +38,9 @@ SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG -DSTITCH_PARALLEL
 MPI_INC =       -I/usr/include/mpich-x86_64
 MPI_PATH =      -L${MPI_HOME}/lib 
 MPI_LIB =	-lmpich
-#MPI_INC = 
-#MPI_PATH =
-#MPI_LIB =
+MPI_INC = 
+MPI_PATH =
+MPI_LIB =
 
 # JPEG library, only needed if -DLAMMPS_JPEG listed with LMP_INC
 # INC = path for jpeglib.h
@@ -50,17 +51,27 @@ JPG_INC = -I/usr/include
 JPG_PATH = -L/usr/lib64	
 JPG_LIB = -ljpeg
 
-STITCH_INC = -I/home/jamitch/local/stitch/include
-STITCH_PATH = -L/home/jamitch/local/stitch/lib
-STITCH_LIB = -lstitch -ldl -lpthread
+#STITCH_INC = -I/home/jamitch/local/stitch/include
+#STITCH_PATH = -L/home/jamitch/local/stitch/lib
+#STITCH_LIB = -lstitch -ldl -lpthread
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
 # no need to edit this section
 
-EXTRA_INC = $(SPK_INC) $(MPI_INC) $(JPG_INC) $(STITCH_INC)
-EXTRA_PATH = $(MPI_PATH) $(JPG_PATH) $(STITCH_PATH)
-EXTRA_LIB = $(STITCH_LIB) $(MPI_LIB) $(JPG_LIB)
+include	Makefile.package.settings
+include	Makefile.package
+
+EXTRA_INC = $(SPK_INC) $(PKG_INC) $(MPI_INC) $(JPG_INC) $(PKG_SYSINC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(JPG_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+EXTRA_CPP_DEPENDS = $(PKG_CPP_DEPENDS)
+EXTRA_LINK_DEPENDS = $(PKG_LINK_DEPENDS)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
 
 # Link target
 
@@ -87,5 +98,10 @@ shlib:	$(OBJ)
 
 # Individual dependencies
 
-DEPENDS = $(OBJ:.o=.d)
-include $(DEPENDS)
+depend : fastdep.exe $(SRC)
+	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
+
+fastdep.exe: ../DEPEND/fastdep.c
+	cc -O -o $@ $<
+
+sinclude .depend
