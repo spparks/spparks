@@ -65,9 +65,7 @@ The following commands must be used to describe rastering:
 "am_cartesian_layer"_am_cartesian_layer.html: Define the combination of passes and transverse_passes that comprise a layer. Limited to passes aligned along the +/-X or Y axes. 
 "am_pattern"_am_pattern.html: Define the combination of layers that comprise a pattern. :tb(s=:)
 
-{NOTE}: All rastering commands documented and linked through
-"potts_additive"_app_potts_additive.html are required.  However, because
-{potts/am/weld} is intended for {2D} simulations, only the first layer, as
+{NOTE}: Because {potts/am/weld} is intended for {2D} simulations, only the first layer, as
 specified in the {am_pattern} command, is used and {z_increments} are ignored.
 The examples/potts_additive directory has input files which illustrate how to
 use rastering commands.  It is expected that this app will be extended to
