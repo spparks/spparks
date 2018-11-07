@@ -292,7 +292,7 @@ applications.
 
 "add_reaction"_add_reaction.html,
 "add_species"_add_species.html,
-"am_cartesian_layer"_am_cartersian_layer.html,
+"am_cartesian_layer"_am_cartesian_layer.html,
 "am_pass"_am_pass.html,
 "am_pattern"_am_pattern.html,
 "am_transverse_pass"_am_transverse_pass.html,
