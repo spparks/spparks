@@ -1,17 +1,60 @@
 # SPPARKS multiple-machine Makefile
 
-SHELL = /bin/sh
+SHELL = /bin/bash
+PYTHON = python
+
 #.IGNORE:
 
 # Definitions
 
 ROOT =	spk
 EXE =	$(ROOT)_$@
+ARLIB =  libspparks_$@.a
+SHLIB =	 libspparks_$@.so
+ARLINK = libspparks.a
+SHLINK = libspparks.so
+
+OBJDIR =   Obj_$@
+OBJSHDIR = Obj_shared_$@
+
 SRC =	$(wildcard *.cpp)
 INC =	$(wildcard *.h)
 OBJ = 	$(SRC:.cpp=.o)
 
-# Targets
+SRCLIB = $(filter-out main.cpp,$(SRC))
+OBJLIB = $(filter-out main.o,$(OBJ))
+
+# Command-line options for mode: exe (default), shexe, lib, shlib
+
+mode = exe
+objdir = $(OBJDIR)
+
+ifeq ($(mode),shexe)
+objdir = $(OBJSHDIR)
+endif
+
+ifeq ($(mode),lib)
+objdir = $(OBJDIR)
+endif
+
+ifeq ($(mode),shlib)
+objdir = $(OBJSHDIR)
+endif
+
+# Package variables
+
+PACKAGE = stitch
+PACKLIB = stitch
+PACKINT = stitch
+
+PACKALL = $(PACKAGE)
+
+PACKAGEUC = $(shell echo $(PACKAGE) | tr a-z A-Z)
+
+YESDIR = $(shell echo $(@:yes-%=%) | tr a-z A-Z)
+NODIR  = $(shell echo $(@:no-%=%) | tr a-z A-Z)
+LIBDIR = $(shell echo $(@:lib-%=%))
+LIBUSERDIR = $(shell echo $(@:lib-user-%=%))
 
 # List of all targets
 
@@ -19,35 +62,81 @@ help:
 	@echo ''
 	@echo 'make clean-all           delete all object files'
 	@echo 'make clean-machine       delete object files for one machine'
-	@echo 'make tar                 spk_src.tar.gz of src dir'
-	@echo 'make tar-full            spk_full.tgz of repository trunk'
-	@echo 'make makelib             create Makefile.lib for static library build'
-	@echo 'make makeshlib           create Makefile.shlib for shared library build'
-	@echo 'make makelist            create Makefile.list used by old makes'
-	@echo 'make -f Makefile.lib machine      build SPPARKS as static library for machine'
-	@echo 'make -f Makefile.shlib machine    build SPPARKS as shared library for machine'
-	@echo 'make -f Makefile.list machine     build SPPARKS from explicit list of files'
-	@echo 'make stubs               build dummy MPI library in STUBS'
+	@echo 'make mpi-stubs           build dummy MPI library in STUBS'
 	@echo 'make install-python      install SPPARKS wrapper in Python'
+	@echo 'make tar                 create spl_src.tar.gz of src dir and packages'
 	@echo ''
-	@echo 'make machine             build SPPARKS where machine is one of:'
+	@echo 'make package             list available packages'
+	@echo 'make yes-package         install a single pgk in src dir'
+	@echo 'make no-package          remove a single pkg from src dir'
+	@echo 'make yes-all             install all pgks in src dir'
+	@echo 'make no-all              remove all pkgs from src dir'
+	@echo ''
+	@echo 'make package-status (ps)  status of all packages'
+	@echo 'make package-update (pu)  replace src files with package files'
+	@echo 'make package-overwrite    replace package files with src files'
+	@echo 'make package-diff (pd)    diff src files against package file'
+	@echo ''
+	@echo 'make lib-package         help for download/build/install a package library'
+	@echo 'make lib-package args="..."    download/build/install a package library'
+	@echo ''
+	@echo 'make machine             build SPPARKS for machine'
+	@echo 'make mode=lib machine    build SPPARKS as static lib for machine'
+	@echo 'make mode=shlib machine  build SPPARKS as shared lib for machine'
+	@echo 'make mode=shexe machine  build SPPARKS as shared exe for machine'
+	@echo ''
+	@echo 'machine is one of these from src/MAKE:'
 	@echo ''
 	@files="`ls MAKE/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
 
-# Build the code
+# Build SPPARKS in one of 4 modes
+# exe =   exe with static compile in Obj_machine (default)
+# shexe = exe with shared compile in Obj_shared_machine
+# lib =   static lib in Obj_machine
+# shlib = shared lib in Obj_shared_machine
 
 .DEFAULT:
+	@if [ $@ = "serial" -a ! -f STUBS/libmpi_stubs.a ]; \
+	  then $(MAKE) mpi-stubs; fi
 	@test -f MAKE/Makefile.$@
-	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
+	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
 	@$(SHELL) Make.sh style
-	@cp -p *.cpp *.h Obj_$@
-	@cp MAKE/Makefile.$@ Obj_$@/Makefile
-	@cd Obj_$@; \
+	@echo 'Compiling SPPARKS for machine $@'
+	@if [ -f MAKE/Makefile.$@ ]; \
+	  then cp MAKE/Makefile.$@ $(objdir)/Makefile; fi
+	@if [ ! -e Makefile.package ]; \
+	  then cp Makefile.package.empty Makefile.package; fi
+	@if [ ! -e Makefile.package.settings ]; \
+	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
+	@cp Makefile.package Makefile.package.settings $(objdir)
+	@cd $(objdir); rm -f .depend; \
+	$(MAKE) $(MFLAGS) "SRC = $(SRC)" "INC = $(INC)" depend || :
+ifeq ($(mode),exe)
+	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
 	  "EXE = ../$(EXE)" ../$(EXE)
-	@if [ -d Obj_$@ ]; then cd Obj_$@; rm *.cpp *.h Makefile*; fi
+endif
+ifeq ($(mode),shexe)
+	@cd $(objdir); \
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" \
+	  "EXE = ../$(EXE)" ../$(EXE)
+endif
+ifeq ($(mode),lib)
+	@cd $(objdir); \
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" "SHFLAGS =" \
+	  "EXE = ../$(ARLIB)" lib
+	@rm -f $(ARLINK)
+	@ln -s $(ARLIB) $(ARLINK)
+endif
+ifeq ($(mode),shlib)
+	@cd $(objdir); \
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
+	  "EXE = ../$(SHLIB)" shlib
+	@rm -f $(SHLINK)
+	@ln -s $(SHLIB) $(SHLINK)
+endif
 
 # Remove machine-specific object files
 
@@ -61,47 +150,122 @@ clean-all:
 clean-%:
 	rm -rf Obj_$(@:clean-%=%)
 
-# Create a tarball of src dir
-
-tar:
-	@cd STUBS; make clean
-	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
-	  src/Make* src/MAKE src/*.cpp src/*.h src/STUBS \
-	  --exclude=*/.svn
-	@cd STUBS; make
-	@echo "Created $(ROOT)_src.tar.gz"
-
-# Create a tarball of the latest repository copy
-
-tar-full:
-	@mkdir tmp_tardir; cd tmp_tardir; \
-	svn export svn+ssh://development.sandia.gov/usr/local/svn/spparks; \
-	tar -zcvf ../spk_full.tgz spparks/trunk; \
-	cd ..; rm -rf tmp_tardir
-
 # Make MPI STUBS library
 
-stubs:
-	@cd STUBS; make clean; make
+mpi-stubs:
+	@cd STUBS; $(MAKE) clean; $(MAKE)
 
-# Create Makefile.lib, Makefile.shlib, and Makefile.list
-
-makelib:
-	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh Makefile.lib
-
-makeshlib:
-	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh Makefile.shlib
-
-makelist:
-	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh Makefile.list
-
-# install LAMMPS shared lib and Python wrapper for Python usage
+# install SPPARKS shared lib and Python wrapper for Python usage
 
 install-python:
 	@python ../python/install.py
+
+# Create a tarball of src dir and packages
+
+tar:
+	@cd STUBS; $(MAKE) clean
+	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
+	  src/Make* src/Package.sh src/Install.sh \
+	  src/MAKE src/*.cpp src/*.h src/STUBS \
+	  $(patsubst %,src/%,$(PACKAGEUC)) \
+	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
+          --exclude=*/.svn
+	@cd STUBS; $(MAKE)
+	@echo "Created $(ROOT)_src.tar.gz"
+
+# Package management
+
+package:
+	@echo 'Avaialble ackages:' $(PACKAGE)
+	@echo ''
+	@echo 'make package                 list available packages'
+	@echo 'make yes-package             install a single pgk in src dir'
+	@echo 'make no-package              remove a single pkg from src dir'
+	@echo 'make yes-all                 install all pgks in src dir'
+	@echo 'make no-all                  remove all pkgs from src dir'
+	@echo ''
+	@echo 'make package-status (ps)  status of all packages'
+	@echo 'make package-update (pu)  replace src files with package files'
+	@echo 'make package-overwrite    replace package files with src files'
+	@echo 'make package-diff (pd)    diff src files against package file'
+
+yes-all:
+	@for p in $(PACKALL); do $(MAKE) yes-$$p; done
+
+no-all:
+	@for p in $(PACKALL); do $(MAKE) no-$$p; done
+
+yes-%:
+	@if [ ! -e Makefile.package ]; \
+	  then cp Makefile.package.empty Makefile.package; fi
+	@if [ ! -e Makefile.package.settings ]; \
+	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
+	@if [ ! -e $(YESDIR) ]; then \
+	  echo "Package $(@:yes-%=%) does not exist"; \
+	elif [ -e $(YESDIR)/Install.sh ]; then \
+	  echo "Installing package $(@:yes-%=%)"; \
+	  cd $(YESDIR); $(SHELL) Install.sh 1; cd ..; \
+	else \
+	  echo "Installing package $(@:yes-%=%)"; \
+	  cd $(YESDIR); $(SHELL) ../Install.sh 1; cd ..; \
+	fi;
+
+no-%:
+	@if [ ! -e $(NODIR) ]; then \
+	  echo "Package $(@:no-%=%) does not exist"; \
+	elif [ -e $(NODIR)/Install.sh ]; then \
+	  echo "Uninstalling package $(@:no-%=%)"; \
+	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; \
+	else \
+	  echo "Uninstalling package $(@:no-%=%)"; \
+	  cd $(NODIR); $(SHELL) ../Install.sh 0; cd ..; \
+        fi;
+
+# download/build/install a package library
+# update the timestamp on main.cpp to trigger a relink with "make machine"
+
+lib-%:
+	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
+	  echo "Installing lib $(@:lib-%=%)"; \
+	  ( cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args) ); \
+	elif [ -e ../lib/$(LIBUSERDIR)/Install.py ]; then \
+	  echo "Installing lib $(@:lib-user-%=%)"; \
+	  ( cd ../lib/$(LIBUSERDIR); $(PYTHON) Install.py $(args) ); \
+	else \
+	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
+	fi; touch main.cpp
+
+# status = list src files that differ from package files
+# update = replace src files with newer package files
+# overwrite = overwrite package files with newer src files
+# diff = show differences between src and package files
+# purge = delete obsolete and auto-generated package files
+
+package-status ps:
+	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p status; done
+#	@echo ''
+#	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p status; done
+
+package-update pu:
+	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p update; done
+#	@echo ''
+#	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p update; done
+
+package-overwrite:
+	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p overwrite; done
+#	@echo ''
+#	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p overwrite; done
+
+package-diff pd:
+	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p diff; done
+#	@echo ''
+#	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p diff; done
+
+package-purge: Purge.list
+	@echo 'Purging obsolete and auto-generated source files'
+	@for f in `grep -v '#' Purge.list` ;		\
+	    do test -f $$f && rm $$f && echo $$f || : ;		\
+	done
 
 # The test feature is not documented on purpose
 # Run the tests in directory ../test using Makefile.$(TESTMACHINE)
@@ -117,4 +281,3 @@ test:
 	echo "*** Testing file $$file ***" >> test.out;echo >> test.out; \
 	$(MAKE) "INPUTFILE = $$file" "EXE = ../src/$(ROOT)_$(TESTMACHINE)" test >> test.out 2>&1; \
 	done; rm Makefile
-
