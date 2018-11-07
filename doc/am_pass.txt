@@ -20,7 +20,7 @@ D = total pass distance
 speed = required keyword
 V = scan velocity of the pass in sites/Monte-Carlo-sweep
 init_heading = optional keyword
-B = {0} or {1} for a pass heading in the negative-to-positive direction or vice versa :ul
+B = {0} or {1} for a pass heading in the positive (default) or negative direction :ul
 
 [Examples:]
 
@@ -38,7 +38,7 @@ Note that the {dir} value specifies direction of motion and
 orientation of the molten pool during a pass.  The pool has its own
 local coordinate system {x,y} so that the pool axis {x} is always
 oriented along {dir d}. {init_heading} can be specified to start movement
-along {dir} axis from negative to positive ({0}; default) or in reverse.
+along {dir} axis ({0}; default) or in negative direction.
 
 The {distance} value {D} should typically be the size of the
 simulation box in the xy-plane.
@@ -54,8 +54,7 @@ computed as shown based upon parameters set in the
 
 [Restrictions:]
 
-This command can only be used as part of the "app_style
-potts/additive"_app_potts_additive.html application.
+This rastering command can be used with "app_style potts/am/weld"_app_potts_am_weld.html or "app_style potts/additive"_app_potts_additive.html.
 
 [Related commands:]
 
