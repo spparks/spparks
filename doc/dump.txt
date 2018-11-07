@@ -69,7 +69,7 @@ sq/8n) for 2d, or simple cubic (sc/6n or sc/26n) for 3d.  See the
 "create_sites"_create_sites.html command for more details.  Many of
 the "dump_modify"_dump_modify options are ignored for this styles;
 snapshots for the entire lattice are written to the file.  More info
-about the STITCH dump files will be added to this doc page later.
+about the {stitch} dump files will be added to this doc page later.
 
 As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file

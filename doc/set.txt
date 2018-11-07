@@ -106,9 +106,9 @@ See the "create_sites"_create_sites.html command for more details.
 The {fraction}, {loop}, {region} and {if} keywords are ignored for
 these styles; these styles set values for all sites in the system.
 
-For style {stitch}, a STITCH file is read to extract the values associated with
-the specified {label}.  The STITCH file can be created by the "dump
-stitch"_dump.html command or an external program.  A STITCH file can store
+For style {stitch}, a {stitch} file is read to extract values associated with
+specified {label}.  The {stitch} file can be created by the "dump
+stitch"_dump.html command or an external program.  A {stitch} file can store
 multiple values for the same site; one value for each different time; and a
 different number of time values can be associated with each site.  The
 specified {tstamp} value is used to determine which of the multiple time values
