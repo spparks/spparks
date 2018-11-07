@@ -1,0 +1,5 @@
+# Settings that the SPPARKS build will import when this package library is used
+
+stitch_SYSINC = 
+stitch_SYSLIB = -ldl -lpthread
+stitch_SYSPATH = 
