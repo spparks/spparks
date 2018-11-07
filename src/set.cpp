@@ -28,7 +28,10 @@
 #include "error.h"
 
 #include <map>
+
+#ifdef SPK_STITCH
 #include "stitch.h"
+#endif
 
 using namespace SPPARKS_NS;
 
@@ -110,6 +113,7 @@ void Set::command(int narg, char **arg)
       error->all(FLERR,"Illegal set command");
     dvalue = atof(arg[2]);
     iarg = 3;
+#ifdef SPK_STITCH
   } else if (strcmp(arg[1],"stitch") == 0) {
     if (narg < 4) error->all(FLERR,"Illegal set command");
     rhs = STITCH;
@@ -120,6 +124,7 @@ void Set::command(int narg, char **arg)
     tstamp = new char[n];
     strcpy(tstamp,arg[3]);
     iarg = 4;
+#endif
   } else if (strcmp(arg[1],"bfile") == 0) {
     if (narg < 3) error->all(FLERR,"Illegal set command");
     rhs = BFILE;
@@ -657,9 +662,7 @@ void Set::set_range(int lhs, int rhs)
    displace site coordinates - NOT YET implemented
 ------------------------------------------------------------------------- */
 
-void Set::set_displace(int lhs, int rhs)
-{
-}
+void Set::set_displace(int lhs, int rhs) {}
 
 /* ----------------------------------------------------------------------
    set sites from values in stitch file
@@ -667,6 +670,8 @@ void Set::set_displace(int lhs, int rhs)
 
 void Set::set_stitch(int lhs, int rhs)
 {
+#ifdef SPK_STITCH
+
   if (app->appclass != App::LATTICE)
     error->all(FLERR,"Set stitch only allowed for on-lattice apps");
 
@@ -770,6 +775,8 @@ void Set::set_stitch(int lhs, int rhs)
   err = stitch_close(&stitch_file);
   */
   count = app->nlocal;
+
+#endif
 }
 
 /* ----------------------------------------------------------------------

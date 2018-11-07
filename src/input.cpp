@@ -34,7 +34,9 @@
 #include "style_diag.h"
 #include "style_solve.h"
 
+#ifdef SPK_STITCH
 #include "stitch.h"
+#endif
 
 using namespace SPPARKS_NS;
 
@@ -792,6 +794,9 @@ void Input::reset_time()
   // open Stitch database file, retrieve a time
 
   if (strcmp(arg[0],"stitch") == 0) {
+
+#ifdef SPK_STITCH
+
     if (narg != 3) error->all(FLERR,"Illegal reset_time command");
     char *filename = arg[1];
     int tflag;
@@ -809,6 +814,8 @@ void Input::reset_time()
 
     if (tflag == 0) time = first_time;
     else if (tflag == 1) time = last_time;
+
+#endif
 
   // numeric time
 
