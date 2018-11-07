@@ -1,0 +1,19 @@
+CC=`which mpicc`
+
+CMD="-Wno-unused-result -Wsign-compare -DDYNAMIC_ANNOTATIONS_ENABLED=1 -DNDEBUG -O2 -g -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fexceptions -fstack-protector-strong -grecord-gcc-switches -m64 -mtune=generic -fasynchronous-unwind-tables -D_GNU_SOURCE -fPIC -fwrapv -fPIC"
+
+stitch_test: stitch_test.c stitch.lib
+	${CC} -o stitch_test stitch_test.c -L./ -lstitch -ldl -lpthread
+
+stitch.lib: stitch.c stitch.h sqlite3.c sqlite3.h
+	${CC} ${cmd} -std=gnu99 -c stitch.c
+	${CC} ${cmd} -std=gnu99 -c sqlite3.c
+	ar rc libstitch.a stitch.o sqlite3.o
+
+all: stitch_test stitch.lib
+	${CC} -g -o stitch_test stitch.c sqlite3.c stitch_test.c
+
+clean:
+	rm -f *.o libstitch.a *.so stitch_test
+	rm -rf ./build
+	rm -f *.st
