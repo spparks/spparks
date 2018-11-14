@@ -1,0 +1,21 @@
+JOHN: edit as you wish
+
+The STITCH package adds a dump stitch and set stitch commands which
+enable SPPARKS to do large-scale parallel writes and reads of its
+lattice values to single large file.
+
+It uses the Stitch library, available at http://...
+which manages the structure and access to the file.
+Stitch was developed by Jan and John (email address and institution).
+
+That library can be downloaded and built in lib/stitch or elsewhere on
+your system, which must be done before bulding SPPARKS with this
+package.  Details of the download, build, and install process for the
+Stitch library are given in the lib/stitch/README file, and an
+Install.py is provided to help automate the process.  Also see
+Section_start.html of the SPPARKS manual for general information on
+building SPPARKS with packages and the Stitch library.
+
+Once you have successfully built SPPARKS with this package and the
+Stitch library, you can test it using an input file from the
+examples/stitch dir.  See its README file for further instrucations.
