@@ -2,17 +2,25 @@ This directory contains links to the Stitch library which is required
 to use the STITCH package and its commands in a SPPARKS input script.
 
 The Stitch library is available at http://???
-developed by Jay and John Mitchell at Sandia National Laboratories.
+
+It was developed by Jay ?? (email) and John Mitchell (email) at Sandia
+National Laboratories.
+
+JOHN: this next paragraph assumes at some point you want to
+allow Stitch to be auto-downloaded and built from the python script
+or make command.
 
 You can type "make lib-stitch" from the src directory to see help on
 how to download and build this library via make commands, or you can
 do the same thing by typing "python Install.py" from within this
-directory, or you can do it manually by following the instructions
+directory.  Or you can do it manually by following the instructions
 below.
 
 -----------------
 
-Instructions:
+Instructions:  
+
+JOHN: list details like this for the Stitch lib
 
 1.  Download Voro++ at http://math.lbl.gov/voro++/download
     either as a tarball or via SVN, and unpack the
@@ -43,19 +51,19 @@ Instructions:
 -----------------
 
 When these steps are complete you can build LAMMPS
-with the VORONOI package installed:
+with the STITCH package installed:
 
-% cd lammps/src
-% make yes-voronoi
-% make g++ (or whatever target you wish)
+% cd spparks/src
+% make yes-stitch
+% make mpi (or whatever target you wish)
 
-Note that if you download and unpack a new LAMMPS tarball, the
+Note that if you download and unpack a new SPPARKS tarball, the
 "includelink" and "liblink" files will be lost and you will need to
 re-create them (step 4).  If you built Voro++ in this directory (as
 opposed to somewhere else on your system) and did not install it
 somewhere else, you will also need to repeat steps 1,2,3.
 
-The Makefile.lammps file in this directory is there for compatibility
-with the way other libraries under the lib dir are linked with by
-LAMMPS.  However, Voro++ requires no auxiliary files or settings, so
-its variables are blank.
+The Makefile.lammps file in this directory is there to enable a
+library under the lib dir to have additional link dependencies when
+linking it with SPPARKS.  However, Stitch requires no auxiliary files
+or settings, so its variables are blank.
