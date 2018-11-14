@@ -327,13 +327,13 @@ to do this as part of SPPARKS.
 
 <H4><A NAME = "start_3"></A>2.3 Making SPPARKS with optional packages 
 </H4>
-<P>NOTE: this sub-section is currently a placeholder.  There are no
-packages distributed with the current version of SPPARKS.
-</P>
 <P>The source code for SPPARKS is structured as a large set of core files
 which are always used, plus optional packages, which are groups of
 files that enable a specific set of features.  You can see the list of
 both standard and user-contributed packages by typing "make package".
+</P>
+<P>Currently there is only one optional package: STITCH.  It is dicussed
+more below.
 </P>
 <P>Any or all packages can be included or excluded when SPPARKS is built.
 You may wish to exclude certain packages if you will never run certain
@@ -361,6 +361,60 @@ overwrite files in the package directories with src files.  Typing
 "make package-check" will list differences between src and package
 versions of the same files.
 </P>
+<P>2.3.1 STITCH package
+</P>
+<P>JOHN: this is the sub-section to edit
+</P>
+<P>The STITCH package allows SPPARKS to use the <A HREF = "http://...">Stitch library</A>
+for large-scale I/O.  Stitch allows parallel writing and reading of
+files with contain a huge lattice of site values resulting from many
+SPPARKS simulations of sub-sections of the lattice.  For example, it
+can be used in a workflow which performs multiple SPPARKS simulations
+to model the additive manufacting and processing of a large chunk of
+material.
+</P>
+<P>Building SPPARKS with the STITCH package enables two commands with new
+Stitch-related options:
+</P>
+<UL><LI><A HREF = "dump.html">dump stitch</A>
+<LI><A HREF = "set.html">set stitch</A> 
+</UL>
+
+
+<P>The Stitch library is not included with SPPARKS, but can be downloaded
+<A HREF = "http://...">here</A>.  The 3 steps to build SPPARKS with Stitch support are
+as follows:
+</P>
+<P>1) Download and build Stitch somewhere on your system.  Instructions
+for building Stitch are in its top-level README file.
+</P>
+<P>2) Create links to the Stitch include file and library for a SPPARKS
+build to access.  This can be done in one of two ways:
+</P>
+<P>% cd spparks/lib/stitch; python Install.py -p path-to-stitch
+% cd spparks/src; make lib-stitch args="-p path-to-stitch"
+</P>
+<P>The 2nd command is simply a way to invoke the Install.py script from
+the src directory.  The Path-to-stitch is the top-level of the
+unpacked Stitch tarball, whereever you installed it.
+</P>
+<P>A help message can be viewed either of with these commands:
+</P>
+<P>% cd spparks/lib/stitch; python Install.py
+% cd spparks/src; make lib-stitch
+</P>
+<P>When this step is complete, 2 files should be present in
+spparks/lib/stitch: includelink and liblink.  These point to the
+appropriate directories in the Stitch installation.
+</P>
+<P>3) Build SPPARKS with its STITCH package
+</P>
+<PRE>% cd spparks/src
+% make yes-stitch    # install the STITCH package
+% make mpi           # or whichever machine target you wish
+% make no-stitch     # un-install the STITCH package
+% make mpi           # re-build SPPARKS w/out the STITCH package 
+</PRE>
 <HR>
 
 <H4><A NAME = "start_4"></A>2.4 Building SPPARKS as a library 
