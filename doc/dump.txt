@@ -55,21 +55,14 @@ The {vkt} style dump file is in the VTI format that can be read by
 various visualization programs, including
 "ParaView"_http://www.paraview.org.
 
-The {stitch} style dump file has an sqlite format.  In principle, any tool or
-library which reads sqlite files should be able to read a {stitch} file but
-that is not recommended; for performance reasons, the {stitch} python or c-api
-should be used for reading and writing stitch files; SPPARKS reads {stitch}
-files using the "set stitch"_set.html command.  Only a filename representing a
-single file (no wildcards) can be used with this style.  A time stamp and
-associated SPPARKS simulation time for each snapshot is written into the file.  
-
-Note that styles {stitch} can only be used for simple regular lattices.
-This means lattice = line (line/2n) for 1d models, square (sq/4n or
-sq/8n) for 2d, or simple cubic (sc/6n or sc/26n) for 3d.  See the
-"create_sites"_create_sites.html command for more details.  Many of
-the "dump_modify"_dump_modify options are ignored for this styles;
-snapshots for the entire lattice are written to the file.  More info
-about the {stitch} dump files will be added to this doc page later.
+The {stitch} style dump file is in an SQLite format which can be read
+by the "set stitch"_set.html command or auxiliary tools provided with
+the the Stitch library, which must be linked with SPPARKS.  See
+"Section 2.3"_Section_start.html#start_3 for more info on how to do
+this.  And see the lib/stitch/README file for more info about the
+Stitch library, how to install it, and the library's documentation
+files.  See the examples/stitch dir for examples of SPPARKS scripts
+that read and write {stitch} files.
 
 As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file
@@ -108,7 +101,8 @@ to write out.  See the {delay}, {delta}, {logfreq}, {loglinfreq}, and
 
 :line
 
-For the {text} format, each snapshot begins with lines like these:
+For the {text} format file, each snapshot begins with lines like
+these:
 
 ITEM: TIMESTEP TIME
 100   3.23945 :pre
@@ -154,7 +148,8 @@ to color the object (e.g. a sphere) drawn at each site.
 
 :line
 
-For the {sites} format, each snapshot begins with lines like these.
+For the {sites} format file, each snapshot begins with lines like
+these.
 
 Site file written by dump sites 2 command at time: 3 3.01 :pre
 
@@ -199,9 +194,9 @@ information for all sites in the system.
 
 :line
 
-For the {vtk} format, each snapshot is wrapped with a VTK-specific
-header and footer.  Only a single field can be listed, which must be a
-per-site value, e.g. "site" or "iN" or "dN".  
+For the {vtk} format file, each snapshot is wrapped with a
+VTK-specific header and footer.  Only a single field can be listed,
+which must be a per-site value, e.g. "site" or "iN" or "dN".
 
 A VTK-compatible visualization program will read the information in
 the dump snapshot and display one object (e.g. a cube or sphere) at
@@ -233,6 +228,28 @@ to the dump file in the regular ordering that VTK expects.
 
 IMPORTANT NOTE: For this style, a filename with the "*" wildcard must
 be used so that a different file is written for each snapshot.
+
+:line
+
+As mentioned above, the {stitch} format file is in an SQLite
+format.
+
+In principle, any tool or library which reads SQLite files should be
+able to read a {stitch} file, but that is not recommended, For
+performance reasons, the Python or C-api defind by the Stitch library
+should be used for reading and writing stitch files.  SPPARKS itself
+reads {stitch} files using the "set stitch"_set.html command.  Only a
+filename representing a single file (no wildcards) can be used with
+this style.  A time stamp and associated SPPARKS simulation time for
+each snapshot is written into the SQLite file.
+
+Note that style {stitch} can only be used for simple regular lattices.
+This means lattice = line (line/2n) for 1d models, square (sq/4n or
+sq/8n) for 2d, or simple cubic (sc/6n or sc/26n) for 3d.  See the
+"create_sites"_create_sites.html command for more details.  Many of
+the "dump_modify"_dump_modify options are ignored for this style.
+Snapshots for the entire lattice are written to the file.  More info
+about {stitch} dump files will be added to this doc page later.
 
 :line
 
@@ -308,6 +325,10 @@ longer to write.
 This command can only be used as part of on-lattice or off-lattice
 applications.  See the "app_style"_app_style.html command for further
 details.
+
+The {stitch} style is part the STITCH package.  It is only enabled if
+SPPARKS was built with that package.  See "Section
+2.3"_Section_start.html#start_3 for more info on how to do this.
 
 For the filename specified for the {sites} or {vtk} styles, a "*"
 wildcard must be used and a "%" wildcard cannot be used.  Likewise a
