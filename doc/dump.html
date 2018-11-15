@@ -65,21 +65,14 @@ used as restart files to continue a simulation, using the
 various visualization programs, including
 <A HREF = "http://www.paraview.org">ParaView</A>.
 </P>
-<P>The <I>stitch</I> style dump file has an sqlite format.  In principle, any tool or
-library which reads sqlite files should be able to read a <I>stitch</I> file but
-that is not recommended; for performance reasons, the <I>stitch</I> python or c-api
-should be used for reading and writing stitch files; SPPARKS reads <I>stitch</I>
-files using the <A HREF = "set.html">set stitch</A> command.  Only a filename representing a
-single file (no wildcards) can be used with this style.  A time stamp and
-associated SPPARKS simulation time for each snapshot is written into the file.  
-</P>
-<P>Note that styles <I>stitch</I> can only be used for simple regular lattices.
-This means lattice = line (line/2n) for 1d models, square (sq/4n or
-sq/8n) for 2d, or simple cubic (sc/6n or sc/26n) for 3d.  See the
-<A HREF = "create_sites.html">create_sites</A> command for more details.  Many of
-the <A HREF = "dump_modify">dump_modify</A> options are ignored for this styles;
-snapshots for the entire lattice are written to the file.  More info
-about the <I>stitch</I> dump files will be added to this doc page later.
+<P>The <I>stitch</I> style dump file is in an SQLite format which can be read
+by the <A HREF = "set.html">set stitch</A> command or auxiliary tools provided with
+the the Stitch library, which must be linked with SPPARKS.  See
+<A HREF = "Section_start.html#start_3">Section 2.3</A> for more info on how to do
+this.  And see the lib/stitch/README file for more info about the
+Stitch library, how to install it, and the library's documentation
+files.  See the examples/stitch dir for examples of SPPARKS scripts
+that read and write <I>stitch</I> files.
 </P>
 <P>As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file
@@ -118,7 +111,8 @@ to write out.  See the <I>delay</I>, <I>delta</I>, <I>logfreq</I>, <I>loglinfreq
 </P>
 <HR>
 
-<P>For the <I>text</I> format, each snapshot begins with lines like these:
+<P>For the <I>text</I> format file, each snapshot begins with lines like
+these:
 </P>
 <PRE>ITEM: TIMESTEP TIME
 100   3.23945 
@@ -164,7 +158,8 @@ to color the object (e.g. a sphere) drawn at each site.
 </P>
 <HR>
 
-<P>For the <I>sites</I> format, each snapshot begins with lines like these.
+<P>For the <I>sites</I> format file, each snapshot begins with lines like
+these.
 </P>
 <PRE>Site file written by dump sites 2 command at time: 3 3.01 
 </PRE>
@@ -209,9 +204,9 @@ information for all sites in the system.
 </P>
 <HR>
 
-<P>For the <I>vtk</I> format, each snapshot is wrapped with a VTK-specific
-header and footer.  Only a single field can be listed, which must be a
-per-site value, e.g. "site" or "iN" or "dN".  
+<P>For the <I>vtk</I> format file, each snapshot is wrapped with a
+VTK-specific header and footer.  Only a single field can be listed,
+which must be a per-site value, e.g. "site" or "iN" or "dN".
 </P>
 <P>A VTK-compatible visualization program will read the information in
 the dump snapshot and display one object (e.g. a cube or sphere) at
@@ -243,6 +238,28 @@ to the dump file in the regular ordering that VTK expects.
 </P>
 <P>IMPORTANT NOTE: For this style, a filename with the "*" wildcard must
 be used so that a different file is written for each snapshot.
+</P>
+<HR>
+
+<P>As mentioned above, the <I>stitch</I> format file is in an SQLite
+format.
+</P>
+<P>In principle, any tool or library which reads SQLite files should be
+able to read a <I>stitch</I> file, but that is not recommended, For
+performance reasons, the Python or C-api defind by the Stitch library
+should be used for reading and writing stitch files.  SPPARKS itself
+reads <I>stitch</I> files using the <A HREF = "set.html">set stitch</A> command.  Only a
+filename representing a single file (no wildcards) can be used with
+this style.  A time stamp and associated SPPARKS simulation time for
+each snapshot is written into the SQLite file.
+</P>
+<P>Note that style <I>stitch</I> can only be used for simple regular lattices.
+This means lattice = line (line/2n) for 1d models, square (sq/4n or
+sq/8n) for 2d, or simple cubic (sc/6n or sc/26n) for 3d.  See the
+<A HREF = "create_sites.html">create_sites</A> command for more details.  Many of
+the <A HREF = "dump_modify">dump_modify</A> options are ignored for this style.
+Snapshots for the entire lattice are written to the file.  More info
+about <I>stitch</I> dump files will be added to this doc page later.
 </P>
 <HR>
 
@@ -319,6 +336,10 @@ longer to write.
 <P>This command can only be used as part of on-lattice or off-lattice
 applications.  See the <A HREF = "app_style.html">app_style</A> command for further
 details.
+</P>
+<P>The <I>stitch</I> style is part the STITCH package.  It is only enabled if
+SPPARKS was built with that package.  See <A HREF = "Section_start.html#start_3">Section
+2.3</A> for more info on how to do this.
 </P>
 <P>For the filename specified for the <I>sites</I> or <I>vtk</I> styles, a "*"
 wildcard must be used and a "%" wildcard cannot be used.  Likewise a
