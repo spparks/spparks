@@ -1,4 +1,74 @@
-Explain what is in this dir or sub-dirs
+========================
+What's in this directory
+========================
 
-Explain how to run the input script(s)
-in serial or parallel, how to check the results, etc.
+There are several examples contained within the following subdirectories.  Each
+example demonstrates the use of *stitch* and related commands.  All of the
+examples use *dump stitch* commands for output purposes; some use *set stitch*
+and *reset_time* commands.
+
+* *dump_and_set_commands*: this subdirectory contains the following *spparks*
+  input files
+ 
+  * *dump_equiaxed.in*: runs *potts* model to produce equiaxed microstructures;
+    write a *stitch* file.
+
+  * *dump_raster.in*: runs 2D *potts/am/weld* model to simulate AM build raster pattern 
+    microstructures; writes a *stitch* file.
+
+  * *dump_reset_equiaxed.in*: uses *reset_time* command. This allows *dump
+    stitch* to write a different simulation time than the current *spparks*
+    simulation time. For example, it may be desireable to run a *potts* model
+    simulation for purposes of producing an equiaxed microstructure needed for
+    a welding simulation.  During *potts* model simulation, time evolves
+    forward; subsquently a welding simulation may be needed with the initial
+    microstructure -- but at time *t=0.0*; by using *reset_time 0.0* after
+    *run* command during *potts* simulation, an initial microstructure
+    appropriate for the welding simulation is written at *t=0.0*
+
+  * *set_raster.in*: this example demonstrates use of *set stitch* commands for
+    purposes of intializing a microstructure from an existing *stitch* file.  This script 
+    requires output *equiaxed.st* from *dump_equiaxed.in* calculation.
+
+
+How to run scripts
+++++++++++++++++++
+
+Before running calculations, always run *make clean* to remove any
+preexisting *stitch* files.  *Stitch* is designed to append *outputs* which can
+be produce undesireable results if that is not intended.  Note that examples
+are intentionally created to use precomputed results.  However, calculations
+should not be repeated otherwise spurious results will be obtained.
+
+Note that all of examples can be run in *serial* or *parallel*.  However, a
+serial build of *spparks* with *stitch* will not work. 
+
+Serial calculations: Examples
+-----------------------------
+
+* *./spk_flamer.gnu < dump_equiaxed.in*
+* *./spk_flamer.gnu < set_raster.in*: not recommended for serial calculations
+  due to runtime; requires only a couple minutes when run parallel.
+
+Parallel calculations: Examples
+-------------------------------
+
+* *mpiexec -np 8 ./spk_flamer.gnu < dump_equiaxed.in*
+* *mpiexec -np 8 ./spk_flamer.gnu < set_raster.in*
+
+Checking results
+++++++++++++++++
+
+Each of the above runs produces a *stitch* file.  The exact name of the stitch 
+file can be found in the *spparks* script input file.  All of the *stitch* file 
+outputs have the *.st* extension.  After confirming the *stitch* file was produced, 
+then a visual inspection of results can be obtained if the *python* extension 
+to *stitch* has been built and is in your *PYTHONPATH*.  In each case, to 
+run the python script, the <prefix> filename less the extension *.st* is needed 
+as a command line parameter for the image script "process_stitch_demo.py".  This 
+script produces a set of ".png* files that can be visualized.  After running the 
+above *dump_equiaxed* and *set_raster* scripts above, run the following *python* 
+scripts to visualize the microstructures produced and stored in *stitch* files.
+
+* *python process_stitch_demo.py -pequiaxed*
+* *python process_stitch_demo.py -praster_with_equiaxed*
