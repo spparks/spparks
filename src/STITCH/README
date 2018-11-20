@@ -1,21 +1,30 @@
-JOHN: edit as you wish
+NOTE: {stitch} has not yet been formally released but will be very soon as of
+January 2019.  At that time, {stitch} can be built and used with SPPARKS as
+described here.  
 
-The STITCH package adds a dump stitch and set stitch commands which
-enable SPPARKS to do large-scale parallel writes and reads of its
-lattice values to single large file.
+The STITCH package allows SPPARKS to use the "Stitch library"_stitch for I/O;
+it adds {dump stitch} and {set stitch} commands which enable SPPARKS to 
+conduct large-scale parallel read(s)/write(s) of lattice values 
+to and from a single {stitch} file.
 
-It uses the Stitch library, available at http://...
-which manages the structure and access to the file.
-Stitch was developed by Jan and John (email address and institution).
+The {stitch} library, available at http://...  manages structure and access to
+a {stitch} file.  NOTE: {stitch} has not yet been formally released but will be
+very soon as of January 2019.  At that time, {stitch} can be built and used
+with SPPARKS as described here.  
 
-That library can be downloaded and built in lib/stitch or elsewhere on
-your system, which must be done before bulding SPPARKS with this
-package.  Details of the download, build, and install process for the
-Stitch library are given in the lib/stitch/README file, and an
+{Stitch} was developed by:
+
+* Jay Lofstead, gflofst@sandia.gov, Sandia National Laboratories
+* John Mitchell, jamitch@sandia.gov, Sandia National Laboratories
+
+The library can be downloaded and built in lib/stitch or elsewhere on
+your system, which must be done before bulding SPPARKS.
+Details of the download, build, and install process for the
+{stitch} library are given in the lib/stitch/README file, and an
 Install.py is provided to help automate the process.  Also see
 Section_start.html of the SPPARKS manual for general information on
 building SPPARKS with packages and the Stitch library.
 
-Once you have successfully built SPPARKS with this package and the
-Stitch library, you can test it using an input file from the
-examples/stitch dir.  See its README file for further instrucations.
+Once SPPARKS is successfully built with the {stitch} library, it can be
+verified using SPPARKS input script examples from the examples/stitch
+directory.  See  README file for further instructions.
