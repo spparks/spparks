@@ -1,12 +1,13 @@
 This directory contains libraries that can be linked to when building
-SPARTA, if particular packages are included in the SPARTA build.
+SPPARKS, if particular packages are included in the SPPARKS build.
 
-Most of these directories contain code for the library; some contain a
-Makefile.sparta file that points to where the library is installed
-elsewhere on your system.
+Most of these directories contain code for building and/or linking 
+exernal libraries with SPPARKS; some contain a
+Makefile.spparks file that describes specialized building and/or 
+linking commands required for using the library with SPPARKS.
 
 In either case, the library itself must be installed and/or built
-first, so that the appropriate library files exist for SPARTA to link
+first, so that the appropriate library files exist for SPPARKS to link
 against.
 
 Each library directory contains a README with additional info about
@@ -15,5 +16,6 @@ one of the provided Makefiles to make it suitable for your machine.
 
 The libraries in this directory are the following:
 
-kokkos        Kokkos package for GPU and many-core acceleration
-                from Kokkos development team (Sandia)
+stitch          STITCH package for efficient I/O of grain growth 
+                simulations in SPPARKS; STITCH package is developed 
+		by Sandia Laboratories: John Mitchell and Jay Lofstead.
