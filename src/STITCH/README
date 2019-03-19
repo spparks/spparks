@@ -1,16 +1,12 @@
-NOTE: {stitch} has not yet been formally released but will be very soon as of
-January 2019.  At that time, {stitch} can be built and used with SPPARKS as
-described here.  
+The {stitch} library, available at http://...  manages structure and access to
+a {stitch} file.  NOTE: {stitch} has not yet been formally released but will be
+very soon as of January 2019.  At that time, {stitch} can be built and used
+with SPPARKS as described here.  
 
 The STITCH package allows SPPARKS to use the "Stitch library"_stitch for I/O;
 it adds {dump stitch} and {set stitch} commands which enable SPPARKS to 
 conduct large-scale parallel read(s)/write(s) of lattice values 
 to and from a single {stitch} file.
-
-The {stitch} library, available at http://...  manages structure and access to
-a {stitch} file.  NOTE: {stitch} has not yet been formally released but will be
-very soon as of January 2019.  At that time, {stitch} can be built and used
-with SPPARKS as described here.  
 
 {Stitch} was developed by:
 
