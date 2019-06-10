@@ -28,8 +28,6 @@
 #include "memory.h"
 #include "error.h"
 
-#include <map>
-
 using namespace SPPARKS_NS;
 
 // same as in lattice.cpp
@@ -40,7 +38,7 @@ enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
 enum{BOX,REGION};
 enum{DUMMY,IARRAY,DARRAY};
 
-#define DELTALOCAL 10000
+#define DELTALOCAL 1000000
 #define DELTABUF 10000
 #define EPSILON 0.0001
 
@@ -154,6 +152,7 @@ void CreateSites::command(int narg, char **arg)
     latticeflag = 0;
   }
 
+
   if (latstyle == LINE_2N ||
       latstyle == SQ_4N || latstyle == SQ_8N || latstyle == TRI || 
       latstyle == SC_6N || latstyle == SC_26N || 
@@ -164,8 +163,13 @@ void CreateSites::command(int narg, char **arg)
     ylattice = domain->lattice->ylattice;
     zlattice = domain->lattice->zlattice;
 
+    double time1 = MPI_Wtime();
     structured_lattice();
+    double time2 = MPI_Wtime();
+    printf("AAA %g\n",time2-time1);
     if (latticeflag) structured_connectivity();
+    double time3 = MPI_Wtime();
+    printf("AAA %g\n",time3-time2);
 
   } else if (latstyle == RANDOM_1D || latstyle == RANDOM_2D ||
 	     latstyle == RANDOM_3D) {
@@ -174,8 +178,13 @@ void CreateSites::command(int narg, char **arg)
   }
 
   if (latticeflag) {
+    double time1 = MPI_Wtime();
     ghosts_from_connectivity(applattice,applattice->delpropensity);
+    double time2 = MPI_Wtime();
+    printf("AAA %g\n",time2-time1);
     applattice->print_connectivity();
+    double time3 = MPI_Wtime();
+    printf("AAA %g\n",time3-time2);
   }
 
   // clean up
@@ -304,9 +313,6 @@ void CreateSites::structured_lattice()
     while (zhi*zlattice <= boxzhi) zhi++;
     zhi--;
   }
-
-  printf("XYZ lo/hi: %d %d: %d %d: %d %d\n",
-         xlo,xhi,ylo,yhi,zlo,zhi);
 
   // check for possible overflow of site IDs
 
@@ -442,9 +448,6 @@ void CreateSites::structured_lattice()
       zlo_me += delta;
       zhi_me += delta;
     }
-
-    printf("XYZ ME: %d %d: %d %d: %d %d\n",
-           xlo_me,xhi_me,ylo_me,yhi_me,zlo_me,zhi_me);
 
     // check that product of my extents = nlocal
 
@@ -1057,8 +1060,9 @@ void CreateSites::ghosts_from_connectivity(AppLattice *apl, int delpropensity)
   tagint *id;
   int *numneigh,**neighbor;
   double **xyz;
-  std::map<tagint,int>::iterator loc;
-  std::map<tagint,int> hash;
+
+  MyHash hash;
+  MyIterator loc;
 
   int me = domain->me;
   int nprocs = domain->nprocs;

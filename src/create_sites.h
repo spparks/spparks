@@ -21,6 +21,14 @@ CommandStyle(create_sites,CreateSites)
 
 #include "pointers.h"
 
+#ifdef SPPARKS_MAP
+#include <map>
+#elif SPPARKS_UNORDERED_MAP
+#include <unordered_map>
+#else
+#include <tr1/unordered_map>
+#endif
+
 namespace SPPARKS_NS {
 
 class CreateSites : protected Pointers {
@@ -75,6 +83,17 @@ class CreateSites : protected Pointers {
     int id,proc,index;
     double x,y,z;
   };
+
+#ifdef SPPARKS_MAP
+  typedef std::map<tagint,int> MyHash;
+  typedef std::map<tagint,int>::iterator MyIterator;
+#elif SPPARKS_UNORDERED_MAP
+  typedef std::unordered_map<tagint,int> MyHash;
+  typedef std::unordered_map<tagint,int>::iterator MyIterator;
+#else
+  typedef std::tr1::unordered_map<tagint,int> MyHash;
+  typedef std::tr1::unordered_map<tagint,int>::iterator MyIterator;
+#endif
 
   // local methods
 
