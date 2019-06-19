@@ -132,7 +132,7 @@ void DumpStitch::create_stitch_field_ids(){
              //
          }
       }
-      else if (DARRAY==fields[i]) {
+      else if (DARRAY==fields[i] || X==fields[i] || Y==fields[i] || Z==fields[i]) {
          char label[8];
          sprintf(label,"d%d",vindex[i]+1);
          err = stitch_query_field(stitch_file,label,&field_id);
