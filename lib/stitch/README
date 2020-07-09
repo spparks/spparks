@@ -15,39 +15,26 @@ following:
 ls $SPPARKS
 doc/  examples/  lib/  LICENSE  python/  README src/  tools/  www/
 
-Change to 'lib/' directory.
-
 The 'lib/' directory contains 'stitch' source code in 'lib/stitch/libstitch',
 and instructions for building the 'stitch' libraries.  Two 'stitch' libraries
 generally need to be built.  
 1) library for use with SPPARKS; must be built with mpicc
 2) python module; must have python 3, numpy, scipy 
 
-## 
 About the 'stitch' source code 
+ * 'stitch' source code is released with SPPARKS
+ * 'stitch' development is conducted in a different git repository 
+   referred to here as 'stitch.repo'
 
-##
-'stitch' source code is released with SPPARKS
-
-##
-'stitch' development is conducted in a different git repository 
-referred to here as 'stitch.repo'
-
-##
 A tag was created in 'stitch.repo'
-git tag -a v1.0 -m "v1.0 release with SPPARKS"
-git push origin v1.0
+% git tag -a v1.0 -m "v1.0 release with SPPARKS"
+% git push origin v1.0
 
-##
 Any development after this tag 'v1.0' in 'stitch.repo' is untested in SPPARKS.
 Only stitch source code included here in 'lib/stitch/libstitch/' is known to work.
 
-##
 The exact list of files taken from 'stitch.repo' are listed 
 in the file 'rsync_stitch_src.sh' contained within this directory.
-
-##
-Building stitch libraries
 
 Build libstitch.a for use with SPPARKS
 --------------------------------------
@@ -57,31 +44,36 @@ the stitch library 'libstitch.a' must be built prior to building SPPARKS.
 In general, it is desirable to run SPPARKS in parallel; so 'libstitch.a' must 
 be built with a suitable mpi compiler.
 
-# Build library in '$SPPARKS/lib/stitch/libstitch/'
-cd $SPPARKS/lib/stitch/libstitch/
+Build library in '$SPPARKS/lib/stitch/libstitch/'
+% cd $SPPARKS/lib/stitch/libstitch/
 
-# Make sure that mpicc and mpicxx are on your path
-# Copy the example Makefile.flamer; edit and set CC and CXX 
-#   appropriately for your mpi compiler
-cp Makefile.flamer Makefile.my_makefile
+Make sure that mpicc and mpicxx are on your path
+Copy the example Makefile.flamer; edit and set CC and CXX 
+appropriately for your mpi compiler
+% cp Makefile.flamer Makefile.my_makefile
 
-# Build
-make -f Makefile.my_makefile stitch.lib
+Build 'libstitch.a'
+% make -f Makefile.my_makefile stitch.lib
 
-# Confirm there were not compile or link errors;
-# Confirm the existence of 'libstitch.a'
+Confirm there were not compile or link errors; Confirm the existence of
+'libstitch.a'
 
-# Congratulations you have built 'libstitch.a'
+Congratulations you have built 'libstitch.a'
 
 To make use of the library 'libstitch.a', the following links 
 must be created; these point SPPARKS to the 'stitch' header file 
 'stitch.h' and also the library 'libstitch.a' built above.  
 
+% cd $SPPARKS/lib/stitch
 % ln -s $SPPARKS/lib/stitch/libstitch liblink
 % ln -s $SPPARKS/lib/stitch/libstitch includelink
 
 Build SPPARKS with Stitch
 -------------------------
+
+SPPARKS must be built with the same mpi compiler used for 
+building 'stitch'; Edit the makefile appropriately to 
+set path to mpicxx.
 
 % cd $SPPARKS/src
 % make yes-stitch
@@ -90,10 +82,10 @@ Build SPPARKS with Stitch
 See some example scripts which use stitch related commands.
 There is a README file
 
-$SPPARKS/examples/stitch/README
+% cd $SPPARKS/examples/stitch/README
 
 Examples
-$SPPARKS/examples/stitch/dump_and_set_cmds
+% cd $SPPARKS/examples/stitch/dump_and_set_cmds
 
 Build the 'stitch' python module
 --------------------------------
@@ -102,16 +94,21 @@ The 'stitch' python module allows for creating, reading and
 writing 'stitch' files.  It is particularly useful 
 for reading 'stitch' files written by 'spparks'.
 
+The python module should be build with gnu gcc.  It may be possible to 
+do otherwise but that has not been tested.  In generall, the same compiler
+used to build python, numpy, and scipy should be used to build the stitch 
+module.
 
 Python 3, numpy, and scipy are required for building the 'stitch' python
-module.  This documentation was developed with the following versions
+module.  This documentation was developed with the following versions.
 
+* gnu gcc 9.2.0
 * Python 3.6.7
 * numpy '1.16.4'
 * scipy '1.3.0'
 
-# Change to stitch directory 
-cd $SPPARKS/lib/stitch
+Change to stitch directory 
+% cd $SPPARKS/lib/stitch
 
 The files 'setup.py' and 'setup.flamer.cfg' are included in this directory.
 
@@ -121,28 +118,29 @@ the existing example config file 'setup.flamer.cfg' to 'setup.cfg'; edit
 'setup.cfg' to specify where the python module should be installed -- then 
 add this path to your PYTHONPATH.
 
-# Build and install the python module.
+Build and install the python module.
+% python setup.py build
+% python setup.py install
 
-python setup.py build
-python setup.py install
+Some build 'warnings' may occur which are generally harmless.  On the other
+hand 'errors' are not good and must be addressed.  
 
-# Some build 'warnings' may occur which are generally harmless.  On the other 
-had 'errors' are not good and must be addressed.  
-Verify install and PYTHONPATH are correctly set by launching python 
-and importing the stitch module. Make sure not to do this in the source 
-directory.
+Verify install and PYTHONPATH are correctly set by launching python and
+importing the stitch module. Make sure not to do this in the source directory.
 
-# If the following command succeeds, python module build and install is
-# probably good.
-from stitch.libstitch import libstitch
+If the following command succeeds, python module build and install is
+probably good.  Start an interactive python session by launching python 
+and import the stitch module:
+% python
+% from stitch.libstitch import libstitch
 
-# As a final test run the unit test; remove all stitch files prior to 
-#   running the test -- otherwise the test will fail.
-cd $SPPARKS/lib/stitch/verify
-make clean
+As final verification of python module correctness, run the unit test; remove
+all stitch files prior to running the test -- otherwise the test will fail.
+% cd $SPPARKS/lib/stitch/verify
+% make clean
 
-# Run unit test
-python unit_cv_readwrite.py
+Run unit test
+% python unit_cv_readwrite.py
 
 Screen output from test should look something like:
 
@@ -151,87 +149,3 @@ Screen output from test should look something like:
 Ran 9 tests in 9.383s
 
 OK
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-JOHN: this next paragraph assumes at some point you want to
-allow Stitch to be auto-downloaded and built from the python script
-or make command.
-
-You can type "make lib-stitch" from the src directory to see help on
-how to download and build this library via make commands, or you can
-do the same thing by typing "python Install.py" from within this
-directory.  Or you can do it manually by following the instructions
-below.
-
------------------
-
-Instructions:  
-
-JOHN: list details like this for the Stitch lib
-
-1.  Download Voro++ at http://math.lbl.gov/voro++/download
-    either as a tarball or via SVN, and unpack the
-    tarball either in this /lib/voronoi directory
-    or somewhere else on your system.
-
-2.  Compile Voro++ from within its home directory
-    % make
-
-3.  There is no need to install Voro++ if you only wish
-    to use it from LAMMPS.  You can install it if you
-    wish to use it stand-alone or from other codes:
-    a) install under the default /usr/local
-       % sudo make install
-    b) install under a user-writeable location by first
-         changing the PREFIX variable in the config.mk file, then
-       % make install
-
-4.  Create two soft links in this dir (lib/voronoi)
-    to the Voro++ src directory is.  E.g if you built Voro++ in this dir:
-      % ln -s voro++-0.4.6/src includelink
-      % ln -s voro++-0.4.6/src liblink
-    These links could instead be set to the include and lib
-    directories created by a Voro++ install, e.g.
-      % ln -s /usr/local/include includelink
-      % ln -s /usr/local/lib liblink
-
------------------
-
-When these steps are complete you can build LAMMPS
-with the STITCH package installed:
-
-% cd spparks/src
-% make yes-stitch
-% make mpi (or whatever target you wish)
-
-Note that if you download and unpack a new SPPARKS tarball, the
-"includelink" and "liblink" files will be lost and you will need to
-re-create them (step 4).  If you built Voro++ in this directory (as
-opposed to somewhere else on your system) and did not install it
-somewhere else, you will also need to repeat steps 1,2,3.
-
-The Makefile.lammps file in this directory is there to enable a
-library under the lib dir to have additional link dependencies when
-linking it with SPPARKS.  However, Stitch requires no auxiliary files
-or settings, so its variables are blank.
