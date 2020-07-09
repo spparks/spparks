@@ -9,63 +9,66 @@
 
 <HR>
 
-<H3>am_pass command 
+<H3>am pass command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>am_pass id dir d distance D speed V init_heading B 
+<PRE>am pass id dir d speed V hatch h overhatch oh 
 </PRE>
 <UL><LI>id = integer identification number for this pass
 <LI>dir = required keyword
 <LI>d = <I>X</I> or <I>Y</I> which specifies direction of the cartesian pass
-<LI>distance = required keyword
-<LI>D = total pass distance
 <LI>speed = required keyword
-<LI>V = scan velocity of the pass in sites/Monte-Carlo-sweep
-<LI>init_heading = optional keyword
-<LI>B = <I>0</I> or <I>1</I> for a pass heading in the positive (default) or negative direction 
+<LI>V = scan speed of the pass in sites/Monte-Carlo-sweep
+<LI>hatch = required keyword
+<LI>h = hatch spacing distance 
+<LI>overhatch = optional keyword
+<LI>oh = perpindicular distance to pass dir; expands domain size 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>am_pass 1 dir X distance 100.0 speed 10.0 
+<PRE>am pass 1 dir X speed 9 hatch 75 
 </PRE>
-<PRE>am_pass 2 dir Y distance 100.0 speed 5.0 init_heading 1 
+<PRE>am pass 2 dir Y speed 10 hatch 50 overhatch 25 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command is used in the <A HREF = "app_potts_additive.html">potts/additive</A>
-application to specify the parameters of the pass subcomponent of a
-raster pattern.  Multiple passes can be defined in a single input
-file, using unique id values.
+<P>This command is used by <A HREF = "app_potts_additive.html">potts/additive</A>, and
+<A HREF = "app_potts_am_weld.html">potts/am_weld</A> to specify raster scan patterns for
+rectangular domains. Multiple passes can be defined in a single input file,
+each using unique id values. The <I>am pass</I> command is a required subelement of
+<A HREF = "am_cartesian_layer.html">am cartesian_layer</A> that specifies a cartesian build
+layer in the <I>x,y</I> plane. The initial heading, left or right for <I>dir=X</I> or 
+up or down for <I>dir=Y</I> depends upon the starting location specified in the 
+<A HREF = "am_cartesian_layer.html">am cartesian_layer</A> command.  By default, scan lines are
+<I>serpentine</I> but this can be turned off in the <A HREF = "am_cartesian_layer.html">am
+cartesian_layer</A> command. 
 </P>
-<P>Note that the <I>dir</I> value specifies direction of motion and
-orientation of the molten pool during a pass.  The pool has its own
-local coordinate system <I>x,y</I> so that the pool axis <I>x</I> is always
-oriented along <I>dir d</I>. <I>init_heading</I> can be specified to start movement
-along <I>dir</I> axis (<I>0</I>; default) or in negative direction.
+<P>The <I>pass</I> distance and number of <I>hatch</I> lines are controlled by the <I>X,Y</I>
+extent of the domain specified using the <A HREF = "region.html">region</A> command, which
+must be a box; multiple passes, seperated by <I>hatch</I> spacing are invoked until the
+domain dimension perpindicular to the scan <I>dir</I> is exhausted.  The optional
+<I>overhatch</I> value can be used to cause additional scan lines.  The melt pool
+has its own local coordinate system <I>x,y</I> so that the pool axis <I>x</I> is always
+oriented along <I>dir d</I>.   
 </P>
-<P>The <I>distance</I> value <I>D</I> should typically be the size of the
-simulation box in the xy-plane.
-</P>
-<P>The example commands above define two passes, each with a different
-orientation, speed, and heading.  The sketch below also illustrates the
-<I>overpass</I>; the pool position is always translated by the <I>distance</I>
-specfied plus an <I>overpass</I> increment.  The <I>overpass</I> increment is
-computed as shown based upon parameters set in the
-<A HREF = "app_potts_additive.html">app_potts_additive</A> command.
+<P>The example commands above define two passes, each with a different <I>dir</I>,
+<I>speed</I>, <I>hatch</I> and optional <I>overhatch</I>. 
 </P>
 <IMG SRC = "JPG/pass_schematic.png">
 
 <P><B>Restrictions:</B>
 </P>
-<P>This rastering command can be used with <A HREF = "app_potts_am_weld.html">app_style potts/am/weld</A> or <A HREF = "app_potts_additive.html">app_style potts/additive</A>.
+<P>This rastering command can be used with <A HREF = "app_potts_am_weld.html">app_style
+potts/am/weld</A> or <A HREF = "app_potts_additive.html">app_style
+potts/additive</A>.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "am_transverse_pass.html">am_transverse_pass</A>,
-<A HREF = "am_cartesian_layer.html">am_cartesian_layer</A>,
-<A HREF = "am_pattern.html">am_pattern</A>
+<P><A HREF = "am_cartesian_layer.html">am_cartesian_layer</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B> 
+</P>
+<P>Optional <I>overhatch</I> value defaults to <I>0.0</I>
 </P>
 </HTML>

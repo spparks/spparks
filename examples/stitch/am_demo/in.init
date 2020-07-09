@@ -1,0 +1,42 @@
+#
+# T: simulation temperature
+variable T equal                 0.25
+#
+# number of spins
+variable Q equal 10000
+#
+# DT: number of KMC steps
+variable DT equal 0.0
+#
+# OUT: output filename
+variable OUT universe am_demo.st
+
+#
+seed		 ${SEED}
+app_style  potts/neighonly ${Q}
+
+# 
+dimension	 3
+
+# 
+boundary p p n
+
+# 
+lattice		 sc/26n 1.0
+region		 box block 0 100 0 100 Z
+create_box	 box
+create_sites     box
+
+# Random initialization of all sites
+set site range 1 ${Q}
+
+sweep		 raster
+sector yes
+diag_style       energy
+temperature	 ${T}
+stats            1.0
+
+dump         dump.id stitch 1.0 ${OUT} site
+
+run             ${DT}
+

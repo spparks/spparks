@@ -1,0 +1,60 @@
+variable DT equal                2
+variable T equal                 0.25
+variable SEED equal              1
+variable NUM_SPINS equal         90000
+variable OUT universe            path_raster_a.st
+#COMMENT OUT ABOVE here for scripted runs
+variable HAZ equal               25.0
+variable ABS_TOL equal           0.02
+variable X0 equal         0.0
+variable Y0 equal         0.0
+variable X1 equal        500.0
+variable Y1 equal        500.0
+variable X2 equal        106.1
+variable Y2 equal         0.0
+variable X3 equal        500.0
+variable Y3 equal        393.9
+
+seed             ${SEED}
+
+#          app_name       num_spins    alpha   beta  haz
+app_style  potts/am/weld  ${NUM_SPINS} 0.75   0.50  ${HAZ}
+weld_shape_teardrop width 50.0 case I
+
+#Define simulation domain and initialize site variables
+#———————————————————————————————————————————
+dimension	 3
+lattice	 	 sc/26n 1.0
+region		 box block 0 500 0 500 0 1
+
+boundary 	 n n p
+
+create_box	 box
+create_sites	 box
+set		 i1 range 1 ${NUM_SPINS}
+set		 d1 value 0.0
+#———————————————————————————————————————————
+
+#Define an additive scan pattern using series of paths
+#———————————————————————————————————————————
+am path 1 start ${X0} ${Y0} end ${X1} ${Y1} speed 9
+am path 2 start ${X3} ${Y3} end ${X2} ${Y2} speed 9
+am path_layer 1 num_paths 2 path_ids 1 2 thickness 1
+#———————————————————————————————————————————
+
+#Setup the solver type and parameters. Must use a "sweep" style solver
+#——————————————————————————————————————————— 
+sector		 yes
+sweep		 random mask no
+temperature	 ${T}
+#——————————————————————————————————————————— 
+
+#Specify output commands and styles.
+#——————————————————————————————————————————— 
+diag_style   energy
+stats            1.0
+
+dump         dump.id stitch ${DT} ${OUT} site   # 1.0 does not matter
+dump_modify dump.id tol ${ABS_TOL}
+
+run              488.0

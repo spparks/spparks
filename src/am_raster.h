@@ -14,8 +14,10 @@
 #ifndef SPK_AM_RASTER_H
 #define SPK_AM_RASTER_H
 
+#include <stdio.h>
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 using std::vector;
 
@@ -34,15 +36,17 @@ namespace pool_shape {
 
 }
 
-class point {
+class Point {
 
 public:
-	inline point() {p[0]=0.0;p[1]=0.0;p[2]=0.0;}
-	inline point(double value) {p[0]=value; p[1]=value; p[2]=value;}
-	inline point(double a, double b, double c) { p[0]=a; p[1]=b; p[2]=c; }
-	inline point(const double q[3]) { p[0]=q[0]; p[1]=q[1]; p[2]=q[2]; }
+	inline Point() {p[0]=0.0;p[1]=0.0;p[2]=0.0;}
+	inline Point(double value) {p[0]=value; p[1]=value; p[2]=value;}
+	inline Point(double a, double b) { p[0]=a; p[1]=b; p[2]=0; }
+	inline Point(double a, double b, double c) { p[0]=a; p[1]=b; p[2]=c; }
+	inline Point(const double q[3]) { p[0]=q[0]; p[1]=q[1]; p[2]=q[2]; }
 
-	inline point& operator=(const point& rhs) {
+	inline Point& operator=(const Point& rhs) {
+      //printf("am_rasterh.h; Point& operator=(const Point& p) invoked.\n");
       if(this != &rhs){
          p[0]=rhs.p[0];
          p[1]=rhs.p[1];
@@ -51,7 +55,8 @@ public:
       return *this;
    }
 
-	inline point(const point& copyMe) {
+	inline Point(const Point& copyMe) {
+         //printf("am_rasterh.h; Point(const Layer&p) copy constuctor invoked\n");
          p[0]=copyMe.p[0];
          p[1]=copyMe.p[1];
          p[2]=copyMe.p[2];
@@ -64,7 +69,7 @@ public:
 
 	inline double operator[](int c) const { return p[c%3]; }
 
-  friend std::ostream& operator<<(std::ostream &os, const point &p)  {
+  friend std::ostream& operator<<(std::ostream &os, const Point &p)  {
     os << p[X] << ", " << p[Y] << ", " << p[Z] << std::endl;
     return os;
   }
@@ -75,139 +80,197 @@ private:
 };
 
 enum DIR {NONE=-1,X=0,Y=1};
+/*
+ * Starting location for CartesianLayer
+ * LL=lower left
+ * LR=lower right
+ * UR=upper right
+ * UL=upper left
+ */
+enum START {UNDEFINED=-1,LL=0,LR=1,UR=2,UL=3};
+
+/**
+ *
+ * 2D path; defined in x-y plane by 'start' and 'end' input points
+ */
+class Path {
+   private:
+      Point start, end, unit_dir;
+      double distance, speed;
+   public:
+
+      Path(): start(), end(), distance(0), speed(0) {}
+
+      Path(const Path& p) {
+         //printf("am_rasterh.h; Path(const Layer&p) copy constuctor invoked\n");
+         start=p.get_start();
+         end=p.get_end();
+         unit_dir=p.get_unit_dir();
+         distance=p.get_distance();
+         speed=p.get_speed();
+      }
+
+      Path& operator=(const Path& p){
+         //printf("am_rasterh.h; Path& operator=(const Path& p) invoked.\n");
+         if(&p != this){
+            start=p.get_start();
+            end=p.get_end();
+            unit_dir=p.get_unit_dir();
+            distance=p.get_distance();
+            speed=p.get_speed();
+         }
+         return *this;
+      }
+
+      Path(const Point& a, const Point& b, double velocity): 
+         start(a), end(b), unit_dir(), distance(0.0), speed(velocity) {
+    	  Point dr(b[0]-a[0],b[1]-a[1],0);
+    	  distance=std::sqrt(dr.squared());
+        unit_dir=Point(dr[0]/distance,dr[1]/distance);
+      }
+
+      Point get_start() const { return start; }
+
+      Point get_end() const { return end; }
+
+      Point get_unit_dir() const { return unit_dir; }
+
+      double get_distance() const { return distance; }
+
+      double get_speed() const { return speed; }
+};
 
 class Pass {
    private:
-      DIR _dir;
-      double _distance, _speed;
-      bool _init_heading;
+      DIR dir;
+      double speed, hatch_spacing, overhatch;
    public:
-      Pass(): _dir(DIR::NONE), _distance(-1), _speed(-1), _init_heading(false) {}
-      Pass(DIR d, double distance, double speed, bool init_heading=false): _dir(d), _distance(distance), _speed(speed), _init_heading(init_heading) {}
-      DIR get_dir() const { return _dir; }
-      double get_distance() const { return _distance; }
-      double get_speed() const { return _speed; }
-      bool get_heading() const { return _init_heading; }
+      Pass(): dir(DIR::NONE), speed(0), hatch_spacing(0.0), overhatch(0.0) {}
+      Pass(DIR d, double vel, double h, double oh): 
+         dir(d), speed(vel),  hatch_spacing(h), overhatch(oh) {}
+      DIR get_dir() const { return dir; }
+      double get_speed() const { return speed; }
+      double get_hatch_spacing() const { return hatch_spacing; }
+      double get_overhatch() const { return overhatch; }
 };
 
-class TransversePass {
+class Layer {
    private:
-      double _distance, _increment;
-   public:
-      TransversePass(): _distance(-1), _increment(-1) {}
-      TransversePass(double distance, double increment): _distance(distance), _increment(increment) {}
-      double get_distance() const { return _distance; }
-      double get_increment() const { return _increment; }
-};
-
-class RectangularLayer {
-
-   private:
-      point _start;
-      double _pool_position[3];
-      DIR _dir;
-      double _speed;
-      double _pass_distance, _overpass, _transverse_pass_distance, _transverse_pass_increment;
-      double _pass_distance_traveled, _transverse_pass_distance_traveled;
-      int _num_pass;
-      bool _serpentine, _on_serpentine;
-      // cos(theta), sin(theta)
-      double c,s;
+      double thickness, distance_traveled;
+      Point position;
+      vector<Path> paths;
+      int active_path_ptr;
 
    public:
-      RectangularLayer()
-      : _start(), _pool_position{0,0,0}, _dir(X), _speed(0.0), _pass_distance(0.0), _overpass(0.0),
-        _transverse_pass_distance(0.0), _transverse_pass_increment(0.0),
-        _pass_distance_traveled(0.0), _transverse_pass_distance_traveled(0.0),
-        _num_pass(0), _serpentine(false), _on_serpentine(false),
-        c(1.0), s(0.0) {}
+      Layer() : thickness(0.0), distance_traveled(0.0), position(), paths(), active_path_ptr(-1) {}
 
-      /*
-       * NOTE
-       * Layer moves pool up and to the right.
-       * Layer initial position is taken as lower left corner.
-       */
-      RectangularLayer
-         (
-          const point& start,
-          DIR dir,
-          double speed,
-          double pass_distance,
-          double overpass,
-          double transverse_pass_distance,
-          double transverse_pass_increment,
-          bool serpentine=false,
-          bool on_serpentine=false
-         )
-      : _start(start), _pool_position{0,0,0}, _dir(dir), _speed(speed), _pass_distance(pass_distance), _overpass(overpass),
-        _transverse_pass_distance(transverse_pass_distance), _transverse_pass_increment(transverse_pass_increment),
-        _pass_distance_traveled(0.0), _transverse_pass_distance_traveled(0.0),
-        _num_pass(0), _serpentine(serpentine), _on_serpentine(on_serpentine),
-        c(1.0), s(0.0)
-         {
-            // Compute 'cos(theta)' and 'sin(theta)' based upon input pass orientation
-            switch(dir){
-              case X:
-                 c=1.0; s=0.0;
-                 break;
-              case Y:
-                 c=0.0; s=1.0;
-                 break;
-              default:
-                 break;
-                 // throw exception here
+      Layer(const vector<Path>& _paths, double _thickness) : 
+         thickness(_thickness), 
+         distance_traveled(0.0), 
+         position(_paths[0].get_start()),
+         paths(_paths),
+         active_path_ptr(0) {
+            double path_distance=paths[active_path_ptr].get_distance();
+            if(path_distance<=0.0){
+               throw "Layer constructor; am_raster.h; Invalid path specified; path distance <= 0.0";
             }
+      }
 
+      Layer(const Layer& c) : thickness(c.thickness), distance_traveled(c.distance_traveled), 
+                              position(c.get_position()), paths(c.paths), 
+                              active_path_ptr(c.active_path_ptr) 
+      { 
+         //printf("Layer(const Layer&c) copy constuctor invoked\n");
+         thickness=c.get_thickness();
+         distance_traveled=c.distance_traveled;
+         position=c.get_position();
+         paths=c.paths;
+         active_path_ptr=c.active_path_ptr;
+      }
+      
+      Layer& operator=(const Layer& rhs) {
+
+         //printf("Layer& operator=(const Layer& rhs) invoked\n");
+         if(this != &rhs){
+            thickness=rhs.get_thickness();
+            distance_traveled=rhs.distance_traveled;
+            position=rhs.get_position();
+            paths=rhs.paths;
+            active_path_ptr=rhs.active_path_ptr;
          }
+         return *this;
+      }
 
-      DIR get_dir() const { return _dir; }
-      double get_speed() const { return _speed; }
-      bool get_serpentine() const {return _serpentine;}
-      int get_num_pass() const { return _num_pass;}
 
-      bool move(double dt) {
+      double get_time_on_layer(double dt) const {
+         int nsteps=0;
+         for(vector<Path>::const_iterator p=paths.begin();p!=paths.end();p++){
+            double d=p->get_distance();
+            double v=p->get_speed();
+            nsteps+=std::ceil(d/(v*dt));
+         }
+         // -1 is used here to round result down
+         return (nsteps-1)*dt;
+      }
 
+      double get_thickness() const { return thickness; }
+
+      Point get_unit_dir() const {
+         return paths[active_path_ptr].get_unit_dir();
+      }
+
+      double get_speed() const {
+         return paths[active_path_ptr].get_speed();
+      }
+
+      double get_distance_traveled() const {
+         return distance_traveled;
+      }
+
+   	bool move(double dt) {
+         /**
+          * Moves pool position along current path.  
+          * If pool move is successful, function return 'true'; 
+          *    Pool position is computed and relative to SPPARKS coordinate
+          *    system
+          * Else If path distance has already been traveled returns 'false';
+          */
          bool moved=false;
+         Point unit_dir=paths[active_path_ptr].get_unit_dir();
+         // position increment of motion along path
+         double dv=dt*paths[active_path_ptr].get_speed();
+         distance_traveled+=dv;
 
-         double dx=_speed*dt;
-
-         if(_pass_distance_traveled+dx<_pass_distance+_overpass){
-
-            // Update distance traveled
-            _pass_distance_traveled+=dx;
-
-            // Increment pool position; pay attention to whether or not we are on
-            //    a serpentine 'pass'
-            if(_on_serpentine) _pool_position[0]-=dx; else _pool_position[0]+=dx;
-
-            // Signal that point moved
+         // Is there more room for motion along path
+         if(distance_traveled<paths[active_path_ptr].get_distance()){
+            // Signal move
             moved=true;
-
-         } else if(_transverse_pass_distance_traveled+_transverse_pass_increment<=_transverse_pass_distance){
-
-            // Increment pass counter
-            _num_pass+=1;
-
-            // Reset pass distance traveled
-            _pass_distance_traveled=0.0;
-
-            // If serpentine, then set direction for serpentine path reversal at odd intervals
-            if (_serpentine) _on_serpentine = !_on_serpentine;
-
-            // If NOT serpentine, reset  pool_position for travel along pool path
-            if (!_serpentine) _pool_position[0] = 0.0;
-
-            // If serpentine, we need to subtract the overpass from pool_position, so that
-            // we start at the equivalent "_start" everytime
-            else if (_on_serpentine)  _pool_position[0]-=_overpass;
-            else if (!_on_serpentine) _pool_position[0]+=_overpass;
-
-            // Move in transverse direction
-            _transverse_pass_distance_traveled+=_transverse_pass_increment;
-            _pool_position[1]=_transverse_pass_distance_traveled;
-
-            // Signal that point moved
-            moved=true;
+            // Update position
+            Point dp(dv*unit_dir[0],dv*unit_dir[1]);
+            // Create new position; copy into temporary;
+            Point tmp(position[0]+dp[0],position[1]+dp[1]);
+            // Assign new position 
+            position=tmp;
+         } else {
+            // No move on previous path; check and prepare for next path
+            active_path_ptr++;
+            if(paths.size()!=active_path_ptr){
+               // Signal move
+               moved=true;
+               // position pool to start of next path
+               position=paths[active_path_ptr].get_start();
+               // initialize distance traveled along path to zero
+               distance_traveled=0.0;
+            } else {
+               // All paths on layer exhausted.
+               // Re-initialize position to start of layer;
+               //    Re-initializing to start allows for re-use
+               //    of this layer in a pattern.
+               active_path_ptr=0;
+               distance_traveled=0.0;
+               position=paths[active_path_ptr].get_start();
+               moved=false;
+            }
          }
          return moved;
       }
@@ -215,29 +278,12 @@ class RectangularLayer {
       /*
        * Computes current pool position with respect to 'spparks'
        * global coordinate system
-       *
        */
-      point get_position() const {
-         // Distance travel with respect to pool coordinates
-         double d=_pool_position[0];
-         double t=_pool_position[1];
-         double dz=0.0;
-
-         // Transform above distance traveled to 'spparks' coordinate system
-         double dr[]={0.0,0.0,0.0};
-         dr[0]= d*c-t*s;
-         dr[1]= d*s+t*c;
-         dr[2]= dz;
-
-         // Calculate and return new position with respect to 'spparks' coordinate system
-         double r[]={0.0,0.0,0.0};
-         r[0]=_start[0]+dr[0];
-         r[1]=_start[1]+dr[1];
-         r[2]=_start[2]+dr[2];
-         return point(r);
-      }
+      Point get_position() const { return position; }
 
       /*
+       * See "SPPARKS devel 4" notebook March 9 2020
+       *
        * Compute position of spparks site relative to pool position; Result
        * is expressed with respect to pool local coordinates.  Pool is
        * always assumed to move along its local x-coordinate axis.
@@ -245,85 +291,30 @@ class RectangularLayer {
        * xyz: spparks site coordinates triplet (x,y,z)
        * layer_z: z-coordinate of layer managed elsewhere
        *
+       *
        */
-      point compute_position_relative_to_pool(const double *xyz, double layer_z) const {
+      Point compute_position_relative_to_pool(const double *xyz, double layer_z) const {
 
          // Pool position with respect to spparks coordinate system
-         point pool=get_position();
+         Point pool=get_position();
 
          // Relative position vector of 'xyz' site coordinate with respect SPPARKS coordinate system
-         double x=xyz[0]-pool[0];
-         double y=xyz[1]-pool[1];
-         double z=xyz[2]-layer_z;
+         Point rsx(xyz[0]-pool[0],xyz[1]-pool[1],xyz[2]-layer_z);
 
-         // Express above position with respect to pool local coordinate system
-         double xp= x*c+y*s;
-         double yp=-x*s+y*c;
-         double zp=z;
+         // Project relative site position onto pool local coordinate system
+         // d: projection onto path direction
+         // t: projection onto transverse direction (right hand rule)
+         Point unit_dir=paths[active_path_ptr].get_unit_dir();
+         double d=unit_dir[0]*rsx[0]+unit_dir[1]*rsx[1];
+         Point dsx(d*unit_dir[0],d*unit_dir[1]);
+         Point tsx(rsx[0]-dsx[0],rsx[1]-dsx[1]);
+         // dot tsx onto transverse direction to get projection onto 't' axis
+         double t=-unit_dir[1]*tsx[0]+unit_dir[0]*tsx[1];
 
-         // If on serpentine pass, then negate to properly orient site with respect to
-         //    pool rotated 180 degrees
-         if(_on_serpentine){
-            xp=-xp;
-            yp=-yp;
-         }
-
-         return point(xp,yp,zp);
+         return Point(d,t,rsx[2]);
       }
-};
-
-class Pattern {
-   private:
-      int _num_layers;
-      vector<int> _layer_ids;
-      double _z0, _dz, _z;
-      int _current_layer_index=0;
-
-   public:
-      Pattern() : _num_layers(0), _layer_ids(), _z0(0), _dz(0), _z(0.0), _current_layer_index(0) { }
-      Pattern(const vector<int> layer_ids, double z0, double dz) :
-         _num_layers(layer_ids.size()), _layer_ids(layer_ids), _z0(z0), _dz(dz), _z(z0), _current_layer_index(0) { }
-
-      double get_layer_z_elevation() const { return _z; }
-
-      int begin() {
-         // Increment position to '1' since returning first value;
-         _current_layer_index=1;
-         // Initialize current elevation
-         _z=_z0;
-         // return beginning index;
-         return _layer_ids[0];
-      }
-
-      int next() {
-         int index;
-         if(_num_layers==_current_layer_index) {
-            // Restart;
-            // Increment position to '1' since returning first value;
-            // return beginning index;
-            index=0;
-            _current_layer_index=1;
-
-         }
-         else {
-            index=_current_layer_index;
-            _current_layer_index+=1;
-         }
-
-         // Increment layer elevation
-         _z+=_dz;
-
-         return _layer_ids[index];
-      }
-
 };
 
 }
 
 #endif
-
-/*
-class RotatedRectangularLayer {
-   RotatedRectangularLayer(point<double> start, point<double> end, double angle, double start_offset,  double speed,  double overpass, double orthogonal_increment) {}
-};
-*/

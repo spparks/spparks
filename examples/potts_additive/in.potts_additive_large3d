@@ -3,7 +3,7 @@
 seed		 56789
 
 		 
-app_style	 potts/additive		10000 30 70 30 7		50 90 45 12 0.1
+app_style	 potts/additive		1000 30 70 30 7		50 90 45 12 0.1
 
 #  |————————————————————————————————————————
 #  | nspins		= atoi(arg[1])
@@ -31,20 +31,23 @@ boundary 	 n n n
 
 create_box	 box
 create_sites	 box
-set		 i1 range 1 10000 
+set		 i1 range 1 1000 
 set		 d1 value 0.0
 #———————————————————————————————————————————
 
 #Define an additive scan pattern using a combination of pass, transverse_pass, cartesian_layer, and pattern
 #———————————————————————————————————————————
-am_pass 1 dir X distance 450.0 speed 10
-am_pass 2 dir Y distance 450.0 speed 10
-am_transverse_pass 1 distance 450.0 increment 25
-am_cartesian_layer 1 start_position 0 0 pass_id 1 transverse_pass_id 1 serpentine 0
-am_cartesian_layer 2 start_position 0 0 pass_id 1 transverse_pass_id 1 serpentine 1
-am_cartesian_layer 3 start_position 450 0 pass_id 2 transverse_pass_id 1 serpentine 0
-am_cartesian_layer 4 start_position 450 0 pass_id 2 transverse_pass_id 1 serpentine 1
-am_pattern 1 num_layers 4 layer_ids 1 2 3 4 z_start 25 z_increment 25
+
+am pass 1 dir X speed 15 hatch 25
+am pass 2 dir Y speed 15 hatch 25
+
+am cartesian_layer 1 start LL pass_id 1 thickness 25 offset -80.0 0.0
+am cartesian_layer 2 start UL pass_id 2 thickness 25 offset 0.0 80.0
+am cartesian_layer 3 start UR pass_id 1 thickness 25 offset 80.0 0.0
+am cartesian_layer 4 start LR pass_id 2 thickness 25 offset 0.0 -80.0
+
+am build start 25.0 num_layers 18
+
 #———————————————————————————————————————————
 
 #Setup the solver type and parameters. Must use a "sweep" style solver

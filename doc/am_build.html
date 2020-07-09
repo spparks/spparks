@@ -1,0 +1,93 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>am build command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>am pattern start z num_layers N 
+</PRE>
+<UL><LI>start=optional key word
+<LI>z = specifies elevation in spparks sites of first layer; default z=zhi
+<LI>num_layers = optional keyword
+<LI>N = specifies number of layers for this build simulation 
+</UL>
+<P><B>Example 1:</B>
+</P>
+<PRE>am pass 1 dir X speed 9 hatch 75 
+</PRE>
+<PRE>am cartesian_layer 1 start LL pass_id 1 thickness 10 offset -100. 0.0 
+</PRE>
+<PRE>am build start 10 num_layers 2 
+</PRE>
+<P><B>Example 2:</B>
+</P>
+<PRE>am pass 1 dir X speed 9 hatch 75 
+</PRE>
+<PRE>am pass 1 dir Y speed 9 hatch 75 
+</PRE>
+<PRE>am cartesian_layer 1 start LL pass_id 1 thickness 10 offset -100. 0.0 
+</PRE>
+<PRE>am cartesian_layer 2 start LR pass_id 2 thickness 1 offset 0.0 -100.0 
+</PRE>
+<PRE>am build start 10 num_layers 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This is an optional command used by <A HREF = "app_potts_additive.html">potts/additive</A>
+and <A HREF = "app_potts_am_weld.html">potts/am/weld</A> applications to specify multilayer
+build simulations.  The command allows for re-use of layer specifications and
+implicitly creates a pattern of layers.  The build pattern is implied by the
+order and number of layers in the input script.  As is conventional, the build
+proceeds in the z-direction according to specified layer thicknesses.  
+The <I>am build start</I> parameter specifies the top surface of build plane; its 
+important to specify this parameter if the spparks domain is thicker than 
+a build layer otherwise the default value will be <I>zhi</I> taken from region 
+box which is probably not desired.  Once all layers have been built/simulated,
+the pattern repeats, cycling through the layers again and again until
+<I>num_layers</I> have been simulated.  The <I>am build</I> command allows for defining
+an arbitrary number of layers and patterns.
+</P>
+<P>This command is mostly intended for SPPARKS simulations that do not use Stitch
+IO; nonetheless, this command can be used with Stitch IO.  Simulations using
+Stitch IO would normally proceed layer-by-layer using only one layer in any
+particular simulation.  If this command is omitted then the pattern of layers
+in the input script is only simulated once.
+</P>
+<P>In Example 1, one layer is simulated.  Because
+<I>thickness t=10</I>, <I>am build start z=10</I> is specified.
+</P>
+<P>In Example 2 above, 2 layers are defined but 4 layers are simulated; layers are
+alternately rastered in <I>X</I> then <I>Y</I> directions starting at the LL corner and
+alternately the LR corner.  As in Example 1, because first layer <I>thickness t=10</I>, 
+the <I>start</I> value is set at <I>am build start z=10</I>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used as part of the 
+<A HREF = "app_potts_additive.html">app_style potts/additive</A> 
+<A HREF = "app_potts_am_weld.html">app_style potts/am/weld</A> or
+applications.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "am_pass.html">am pass</A>,
+<A HREF = "am_path.html">am path</A>,
+<A HREF = "am_cartesian_layer.html">am cartesian_layer</A>
+<A HREF = "am_path_layer.html">am path</A>
+</P>
+<P><B>Default:</B> 
+</P>
+<P><I>start z=zhi</I> where zhi is the z-component of spparks region box 
+</P>
+<P><I>num_layers</I> defaults to number of layers in input script
+</P>
+</HTML>

@@ -26,15 +26,16 @@
 #include "error.h"
 
 #include <iostream>
+#include <limits>
 
 using namespace SPPARKS_NS;
-using RASTER::point;
-using RASTER::DIR;
+using RASTER::Point;
 
 /* ---------------------------------------------------------------------- */
 
 AppPottsAdditive::AppPottsAdditive(SPPARKS *spk, int narg, char **arg) :
-  AppPotts(spk,narg,arg), passes(), active_layer() {
+   PottsAmPathParser(spk,narg,arg),  MobilityOut(0)
+{
 
    // only error check for this class, not derived classes
    if (strcmp(arg[0],"additive") == 0 && narg != 11 )
@@ -63,112 +64,8 @@ AppPottsAdditive::AppPottsAdditive(SPPARKS *spk, int narg, char **arg) :
 
 void AppPottsAdditive::input_app(char *command, int narg, char **arg)
 {
-   if (strcmp(command,"am_pass") == 0) {
-      if (narg < 7) error->all(FLERR,"Illegal pass command.");
-      char* dir=nullptr;
-      double distance=-1.0;
-      double speed=-1.0;
-      bool init_heading=false;
-      int id=std::atoi(arg[0]);
-      if(strcmp(arg[1],"dir")==0){
-         dir=arg[2];
-      } else {error->all(FLERR,"Illegal pass command. Expected 'dir.'");}
-      if(strcmp(arg[3],"distance")==0){
-         distance=std::atof(arg[4]);
-      } else {error->all(FLERR,"Illegal pass command. Expected 'distance.'");}
-      if(strcmp(arg[5],"speed")==0){
-         speed=std::atof(arg[6]);
-      } else {error->all(FLERR,"Illegal pass command. Expected 'speed.'");}
-      if (narg > 7) {
-        if(strcmp(arg[7],"init_heading")==0){
-          //Parsing this as boolean wasn't working, temporarily changed to integer
-          init_heading=std::atoi(arg[8]);
-       } else {error->all(FLERR,"Illegal pass command. Expected 'init_heading.'");}
-      }
-      DIR d;
-      if(strcmp(dir,"X")==0) d=DIR::X;
-      else if(strcmp(dir,"Y")==0) d=DIR::Y;
-      else {error->all(FLERR,"Illegal pass 'dir' command. Expected 'X|Y.'");}
-      passes[id]=Pass(d,distance,speed,init_heading);
-
-   } else if (strcmp(command,"am_transverse_pass") == 0) {
-      if (narg != 5) error->all(FLERR,"Illegal transverse_pass command.");
-      double distance=-1.0;
-      double increment=-1.0;
-      int id=std::atoi(arg[0]);
-      if(strcmp(arg[1],"distance")==0){
-         distance=std::atof(arg[2]);
-      } else {error->all(FLERR,"Illegal transverse_pass command. Expected 'distance.'");}
-      if(strcmp(arg[3],"increment")==0){
-         increment=std::atof(arg[4]);
-      } else {error->all(FLERR,"Illegal transverse_pass command. Expected 'increment.'");}
-      transverse_passes[id]=TransversePass(distance,increment);
-
-   } else if (strcmp(command,"am_cartesian_layer") == 0) {
-      if (narg != 10) error->all(FLERR,"Illegal cartesian_layer command.");
-      double x=0.0, y=0.0;
-      int pass_id=-1, transverse_pass_id=-1;
-      bool serpentine=false;
-      int id=std::atoi(arg[0]);
-      if(strcmp(arg[1],"start_position")==0){
-         x=std::atof(arg[2]);
-         y=std::atof(arg[3]);
-      } else {error->all(FLERR,"Illegal cartesian_layer command. Expected 'start_position.'");}
-      if(strcmp(arg[4],"pass_id")==0){
-         pass_id=std::atoi(arg[5]);
-      } else {error->all(FLERR,"Illegal cartesian_layer command. Expected 'pass_id.'");}
-      if(strcmp(arg[6],"transverse_pass_id")==0){
-         transverse_pass_id=std::atoi(arg[7]);
-      } else {error->all(FLERR,"Illegal cartesian_layer command. Expected 'transverse_pass_id.'");}
-      if(strcmp(arg[8],"serpentine")==0){
-      	 //Parsing this as boolean wasn't working, temporarily changed to integer
-         serpentine=std::atoi(arg[9]);
-      } else {error->all(FLERR,"Illegal cartesian_layer command. Expected 'serpentine.'");}
-      {
-         // Create 'RectangularLayer'
-         point start(x,y,0);
-         Pass p=passes[pass_id];
-         DIR dir=p.get_dir();
-         double speed=p.get_speed();
-         double pass_distance=p.get_distance();
-         bool init_heading=p.get_heading();
-         //Define the "overpass", which will be determined by tail_HAZ + cap_height
-         double overpass = tail_HAZ + cap_HAZ;
-         TransversePass tp=transverse_passes[transverse_pass_id];
-         double transverse_pass_distance=tp.get_distance();
-         double transverse_pass_increment=tp.get_increment();
-         rectangular_layers[id]=RectangularLayer(start,dir,speed,pass_distance,overpass,transverse_pass_distance,transverse_pass_increment,serpentine,init_heading);
-      }
-
-   } else if (strcmp(command,"am_pattern") == 0) {
-      int num_layers;
-      vector<int> layer_ids;
-      double z_start=-1.0;
-      double z_increment=-1.0;
-      int id=std::atoi(arg[0]);
-      if(strcmp(arg[1],"num_layers")==0){
-         num_layers=std::atoi(arg[2]);
-      } else {error->all(FLERR,"Illegal pattern command. Expected 'num_layers.'");}
-      if(strcmp(arg[3],"layer_ids")==0){
-      } else {error->all(FLERR,"Illegal pattern command. Expected 'layer_ids.'");}
-      int num_args=1+2+1+num_layers+2+2;
-      if (narg != num_args) error->all(FLERR,"Illegal pattern command.");
-      int iarg=4;
-      for(int i=0;i<num_layers;i++,iarg++){
-         layer_ids.push_back(std::atoi(arg[iarg]));
-      }
-      if(strcmp(arg[iarg],"z_start")==0){
-         iarg+=1;
-         z_start=std::atof(arg[iarg]);
-         iarg+=1;
-      } else {error->all(FLERR,"Illegal pattern command. Expected 'z_start.'");}
-      if(strcmp(arg[iarg],"z_increment")==0){
-         iarg+=1;
-         z_increment=std::atof(arg[iarg]);
-         iarg+=1;
-      } else {error->all(FLERR,"Illegal pattern command. Expected 'z_increment.'");}
-      pattern=Pattern(layer_ids,z_start,z_increment);
-
+   if (strcmp(command,"am") == 0) {
+      parse_am(narg,arg);
    } else error->all(FLERR,"Unrecognized command");
 }
 
@@ -189,23 +86,8 @@ void AppPottsAdditive::grow_app()
 
 void AppPottsAdditive::init_app()
 {
-   delete [] sites;
-   delete [] unique;
-   sites = new int[1 + maxneigh];
-   unique = new int[1 + maxneigh];
-
-   dt_sweep = 1.0/maxneigh;
-
-   int flag = 0;
-   for (int i = 0; i < nlocal; i++)
-    if (spin[i] < 1 || spin[i] > nspins) flag = 1;
-   int flagall;
-   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-   if (flagall) error->all(FLERR,"One or more sites have invalid values");
-
-   int next_layer_id=pattern.begin();
-   active_layer=rectangular_layers[next_layer_id];
-
+   // Run base class init_app
+   init_app_am();
    // Compute distance function based upon initial pool position
    app_update(0.0);
 }
@@ -218,16 +100,9 @@ void AppPottsAdditive::init_app()
 void AppPottsAdditive::app_update(double dt)
 {
    // Move pool
-   if(active_layer.move(dt)){
-   } else {
-      // Need to update layer
-      int next_layer_id=pattern.next();
-      active_layer=rectangular_layers[next_layer_id];
-   }
-   // WARNING: this should always be run after checking on a move;
-   // z-elevation of active layer
-   double layer_z=pattern.get_layer_z_elevation();
-
+   bool moved=app_update_am(dt);
+   if(!moved)
+      return;
 
 
 	//Use the new position as input to the mobility calculation
@@ -243,7 +118,7 @@ void AppPottsAdditive::app_update(double dt)
 		// SPPARKS lattice site
 		double XYZ[]={xyz[i][0],xyz[i][1],xyz[i][2]};
 		// Lattice point location relative to 'pool' position
-		point xyz_r_p=active_layer.compute_position_relative_to_pool(XYZ,layer_z);
+		Point xyz_r_p=compute_position_relative_to_pool(XYZ);
 
 		//Temporary assignment of xo, xo is in the melt pool's reference frame!
 		double xo[]={xyz_r_p[0],xyz_r_p[1],xyz_r_p[2]};
@@ -280,8 +155,6 @@ void AppPottsAdditive::app_update(double dt)
 			MobilityOut[i] = 0;
 		}
 	}
-   // IT is/was a BUG (I think) to call move here.
-   //active_layer.move(dt);
 }
 
 
