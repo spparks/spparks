@@ -1,0 +1,71 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+am path_layer command :h3
+
+[Syntax:]
+
+am path_layer layer_id num_paths N path_ids (tuple paths_ids) thickness t :pre
+
+layer_id = integer identification number for this path_layer
+num_paths = required keyword
+N = integer number of paths specified on this layer
+path_ids = required keyword
+(tuple path_ids) = tuple array of path_ids corresponding {am path} specifications elsewhere in script
+thickness = required keyword
+t = thickness in sites of layer :ul
+
+[Examples]
+
+variable X0 equal         0.0 :pre
+variable Y0 equal         0.0 :pre
+variable X1 equal        500.0 :pre
+variable Y1 equal        500.0 :pre
+variable X2 equal        106.1 :pre
+variable Y2 equal         0.0 :pre
+variable X3 equal        500.0 :pre
+variable Y3 equal        393.9 :pre
+am path 1 start ${X0} ${Y0} end ${X1} ${Y1} speed 9 :pre
+am path 2 start ${X3} ${Y3} end ${X2} ${Y2} speed 9 :pre
+am path_layer 1 num_paths 2 path_ids 1 2 thickness 1 :pre
+
+
+[Description:]
+
+This command is used by "potts/additive"_app_potts_additive.html,
+and "potts/am/weld"_app_potts_am_weld.html applications 
+to specify raster patterns on path build layers.  Multiple path_layers can be
+defined in a single input file, using unique id values.  Although simple 
+build simulations can be conducted using this command by manually 
+writing scripts that use {am path_layer}, it is expected that this 
+command will generally be automatically created for the purpose of 
+handling more complex geometries.
+
+The {num_paths} and {path_ids} keywords are used to create the layer with 
+{thickness t}.  The build layer {thickness} is specified in units of sites.
+
+
+In example above, two unique {am path}s are created; these paths are 
+referenced in the {am path_layer} command.  This example is also 
+illustrated for "am_path"_am_path.html,
+
+:image(JPG/path_schematic.png)
+
+[Restrictions:]
+
+This command can only be used as part of apps
+"potts/additive"_app_potts_additive.html or 
+"potts/am/weld"_app_potts_am_weld.html applications.
+
+[Related commands:]
+
+"am_pass"_am_pass.html,
+"am_path"_am_path.html,
+"am_build"_am_build.html
+
+[Default:] 

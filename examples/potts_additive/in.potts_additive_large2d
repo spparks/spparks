@@ -38,10 +38,11 @@ set		 d1 value 0.0
 
 #Define an additive scan pattern using a combination of pass, transverse_pass, cartesian_layer, and pattern
 #———————————————————————————————————————————
-am_pass 1 dir Y distance 450.0 speed 8
-am_transverse_pass 1 distance 450.0 increment 33.75
-am_cartesian_layer 1 start_position 450 0 pass_id 1 transverse_pass_id 1 serpentine 0
-am_pattern 1 num_layers 1 layer_ids 1 z_start 1 z_increment 1
+
+am pass 1 dir Y speed 15 hatch 25
+am cartesian_layer 1 start LL pass_id 1 thickness 1 offset 0.0 -60.0
+am build start 0.0 num_layers 1
+
 #———————————————————————————————————————————
 
 #Setup the solver type and parameters. Must use a "sweep" style solver

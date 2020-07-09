@@ -19,20 +19,19 @@ AppStyle(potts/additive,AppPottsAdditive)
 #ifndef SPK_APP_POTTS_ADDITIVE
 #define SPK_APP_POTTS_ADDITIVE
 
+#include <stdlib.h>
 #include "app_potts.h"
 #include "am_raster.h"
-#include <stdlib.h>
-#include <map>
+#include "potts_am_path_parser.h"
 
-using std::map;
-using RASTER::Pass;
-using RASTER::TransversePass;
-using RASTER::RectangularLayer;
-using RASTER::Pattern;
+//using std::map;
+//using RASTER::Pass;
+//using RASTER::Path;
+//using RASTER::Layer;
 
 namespace SPPARKS_NS {
 
-class AppPottsAdditive : public AppPotts {
+class AppPottsAdditive : public PottsAmPathParser {
  public:
   AppPottsAdditive(class SPPARKS *, int, char **);
   virtual void grow_app();
@@ -44,13 +43,7 @@ class AppPottsAdditive : public AppPotts {
 	
  //Remove all of the variables we don't actually need
  protected:
-  int NXeffective;
-  int NYeffective;
-  int NZeffective;
-  int CurrLayer;
-  int CurrPass;
-  
-  double *MobilityOut;
+ double *MobilityOut;
 
  double spot_width;
  double melt_tail_length;
@@ -62,12 +55,12 @@ class AppPottsAdditive : public AppPotts {
  double cap_HAZ;
  double depth_HAZ;
 
- private:
-   map<int,Pass> passes;
-   map<int,TransversePass> transverse_passes;
-   map<int,RectangularLayer> rectangular_layers;
-   Pattern pattern;
-   RectangularLayer active_layer;
+// private:
+//   double build_layer_z;
+//   map<int,Pass> passes;
+//   map<int,Path> paths;
+//   std::vector<Layer> layers;
+//   std::vector<Layer>::iterator active_layer;
 };
 
 }

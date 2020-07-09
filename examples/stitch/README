@@ -30,6 +30,18 @@ and *reset_time* commands.
     purposes of intializing a microstructure from an existing *stitch* file.  This script 
     requires output *equiaxed.st* from *dump_equiaxed.in* calculation.
 
+* *am_demo*: this subdirectory contains the following files
+
+  * *run.sh*: bash script which orchestrates a series of small AM simulations 
+    which use *stitch*; 4 layer build simulation is scripted.
+  * *in.init*: spparks input file used to initialize a stitch file on 
+    first layer of 4 layer build.
+  * *in.am*: spparks input file which uses a *am cartesian_layer* command 
+    to simulate raster patterns on each layer.
+  * *process_stitch.py*: python script for generating image files of build 
+    simulation.  This file should be edited -- in particular the bb box 
+    ranges should be edited to specify which 2D cuts to visualize
+
 
 How to run scripts
 ++++++++++++++++++

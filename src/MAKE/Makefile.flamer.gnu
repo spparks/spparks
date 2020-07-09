@@ -35,9 +35,9 @@ SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -I/usr/include/openmpi-x86_64
+MPI_INC =       -I${MPI_HOME}/include
 MPI_PATH =      -L${MPI_HOME}/lib 
-MPI_LIB =	-lmpich
+MPI_LIB =	-lmpi
 MPI_INC = 
 MPI_PATH =
 MPI_LIB =

@@ -6,60 +6,63 @@
 
 :line
 
-am_pass command :h3
+am pass command :h3
 
 [Syntax:]
 
-am_pass id dir d distance D speed V init_heading B :pre
+am pass id dir d speed V hatch h overhatch oh :pre
 
 id = integer identification number for this pass
 dir = required keyword
 d = {X} or {Y} which specifies direction of the cartesian pass
-distance = required keyword
-D = total pass distance
 speed = required keyword
-V = scan velocity of the pass in sites/Monte-Carlo-sweep
-init_heading = optional keyword
-B = {0} or {1} for a pass heading in the positive (default) or negative direction :ul
+V = scan speed of the pass in sites/Monte-Carlo-sweep
+hatch = required keyword
+h = hatch spacing distance 
+overhatch = optional keyword
+oh = perpindicular distance to pass dir; expands domain size :ul
 
 [Examples:]
 
-am_pass 1 dir X distance 100.0 speed 10.0 :pre
-am_pass 2 dir Y distance 100.0 speed 5.0 init_heading 1 :pre
+am pass 1 dir X speed 9 hatch 75 :pre
+am pass 2 dir Y speed 10 hatch 50 overhatch 25 :pre
 
 [Description:]
 
-This command is used in the "potts/additive"_app_potts_additive.html
-application to specify the parameters of the pass subcomponent of a
-raster pattern.  Multiple passes can be defined in a single input
-file, using unique id values.
+This command is used by "potts/additive"_app_potts_additive.html, and
+"potts/am_weld"_app_potts_am_weld.html to specify raster scan patterns for
+rectangular domains. Multiple passes can be defined in a single input file,
+each using unique id values. The {am pass} command is a required subelement of
+"am cartesian_layer"_am_cartesian_layer.html that specifies a cartesian build
+layer in the {x,y} plane. The initial heading, left or right for {dir=X} or 
+up or down for {dir=Y} depends upon the starting location specified in the 
+"am cartesian_layer"_am_cartesian_layer.html command.  By default, scan lines are
+{serpentine} but this can be turned off in the "am
+cartesian_layer"_am_cartesian_layer.html command. 
 
-Note that the {dir} value specifies direction of motion and
-orientation of the molten pool during a pass.  The pool has its own
-local coordinate system {x,y} so that the pool axis {x} is always
-oriented along {dir d}. {init_heading} can be specified to start movement
-along {dir} axis ({0}; default) or in negative direction.
+The {pass} distance and number of {hatch} lines are controlled by the {X,Y}
+extent of the domain specified using the "region"_region.html command, which
+must be a box; multiple passes, seperated by {hatch} spacing are invoked until the
+domain dimension perpindicular to the scan {dir} is exhausted.  The optional
+{overhatch} value can be used to cause additional scan lines.  The melt pool
+has its own local coordinate system {x,y} so that the pool axis {x} is always
+oriented along {dir d}.   
 
-The {distance} value {D} should typically be the size of the
-simulation box in the xy-plane.
-
-The example commands above define two passes, each with a different
-orientation, speed, and heading.  The sketch below also illustrates the
-{overpass}; the pool position is always translated by the {distance}
-specfied plus an {overpass} increment.  The {overpass} increment is
-computed as shown based upon parameters set in the
-"app_potts_additive"_app_potts_additive.html command.
+The example commands above define two passes, each with a different {dir},
+{speed}, {hatch} and optional {overhatch}. 
 
 :image(JPG/pass_schematic.png)
 
 [Restrictions:]
 
-This rastering command can be used with "app_style potts/am/weld"_app_potts_am_weld.html or "app_style potts/additive"_app_potts_additive.html.
+This rastering command can be used with "app_style
+potts/am/weld"_app_potts_am_weld.html or "app_style
+potts/additive"_app_potts_additive.html.
 
 [Related commands:]
 
-"am_transverse_pass"_am_transverse_pass.html,
-"am_cartesian_layer"_am_cartesian_layer.html,
-"am_pattern"_am_pattern.html
+"am_cartesian_layer"_am_cartesian_layer.html
 
-[Default:] none
+[Default:] 
+
+Optional {overhatch} value defaults to {0.0}

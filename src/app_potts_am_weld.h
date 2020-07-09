@@ -21,30 +21,27 @@ AppStyle(potts/am/weld,AppPottsAmWeld)
 
 #include <vector>
 #include "random_park.h"
-#include "app_potts.h"
-#include "am_raster.h"
 #include <stdlib.h>
 #include <map>
+#include "am_raster.h"
+#include "potts_am_path_parser.h"
 
-using std::map;
-using RASTER::Pass;
-using RASTER::TransversePass;
-using RASTER::RectangularLayer;
-using RASTER::Pattern;
+using RASTER::pool_shape::ShapeType;
 
 namespace SPPARKS_NS {
 
-class AppPottsAmWeld : public AppPotts {
+class AppPottsAmWeld : public PottsAmPathParser {
 
  public:
   AppPottsAmWeld(class SPPARKS *, int, char **);
+  virtual ~AppPottsAmWeld() { }
   virtual void grow_app();
   virtual void init_app();
   virtual void site_event_rejection(int, RandomPark *);
   void input_app(char *, int , char **);
   double compute_mobility(int);
   void app_update(double);
-	
+
  private:
    double alpha, beta;
    double haz;
@@ -53,16 +50,10 @@ class AppPottsAmWeld : public AppPotts {
    double simulation_time;
 
    // Pool shape parameters
-   RASTER::pool_shape::ShapeType shape_type;
+   ShapeType shape_type;
    double width, length;
    vector<vector<double> > teardrop_control_points;
 
- private:
-   map<int,Pass> passes;
-   map<int,TransversePass> transverse_passes;
-   map<int,RectangularLayer> rectangular_layers;
-   Pattern pattern;
-   RectangularLayer active_layer;
 };
 
 }

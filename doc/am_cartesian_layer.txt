@@ -6,67 +6,86 @@
 
 :line
 
-am_cartesian_layer command :h3
+am cartesian_layer command :h3
 
 [Syntax:]
 
-am_cartesian_layer layer_id start_position x y pass_id p_id transverse_pass_id t_id serpentine switch :pre
+am cartesian_layer layer_id start location pass_id p_id thickness t offset x,y serpentine switch :pre
 
 layer_id = integer identification number for this cartesian_layer
-start_position = required keyword
-x y = coordinates of initial molten zone location
+start = required keyword
+location = LL or LR or UR or UL
 pass_id = required keyword
 p_id = integer ID of the pass to use for this layer
-transverse_pass_id = required keyword
-t_id = integer ID of the transverse pass to use for this layer
-serpentine = required keyword
-switch = 0 for parallel, 1 for anti-parallel for successive passes :ul
+thickness = required keyword
+t = thickness in sites of layer
+offset = optional keyword and x,y values
+x,y = optional relative offset (shift) in x-y plane of raster starting position
+serpentine = optional keyword and switch value
+switch = 0 for parallel, 1 for anti-parallel of consecutive scans :ul
 
 [Examples:]
 
-am_pass 1 dir X distance 100.0 speed 10.0
-am_transverse_pass 1 distance 65.0 increment 10
-am_cartesian_layer 1 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 0
-am_cartesian_layer 2 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 1 :pre
+# Example 1
+am pass 1 dir X speed 9 hatch 75 :pre
+am cartesian_layer 1 start LL pass_id 1 thickness 1 offset -100. 0.0 :pre
+
+# Example 2
+am pass 2 dir Y speed 9 hatch 75 :pre
+am cartesian_layer 1 start LL pass_id 2 thickness 1 offset -100. 0.0 :pre
 
 [Description:]
 
-This command is used in the "potts/additive"_app_potts_additive.html
-application to specify the cartesian_layer subcomponent of a raster
-"pattern"_am_pattern.html.  Multiple cartesian_layers can be defined
+This command is used by "potts/additive"_app_potts_additive.html,
+and "potts/am/weld"_app_potts_am_weld.html applications 
+to specify raster patterns on cartesian build layers.
+Multiple cartesian_layers can be defined
 in a single input file, using unique id values.
 
-The {start_position} values x,y are typically the bottom-left corner
-of the simulation domain.
+The {start location}, references the lower left LL, lower right LR, upper right
+UR, upper left UL of the rectangular domain; {location} must be one of {LL,LR,UR,UL}.  
+The extent of the rectangular domain created by the raster pattern is specified
+elsewhere ("region"_region.html) using {region box} in the standard way.
 
-The {pass_id} value {p_id} is defined by the "pass"_am_pass.html
-command.  The {transverse_pass_id} value {t_id} is defined by the
-"transverse_pass"_am_transverse_pass.html command.
+The {pass_id p_id} specified must reference an "am pass"_pass_am_pass.html
+from earlier in the input script.
 
-Note that the x,y values are "pass"_am_pass.html sensitive.  If a pass
-defines {dir X}, then the start_position should be at the lower left
-corner of raster domain (as defined by the pass and
-transverse_pass). If the pass defined {dir Y}, then the start position
-should be at the lower right corner of the raster domain.  See a
-schematic of the latter case in the "pass"_am_pass.html command.
+The build layer {thickness} is specified in units of sites.
 
-In the above example, two unique layers (with and without serpentine)
-are created.  Note re-use of the "pass"_am_pass.html and
-"transverse_pass"_am_transverse_pass.html commands.  The schematic
-below depicts the two layers.  Note how {overpass} interacts with
-{serpentine}.
+Specified in units of sites, {offset} specifies the raster scan starting
+position relative to {start location}.
+
+By default, scan patterns are anti-parallel {serpentine}.  To turn off the
+default scan pattern add the optional switch {serpentine 0}. 
+
+The initial heading of the scan pattern depends upon {start} and 
+the value of {pass dir} (see "am pass"_am_pass.html); also see 
+examples below.
+
+In the examples, two unique layers are created. {offset} option is used to
+extend starting and ending points of pass, effectively lengthening the pass;
+although offset consists of {x,y} values, it is primarily intended to change
+starting and ending points along {dir}, ie only one component of {offset} is
+non-zero; although {offset} defaults to {x=0,y=0}, if one of these values must
+be non-zero, then {0.0} must be given for the other value.
+
+{serpentine 0} must be given to turn {serpentine} off.
 
 :image(JPG/cartesian_layer_schematic.png)
 
 [Restrictions:]
 
-This command can only be used as part of the "app_style
-potts/additive"_app_potts_additive.html application.
+This command can only be used as part of apps
+"potts/additive"_app_potts_additive.html or 
+"potts/am/weld"_app_potts_am_weld.html applications.
 
 [Related commands:]
 
 "am_pass"_am_pass.html,
-"am_transverse_pass"_am_transverse_pass.html,
-"am_pattern"_am_pattern.html
+"am_path"_am_path.html,
+"am_build"_am_build.html
 
-[Default:] none
+[Default:] 
+
+{offset x=0.0, y=0.0}
+{serpentine switch=0.0}

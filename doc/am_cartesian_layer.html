@@ -9,69 +9,90 @@
 
 <HR>
 
-<H3>am_cartesian_layer command 
+<H3>am cartesian_layer command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>am_cartesian_layer layer_id start_position x y pass_id p_id transverse_pass_id t_id serpentine switch 
+<PRE>am cartesian_layer layer_id start location pass_id p_id thickness t offset x,y serpentine switch 
 </PRE>
 <UL><LI>layer_id = integer identification number for this cartesian_layer
-<LI>start_position = required keyword
-<LI>x y = coordinates of initial molten zone location
+<LI>start = required keyword
+<LI>location = LL or LR or UR or UL
 <LI>pass_id = required keyword
 <LI>p_id = integer ID of the pass to use for this layer
-<LI>transverse_pass_id = required keyword
-<LI>t_id = integer ID of the transverse pass to use for this layer
-<LI>serpentine = required keyword
-<LI>switch = 0 for parallel, 1 for anti-parallel for successive passes 
+<LI>thickness = required keyword
+<LI>t = thickness in sites of layer
+<LI>offset = optional keyword and x,y values
+<LI>x,y = optional relative offset (shift) in x-y plane of raster starting position
+<LI>serpentine = optional keyword and switch value
+<LI>switch = 0 for parallel, 1 for anti-parallel of consecutive scans 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>am_pass 1 dir X distance 100.0 speed 10.0
-am_transverse_pass 1 distance 65.0 increment 10
-am_cartesian_layer 1 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 0
-am_cartesian_layer 2 start_position 30 30 pass_id 1 transverse_pass_id 1 serpentine 1 
+<PRE># Example 1
+am pass 1 dir X speed 9 hatch 75 
+</PRE>
+<PRE>am cartesian_layer 1 start LL pass_id 1 thickness 1 offset -100. 0.0 
+</PRE>
+<PRE># Example 2
+am pass 2 dir Y speed 9 hatch 75 
+</PRE>
+<PRE>am cartesian_layer 1 start LL pass_id 2 thickness 1 offset -100. 0.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command is used in the <A HREF = "app_potts_additive.html">potts/additive</A>
-application to specify the cartesian_layer subcomponent of a raster
-<A HREF = "am_pattern.html">pattern</A>.  Multiple cartesian_layers can be defined
+<P>This command is used by <A HREF = "app_potts_additive.html">potts/additive</A>,
+and <A HREF = "app_potts_am_weld.html">potts/am/weld</A> applications 
+to specify raster patterns on cartesian build layers.
+Multiple cartesian_layers can be defined
 in a single input file, using unique id values.
 </P>
-<P>The <I>start_position</I> values x,y are typically the bottom-left corner
-of the simulation domain.
+<P>The <I>start location</I>, references the lower left LL, lower right LR, upper right
+UR, upper left UL of the rectangular domain; <I>location</I> must be one of <I>LL,LR,UR,UL</I>.  
+The extent of the rectangular domain created by the raster pattern is specified
+elsewhere (<A HREF = "region.html">region</A>) using <I>region box</I> in the standard way.
 </P>
-<P>The <I>pass_id</I> value <I>p_id</I> is defined by the <A HREF = "am_pass.html">pass</A>
-command.  The <I>transverse_pass_id</I> value <I>t_id</I> is defined by the
-<A HREF = "am_transverse_pass.html">transverse_pass</A> command.
+<P>The <I>pass_id p_id</I> specified must reference an <A HREF = "pass_am_pass.html">am pass</A>
+from earlier in the input script.
 </P>
-<P>Note that the x,y values are <A HREF = "am_pass.html">pass</A> sensitive.  If a pass
-defines <I>dir X</I>, then the start_position should be at the lower left
-corner of raster domain (as defined by the pass and
-transverse_pass). If the pass defined <I>dir Y</I>, then the start position
-should be at the lower right corner of the raster domain.  See a
-schematic of the latter case in the <A HREF = "am_pass.html">pass</A> command.
+<P>The build layer <I>thickness</I> is specified in units of sites.
 </P>
-<P>In the above example, two unique layers (with and without serpentine)
-are created.  Note re-use of the <A HREF = "am_pass.html">pass</A> and
-<A HREF = "am_transverse_pass.html">transverse_pass</A> commands.  The schematic
-below depicts the two layers.  Note how <I>overpass</I> interacts with
-<I>serpentine</I>.
+<P>Specified in units of sites, <I>offset</I> specifies the raster scan starting
+position relative to <I>start location</I>.
+</P>
+<P>By default, scan patterns are anti-parallel <I>serpentine</I>.  To turn off the
+default scan pattern add the optional switch <I>serpentine 0</I>. 
+</P>
+<P>The initial heading of the scan pattern depends upon <I>start</I> and 
+the value of <I>pass dir</I> (see <A HREF = "am_pass.html">am pass</A>); also see 
+examples below.
+</P>
+<P>In the examples, two unique layers are created. <I>offset</I> option is used to
+extend starting and ending points of pass, effectively lengthening the pass;
+although offset consists of <I>x,y</I> values, it is primarily intended to change
+starting and ending points along <I>dir</I>, ie only one component of <I>offset</I> is
+non-zero; although <I>offset</I> defaults to <I>x=0,y=0</I>, if one of these values must
+be non-zero, then <I>0.0</I> must be given for the other value.
+</P>
+<P><I>serpentine 0</I> must be given to turn <I>serpentine</I> off.
 </P>
 <IMG SRC = "JPG/cartesian_layer_schematic.png">
 
 <P><B>Restrictions:</B>
 </P>
-<P>This command can only be used as part of the <A HREF = "app_potts_additive.html">app_style
-potts/additive</A> application.
+<P>This command can only be used as part of apps
+<A HREF = "app_potts_additive.html">potts/additive</A> or 
+<A HREF = "app_potts_am_weld.html">potts/am/weld</A> applications.
 </P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "am_pass.html">am_pass</A>,
-<A HREF = "am_transverse_pass.html">am_transverse_pass</A>,
-<A HREF = "am_pattern.html">am_pattern</A>
+<A HREF = "am_path.html">am_path</A>,
+<A HREF = "am_build.html">am_build</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B> 
+</P>
+<P><I>offset x=0.0, y=0.0</I>
+<I>serpentine switch=0.0</I>
 </P>
 </HTML>
