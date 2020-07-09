@@ -95,7 +95,7 @@ writing 'stitch' files.  It is particularly useful
 for reading 'stitch' files written by 'spparks'.
 
 The python module should be build with gnu gcc.  It may be possible to 
-do otherwise but that has not been tested.  In generall, the same compiler
+do otherwise but that has not been tested.  In general, the same compiler
 used to build python, numpy, and scipy should be used to build the stitch 
 module.
 
