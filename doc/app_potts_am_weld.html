@@ -68,30 +68,27 @@ interpretations/meanings for <I>potts/am/weld</I>.  Some values, e.g.
 <TR><TD ><A HREF = "weld_shape_teardrop.html">weld_shape_teardrop</A></TD><TD > specify teardrop pool shape parameters 
 </TD></TR></TABLE></DIV>
 
-<P>The following additional commands are used by this application; 
-a layer must be defined: one of <A HREF = "am_cartesian_layer.html">am cartesian_layer</A> 
+<P>The following additional commands are typically used by this application.
+A layer must be defined: one of <A HREF = "am_cartesian_layer.html">am cartesian_layer</A> 
 or <A HREF = "am_path_layer.html">am path_layer</A>.  A layer requires 1 to many <A HREF = "am_path.html">am path</A>
 or at least 1 <A HREF = "am_pass.html">am pass</A>.
 </P>
 <P><A HREF = "am_pass.html">am pass</A>: Specify pass parameters 
 used to construct <I>cartesian_layer</I>. 
 </P>
-<P><A HREF = "am_path.html">am_path</A>: Specify arbitrary paths via start/end points on 
+<P><A HREF = "am_path.html">am path</A>: Specify arbitrary paths via start/end points on 
 a layer; sequence of <I>am path</I>s are used to construct an 
 <A HREF = "am_path_layer.html">am path_layer</A>.
 </P>
-<P><A HREF = "am_cartesian_layer.html">am_cartesian_layer</A>: A scan pattern on
+<P><A HREF = "am_cartesian_layer.html">am cartesian_layer</A>: A scan pattern on
 rectangular layer constructed from <I>am pass</I> and other parameters. 
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD ><A HREF = "am_pattern.html">am_pattern</A></TD><TD > Define the combination of layers that comprise a pattern. 
-</TD></TR></TABLE></DIV>
-
-<P><I>NOTE</I>: Because <I>potts/am/weld</I> is intended for <I>2D</I> simulations, only the first layer, as
-specified in the <I>am_pattern</I> command, is used and <I>z_increments</I> are ignored.
-The examples/potts_additive directory has input files which illustrate how to
-use rastering commands.  It is expected that this app will be extended to
-include <I>z_increments</I> and 3D capabilities for additive manufacturing.  
+<P><A HREF = "am_build.html">am build</A>: May be used to combinations of layers that comprise a pattern.
+</P>
+<P><I>NOTE</I>: Because <I>potts/am/weld</I> is intended for <I>2D</I> simulations, only the
+first layer, as specified in the <I>am build</I> command, is used; this application
+does not simulate multilayer builds.  The examples/potts_additive directory
+has input files which illustrate how to use the rastering commands.  
 </P>
 <P>The <A HREF = "temperature.html">temperature</A> command should be used to set simulation Monte Carlo temperature.
 </P>
