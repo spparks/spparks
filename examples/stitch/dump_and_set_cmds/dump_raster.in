@@ -32,10 +32,7 @@ set		 d1 value 0.0
 
 #Define an additive scan pattern using pass, and cartesian_layer
 #———————————————————————————————————————————
-#am_pass 1 dir X distance 300.0 speed 5
 am pass 1 dir X speed 5 hatch 100.0
-#am_transverse_pass 1 distance 200.0 increment 100.0
-#am_cartesian_layer 1 start_position -25 0 pass_id 1 transverse_pass_id 1 serpentine 1
 am cartesian_layer 1 start LL pass_id 1 thickness 1 offset -25 0 serpentine 1
 #———————————————————————————————————————————
 
