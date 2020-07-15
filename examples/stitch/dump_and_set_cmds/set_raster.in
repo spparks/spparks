@@ -32,12 +32,10 @@ create_sites	 box
 set site stitch equiaxed.st 1.0
 #———————————————————————————————————————————
 
-#Define an additive scan pattern using a combination of pass, transverse_pass, cartesian_layer, and pattern
+#Define an additive scan pattern using a combination of pass and cartesian_layer
 #———————————————————————————————————————————
-am_pass 1 dir X distance 300.0 speed 5
-am_transverse_pass 1 distance 200.0 increment 100.0
-am_cartesian_layer 1 start_position -25 0 pass_id 1 transverse_pass_id 1 serpentine 1
-am_pattern 1 num_layers 1 layer_ids 1 z_start 0 z_increment 1
+am pass 1 dir X speed 5 hatch 100.0
+am cartesian_layer 1 start LL pass_id 1 thickness 1 offset -25 0 serpentine 1
 #———————————————————————————————————————————
 
 #Setup the solver type and parameters. Must use a "sweep" style solver
@@ -55,4 +53,6 @@ stats            1.0
 dump         dump.id stitch ${DT} ${OUT} site
 dump_modify dump.id tol ${ABS_TOL}
 
+# Final runtime is calculated by model to finish 
+#   all specified paths
 run              100.0
