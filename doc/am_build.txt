@@ -10,7 +10,7 @@ am build command :h3
 
 [Syntax:]
 
-am pattern start z num_layers N :pre
+am build start z num_layers N :pre
 
 start=optional key word
 z = specifies elevation in spparks sites of first layer; default z=zhi
