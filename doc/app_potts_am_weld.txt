@@ -61,7 +61,8 @@ The following commands must be used to specify pool geometry:
 The following additional commands are typically used by this application.
 A layer must be defined: one of "am cartesian_layer"_am_cartesian_layer.html 
 or "am path_layer"_am_path_layer.html.  A layer requires 1 to many "am path"_am_path.html
-or at least 1 "am pass"_am_pass.html.
+or at least 1 "am pass"_am_pass.html.  Since this application only runs 1 layer, 
+the {am build} command described below is optional.
 
 "am pass"_am_pass.html: Specify pass parameters 
 used to construct {cartesian_layer}. 
