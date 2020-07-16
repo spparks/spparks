@@ -41,10 +41,18 @@ and *reset_time* commands.
   * *in.init*: spparks input file used to initialize a stitch file on 
     first layer of 4 layer build.
   * *in.am*: spparks input file which uses a *am cartesian_layer* command 
-    to simulate raster patterns on each layer.
+    to simulate raster patterns on each layer.  Each of the above 
+    described spparks runs use 'Stitch' progressive IO by writing the 
+    the file 'am_demo.st'; this file is processed with the following 
+    python script to visualize evolution of microstructure.
   * *process_stitch.py*: python script for generating image files of build 
     simulation.  This file should be edited -- in particular the bb box 
-    ranges should be edited to specify which 2D cuts to visualize
+    ranges should be edited to specify which 2D cuts to visualize; for this 
+    example, edit the 'bz' variable to select which z-cut to visualize.
+
+    Run the script: 
+
+         % python process_stitch.py -pam_demo
 
 
 How to run scripts
