@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SPPARKS=$HOME/jaks.git/spparks.svn/trunk/src/spk_flamer.gnu
+
 # Array of layer intervals / thicknesses
 declare -a Z=("0 25" "25 50" "50 75" "75 100")
 
@@ -35,7 +37,7 @@ function initialize_stitchfile () {
    #  
    # Run SPPARKS to initialize microstructure on layer
    SEED=$RANDOM
-   spk_tutka.gnu -var SEED $SEED < in.potts_init
+   $SPPARKS -var SEED $SEED < in.potts_init
 }
 
 # Initalize stitch file by running above function
@@ -56,6 +58,6 @@ for (( L=0; L<${NUM_LAYERS}; L++ )); do
   #  
   # Run SPPARKS to simulate microstructure on each layer
   SEED=$RANDOM
-  spk_tutka.gnu -var SEED $SEED < in.am_layer
+  $SPPARKS -var SEED $SEED < in.am_layer
 
 done

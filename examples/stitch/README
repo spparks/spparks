@@ -30,7 +30,11 @@ and *reset_time* commands.
     purposes of intializing a microstructure from an existing *stitch* file.  This script 
     requires output *equiaxed.st* from *dump_equiaxed.in* calculation.
 
-* *am_demo*: this subdirectory contains the following files
+* *am_demo*: this subdirectory contains the following files; this sequence of
+  runs can take upto 15 or 20 minutes to run depending upon your processor etc.
+  Currently, the 'run.sh' script below is set to run in serial but a speed-up 
+  can be achieved by running on 4 processors; adjust script appropriately.   
+  Make sure to adjust path to SPPARKS executable at top of 'run.sh' script.
 
   * *run.sh*: bash script which orchestrates a series of small AM simulations 
     which use *stitch*; 4 layer build simulation is scripted.
