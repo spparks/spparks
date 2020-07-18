@@ -90,13 +90,13 @@ namespace DEMO {
 
 using RASTER::pool_shape::AM_TEARDROP::DEMO::InchesPerMinute;
 using RASTER::pool_shape::AM_TEARDROP::DEMO::get_demo_control_points;
-using RASTER::pool_shape::ShapeType::undefined;
+using RASTER::pool_shape::ShapeType;
 
 /* ---------------------------------------------------------------------- */
 
 AppPottsAmWeld::AppPottsAmWeld(SPPARKS *spk, int narg, char **arg) :
    PottsAmPathParser(spk,narg,arg), alpha(0.5), beta(0.75), haz(-1.0), distance(nullptr),
-   random_park(std::atof(arg[2])), simulation_time(0.0), shape_type(undefined),
+   random_park(std::atof(arg[2])), simulation_time(0.0), shape_type(ShapeType::undefined),
    width(-1.0), length(-1.0), teardrop_control_points()
 {
 
