@@ -163,13 +163,8 @@ void CreateSites::command(int narg, char **arg)
     ylattice = domain->lattice->ylattice;
     zlattice = domain->lattice->zlattice;
 
-    double time1 = MPI_Wtime();
     structured_lattice();
-    double time2 = MPI_Wtime();
-    //printf("AAA %g\n",time2-time1);
     if (latticeflag) structured_connectivity();
-    double time3 = MPI_Wtime();
-    //printf("AAA %g\n",time3-time2);
 
   } else if (latstyle == RANDOM_1D || latstyle == RANDOM_2D ||
 	     latstyle == RANDOM_3D) {
@@ -178,13 +173,8 @@ void CreateSites::command(int narg, char **arg)
   }
 
   if (latticeflag) {
-    double time1 = MPI_Wtime();
     ghosts_from_connectivity(applattice,applattice->delpropensity);
-    double time2 = MPI_Wtime();
-    //printf("AAA %g\n",time2-time1);
     applattice->print_connectivity();
-    double time3 = MPI_Wtime();
-    //printf("AAA %g\n",time3-time2);
   }
 
   // clean up

@@ -1,3 +1,18 @@
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
+------------------------------------------------------------------------- */
+
+// support class used by several additive manufacturing apps
+
 #include <stdio.h>
 #include <cstdlib>
 #include <cstddef>
@@ -19,18 +34,20 @@
 #include "potts_am_path_parser.h"
 
 using namespace SPPARKS_NS;
+
 using RASTER::DIR;
+
+/* ---------------------------------------------------------------------- */
 
 PottsAmPathParser::PottsAmPathParser(SPPARKS *spk, int narg, char **arg) : 
   AppPotts(spk,narg,arg),   passes(), paths(), pattern(),
   build_layer_z(std::numeric_limits<double>::quiet_NaN()),num_build_layers(-1), 
-  build_layer(0)
+  build_layer(0) {}
+
+/* ---------------------------------------------------------------------- */
+
+void PottsAmPathParser::print_pool_position(const Point& p)
 {
-
-}
-
-void PottsAmPathParser::print_pool_position(const Point& p) {
-
    int my_rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
    {
@@ -38,11 +55,12 @@ void PottsAmPathParser::print_pool_position(const Point& p) {
          printf("Pool position: (%6.1f,%6.1f,%6.1f)\n",p[0],p[1],p[2]);
       }
    }
-
 }
 
-void PottsAmPathParser::init_app_am() {
-	
+/* ---------------------------------------------------------------------- */
+
+void PottsAmPathParser::init_app_am()
+{
    delete [] sites;
    delete [] unique;
    sites = new int[1 + maxneigh];
@@ -91,13 +109,12 @@ void PottsAmPathParser::init_app_am() {
 	   // Assume build_layer_z corresponds to zhi
       build_layer_z=domain->boxzhi;
    }
-
 }
 
-/**
- *  This function manages pool position which is a state variable.
- *
- */
+/* ----------------------------------------------------------------------
+   manage pool position which is a state variable
+------------------------------------------------------------------------- */
+
 bool PottsAmPathParser::app_update_am(double dt)
 {
    int num_pattern_layers=pattern.size();
@@ -126,15 +143,20 @@ bool PottsAmPathParser::app_update_am(double dt)
    return moved;
 }
 
-Point PottsAmPathParser::compute_position_relative_to_pool(const double *xyz) const {
+/* ---------------------------------------------------------------------- */
+
+Point PottsAmPathParser::compute_position_relative_to_pool(const double *xyz) const
+{
    int num_pattern_layers=pattern.size();
    // Current layer
    int m=build_layer%num_pattern_layers;
    return pattern[m].compute_position_relative_to_pool(xyz,build_layer_z);
 }
 
-void PottsAmPathParser::parse_am(int narg, char **arg) {
-   
+/* ---------------------------------------------------------------------- */
+
+void PottsAmPathParser::parse_am(int narg, char **arg)
+{
    if (strcmp(arg[0],"path") == 0) {
       // printf("%s\n", " PottsAmPathParser::input_app \'am_path\'\n");
       if (narg < 9) error->all(FLERR,"Illegal 'am_path' command; wrong num args.");
@@ -193,8 +215,10 @@ void PottsAmPathParser::parse_am(int narg, char **arg) {
    }
 }
 
-void PottsAmPathParser::add_pass(int narg, char **arg) {
+/* ---------------------------------------------------------------------- */
 
+void PottsAmPathParser::add_pass(int narg, char **arg)
+{
    // DEBUG
    int my_rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -232,9 +256,11 @@ void PottsAmPathParser::add_pass(int narg, char **arg) {
    passes[id]=Pass(d,speed,hatch,overhatch);
 }
 
-std::vector<double> PottsAmPathParser::
-get_hatch(const Pass& p, START s, double offset_x, double offset_y) const {
+/* ---------------------------------------------------------------------- */
 
+std::vector<double> PottsAmPathParser::
+get_hatch(const Pass& p, START s, double offset_x, double offset_y) const
+{
    DIR dir=p.get_dir();
    double hatch_spacing=p.get_hatch_spacing();
    double oh=p.get_overhatch();
@@ -281,8 +307,10 @@ get_hatch(const Pass& p, START s, double offset_x, double offset_y) const {
    return hatch;
 }
 
-void PottsAmPathParser::add_cartesian_layer(int narg, char **arg) {
+/* ---------------------------------------------------------------------- */
 
+void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
+{
    // DEBUG
    int my_rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -406,4 +434,3 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg) {
       }
    }
 }
-

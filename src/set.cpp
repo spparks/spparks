@@ -113,6 +113,7 @@ void Set::command(int narg, char **arg)
       error->all(FLERR,"Illegal set command");
     dvalue = atof(arg[2]);
     iarg = 3;
+    
 #ifdef SPK_STITCH
   } else if (strcmp(arg[1],"stitch") == 0) {
     if (narg < 4) error->all(FLERR,"Illegal set command");
@@ -125,6 +126,7 @@ void Set::command(int narg, char **arg)
     strcpy(tstamp,arg[3]);
     iarg = 4;
 #endif
+    
   } else if (strcmp(arg[1],"bfile") == 0) {
     if (narg < 3) error->all(FLERR,"Illegal set command");
     rhs = BFILE;
@@ -164,7 +166,8 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"if") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
-      cond = (Condition *) memory->srealloc(cond, (ncondition+1)*sizeof(Condition), "set:cond");
+      cond = (Condition *)
+	memory->srealloc(cond, (ncondition+1)*sizeof(Condition), "set:cond");
       if (strcmp(arg[iarg+1],"id") == 0) {
          cond[ncondition].lhs = ID;
          cond[ncondition].type = TAGINT;
@@ -679,7 +682,8 @@ void Set::set_stitch(int lhs, int rhs)
 
   if (!applattice->simple)
     error->all(FLERR,"Set stitch requires simple square or cubic lattice");
-  if (IARRAY != lhs && SITE != lhs) error->all(FLERR,"Set stitch only supports integer values");
+  if (IARRAY != lhs && SITE != lhs)
+    error->all(FLERR,"Set stitch only supports integer values");
 
   StitchFile *stitch_file;
   int err = stitch_open(&stitch_file,MPI_COMM_WORLD,filename);
@@ -711,53 +715,65 @@ void Set::set_stitch(int lhs, int rhs)
   int zlo = applattice->zlo_me_simple;
   int zhi = applattice->zhi_me_simple+1;
 
-
-  // Get field id
+  // get field id
+  
   int64_t field_id;
   {
      int err;
-     if(SITE==lhs) {
+     if (SITE==lhs) {
         err=stitch_query_field (stitch_file,"site",&field_id);
-     } else if(IARRAY==lhs) {
+     } else if (IARRAY==lhs) {
         char label[8];
         sprintf(label,"i%d",siteindex+1);
         err=stitch_query_field (stitch_file,label,&field_id);
-     } else if(DARRAY==lhs){
+     } else if (DARRAY==lhs){
         char label[8];
         sprintf(label,"d%d",siteindex+1);
         err=stitch_query_field (stitch_file,label,&field_id);
      } else {
-       error->all(FLERR,"Set stitch command failed due to invalid field specification; must be 'site', i1,i2,..., or d1,d2,d3,....");
+       error->all(FLERR,"Set stitch command failed due to "
+		  "invalid field specification; "
+		  "must be 'site', i1,i2,..., or d1,d2,d3,....");
      }
      // TODO: process err
      //
-     if(STITCH_FIELD_NOT_FOUND_ID==field_id){
-       error->all(FLERR,"Set stitch command failed on read; Specified field does not exist in file.");
+     if (STITCH_FIELD_NOT_FOUND_ID==field_id) {
+       error->all(FLERR,"Set stitch command failed on read; "
+		  "Specified field does not exist in file.");
      }
   }
 
   {
      int err;
-     // Get field data
+
+     // get field data
+     
      int32_t is_new_time=-1;
-     if(SITE==lhs) {
+     if (SITE==lhs) {
         int32_t *idata = app->iarray[0];
-        err=stitch_read_block_int32 (stitch_file,field_id,&time,block,idata,&is_new_time);
-     } else if(IARRAY==lhs) {
+        err =stitch_read_block_int32(stitch_file,field_id,&time,
+				     block,idata,&is_new_time);
+     } else if (IARRAY==lhs) {
         int32_t *idata = app->iarray[siteindex];
         //For read:
-        //read_flag == True when time does not exist in the file, but data may be returned based on older times
-        //read_flag == False when exists in the database. The actual data returned will vary based on what is selected. It could be nothing.
-        // int stitch_read_block_int32 (const StitchFile * file, int64_t field_id, double * time, int32_t * bb, int32_t * buffer, int32_t * is_new_time);
-        err=stitch_read_block_int32 (stitch_file,field_id,&time,block,idata,&is_new_time);
-     } else if(DARRAY==lhs){
+        // read_flag == True when time does not exist in the file,
+	//   but data may be returned based on older times
+        // read_flag == False when exists in the database. The actual data returned
+	//   will vary based on what is selected. It could be nothing.
+        // int stitch_read_block_int32 (const StitchFile * file, int64_t field_id,
+	//   double * time, int32_t * bb, int32_t * buffer, int32_t * is_new_time);
+        err = stitch_read_block_int32(stitch_file,field_id,&time,
+				      block,idata,&is_new_time);
+     } else if (DARRAY==lhs) {
         double *real_data = app->darray[siteindex];
-        err=stitch_read_block_float64(stitch_file,field_id,&time,block,real_data,&is_new_time);
+        err = stitch_read_block_float64(stitch_file,field_id,&time,
+					block,real_data,&is_new_time);
      }
      // TODO: process err
      //
-     if(is_new_time)
-       error->all(FLERR,"Set stitch command failed on read_block; libstitch did not match a time.");
+     if (is_new_time)
+       error->all(FLERR,"Set stitch command failed on read_block; "
+		  "libstitch did not match a time.");
 
      err = stitch_close(&stitch_file);
      // TODO: process err
@@ -774,6 +790,7 @@ void Set::set_stitch(int lhs, int rhs)
     error->all(FLERR,"Set stitch command failed on read; libstitch did not match a time.");
   err = stitch_close(&stitch_file);
   */
+  
   count = app->nlocal;
 
 #endif

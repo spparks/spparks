@@ -38,7 +38,6 @@ using namespace SPPARKS_NS;
 AppPottsAmPathTest::AppPottsAmPathTest(SPPARKS *spk, int narg, char **arg) :
    PottsAmPathParser(spk,narg,arg), xp(),yp()
 {
-
    // only error check for this class, not derived classes
    if (std::strcmp(arg[0],"potts/am/path/test") != 0 || narg != 2 )
       error->all(FLERR,"Illegal app_style in 'potts/am/path/test' command");
@@ -55,6 +54,8 @@ AppPottsAmPathTest::AppPottsAmPathTest(SPPARKS *spk, int narg, char **arg) :
 //      printf("%s\n", "AppPottsAmPathTest::AppPottsAmPathTest() ");
 //   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 AppPottsAmPathTest::~AppPottsAmPathTest() { 
 //   int my_rank;
@@ -115,7 +116,6 @@ void AppPottsAmPathTest::init_app()
 
 void AppPottsAmPathTest::app_update(double dt)
 {
-   
    // Move pool
    bool moved=app_update_am(dt);
    if(!moved)
@@ -139,14 +139,4 @@ void AppPottsAmPathTest::app_update(double dt)
       //}
       // END DEBUG
 	}
-}
-
-
-/* ----------------------------------------------------------------------
-   rKMC method
-   perform a site event with no null bin rejection
-   flip to random neighbor spin without null bin
-   technically this is an incorrect rejection-KMC algorithm
-------------------------------------------------------------------------- */
-void AppPottsAmPathTest::site_event_rejection(int i, RandomPark *random) {
 }

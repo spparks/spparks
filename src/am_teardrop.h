@@ -1,3 +1,16 @@
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+   http://www.cs.sandia.gov/~sjplimp/spparks.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
+------------------------------------------------------------------------- */
+
 #ifndef SPK_AM_TEARDROP_H
 #define SPK_AM_TEARDROP_H
 
@@ -21,6 +34,8 @@ namespace AM_TEARDROP {
    double dot2d(const double* y1, const double *y2) { return y1[0]*y2[0]+y1[1]*y2[1]; }
    double dot3d(const double* y1, const double *y2) { return y1[0]*y2[0]+y1[1]*y2[1]+y1[2]*y2[2]; }
 
+   /* ---------------------------------------------------------------------- */
+
    vector<double> evaluate_bernstein_polynomials(int n, double u) {
       vector<double> b(n+1); b[0]=1.0;
       double u1=1.0-u;
@@ -36,6 +51,8 @@ namespace AM_TEARDROP {
 
       return b;
    }
+
+   /* ---------------------------------------------------------------------- */
 
    void evaluate_bernstein_polynomials(double u, vector<double>& b) {
       // n is polynomial order and is implied by the length of 'b'
@@ -53,6 +70,7 @@ namespace AM_TEARDROP {
       }
    }
 
+   /* ---------------------------------------------------------------------- */
 
    class BezierCurve {
 
@@ -179,6 +197,7 @@ namespace AM_TEARDROP {
 
    };
 
+   /* ---------------------------------------------------------------------- */
 
    class TeardropCurve {
 
@@ -468,6 +487,8 @@ namespace AM_TEARDROP {
    
    };
 
+   /* ---------------------------------------------------------------------- */
+
    class Teardrop2D : public TeardropCurve {
 
       private:
@@ -647,6 +668,8 @@ namespace AM_TEARDROP {
          }
 
    };
+
+   /* ---------------------------------------------------------------------- */
 
    class Teardrop : public TeardropCurve, public PoolShape {
 
