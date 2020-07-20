@@ -1,0 +1,214 @@
+SPPARKS (23 Jul 2020)
+# SPPARKS potts/additive test file
+
+seed		 56789
+
+		 
+app_style	 potts/additive		1000 30 40 7 8		40 60 12 12 0.1
+
+#  |————————————————————————————————————————
+#  | nspins		= atoi(arg[1])
+#  |————————————————————————————————————————
+#  | nspins = atoi(arg[1]); #Number of spins
+#  | spot_width = atoi(arg[2]); #Width of the melt pool
+#  | melt_tail_length = atoi(arg[3]); #Length of tail from meltpool midpoint
+#  | melt_depth = atoi(arg[4]); #How many lattice sites deep the melt pool is
+#  | cap_height = atoi(arg[5]); #Height of the cap leading the meltpool
+#  |————————————————————————————————————————
+#  | HAZ = atoi(arg[6]); #Size of the HAZ surrounding the melt pool (must be larger than spot_width)
+#  | tail_HAZ = atoi(arg[7]); #Length of hot zone behind meltpool (must be larger than melt_tail_length)
+#  | depth_HAZ = atof(arg[8]); //Depth of the hot zone underneath the meltpool (must be larger than melt_depth)
+#  | cap_HAZ = atoi(arg[8]); #Size of HAZ infront of the melt pool (must be larger than cap_height)
+#  | exp_factor = atof(arg[9]); #Exponential parameter for mobility decay in haz M(d) = exp(-exp_factor * d)
+#  |————————————————————————————————————————
+
+#Define simulation domain and initialize site variables
+#———————————————————————————————————————————
+
+dimension	 3
+lattice	 	 sc/26n 1.0
+region		 box block 0 100 0 100 0 1
+region		 transverse block 0 100 50 75 0 1
+region		 longitudinal block 50 75 0 100 0 1
+
+boundary 	 n n n
+
+create_box	 box
+Created box = (0 0 0) to (100 100 1)
+  1 by 1 by 1 processor grid
+create_sites	 box
+Creating sites ...
+  10000 sites
+  4 sites have 3 neighbors
+  0 sites have 4 neighbors
+  392 sites have 5 neighbors
+  0 sites have 6 neighbors
+  0 sites have 7 neighbors
+  9604 sites have 8 neighbors
+set		 i1 range 1 1000 
+  10000 settings made for i1
+set		 d1 value 0.0
+  10000 settings made for d1
+
+#———————————————————————————————————————————
+
+#Define an additive scan pattern using a combination of pass, transverse_pass, cartesian_layer, and pattern
+#———————————————————————————————————————————
+
+am pass 1 dir X speed 10 hatch 25
+am cartesian_layer 1 start LL pass_id 1 thickness 1 offset -60.0 0.0
+am build start 0.0 num_layers 1
+
+#Setup the solver type and parameters. Must use a "sweep" style solver
+#——————————————————————————————————————————— 
+sector		 yes
+sweep		 random mask no
+temperature	 0.0
+#——————————————————————————————————————————— 
+
+#Specify output commands and styles.
+#——————————————————————————————————————————— 
+diag_style   energy
+stats            1.0
+#dump             1 text 5.0 dump.additive4.* id i1 d1
+
+dump 1 stitch 2 small2d.23Jul2020.linux.1 site
+
+#If SPPARKS was not compiled with libjpeg, comment out the lines below.
+#dump top image 2 top.small2D.*.jpg site site crange 1 1000 drange 1 1 view 0.0 0.0 boundary site 1 shape cube box no 1 zoom 2 size 512 512 sdiam 1.05
+#dump mobility_top image 2 mobiity_top.small2D.*.jpg d1 i1 view 0.0 0.0 shape cube size 512 512 sdiam 1.05 box no 1 zoom 2
+
+#dump_modify top boundcolor black backcolor black pad 4 
+#dump_modify	mobility_top smap 0 1 cf 0.05 5 min blue 0.45 lightblue 0.65 yellow 0.75 orange max red
+
+#dump transverse image 2 transverse.small2D.*.jpg site site crange 1 1000 center s 0.5 0.5 0.5 drange 1 1 view 90.0 -90.0 shape cube box no 1 zoom 1.5 size 512 512
+#dump_modify transverse cwrap yes region transverse boundcolor black backcolor black pad 4 
+
+#dump longitudinal image 2 longitudinal.small2D.*.jpg site site crange 1 1000 drange 1 1 view 90.0 0.0 shape cube box no 1 zoom 1.5 size 512 512
+#dump_modify longitudinal cwrap yes region longitudinal boundcolor black backcolor black pad 4 
+#——————————————————————————————————————————— 
+
+run             50
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 4.625 Mbytes
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy
+         0          0          0          0          0      78716
+   1.03846          0     270000         27     0.0563      78716
+         2          0     520000         52       0.13      78716
+   3.03846          0     790000         79      0.162      78716
+   4.03846          0    1050000        105      0.232      78716
+   5.03846         68    1309932        131       0.26      78592
+   6.03846        691    1569309        157      0.324      78176
+   7.03846       1478    1828522        183      0.365      77802
+   8.03846       2305    2087695        209      0.433      77376
+   9.03846       3212    2346788        235      0.466      76762
+   10.0385       4423    2605577        261      0.529      75898
+   11.0385       5829    2864171        287      0.567      74558
+   12.0385       7353    3122647        313      0.675      73172
+   13.0385       8997    3381003        339      0.719      71724
+   14.0385      10608    3639392        365      0.785      70228
+   15.0385      12076    3897924        391      0.833      68962
+   16.0385      13032    4156968        417      0.916      68010
+   17.0385      13810    4416190        443      0.977      67010
+        18      14620    4665380        468       1.08      66032
+        19      15321    4924679        494       1.15      65172
+        20      15810    5184190        520       1.26      64614
+        21      15920    5444080        546       1.32      64540
+        22      15941    5704059        572       1.44      64522
+        23      15941    5964059        598       1.47      64522
+        24      15941    6224059        624       1.54      64522
+        25      15941    6484059        650       1.57      64522
+        26      15941    6744059        676       1.67      64522
+        27      15965    7004035        702       1.71      64484
+        28      16745    7263255        728        1.8      64210
+        29      17746    7522254        754       1.84      64596
+        30      18910    7781090        780       1.92      64868
+        31      20197    8039803        806       1.98      64842
+        32      21887    8298113        832       2.06      64324
+        33      24297    8555703        858       2.11      62820
+        34      26813    8813187        884       2.19      60922
+        35      29451    9070549        910       2.27      59526
+        36      32114    9327886        936       2.35      57780
+        37      34782    9585218        962       2.43      56196
+        38      36641    9843359        988       2.57      54740
+        39      38315   10101685       1014       2.65      52744
+        40      39984   10360016       1040       2.73      50708
+        41      41356   10618644       1066        2.8      48976
+        42      42297   10877703       1092       2.92      47874
+        43      42587   11137413       1118       2.98      47656
+        44      42632   11397368       1144       3.07      47642
+        45      42632   11657368       1170        3.1      47642
+        46      42632   11917368       1196       3.19      47642
+        47      42632   12177368       1222       3.23      47642
+        48      42632   12437368       1248       3.32      47642
+        49      42708   12697292       1274       3.36      47530
+        50      43517   12956483       1300       3.45      47382
+        51      44544   13215456       1326       3.51      47726
+        52      45657   13474343       1352       3.61      47884
+        53      46954   13733046       1378       3.67      48062
+        54      48776   13991224       1404       3.78      47402
+        55      51199   14248801       1430       3.85      45868
+        56      53907   14506093       1456       3.98      44212
+        57      56596   14763404       1482       4.07      42386
+        58      59390   15020610       1508       4.15      40482
+        59      62059   15277941       1534       4.24      38954
+        60      63928   15536072       1560       4.33      37320
+        61      65726   15794274       1586       4.38      35346
+        62      67390   16052610       1612       4.51      33306
+        63      68752   16311248       1638       4.58      31736
+        64      69603   16570397       1664       4.65      30606
+        65      69775   16830225       1690       4.71      30456
+        66      69796   17090204       1716       4.82      30438
+        67      69796   17350204       1742       4.86      30438
+        68      69796   17610204       1768       4.94      30438
+        69      69796   17870204       1794       4.98      30438
+        70      69796   18130204       1820       5.06      30438
+        71      69827   18390173       1846       5.11      30394
+        72      70494   18649506       1872       5.21      30132
+        73      71467   18908533       1898       5.26      30698
+        74      72572   19167428       1924       5.38      30962
+        75      73929   19426071       1950       5.45      30892
+        76      75536   19684464       1976       5.56      30304
+        77      77902   19942098       2002       5.61      28778
+        78      80445   20199555       2028       5.69      27264
+   79.0385      83286   20466714       2055       5.75      25416
+   80.0385      85976   20724024       2081       5.84      23722
+   81.0385      88414   20981586       2107        5.9      22028
+   82.0385      90344   21239656       2133       5.98      20428
+   83.0385      92145   21497855       2159       6.07      18398
+   84.0385      93836   21756164       2185       6.18      16356
+   85.0385      95277   22014723       2211       6.23      14720
+   86.0385      96145   22273855       2237        6.3      13418
+   87.0385      96334   22533666       2263       6.36      13290
+   88.0385      96353   22793647       2289       6.45      13288
+   89.0385      96353   23053647       2315       6.48      13288
+   90.0385      96353   23313647       2341       6.54      13288
+   91.0385      96353   23573647       2367       6.58      13288
+   92.0385      96353   23833647       2393       6.68      13288
+   93.0385      96373   24093627       2419       6.72      13262
+   94.0385      96505   24353495       2445       6.82      13648
+   95.0385      96733   24613267       2471       6.86      14374
+   96.0385      96980   24873020       2497       6.96      15080
+   97.0385      97332   25132668       2523       7.01      15660
+   98.0385      97993   25392007       2549       7.07      15890
+   99.0385      98936   25651064       2575       7.12      15740
+   100.038      99848   25910152       2601       7.24      15540
+   101.038     100935   26169065       2627       7.31      15218
+   102.038     101949   26428051       2653       7.43      14972
+   103.038     102938   26687062       2679        7.5      14776
+   104.038     103746   26946254       2705       7.62      13964
+   105.038     104399   27205601       2731       7.69      12924
+   106.038     105109   27464891       2757        7.8      11894
+   107.038     105683   27724317       2783       7.87      11074
+   108.038     106002   27983998       2809       7.98      10536
+   109.038     106045   28243955       2835       8.01      10534
+       110     106055   28493945       2860       8.05      10530
+Loop time of 8.04781 on 1 procs
+
+Solve time (%) = 3.96323 (49.2461)
+Update time (%) = 0 (0)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 4.08287 (50.7326)
+App   time (%) = 0 (0)
+Other time (%) = 0.00171113 (0.021262)
