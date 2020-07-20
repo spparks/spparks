@@ -28,7 +28,7 @@ exp_factor = Coefficient that controls the rate of exponential decay of the haz 
 
 [Examples:]
 
-app_style potts/additive 1000 30 40 20 5 50 60 30 7 0.1
+app_style potts/additive 1000 30 40 20 5 50 60 30 7 0.1 :pre
 
 [Description:]
 
@@ -64,25 +64,28 @@ collaborators"_#Rodgers.
 
 :line
 
-The following additional commands are typically used by this application.
-A layer must be defined: one of "am cartesian_layer"_am_cartesian_layer.html 
-or "am path_layer"_am_path_layer.html.  A layer requires 1 to many "am path"_am_path.html
-or at least 1 "am pass"_am_pass.html.
+The following additional commands are typically used by this
+application.  A layer must be defined by using "am
+cartesian_layer"_am_cartesian_layer.html or "am
+path_layer"_am_path_layer.html.  A layer requires one to many "am
+path"_am_path.html commands or at least one "am pass"_am_pass.html
+command.
 
-"am pass"_am_pass.html: Specify pass parameters 
-used to construct {cartesian_layer}. 
+"am pass"_am_pass.html: Specify pass parameters used to construct
+{cartesian_layer}. :ulb,l
 
-"am path"_am_path.html: Specify arbitrary paths via start/end points on 
-a layer; sequence of {am path}s are used to construct an 
-"am path_layer"_am_path_layer.html.
+"am path"_am_path.html: Specify arbitrary paths via start/end points
+on a layer; sequence of {am path}s are used to construct an "am
+path_layer"_am_path_layer.html. :l
 
 "am cartesian_layer"_am_cartesian_layer.html: A scan pattern on
-rectangular layer constructed from {am pass} and other parameters. 
+rectangular layer constructed from {am pass} and other parameters. :l
 
-"am build"_am_build.html: May be used to combinations of layers that comprise a pattern.
+"am build"_am_build.html: May be used for combinations of layers that
+comprise a pattern. :l,ule
 
 The examples/potts_additive directory has input files which illustrate
-use these additional commands.
+use of these additional commands.
 
 :line
 

@@ -26,12 +26,12 @@
   <I>unique</I> args = none
   <I>displace</I> arg = delta
      delta = max distance to displace the site 
-  <I>stitch</I> args = stitchfile <I>tstamp</I>
+  <I>stitch</I> args = stitchfile tstamp
      stitchfile = name of STITCH file
-     <I>tstamp</I> = "first" or "last" or floating point "time value" 
-     if "first", then site values from first timestamp in stitch file are read in
-     if "last", then site values from last timestamp in stitch file are read in
-     if "time value" is given, site values are read from stitch file for this "time" 
+     tstamp = first or last or a floating point value
+     if first: then site values from first timestamp in stitch file are read in
+     if last: then site values from last timestamp in stitch file are read in
+     if floating point value: site values for this timestamp are read in 
 </PRE>
 <PRE>  <I>bfile</I> args = bfilename 
      bfilename = name of binary file 
@@ -116,21 +116,20 @@ The <I>fraction</I>, <I>loop</I>, <I>region</I> and <I>if</I> keywords are ignor
 these styles; these styles set values for all sites in the system.
 </P>
 <P>For style <I>stitch</I>, a <I>stitch</I> file is read to extract values
-associated with specified <I>label</I>.  The <I>stitch</I> file can be created
+associated with a specified <I>label</I>.  The <I>stitch</I> file can be created
 by the <A HREF = "dump.html">dump stitch</A> command or an external program.  A
-<I>stitch</I> file can store multiple values for the same site; one value
-for each different time; and a different number of time values can be
+<I>stitch</I> file can store multiple values for the same site, each with a
+different timestamp.  A different number of values can also be
 associated with each site.  The specified <I>tstamp</I> value is used to
-determine which of the multiple time values is used for initializing
-each site.  In general, the time value <I>label</I> specified should exist
-in the file on at least some sites; it can exist on all the sites or
-just some of the sites.  For example, if <I>tstamp</I> is given as 1.0 then
-1.0 should exist on at least some sites in the file; for sites that do
-not have values for 1.0 but have some earlier time, those sites will
-be set with values according to the most recent time value which is
-less than 1.0.  It is an error if the file does not contain any values
-for the time specified.  A subsequent set command can be used to
-initialize the value of the site in a different way.
+determine which of the multiple values is used for initializing each
+site.  The specified time value <I>tstamp</I> should exist in the file for
+at least some sites; it can exist on all the sites or just some of
+them.  For sites that do not have a value for the <I>tstamp</I> time but
+have a value at an earlier time, those sites will be set with the
+value matching the most recent time stamp stored in the file.  It is
+an error if the file does not contain any values for the specified
+<I>tstamp</I>.  A subsequent set command can be used to initialize the
+value of any sites in a different way.
 </P>
 <P>See the examples/stitch dir for examples of SPPARKS scripts
 that read and write <I>stitch</I> files.

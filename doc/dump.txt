@@ -35,12 +35,12 @@ dump mydump text 5.0 snap.ising id site energy i1 :pre
 
 [Description:]
 
-The {text}, {sites}, {vtk}, and {stitch} styles dump a snapshot of site
-values to one or more files at time intervals of {delta} during a
+The {text}, {sites}, {vtk}, and {stitch} styles dump a snapshot of
+site values to one or more files at time intervals of {delta} during a
 simulation.  The {image} style creates a JPG or PPM image file of the
 site configuration every at time intervals of {delta}, as discussed on
 the "dump image"_dump_image.html doc page.  The remainder of this page
-refers to the {text}, {sites}, {vtk}, and {stitch} styles.
+describes the {text}, {sites}, {vtk}, and {stitch} styles.
 
 The {text} style dump file is in the format of a "LAMMPS dump
 file"_lammps which can thus be read-in by the "Pizza.py
@@ -57,12 +57,8 @@ various visualization programs, including
 
 The {stitch} style dump file is in an SQLite format which can be read
 by the "set stitch"_set.html command or auxiliary tools provided with
-the the Stitch library, which must be linked with SPPARKS.  See
-"Section 2.3"_Section_start.html#start_3 for more info on how to do
-this.  And see the lib/stitch/README file for more info about the
-Stitch library, how to install it, and the library's documentation
-files.  See the examples/stitch dir for examples of SPPARKS scripts
-that read and write {stitch} files.
+the Stitch library in lib/stitch.  See the examples/stitch dir for
+examples of SPPARKS scripts that read and write {stitch} files.
 
 As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file
@@ -236,7 +232,7 @@ format.
 
 In principle, any tool or library which reads SQLite files should be
 able to read a {stitch} file, but that is not recommended, For
-performance reasons, the Python or C-api defind by the Stitch library
+performance reasons, the Python or C API defind by the Stitch library
 should be used for reading and writing stitch files.  SPPARKS itself
 reads {stitch} files using the "set stitch"_set.html command.  Only a
 filename representing a single file (no wildcards) can be used with

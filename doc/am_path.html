@@ -27,43 +27,33 @@
 </P>
 <P>This snippet is taken from SPPARKS repository: <I>examples/am_path/path_raster_a</I>
 </P>
-<PRE># Convenience; define set of points to be used in path commands 
+<PRE># Convenience; define set of points to be used in path commands
+variable X0 equal         0.0
+variable Y0 equal         0.0
+variable X1 equal        500.0
+variable Y1 equal        500.0
+variable X2 equal        106.1
+variable Y2 equal         0.0
+variable X3 equal        500.0
+variable Y3 equal        393.9 
 </PRE>
-<PRE>variable X0 equal         0.0 
-</PRE>
-<PRE>variable Y0 equal         0.0 
-</PRE>
-<PRE>variable X1 equal        500.0 
-</PRE>
-<PRE>variable Y1 equal        500.0 
-</PRE>
-<PRE>variable X2 equal        106.1 
-</PRE>
-<PRE>variable Y2 equal         0.0 
-</PRE>
-<PRE>variable X3 equal        500.0 
-</PRE>
-<PRE>variable Y3 equal        393.9 
-</PRE>
-<PRE>am path 1 start $<I>X0</I> $<I>Y0</I> end $<I>X1</I> $<I>Y1</I> speed 9 
-</PRE>
-<PRE>am path 2 start $<I>X3</I> $<I>Y3</I> end $<I>X2</I> $<I>Y2</I> speed 9 
-</PRE>
-<PRE>am path_layer 1 num_paths 2 path_ids 1 2 thickness 1 
+<PRE>am path 1 start $<I>X0</I> $<I>Y0</I> end $<I>X1</I> $<I>Y1</I> speed 9
+am path 2 start $<I>X3</I> $<I>Y3</I> end $<I>X2</I> $<I>Y2</I> speed 9
+am path_layer 1 num_paths 2 path_ids 1 2 thickness 1 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This command is used by <A HREF = "app_potts_additive.html">potts/additive</A>, and
-<A HREF = "app_potts_am_weld.html">potts/am_weld</A> to specify raster scans in 
-a very general way.  This <I>am path</I> command specifies a line in the 
-x-y plane using <I>start x,y</I> and <I>end x,y</I> points; path scan <I>speed V</I> is also 
-part of the specification.  Any number of <I>am path</I>s can be specified 
-in a script; an <I>am path</I> can be associated with multiple <I>am path_layer</I>s.  
-The direction of travel is implied by starting and ending points.
+<A HREF = "app_potts_am_weld.html">potts/am_weld</A> to specify raster scans in a
+very general way.  This <I>am path</I> command specifies a line in the x-y
+plane using <I>start x,y</I> and <I>end x,y</I> points; path scan <I>speed V</I> is
+also part of the specification.  Any number of <I>am path</I>s can be
+specified in a script; an <I>am path</I> can be associated with multiple
+<I>am path_layer</I>s.  The direction of travel is implied by starting and
+ending points.
 </P>
-<P>The example commands above define two paths both each of which 
-are associated with <I>am path_layer 1</I>. See depiction of simulation 
-below.
+<P>The example commands above define two paths both each of which are
+associated with <I>am path_layer 1</I>. See depiction of simulation below.
 </P>
 <IMG SRC = "JPG/path_schematic.png">
 
@@ -75,9 +65,9 @@ potts/additive</A>.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P>The <I>am path</I> is a required element of 
+<P>The <I>am path</I> is a required element of
 <A HREF = "am_path_layer.html">am_path_layer</A>
 </P>
-<P><B>Default:</B> 
+<P><B>Default:</B> none
 </P>
 </HTML>

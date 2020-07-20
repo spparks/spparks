@@ -25,44 +25,35 @@
 </UL>
 <P><B>Examples</B>
 </P>
-<PRE>variable X0 equal         0.0 
-</PRE>
-<PRE>variable Y0 equal         0.0 
-</PRE>
-<PRE>variable X1 equal        500.0 
-</PRE>
-<PRE>variable Y1 equal        500.0 
-</PRE>
-<PRE>variable X2 equal        106.1 
-</PRE>
-<PRE>variable Y2 equal         0.0 
-</PRE>
-<PRE>variable X3 equal        500.0 
-</PRE>
-<PRE>variable Y3 equal        393.9 
-</PRE>
-<PRE>am path 1 start $<I>X0</I> $<I>Y0</I> end $<I>X1</I> $<I>Y1</I> speed 9 
-</PRE>
-<PRE>am path 2 start $<I>X3</I> $<I>Y3</I> end $<I>X2</I> $<I>Y2</I> speed 9 
-</PRE>
-<PRE>am path_layer 1 num_paths 2 path_ids 1 2 thickness 1 
+<PRE>variable X0 equal         0.0
+variable Y0 equal         0.0
+variable X1 equal        500.0
+variable Y1 equal        500.0
+variable X2 equal        106.1
+variable Y2 equal         0.0
+variable X3 equal        500.0
+variable Y3 equal        393.9
+am path 1 start $<I>X0</I> $<I>Y0</I> end $<I>X1</I> $<I>Y1</I> speed 9
+am path 2 start $<I>X3</I> $<I>Y3</I> end $<I>X2</I> $<I>Y2</I> speed 9
+am path_layer 1 num_paths 2 path_ids 1 2 thickness 1 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command is used by <A HREF = "app_potts_additive.html">potts/additive</A>,
-and <A HREF = "app_potts_am_weld.html">potts/am/weld</A> applications 
-to specify raster patterns on path build layers.  Multiple path_layers can be
-defined in a single input file, using unique id values.  Although simple 
-build simulations can be conducted using this command by manually 
-writing scripts that use <I>am path_layer</I>, it is expected that this 
-command will generally be automatically created for the purpose of 
-handling more complex geometries.
+<P>This command is used by <A HREF = "app_potts_additive.html">potts/additive</A>, and
+<A HREF = "app_potts_am_weld.html">potts/am/weld</A> applications to specify raster
+patterns on path build layers.  Multiple path_layers can be defined in
+a single input file, using unique id values.  Although simple build
+simulations can be conducted using this command by manually writing
+scripts that use <I>am path_layer</I>, it is expected that this command
+will generally be automatically created for the purpose of handling
+more complex geometries.
 </P>
-<P>The <I>num_paths</I> and <I>path_ids</I> keywords are used to create the layer with 
-<I>thickness t</I>.  The build layer <I>thickness</I> is specified in units of sites.
+<P>The <I>num_paths</I> and <I>path_ids</I> keywords are used to create the layer
+with <I>thickness t</I>.  The build layer <I>thickness</I> is specified in units
+of sites.
 </P>
-<P>In example above, two unique <I>am path</I>s are created; these paths are 
-referenced in the <I>am path_layer</I> command.  This example is also 
+<P>In example above, two unique <I>am path</I>s are created; these paths are
+referenced in the <I>am path_layer</I> command.  This example is also
 illustrated for <A HREF = "am_path.html">am_path</A>,
 </P>
 <IMG SRC = "JPG/path_schematic.png">
@@ -70,15 +61,14 @@ illustrated for <A HREF = "am_path.html">am_path</A>,
 <P><B>Restrictions:</B>
 </P>
 <P>This command can only be used as part of apps
-<A HREF = "app_potts_additive.html">potts/additive</A> or 
+<A HREF = "app_potts_additive.html">potts/additive</A> or
 <A HREF = "app_potts_am_weld.html">potts/am/weld</A> applications.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "am_pass.html">am_pass</A>,
-<A HREF = "am_path.html">am_path</A>,
+<P><A HREF = "am_pass.html">am_pass</A>, <A HREF = "am_path.html">am_path</A>,
 <A HREF = "am_build.html">am_build</A>
 </P>
-<P><B>Default:</B> 
+<P><B>Default:</B> none
 </P>
 </HTML>

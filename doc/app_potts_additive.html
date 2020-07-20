@@ -41,8 +41,8 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<P>app_style potts/additive 1000 30 40 20 5 50 60 30 7 0.1
-</P>
+<PRE>app_style potts/additive 1000 30 40 20 5 50 60 30 7 0.1 
+</PRE>
 <P><B>Description:</B>
 </P>
 <P>This is an on-lattice application derived from the <A HREF = "app_potts.html">app_style
@@ -77,25 +77,28 @@ collaborators</A>.
 </P>
 <HR>
 
-<P>The following additional commands are typically used by this application.
-A layer must be defined: one of <A HREF = "am_cartesian_layer.html">am cartesian_layer</A> 
-or <A HREF = "am_path_layer.html">am path_layer</A>.  A layer requires 1 to many <A HREF = "am_path.html">am path</A>
-or at least 1 <A HREF = "am_pass.html">am pass</A>.
+<P>The following additional commands are typically used by this
+application.  A layer must be defined by using <A HREF = "am_cartesian_layer.html">am
+cartesian_layer</A> or <A HREF = "am_path_layer.html">am
+path_layer</A>.  A layer requires one to many <A HREF = "am_path.html">am
+path</A> commands or at least one <A HREF = "am_pass.html">am pass</A>
+command.
 </P>
-<P><A HREF = "am_pass.html">am pass</A>: Specify pass parameters 
-used to construct <I>cartesian_layer</I>. 
-</P>
-<P><A HREF = "am_path.html">am path</A>: Specify arbitrary paths via start/end points on 
-a layer; sequence of <I>am path</I>s are used to construct an 
-<A HREF = "am_path_layer.html">am path_layer</A>.
-</P>
-<P><A HREF = "am_cartesian_layer.html">am cartesian_layer</A>: A scan pattern on
+<UL><LI><A HREF = "am_pass.html">am pass</A>: Specify pass parameters used to construct
+<I>cartesian_layer</I>. 
+
+<LI><A HREF = "am_path.html">am path</A>: Specify arbitrary paths via start/end points
+on a layer; sequence of <I>am path</I>s are used to construct an <A HREF = "am_path_layer.html">am
+path_layer</A>. 
+
+<LI><A HREF = "am_cartesian_layer.html">am cartesian_layer</A>: A scan pattern on
 rectangular layer constructed from <I>am pass</I> and other parameters. 
-</P>
-<P><A HREF = "am_build.html">am build</A>: May be used to combinations of layers that comprise a pattern.
-</P>
+
+<LI><A HREF = "am_build.html">am build</A>: May be used for combinations of layers that
+comprise a pattern. 
+</UL>
 <P>The examples/potts_additive directory has input files which illustrate
-use these additional commands.
+use of these additional commands.
 </P>
 <HR>
 
