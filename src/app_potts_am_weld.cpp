@@ -251,6 +251,7 @@ double AppPottsAmWeld::compute_mobility(int site)  {
    flip to random neighbor spin without null bin
    technically this is an incorrect rejection-KMC algorithm
 ------------------------------------------------------------------------- */
+
 void AppPottsAmWeld::site_event_rejection(int i, RandomPark *random) {
    int oldstate = spin[i];
    double einitial = site_energy(i);

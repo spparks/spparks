@@ -28,7 +28,7 @@ make lib-stitch args="-p $HOME/stitch-1.0" # use existing Stitch installation in
 # settings
 
 version = "stitch-1.0"
-url = "http://math.lbl.gov/voro++/download/dir/%s.tar.gz" % version
+url = "URL for Stitch library tarball when avaiable for download" % version
 
 # print error message or help
 

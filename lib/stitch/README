@@ -1,7 +1,8 @@
-The 'stitch' library was developed by John Mitchell (jamitch@sandia.gov) 
+The Stitch library was developed by John Mitchell (jamitch@sandia.gov)
 and Jay Lofstead (gflofst@sandia.gov) at Sandia National Laboratories.
-It was conceived of and intended for use with SPPARKS additive manufacturing
-microstructure simulations.  However, it may have other applications.
+It was conceived of and intended for use with SPPARKS additive
+manufacturing microstructure simulations.  However, it may have other
+applications.
 
 This directory contains links to the Stitch library which is required
 to use the STITCH package and its commands in a SPPARKS input script.  
@@ -17,7 +18,8 @@ doc/  examples/  lib/  LICENSE  python/  README src/  tools/  www/
 
 The 'lib/' directory contains 'stitch' source code in 'lib/stitch/libstitch',
 and instructions for building the 'stitch' libraries.  Two 'stitch' libraries
-generally need to be built.  
+generally need to be built.
+
 1) library for use with SPPARKS; must be built with mpicc
 2) python module; must have python 3, numpy, scipy 
 
@@ -38,6 +40,7 @@ in the file 'rsync_stitch_src.sh' contained within this directory.
 
 Build libstitch.a for use with SPPARKS
 --------------------------------------
+
 To use 'stitch' related commands in SPPARKS input scripts, 
 the stitch library 'libstitch.a' must be built prior to building SPPARKS.
 

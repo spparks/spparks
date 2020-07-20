@@ -1,39 +1,39 @@
+This directory contains 4 subdirectories -- primarily associated with
+exercising the 'am path' command.  The examples in this directory may
+take 30 minutes to an hour running on 4 to 8 processors.  It's best to
+run these examples on 4 or 8 processors otherwise they may take nearly
+an hour or more to run.
 
+There is a python script which may be used to visualize results for
+all of the tests provided the bounding box information is properly
+edited.
 
-This directory contains 4 subdirectories -- primarily associated 
-with exercising the 'am path' command.  The examples in this 
-directory may take 30 minutes to an hour running on 4 to 8 
-processors.  Its best to run these examples on 4 or 8 
-processors otherwise they may take nearly an hour or more to run.
+* cartesian_path_test; there are 8 very fast running examples
+  demonstrating use of the 'am cartesian_layer' command; especially
+  demonstrating starting the laser location at 'LL' lower left, 'LR'
+  lower right, 'UL' upper left and 'UR' upper right.  These use a test
+  app which prints out screen information that may be useful for
+  debugging layer and path inputs.
 
-There is a python script which may be used to 
-visualize results for all of the tests provided the bounding 
-box information is properly edited.
-
-* cartesian_path_test; there are 8 very fast running examples 
-demonstrating use of the 'am cartesian_layer' command; especially 
-demonstrating starting the laser location at 'LL' lower left, 
-'LR' lower right, 'UL' upper left and 'UR' upper right.  These 
-use a test app which prints out screen information that may be 
-useful for debugging layer and path inputs.
-
-* path_raster_cartesian_LL; one example demonstrating use of 'potts/am/weld'
-  app along with 'am pass' and 'am cartesian layer' commands.  This example
-  creates a stitch file 'path_raster_cartesian_LL.st' which may be visualized
-  using using the python script 'process_stitch.py' script.  
-
-  % python process_stitch -ppath_raster_cartesian_LL
-
-* path_raster_a; this example demonstrates use of 'am path' command as well 
-as progressive IO using 'stitch'; there are two spparks scripts in the directory
-which are intended to be run one after the other. Subsequently, the python 
-script can be used to visualize the collective results from both simulations.
+* path_raster_cartesian_LL; one example demonstrating use of
+  'potts/am/weld' app along with 'am pass' and 'am cartesian layer'
+  commands.  This example creates a stitch file
+  'path_raster_cartesian_LL.st' which may be visualized using using
+  the python script 'process_stitch.py' script.
 
   % python process_stitch -ppath_raster_cartesian_LL
 
-* pattern_repeat; this example demonstrates use of 'am build' command for 
-creating repeating raster patterns comprised of multiple layers.  This example 
-contains its own 'process_stitch.py' script which may be used to visualize 
-resulting simulation.  Edit this script as necessary to visualize different
-layers in the build.
+* path_raster_a; this example demonstrates use of 'am path' command as
+  well as progressive IO using 'stitch'; there are two spparks scripts
+  in the directory which are intended to be run one after the
+  other. Subsequently, the python script can be used to visualize the
+  collective results from both simulations.
+
+  % python process_stitch -ppath_raster_cartesian_LL
+
+* pattern_repeat; this example demonstrates use of 'am build' command
+  for creating repeating raster patterns comprised of multiple layers.
+  This example contains its own 'process_stitch.py' script which may
+  be used to visualize resulting simulation.  Edit this script as
+  necessary to visualize different layers in the build.
 

@@ -36,7 +36,6 @@ class AppPottsAmPathTest : public PottsAmPathParser {
   virtual ~AppPottsAmPathTest();
   virtual void grow_app();
   virtual void init_app();
-  virtual void site_event_rejection(int, RandomPark *);
   void input_app(char *, int , char **);
   double compute_mobility(int);
   void app_update(double);
