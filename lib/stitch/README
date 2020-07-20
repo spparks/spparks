@@ -4,9 +4,50 @@ It was conceived of and intended for use with SPPARKS additive
 manufacturing microstructure simulations.  However, it may have other
 applications.
 
-This directory contains links to the Stitch library which is required
-to use the STITCH package and its commands in a SPPARKS input script.  
-Instructions are given below for creating these links.
+The libstitch sub-directory in this directory contains the Stitch
+library.
+
+Either of these two methods is the simplest way to build SPPARKS with
+the Stitch library.  If they do not work for some reason, see method
+(3) or more detailed instructions below.
+
+IMPORTANT NOTE: Also see the instructions below for how to build the
+'stitch' python module, which will be useful for accessing Stitch
+from Python directly rather than via SPPARKS.
+
+(1) From the src directory using make
+
+% cd spparks/src
+% make lib-stitch args="-b"   # build the Stitch library and set links to it
+% make yes-stitch             # install the STITCH package
+% make mpi                    # or whichever machine target you wish
+
+(2) From the lib directory using Install.py
+
+% cd spparks/lib
+% python Install.py -b        # build the Stitch library and set links to it
+% cd spparks/src
+% make yes-stitch             # install the STITCH package
+% make mpi                    # or whichever machine target you wish
+
+-------------------------------------------------------------------------
+
+(3) Manual build of the Stitch library from this directory or
+using a version you have downloaded to your system:
+
+% cd $STITCHDIR                # STITCHDIR = the Stitch library directory
+% make                         # build Stitch with default Makefile
+% make -f Makefile.custom      # build Stitch with custom Makefile
+% cd spparks/lib/stitch
+% ln -s $STITCHDIR liblink     # set two links in SPPARKS lib/stitch
+% ln -s $STITCHDIR includelink
+% cd spparks/src
+% make yes-stitch              # install the STITCH package
+% make mpi                     # or whichever machine target you wish
+
+-------------------------------------------------------------------------
+
+More build details:
 
 Let 'SPPARKS' denote the path to the SPPARKS root directory.  
 
@@ -89,6 +130,9 @@ There is a README file
 
 Examples
 % cd $SPPARKS/examples/stitch/dump_and_set_cmds
+
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
 
 Build the 'stitch' python module
 --------------------------------
