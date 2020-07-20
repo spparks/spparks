@@ -14,7 +14,7 @@ stats delta keyword values ... :pre
 
 delta = time increment between statistical output (seconds) :ulb,l
 zero or more keyword/value pairs may be appended :l
-keyword = {delay} or {logfreq} or {loglinfreq} :l
+keyword = {delay} or {logfreq} or {loglinfreq} or {tol} :l
   {delay} value = tdelay
     tdelay = delay stats until at least this time (seconds)
   {logfreq} or {loglinfreq} values = N factor
@@ -114,6 +114,7 @@ for further details.
 
 [Default:]
 
-The default stats delta is 0.0 so that stats will only be output at
-the beginning and end of the run if the stats commandis not used.  The
-keyword defaults are delay = 0.0 no logarithmic output, tol = 0.0.
+The default delta setting is 0.0 (if this command is not used), so
+that stats will only be output at the beginning and end of the run.
+The keyword defaults are delay = 0.0, no logarithmic output, tol =
+0.0.

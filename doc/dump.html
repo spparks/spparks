@@ -45,12 +45,12 @@ dump mydump text 5.0 snap.ising id site energy i1
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>text</I>, <I>sites</I>, <I>vtk</I>, and <I>stitch</I> styles dump a snapshot of site
-values to one or more files at time intervals of <I>delta</I> during a
+<P>The <I>text</I>, <I>sites</I>, <I>vtk</I>, and <I>stitch</I> styles dump a snapshot of
+site values to one or more files at time intervals of <I>delta</I> during a
 simulation.  The <I>image</I> style creates a JPG or PPM image file of the
 site configuration every at time intervals of <I>delta</I>, as discussed on
 the <A HREF = "dump_image.html">dump image</A> doc page.  The remainder of this page
-refers to the <I>text</I>, <I>sites</I>, <I>vtk</I>, and <I>stitch</I> styles.
+describes the <I>text</I>, <I>sites</I>, <I>vtk</I>, and <I>stitch</I> styles.
 </P>
 <P>The <I>text</I> style dump file is in the format of a <A HREF = "http://lammps.sandia.gov">LAMMPS dump
 file</A> which can thus be read-in by the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py
@@ -67,12 +67,8 @@ various visualization programs, including
 </P>
 <P>The <I>stitch</I> style dump file is in an SQLite format which can be read
 by the <A HREF = "set.html">set stitch</A> command or auxiliary tools provided with
-the the Stitch library, which must be linked with SPPARKS.  See
-<A HREF = "Section_start.html#start_3">Section 2.3</A> for more info on how to do
-this.  And see the lib/stitch/README file for more info about the
-Stitch library, how to install it, and the library's documentation
-files.  See the examples/stitch dir for examples of SPPARKS scripts
-that read and write <I>stitch</I> files.
+the Stitch library in lib/stitch.  See the examples/stitch dir for
+examples of SPPARKS scripts that read and write <I>stitch</I> files.
 </P>
 <P>As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file
@@ -246,7 +242,7 @@ format.
 </P>
 <P>In principle, any tool or library which reads SQLite files should be
 able to read a <I>stitch</I> file, but that is not recommended, For
-performance reasons, the Python or C-api defind by the Stitch library
+performance reasons, the Python or C API defind by the Stitch library
 should be used for reading and writing stitch files.  SPPARKS itself
 reads <I>stitch</I> files using the <A HREF = "set.html">set stitch</A> command.  Only a
 filename representing a single file (no wildcards) can be used with

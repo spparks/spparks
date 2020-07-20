@@ -57,8 +57,7 @@ potts/additive"_app_potts_additive.html application.
 
 [Related commands:]
 
-"am_pass"_am_pass.html,
-"am_cartesian_layer"_am_cartesian_layer.html,
+"am_pass"_am_pass.html, "am_cartesian_layer"_am_cartesian_layer.html,
 "am_pattern"_am_pattern.html
 
 [Default:] none

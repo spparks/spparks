@@ -12,8 +12,8 @@ am build command :h3
 
 am build start z num_layers N :pre
 
-start=optional key word
-z = specifies elevation in spparks sites of first layer; default z=zhi
+start = optional key word
+z = specifies elevation in SPPARKS sites of first layer
 num_layers = optional keyword
 N = specifies number of layers for this build simulation :ul
 
@@ -31,54 +31,56 @@ am cartesian_layer 1 start LL pass_id 1 thickness 10 offset -100. 0.0 :pre
 am cartesian_layer 2 start LR pass_id 2 thickness 1 offset 0.0 -100.0 :pre
 am build start 10 num_layers 4 :pre
 
-
 [Description:]
 
-This is an optional command used by "potts/additive"_app_potts_additive.html
-and "potts/am/weld"_app_potts_am_weld.html applications to specify multilayer
-build simulations.  The command allows for re-use of layer specifications and
-implicitly creates a pattern of layers.  The build pattern is implied by the
-order and number of layers in the input script.  As is conventional, the build
-proceeds in the z-direction according to specified layer thicknesses.  
-The {am build start} parameter specifies the top surface of build plane; its 
-important to specify this parameter if the spparks domain is thicker than 
-a build layer otherwise the default value will be {zhi} taken from region 
-box which is probably not desired.  Once all layers have been built/simulated,
-the pattern repeats, cycling through the layers again and again until
-{num_layers} have been simulated.  The {am build} command allows for defining
-an arbitrary number of layers and patterns.
+This is an optional command used by
+"potts/additive"_app_potts_additive.html and
+"potts/am/weld"_app_potts_am_weld.html applications to specify
+multilayer build simulations.  The command allows for re-use of layer
+specifications and implicitly creates a pattern of layers.  The build
+pattern is implied by the order and number of layers in the input
+script.  As is conventional, the build proceeds in the z-direction
+according to specified layer thicknesses.  The {am build start}
+parameter specifies the top surface of build plane; its important to
+specify this parameter if the spparks domain is thicker than a build
+layer otherwise the default value will be {zhi} taken from region box
+which is probably not desired.  Once all layers have been
+built/simulated, the pattern repeats, cycling through the layers again
+and again until {num_layers} have been simulated.  The {am build}
+command allows for defining an arbitrary number of layers and
+patterns.
 
-This command is mostly intended for SPPARKS simulations that do not use Stitch
-IO; nonetheless, this command can be used with Stitch IO.  Simulations using
-Stitch IO would normally proceed layer-by-layer using only one layer in any
-particular simulation.  If this command is omitted then the pattern of layers
-in the input script is only simulated once.
+This command is mostly intended for SPPARKS simulations that do not
+use Stitch IO; nonetheless, this command can be used with Stitch IO.
+Simulations using Stitch IO would normally proceed layer-by-layer
+using only one layer in any particular simulation.  If this command is
+omitted then the pattern of layers in the input script is only
+simulated once.
 
-In Example 1, one layer is simulated.  Because
-{thickness t=10}, {am build start z=10} is specified.
+In Example 1, one layer is simulated.  Because {thickness t=10}, {am
+build start z=10} is specified.
 
-In Example 2 above, 2 layers are defined but 4 layers are simulated; layers are
-alternately rastered in {X} then {Y} directions starting at the LL corner and
-alternately the LR corner.  As in Example 1, because first layer {thickness t=10}, 
-the {start} value is set at {am build start z=10}.
+In Example 2 above, 2 layers are defined but 4 layers are simulated;
+layers are alternately rastered in {X} then {Y} directions starting at
+the LL corner and alternately the LR corner.  As in Example 1, because
+first layer {thickness t=10}, the {start} value is set at {am build
+start z=10}.
 
 [Restrictions:]
 
-This command can only be used as part of the 
-"app_style potts/additive"_app_potts_additive.html 
-"app_style potts/am/weld"_app_potts_am_weld.html or
-applications.
+This command can only be used as part of the "app_style
+potts/additive"_app_potts_additive.html "app_style
+potts/am/weld"_app_potts_am_weld.html or applications.
 
 [Related commands:]
 
-"am pass"_am_pass.html,
-"am path"_am_path.html,
-"am cartesian_layer"_am_cartesian_layer.html
-"am path"_am_path_layer.html
+"am pass"_am_pass.html, "am path"_am_path.html, "am
+cartesian_layer"_am_cartesian_layer.html "am path"_am_path_layer.html
 
 [Default:] 
 
-{start z=zhi} where zhi is the z-component of spparks region box 
+These are the option defaults:
 
-{num_layers} defaults to number of layers in input script
+start z = the z-component of the SPPARKS region box
+num_layers = the number of layers in the input script :ul
 

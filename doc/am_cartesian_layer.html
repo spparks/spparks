@@ -30,49 +30,48 @@
 <P><B>Examples:</B>
 </P>
 <PRE># Example 1
-am pass 1 dir X speed 9 hatch 75 
-</PRE>
-<PRE>am cartesian_layer 1 start LL pass_id 1 thickness 1 offset -100. 0.0 
+am pass 1 dir X speed 9 hatch 75
+am cartesian_layer 1 start LL pass_id 1 thickness 1 offset -100. 0.0 
 </PRE>
 <PRE># Example 2
-am pass 2 dir Y speed 9 hatch 75 
-</PRE>
-<PRE>am cartesian_layer 1 start LL pass_id 2 thickness 1 offset -100. 0.0 
+am pass 2 dir Y speed 9 hatch 75
+am cartesian_layer 1 start LL pass_id 2 thickness 1 offset -100. 0.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command is used by <A HREF = "app_potts_additive.html">potts/additive</A>,
-and <A HREF = "app_potts_am_weld.html">potts/am/weld</A> applications 
-to specify raster patterns on cartesian build layers.
-Multiple cartesian_layers can be defined
-in a single input file, using unique id values.
+<P>This command is used by <A HREF = "app_potts_additive.html">potts/additive</A>, and
+<A HREF = "app_potts_am_weld.html">potts/am/weld</A> applications to specify raster
+patterns on cartesian build layers.  Multiple cartesian_layers can be
+defined in a single input file, using unique id values.
 </P>
-<P>The <I>start location</I>, references the lower left LL, lower right LR, upper right
-UR, upper left UL of the rectangular domain; <I>location</I> must be one of <I>LL,LR,UR,UL</I>.  
-The extent of the rectangular domain created by the raster pattern is specified
-elsewhere (<A HREF = "region.html">region</A>) using <I>region box</I> in the standard way.
+<P>The <I>start location</I>, references the lower left LL, lower right LR,
+upper right UR, upper left UL of the rectangular domain; <I>location</I>
+must be one of <I>LL,LR,UR,UL</I>.  The extent of the rectangular domain
+created by the raster pattern is specified elsewhere
+(<A HREF = "region.html">region</A>) using <I>region box</I> in the standard way.
 </P>
-<P>The <I>pass_id p_id</I> specified must reference an <A HREF = "pass_am_pass.html">am pass</A>
-from earlier in the input script.
+<P>The <I>pass_id p_id</I> specified must reference an <A HREF = "pass_am_pass.html">am
+pass</A> from earlier in the input script.
 </P>
 <P>The build layer <I>thickness</I> is specified in units of sites.
 </P>
-<P>Specified in units of sites, <I>offset</I> specifies the raster scan starting
-position relative to <I>start location</I>.
+<P>Specified in units of sites, <I>offset</I> specifies the raster scan
+starting position relative to <I>start location</I>.
 </P>
-<P>By default, scan patterns are anti-parallel <I>serpentine</I>.  To turn off the
-default scan pattern add the optional switch <I>serpentine 0</I>. 
+<P>By default, scan patterns are anti-parallel <I>serpentine</I>.  To turn off
+the default scan pattern add the optional switch <I>serpentine 0</I>.
 </P>
-<P>The initial heading of the scan pattern depends upon <I>start</I> and 
-the value of <I>pass dir</I> (see <A HREF = "am_pass.html">am pass</A>); also see 
-examples below.
+<P>The initial heading of the scan pattern depends upon <I>start</I> and the
+value of <I>pass dir</I> (see <A HREF = "am_pass.html">am pass</A>); also see examples
+below.
 </P>
-<P>In the examples, two unique layers are created. <I>offset</I> option is used to
-extend starting and ending points of pass, effectively lengthening the pass;
-although offset consists of <I>x,y</I> values, it is primarily intended to change
-starting and ending points along <I>dir</I>, ie only one component of <I>offset</I> is
-non-zero; although <I>offset</I> defaults to <I>x=0,y=0</I>, if one of these values must
-be non-zero, then <I>0.0</I> must be given for the other value.
+<P>In the examples, two unique layers are created. <I>offset</I> option is
+used to extend starting and ending points of pass, effectively
+lengthening the pass; although offset consists of <I>x,y</I> values, it is
+primarily intended to change starting and ending points along <I>dir</I>,
+ie only one component of <I>offset</I> is non-zero; although <I>offset</I>
+defaults to <I>x=0,y=0</I>, if one of these values must be non-zero, then
+<I>0.0</I> must be given for the other value.
 </P>
 <P><I>serpentine 0</I> must be given to turn <I>serpentine</I> off.
 </P>
@@ -81,18 +80,16 @@ be non-zero, then <I>0.0</I> must be given for the other value.
 <P><B>Restrictions:</B>
 </P>
 <P>This command can only be used as part of apps
-<A HREF = "app_potts_additive.html">potts/additive</A> or 
-<A HREF = "app_potts_am_weld.html">potts/am/weld</A> applications.
+<A HREF = "app_potts_additive.html">potts/additive</A> or
+<A HREF = "app_potts_am_weld.html">potts/am/weld</A>.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "am_pass.html">am_pass</A>,
-<A HREF = "am_path.html">am_path</A>,
+<P><A HREF = "am_pass.html">am_pass</A>, <A HREF = "am_path.html">am_path</A>,
 <A HREF = "am_build.html">am_build</A>
 </P>
 <P><B>Default:</B> 
 </P>
-<P><I>offset x=0.0, y=0.0</I>
-<I>serpentine switch=0.0</I>
+<P>The defaults are offset x = 0.0, y = 0.0 and serpentine switch = 0.0.
 </P>
 </HTML>

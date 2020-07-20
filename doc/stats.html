@@ -19,7 +19,7 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>delay</I> or <I>logfreq</I> or <I>loglinfreq</I> 
+<LI>keyword = <I>delay</I> or <I>logfreq</I> or <I>loglinfreq</I> or <I>tol</I> 
 
 <PRE>  <I>delay</I> value = tdelay
     tdelay = delay stats until at least this time (seconds)
@@ -121,8 +121,9 @@ for further details.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The default stats delta is 0.0 so that stats will only be output at
-the beginning and end of the run if the stats commandis not used.  The
-keyword defaults are delay = 0.0 no logarithmic output, tol = 0.0.
+<P>The default delta setting is 0.0 (if this command is not used), so
+that stats will only be output at the beginning and end of the run.
+The keyword defaults are delay = 0.0, no logarithmic output, tol =
+0.0.
 </P>
 </HTML>

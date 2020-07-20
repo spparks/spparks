@@ -49,9 +49,9 @@ app_style	potts/pfm 200 10 0.3 1 1 0.5 0.25 0.75 0.05 0.95 &
 
 This is an on-lattice application which evolves a Q-state Potts model
 in combination with a phase field Cahn-Hilliard model. It can be used
-to efficiently simulate grain growth in a two-phase system controlled 
-by diffusion. For a full description of the model, see the paper
-by "Homer et al."_#Homer.
+to efficiently simulate grain growth in a two-phase system controlled
+by diffusion. For a full description of the model, see the paper by
+"Homer et al."_#Homer.
 
 See the examples/potts_pfm directory for an example script using this
 command.  See the "Pictures web

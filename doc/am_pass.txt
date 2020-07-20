@@ -24,32 +24,34 @@ oh = perpindicular distance to pass dir; expands domain size :ul
 
 [Examples:]
 
-am pass 1 dir X speed 9 hatch 75 :pre
+am pass 1 dir X speed 9 hatch 75
 am pass 2 dir Y speed 10 hatch 50 overhatch 25 :pre
 
 [Description:]
 
 This command is used by "potts/additive"_app_potts_additive.html, and
-"potts/am_weld"_app_potts_am_weld.html to specify raster scan patterns for
-rectangular domains. Multiple passes can be defined in a single input file,
-each using unique id values. The {am pass} command is a required subelement of
-"am cartesian_layer"_am_cartesian_layer.html that specifies a cartesian build
-layer in the {x,y} plane. The initial heading, left or right for {dir=X} or 
-up or down for {dir=Y} depends upon the starting location specified in the 
-"am cartesian_layer"_am_cartesian_layer.html command.  By default, scan lines are
-{serpentine} but this can be turned off in the "am
-cartesian_layer"_am_cartesian_layer.html command. 
+"potts/am_weld"_app_potts_am_weld.html to specify raster scan patterns
+for rectangular domains. Multiple passes can be defined in a single
+input file, each using unique id values. The {am pass} command is a
+required subelement of "am cartesian_layer"_am_cartesian_layer.html
+that specifies a cartesian build layer in the {x,y} plane. The initial
+heading, left or right for {dir=X} or up or down for {dir=Y} depends
+upon the starting location specified in the "am
+cartesian_layer"_am_cartesian_layer.html command.  By default, scan
+lines are {serpentine} but this can be turned off in the "am
+cartesian_layer"_am_cartesian_layer.html command.
 
-The {pass} distance and number of {hatch} lines are controlled by the {X,Y}
-extent of the domain specified using the "region"_region.html command, which
-must be a box; multiple passes, seperated by {hatch} spacing are invoked until the
-domain dimension perpindicular to the scan {dir} is exhausted.  The optional
-{overhatch} value can be used to cause additional scan lines.  The melt pool
-has its own local coordinate system {x,y} so that the pool axis {x} is always
-oriented along {dir d}.   
+The {pass} distance and number of {hatch} lines are controlled by the
+{X,Y} extent of the domain specified using the "region"_region.html
+command, which must be a box; multiple passes, seperated by {hatch}
+spacing are invoked until the domain dimension perpindicular to the
+scan {dir} is exhausted.  The optional {overhatch} value can be used
+to cause additional scan lines.  The melt pool has its own local
+coordinate system {x,y} so that the pool axis {x} is always oriented
+along {dir d}.
 
-The example commands above define two passes, each with a different {dir},
-{speed}, {hatch} and optional {overhatch}. 
+The example commands above define two passes, each with a different
+{dir}, {speed}, {hatch} and optional {overhatch}.
 
 :image(JPG/pass_schematic.png)
 
@@ -65,4 +67,4 @@ potts/additive"_app_potts_additive.html.
 
 [Default:] 
 
-Optional {overhatch} value defaults to {0.0}
+The default for overhatch = 0.0.

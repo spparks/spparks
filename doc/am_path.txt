@@ -24,33 +24,33 @@ V = scan speed of the pass in sites/Monte-Carlo-sweep :ul
 
 This snippet is taken from SPPARKS repository: {examples/am_path/path_raster_a}
 
-# Convenience; define set of points to be used in path commands :pre
-variable X0 equal         0.0 :pre
-variable Y0 equal         0.0 :pre
-variable X1 equal        500.0 :pre
-variable Y1 equal        500.0 :pre
-variable X2 equal        106.1 :pre
-variable Y2 equal         0.0 :pre
-variable X3 equal        500.0 :pre
+# Convenience; define set of points to be used in path commands
+variable X0 equal         0.0
+variable Y0 equal         0.0
+variable X1 equal        500.0
+variable Y1 equal        500.0
+variable X2 equal        106.1
+variable Y2 equal         0.0
+variable X3 equal        500.0
 variable Y3 equal        393.9 :pre
 
-am path 1 start ${X0} ${Y0} end ${X1} ${Y1} speed 9 :pre
-am path 2 start ${X3} ${Y3} end ${X2} ${Y2} speed 9 :pre
+am path 1 start ${X0} ${Y0} end ${X1} ${Y1} speed 9
+am path 2 start ${X3} ${Y3} end ${X2} ${Y2} speed 9
 am path_layer 1 num_paths 2 path_ids 1 2 thickness 1 :pre
 
 [Description:]
 
 This command is used by "potts/additive"_app_potts_additive.html, and
-"potts/am_weld"_app_potts_am_weld.html to specify raster scans in 
-a very general way.  This {am path} command specifies a line in the 
-x-y plane using {start x,y} and {end x,y} points; path scan {speed V} is also 
-part of the specification.  Any number of {am path}s can be specified 
-in a script; an {am path} can be associated with multiple {am path_layer}s.  
-The direction of travel is implied by starting and ending points.
+"potts/am_weld"_app_potts_am_weld.html to specify raster scans in a
+very general way.  This {am path} command specifies a line in the x-y
+plane using {start x,y} and {end x,y} points; path scan {speed V} is
+also part of the specification.  Any number of {am path}s can be
+specified in a script; an {am path} can be associated with multiple
+{am path_layer}s.  The direction of travel is implied by starting and
+ending points.
 
-The example commands above define two paths both each of which 
-are associated with {am path_layer 1}. See depiction of simulation 
-below.
+The example commands above define two paths both each of which are
+associated with {am path_layer 1}. See depiction of simulation below.
 
 :image(JPG/path_schematic.png)
 
@@ -62,8 +62,8 @@ potts/additive"_app_potts_additive.html.
 
 [Related commands:]
 
-The {am path} is a required element of 
+The {am path} is a required element of
 "am_path_layer"_am_path_layer.html
 
-[Default:] 
+[Default:] none
 
