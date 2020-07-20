@@ -65,21 +65,23 @@ diag_style   energy
 stats            1.0
 #dump             1 text 25.0 dump.additive4.* id i1 d1
 
+dump 1 stitch 2 small3d.23Jul2020.linux site
+
 #If SPPARKS was not compiled with libjpeg, comment out the lines below.
-dump top image 2 top.small3D.*.jpg site site crange 1 1000 drange 1 1 view 0.0 0.0 shape cube box no 1 zoom 2 size 512 512 sdiam 1.05
-dump mobility_top image 2 mobiity_top.small3D.*.jpg d1 i1 view 0.0 0.0 shape cube size 512 512 sdiam 1.05 box no 1 zoom 2
+#dump top image 2 top.small3D.*.jpg site site crange 1 1000 drange 1 1 view 0.0 0.0 shape cube box no 1 zoom 2 size 512 512 sdiam 1.05
+#dump mobility_top image 2 mobiity_top.small3D.*.jpg d1 i1 view 0.0 0.0 shape cube size 512 512 sdiam 1.05 box no 1 zoom 2
 
-dump_modify top boundcolor black backcolor black pad 4 thresh z <= 18
-dump_modify	mobility_top smap 0 1 cf 0.05 5 min blue 0.45 lightblue 0.65 yellow 0.75 orange max red thresh z <= 20
+#dump_modify top boundcolor black backcolor black pad 4 thresh z <= 18
+#dump_modify	mobility_top smap 0 1 cf 0.05 5 min blue 0.45 lightblue 0.65 yellow 0.75 orange max red thresh z <= 20
 
-dump transverse image 2 transverse.small3D.*.jpg site site crange 1 1000 drange 1 1 view 90.0 -90.0 shape cube box no 1 zoom 1.5 size 512 512
-dump_modify transverse boundcolor black backcolor black pad 4  thresh y <= 10
+#dump transverse image 2 transverse.small3D.*.jpg site site crange 1 1000 drange 1 1 view 90.0 -90.0 shape cube box no 1 zoom 1.5 size 512 512
+#dump_modify transverse boundcolor black backcolor black pad 4  thresh y <= 10
 
-dump longitudinal image 2 longitudinal.small3D.*.jpg site site crange 1 1000  drange 1 1 view 90.0 0.0 shape cube box no 1 zoom 1.5 size 512 512
-dump_modify longitudinal boundcolor black backcolor black pad 4  thresh x <= 20
+#dump longitudinal image 2 longitudinal.small3D.*.jpg site site crange 1 1000  drange 1 1 view 90.0 0.0 shape cube box no 1 zoom 1.5 size 512 512
+#dump_modify longitudinal boundcolor black backcolor black pad 4  thresh x <= 20
  
-dump mobility_long image 2 mobiity_long.small3D.*.jpg d1 i1 view 90.0 0.0 shape cube size 512 512 sdiam 1.05 box no 1 zoom 1.5
-dump_modify	mobility_long smap 0 1 cf 0.05 5 min blue 0.45 lightblue 0.65 yellow 0.75 orange max red thresh x <= 20
+#dump mobility_long image 2 mobiity_long.small3D.*.jpg d1 i1 view 90.0 0.0 shape cube size 512 512 sdiam 1.05 box no 1 zoom 1.5
+#dump_modify	mobility_long smap 0 1 cf 0.05 5 min blue 0.45 lightblue 0.65 yellow 0.75 orange max red thresh x <= 20
 #——————————————————————————————————————————— 
 
 run              225
