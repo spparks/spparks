@@ -89,8 +89,9 @@ void DumpStitch::init_style()
      if (fields[i] == PROPENSITY) flag = 1;
    if (flag && !solve)
      error->all(FLERR,"Dump requires proensity but no KMC solve performed");
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 void DumpStitch::create_stitch_field_ids(){
 
@@ -111,7 +112,8 @@ void DumpStitch::create_stitch_field_ids(){
              union StitchTypesUnion v;v.i32=-1;
              // Scalar value
              int32_t scalar=1;
-             err=stitch_create_field (stitch_file,"site",STITCH_INT32,v,scalar,&field_id);
+             err = stitch_create_field(stitch_file,"site",STITCH_INT32,
+				       v,scalar,&field_id);
              // TODO: process err
              //
          }
@@ -127,7 +129,8 @@ void DumpStitch::create_stitch_field_ids(){
              union StitchTypesUnion v;v.i32=-1;
              // Scalar value
              int32_t scalar=1;
-             err=stitch_create_field (stitch_file,label,STITCH_INT32,v,scalar,&field_id);
+             err = stitch_create_field(stitch_file,label,STITCH_INT32,
+				       v,scalar,&field_id);
              // TODO: process err
              //
          }
@@ -143,12 +146,14 @@ void DumpStitch::create_stitch_field_ids(){
              union StitchTypesUnion v;v.f64=-1;
              // Scalar value
              int32_t scalar=1;
-             err=stitch_create_field (stitch_file,label,STITCH_FLOAT64,v,scalar,&field_id);
+             err = stitch_create_field (stitch_file,label,STITCH_FLOAT64,
+					v,scalar,&field_id);
              // TODO: process err
              //
          }
       } else {
-         error->all(FLERR,"DumpStitch::create_stitch_field_ids(); Invalid specified field.");
+         error->all(FLERR,"DumpStitch::create_stitch_field_ids(); "
+		    "Invalid specified field.");
       }
       stitch_field_ids[i]=field_id;
    }
@@ -187,19 +192,22 @@ void DumpStitch::write(double time)
        //write_flag == True when new time step created
        //write_flag == False when new time step NOT created
        //int stitch_write_block_int32 (const StitchFile * file, int64_t field_id, double * time, int32_t * bb, const int32_t * buffer, int32_t * write_flag);
-       err=stitch_write_block_int32 (stitch_file,field_id,&time,block,idata,&write_flag);
+       err = stitch_write_block_int32(stitch_file,field_id,&time,
+				      block,idata,&write_flag);
        //printf("1:dump_stitch; time=%3.1f, write_flag=%d\n",time,write_flag);
        //printf("2: block xlo, xhi, ylo, yhi, zlo, zli = %5d,%5d,%5d,%5d,%5d,%5d\n",xlo,xhi,ylo,yhi,zlo,zhi);
      }
      else if (IARRAY==fields[i]) {
        //std::cout << "DumpStitch::write(time=" << time << "); IARRAY field_id="<<field_id<< std::endl;
        idata = app->iarray[vindex[i]];
-       err=stitch_write_block_int32(stitch_file,field_id,&time,block,idata,&write_flag);
+       err = stitch_write_block_int32(stitch_file,field_id,&time,
+				      block,idata,&write_flag);
      }
      else if (DARRAY==fields[i]) {
        //std::cout << "DumpStitch::write(time=" << time << "); DARRAY field_id="<<field_id<< std::endl;
        real_data = app->darray[vindex[i]];
-       err=stitch_write_block_float64(stitch_file,field_id,&time,block,real_data,&write_flag);
+       err = stitch_write_block_float64(stitch_file,field_id,&time,
+					block,real_data,&write_flag);
      }
      // TODO: process err
      //
@@ -214,7 +222,6 @@ void DumpStitch::write(double time)
     //printf("FINISH dump stitch rank = %d\n",rank);
     //MPI_Barrier(MPI_COMM_WORLD);
     //printf("FINISH MPI_Barrier dump stitch rank = %d\n",rank);
-
   }
 }
 
