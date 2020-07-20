@@ -297,8 +297,6 @@ applications.
 "am pass"_am_pass.html,
 "am path"_am_path.html,
 "am path_layer"_am_path_layer.html,
-"am pattern"_am_pattern.html,
-"am transverse_pass"_am_transverse_pass.html,
 "barrier"_barrier.html,
 "count"_count.html,
 "deep_length"_deep_length.html,
