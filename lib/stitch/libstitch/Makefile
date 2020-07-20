@@ -1,4 +1,5 @@
 # mpicc and mpicxx must be on your path; Set these appropriately
+
 CC=mpicc
 CXX=mpicxx
 TARGET_DIR=${HOME}/local/stitch
@@ -16,4 +17,3 @@ clean:
 	rm -rf ${TARGET_DIR}
 	rm -rf ../build
 	find .. -name __pycache__ -exec rm -rf {} \; ; find .. -name "*.pyc" -exec rm -rf {} \; ; rm -f *.st
-
