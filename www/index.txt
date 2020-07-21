@@ -101,7 +101,8 @@ additive manufacturing (AM) simulations.  Using Stitch, an output
 database for microstructure simulations is created incrementally by
 appending lattice sites much in the same way new material is added to
 an AM part.  See the "dump stitch"_doc/dump.html and "set
-stitch"_doc/set.html commands for details. :l
+stitch"_doc/set.html commands for details, as well as the stitch and
+am_path folders in the examples directory. :l
 
 <IMG SRC = "images/new.gif"> (11/16) A variety of new input/output
 options were added, including "dump sites"_doc/dump.html and "dump
