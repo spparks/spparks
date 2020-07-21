@@ -43,14 +43,14 @@ This new SPPARKS release has many additions useful for modeling
 additive manufacturing (AM) microstructures.  John Mitchell (Sandia)
 did the majority of the heavy lifting for this release.
 
-The following commands have been modified or added; scripts using AM
+The following commands have been added or modified; scripts using AM
 commands prior to this release will need to be updated.
 
-"am_build"_doc/am_build.html
-"am_cartesian_layer"_doc/am_cartesian_layer.html = new command
+"am_build"_doc/am_build.html = new command
+"am_path"_doc/am_path.html = new command
+"am_path_layer"_doc/am_path_layer.html = new command
 "am_pass"_doc/am_pass.html
-"am_path"_doc/am_path.html
-"am_path_layer"_doc/am_path_layer.html = new command :ul
+"am_cartesian_layer"_doc/am_cartesian_layer.html :ul
 
 The am_pattern and am_transverse_pass commands were removed, but
 their functionality was replaced and enhanced with these 5 commands.
