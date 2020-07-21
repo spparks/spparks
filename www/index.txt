@@ -95,6 +95,14 @@ simulations which evolve microstructure in the presence of a moving
 laser spot which heats material.  See the description of the 23Jul20
 release on "this page"_bug.html. :ulb,l
 
+<IMG SRC = "images/new.gif"> (7/20) A new I/O system called the Stitch
+library has been added to SPPARKS.  It was specially developed for
+additive manufacturing (AM) simulations.  Using Stitch, an output
+database for microstructure simulations is created incrementally by
+appending lattice sites much in the same way new material is added to
+an AM part.  See the "dump stitch"_doc/dump.html and "set
+stitch"_doc/set.html commands for details. :l
+
 <IMG SRC = "images/new.gif"> (11/16) A variety of new input/output
 options were added, including "dump sites"_doc/dump.html and "dump
 vtk"_doc/dump.html styles, and "dump_modify"_dump_modify.html and
