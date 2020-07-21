@@ -37,8 +37,59 @@ describe the version you have. :ule,l
 :line
 :line
 
-[18 May 2017]
+[23 Jul 2020]
 
+This new SPPARKS release has many additions useful for modeling
+additive manufacturing (AM) microstructures.
+
+The following commands have been modified or added; scripts using AM
+commands prior to this release will need to be updated.
+
+"am_build"_doc/am_build
+"am_cartesian_layer"_doc/am_cartesian_layer.html = new command
+"am_pass"_doc/am_pass.html
+"am_path"_doc/am_path.html
+"am_path_layer"_doc/am_path_layer.html = new command :ul
+
+The am_pattern and am_transverse_pass commands were removed, but
+their functionality was replaced and enhanced with these 5 commands.
+
+A new I/O system oriented towards additive manufacturing, called the
+Stitch library, is included in this release.  The Stitch library reads
+and writes snapshot files for large AM geometries and allow for each
+lattice site in the large geoemtry to have multiple values, each with
+a time stamp.  Thus the Stitch file can archive the state of a large
+AM part at many points in time as it is manufactured.  A python module
+for reading/writing Stitch files is also included which can be used
+for visualization and analysis of simulated microstructures outside of
+SPPARKS.  Stitch has been developed by John Mitchell and Jay Loftstead
+(Sandia).
+
+To use Stitch with SPPARKS you must build the Stitch library and
+include the STITCH package before building SPPARKS.  The library
+itself can be found in lib/stitch.  These files give information about
+building and using Stitch with SPPARKS:
+
+doc/Section_start.html
+lib/stitch/README
+examples/am_path/README
+examples/stitch/README
+examples/potts_additive
+
+Three SPPARKS commands now have options for using the Stitch library
+and accessing Stitch files:
+
+"set stitch"_doc/set.html = initialize sites from a Stitch file
+"dump stitch"_doc/dump.html = write current site info to a Stitch file
+"reset_time stitch"_doc/reset_time.html = reset time based on a Stitch file :ul
+
+This is the "list of changed files"_patches/files.23Jul20 from the 18
+May 2017 version.
+
+:line
+
+[18 May 2017]
+ 
 John Mitchell (Sandia) added a new
 "weld_shape_teardrop"_doc/weld_shape_teardrop.html command for use by
 the "app_style potts/weld"_doc/app_potts_weld.html application.  It
