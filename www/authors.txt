@@ -40,7 +40,7 @@ Jan10 : app erbium and diag erbium : Corbett Battaile
 Dec09 : app sos : Greg Wagner
 Nov09 : barrier command : Ed Webb
 Nov09 : deposition command : Ed Webb
-Nov09 : app diffusion : Greg Wagner and Xiaowant Zhou : :tb(s=:,ca1=c)
+Nov09 : app diffusion : Greg Wagner and Xiaowang Zhou : :tb(s=:,ca1=c)
 
 :line
 
