@@ -1,0 +1,26 @@
+23Jul20 version files changed by 24Jul20 upgrade:
+
+doc/Manual.html
+doc/Manual.pdf
+doc/Manual.txt
+doc/Section_commands.html
+doc/Section_commands.txt
+lib/README
+lib/stitch/Install.py
+lib/stitch/LICENSE
+lib/stitch/Makefile.spparks
+lib/stitch/README
+lib/stitch/libstitch/Makefile
+lib/stitch/libstitch/setup.py
+lib/stitch/libstitch/sqlite3.c
+lib/stitch/libstitch/sqlite3.h
+lib/stitch/libstitch/stitch.c
+lib/stitch/libstitch/stitch.h
+lib/stitch/libstitch/stitchmodule.c
+lib/stitch/rsync_stitch_src.sh
+lib/stitch/setup.flamer.cfg
+lib/stitch/setup.py
+lib/stitch/setup.tutka.cfg
+lib/stitch/verify/Makefile
+lib/stitch/verify/unit_cv_readwrite.py
+src/version.h
