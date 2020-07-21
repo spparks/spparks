@@ -13,20 +13,29 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>reset_time time 
-</PRE>
-<UL><LI>time = new time 
+<P>reset_time style options:pre
+</P>
+<P>style = <I>stitch</I> or <I>time</I>
+</P>
+<UL><LI>for style <I>stitch</I>, options = "stitch_file_name" "last" or "first" 
+</UL>
+<UL><LI>for style <I>time</I>, options = new time 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>reset_time 0.0
+<PRE>reset_time stitch outputfile.st last
+reset_time stitch outputfile.st first
+reset_time 0.0
 reset_time 100.0 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Set the current time to the specified value.  This can be useful
 if a preliminary run was performed and you wish to reset the time
-before performing a subsequent run.
+before performing a subsequent run.  For the <I>stitch</I> style option, 
+this is particularly useful for setting the current simulation time 
+to either the 'first' time step or 'last' time step contained in 
+specified stitch file: 'stitch_file_name'.
 </P>
 <P><B>Restrictions:</B> none
 </P>
