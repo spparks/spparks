@@ -46,7 +46,7 @@ did the majority of the heavy lifting for this release.
 The following commands have been modified or added; scripts using AM
 commands prior to this release will need to be updated.
 
-"am_build"_doc/am_build
+"am_build"_doc/am_build.html
 "am_cartesian_layer"_doc/am_cartesian_layer.html = new command
 "am_pass"_doc/am_pass.html
 "am_path"_doc/am_path.html
@@ -57,8 +57,8 @@ their functionality was replaced and enhanced with these 5 commands.
 
 A new AM application was added, and the potts/additive app was enhanced:
 
-"app_style potts/am/path/test"_app_potts_am_path_test.html
-"app_style potts/additive"_app_potts_additive.html :ul
+"app_style potts/am/path/test"_doc/app_potts_am_path_test.html
+"app_style potts/additive"_doc/app_potts_additive.html :ul
 
 A new I/O system oriented towards additive manufacturing, called the
 Stitch library, is included in this release.  The Stitch library reads
