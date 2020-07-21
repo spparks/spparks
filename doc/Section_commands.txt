@@ -369,9 +369,13 @@ Diagnostic styles.  See the "diag_style"_diag_style.html command for
 one-line descriptions of each style or click on the style itself for a
 full description:
 
+"array"_diag_array.html,
 "cluster"_diag_cluster.html,
 "diffusion"_diag_diffusion.html,
-"erbium"_diag_erbium.html,
 "energy"_diag_energy.html,
+"erbium"_diag_erbium.html,
 "propensity"_diag_propensity.html
+"sinter_density"_diag_sinter_density.html
+"sinter_free_energy"_diag_sinter_free_energy.html
+"sinter_free_energy"_diag_sinter_free_energy_pore.html
 :tb(c=6,ea=c)
