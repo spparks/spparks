@@ -10,12 +10,17 @@ reset_time command :h3
 
 [Syntax:]
 
-reset_time time :pre
+reset_time style options:pre
 
-time = new time :ul
+style = {stitch} or {time}
+
+for style {stitch}, options = "stitch_file_name" "last" or "first" :ul
+for style {time}, options = new time :ul
 
 [Examples:]
 
+reset_time stitch outputfile.st last
+reset_time stitch outputfile.st first
 reset_time 0.0
 reset_time 100.0 :pre
 
@@ -23,7 +28,10 @@ reset_time 100.0 :pre
 
 Set the current time to the specified value.  This can be useful
 if a preliminary run was performed and you wish to reset the time
-before performing a subsequent run.
+before performing a subsequent run.  For the {stitch} style option, 
+this is particularly useful for setting the current simulation time 
+to either the 'first' time step or 'last' time step contained in 
+specified stitch file: 'stitch_file_name'.
 
 [Restrictions:] none
 
