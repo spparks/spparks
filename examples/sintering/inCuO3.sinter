@@ -4,7 +4,8 @@ seed		 56789
 
 app_style	 sinter 
 
-read_sites	 Cu03.spins
+#read_sites	 Cu03.spins
+read_sites	 Cu03.spins.gz
 
 event_ratios 	 2.0 1.0 10.0
 
