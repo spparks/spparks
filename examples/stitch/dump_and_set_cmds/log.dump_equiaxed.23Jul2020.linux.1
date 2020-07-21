@@ -1,0 +1,83 @@
+SPPARKS (23 Jul 2020)
+# DEFINE parameters
+# SEED=$RANDOM
+variable SEED equal              1
+# T: simulation temperature
+variable T equal                 0.25
+# Number of spins
+variable Q equal         40000
+# DT: number of KMC steps
+variable DT equal    2
+# ABS_TOL: precision needed for hitting output times
+variable ABS_TOL equal    .01
+# Name of output stitch file
+variable OUT universe            equiaxed.st
+Initial ${OUT} setting: value 1 on partition 0
+
+
+seed		 ${SEED}
+seed		 1
+app_style  potts/neighonly ${Q}
+app_style  potts/neighonly 40000
+dimension	 3
+boundary n n p
+
+lattice		 sc/26n 1.0
+region		 box block 0 200 0 200 0 1
+create_box	 box
+Created box = (0 0 0) to (200 200 1)
+  1 by 1 by 1 processor grid
+create_sites     box
+Creating sites ...
+  40000 sites
+  4 sites have 11 neighbors
+  0 sites have 12 neighbors
+  0 sites have 13 neighbors
+  0 sites have 14 neighbors
+  0 sites have 15 neighbors
+  0 sites have 16 neighbors
+  792 sites have 17 neighbors
+  0 sites have 18 neighbors
+  0 sites have 19 neighbors
+  0 sites have 20 neighbors
+  0 sites have 21 neighbors
+  0 sites have 22 neighbors
+  0 sites have 23 neighbors
+  0 sites have 24 neighbors
+  0 sites have 25 neighbors
+  39204 sites have 26 neighbors
+
+# Randomize site values
+set site range 1 ${Q}
+set site range 1 40000
+  40000 settings made for site
+
+sweep		 raster
+sector yes
+diag_style       energy
+temperature	 ${T}
+temperature	 0.25
+stats            1.0
+
+# dump stitch file
+dump         dump.id stitch 1 ${OUT} site
+dump         dump.id stitch 1 equiaxed.st site
+dump_modify dump.id tol ${ABS_TOL}
+dump_modify dump.id tol 0.01
+run             ${DT}
+run             2
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 8.75 Mbytes
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy
+         0          0          0          0          0     952764
+   1.03846     178897     901103         27      0.132     156234
+         2     225896    1854104         52      0.211     100950
+Loop time of 0.211452 on 1 procs
+
+Solve time (%) = 0.197152 (93.2372)
+Update time (%) = 0 (0)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0.013917 (6.58164)
+App   time (%) = 0 (0)
+Other time (%) = 0.000383 (0.181129)
