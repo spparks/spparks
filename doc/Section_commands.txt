@@ -374,8 +374,8 @@ full description:
 "diffusion"_diag_diffusion.html,
 "energy"_diag_energy.html,
 "erbium"_diag_erbium.html,
-"propensity"_diag_propensity.html
-"sinter_density"_diag_sinter_density.html
-"sinter_free_energy"_diag_sinter_free_energy.html
-"sinter_free_energy"_diag_sinter_free_energy_pore.html
+"propensity"_diag_propensity.html,
+"sinter_density"_diag_sinter_density.html,
+"sinter_free_energy"_diag_sinter_free_energy.html,
+"sinter_free_energy_pore"_diag_sinter_free_energy_pore.html
 :tb(c=6,ea=c)
