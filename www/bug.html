@@ -43,7 +43,8 @@ describe the version you have.
 <P><B>23 Jul 2020</B>
 </P>
 <P>This new SPPARKS release has many additions useful for modeling
-additive manufacturing (AM) microstructures.
+additive manufacturing (AM) microstructures.  John Mitchell (Sandia)
+did the majority of the heavy lifting for this release.
 </P>
 <P>The following commands have been modified or added; scripts using AM
 commands prior to this release will need to be updated.
@@ -57,6 +58,11 @@ commands prior to this release will need to be updated.
 <P>The am_pattern and am_transverse_pass commands were removed, but
 their functionality was replaced and enhanced with these 5 commands.
 </P>
+<P>A new AM application was added, and the potts/additive app was enhanced:
+</P>
+<UL><LI><A HREF = "app_potts_am_path_test.html">app_style potts/am/path/test</A>
+<LI><A HREF = "app_potts_additive.html">app_style potts/additive</A> 
+</UL>
 <P>A new I/O system oriented towards additive manufacturing, called the
 Stitch library, is included in this release.  The Stitch library reads
 and writes snapshot files for large AM geometries and allow for each
@@ -73,12 +79,12 @@ include the STITCH package before building SPPARKS.  The library
 itself can be found in lib/stitch.  These files give information about
 building and using Stitch with SPPARKS:
 </P>
-<P>doc/Section_start.html
-lib/stitch/README
-examples/am_path/README
-examples/stitch/README
-examples/potts_additive
-</P>
+<UL><LI>doc/Section_start.html
+<LI>lib/stitch/README
+<LI>examples/am_path/README
+<LI>examples/stitch/README
+<LI>examples/potts_additive 
+</UL>
 <P>Three SPPARKS commands now have options for using the Stitch library
 and accessing Stitch files:
 </P>

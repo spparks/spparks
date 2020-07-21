@@ -89,13 +89,19 @@ Security statement"_security.
 
 Recent SPPARKS News :c,h4
 
+<IMG SRC = "images/new.gif"> (7/20) A variety of options were added
+for modeling additive manufacturing processes via Potts model
+simulations which evolve microstructure in the presence of a moving
+laser spot which heats material.  See the description of the 23Jul20
+release on "this page"_bug.html. :ulb,l
+
 <IMG SRC = "images/new.gif"> (11/16) A variety of new input/output
 options were added, including "dump sites"_doc/dump.html and "dump
 vtk"_doc/dump.html styles, and "dump_modify"_dump_modify.html and
 "read_sites"_doc/read_sites.html options.  These make it easier to use
 SPPARKS with VTK-compatible visualizers, like
 "ParaView"_http://www.paraview.org, and to continue/restart SPPARKS
-simulations using dump file snapshots as a restart file. :ulb,l
+simulations using dump file snapshots as a restart file. :l
 
 <IMG SRC = "images/new.gif"> (3/12) Release of Python wrapper for
 SPPARKS in python dir with additional examples of using SPPARKS as a

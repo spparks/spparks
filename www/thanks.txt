@@ -12,14 +12,40 @@ Energy"_doe (DOE), through its LDRD program.
 
 :line
 
-The chief authors of SPPARKS are "Steve Plimpton"_sjp and Aidan Thompson and
-Alex Slepoy who can be contacted at sjplimp at sandia.gov, athomps at
-sandia.gov, and alexander.slepoy at nnsa.doe.gov, respectively.
+The original chief authors of SPPARKS are "Steve Plimpton"_sjp and
+Aidan Thompson and Alex Slepoy.  They are at Sandia National Labs and
+can be contacted at sjplimp at sandia.gov and athomps at sandia.gov.
 
 :link(sjp,http://www.cs.sandia.gov/~sjplimp)
 
-Several materials scientists at Sandia also helped in the design
-of the code and implementation of specific models:
+The following folks have contributed code for new features.  All were
+at Sandia at the time unless otherwise noted:
+
+Jul20 : dump stitch, set stitch : John Mitchell
+Jul20 : Stitch package and library : John Mitchell and Jay Lofstead
+Jul20 : app potts/am/path/test : John Mitchell
+Jul20 : am_build, am_pass, am_path, am_path_layer commands : John Mitchell
+May17 : am_cartesian_layer, am_pass, am_pattern, am_transverse_pass commands : Theron Rodgers and John Mitchell
+May17 : app potts/additive : Theron Rodgers and John Mitchell
+May17 : weld_shape_teardrop command : John Mitchell
+May17 : app potts/strain/pin : John Mitchell
+Oct16 : app potts/weld/jom : Theron Rodgers
+Sep16 : app potts/weld : John Mitchell
+Mar16 : app sinter : Veena Tikare
+Dec15 : app potts/pfm (phasefield model) : Eric Homer and Veena Tikare
+Mar15 : diag cluster : Aidan Thompson
+Jul11 : dump image : Nathan Fabian
+Jun11 : diag array : Eric Homer
+Jan10 : app erbium and diag erbium : Corbett Battaile
+Dec09 : app sos : Greg Wagner
+Nov09 : barrier command : Ed Webb
+Nov09 : deposition command : Ed Webb
+Nov09 : app diffusion : Greg Wagner and Xiaowant Zhou : :tb(s=:,ca1=c)
+
+:line
+
+Several materials scientists at Sandia also helped in the original
+design of SPPARKS and testing out of models:
 
 Corbett Battaile
 Liz Holm
