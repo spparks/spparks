@@ -37,8 +37,18 @@ describe the version you have. :ule,l
 :line
 :line
 
-[23 Jul 2020]
+[24 Jul 2020]
 
+The Stitch library was inadvertantly left out of the 23Jul20 tarball.
+It is in the lib/stitch directory of the distro.
+
+This is the "list of changed files"_patches/files.24Jul20 from the 23
+Jul 2017 version.
+
+:line
+
+[23 Jul 2020]
+ 
 This new SPPARKS release has many additions useful for modeling
 additive manufacturing (AM) microstructures.  John Mitchell (Sandia)
 did the majority of the heavy lifting for this release.
