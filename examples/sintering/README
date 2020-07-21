@@ -1,0 +1,12 @@
+This sintering examples reads a gzipped data file via
+the read_sites command.  To do this SPPARKS must have been
+built with the -DSPPARKS_GZIP option in the Makefile.
+
+If you did not or cannot do that, you can uncompress the file:
+
+gunzip CuO3.spins.gz
+
+and also swap the commented/uncommented lines for
+the read_sites command in the input script,
+and then run the script using the uncompressed file.
+
