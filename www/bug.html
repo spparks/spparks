@@ -40,6 +40,57 @@ describe the version you have.
 
 <HR>
 
+<P><B>23 Jul 2020</B>
+</P>
+<P>This new SPPARKS release has many additions useful for modeling
+additive manufacturing (AM) microstructures.
+</P>
+<P>The following commands have been modified or added; scripts using AM
+commands prior to this release will need to be updated.
+</P>
+<UL><LI><A HREF = "doc/am_build">am_build</A>
+<LI><A HREF = "doc/am_cartesian_layer.html">am_cartesian_layer</A> = new command
+<LI><A HREF = "doc/am_pass.html">am_pass</A>
+<LI><A HREF = "doc/am_path.html">am_path</A>
+<LI><A HREF = "doc/am_path_layer.html">am_path_layer</A> = new command 
+</UL>
+<P>The am_pattern and am_transverse_pass commands were removed, but
+their functionality was replaced and enhanced with these 5 commands.
+</P>
+<P>A new I/O system oriented towards additive manufacturing, called the
+Stitch library, is included in this release.  The Stitch library reads
+and writes snapshot files for large AM geometries and allow for each
+lattice site in the large geoemtry to have multiple values, each with
+a time stamp.  Thus the Stitch file can archive the state of a large
+AM part at many points in time as it is manufactured.  A python module
+for reading/writing Stitch files is also included which can be used
+for visualization and analysis of simulated microstructures outside of
+SPPARKS.  Stitch has been developed by John Mitchell and Jay Loftstead
+(Sandia).
+</P>
+<P>To use Stitch with SPPARKS you must build the Stitch library and
+include the STITCH package before building SPPARKS.  The library
+itself can be found in lib/stitch.  These files give information about
+building and using Stitch with SPPARKS:
+</P>
+<P>doc/Section_start.html
+lib/stitch/README
+examples/am_path/README
+examples/stitch/README
+examples/potts_additive
+</P>
+<P>Three SPPARKS commands now have options for using the Stitch library
+and accessing Stitch files:
+</P>
+<UL><LI><A HREF = "doc/set.html">set stitch</A> = initialize sites from a Stitch file
+<LI><A HREF = "doc/dump.html">dump stitch</A> = write current site info to a Stitch file
+<LI><A HREF = "doc/reset_time.html">reset_time stitch</A> = reset time based on a Stitch file 
+</UL>
+<P>This is the <A HREF = "patches/files.23Jul20">list of changed files</A> from the 18
+May 2017 version.
+</P>
+<HR>
+
 <P><B>18 May 2017</B>
 </P>
 <P>John Mitchell (Sandia) added a new
