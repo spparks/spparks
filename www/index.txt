@@ -36,7 +36,7 @@ acronym for Stochastic Parallel PARticle Kinetic Simulator.
 "Open source"_open_source.html,
 "Pizza.py Toolkit"_pizza,
 "Publications"_papers.html,
-"Thanks"_thanks.html,
+"Authors"_authors.html,
 "Tutorial"_tutorial/html/index.html :tb(c=4,ea=c,a=c)
 
 :link(download,http://www.sandia.gov/~sjplimp/download.html)
