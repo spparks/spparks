@@ -27,8 +27,6 @@
 #include "memory.h"
 #include "error.h"
 
-#include <map>
-
 #ifdef SPK_STITCH
 #include "stitch.h"
 #endif
@@ -286,8 +284,9 @@ void Set::set_single(int lhs, int rhs)
   count = 0;
 
   if (loopflag) {
-    std::map<tagint,int> hash;
-    std::map<tagint,int>::iterator loc;
+    MyHash hash;
+    MyIterator loc;
+
     for (i = 0; i < nlocal; i++) hash.insert(std::pair<tagint,int> (id[i],i));
 
     if (lhs == IARRAY) {
@@ -482,8 +481,9 @@ void Set::set_range(int lhs, int rhs)
   count = 0;
 
   if (loopflag) {
-    std::map<tagint,int> hash;
-    std::map<tagint,int>::iterator loc;
+    MyHash hash;
+    MyIterator loc;
+
     for (i = 0; i < nlocal; i++) hash.insert(std::pair<tagint,int> (id[i],i));
 
     if (lhs == IARRAY || lhs==SITE) {
