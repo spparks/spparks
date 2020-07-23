@@ -85,14 +85,14 @@ void Set::command(int narg, char **arg)
   if (strcmp(arg[1],"value") == 0) {
     if (narg < 3) error->all(FLERR,"Illegal set command");
     rhs = VALUE;
-    if (lhs == IARRAY) ivalue = atoi(arg[2]);
+    if (lhs == SITE || lhs == IARRAY) ivalue = atoi(arg[2]);
     else if (lhs == DARRAY) dvalue = atof(arg[2]);
     else error->all(FLERR,"Illegal set command");
     iarg = 3;
   } else if (strcmp(arg[1],"range") == 0) {
     if (narg < 4) error->all(FLERR,"Illegal set command");
     rhs = RANGE;
-    if (IARRAY==lhs || SITE==lhs) {
+    if (lhs == SITE || lhs == IARRAY) {
       ivaluelo = atoi(arg[2]);
       ivaluehi = atoi(arg[3]);
     } else if (lhs == DARRAY) {
@@ -190,7 +190,8 @@ void Set::command(int narg, char **arg)
       } else if (arg[iarg+1][0] == 'i') {
          int index = atoi(&arg[iarg+1][1]);
          if (index < 1 || index > app->ninteger)
-           error->all(FLERR,"Set if test on quantity application does not support");
+           error->all(FLERR,
+                      "Set if test on quantity application does not support");
          index--;
          cond[ncondition].lhs = IARRAY;
          cond[ncondition].type = INT;
@@ -199,7 +200,8 @@ void Set::command(int narg, char **arg)
       } else if (arg[iarg+1][0] == 'd') {
          int index = atoi(&arg[iarg+1][1]);
          if (index < 1 || index > app->ndouble)
-            error->all(FLERR,"Set if test on quantity application does not support");
+            error->all(FLERR,
+                       "Set if test on quantity application does not support");
          index--;
          cond[ncondition].lhs = DARRAY;
          cond[ncondition].type = DOUBLE;
@@ -289,7 +291,7 @@ void Set::set_single(int lhs, int rhs)
 
     for (i = 0; i < nlocal; i++) hash.insert(std::pair<tagint,int> (id[i],i));
 
-    if (lhs == IARRAY) {
+    if (lhs == SITE || lhs == IARRAY) {
       if (regionflag == 0 && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
@@ -375,7 +377,7 @@ void Set::set_single(int lhs, int rhs)
     }
 
   } else {
-    if (lhs == IARRAY) {
+    if (lhs == SITE || lhs == IARRAY) {
       if (regionflag == 0 && fraction == 1.0) {
 	for (i = 0; i < nlocal; i++) {
 	  if (ncondition && condition(i)) continue;
@@ -486,7 +488,7 @@ void Set::set_range(int lhs, int rhs)
 
     for (i = 0; i < nlocal; i++) hash.insert(std::pair<tagint,int> (id[i],i));
 
-    if (lhs == IARRAY || lhs==SITE) {
+    if (lhs == SITE || lhs == IARRAY) {
       int range = ivaluehi - ivaluelo + 1;
 
       if (regionflag == 0 && fraction == 1.0) {
@@ -590,7 +592,8 @@ void Set::set_range(int lhs, int rhs)
     }
 
   } else {
-    if (lhs == IARRAY) {
+
+    if (lhs == SITE || lhs == IARRAY) {
       int range = ivaluehi - ivaluelo + 1;
 
       if (regionflag == 0 && fraction == 1.0) {
@@ -682,7 +685,7 @@ void Set::set_stitch(int lhs, int rhs)
 
   if (!applattice->simple)
     error->all(FLERR,"Set stitch requires simple square or cubic lattice");
-  if (IARRAY != lhs && SITE != lhs)
+  if (lhs != SITE && lhs != IARRAY)
     error->all(FLERR,"Set stitch only supports integer values");
 
   StitchFile *stitch_file;
@@ -720,13 +723,13 @@ void Set::set_stitch(int lhs, int rhs)
   int64_t field_id;
   {
      int err;
-     if (SITE==lhs) {
+     if (lhs == SITE) {
         err=stitch_query_field (stitch_file,"site",&field_id);
-     } else if (IARRAY==lhs) {
+     } else if (lhs == IARRAY) {
         char label[8];
         sprintf(label,"i%d",siteindex+1);
         err=stitch_query_field (stitch_file,label,&field_id);
-     } else if (DARRAY==lhs){
+     } else if (lhs == DARRAY) {
         char label[8];
         sprintf(label,"d%d",siteindex+1);
         err=stitch_query_field (stitch_file,label,&field_id);
@@ -749,11 +752,11 @@ void Set::set_stitch(int lhs, int rhs)
      // get field data
      
      int32_t is_new_time=-1;
-     if (SITE==lhs) {
+     if (lhs == SITE) {
         int32_t *idata = app->iarray[0];
         err =stitch_read_block_int32(stitch_file,field_id,&time,
 				     block,idata,&is_new_time);
-     } else if (IARRAY==lhs) {
+     } else if (lhs == IARRAY) {
         int32_t *idata = app->iarray[siteindex];
         //For read:
         // read_flag == True when time does not exist in the file,
@@ -764,7 +767,7 @@ void Set::set_stitch(int lhs, int rhs)
 	//   double * time, int32_t * bb, int32_t * buffer, int32_t * is_new_time);
         err = stitch_read_block_int32(stitch_file,field_id,&time,
 				      block,idata,&is_new_time);
-     } else if (DARRAY==lhs) {
+     } else if (lhs == DARRAY) {
         double *real_data = app->darray[siteindex];
         err = stitch_read_block_float64(stitch_file,field_id,&time,
 					block,real_data,&is_new_time);
@@ -862,7 +865,7 @@ void Set::set_binary_file(int lhs, int rhs)
 
   int nlocal = app->nlocal;
 
-  if (lhs == IARRAY) {
+  if (lhs == SITE || lhs == IARRAY) {
     int *buf;
     memory->create(buf,nx*ny*nz,"set:buf");
 

@@ -19,10 +19,15 @@ CommandStyle(set,Set)
 #ifndef SPK_SET_H
 #define SPK_SET_H
 
-#include<map>
-#include<unordered_map>
-
 #include "pointers.h"
+
+#ifdef SPPARKS_MAP
+#include <map>
+#elif SPPARKS_UNORDERED_MAP
+#include <unordered_map>
+#else
+#include <tr1/unordered_map>
+#endif
 
 namespace SPPARKS_NS {
 
