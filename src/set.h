@@ -20,6 +20,7 @@ CommandStyle(set,Set)
 #define SPK_SET_H
 
 #include<map>
+#include<unordered_map>
 
 #include "pointers.h"
 
