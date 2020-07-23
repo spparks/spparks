@@ -19,6 +19,8 @@ CommandStyle(set,Set)
 #ifndef SPK_SET_H
 #define SPK_SET_H
 
+#include<map>
+
 #include "pointers.h"
 
 namespace SPPARKS_NS {
