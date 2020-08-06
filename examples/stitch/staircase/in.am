@@ -12,7 +12,7 @@ variable DT equal 0.0
 variable V equal 10.0
 #
 # HATCH: hatch spacing
-variable HATCH equal 25.0
+variable HATCH equal 5.0
 #
 # OUT_DT: time interval controlling output frequency
 variable OUT_DT equal 100000
