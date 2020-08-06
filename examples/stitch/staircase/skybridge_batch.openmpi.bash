@@ -1,4 +1,14 @@
 #!/bin/bash
+#SBATCH --nodes=1         # Number of nodes - all cores per node are allocated to the job
+#SBATCH --time=04:00:00    # Wall clock time (HH:MM:SS) - once the job exceeds this time, the job will be terminated (default is 5 minutes)
+#SBATCH --account=FY140338 # WC ID
+#SBATCH --job-name="staircase"    # Name of job
+#SBATCH -p batch
+
+nodes=$SLURM_JOB_NUM_NODES # Number of nodes - the number of nodes you have requested (for a list of SLURM environment variables see "man sbatch")
+cores=8                   # Number MPI processes to run on each node (a.k.a. PPN)
+                           # TLCC2 has 16 cores per node
+                           # skybridge: 16 cores per node
 
 SPPARKS=$HOME/jaks.git/spparks.cloned/src/spk_flamer.gnu
 
@@ -7,11 +17,9 @@ let LAYER_THICKNESS=3
 let STEP_HEIGHT=48
 # 16=48/3
 let RUNS_PER_STEP=16
-let RUNS_PER_STEP=4
 # Height=480
 # 10=480/48
 let NUM_STEPS=10
-let NUM_STEPS=1
 
 let DEPTH_HAZ=6
 let Z0=0
@@ -74,7 +82,9 @@ for (( s=1; s<=${NUM_STEPS}; s++ )); do
 
     # Run spparks
     SEED=$RANDOM
-    mpiexec -np 8 $SPPARKS -var SEED $SEED < in.am_layer
+    CMD="-var SEED ${SEED}" 
+    $IN=in.am_layer
+    mpiexec --bind-to core --npernode $cores --n $(($cores*$nodes)) ${SPPARKS} ${CMD} < ${IN}
 
     let Z1=$Z1+$LAYER_THICKNESS
     let L=$L+1
@@ -82,3 +92,4 @@ for (( s=1; s<=${NUM_STEPS}; s++ )); do
   done
 
 done
+
