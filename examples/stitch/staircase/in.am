@@ -9,7 +9,7 @@ variable Q equal 10000
 variable DT equal 0.0
 #
 # V: scan speed
-variable V equal 10.0
+variable V equal 14.0
 #
 # HATCH: hatch spacing
 variable HATCH equal 5.0

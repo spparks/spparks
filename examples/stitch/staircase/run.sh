@@ -26,10 +26,10 @@ Y1=280
 
 # Array of cartesian_layer commands
 declare -a CARTESIAN_LAYERS=( \
-  "1 start LL pass_id 1 thickness ${LAYER_THICKNESS} offset -80.0 0.0" \
-  "2 start UL pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 80.0" \
-  "3 start UR pass_id 1 thickness ${LAYER_THICKNESS} offset 80.0 0.0" \
-  "4 start LR pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 -80.0" )
+  "1 start LL pass_id 1 thickness ${LAYER_THICKNESS} offset -80.0 0.0 serpentine 1" \
+  "2 start UL pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 80.0 serpentine 1" \
+  "3 start UR pass_id 1 thickness ${LAYER_THICKNESS} offset 80.0 0.0 serpentine 1" \
+  "4 start LR pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 -80.0 serpentine 1" )
 
 let START=1
 let L=1
