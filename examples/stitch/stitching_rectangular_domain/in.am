@@ -1,0 +1,100 @@
+#
+# T: simulation temperature
+variable T equal                 0.25
+#
+# number of spins
+variable Q equal 10000
+#
+# DT: number of KMC steps
+variable DT equal 0.0
+#
+# V: scan speed
+variable V equal 14.0
+#
+# HATCH: hatch spacing
+variable HATCH equal 5.0
+#
+# OUT_DT: time interval controlling output frequency
+variable OUT_DT equal 100000
+#
+# OUT: output filename
+variable OUT universe staircase.st
+		 
+#
+seed		 ${SEED}
+app_style	 potts/additive		${Q} 10 10 5 5 13 13 6 6 0.1
+
+# |————————————————————————————————————————
+# | nspins		= atoi(arg[1])
+# |————————————————————————————————————————
+# | nspins = atoi(arg[1]); #Number of spins
+# | spot_width = atoi(arg[2]); #Width of the melt pool
+# | melt_tail_length = atoi(arg[3]); #Length of tail from meltpool midpoint
+# | melt_depth = atoi(arg[4]); #How many lattice sites deep the melt pool is
+# | cap_height = atoi(arg[5]); #Height of the cap leading the meltpool
+# |————————————————————————————————————————
+# | HAZ = atoi(arg[6]); # HAZ surrounding melt pool (must be larger than spot_width and melt_depth)
+# | tail_HAZ = atoi(arg[7]); #Length of HAZ trailing meltpool (must be larger than melt_tail_length)
+# | depth_HAZ = atof(arg[8]); // HAZ depth below meltpool (must be larger than melt_depth)
+# | cap_HAZ = atoi(arg[8]); # HAZ infront of melt pool (must be larger than cap_height)
+# | exp_factor = atof(arg[9]); #Exponential parameter for mobility decay in HAZ 
+# |           M(d) = exp(-exp_factor * d)
+# |————————————————————————————————————————
+
+# Define simulation domain and initialize site variables
+#———————————————————————————————————————————
+dimension	 3
+lattice	 	 sc/26n 1.0
+region		 box block WINDOW
+
+boundary 	 n n n
+
+create_box	 box
+create_sites	 box
+
+# Initialize layers previously simulated
+set          site stitch ${OUT} last
+
+# Initialize sites on this new layer with random values
+# This script is set up so that new layer is initialized 
+#   prior simulations on layer so this 'set' command is 
+#   not needed here.
+# set i1 range 1 ${Q} loop local if z >= BOTTOM
+
+# Initialize model double value
+set		 d1 value 0.0 loop local
+
+#———————————————————————————————————————————
+
+# Define an additive scan pattern on rectangular domain 
+# using am pass and cartesian layer commands.   
+#———————————————————————————————————————————
+
+am pass 1 dir X speed ${V} hatch ${HATCH}
+am pass 2 dir Y speed ${V} hatch ${HATCH}
+
+am cartesian_layer LAYER
+
+#———————————————————————————————————————————
+
+# Setup the solver type and parameters. Must use a "sweep" style solver
+#——————————————————————————————————————————— 
+sector		 yes
+sweep		 random mask no
+temperature	 ${T}
+#———————————————————————————————————————————
+
+#Specify output commands and styles.
+#——————————————————————————————————————————— 
+diag_style   energy
+stats            1.0
+
+# Simulation starts on "last" timestep instead of 0
+reset_time   stitch ${OUT} last
+
+dump         dump.id.1 stitch ${OUT_DT} ${OUT} site
+
+run 1.0 upto
+
+# Write one dump file at end of simulation
+dump_one dump.id.1
