@@ -33,6 +33,7 @@
 #include "am_raster.h"
 #include "potts_am_path_parser.h"
 
+
 using namespace SPPARKS_NS;
 
 using RASTER::DIR;
@@ -179,7 +180,7 @@ void PottsAmPathParser::parse_am(int narg, char **arg)
       if (narg < 2) error->all(FLERR,"Illegal 'am_path_layer' command; wrong num args.");
       int id=std::atoi(arg[1]);
       int num_paths,p;
-      std::vector<Path> _paths;
+      vector<Path> _paths;
       if(strcmp(arg[2],"num_paths")==0){
          num_paths=std::atoi(arg[3]);
          p=5;
@@ -258,7 +259,8 @@ void PottsAmPathParser::add_pass(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-std::vector<double> PottsAmPathParser::
+tuple<vector<double>,vector<PottsAmPathParser::ComputationalVolume>>
+PottsAmPathParser::
 get_hatch(const Pass& p, START s, double offset_x, double offset_y) const
 {
    DIR dir=p.get_dir();
@@ -267,44 +269,109 @@ get_hatch(const Pass& p, START s, double offset_x, double offset_y) const
    printf("\thatch spacing=%5.1f",hatch_spacing);
    printf("\toverhatch=%5.1f\n",oh);
 
-   std::vector<double> hatch;
+   double xlo=domain->boxxlo;
+   double xhi=domain->boxxhi;
+   double ylo=domain->boxylo;
+   double yhi=domain->boxyhi;
+   vector<double> hatch;
+   vector<ComputationalVolume> cvs;
+   double cv_x0,cv_x1,cv_y0,cv_y1;
+   bool start=true;
    if(DIR::X==dir){
-      double ylo=domain->boxylo;
-      double yhi=domain->boxyhi;
       double oy=offset_y;
+      cv_x0=xlo;
+      cv_x1=xhi;
       if (START::LL==s || START::LR==s){
          double y=ylo+oy;
          while(y<=(yhi+oh)){
             hatch.push_back(y);
+            if(true==start){
+               cv_y0=ylo;
+               start=false;
+            } else {
+               cv_y0=y-hatch_spacing;
+            }
             y+=hatch_spacing;
+            if(y>yhi)
+               cv_y1=yhi;
+            else
+               cv_y1=y;
+            // force integer values for block
+            cv_y0=std::floor(cv_y0);
+            cv_y1=std::ceil(cv_y1);
+            cvs.push_back(ComputationalVolume(cv_x0,cv_x1,cv_y0,cv_y1));
          }
       } else if(START::UL==s || START::UR==s){
          double y=yhi+oy;
          while(y>=(ylo+oh)){
             hatch.push_back(y);
+            if(true==start){
+               cv_y1=yhi;
+               start=false;
+            } else {
+               cv_y1=y+hatch_spacing;
+            }
             y-=hatch_spacing;
+            if(y<ylo)
+               cv_y0=ylo;
+            else
+               cv_y0=y;
+            // force integer values for block
+            cv_y0=std::floor(cv_y0);
+            cv_y1=std::ceil(cv_y1);
+            cvs.push_back(ComputationalVolume(cv_x0,cv_x1,cv_y0,cv_y1));
          }
       } 
    } else if(DIR::Y==dir){
-      double xlo=domain->boxxlo;
-      double xhi=domain->boxxhi;
       double ox=offset_x;
+      cv_y0=ylo;
+      cv_y1=yhi;
       if (START::LL==s || START::UL==s){
          double x=xlo+ox;
          while(x<=(xhi+oh)){
             hatch.push_back(x);
+            if(true==start){
+               cv_x0=xlo;
+               start=false;
+            } else {
+               cv_x0=x-hatch_spacing;
+            }
             x+=hatch_spacing;
+            if(x>xhi)
+               cv_x1=xhi;
+            else
+               cv_x1=x;
+            // force integer values for block
+            cv_x0=std::floor(cv_x0);
+            cv_x1=std::ceil(cv_x1);
+            cvs.push_back(ComputationalVolume(cv_x0,cv_x1,cv_y0,cv_y1));
          }
       } else if(START::LR==s || START::UR==s){
          double x=xhi+ox;
          while(x>=(xlo+oh)){
             hatch.push_back(x);
+            if(true==start){
+               cv_x1=xhi;
+               start=false;
+            } else {
+               cv_x1=x+hatch_spacing;
+            }
             x-=hatch_spacing;
+            if(x<xlo)
+               cv_x0=xlo;
+            else
+               cv_x0=x;
+            // force integer values for block
+            cv_x0=std::floor(cv_x0);
+            cv_x1=std::ceil(cv_x1);
+            cvs.push_back(ComputationalVolume(cv_x0,cv_x1,cv_y0,cv_y1));
          }
       } 
    }
 
-   return hatch;
+   // Requires c++-14
+   // Avoids copies and uses move semantics
+   return std::make_tuple(std::move(hatch),std::move(cvs));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -386,8 +453,10 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
    double x0,y0,x1,y1;
    double speed=pass.get_speed();
    int m=0;
-   std::vector<double> hatch=get_hatch(pass,s,ox,oy);
-   std::vector<Path> layer_paths;
+   vector<double>hatch;
+   vector<ComputationalVolume> cvs;
+   tie(hatch,cvs)=get_hatch(pass,s,ox,oy);
+   vector<Path> layer_paths;
    switch(pass.get_dir()){
    case DIR::X:
       if (START::LL==s || START::UL==s){
@@ -426,11 +495,17 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
    // Add this layer
    pattern.push_back(Layer(layer_paths,thickness));
    {
-      printf("%s\n", "Layer added with following paths: ");
+      // Print layer paths
+      printf("%s\n", "# layer thickness");
+      printf("layer %8.1f\n",thickness);
+      printf("%s\n", "# path start x0 y0 end x1 y1 block x0 x1 y0 y1");
       for(int lp=0;lp<layer_paths.size();lp++){
+         double x0,x1,y0,y1;
+         std::tie(x0,x1,y0,y1)=cvs[lp];
          Point a=layer_paths[lp].get_start();
          Point b=layer_paths[lp].get_end();
-         printf("%d: start (%6.1f,%6.1f); end (%6.1f,%6.1f); \n",lp,a[0],a[1],b[0],b[1]);
+         printf("path start %8.1f %8.1f end %8.1f %8.1f block %8.1f %8.1f %8.1f %8.1f \n",
+               a[0],a[1],b[0],b[1],x0,x1,y0,y1);
       }
    }
 }

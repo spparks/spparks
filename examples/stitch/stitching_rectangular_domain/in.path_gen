@@ -1,0 +1,48 @@
+variable DT equal                2
+variable T equal                 0.25
+variable SEED equal              1
+variable NUM_SPINS equal         90000
+# COMMENT ABOVE here for scripted runs
+#variable HAZ equal               25.0
+#variable HAZ equal               .50
+variable ABS_TOL equal           0.02
+
+seed	 100
+
+app_style  potts/am/path/test  100
+
+dimension    3
+boundary     n n p
+lattice      sc/26n 1.0
+region       box block  0 10 0 10 0 1
+create_box   box
+create_sites box
+
+#
+# Define test points
+test_point 20 0
+test_point 0 20
+test_point 1 1
+
+#Define an additive scan pattern 
+#———————————————————————————————————————————
+am pass 1 dir X speed .18 hatch 1.5 overhatch 1.0
+# Serpentine is 'on' by default; must add 'serpentine 0' on following 
+#    to suppress 
+# Offset changes starting position of pass relative to staring point
+am cartesian_layer 1 start LL pass_id 1 thickness 1 offset -1.0 0.0
+#———————————————————————————————————————————
+
+#Setup the solver type and parameters. Must use a "sweep" style solver
+#——————————————————————————————————————————— 
+sector		 yes
+sweep		 random mask no
+temperature	 ${T}
+#——————————————————————————————————————————— 
+
+#Specify output commands and styles.
+#——————————————————————————————————————————— 
+diag_style   energy
+stats            1.0
+
+run              1.0
