@@ -15,11 +15,14 @@
 #define SPK_POTSS_AM_PATH_PARSER
 
 #include <vector>
+#include <tuple>
 #include <map>
 #include "app_potts.h"
 #include "am_raster.h"
 
 using std::map;
+using std::vector;
+using std::tuple;
 using RASTER::Pass;
 using RASTER::Path;
 using RASTER::Point;
@@ -29,6 +32,8 @@ using RASTER::START;
 namespace SPPARKS_NS {
 
 class PottsAmPathParser : public AppPotts {
+
+typedef tuple<double,double,double,double> ComputationalVolume;
 
 public:
    PottsAmPathParser(class SPPARKS *, int, char **);
@@ -43,12 +48,12 @@ protected:
 private:
    map<int,Pass> passes;
    map<int,Path> paths;
-   std::vector<Layer> pattern;
+   vector<Layer> pattern;
    double build_layer_z;
    int num_build_layers, build_layer;
    void add_cartesian_layer(int narg, char **arg);
    void add_pass(int narg, char **arg);
-   std::vector<double> 
+   tuple<vector<double>,vector<ComputationalVolume>>
       get_hatch(const Pass& p, START s, double offset_x, double offset_y) const;
 };
 
