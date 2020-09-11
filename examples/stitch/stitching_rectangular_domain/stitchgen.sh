@@ -1,5 +1,6 @@
 #!/bin/bash
 
+SPPARKS=$HOME/jaks.git/spparks.cloned/src/spk_tutka.gnu
 PATHDATA=stitching.dat
 declare -a THICKNESS
 declare -a LAYER_PTR
@@ -7,16 +8,16 @@ declare -a PATHS
 declare -a WINDOWS
 declare -a LAYER_WINDOWS
 let ZSTART=0
-let DEPTH_HAZ=6
+let DEPTH_HAZ=4
 
 
 function get_thicknesses_paths_and_windows {
 
 local F
 local var
+local LAYER_BOTTOM
 local Z0
 let Z1=$ZSTART
-local LAYER_BOTTOM
 
 let local L=0
 let local P=0
@@ -96,9 +97,9 @@ LAYER_PTR+=($PTR)
 get_thicknesses_paths_and_windows $PATHDATA
 NUM_LAYERS=${#THICKNESS[@]}
 
-echo "Number of layers = ${NUM_LAYERS}"
-echo "Layer thicknesses = ${THICKNESS[@]}"
-echo "Layer PTR = ${LAYER_PTR[@]}"
+#echo "Number of layers = ${NUM_LAYERS}"
+#echo "Layer thicknesses = ${THICKNESS[@]}"
+#echo "Layer PTR = ${LAYER_PTR[@]}"
 
 
 let local PTR=0
@@ -108,7 +109,9 @@ for (( L=0; L<$NUM_LAYERS; L++ )); do
   let LAYNUM=$L+1
   let NUM_PATHS=${LAYER_PTR[$L+1]}-${LAYER_PTR[$L]}
   echo "Layer # ${LAYNUM}; Number of paths on layer = ${NUM_PATHS}"
+  # Initialize layer
   for (( P=${LAYER_PTR[$L]}; P<${LAYER_PTR[$L+1]}; P++ )); do
+    WINDOW=${WINDOWS[$P]}
     echo "LAYER_WINDOW=${LAYER_WINDOWS[$P]}"
     echo "WINDOW=${WINDOWS[$P]}"
     echo "PATH=${PATHS[$P]}"
@@ -120,6 +123,22 @@ for (( L=0; L<$NUM_LAYERS; L++ )); do
     # Run SPPARKS to initialize microstructure on layer
     SEED=$RANDOM
     $SPPARKS -var SEED $SEED < in.potts_init
+    #####################################
+  done
+  # Run AM model on layer
+  for (( P=${LAYER_PTR[$L]}; P<${LAYER_PTR[$L+1]}; P++ )); do
+    WINDOW=${WINDOWS[$P]}
+    echo "LAYER_WINDOW=${LAYER_WINDOWS[$P]}"
+    echo "WINDOW=${WINDOWS[$P]}"
+    echo "PATH=${PATHS[$P]}"
+    #####################################
+    # Run potts model to initialize layer
+    #cat in.init | sed s"/WINDOW/${WINDOW}/" > in.potts_init
+    
+    #  
+    # Run SPPARKS to initialize microstructure on layer
+    SEED=$RANDOM
+    #$SPPARKS -var SEED $SEED < in.potts_init
     #####################################
   done
 

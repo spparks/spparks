@@ -156,15 +156,16 @@ class Pass {
 
 class Layer {
    private:
-      double thickness, distance_traveled;
+      int thickness;
+      double distance_traveled;
       Point position;
       vector<Path> paths;
       int active_path_ptr;
 
    public:
-      Layer() : thickness(0.0), distance_traveled(0.0), position(), paths(), active_path_ptr(-1) {}
+      Layer() : thickness(0), distance_traveled(0.0), position(), paths(), active_path_ptr(-1) {}
 
-      Layer(const vector<Path>& _paths, double _thickness) : 
+      Layer(const vector<Path>& _paths, int _thickness) :
          thickness(_thickness), 
          distance_traveled(0.0), 
          position(_paths[0].get_start()),
@@ -213,7 +214,7 @@ class Layer {
          return (nsteps-1)*dt;
       }
 
-      double get_thickness() const { return thickness; }
+      int get_thickness() const { return thickness; }
 
       Point get_unit_dir() const {
          return paths[active_path_ptr].get_unit_dir();
