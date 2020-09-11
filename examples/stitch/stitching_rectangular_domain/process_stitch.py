@@ -16,13 +16,11 @@ def main(prefix):
     print("Times read=\n%s"%(times,))
 
     # Below are z-cuts; but x or y cuts may also be done
-    bx=[49,50] # xcut
+    bx=[49,50]
     bx=[0,100]
-    by=[139,140] # ycut
     by=[0,280]
-    bz=[0,480] 
-    bz=[47,48] # zcut step 1
-    bz=[95,96] # zcut step 2
+    bz=[0,48] 
+    bz=[11,12] # zcut bottom
     bb=bx+by+bz
     block=numpy.fromiter(bb,dtype=numpy.int32).reshape(2,3,order='F')
     layer=0

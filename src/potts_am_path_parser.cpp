@@ -122,7 +122,7 @@ bool PottsAmPathParser::app_update_am(double dt)
    // Current layer
    int m=build_layer%num_pattern_layers;
    bool moved=true;
-   double layer_thickness=pattern[m].get_thickness();
+   int layer_thickness=pattern[m].get_thickness();
    if(pattern[m].move(dt)){
    } else {
       // Goto next layer
@@ -192,8 +192,8 @@ void PottsAmPathParser::parse_am(int narg, char **arg)
             }
          } else {error->all(FLERR,"Illegal path_layer command. Expected keyword 'path_ids'");}
       } else {error->all(FLERR,"Illegal path_layer command. Expected keyword 'num_paths'");}
-      double thickness=-1.0;
-      if(strcmp(arg[p],"thickness")==0){thickness=std::atof(arg[p+1]); }
+      int thickness=-1;
+      if(strcmp(arg[p],"thickness")==0){thickness=std::atoi(arg[p+1]); }
       else {error->all(FLERR,"Illegal path_layer command. Expected keyword 'thickness'.");}
       pattern.push_back(Layer(_paths,thickness));
    } else if (strcmp(arg[0],"build") == 0) {
@@ -389,7 +389,7 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
    int id=std::atoi(arg[1]);
    START s;
    Pass pass;
-   double thickness;
+   int thickness;
    bool serpentine=true;
    double ox(0.0),oy(0.0);
    if(strcmp(arg[2],"start")==0){
@@ -406,7 +406,7 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
    } else {error->all(FLERR,"Illegal am_cartesian_layer command  Expected 'pass_id'");}
 
    if(strcmp(arg[6],"thickness")==0){
-      thickness=std::atof(arg[7]);
+      thickness=std::atoi(arg[7]);
    } else {error->all(FLERR,"Illegal am_cartesian_layer command  Expected 'thickness.'");}
 
    /*
@@ -497,7 +497,7 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
    {
       // Print layer paths
       printf("%s\n", "# layer thickness");
-      printf("layer %8.1f\n",thickness);
+      printf("layer thickness %4d\n",thickness);
       printf("%s\n", "# path start x0 y0 end x1 y1 block x0 x1 y0 y1");
       for(int lp=0;lp<layer_paths.size();lp++){
          double x0,x1,y0,y1;
