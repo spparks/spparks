@@ -1,11 +1,26 @@
-variable DT equal                2
+# T: simulation temperature
 variable T equal                 0.25
-variable SEED equal              1
-variable NUM_SPINS equal         90000
-# COMMENT ABOVE here for scripted runs
-#variable HAZ equal               25.0
-#variable HAZ equal               .50
-variable ABS_TOL equal           0.02
+#
+# number of spins
+variable Q equal 10000
+#
+# DT: number of KMC steps
+variable DT equal 0.0
+#
+# V: scan speed
+variable V equal 14.0
+#
+# HATCH: hatch spacing
+variable HATCH equal 5.0
+#
+# LAYER_THICKNESS: 
+variable LAYER_THICKNESS equal 3.0
+#
+# OUT_DT: time interval controlling output frequency
+variable OUT_DT equal 100000
+#
+# OUT: output filename
+variable OUT universe staircase.st
 
 seed	 100
 
@@ -14,7 +29,7 @@ app_style  potts/am/path/test  100
 dimension    3
 boundary     n n p
 lattice      sc/26n 1.0
-region       box block  0 10 0 10 0 1
+region       box block  0 100 0 280 0 48
 create_box   box
 create_sites box
 
@@ -25,12 +40,17 @@ test_point 0 20
 test_point 1 1
 
 #Define an additive scan pattern 
-#———————————————————————————————————————————
-am pass 1 dir X speed .18 hatch 1.5 overhatch 1.0
-# Serpentine is 'on' by default; must add 'serpentine 0' on following 
+# Serpentine is 'on' by default; set 'serpentine 0' on following 
 #    to suppress 
-# Offset changes starting position of pass relative to staring point
-am cartesian_layer 1 start LL pass_id 1 thickness 1 offset -1.0 0.0
+am pass 1 dir X speed ${V} hatch ${HATCH}
+am pass 2 dir Y speed ${V} hatch ${HATCH}
+am cartesian_layer 1 start LL pass_id 1 thickness ${LAYER_THICKNESS} offset -80.0 0.0 serpentine 1
+am cartesian_layer 2 start UL pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 80.0 serpentine 1
+am cartesian_layer 3 start UR pass_id 1 thickness ${LAYER_THICKNESS} offset 80.0 0.0 serpentine 1
+am cartesian_layer 4 start LR pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 -80.0 serpentine 1
+
+# Top of first layer z=3; build 16 layers using 4 repeats of above 4 layers
+am build start 3 num_layers 16
 #———————————————————————————————————————————
 
 #Setup the solver type and parameters. Must use a "sweep" style solver
