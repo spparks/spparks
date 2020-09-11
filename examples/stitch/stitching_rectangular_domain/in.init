@@ -9,7 +9,7 @@ variable Q equal 10000
 variable DT equal 0.0
 #
 # OUT: output filename
-variable OUT universe staircase.st
+variable OUT universe stitched_rectangle.st
 
 #
 seed		 ${SEED}
