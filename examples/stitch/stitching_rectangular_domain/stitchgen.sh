@@ -1,12 +1,14 @@
 #!/bin/bash
 
 SPPARKS=$HOME/jaks.git/spparks.cloned/src/spk_tutka.gnu
+SPPARKS=$HOME/jaks.git/spparks.cloned/src/spk_spencer.gnu
 PATHDATA=stitching.dat
 declare -a THICKNESS
 declare -a LAYER_PTR
 declare -a PATHS
 declare -a WINDOWS
 declare -a LAYER_WINDOWS
+declare -a LAYER_BOTTOMS
 let ZSTART=0
 let DEPTH_HAZ=4
 
@@ -15,7 +17,7 @@ function get_thicknesses_paths_and_windows {
 
 local F
 local var
-local LAYER_BOTTOM
+local BOTTOM
 local Z0
 let Z1=$ZSTART
 
@@ -35,7 +37,8 @@ while read LINE; do
 	THICKNESS+=($(echo $LINE | cut -d ' ' -f3))
 	LAYER_PTR+=($PTR)
         let Z1=$Z1+${THICKNESS[$L]}
-        let LAYER_BOTTOM=${Z1}-${THICKNESS[$L]}
+	let BOTTOM=${Z1}-${THICKNESS[$L]}
+	LAYER_BOTTOMS+=(${BOTTOM})
       else
 	echo "INPUT ERROR: expected 'layer thickness'"
         exit 1
@@ -69,9 +72,9 @@ while read LINE; do
         exit 1
       fi
       
-      LAYER_WINDOWS+=("$(echo $LINE | cut -d ' ' -f 9,10,11,12) ${LAYER_BOTTOM} ${Z1}")
+      LAYER_WINDOWS+=("$(echo $LINE | cut -d ' ' -f 9,10,11,12) ${BOTTOM} ${Z1}")
       WINDOWS+=("$(echo $LINE | cut -d ' ' -f 9,10,11,12) ${Z0} ${Z1}")
-      #echo "PROCESS Layer # ${L}; Z0=${Z0}; Z1=${Z1}; LAYER_BOTTOM=${LAYER_BOTTOM}"
+      #echo "PROCESS Layer # ${L}; Z0=${Z0}; Z1=${Z1}; BOTTOM=${BOTTOM}"
       #echo "PROCESS Layer # ${L}; LAYER_WINDOW=${LAYER_WINDOWS[$PTR]}"
 
       # Now move PTR in preparation for next PATH
@@ -126,15 +129,20 @@ for (( L=0; L<$NUM_LAYERS; L++ )); do
     #####################################
   done
   # Run AM model on layer
+  BOTTOM=${LAYER_BOTTOMS[$L]}
   for (( P=${LAYER_PTR[$L]}; P<${LAYER_PTR[$L+1]}; P++ )); do
+    AM_PATH=${PATHS[$P]}
     WINDOW=${WINDOWS[$P]}
     echo "LAYER_WINDOW=${LAYER_WINDOWS[$P]}"
     echo "WINDOW=${WINDOWS[$P]}"
     echo "PATH=${PATHS[$P]}"
+    echo "BOTTOM=${BOTTOM}"
     #####################################
     # Run potts model to initialize layer
-    #cat in.init | sed s"/WINDOW/${WINDOW}/" > in.potts_init
-    
+    cat in.am | sed s"/PATH/${AM_PATH}/" \
+              | sed s"/WINDOW/${WINDOW}/" \
+              | sed s"/THICKNESS/${THICKNESS[$L]}/" \
+              | sed s"/BOTTOM/${BOTTOM}/" > in.am_layer
     #  
     # Run SPPARKS to initialize microstructure on layer
     SEED=$RANDOM
