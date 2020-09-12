@@ -70,10 +70,9 @@ set		 d1 value 0.0 loop local
 # using am pass and cartesian layer commands.   
 #———————————————————————————————————————————
 
-am pass 1 dir X speed ${V} hatch ${HATCH}
-am pass 2 dir Y speed ${V} hatch ${HATCH}
+am path 1 PATH speed ${V}
 
-am cartesian_layer LAYER
+am path_layer 1 num_paths 1 path_ids 1 thickness THICKNESS
 
 #———————————————————————————————————————————
 
