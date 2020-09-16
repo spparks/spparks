@@ -8,6 +8,9 @@ variable HATCH equal 5.0
 variable LAYER_THICKNESS equal 3.0
 
 #
+# OUT: output filename
+variable OUT universe pathgen.dat
+#
 seed	 100
 app_style  potts/am/path/test  100
 dimension    3
@@ -25,6 +28,8 @@ am cartesian_layer 1 start LL pass_id 1 thickness ${LAYER_THICKNESS} offset -80.
 am cartesian_layer 2 start UL pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 80.0 serpentine 1
 am cartesian_layer 3 start UR pass_id 1 thickness ${LAYER_THICKNESS} offset 80.0 0.0 serpentine 1
 am cartesian_layer 4 start LR pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 -80.0 serpentine 1
+
+pathgen outfile ${OUT} num_layers 4 melt_depth 4 depth_haz 5
 
 # FOLLOWING command will not generate output 'paths' for stitching
 # Top of first layer z=3; build 16 layers using 4 repeats of above 4 layers

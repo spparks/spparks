@@ -18,8 +18,10 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <tuple>
 
 using std::vector;
+using std::tuple;
 
 namespace RASTER {
 
@@ -38,46 +40,34 @@ namespace pool_shape {
 
 class Point {
 
+private:
+   double p[3]={0.0,0.0,0.0};
+
 public:
-	inline Point() {p[0]=0.0;p[1]=0.0;p[2]=0.0;}
-	inline Point(double value) {p[0]=value; p[1]=value; p[2]=value;}
-	inline Point(double a, double b) { p[0]=a; p[1]=b; p[2]=0; }
-	inline Point(double a, double b, double c) { p[0]=a; p[1]=b; p[2]=c; }
-	inline Point(const double q[3]) { p[0]=q[0]; p[1]=q[1]; p[2]=q[2]; }
+   Point() = default;
+   Point(const Point& q) = default;
+   Point(Point&& q) = default;
+   Point& operator=(const Point& p) = default;
+   Point& operator=(Point&& p) = default;
 
-	inline Point& operator=(const Point& rhs) {
-      //printf("am_rasterh.h; Point& operator=(const Point& p) invoked.\n");
-      if(this != &rhs){
-         p[0]=rhs.p[0];
-         p[1]=rhs.p[1];
-         p[2]=rhs.p[2];
-      }
-      return *this;
-   }
-
-	inline Point(const Point& copyMe) {
-         //printf("am_rasterh.h; Point(const Layer&p) copy constuctor invoked\n");
-         p[0]=copyMe.p[0];
-         p[1]=copyMe.p[1];
-         p[2]=copyMe.p[2];
-   }
+	inline Point(double value) : p{value,value,value} {}
+	inline Point(double a, double b) : p{a,b,0.0} {}
+	inline Point(double a, double b, double c) : p{a,b,c} {}
+	inline Point(const double q[3]) : p{q[0],q[1],q[2]} {}
+	inline double operator[](int c) const { return p[c%3]; }
 
 	inline double squared() const {
-		double x=p[X],y=p[Y],z=p[Z];
+		double x=p[0],y=p[1],z=p[2];
 		return x*x+y*y+z*z;
 	}
 
-	inline double operator[](int c) const { return p[c%3]; }
+   friend std::ostream& operator<<(std::ostream &os, const Point &p)  {
+      os << p[0] << ", " << p[1] << ", " << p[2] << std::endl;
+      return os;
+   }
 
-  friend std::ostream& operator<<(std::ostream &os, const Point &p)  {
-    os << p[X] << ", " << p[Y] << ", " << p[Z] << std::endl;
-    return os;
-  }
-
-private:
-   enum Component {NONE=-1,X=0,Y=1,Z=2};
-	double p[3];
 };
+
 
 enum DIR {NONE=-1,X=0,Y=1};
 /*
@@ -95,40 +85,23 @@ enum START {UNDEFINED=-1,LL=0,LR=1,UR=2,UL=3};
  */
 class Path {
    private:
-      Point start, end, unit_dir;
-      double distance, speed;
+      Point start={0.0,0.0,0.0}, end={0.0,0.0,0.0}, unit_dir={1.0,0.0,0.0};
+      double distance=0.0, speed=0.0;
+
    public:
-
-      Path(): start(), end(), distance(0), speed(0) {}
-
-      Path(const Path& p) {
-         //printf("am_rasterh.h; Path(const Layer&p) copy constuctor invoked\n");
-         start=p.get_start();
-         end=p.get_end();
-         unit_dir=p.get_unit_dir();
-         distance=p.get_distance();
-         speed=p.get_speed();
-      }
-
-      Path& operator=(const Path& p){
-         //printf("am_rasterh.h; Path& operator=(const Path& p) invoked.\n");
-         if(&p != this){
-            start=p.get_start();
-            end=p.get_end();
-            unit_dir=p.get_unit_dir();
-            distance=p.get_distance();
-            speed=p.get_speed();
-         }
-         return *this;
-      }
-
       Path(const Point& a, const Point& b, double velocity): 
-         start(a), end(b), unit_dir(), distance(0.0), speed(velocity) {
+        start(a), end(b), speed(velocity) {
     	  Point dr(b[0]-a[0],b[1]-a[1],0);
     	  distance=std::sqrt(dr.squared());
         unit_dir=Point(dr[0]/distance,dr[1]/distance);
       }
+      Path() = default;
+      Path(const Path& q) = default;
+      Path(Path&& q) = default;
+      Path& operator=(const Path& p) = default;
+      Path& operator=(Path&& p) = default;
 
+   public:
       Point get_start() const { return start; }
 
       Point get_end() const { return end; }
@@ -138,20 +111,54 @@ class Path {
       double get_distance() const { return distance; }
 
       double get_speed() const { return speed; }
+
+   friend std::ostream& operator<<(std::ostream &os, const Path &p)  {
+      os << "Start: "  << p.get_start() << "\n"
+         << "End: " << p.end  << "\n"
+         << "Unit Dir: " << p.unit_dir << "\n"
+         << "Distance = " << p.distance << "\n"
+         << "Speed = " << p.speed << std::endl;
+      return os;
+   }
 };
 
 class Pass {
    private:
-      DIR dir;
-      double speed, hatch_spacing, overhatch;
+      DIR dir=DIR::NONE;
+      double speed=0.0, hatch_spacing=0.0, overhatch=0.0;
    public:
-      Pass(): dir(DIR::NONE), speed(0), hatch_spacing(0.0), overhatch(0.0) {}
+      Pass() = default;
+      Pass(const Pass& p) = default;
+      Pass(Pass&& p) = default;
+      Pass& operator=(const Pass& p) = default;
+      Pass& operator=(Pass&& p) = default;
       Pass(DIR d, double vel, double h, double oh): 
          dir(d), speed(vel),  hatch_spacing(h), overhatch(oh) {}
       DIR get_dir() const { return dir; }
       double get_speed() const { return speed; }
       double get_hatch_spacing() const { return hatch_spacing; }
       double get_overhatch() const { return overhatch; }
+};
+
+class CartesianLayerMetaData {
+   private:
+      Pass p=Pass();
+      START s=START::UNDEFINED;
+      double offset_x=0.0, offset_y=0.0;
+      int thickness=0;
+   public:
+      CartesianLayerMetaData() = default;
+      CartesianLayerMetaData(const CartesianLayerMetaData& m) = default;
+      CartesianLayerMetaData(CartesianLayerMetaData&& m) = default;
+      CartesianLayerMetaData& operator=(const CartesianLayerMetaData& m) = default;
+      CartesianLayerMetaData& operator=(CartesianLayerMetaData&& m) = default;
+      CartesianLayerMetaData(const Pass q, const START start, double ox, double oy, int t): 
+         p(q), s(start), offset_x(ox), offset_y(oy), thickness(t) {}
+
+      Pass get_pass() const { return p; }
+      START get_start() const { return s; }
+      int get_thickness() const { return thickness; }
+      tuple<double,double> get_offset() const {return std::make_tuple(offset_x,offset_y);}
 };
 
 class Layer {
