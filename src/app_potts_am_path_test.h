@@ -21,27 +21,37 @@ AppStyle(potts/am/path/test,AppPottsAmPathTest)
 
 #include <vector>
 #include <stdlib.h>
+#include <tuple>
 #include <map>
 #include "random_park.h"
 #include "app_potts.h"
 #include "am_raster.h"
 #include "potts_am_path_parser.h"
 
+using std::vector;
+using std::tuple;
+
 namespace SPPARKS_NS {
 
 class AppPottsAmPathTest : public PottsAmPathParser {
 
- public:
-  AppPottsAmPathTest(class SPPARKS *, int, char **);
-  virtual ~AppPottsAmPathTest();
-  virtual void grow_app();
-  virtual void init_app();
-  void input_app(char *, int , char **);
-  double compute_mobility(int);
-  void app_update(double);
+   typedef tuple<double,double,double,double> ComputationalVolume;
 
- private:
-   std::vector<double> xp,yp;
+   public:
+      AppPottsAmPathTest(class SPPARKS *, int, char **);
+      virtual ~AppPottsAmPathTest();
+      virtual void grow_app() {}
+      virtual void init_app();
+      void input_app(char *, int , char **);
+      void app_update(double);
+      void print_path();
+      tuple<vector<double>,vector<ComputationalVolume>>
+      get_layer_computational_volumes(const Pass& p, START s, int offset_x, int offset_y, int width_haz) const;
+
+   private:
+      std::string path_filename="";
+      int num_layers=-1;
+      int melt_depth=0, depth_haz=0;
 };
 
 }

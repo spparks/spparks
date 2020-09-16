@@ -41,7 +41,7 @@ using RASTER::DIR;
 /* ---------------------------------------------------------------------- */
 
 PottsAmPathParser::PottsAmPathParser(SPPARKS *spk, int narg, char **arg) : 
-  AppPotts(spk,narg,arg),   passes(), paths(), pattern(),
+  AppPotts(spk,narg,arg),   passes(), paths(), pattern(), cartesian_layer_meta_data(),
   build_layer_z(std::numeric_limits<double>::quiet_NaN()),num_build_layers(-1), 
   build_layer(0) {}
 
@@ -446,6 +446,8 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
          }
       }
    }
+   // add cartesian layer meta data
+   cartesian_layer_meta_data.push_back(CartesianLayerMetaData(pass,s,ox,oy,thickness));
    double xlo=domain->boxxlo;
    double xhi=domain->boxxhi;
    double ylo=domain->boxylo;

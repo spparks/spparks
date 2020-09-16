@@ -11,8 +11,8 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPK_POTSS_AM_PATH_PARSER
-#define SPK_POTSS_AM_PATH_PARSER
+#ifndef SPK_POTTS_AM_PATH_PARSER
+#define SPK_POTTS_AM_PATH_PARSER
 
 #include <vector>
 #include <tuple>
@@ -28,6 +28,7 @@ using RASTER::Path;
 using RASTER::Point;
 using RASTER::Layer;
 using RASTER::START;
+using RASTER::CartesianLayerMetaData;
 
 namespace SPPARKS_NS {
 
@@ -44,11 +45,13 @@ protected:
    void print_pool_position(const Point& p);
    bool app_update_am(double dt);
    Point compute_position_relative_to_pool(const double *XYZ) const;
+   vector<CartesianLayerMetaData> get_cartesian_layer_metadata() const { return cartesian_layer_meta_data; }
 
 private:
    map<int,Pass> passes;
    map<int,Path> paths;
    vector<Layer> pattern;
+   vector<CartesianLayerMetaData> cartesian_layer_meta_data;
    double build_layer_z;
    int num_build_layers, build_layer;
    void add_cartesian_layer(int narg, char **arg);
