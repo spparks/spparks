@@ -1,12 +1,3 @@
-# T: simulation temperature
-variable T equal                 0.25
-#
-# number of spins
-variable Q equal 10000
-#
-# DT: number of KMC steps
-variable DT equal 0.0
-#
 # V: scan speed
 variable V equal 14.0
 #
@@ -15,27 +6,15 @@ variable HATCH equal 5.0
 #
 # LAYER_THICKNESS: 
 variable LAYER_THICKNESS equal 3.0
-#
-# OUT_DT: time interval controlling output frequency
-variable OUT_DT equal 100000
-#
-# OUT: output filename
-variable OUT universe staircase.st
 
+#
 seed	 100
-
 app_style  potts/am/path/test  100
-
 dimension    3
 boundary     n n p
 lattice      sc/26n 1.0
 region       box block  0 100 0 280 0 48
 create_box   box
-create_sites box
-
-#
-# Define test points
-test_point 20 0
 
 #Define an additive scan pattern 
 # Serpentine is 'on' by default; set 'serpentine 0' on following 
@@ -47,20 +26,6 @@ am cartesian_layer 2 start UL pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 
 am cartesian_layer 3 start UR pass_id 1 thickness ${LAYER_THICKNESS} offset 80.0 0.0 serpentine 1
 am cartesian_layer 4 start LR pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 -80.0 serpentine 1
 
+# FOLLOWING command will not generate output 'paths' for stitching
 # Top of first layer z=3; build 16 layers using 4 repeats of above 4 layers
-am build start 3 num_layers 16
-#———————————————————————————————————————————
-
-#Setup the solver type and parameters. Must use a "sweep" style solver
-#——————————————————————————————————————————— 
-sector		 yes
-sweep		 random mask no
-temperature	 ${T}
-#——————————————————————————————————————————— 
-
-#Specify output commands and styles.
-#——————————————————————————————————————————— 
-diag_style   energy
-stats            1.0
-
-run              1.0
+#am build start 3 num_layers 16

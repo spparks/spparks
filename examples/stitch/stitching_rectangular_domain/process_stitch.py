@@ -21,6 +21,7 @@ def main(prefix):
     by=[0,280]
     bz=[0,48] 
     bz=[11,12] # zcut bottom
+    bz=[0,1] # zcut bottom
     bb=bx+by+bz
     block=numpy.fromiter(bb,dtype=numpy.int32).reshape(2,3,order='F')
     layer=0
