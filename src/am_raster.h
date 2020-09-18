@@ -146,18 +146,27 @@ class CartesianLayerMetaData {
       START s=START::UNDEFINED;
       double offset_x=0.0, offset_y=0.0;
       int thickness=0;
+      bool serpentine=true;
    public:
       CartesianLayerMetaData() = default;
       CartesianLayerMetaData(const CartesianLayerMetaData& m) = default;
       CartesianLayerMetaData(CartesianLayerMetaData&& m) = default;
       CartesianLayerMetaData& operator=(const CartesianLayerMetaData& m) = default;
       CartesianLayerMetaData& operator=(CartesianLayerMetaData&& m) = default;
-      CartesianLayerMetaData(const Pass q, const START start, double ox, double oy, int t): 
-         p(q), s(start), offset_x(ox), offset_y(oy), thickness(t) {}
+      CartesianLayerMetaData(
+            const Pass q,
+            const START start,
+            double ox,
+            double oy,
+            int t,
+            bool s
+            ):
+         p(q), s(start), offset_x(ox), offset_y(oy), thickness(t), serpentine(s) {}
 
       Pass get_pass() const { return p; }
       START get_start() const { return s; }
       int get_thickness() const { return thickness; }
+      bool get_serpentine() const { return serpentine; }
       tuple<double,double> get_offset() const {return std::make_tuple(offset_x,offset_y);}
 };
 
