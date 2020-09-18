@@ -17,12 +17,14 @@
 #include <vector>
 #include <tuple>
 #include <map>
+#include <string>
 #include "app_potts.h"
 #include "am_raster.h"
 
 using std::map;
 using std::vector;
 using std::tuple;
+using std::string;
 using RASTER::Pass;
 using RASTER::Path;
 using RASTER::Point;
@@ -38,6 +40,12 @@ typedef tuple<double,double,double,double> ComputationalVolume;
 
 public:
    PottsAmPathParser(class SPPARKS *, int, char **);
+   void print_paths (
+      const string& filename, 
+      int num_layers, 
+      int melt_depth, 
+      int width_haz, 
+      int depth_haz) const;
 
 protected:
    void parse_am(int narg, char **arg);
@@ -45,7 +53,6 @@ protected:
    void print_pool_position(const Point& p);
    bool app_update_am(double dt);
    Point compute_position_relative_to_pool(const double *XYZ) const;
-   vector<CartesianLayerMetaData> get_cartesian_layer_metadata() const { return cartesian_layer_meta_data; }
 
 private:
    map<int,Pass> passes;
@@ -56,8 +63,11 @@ private:
    int num_build_layers, build_layer;
    void add_cartesian_layer(int narg, char **arg);
    void add_pass(int narg, char **arg);
-   tuple<vector<double>,vector<ComputationalVolume>>
+   vector<double>
       get_hatch(const Pass& p, START s, double offset_x, double offset_y) const;
+   vector<Path> get_layer_paths(CartesianLayerMetaData& meta) const;
+   vector<ComputationalVolume>
+      get_cvs(const vector<double>& hatch, const Pass& p, START s, int width_haz) const;
 };
 
 }

@@ -35,8 +35,6 @@ namespace SPPARKS_NS {
 
 class AppPottsAmPathTest : public PottsAmPathParser {
 
-   typedef tuple<double,double,double,double> ComputationalVolume;
-
    public:
       AppPottsAmPathTest(class SPPARKS *, int, char **);
       virtual ~AppPottsAmPathTest();
@@ -44,14 +42,11 @@ class AppPottsAmPathTest : public PottsAmPathParser {
       virtual void init_app();
       void input_app(char *, int , char **);
       void app_update(double);
-      void print_path();
-      tuple<vector<double>,vector<ComputationalVolume>>
-      get_layer_computational_volumes(const Pass& p, START s, int offset_x, int offset_y, int width_haz) const;
 
    private:
       std::string path_filename="";
-      int num_layers=-1;
-      int melt_depth=0, depth_haz=0;
+      int num_layers=-1, zstart=0;
+      int melt_depth=0, width_haz=0, depth_haz=0;
 };
 
 }
