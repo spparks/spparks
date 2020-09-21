@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
-AppStyle(potts/am/path/test,AppPottsAmPathTest)
+AppStyle(potts/am/path/gen,AppPottsAmPathGen)
 
 #else
 
-#ifndef SPK_APP_POTTS_AM_PATH_TEST
-#define SPK_APP_POTTS_AM_PATH_TEST
+#ifndef SPK_APP_POTTS_AM_PATH_GEN
+#define SPK_APP_POTTS_AM_PATH_GEN
 
 #include <vector>
 #include <stdlib.h>
@@ -33,11 +33,11 @@ using std::tuple;
 
 namespace SPPARKS_NS {
 
-class AppPottsAmPathTest : public PottsAmPathParser {
+class AppPottsAmPathGen : public PottsAmPathParser {
 
    public:
-      AppPottsAmPathTest(class SPPARKS *, int, char **);
-      virtual ~AppPottsAmPathTest();
+      AppPottsAmPathGen(class SPPARKS *spk, int narg, char **arg);
+      virtual ~AppPottsAmPathGen();
       virtual void grow_app() {}
       virtual void init_app();
       void input_app(char *, int , char **);

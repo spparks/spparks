@@ -546,6 +546,7 @@ print_paths
 (
    const string& filename, 
    int num_layers, 
+   int zstart,
    int melt_depth, 
    int width_haz, 
    int depth_haz
@@ -553,17 +554,24 @@ print_paths
 {
    const vector<CartesianLayerMetaData>& d=cartesian_layer_meta_data;
    int num_cartesian_layers=d.size();
+   int z0,z1=zstart,bottom;
    for(int layer=0;layer<num_layers;layer++){
       int m=layer%num_cartesian_layers;
       CartesianLayerMetaData cartesian_layer=d[m];
-      vector<Path> layer_paths=get_layer_paths(cartesian_layer);
+      int layer_thickness=cartesian_layer.get_thickness();
+      z1+=layer_thickness;
+      bottom=z1-layer_thickness;
+      if(0==layer) z0=zstart;
+      else z0=z1-depth_haz;
+      const char* fmt="layer window %8d %8d  haz %8d %8d melt_depth %8d\n";
+      printf(fmt,bottom,z1,z0,z1,melt_depth);
       double ox,oy;
       std::tie(ox,oy)=cartesian_layer.get_offset();
       Pass p=cartesian_layer.get_pass();
       START s=cartesian_layer.get_start();
-      int layer_thickness=cartesian_layer.get_thickness();
       vector<double>hatch=get_hatch(p,s,ox,oy);
       vector<ComputationalVolume>cvs=get_cvs(hatch,p,s,width_haz);
+      vector<Path> layer_paths=get_layer_paths(cartesian_layer);
       for(int lp=0;lp<cvs.size();lp++){
          int x0,x1,y0,y1;
          std::tie(x0,x1,y0,y1)=cvs[lp];
@@ -574,4 +582,3 @@ print_paths
       }
    }
 }
-
