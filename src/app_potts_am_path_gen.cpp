@@ -29,19 +29,19 @@
 #include <iostream>
 #include <iomanip>
 #include <limits>
-#include "app_potts_am_path_test.h"
+#include "app_potts_am_path_gen.h"
 
 using namespace SPPARKS_NS;
 using RASTER::DIR;
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsAmPathTest::AppPottsAmPathTest(SPPARKS *spk, int narg, char **arg) :
+AppPottsAmPathGen::AppPottsAmPathGen(SPPARKS *spk, int narg, char **arg) :
    PottsAmPathParser(spk,narg,arg)
 {
    // only error check for this class, not derived classes
-   if (std::strcmp(arg[0],"potts/am/path/test") != 0 || narg != 2 )
-      error->all(FLERR,"Illegal app_style in 'potts/am/path/test' command");
+   if (std::strcmp(arg[0],"potts/am/path/gen") != 0 || narg != 2 )
+      error->all(FLERR,"Illegal app_style in 'potts/am/path/gen' command");
 
    // Flag which forces 'callback' to this app each step time 'time' is updated;
    // See 'allow_app_update' in app_lattice.h
@@ -52,17 +52,17 @@ AppPottsAmPathTest::AppPottsAmPathTest(SPPARKS *spk, int narg, char **arg) :
 //   int my_rank;
 //   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 //   if (0==my_rank){
-//      printf("%s\n", "AppPottsAmPathTest::AppPottsAmPathTest() ");
+//      printf("%s\n", "AppPottsAmPathGen::AppPottsAmPathGen() ");
 //   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsAmPathTest::~AppPottsAmPathTest() { 
+AppPottsAmPathGen::~AppPottsAmPathGen() { 
 //   int my_rank;
 //   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 //   if (0==my_rank){
-//      printf("%s\n", "AppPottsAmPathTest::~AppPottsAmPathTest() DESTRUCTOR called. ");
+//      printf("%s\n", "AppPottsAmPathGen::~AppPottsAmPathGen() DESTRUCTOR called. ");
 //   }
 }
 
@@ -70,7 +70,7 @@ AppPottsAmPathTest::~AppPottsAmPathTest() {
    Define additional input commands for the AM app
 ------------------------------------------------------------------------- */
 
-void AppPottsAmPathTest::input_app(char *command, int narg, char **arg)
+void AppPottsAmPathGen::input_app(char *command, int narg, char **arg)
 {
    if (strcmp(command,"am") == 0) {
       parse_am(narg,arg);
@@ -96,7 +96,7 @@ void AppPottsAmPathTest::input_app(char *command, int narg, char **arg)
          depth_haz=atoi(arg[11]);
       }else error->all(FLERR,"Unrecognized command: Expected 'depth_haz'.");
       // 'pathgen' command must come after all 'am' commands in script
-      print_paths(path_filename,num_layers,melt_depth,width_haz,depth_haz);
+      print_paths(path_filename,num_layers,zstart,melt_depth,width_haz,depth_haz);
    } else error->all(FLERR,"Unrecognized command");
    // print path
 }
@@ -106,7 +106,7 @@ void AppPottsAmPathTest::input_app(char *command, int narg, char **arg)
    check validity of site values
 ------------------------------------------------------------------------- */
 
-void AppPottsAmPathTest::init_app()
+void AppPottsAmPathGen::init_app()
 {
    // Run base class init_app
    init_app_am();
@@ -120,7 +120,7 @@ void AppPottsAmPathTest::init_app()
 	mobilities for the new configuration
  ------------------------------------------------------------------------- */
 
-void AppPottsAmPathTest::app_update(double dt)
+void AppPottsAmPathGen::app_update(double dt)
 {
    // Move pool
    bool moved=app_update_am(dt);

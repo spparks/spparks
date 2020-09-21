@@ -5,14 +5,13 @@ variable V equal 14.0
 variable HATCH equal 5.0
 #
 # LAYER_THICKNESS: 
-variable LAYER_THICKNESS equal 3.0
-
+variable LAYER_THICKNESS equal 3
 #
 # OUT: output filename
 variable OUT universe pathgen.dat
 #
 seed	 100
-app_style  potts/am/path/test  100
+app_style  potts/am/path/gen  100
 dimension    3
 boundary     n n p
 lattice      sc/26n 1.0
@@ -23,13 +22,13 @@ create_box   box
 # Serpentine is 'on' by default; set 'serpentine 0' on following 
 #    to suppress 
 am pass 1 dir X speed ${V} hatch ${HATCH}
-#am pass 2 dir Y speed ${V} hatch ${HATCH}
+am pass 2 dir Y speed ${V} hatch ${HATCH}
 am cartesian_layer 1 start LL pass_id 1 thickness ${LAYER_THICKNESS} offset -80.0 0.0 serpentine 1
-#am cartesian_layer 2 start UL pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 80.0 serpentine 1
-#am cartesian_layer 3 start UR pass_id 1 thickness ${LAYER_THICKNESS} offset 80.0 0.0 serpentine 1
-#am cartesian_layer 4 start LR pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 -80.0 serpentine 1
+am cartesian_layer 2 start UL pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 80.0 serpentine 1
+am cartesian_layer 3 start UR pass_id 1 thickness ${LAYER_THICKNESS} offset 80.0 0.0 serpentine 1
+am cartesian_layer 4 start LR pass_id 2 thickness ${LAYER_THICKNESS} offset 0.0 -80.0 serpentine 1
 
-pathgen outfile ${OUT} num_layers 1 zstart 0 width_haz 13 melt_depth 4 depth_haz 5
+pathgen outfile ${OUT} num_layers 4 zstart 0 width_haz 13 melt_depth 4 depth_haz 5
 
 # FOLLOWING command will not generate output 'paths' for stitching
 # Top of first layer z=3; build 16 layers using 4 repeats of above 4 layers

@@ -43,6 +43,7 @@ public:
    void print_paths (
       const string& filename, 
       int num_layers, 
+      int zstart,
       int melt_depth, 
       int width_haz, 
       int depth_haz) const;
