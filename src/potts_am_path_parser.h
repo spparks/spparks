@@ -18,6 +18,7 @@
 #include <tuple>
 #include <map>
 #include <string>
+#include "random_park.h"
 #include "app_potts.h"
 #include "am_raster.h"
 
@@ -56,6 +57,7 @@ protected:
    Point compute_position_relative_to_pool(const double *XYZ) const;
 
 private:
+   SPPARKS_NS::RandomPark random_park;
    map<int,Pass> passes;
    map<int,Path> paths;
    vector<Layer> pattern;

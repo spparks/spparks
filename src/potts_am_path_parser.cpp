@@ -41,7 +41,8 @@ using RASTER::DIR;
 /* ---------------------------------------------------------------------- */
 
 PottsAmPathParser::PottsAmPathParser(SPPARKS *spk, int narg, char **arg) : 
-  AppPotts(spk,narg,arg),   passes(), paths(), pattern(), cartesian_layer_meta_data(),
+  AppPotts(spk,narg,arg), random_park(std::atof(arg[2])), 
+  passes(), paths(), pattern(), cartesian_layer_meta_data(),
   build_layer_z(std::numeric_limits<double>::quiet_NaN()),num_build_layers(-1), 
   build_layer(0) {}
 
@@ -67,6 +68,21 @@ void PottsAmPathParser::init_app_am()
    sites = new int[1 + maxneigh];
    unique = new int[1 + maxneigh];
    dt_sweep = 1.0/maxneigh;
+
+   // Initialize sites which have value=-1 
+   //   * uninitialized sites from stitch file
+   //   * if value==-1, initialize to random spin value
+   int flag = 0;
+   for (int i = 0; i < nlocal; i++){
+      if (-1==spin[i]) {
+         int ran = random_park.irandom(nspins);
+         spin[i]=ran;
+      }
+      if (spin[i] < 0 || spin[i] > nspins) flag = 1;
+   }
+   int flagall;
+   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+   if (flagall) error->all(FLERR,"One or more sites have invalid values");
 
    // Number of layers in script
    int num_pattern_layers=pattern.size();
