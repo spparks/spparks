@@ -20,11 +20,8 @@ def main(prefix):
     bx=[0,100]
     by=[0,280]
     bz=[0,48] 
-    bz=[11,12] # zcut top
     bz=[0,1] # zcut bottom
-    bz=[2,3] # top of 1st layer
-    bz=[10,11] # 
-    bz=[8,9] # 
+    bz=[2,3] # zcut top of 1st layer
     bb=bx+by+bz
     block=numpy.fromiter(bb,dtype=numpy.int32).reshape(2,3,order='F')
     layer=0
