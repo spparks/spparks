@@ -52,13 +52,7 @@ create_sites	 box
 # Initialize layers previously simulated
 set          site stitch ${OUT} last
 
-# Initialize sites on this new layer with random values
-# This script is set up so that new layer is initialized 
-#   prior simulations on layer so this 'set' command is 
-#   not needed here.
-# set i1 range 1 ${Q} loop local if z >= BOTTOM
-
-# Initialize model double value
+# Initialize model double value used for 'distance' from weld pool surface
 set		 d1 value 0.0 loop local
 
 #———————————————————————————————————————————
