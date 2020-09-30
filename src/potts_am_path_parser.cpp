@@ -237,7 +237,6 @@ void PottsAmPathParser::parse_am(int narg, char **arg)
       } else {error->all(FLERR,"Illegal am_build command. Expected keyword 'num_layers'");}
    } else if (strcmp(arg[0],"cartesian_layer") == 0) {
       if (narg < 8) error->all(FLERR,"Illegal 'am cartesian_layer' command; wrong num args; minimum 8 args.");
-      printf("AppPottsAmPathTest::input_app \'am cartesian_layer\'\n");
       add_cartesian_layer(narg,arg);
    } else if (strcmp(arg[0],"pass") == 0) {
       if (narg < 8) error->all(FLERR,"Illegal 'am pass' command; wrong num args; minimum 8 args.");
