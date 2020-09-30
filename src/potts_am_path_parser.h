@@ -52,6 +52,7 @@ public:
 protected:
    void parse_am(int narg, char **arg);
    void init_app_am();
+   void initialize_layers_am();
    void print_pool_position(const Point& p);
    bool app_update_am(double dt);
    Point compute_position_relative_to_pool(const double *XYZ) const;

@@ -26,6 +26,7 @@
 #include "lattice.h"
 #include "domain.h"
 #include "error.h"
+#include "random_mars.h"
 
 #include <iostream>
 #include <iomanip>
@@ -41,10 +42,15 @@ using RASTER::DIR;
 /* ---------------------------------------------------------------------- */
 
 PottsAmPathParser::PottsAmPathParser(SPPARKS *spk, int narg, char **arg) : 
-  AppPotts(spk,narg,arg), random_park(std::atof(arg[2])), 
+  AppPotts(spk,narg,arg), random_park(ranmaster->uniform()),
   passes(), paths(), pattern(), cartesian_layer_meta_data(),
   build_layer_z(std::numeric_limits<double>::quiet_NaN()),num_build_layers(-1), 
-  build_layer(0) {}
+  build_layer(0)
+{
+   // This initializes random_park properly on each processor
+   double seed = ranmaster->uniform();
+   random_park.reset(seed,domain->me,100);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -84,6 +90,13 @@ void PottsAmPathParser::init_app_am()
    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
    if (flagall) error->all(FLERR,"One or more sites have invalid values");
 
+   // Initialize layers
+   initialize_layers_am();
+
+}
+
+void PottsAmPathParser::initialize_layers_am()
+{
    // Number of layers in script
    int num_pattern_layers=pattern.size();
 
