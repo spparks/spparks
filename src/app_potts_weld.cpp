@@ -29,6 +29,7 @@
 #include <iomanip>
 #include <limits>
 #include <functional>
+#include "random_mars.h"
 
 #include "app_potts_weld.h"
 #include "weld_geometry.h"
@@ -87,7 +88,7 @@ namespace DEMO {
 AppPottsWeld::AppPottsWeld(SPPARKS *spk, int narg, char **arg) : 
    AppPotts(spk,narg,arg), yp(0.0), alpha(0.5), beta(0.75), velocity(12500.0), 
    haz(-1.0),  distance(nullptr),
-   random_park(std::atof(arg[2])), simulation_time(0.0),
+   random_park(ranmaster->uniform()), simulation_time(0.0),
    pulse_amplitude(0.0), pulse_step_frequency(1.0), shape_type(ShapeType::undefined), 
    width(-1.0), length(-1.0), teardrop_control_points()
 
@@ -106,6 +107,10 @@ AppPottsWeld::AppPottsWeld(SPPARKS *spk, int narg, char **arg) :
 
    // app_potts.cpp
    nspins = atoi(arg[1]);
+
+   // This initializes random_park properly on each processor
+   double seed = ranmaster->uniform();
+   random_park.reset(seed,domain->me,100);
 
    // app_potts_weld model parameters
    yp  =       std::atof(arg[2]); // initial pool position along y-axis
