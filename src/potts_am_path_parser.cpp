@@ -325,7 +325,6 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
    /*
     * OPTIONAL parameters beyond here; 
     */
-   printf("\tnarg=%d\n",narg);
    if(narg>8){
       if(10==narg){
          if(strcmp(arg[8],"serpentine")==0){
@@ -580,33 +579,45 @@ print_paths
    int depth_haz
 ) const
 {
-   const vector<CartesianLayerMetaData>& d=cartesian_layer_meta_data;
-   int num_cartesian_layers=d.size();
-   int z0,z1=zstart,bottom;
-   for(int layer=0;layer<num_layers;layer++){
-      int m=layer%num_cartesian_layers;
-      CartesianLayerMetaData cartesian_layer=d[m];
-      int layer_thickness=cartesian_layer.get_thickness();
-      z1+=layer_thickness;
-      bottom=z1-layer_thickness;
-      if(0==layer) z0=zstart;
-      else z0=z1-depth_haz;
-      const char* fmt="layer window %8d %8d  haz %8d %8d melt_depth %8d\n";
-      printf(fmt,bottom,z1,z0,z1,melt_depth);
-      double ox,oy;
-      std::tie(ox,oy)=cartesian_layer.get_offset();
-      Pass p=cartesian_layer.get_pass();
-      START s=cartesian_layer.get_start();
-      vector<double>hatch=get_hatch(p,s,ox,oy);
-      vector<ComputationalVolume>cvs=get_cvs(hatch,p,s,width_haz);
-      vector<Path> layer_paths=get_layer_paths(cartesian_layer);
-      for(int lp=0;lp<cvs.size();lp++){
-         int x0,x1,y0,y1;
-         std::tie(x0,x1,y0,y1)=cvs[lp];
-         Point a=layer_paths[lp].get_start();
-         Point b=layer_paths[lp].get_end();
-         printf("path start %8.1f %8.1f end %8.1f %8.1f block %8d %8d %8d %8d \n",
-               a[0],a[1],b[0],b[1],x0,x1,y0,y1);
+   int my_rank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+   if (0==my_rank){
+      FILE* fp = std::fopen(filename.c_str(), "w");
+      if(!fp) {
+         error->all(FLERR,"potts_am_path_parser.cpp; pathgen file opening failed.");
       }
+      const vector<CartesianLayerMetaData>& d=cartesian_layer_meta_data;
+      int num_cartesian_layers=d.size();
+      int z0,z1=zstart,bottom;
+      for(int layer=0;layer<num_layers;layer++){
+         int m=layer%num_cartesian_layers;
+         CartesianLayerMetaData cartesian_layer=d[m];
+         int layer_thickness=cartesian_layer.get_thickness();
+         z1+=layer_thickness;
+         bottom=z1-layer_thickness;
+         if(0==layer) z0=zstart;
+         else z0=z1-depth_haz;
+         const char* fmt="layer window %8d %8d  haz %8d %8d melt_depth %8d\n";
+         //printf(fmt,bottom,z1,z0,z1,melt_depth);
+         fprintf(fp,fmt,bottom,z1,z0,z1,melt_depth);
+         double ox,oy;
+         std::tie(ox,oy)=cartesian_layer.get_offset();
+         Pass p=cartesian_layer.get_pass();
+         START s=cartesian_layer.get_start();
+         vector<double>hatch=get_hatch(p,s,ox,oy);
+         vector<ComputationalVolume>cvs=get_cvs(hatch,p,s,width_haz);
+         vector<Path> layer_paths=get_layer_paths(cartesian_layer);
+         for(int lp=0;lp<cvs.size();lp++){
+            int x0,x1,y0,y1;
+            std::tie(x0,x1,y0,y1)=cvs[lp];
+            Point a=layer_paths[lp].get_start();
+            Point b=layer_paths[lp].get_end();
+            //printf("path start %8.1f %8.1f end %8.1f %8.1f block %8d %8d %8d %8d \n",
+            //      a[0],a[1],b[0],b[1],x0,x1,y0,y1);
+            fprintf(fp,"path start %8.1f %8.1f end %8.1f %8.1f block %8d %8d %8d %8d \n",
+                  a[0],a[1],b[0],b[1],x0,x1,y0,y1);
+         }
+      }
+      std::fclose(fp);
    }
 }
