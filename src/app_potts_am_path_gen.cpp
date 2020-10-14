@@ -40,31 +40,23 @@ AppPottsAmPathGen::AppPottsAmPathGen(SPPARKS *spk, int narg, char **arg) :
    PottsAmPathParser(spk,narg,arg)
 {
    // only error check for this class, not derived classes
-   if (std::strcmp(arg[0],"potts/am/path/gen") != 0 || narg != 2 )
+   if (std::strcmp(arg[0],"potts/am/path/gen") != 0 || narg != 1 )
       error->all(FLERR,"Illegal app_style in 'potts/am/path/gen' command");
 
    // Flag which forces 'callback' to this app each step time 'time' is updated;
    // See 'allow_app_update' in app_lattice.h
    allow_app_update=1;
 
+   // Since this app does not ever use nspins will 
+   //   set this to an arbitrary fixed value = 1; this 
+   //   way user input of 'nspins' is not required
    // app_potts.cpp
-   nspins = atoi(arg[1]);
-//   int my_rank;
-//   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-//   if (0==my_rank){
-//      printf("%s\n", "AppPottsAmPathGen::AppPottsAmPathGen() ");
-//   }
+   nspins = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsAmPathGen::~AppPottsAmPathGen() { 
-//   int my_rank;
-//   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-//   if (0==my_rank){
-//      printf("%s\n", "AppPottsAmPathGen::~AppPottsAmPathGen() DESTRUCTOR called. ");
-//   }
-}
+AppPottsAmPathGen::~AppPottsAmPathGen() { }
 
 /* ----------------------------------------------------------------------
    Define additional input commands for the AM app

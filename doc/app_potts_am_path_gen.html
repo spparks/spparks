@@ -1,0 +1,102 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style potts/am/path/gen command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style potts/am/path/gen 
+</PRE>
+<LI>potts/am/path/gen = application style name 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style potts/am/path/gen 
+</PRE>
+<P>This app does not have any app specific parameters.  It does however 
+require AM raster commands listed below.
+</P>
+<P><B>Description:</B>
+</P>
+<P>This is a specialized additive manufacturing (AM) application.   The app
+generates a sequence of computational volumes (CV) which correspond with AM
+raster paths on rectangular domains; it  runs very quickly and does not need to
+be run in parallel.
+</P>
+<P>Based upon user input commands to this app as well as other SPPARKS am
+commands, CV and path information is generated with appropriate overlap
+between CVs.  The sequence of CVs generated are ordered according to the am
+build specified; the union of CVs forms the final 3D rectangular volume over which
+microstructures are simulated.  
+</P>
+<P>Using output from this app (CV and raster path information), microstructures on
+3D rectangular volumes can be simulated in an incremental way much the same way
+an additive manufactured part is built.  SPPARKS simulations are conducted on
+each CV and stitched together by appending results from each simulation to the
+output stitch database. AM microstructure simulations conducted this way
+require substantially reduced computational resources, both memory and mpi cpu
+resources, when compared to what would be required if the entire domain was
+instantiated for one large simulation.  Starting and stopping the sequence of
+runs is a highly flexible restart capability for AM microstructure simulations.  
+</P>
+<P>To generated CV and raster path information, the <A HREF = "am_pathgen.html">am pathgen</A>
+command, supplied by this app, must be in the user input script; the 
+script should also include <A HREF = "am_cartesian_layer.html">am cartesian_layer</A> and <A HREF = "am_pass.html">am
+pass</A> commands which specify the rectangular domain as well as
+raster path information.  
+</P>
+<P>The examples/stitch/stitching_rectangular_domain contains 
+an example demonstrating use of this app. There are 3 primary 
+elements to the example: 1) in.path_gen -- input script which 
+uses this app; 2) in.am -- input script for a generic AM SPPARKS 
+simulation parameterized; 3) stitch_rectangle.sh -- bash script 
+which orchestrates the overall set of simulations.  Very limited 
+editing of bash script is required -- only path to spparks executable 
+is needed at top of script.  Remaining parameters should be specified 
+by in.path_gen and in.am.  See directory for further explanation.
+</P>
+<HR>
+
+<P>The following commands are needed by this application.  A layer must be defined
+using the <A HREF = "am_cartesian_layer.html">am cartesian_layer</A> command; at least one
+<A HREF = "am_pass.html">am pass</A> command is required for each <A HREF = "am_cartesian_layer.html">am
+cartesian_layer</A> specified.  Following these commands
+in the input script, the <A HREF = "am_potts_path_gen.html">am pathgen</A> command must be
+specified to generate output CV and raster information;  this command must 
+follow all of the <A HREF = "am_cartesian_layer.html">am cartesian_layer</A> and <A HREF = "am_pass.html">am
+pass</A> commands in the input script.
+</P>
+<UL><LI><A HREF = "am_pass.html">am pass</A>: Specify pass parameters used to construct
+<I>cartesian_layer</I>. 
+
+<LI><A HREF = "am_cartesian_layer.html">am cartesian_layer</A>: A scan pattern on
+rectangular layer constructed from <I>am pass</I> and other parameters. 
+
+<LI><A HREF = "am_build.html">am pathgen</A>: May be used for combinations of layers that
+comprise a pattern. 
+</UL>
+<HR>
+
+<A NAME = "restriction"></A><B>Restrictions:</B> 
+
+<P>This application will only generate paths specified by 
+the <A HREF = "am_cartesian_layer.html">am cartesian_layer</A> command and 
+associated <A HREF = "am_pass.html">am pass</A> commands.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P>None
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>
