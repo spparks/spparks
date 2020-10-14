@@ -21,7 +21,7 @@ variable LAYER_THICKNESS equal 3
 variable OUT world pathgen.dat
 #
 seed	 100
-app_style  potts/am/path/gen  100
+app_style  potts/am/path/gen
 dimension    3
 boundary     n n p
 lattice      sc/26n 1.0
