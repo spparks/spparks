@@ -54,6 +54,47 @@ and *reset_time* commands.
 
          % python process_stitch.py -pam_demo
 
+* *stitching_rectangular_domain*: this subdirectory contains a stitching 
+  example.  It uses the *spparks* app potts/am/path/gen to create a series 
+  of computational volumes CVs.  To run the example:
+
+  #0) rm *.st
+  #1) spk_flamer.gnu < in.pathgen
+  #2) stitch_rectangle.sh
+  #3) python process_stitch -pstitch_rectangle
+
+  Step #0) Make sure to remove any pre-existing stitch files.
+
+  Step #1) above creates a file called 'pathgen.dat'; this file contains a 
+  series of computational volumes the union of which form a larger AM 
+  microstructure simulation.  See 'in.path_gen' details of the larger domain.
+  Also, carefully read the SPPARKS documentation for *app potts/am/path/gen* 
+  as well as the *am pathgen* command.  This documentation along with the 
+  should be sufficient to understand the example.  To verify correctness 
+  of Step #1) diff the file created using following bash command:
+   
+   $diff pathgen.dat stitch_rectangle.dat
+
+  These two files should be identical.  The generated file 'pathgen.dat'
+  contains a series of CVs.  
+
+  Microstructure simulations are conducted on each CV in Step #2) above using a
+  bash script.  This script is setup to run on 16 processor and will complete
+  the entire set of simulations in 10 to 15 minutes depending upon the machine
+  -- the script can easily be edited to change num procs to 4 or 8.  This
+  script only requires the path to a spparks executable -- at the top of the
+  script; otherwise no other edits are necessary;  all inputs to the simulation
+  are given either in 'in.path_gen' or 'in.am'; These input scripts can easily
+  be modified to a represent a different domain size and AM process -- they are
+  quite general in this respect.  Results from each simulation are appended
+  together in the stitch file 'stitch_rectangle.st' to form a microstructure
+  simulation on the larger intended domain as described/input by the input file
+  'in.path_gen'.
+
+  Edit process_stitch_rectangle.py as necessary; make microstructure plots 
+  using Step #3).
+
+
 
 How to run scripts
 ++++++++++++++++++

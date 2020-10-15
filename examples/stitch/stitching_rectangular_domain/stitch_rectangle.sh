@@ -1,9 +1,12 @@
 #!/bin/bash
 
-# Required Input Parameters
+# Required Input Parameters; 
+# ONLY path to SPPARKS executable needs to be defined
 SPPARKS=$HOME/jaks.git/spparks.cloned/src/spk_tutka.gnu
 SPPARKS=$HOME/jaks.git/spparks.cloned/src/spk_spencer.gnu
-PATHDATA=stitch_rectangle.dat
+# Edit this number as necessary; script will run in 10 to 30 
+#  minutes depending upon how many procs are used; 
+NUM_PROCS=16
 
 function stitch_domain {
 
@@ -92,7 +95,7 @@ while read LINE; do
 
       # Run SPPARKS to initialize microstructure on layer
       SEED=$RANDOM
-      mpiexec -np 16 $SPPARKS -var SEED $SEED < in.am_layer
+      mpiexec -np $NUM_PROCS $SPPARKS -var SEED $SEED < in.am_layer
       ;;
     \#)
          #echo COMMENT: ${LINE}
@@ -108,5 +111,9 @@ done < $1
 
 }
 
+# Set pathgen data file
+PATHDATA=stitch_rectangle.dat
+
+# Run script
 stitch_domain $PATHDATA
 
