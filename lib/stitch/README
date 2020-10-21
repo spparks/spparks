@@ -24,7 +24,7 @@ from Python directly rather than via SPPARKS.
 
 (2) From the lib directory using Install.py
 
-% cd spparks/lib
+% cd spparks/lib/stitch
 % python Install.py -b        # build the Stitch library and set links to it
 % cd spparks/src
 % make yes-stitch             # install the STITCH package
