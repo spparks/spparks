@@ -29,71 +29,68 @@
 #include <iostream>
 #include <iomanip>
 #include <limits>
-#include "app_potts_am_path_test.h"
+#include "app_potts_am_path_gen.h"
 
 using namespace SPPARKS_NS;
+using RASTER::DIR;
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsAmPathTest::AppPottsAmPathTest(SPPARKS *spk, int narg, char **arg) :
-   PottsAmPathParser(spk,narg,arg), xp(),yp()
+AppPottsAmPathGen::AppPottsAmPathGen(SPPARKS *spk, int narg, char **arg) :
+   PottsAmPathParser(spk,narg,arg)
 {
    // only error check for this class, not derived classes
-   if (std::strcmp(arg[0],"potts/am/path/test") != 0 || narg != 2 )
-      error->all(FLERR,"Illegal app_style in 'potts/am/path/test' command");
+   if (std::strcmp(arg[0],"potts/am/path/gen") != 0 || narg != 1 )
+      error->all(FLERR,"Illegal app_style in 'potts/am/path/gen' command");
 
    // Flag which forces 'callback' to this app each step time 'time' is updated;
    // See 'allow_app_update' in app_lattice.h
    allow_app_update=1;
 
+   // Since this app does not ever use nspins will 
+   //   set this to an arbitrary fixed value = 1; this 
+   //   way user input of 'nspins' is not required
    // app_potts.cpp
-   nspins = atoi(arg[1]);
-//   int my_rank;
-//   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-//   if (0==my_rank){
-//      printf("%s\n", "AppPottsAmPathTest::AppPottsAmPathTest() ");
-//   }
+   nspins = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsAmPathTest::~AppPottsAmPathTest() { 
-//   int my_rank;
-//   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-//   if (0==my_rank){
-//      printf("%s\n", "AppPottsAmPathTest::~AppPottsAmPathTest() DESTRUCTOR called. ");
-//   }
-}
+AppPottsAmPathGen::~AppPottsAmPathGen() { }
 
 /* ----------------------------------------------------------------------
    Define additional input commands for the AM app
 ------------------------------------------------------------------------- */
 
-void AppPottsAmPathTest::input_app(char *command, int narg, char **arg)
+void AppPottsAmPathGen::input_app(char *command, int narg, char **arg)
 {
    if (strcmp(command,"am") == 0) {
       parse_am(narg,arg);
-   } else if (strcmp(command,"test_point") == 0) {
-      int my_rank;
-      MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-      if (0==my_rank){
-         printf("AppPottsAmPathTest::input_app \'test_point\'\n");
-      }
-      if (narg != 2) error->all(FLERR,"Illegal 'test_point' command; wrong num args; should have 2 arguments, x,y values.");
-      double x=atof(arg[0]);
-      double y=atof(arg[1]);
-      xp.push_back(x);
-      yp.push_back(y);
+   } else if (strcmp(command,"pathgen") == 0) {
+      if (narg != 12) error->all(FLERR,"Illegal 'pathgen' command; wrong num args; should have 8 arguments.");
+      if(strcmp(arg[0],"outfile")==0){
+         char *filename=arg[1];
+         path_filename=std::string(filename);
+      } else error->all(FLERR,"Unrecognized command: Expected 'outfile'.");
+      if(strcmp(arg[2],"num_layers")==0){
+         num_layers=atoi(arg[3]);
+      }else error->all(FLERR,"Unrecognized command: Expected 'num_layers'.");
+      if(strcmp(arg[4],"zstart")==0){
+         zstart=atoi(arg[5]);
+      }else error->all(FLERR,"Unrecognized command: Expected 'zstart'.");
+      if(strcmp(arg[6],"width_haz")==0){
+         width_haz=atoi(arg[7]);
+      }else error->all(FLERR,"Unrecognized command: Expected 'width_haz'.");
+      if(strcmp(arg[8],"melt_depth")==0){
+         melt_depth=atoi(arg[9]);
+      }else error->all(FLERR,"Unrecognized command: Expected 'melt_depth'.");
+      if(strcmp(arg[10],"depth_haz")==0){
+         depth_haz=atoi(arg[11]);
+      }else error->all(FLERR,"Unrecognized command: Expected 'depth_haz'.");
+      // 'pathgen' command must come after all 'am' commands in script
+      print_paths(path_filename,num_layers,zstart,melt_depth,width_haz,depth_haz);
    } else error->all(FLERR,"Unrecognized command");
-}
-
-/* ----------------------------------------------------------------------
-   set site value ptrs each time iarray/darray are reallocated
-------------------------------------------------------------------------- */
-
-void AppPottsAmPathTest::grow_app()
-{
-  spin = iarray[0];
+   // print path
 }
 
 /* ----------------------------------------------------------------------
@@ -101,12 +98,13 @@ void AppPottsAmPathTest::grow_app()
    check validity of site values
 ------------------------------------------------------------------------- */
 
-void AppPottsAmPathTest::init_app()
+void AppPottsAmPathGen::init_app()
 {
    // Run base class init_app
    init_app_am();
    // Compute distance function based upon initial pool position
    app_update(0.0);
+
 }
 
 /* ----------------------------------------------------------------------
@@ -114,29 +112,10 @@ void AppPottsAmPathTest::init_app()
 	mobilities for the new configuration
  ------------------------------------------------------------------------- */
 
-void AppPottsAmPathTest::app_update(double dt)
+void AppPottsAmPathGen::app_update(double dt)
 {
    // Move pool
    bool moved=app_update_am(dt);
    if(!moved)
       return;
-
-   int num_test_points=xp.size();
-	for(int i=0;i<num_test_points;i++){
-
-		// Fake SPPARKS lattice site using input point defined by (xp,yp)
-		double XYZ[]={xp[i],yp[i],0};
-
-		// Lattice point location relative to 'pool' position
-		Point xyz_r_p=compute_position_relative_to_pool(XYZ);
-
-		//Temporary assignment of xo, xo is in the melt pool's reference frame!
-		double xo[]={xyz_r_p[0],xyz_r_p[1],xyz_r_p[2]};
-
-      // DEBUG
-      //if (0==my_rank){
-      //   std::cout << "Relative position: xo: " << std::setw(5) << xo[0] << "," << xo[1] << "," << xo[2] <<  std::endl;
-      //}
-      // END DEBUG
-	}
 }

@@ -1,0 +1,113 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style potts/am/path/gen command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style potts/am/path/gen 
+</PRE>
+<LI>potts/am/path/gen = application style name 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style potts/am/path/gen 
+</PRE>
+<P>This app does not have any app specific parameters.  It does however 
+require AM raster commands listed below.
+</P>
+<P><B>Description:</B>
+</P>
+<P>This is a specialized additive manufacturing (AM) application.   The app
+generates a sequence of computational volumes (CV) which correspond with AM
+raster paths on rectangular domains; it  runs very quickly and does not need to
+be run in parallel.  The sequence of CVs generated are ordered according to the
+am build specified; the union of CVs forms the final desired 3D rectangular volume over
+which microstructures are simulated.  
+</P>
+<P>Microstructure simulations on the sequence of CVs emulates the additive
+manufacturing process by appending incremental results to the output database
+much the same way material is added to a part during an AM build.  SPPARKS
+simulations can be conducted on each CV and stitched together to form the
+final built part.  AM microstructure simulations conducted this way require
+substantially reduced computational resources, both memory and mpi cpu
+resources, when compared to what would be required if the entire domain was
+instantiated for one large simulation.  Starting and stopping the sequence of
+runs is also a highly flexible restart capability for AM microstructure
+simulations.  
+</P>
+<P>To generated CV and raster path information, the <A HREF = "am_pathgen.html">am pathgen</A>
+command, supplied by this app, must be in the user input script; the 
+script must also include <A HREF = "am_cartesian_layer.html">am cartesian_layer</A> and <A HREF = "am_pass.html">am
+pass</A> commands which specify the rectangular domain as well as
+raster path information.  The script should not use the <A HREF = "create_sites.html">create_sites</A>
+commad -- more on this below.
+</P>
+<P>The directory examples/stitch/stitching_rectangular_domain contains 
+an example demonstrating use of this app. There are 3 primary 
+elements to the example: 1) in.path_gen -- input script which 
+uses this app; 2) in.am -- input script for a generic AM SPPARKS 
+simulation on a CV parameterized; 3) stitch_rectangle.sh -- bash script 
+which orchestrates the overall set of simulations.  Very limited 
+editing of bash script is required; only the spparks executable path 
+is needed at top of script.  Remaining parameters should be specified 
+by in.path_gen and in.am.  See directory for further explanation.
+</P>
+<HR>
+
+<P>The following commands are needed and required by this application.  
+</P>
+<LI><A HREF = "region.html">region</A>: Specify the larger intended simulation domain for 
+the AM microstructure simulation.  This domain will be decomposed by the 
+app into a series of significantly small simulation domains (CVs). 
+
+<LI><A HREF = "create_box.html">create_box</A>: command to create region specified 
+
+<LI><A HREF = "am_pass.html">am pass</A>: Specify pass parameters used to construct
+<I>cartesian_layer</I>. 
+
+<LI><A HREF = "am_cartesian_layer.html">am cartesian_layer</A>: A scan pattern on
+rectangular layer constructed from <I>am pass</I> and other parameters. 
+
+<LI><A HREF = "am_pathgen.html">am pathgen</A>: May be used for combinations of layers that
+comprise a pattern. The command must be
+specified in the input script to generate output CV and raster information and 
+must come after all of the above commands. 
+</UL>
+<HR>
+
+<A NAME = "restriction"></A><B>Restrictions:</B> 
+
+<P>Do not use the <A HREF = "create_sites.html">create_sites</A> command with this application.
+For this app to function properly, the <A HREF = "region.html">region</A> and
+<A HREF = "create_box.html">create_box</A> commands should be used to specify the larger
+intended simulation domain.  If <I>create_sites</I> is used, the app will attempt to
+create a lattice on the larger intended simulation domain potentially requiring
+huge distributed memory requirements. If on the other hand the lattice is not created, the
+app is extremely light weight and can be used to generate the sequence of CVs
+and raster information on the larger intended domain.  Thus the app can easily
+run in serial for any domain size provided the <I>create_sites</I> command is
+not used.  It is not necessary to run the app in parallel although it will 
+do so gracefully.  
+</P>
+<P>This application will only generate paths specified by 
+the <A HREF = "am_cartesian_layer.html">am cartesian_layer</A> command and 
+associated <A HREF = "am_pass.html">am pass</A> commands.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P>None beyond those listed above.
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

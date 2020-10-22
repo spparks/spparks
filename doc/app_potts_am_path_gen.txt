@@ -1,0 +1,114 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style potts/am/path/gen command :h3
+
+[Syntax:]
+
+app_style potts/am/path/gen :pre
+
+potts/am/path/gen = application style name :l
+
+:ule
+
+[Examples:]
+
+app_style potts/am/path/gen :pre
+
+This app does not have any app specific parameters.  It does however 
+require AM raster commands listed below.
+
+[Description:]
+
+This is a specialized additive manufacturing (AM) application.   The app
+generates a sequence of computational volumes (CV) which correspond with AM
+raster paths on rectangular domains; it  runs very quickly and does not need to
+be run in parallel.  The sequence of CVs generated are ordered according to the
+am build specified; the union of CVs forms the final desired 3D rectangular volume over
+which microstructures are simulated.  
+
+Microstructure simulations on the sequence of CVs emulates the additive
+manufacturing process by appending incremental results to the output database
+much the same way material is added to a part during an AM build.  SPPARKS
+simulations can be conducted on each CV and stitched together to form the
+final built part.  AM microstructure simulations conducted this way require
+substantially reduced computational resources, both memory and mpi cpu
+resources, when compared to what would be required if the entire domain was
+instantiated for one large simulation.  Starting and stopping the sequence of
+runs is also a highly flexible restart capability for AM microstructure
+simulations.  
+
+To generated CV and raster path information, the "am pathgen"_am_pathgen.html
+command, supplied by this app, must be in the user input script; the 
+script must also include "am cartesian_layer"_am_cartesian_layer.html and "am
+pass"_am_pass.html commands which specify the rectangular domain as well as
+raster path information.  The script should not use the "create_sites"_create_sites.html
+commad -- more on this below.
+
+The directory examples/stitch/stitching_rectangular_domain contains 
+an example demonstrating use of this app. There are 3 primary 
+elements to the example: 1) in.path_gen -- input script which 
+uses this app; 2) in.am -- input script for a generic AM SPPARKS 
+simulation on a CV parameterized; 3) stitch_rectangle.sh -- bash script 
+which orchestrates the overall set of simulations.  Very limited 
+editing of bash script is required; only the spparks executable path 
+is needed at top of script.  Remaining parameters should be specified 
+by in.path_gen and in.am.  See directory for further explanation.
+
+:line
+
+
+The following commands are needed and required by this application.  
+
+"region"_region.html: Specify the larger intended simulation domain for 
+the AM microstructure simulation.  This domain will be decomposed by the 
+app into a series of significantly small simulation domains (CVs). :l
+
+"create_box"_create_box.html: command to create region specified :l
+
+
+"am pass"_am_pass.html: Specify pass parameters used to construct
+{cartesian_layer}. :l
+
+"am cartesian_layer"_am_cartesian_layer.html: A scan pattern on
+rectangular layer constructed from {am pass} and other parameters. :l
+
+"am pathgen"_am_pathgen.html: May be used for combinations of layers that
+comprise a pattern. The command must be
+specified in the input script to generate output CV and raster information and 
+must come after all of the above commands. :l,ule
+
+
+:line
+
+[Restrictions:] :link(restriction)
+
+Do not use the "create_sites"_create_sites.html command with this application.
+For this app to function properly, the "region"_region.html and
+"create_box"_create_box.html commands should be used to specify the larger
+intended simulation domain.  If {create_sites} is used, the app will attempt to
+create a lattice on the larger intended simulation domain potentially requiring
+huge distributed memory requirements. If on the other hand the lattice is not created, the
+app is extremely light weight and can be used to generate the sequence of CVs
+and raster information on the larger intended domain.  Thus the app can easily
+run in serial for any domain size provided the {create_sites} command is
+not used.  It is not necessary to run the app in parallel although it will 
+do so gracefully.  
+
+This application will only generate paths specified by 
+the "am cartesian_layer"_am_cartesian_layer.html command and 
+associated "am pass"_am_pass.html commands.
+
+
+[Related commands:]
+
+None beyond those listed above.
+
+[Default:] none
+
+

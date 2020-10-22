@@ -1,9 +1,15 @@
 #
+# WIDTH_HAZ
+variable WIDTH_HAZ equal 13
+#
+# MELT_DEPTH
+variable MELT_DEPTH equal 4
+#
 # T: simulation temperature
 variable T equal                 0.25
 #
 # number of spins
-variable Q equal 10000
+variable Q equal 100000
 #
 # DT: number of KMC steps
 variable DT equal 0.0
@@ -18,11 +24,11 @@ variable HATCH equal 5.0
 variable OUT_DT equal 100000
 #
 # OUT: output filename
-variable OUT universe staircase.st
+variable OUT world staircase.st
 		 
 #
 seed		 ${SEED}
-app_style	 potts/additive		${Q} 10 10 5 5 13 13 6 6 0.1
+app_style	 potts/additive		${Q} 10 10 ${MELT_DEPTH} 5 ${WIDTH_HAZ} 13 DEPTH_HAZ 5 0.1
 
 # |————————————————————————————————————————
 # | nspins		= atoi(arg[1])

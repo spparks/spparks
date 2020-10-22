@@ -1,0 +1,138 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>am pathgen command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>am pathgen outfile "filename" num_layers "N" zstart "Z" width_haz "H" melt_depth D depth_haz <DH> 
+</PRE>
+<UL><LI>outfile = required keyword
+<LI>filename = name of output file containing CV and raster path information
+<LI>num_layers = required keyword
+<LI>N = number of layers paths are generated for
+<LI>zstart = required keyword
+<LI>Z = starting elevation of build
+<LI>width_haz = required keyword
+<LI>H = width of heat effected zone; always greater than pool width
+<LI>melt_depth = required keyword
+<LI>D = melt depth; generally greater than layer thickness and smaller than 2 layers thick
+<LI>depth_haz = required keyword
+<LI>DH = depth of heat effected zone; always greater than melt_depth 
+</UL>
+<P><B>Examples:</B>
+</P>
+<P>Taken from examples/stitch/stitching_rectangular_domain.
+</P>
+<PRE>###################################
+# Variables defined for convenience
+# WIDTH_HAZ
+variable WIDTH_HAZ equal 13
+#
+# MELT_DEPTH
+variable MELT_DEPTH equal 4
+#
+# DEPTH_HAZ
+variable DEPTH_HAZ equal 5
+#
+# V: scan speed
+variable V equal 14.0
+#
+# HATCH: hatch spacing
+variable HATCH equal 5.0
+#
+# LAYER_THICKNESS: 
+variable LAYER_THICKNESS equal 3
+#
+# OUT: output filename
+variable OUT world pathgen.dat
+################################### 
+</PRE>
+<PRE>########################################################
+# This example uses the following larger intended domain
+region       box block  0 100 0 280 0 48
+######################################################## 
+</PRE>
+<PRE>#############################################################
+# Additional commands defining hatch pattern, cartesian layers, etc
+am pass 1 dir X speed $<I>V</I> hatch $<I>HATCH</I>
+am pass 2 dir Y speed $<I>V</I> hatch $<I>HATCH</I>
+am cartesian_layer 1 start LL pass_id 1 thickness $<I>LAYER_THICKNESS</I> offset -80.0 0.0 serpentine 1
+am cartesian_layer 2 start UL pass_id 2 thickness $<I>LAYER_THICKNESS</I> offset 0.0 80.0 serpentine 1
+am cartesian_layer 3 start UR pass_id 1 thickness $<I>LAYER_THICKNESS</I> offset 80.0 0.0 serpentine 1
+am cartesian_layer 4 start LR pass_id 2 thickness $<I>LAYER_THICKNESS</I> offset 0.0 -80.0 serpentine 1
+############################################################# 
+</PRE>
+<PRE>Example 1:
+pathgen outfile $<I>OUT</I> num_layers 6 zstart 0 width_haz $<I>WIDTH_HAZ</I> melt_depth $<I>MELT_DEPTH</I> depth_haz $<I>DEPTH_HAZ</I> 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command is used by <A HREF = "app_potts_am_path_gen.html">potts/am/path/gen</A> for auto
+generation of path information on rectangular layers.  Output from this command
+can be used to assemble very large simulations of AM microstructures using a
+sequence of significantly smaller simulations.  The sequence of smaller simulations 
+are conducted on a series of CVs calculated using SPPARKS on the basis of the 
+larger intended domain size as specified using the standard <A HREF = "region.html">region</A> 
+command.
+</P>
+<P>The <I>outfile</I> parameter specifies name of file where path information is written.  
+This file is subsequently read line by line using a python or bash script 
+to orchestrate the ordered series of smaller simulations.  
+</P>
+<P><I>num_layers</I> parameter specifies how many layers output path information will
+be generated for.  This parameter allows for re-use of layer specifications and
+implicitly creates a pattern of layers.  The build pattern is implied by the
+order and number of layers in the input script; if <I>num_layers</I> is greater than
+number of cartesian layers provided in script then the input cartesian layers
+are used as a pattern repeated as necessary to create number of layers.  Once
+path information has been generated for all layers specified, the pattern
+repeats, cycling through the layers again and again until <I>num_layers</I> have
+been processed. 
+</P>
+<P>As is conventional, the build proceeds in the z-direction
+according to specified layer thicknesses.  The <I>zstart</I> parameter specifies
+starting z elevation of build plane surface.  
+</P>
+<P>On the basis of specified <I>am pass</I> and heat effected zone parameters, a
+sequence of computational volumes (CV) are created.  The <I>width_haz</I> parameter
+sizes the width of the CV; the length of the CV is collected from <I>am pass</I> and
+domain size information while depth of the CV is specified with the <I>depth_haz</I>
+parameter. Microstructure simulations are conducted on the smaller incremental 
+sequence of CVs.  The <I>depth_haz</I> parameter only makes sense when its greater 
+than <I>melt_depth</I>.  The <I>melt_depth</I> parameter is not used directly by the path generator
+but is passed on to the AM model for simulating microstructures; 
+for convenience it is included here to allow for parametric studies on 
+melt_depth and depth_haz.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command is only used by the <A HREF = "app_potts_am_path_gen.html">potts/am/path/gen</A>
+app in conjunction with the <A HREF = "region.html">region</A>,
+<A HREF = "create_box.html">create_box</A>, <A HREF = "am_pass.html">am pass</A>, and <A HREF = "am_cartesian_layer.html">am
+cartesian_layer</A>, commands.  If the <A HREF = "am_pathgen.html">am
+pathgen</A> command is missing, the
+<A HREF = "app_potts_am_path_gen.html">potts/am/path/gen</A> app will run but path
+information will not be generated.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_potts_am_path_gen.html">potts/am/path/gen</A>
+<A HREF = "region.html">region</A>
+<A HREF = "create_box.html">create_box</A>
+<A HREF = "am_pass.html">am_pass</A>
+<A HREF = "am_cartesian_layer.html">am_cartesian_layer</A>
+</P>
+<P><B>Default:</B> 
+</P>
+<P>None
+</P>
+</HTML>
