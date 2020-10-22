@@ -1,6 +1,7 @@
 #!/bin/bash
 
 SPPARKS=$HOME/jaks.git/spparks.cloned/src/spk_flamer.gnu
+SPPARKS=$HOME/jaks.git/spparks.cloned/src/spk_spencer.gnu
 
 # Layer thickness = 30 microns ~ 3 sites
 let LAYER_THICKNESS=3
@@ -11,7 +12,7 @@ let RUNS_PER_STEP=16
 # 10=480/48
 let NUM_STEPS=10
 
-let DEPTH_HAZ=6
+let DEPTH_HAZ=5
 let Z0=0
 let TOP=480
 
@@ -56,23 +57,24 @@ for (( s=1; s<=${NUM_STEPS}; s++ )); do
     #echo "WINDOW=${WINDOW}"
 
     # Run potts model to initialize first layer
-    if [ $L -eq 1 ]; then
-       cat in.init | sed s"/WINDOW/${WINDOW}/" > in.potts_init
-       
-       #  
-       # Run SPPARKS to initialize microstructure on layer
-       SEED=$RANDOM
-       $SPPARKS -var SEED $SEED < in.potts_init
-    fi
+    #if [ $L -eq 1 ]; then
+    #   cat in.init | sed s"/WINDOW/${WINDOW}/" > in.potts_init
+    #   
+    #   #  
+    #   # Run SPPARKS to initialize microstructure on layer
+    #   SEED=$RANDOM
+    #   $SPPARKS -var SEED $SEED < in.potts_init
+    #fi
 
     # Create input file specialized for layer
     cat in.am | sed s"/LAYER/${LAYER}/" \
+              | sed s"/DEPTH_HAZ/${DEPTH_HAZ}/" \
               | sed s"/WINDOW/${WINDOW}/" \
               | sed s"/BOTTOM/${BOTTOM}/" > in.am_layer
 
     # Run spparks
     SEED=$RANDOM
-    mpiexec -np 8 $SPPARKS -var SEED $SEED < in.am_layer
+    mpiexec -np 16 $SPPARKS -var SEED $SEED < in.am_layer
 
     let Z1=$Z1+$LAYER_THICKNESS
     let L=$L+1

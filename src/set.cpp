@@ -721,28 +721,52 @@ void Set::set_stitch(int lhs, int rhs)
   // get field id
   
   int64_t field_id;
+  bool init=false;
   {
      int err;
-     if (lhs == SITE) {
-        err=stitch_query_field (stitch_file,"site",&field_id);
-     } else if (lhs == IARRAY) {
-        char label[8];
+     char label[8];
+     if (SITE==lhs) {
+        sprintf(label,"site");
+     } else if (IARRAY==lhs) {
         sprintf(label,"i%d",siteindex+1);
-        err=stitch_query_field (stitch_file,label,&field_id);
-     } else if (lhs == DARRAY) {
-        char label[8];
+     } else if (DARRAY==lhs) {
         sprintf(label,"d%d",siteindex+1);
-        err=stitch_query_field (stitch_file,label,&field_id);
      } else {
        error->all(FLERR,"Set stitch command failed due to "
 		  "invalid field specification; "
 		  "must be 'site', i1,i2,..., or d1,d2,d3,....");
      }
-     // TODO: process err
-     //
+     err=stitch_query_field (stitch_file,label,&field_id);
      if (STITCH_FIELD_NOT_FOUND_ID==field_id) {
-       error->all(FLERR,"Set stitch command failed on read; "
-		  "Specified field does not exist in file.");
+        // then create field 
+        if (SITE==lhs || IARRAY==lhs) {
+           // Specify value type of value and its undefined value
+           union StitchTypesUnion v;v.i32=-1;
+           // Scalar value
+           int32_t scalar=1;
+           err = stitch_create_field(stitch_file,label,STITCH_INT32,
+                 v,scalar,&field_id);
+           // TODO: process err
+           //
+        } else if (DARRAY==lhs) {
+           union StitchTypesUnion v;v.f64=-1;
+           // Scalar value
+           int32_t scalar=1;
+           err = stitch_create_field (stitch_file,label,STITCH_FLOAT64,
+			    v,scalar,&field_id);
+           // TODO: process err
+           //
+        } else {
+          error->all(FLERR,"'set stitch' command failed on read; "
+           "Specified field does not exist; also unable to create field type specified.");
+        }
+        // field was initialized on 'stitch' file; set 'init'=true
+        init=true;
+        int my_rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+        if (0==my_rank){
+           printf("'set stitch' creating field '%s' on 'stitch file'\n",label);
+        }
      }
   }
 
@@ -750,7 +774,6 @@ void Set::set_stitch(int lhs, int rhs)
      int err;
 
      // get field data
-     
      int32_t is_new_time=-1;
      if (lhs == SITE) {
         int32_t *idata = app->iarray[0];
@@ -773,8 +796,11 @@ void Set::set_stitch(int lhs, int rhs)
 					block,real_data,&is_new_time);
      }
      // TODO: process err
-     //
-     if (is_new_time)
+     // if 'field' was newly created above, then 'init' is true 
+     //    then site values 'spin' values will have default values 
+     //    set by stitch library; default values must be handled by 
+     //    app
+     if (is_new_time && false==init)
        error->all(FLERR,"Set stitch command failed on read_block; "
 		  "libstitch did not match a time.");
 

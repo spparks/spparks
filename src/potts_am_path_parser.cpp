@@ -26,6 +26,7 @@
 #include "lattice.h"
 #include "domain.h"
 #include "error.h"
+#include "random_mars.h"
 
 #include <iostream>
 #include <iomanip>
@@ -41,9 +42,15 @@ using RASTER::DIR;
 /* ---------------------------------------------------------------------- */
 
 PottsAmPathParser::PottsAmPathParser(SPPARKS *spk, int narg, char **arg) : 
-  AppPotts(spk,narg,arg),   passes(), paths(), pattern(),
+  AppPotts(spk,narg,arg), random_park(ranmaster->uniform()),
+  passes(), paths(), pattern(), cartesian_layer_meta_data(),
   build_layer_z(std::numeric_limits<double>::quiet_NaN()),num_build_layers(-1), 
-  build_layer(0) {}
+  build_layer(0)
+{
+   // This initializes random_park properly on each processor
+   double seed = ranmaster->uniform();
+   random_park.reset(seed,domain->me,100);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -68,6 +75,28 @@ void PottsAmPathParser::init_app_am()
    unique = new int[1 + maxneigh];
    dt_sweep = 1.0/maxneigh;
 
+   // Initialize sites which have value=-1 
+   //   * uninitialized sites from stitch file
+   //   * if value==-1, initialize to random spin value
+   int flag = 0;
+   for (int i = 0; i < nlocal; i++){
+      if (-1==spin[i]) {
+         int ran = random_park.irandom(nspins);
+         spin[i]=ran;
+      }
+      if (spin[i] < 0 || spin[i] > nspins) flag = 1;
+   }
+   int flagall;
+   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+   if (flagall) error->all(FLERR,"One or more sites have invalid values");
+
+   // Initialize layers
+   initialize_layers_am();
+
+}
+
+void PottsAmPathParser::initialize_layers_am()
+{
    // Number of layers in script
    int num_pattern_layers=pattern.size();
 
@@ -122,7 +151,7 @@ bool PottsAmPathParser::app_update_am(double dt)
    // Current layer
    int m=build_layer%num_pattern_layers;
    bool moved=true;
-   double layer_thickness=pattern[m].get_thickness();
+   int layer_thickness=pattern[m].get_thickness();
    if(pattern[m].move(dt)){
    } else {
       // Goto next layer
@@ -192,8 +221,8 @@ void PottsAmPathParser::parse_am(int narg, char **arg)
             }
          } else {error->all(FLERR,"Illegal path_layer command. Expected keyword 'path_ids'");}
       } else {error->all(FLERR,"Illegal path_layer command. Expected keyword 'num_paths'");}
-      double thickness=-1.0;
-      if(strcmp(arg[p],"thickness")==0){thickness=std::atof(arg[p+1]); }
+      int thickness=-1;
+      if(strcmp(arg[p],"thickness")==0){thickness=std::atoi(arg[p+1]); }
       else {error->all(FLERR,"Illegal path_layer command. Expected keyword 'thickness'.");}
       pattern.push_back(Layer(_paths,thickness));
    } else if (strcmp(arg[0],"build") == 0) {
@@ -208,7 +237,6 @@ void PottsAmPathParser::parse_am(int narg, char **arg)
       } else {error->all(FLERR,"Illegal am_build command. Expected keyword 'num_layers'");}
    } else if (strcmp(arg[0],"cartesian_layer") == 0) {
       if (narg < 8) error->all(FLERR,"Illegal 'am cartesian_layer' command; wrong num args; minimum 8 args.");
-      printf("AppPottsAmPathTest::input_app \'am cartesian_layer\'\n");
       add_cartesian_layer(narg,arg);
    } else if (strcmp(arg[0],"pass") == 0) {
       if (narg < 8) error->all(FLERR,"Illegal 'am pass' command; wrong num args; minimum 8 args.");
@@ -259,121 +287,6 @@ void PottsAmPathParser::add_pass(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-tuple<vector<double>,vector<PottsAmPathParser::ComputationalVolume>>
-PottsAmPathParser::
-get_hatch(const Pass& p, START s, double offset_x, double offset_y) const
-{
-   DIR dir=p.get_dir();
-   double hatch_spacing=p.get_hatch_spacing();
-   double oh=p.get_overhatch();
-   printf("\thatch spacing=%5.1f",hatch_spacing);
-   printf("\toverhatch=%5.1f\n",oh);
-
-   double xlo=domain->boxxlo;
-   double xhi=domain->boxxhi;
-   double ylo=domain->boxylo;
-   double yhi=domain->boxyhi;
-   vector<double> hatch;
-   vector<ComputationalVolume> cvs;
-   double cv_x0,cv_x1,cv_y0,cv_y1;
-   bool start=true;
-   if(DIR::X==dir){
-      double oy=offset_y;
-      cv_x0=xlo;
-      cv_x1=xhi;
-      if (START::LL==s || START::LR==s){
-         double y=ylo+oy;
-         while(y<=(yhi+oh)){
-            hatch.push_back(y);
-            if(true==start){
-               cv_y0=ylo;
-               start=false;
-            } else {
-               cv_y0=y-hatch_spacing;
-            }
-            y+=hatch_spacing;
-            if(y>yhi)
-               cv_y1=yhi;
-            else
-               cv_y1=y;
-            // force integer values for block
-            cv_y0=std::floor(cv_y0);
-            cv_y1=std::ceil(cv_y1);
-            cvs.push_back(ComputationalVolume(cv_x0,cv_x1,cv_y0,cv_y1));
-         }
-      } else if(START::UL==s || START::UR==s){
-         double y=yhi+oy;
-         while(y>=(ylo+oh)){
-            hatch.push_back(y);
-            if(true==start){
-               cv_y1=yhi;
-               start=false;
-            } else {
-               cv_y1=y+hatch_spacing;
-            }
-            y-=hatch_spacing;
-            if(y<ylo)
-               cv_y0=ylo;
-            else
-               cv_y0=y;
-            // force integer values for block
-            cv_y0=std::floor(cv_y0);
-            cv_y1=std::ceil(cv_y1);
-            cvs.push_back(ComputationalVolume(cv_x0,cv_x1,cv_y0,cv_y1));
-         }
-      } 
-   } else if(DIR::Y==dir){
-      double ox=offset_x;
-      cv_y0=ylo;
-      cv_y1=yhi;
-      if (START::LL==s || START::UL==s){
-         double x=xlo+ox;
-         while(x<=(xhi+oh)){
-            hatch.push_back(x);
-            if(true==start){
-               cv_x0=xlo;
-               start=false;
-            } else {
-               cv_x0=x-hatch_spacing;
-            }
-            x+=hatch_spacing;
-            if(x>xhi)
-               cv_x1=xhi;
-            else
-               cv_x1=x;
-            // force integer values for block
-            cv_x0=std::floor(cv_x0);
-            cv_x1=std::ceil(cv_x1);
-            cvs.push_back(ComputationalVolume(cv_x0,cv_x1,cv_y0,cv_y1));
-         }
-      } else if(START::LR==s || START::UR==s){
-         double x=xhi+ox;
-         while(x>=(xlo+oh)){
-            hatch.push_back(x);
-            if(true==start){
-               cv_x1=xhi;
-               start=false;
-            } else {
-               cv_x1=x+hatch_spacing;
-            }
-            x-=hatch_spacing;
-            if(x<xlo)
-               cv_x0=xlo;
-            else
-               cv_x0=x;
-            // force integer values for block
-            cv_x0=std::floor(cv_x0);
-            cv_x1=std::ceil(cv_x1);
-            cvs.push_back(ComputationalVolume(cv_x0,cv_x1,cv_y0,cv_y1));
-         }
-      } 
-   }
-
-   // Requires c++-14
-   // Avoids copies and uses move semantics
-   return std::make_tuple(std::move(hatch),std::move(cvs));
-}
-
 /* ---------------------------------------------------------------------- */
 
 void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
@@ -389,7 +302,7 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
    int id=std::atoi(arg[1]);
    START s;
    Pass pass;
-   double thickness;
+   int thickness;
    bool serpentine=true;
    double ox(0.0),oy(0.0);
    if(strcmp(arg[2],"start")==0){
@@ -406,13 +319,12 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
    } else {error->all(FLERR,"Illegal am_cartesian_layer command  Expected 'pass_id'");}
 
    if(strcmp(arg[6],"thickness")==0){
-      thickness=std::atof(arg[7]);
+      thickness=std::atoi(arg[7]);
    } else {error->all(FLERR,"Illegal am_cartesian_layer command  Expected 'thickness.'");}
 
    /*
     * OPTIONAL parameters beyond here; 
     */
-   printf("\tnarg=%d\n",narg);
    if(narg>8){
       if(10==narg){
          if(strcmp(arg[8],"serpentine")==0){
@@ -446,6 +358,8 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
          }
       }
    }
+   // add cartesian layer meta data
+   cartesian_layer_meta_data.push_back(CartesianLayerMetaData(pass,s,ox,oy,thickness,serpentine));
    double xlo=domain->boxxlo;
    double xhi=domain->boxxhi;
    double ylo=domain->boxylo;
@@ -453,9 +367,7 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
    double x0,y0,x1,y1;
    double speed=pass.get_speed();
    int m=0;
-   vector<double>hatch;
-   vector<ComputationalVolume> cvs;
-   tie(hatch,cvs)=get_hatch(pass,s,ox,oy);
+   vector<double>hatch=get_hatch(pass,s,ox,oy);
    vector<Path> layer_paths;
    switch(pass.get_dir()){
    case DIR::X:
@@ -494,18 +406,218 @@ void PottsAmPathParser::add_cartesian_layer(int narg, char **arg)
 
    // Add this layer
    pattern.push_back(Layer(layer_paths,thickness));
-   {
-      // Print layer paths
-      printf("%s\n", "# layer thickness");
-      printf("layer %8.1f\n",thickness);
-      printf("%s\n", "# path start x0 y0 end x1 y1 block x0 x1 y0 y1");
-      for(int lp=0;lp<layer_paths.size();lp++){
-         double x0,x1,y0,y1;
-         std::tie(x0,x1,y0,y1)=cvs[lp];
-         Point a=layer_paths[lp].get_start();
-         Point b=layer_paths[lp].get_end();
-         printf("path start %8.1f %8.1f end %8.1f %8.1f block %8.1f %8.1f %8.1f %8.1f \n",
-               a[0],a[1],b[0],b[1],x0,x1,y0,y1);
+
+}
+
+vector<double>
+PottsAmPathParser::
+get_hatch(const Pass& p, START s, double offset_x, double offset_y) const
+{
+   DIR dir=p.get_dir();
+   double hatch_spacing=p.get_hatch_spacing();
+   double oh=p.get_overhatch();
+
+   //printf("PottsAmPathParser::get_hatch(...)\n");
+   //printf("\thatch spacing=%5.1f",hatch_spacing);
+   //printf("\toverhatch=%5.1f\n",oh);
+
+   double xlo=domain->boxxlo;
+   double xhi=domain->boxxhi;
+   double ylo=domain->boxylo;
+   double yhi=domain->boxyhi;
+   vector<double> hatch;
+   bool start=true;
+   if(DIR::X==dir){
+      //printf("\tDIR::X\n");
+      //printf("\txlo=%8.1f,xhi=%8.1f,ylo=%8.1f,yhi=%8.1f\n",xlo,xhi,ylo,yhi);
+      double oy=offset_y;
+      if (START::LL==s || START::LR==s){
+         double y=ylo+oy;
+         while(y<=(yhi+oh)){
+            //printf("\tpush_back y=%8.1f\n",y);
+            hatch.push_back(y);
+            y+=hatch_spacing;
+         }
+      } else if(START::UL==s || START::UR==s){
+         double y=yhi+oy;
+         while(y>=(ylo+oh)){
+            hatch.push_back(y);
+            y-=hatch_spacing;
+         }
+      } 
+   } else if(DIR::Y==dir){
+      double ox=offset_x;
+      if (START::LL==s || START::UL==s){
+         double x=xlo+ox;
+         while(x<=(xhi+oh)){
+            hatch.push_back(x);
+            x+=hatch_spacing;
+         }
+      } else if(START::LR==s || START::UR==s){
+         double x=xhi+ox;
+         while(x>=(xlo+oh)){
+            hatch.push_back(x);
+            x-=hatch_spacing;
+         }
+      } 
+   }
+
+   // Requires c++-14
+   // Avoids copies and uses move semantics
+   return std::move(hatch);
+}
+
+vector<Path> 
+PottsAmPathParser::
+get_layer_paths(CartesianLayerMetaData& meta) const
+{
+   Pass pass=meta.get_pass();
+   double speed=pass.get_speed();
+   bool serpentine=meta.get_serpentine();
+   START s=meta.get_start();
+   double ox,oy;
+   std::tie(ox,oy)=meta.get_offset();
+   vector<double>hatch=get_hatch(pass,s,ox,oy);
+   vector<Path> layer_paths;
+   int m=0;
+   double xlo=domain->boxxlo;
+   double xhi=domain->boxxhi;
+   double ylo=domain->boxylo;
+   double yhi=domain->boxyhi;
+   double x0,y0,x1,y1;
+   switch(pass.get_dir()){
+   case DIR::X:
+      if (START::LL==s || START::UL==s){
+         x0=xlo+ox; x1=xhi-ox;
+      } else {
+         x0=xhi+ox; x1=xlo-ox;
       }
+      for(auto iter=hatch.begin();iter!=hatch.end();iter++){
+         if(serpentine && (m%2==1)){
+            // Flip starting point if 'serpentine' and on 'odd' passes
+            layer_paths.push_back(Path(Point(x1,*iter),Point(x0,*iter),speed));
+         } else {
+            layer_paths.push_back(Path(Point(x0,*iter),Point(x1,*iter),speed));
+         }
+         m++;
+      }
+      break;
+   case DIR::Y:
+      if (START::LL==s || START::LR==s){
+         y0=ylo+oy; y1=yhi-oy;
+      } else {
+         y0=yhi+oy; y1=ylo-oy;
+      }
+      for(auto iter=hatch.begin();iter!=hatch.end();iter++){
+         if(serpentine && (m%2==1)){
+            // Flip starting point if 'serpentine' and on 'odd' passes
+            layer_paths.push_back(Path(Point(*iter,y1),Point(*iter,y0),speed));
+         } else {
+            layer_paths.push_back(Path(Point(*iter,y0),Point(*iter,y1),speed));
+         }
+         m++;
+      }
+      break;
+   }
+   return std::move(layer_paths);
+}
+
+vector<PottsAmPathParser::ComputationalVolume>
+PottsAmPathParser::
+get_cvs(const vector<double>& hatch, const Pass& p, START s, int width_haz) const
+{
+   DIR dir=p.get_dir();
+   int xlo=static_cast<int>(domain->boxxlo);
+   int xhi=static_cast<int>(domain->boxxhi);
+   int ylo=static_cast<int>(domain->boxylo);
+   int yhi=static_cast<int>(domain->boxyhi);
+   //printf("PottsAmPathParser::get_cvs\n");
+   //printf("\txlo=%8d,xhi=%8d,ylo=%8d,yhi=%8d\n",xlo,xhi,ylo,yhi);
+   int cv_x0,cv_x1,cv_y0,cv_y1;
+   
+   // Make HAZ width just slightly larger than input
+   int width=static_cast<int>(1+width_haz/2);
+   //printf("\twidth_haz=%8d,width=%8d",width_haz,width);
+   vector<ComputationalVolume> cvs;
+   for(auto h:hatch){
+      //printf("\tDIR::X; Hatch h = %8.1f\n",h);
+      if(DIR::X==dir){
+         cv_x0=xlo;
+         cv_x1=xhi;
+         cv_y0=std::floor(h-width);
+         cv_y1=std::ceil(h+width);
+         if (cv_y0<=ylo)
+            cv_y0=ylo;
+         if (cv_y1>=yhi)
+            cv_y1=yhi;
+         //printf("\tcv_x0=%8d,cv_x1=%8d,cv_y0=%8d,cv_y1=%8d\n",cv_x0,cv_x1,cv_y0,cv_y1);
+      } else if(DIR::Y==dir){
+         cv_y0=ylo;
+         cv_y1=yhi;
+         cv_x0=std::floor(h-width);
+         cv_x1=std::ceil(h+width);
+         if (cv_x0<=xlo)
+            cv_x0=xlo;
+         if (cv_x1>=xhi)
+            cv_x1=xhi;
+      }
+      cvs.push_back(ComputationalVolume(cv_x0,cv_x1,cv_y0,cv_y1));
+   }
+   // Requires c++-14
+   // Avoids copies and uses move semantics
+   return std::move(cvs);
+}
+
+void PottsAmPathParser::
+print_paths
+(
+   const string& filename, 
+   int num_layers, 
+   int zstart,
+   int melt_depth, 
+   int width_haz, 
+   int depth_haz
+) const
+{
+   int my_rank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+   if (0==my_rank){
+      FILE* fp = std::fopen(filename.c_str(), "w");
+      if(!fp) {
+         error->all(FLERR,"potts_am_path_parser.cpp; pathgen file opening failed.");
+      }
+      const vector<CartesianLayerMetaData>& d=cartesian_layer_meta_data;
+      int num_cartesian_layers=d.size();
+      int z0,z1=zstart,bottom;
+      for(int layer=0;layer<num_layers;layer++){
+         int m=layer%num_cartesian_layers;
+         CartesianLayerMetaData cartesian_layer=d[m];
+         int layer_thickness=cartesian_layer.get_thickness();
+         z1+=layer_thickness;
+         bottom=z1-layer_thickness;
+         if(0==layer) z0=zstart;
+         else z0=z1-depth_haz;
+         const char* fmt="layer window %8d %8d  haz %8d %8d melt_depth %8d\n";
+         //printf(fmt,bottom,z1,z0,z1,melt_depth);
+         fprintf(fp,fmt,bottom,z1,z0,z1,melt_depth);
+         double ox,oy;
+         std::tie(ox,oy)=cartesian_layer.get_offset();
+         Pass p=cartesian_layer.get_pass();
+         START s=cartesian_layer.get_start();
+         vector<double>hatch=get_hatch(p,s,ox,oy);
+         vector<ComputationalVolume>cvs=get_cvs(hatch,p,s,width_haz);
+         vector<Path> layer_paths=get_layer_paths(cartesian_layer);
+         for(int lp=0;lp<cvs.size();lp++){
+            int x0,x1,y0,y1;
+            std::tie(x0,x1,y0,y1)=cvs[lp];
+            Point a=layer_paths[lp].get_start();
+            Point b=layer_paths[lp].get_end();
+            //printf("path start %8.1f %8.1f end %8.1f %8.1f block %8d %8d %8d %8d \n",
+            //      a[0],a[1],b[0],b[1],x0,x1,y0,y1);
+            fprintf(fp,"path start %8.1f %8.1f end %8.1f %8.1f block %8d %8d %8d %8d \n",
+                  a[0],a[1],b[0],b[1],x0,x1,y0,y1);
+         }
+      }
+      std::fclose(fp);
    }
 }

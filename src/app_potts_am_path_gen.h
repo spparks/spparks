@@ -12,36 +12,41 @@
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
-AppStyle(potts/am/path/test,AppPottsAmPathTest)
+AppStyle(potts/am/path/gen,AppPottsAmPathGen)
 
 #else
 
-#ifndef SPK_APP_POTTS_AM_PATH_TEST
-#define SPK_APP_POTTS_AM_PATH_TEST
+#ifndef SPK_APP_POTTS_AM_PATH_GEN
+#define SPK_APP_POTTS_AM_PATH_GEN
 
 #include <vector>
 #include <stdlib.h>
+#include <tuple>
 #include <map>
 #include "random_park.h"
 #include "app_potts.h"
 #include "am_raster.h"
 #include "potts_am_path_parser.h"
 
+using std::vector;
+using std::tuple;
+
 namespace SPPARKS_NS {
 
-class AppPottsAmPathTest : public PottsAmPathParser {
+class AppPottsAmPathGen : public PottsAmPathParser {
 
- public:
-  AppPottsAmPathTest(class SPPARKS *, int, char **);
-  virtual ~AppPottsAmPathTest();
-  virtual void grow_app();
-  virtual void init_app();
-  void input_app(char *, int , char **);
-  double compute_mobility(int);
-  void app_update(double);
+   public:
+      AppPottsAmPathGen(class SPPARKS *spk, int narg, char **arg);
+      virtual ~AppPottsAmPathGen();
+      virtual void grow_app() {}
+      virtual void init_app();
+      void input_app(char *, int , char **);
+      void app_update(double);
 
- private:
-   std::vector<double> xp,yp;
+   private:
+      std::string path_filename="";
+      int num_layers=-1, zstart=0;
+      int melt_depth=0, width_haz=0, depth_haz=0;
 };
 
 }

@@ -5,9 +5,6 @@ variable T equal                 0.25
 # number of spins
 variable Q equal 10000
 #
-# DT: number of KMC steps
-variable DT equal 0.0
-#
 # V: scan speed
 variable V equal 14.0
 #
@@ -18,11 +15,11 @@ variable HATCH equal 5.0
 variable OUT_DT equal 100000
 #
 # OUT: output filename
-variable OUT universe staircase.st
+variable OUT universe stitch_rectangle.st
 		 
 #
 seed		 ${SEED}
-app_style	 potts/additive		${Q} 10 10 5 5 13 13 6 6 0.1
+app_style	 potts/additive		${Q} 10 10 MELT_DEPTH 5 13 13 DEPTH_HAZ 5 0.1
 
 # |————————————————————————————————————————
 # | nspins		= atoi(arg[1])
@@ -55,13 +52,7 @@ create_sites	 box
 # Initialize layers previously simulated
 set          site stitch ${OUT} last
 
-# Initialize sites on this new layer with random values
-# This script is set up so that new layer is initialized 
-#   prior simulations on layer so this 'set' command is 
-#   not needed here.
-# set i1 range 1 ${Q} loop local if z >= BOTTOM
-
-# Initialize model double value
+# Initialize model double value used for 'distance' from weld pool surface
 set		 d1 value 0.0 loop local
 
 #———————————————————————————————————————————
@@ -70,10 +61,9 @@ set		 d1 value 0.0 loop local
 # using am pass and cartesian layer commands.   
 #———————————————————————————————————————————
 
-am pass 1 dir X speed ${V} hatch ${HATCH}
-am pass 2 dir Y speed ${V} hatch ${HATCH}
+am path 1 PATH speed ${V}
 
-am cartesian_layer LAYER
+am path_layer 1 num_paths 1 path_ids 1 thickness THICKNESS
 
 #———————————————————————————————————————————
 
