@@ -40,7 +40,7 @@ describe the version you have. :ule,l
 [23 Oct 2020]
 
 The following enhancements have been made for additive manufacturing
-laser path generaration in conjunction with the new Stitch library
+laser path generation in conjunction with the new Stitch library
 added to SPPARKS:
 
 Add a new "app_style potts/am/path/gen"_doc/app_potts_am_path_gen.html
