@@ -37,13 +37,42 @@ describe the version you have. :ule,l
 :line
 :line
 
-[24 Jul 2020]
+[23 Oct 2020]
 
+The following enhancements have been made for additive manufacturing
+laser path generaration in conjunction with the new Stitch library
+added to SPPARKS:
+
+Add a new "app_style potts/am/path/gen"_doc/app_potts_am_path_gen.html
+command. This is a specialized additive manufacturing (AM)
+application.  The app generates a sequence of computational volumes
+(CV) which correspond with AM raster paths on rectangular domains; The
+sequence of CVs generated are ordered according to the am build
+specified; the union of CVs forms the final desired 3D rectangular
+volume over which microstructures are simulated. :ulb,l
+  
+Add a new examples/stitch/stitching_rectangular_domain containing
+an example demonstrating use of new app. :l
+  
+Minor bug fix in "app_style potts_weld"_doc/app_potts_weld.html
+command relating to initialization of its random number generator. :l
+  
+Removed the am/potts/path/test app style. :l
+
+Removed examples/am_path/cartesian_path_test. :l,ule
+
+This is the "list of changed files"_patches/files.23Oct20 from the 24
+Jul 2020 version.
+
+:line
+
+[24 Jul 2020]
+ 
 The Stitch library was inadvertantly left out of the 23Jul20 tarball.
 It is in the lib/stitch directory of the distro.
 
 This is the "list of changed files"_patches/files.24Jul20 from the 23
-Jul 2017 version.
+Jul 2020 version.
 
 :line
 

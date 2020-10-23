@@ -40,13 +40,42 @@ describe the version you have.
 
 <HR>
 
+<P><B>23 Oct 2020</B>
+</P>
+<P>The following enhancements have been made for additive manufacturing
+laser path generaration in conjunction with the new Stitch library
+added to SPPARKS:
+</P>
+<UL><LI>Add a new <A HREF = "doc/app_potts_am_path_gen.html">app_style potts/am/path/gen</A>
+command. This is a specialized additive manufacturing (AM)
+application.  The app generates a sequence of computational volumes
+(CV) which correspond with AM raster paths on rectangular domains; The
+sequence of CVs generated are ordered according to the am build
+specified; the union of CVs forms the final desired 3D rectangular
+volume over which microstructures are simulated. 
+
+<LI>Add a new examples/stitch/stitching_rectangular_domain containing
+an example demonstrating use of new app. 
+
+<LI>Minor bug fix in <A HREF = "doc/app_potts_weld.html">app_style potts_weld</A>
+command relating to initialization of its random number generator. 
+
+<LI>Removed the am/potts/path/test app style. 
+
+<LI>Removed examples/am_path/cartesian_path_test. 
+</UL>
+<P>This is the <A HREF = "patches/files.23Oct20">list of changed files</A> from the 24
+Jul 2020 version.
+</P>
+<HR>
+
 <P><B>24 Jul 2020</B>
 </P>
 <P>The Stitch library was inadvertantly left out of the 23Jul20 tarball.
 It is in the lib/stitch directory of the distro.
 </P>
 <P>This is the <A HREF = "patches/files.24Jul20">list of changed files</A> from the 23
-Jul 2017 version.
+Jul 2020 version.
 </P>
 <HR>
 
