@@ -30,6 +30,8 @@ def configuration(parent_package='',top_path=None):
     config=Configuration('stitch',parent_package,top_path)
     config.add_include_dirs(get_python_inc())
     config.add_subpackage('libstitch')
+    config.add_subpackage('weld')
+    config.add_subpackage('am_weld')
 
     # Installed libstitch
     sources = ['sqlite3.c','stitch.c']
@@ -38,7 +40,7 @@ def configuration(parent_package='',top_path=None):
                                  install_dir='stitch/lib',
                                  build_info=dict(extra_compiler_args=['-std=gnu99']))
     # TODO 
-    # Figure out how to configure one of these to better document installation of libstitch
+    # Figure out how to configure one of these to bettwer document installation of libstitch
     #config.add_npy_pkg_config('libstitch/libstitch.ini.in','stitch/libstitch',subst_dict={'foo':'stitch'})
     return config
 
