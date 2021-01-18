@@ -65,12 +65,12 @@ def configuration(parent_package='',top_path=None):
         try:
             extra_compile_args=lapack['extra_compile_args']
         except KeyError:
-            #extra_compile_args=None
+            # not compile args
             pass
         try:
             extra_link_args=lapack['extra_link_args']
         except KeyError:
-            #extra_link_args=None
+            # not link args
             pass
 
     # package
@@ -82,6 +82,7 @@ def configuration(parent_package='',top_path=None):
     extra_compile_args.append('-std=gnu99')
     config.add_extension('libstitch',
                          sources=[join('',x) for x in sources],
+                         #define_macros=[("STITCH_N_TO_1",'')],
                          include_dirs=include_dirs,
                          libraries=libraries,
                          library_dirs=library_dirs,

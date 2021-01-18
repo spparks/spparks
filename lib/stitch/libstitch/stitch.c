@@ -19,6 +19,8 @@
  * For more information, contact Jay Lofstead (gflofst@sandeia.gov) or
  * John Mitchell (jamitch@sandia.gov) for more information.
  */ 
+// use this define to get strdup defined and some other functions
+#define _SVID_SOURCE
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -28,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <errno.h>
 
 #ifdef STITCH_PARALLEL
@@ -444,11 +447,17 @@ int stitch_set_parameters (const StitchFile * file, double absolute_tolerance, d
 
         rc = sqlite3_finalize (stmt_index);
 #ifdef STITCH_PARALLEL
+//        printf ("[%d] send to %d\n", file->rank, file->rank+1);
         MPI_Send (&rc, 1, MPI_INT, file->rank + 1, STITCH_MPI_TAG_SET_PARAMETERS_BLOCK, file->comm);
+//        printf ("[%d] send done\n");
     }
     else
     {
+//        printf ("[%d] recv from %d\n", file->rank, file->rank-1);
         MPI_Recv (&rc, 1, MPI_INT, file->rank - 1, STITCH_MPI_TAG_SET_PARAMETERS_BLOCK, file->comm, &status);
+        if (file->rank < file->size - 1)
+            MPI_Send (&rc, 1, MPI_INT, file->rank + 1, STITCH_MPI_TAG_SET_PARAMETERS_BLOCK, file->comm);
+//        printf ("[%d] recv done\n", file->rank);
     }
 #endif
 //    int rowid = sqlite3_last_insert_rowid (file->db);
@@ -606,7 +615,7 @@ static int stitch_create_timestamp (const StitchFile * file, double * time, int6
             // get the timestamp and use that
             *timestamp = sqlite3_column_int (stmt_index, 0);
             *time = sqlite3_column_double (stmt_index, 1);
-            //printf ("create_timestamp: got row timestamp: %lld time: %g\n", *timestamp, *time);
+            //printf ("create_timestamp: got row timestamp: %" PRId64 " time: %g\n", *timestamp, *time);
             // note that we got an existing time
             *is_new_time = false;
             rc = sqlite3_finalize (stmt_index);
@@ -653,7 +662,7 @@ static int stitch_create_timestamp (const StitchFile * file, double * time, int6
 
                 rc = sqlite3_finalize (stmt_index);
                 *timestamp = sqlite3_last_insert_rowid (file->db);
-                //printf ("create_timestamp: no row. adding %g timestamp: %lld\n", *time, *timestamp);
+                //printf ("create_timestamp: no row. adding %g timestamp: %" PRId64 "\n", *time, *timestamp);
 
                 do
                 {
@@ -806,7 +815,7 @@ static int stitch_get_timestamp (const StitchFile * file, double * time, int64_t
     MPI_Bcast (is_new_time, 1, MPI_INT32_T, 0, file->comm);
 #endif
 
-    //printf ("rank: %d timestamp: %lld\n", file->rank, *timestamp);
+    //printf ("rank: %d timestamp: %" PRId64 "\n", file->rank, *timestamp);
 
 cleanup:
 
@@ -1256,7 +1265,7 @@ int stitch_create_field (const StitchFile * file, const char * label, enum STITC
                 assert (0);
             }
         }
-        //printf ("rank: %d new field_id: %lld\n", file->rank, *field_id);
+        //printf ("rank: %d new field_id: %" PRId64 "\n", file->rank, *field_id);
     }
 #ifdef STITCH_PARALLEL
     MPI_Bcast (field_id, 1, MPI_INT64_T, 0, file->comm);
@@ -1296,7 +1305,7 @@ int stitch_set_field_no_value_present (const StitchFile * file, int64_t field_id
             break;
 
         case STITCH_INT64:
-            //printf ("new field no value int64: %lld\n", *(int64_t *) no_value_present);
+            //printf ("new field no value int64: %" PRId64 "\n", *(int64_t *) no_value_present);
             rc = sqlite3_bind_int64 (stmt_index, 1, no_value_present.i64); assert (rc == SQLITE_OK);
             rc = sqlite3_bind_null (stmt_index, 2); assert (rc == SQLITE_OK);
             break;
@@ -1389,7 +1398,7 @@ int stitch_query_field (const StitchFile * file, const char * label, int64_t * f
                 assert (0);
             }
         }
-        //printf ("rank: %d new field_id: %lld\n", file->rank, *field_id);
+        //printf ("rank: %d new field_id: %" PRId64 "\n", file->rank, *field_id);
     }
 #ifdef STITCH_PARALLEL
     MPI_Bcast (field_id, 1, MPI_INT64_T, 0, file->comm);
@@ -1442,7 +1451,7 @@ static int stitch_write_block (const StitchFile * file, int64_t field_id, double
 
     if (field_id == STITCH_FIELD_NOT_FOUND_ID)
     {
-        fprintf (stderr, "stitch_write_block: Field ID is invalid: %lld\n", field_id);
+        fprintf (stderr, "stitch_write_block: Field ID is invalid: %" PRId64 "\n", field_id);
         goto cleanup;
     }
 
@@ -1454,7 +1463,7 @@ static int stitch_write_block (const StitchFile * file, int64_t field_id, double
 
     // we don't want the last value for each one which is why we don't do + 1
     int32_t state_size = ((x2 - x1) * (y2 - y1) * (z2 - z1));
-#ifdef STITCH_PARALLEL
+#if defined(STITCH_PARALLEL)
     MPI_Status status;
     if (file->rank != 0)
     {
@@ -1490,7 +1499,7 @@ static int stitch_write_block (const StitchFile * file, int64_t field_id, double
 
 	if (rc == SQLITE_DONE)
         {
-            printf ("Field ID not found: %lld. Line: %d rc = %d\n", field_id, __LINE__, rc);
+            printf ("Field ID not found: %" PRId64 ". Line: %d rc = %d\n", field_id, __LINE__, rc);
             sqlite3_finalize (stmt_index);
             goto cleanup;
         }
@@ -1515,13 +1524,13 @@ static int stitch_write_block (const StitchFile * file, int64_t field_id, double
                 break;
 
             case STITCH_NO_TYPE:
-                fprintf (stderr, "Line: %d field_id: %lld invalid field type found: %d\n", __LINE__, field_id, field_type);
+                fprintf (stderr, "Line: %d field_id: %" PRId64 " invalid field type found: %d\n", __LINE__, field_id, field_type);
                 break;
         }
         assert (field_length >= 0);
         state_size *= field_length; // this accounts for all of the bytes in the type and the number of entries in the tensor
-        //printf ("write field_id: %lld type: %d field_length: %d state_size: %d\n", field_id, field_type, field_length, state_size);
-#ifdef STITCH_PARALLEL
+        //printf ("write field_id: %" PRId64 " type: %d field_length: %d state_size: %d\n", field_id, field_type, field_length, state_size);
+#if defined(STITCH_PARALLEL)
     }
 #endif
 
@@ -1539,7 +1548,7 @@ static int stitch_write_block (const StitchFile * file, int64_t field_id, double
     state_buffer = malloc (state_size);
     memcpy (state_buffer, state, state_size);
 
-    rc = sqlite3_bind_int (stmt_index, 1, timestamp); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_int (stmt_index, 1, timestamp); if (rc != SQLITE_OK) fprintf (stderr, "%d Line: %d SQL error (%d): %s\n", file->rank, __LINE__, rc, sqlite3_errmsg (file->db)); assert (rc == SQLITE_OK);
     rc = sqlite3_bind_int64 (stmt_index, 2, field_id); assert (rc == SQLITE_OK);
     rc = sqlite3_bind_int (stmt_index, 3, x1); assert (rc == SQLITE_OK);
     rc = sqlite3_bind_int (stmt_index, 4, y1); assert (rc == SQLITE_OK);
@@ -1565,12 +1574,14 @@ static int stitch_write_block (const StitchFile * file, int64_t field_id, double
 //    int rowid = sqlite3_last_insert_rowid (file->db);
 //printf ("rowid for chunk: %d\n", rowid);
 
-#ifdef STITCH_PARALLEL
+#if defined(STITCH_PARALLEL)
     if (file->rank < file->size - 1)
     {
         MPI_Send (&state_size, 1, MPI_INT, file->rank + 1, STITCH_MPI_TAG_WRITE_BLOCK, file->comm);
     }
+#endif
 
+#ifdef STITCH_PARALLEL
     MPI_Barrier (file->comm);  // since we may read part of the group write, need to wait for everyone
 #endif
 
@@ -1764,17 +1775,23 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
 // in ascending order. Need to test this.
     do
     {
+        // AABB (Axis Aligned Bounding Box) Intersection
+        // you must check all axes INDEPENDENTLY.
+        // https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
         const char * query = NULL;
         query = "select times.time, blocks.field_id, blocks.x_min, blocks.y_min, blocks.z_min, blocks.x_max, blocks.y_max, blocks.z_max, blocks.state "
                 "from blocks, times, fields "
                 "where blocks.timestamp in (select times.timestamp from times, globals where times.time < globals.absolute_tolerance + ?) "
                 "and fields.field_id = ? "
                 "and fields.field_id = blocks.field_id "
-                "and (x_min >= ? or y_min >= ? or z_min >= ?) and (x_max <= ? or y_max <= ? or z_max <= ?) "
                 "and blocks.timestamp = times.timestamp "
+                "and x_min <= ? and x_max >= ? "
+                "and y_min <= ? and y_max >= ? "
+                "and z_min <= ? and z_max >= ? "
                 "order by times.time asc"
                 ;
-                //"and (x_min >= ? or y_min >= ? or z_min >= ?) and (x_max <= ? or y_max <= ? or z_max <= ?) "
+                //"and (x_min >= ? or y_min >= ? or z_min >= ?) and (x_max <= ? or y_max <= ? or z_max <= ?) " // OLD2
+                //"and (x_min >= ? or y_min >= ? or z_min >= ?) and (x_max <= ? or y_max <= ? or z_max <= ?) " // OLD 1
                 // new: "and (? < x_max and ? < y_max and ? < z_max and ? >= x_min and  ? >= y_min and ? >= z_min) "
                 //"where blocks.timestamp in (select times.timestamp from times, globals where abs(times.time - ?) < (globals.absolute_tolerance + (? * globals.relative_tolerance))) "
         rc = sqlite3_prepare_v2 (file->db, query, -1, &stmt_index, &tail_index);
@@ -1786,15 +1803,15 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
         }
     } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
 
-    rc = sqlite3_bind_double (stmt_index, 1, real_time); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_double (stmt_index, 1, *time); assert (rc == SQLITE_OK);
     rc = sqlite3_bind_int64 (stmt_index, 2, field_id); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int (stmt_index, 3, x1); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int (stmt_index, 4, y1); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int (stmt_index, 5, z1); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int (stmt_index, 6, x2); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int (stmt_index, 7, y2); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int (stmt_index, 8, z2); assert (rc == SQLITE_OK);
-//printf ("x1: %d y1: %d z1: %d x2: %d y2: %d z2: %d\n", x1, y1, z1, x2, y2, z2);
+    rc = sqlite3_bind_int (stmt_index, 3, x2); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_int (stmt_index, 4, x1); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_int (stmt_index, 5, y2); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_int (stmt_index, 6, y1); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_int (stmt_index, 7, z2); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_int (stmt_index, 8, z1); assert (rc == SQLITE_OK);
+//printf ("time: %g bounding box x1: %d y1: %d z1: %d x2: %d y2: %d z2: %d\n", *time, x1, y1, z1, x2, y2, z2);
     do
     {
         rc = sqlite3_step (stmt_index);
@@ -1806,7 +1823,7 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
         }
     } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
 
-    //printf ("rank: %d timestamp: %lld rc: %d\n", file->rank, timestamp, rc);
+    //printf ("rank: %d timestamp: %" PIRd64 " rc: %d\n", file->rank, timestamp, rc);
 
     int32_t * new_block_i32 = 0;
     int64_t * new_block_i64 = 0;
@@ -1824,7 +1841,7 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
         int32_t new_block_z2 = 0;
 
         //block_time = sqlite3_column_double (stmt_index, 0);
-        //field_id = sqlite3_column_int64 (stmt_index, 1);
+        field_id = sqlite3_column_int64 (stmt_index, 1);
         new_block_x1 = sqlite3_column_int (stmt_index, 2);
         new_block_y1 = sqlite3_column_int (stmt_index, 3);
         new_block_z1 = sqlite3_column_int (stmt_index, 4);
@@ -1832,9 +1849,9 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
         new_block_y2 = sqlite3_column_int (stmt_index, 6);
         new_block_z2 = sqlite3_column_int (stmt_index, 7);
 
-//printf ("new block (x1: %d, y1: %d, z1: %d) - (x2: %d, y2: %d, z2: %d)\n", new_block_x1, new_block_y1, new_block_z1, new_block_x2, new_block_y2, new_block_z2);
+//if (file->rank == 0) printf ("new block (x1: %d, y1: %d, z1: %d) - (x2: %d, y2: %d, z2: %d)\n", new_block_x1, new_block_y1, new_block_z1, new_block_x2, new_block_y2, new_block_z2);
 
-        //printf ("block_time: %g time: %g real_time: %g\n", block_time, *time, real_time);
+//        printf ("block_time: %g time: %g real_time: %g\n", block_time, *time, real_time);
 
         // proper way to read a blob
         uint32_t block_size = 0;
