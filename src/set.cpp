@@ -11,6 +11,9 @@
    See the README file in the top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
+#include <stdio.h>
+#include <cstdlib>
+#include <cstddef>
 #include "spktype.h"
 #include "stdlib.h"
 #include "string.h"
@@ -26,11 +29,14 @@
 #include "random_park.h"
 #include "memory.h"
 #include "error.h"
+#include <string>
+#include <chrono>
 
 #ifdef SPK_STITCH
 #include "stitch.h"
 #endif
 
+using std::string;
 using namespace SPPARKS_NS;
 
 enum{SITE,IARRAY,DARRAY,X,Y,Z,XYZ,ID};
@@ -678,6 +684,14 @@ void Set::set_stitch(int lhs, int rhs)
 {
 #ifdef SPK_STITCH
 
+   /**
+    * STITCH PERFORMANCE: stitch query time; 
+    */
+   // auto t1 = std::chrono::high_resolution_clock::now();
+   /**
+    * END STITCH PERFORMANCE: stitch query time; 
+    */
+
   if (app->appclass != App::LATTICE)
     error->all(FLERR,"Set stitch only allowed for on-lattice apps");
 
@@ -821,6 +835,27 @@ void Set::set_stitch(int lhs, int rhs)
   */
   
   count = app->nlocal;
+
+   /**
+    * STITCH PERFORMANCE: stitch query time; 
+    */
+//  auto t2 = std::chrono::high_resolution_clock::now();
+//  auto duration = std::chrono::duration_cast<std::chrono::seconds>( t2 - t1 ).count();
+//  int my_rank;
+//  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+//  if (0==my_rank){
+//        const string filename="stitch_query.dat";
+//        FILE* fp = std::fopen(filename.c_str(), "a");
+//        if(!fp){
+//           error->all(FLERR,"set.cpp; in function 'set_stitch' file opening failed.");
+//        }
+//        const char* fmt="%10.4f %8d\n";
+//        fprintf(fp,fmt,time,duration);
+//        std::fclose(fp);
+//  }
+   /**
+    * END STITCH PERFORMANCE: stitch query time; 
+    */
 
 #endif
 }
