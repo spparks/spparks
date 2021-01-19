@@ -38,7 +38,7 @@ def configuration(parent_package='',top_path=None):
                                  install_dir='stitch/lib',
                                  build_info=dict(extra_compiler_args=['-std=gnu99']))
     # TODO 
-    # Figure out how to configure one of these to better document installation of libstitch
+    # Figure out how to configure one of these to bettwer document installation of libstitch
     #config.add_npy_pkg_config('libstitch/libstitch.ini.in','stitch/libstitch',subst_dict={'foo':'stitch'})
     return config
 
