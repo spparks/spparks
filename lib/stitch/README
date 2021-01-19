@@ -17,8 +17,7 @@ SPPARKS with the Stitch library.  If they do not work for some reason, see
 method (3) or more detailed instructions below.
 
 Also see the instructions below on how to build the 'stitch' python module,
-which will be useful for accessing stitch database files directly via
-python.
+which will be useful for accessing stitch database files directly via python.
 
 (1) From the src directory using make
 
@@ -126,6 +125,20 @@ There is a README file
 
 Examples
 % cd $SPPARKS/examples/stitch/dump_and_set_cmds
+
+Run 'stitch_test'
+% cd $SPPARKS/lib/stitch/libstitch
+% make stitch_test
+% mpiexec -np 4 stitch_test
+
+Should see something like:
+
+ nprocs in x, y, z: 2, 2, 1
+ block size in x, y, z: 2, 2, 3
+ increment in x, y, z: 3, 3, 1
+ total domain bounds (min) - (max): (0, 0, 0) - (13, 13, 4)
+ sweeping 0->n in X, then Y, then Z
+ tests passed
 
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------

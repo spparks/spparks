@@ -30,8 +30,6 @@ def configuration(parent_package='',top_path=None):
     config=Configuration('stitch',parent_package,top_path)
     config.add_include_dirs(get_python_inc())
     config.add_subpackage('libstitch')
-    config.add_subpackage('weld')
-    config.add_subpackage('am_weld')
 
     # Installed libstitch
     sources = ['sqlite3.c','stitch.c']
