@@ -37,8 +37,18 @@ describe the version you have. :ule,l
 :line
 :line
 
-[23 Oct 2020]
+[19 Jan 2021]
 
+This release adds some performance improvements to the Stitch library
+and its use within SPPARKS.
+
+This is the "list of changed files"_patches/files.19Jan21 from the 23
+Oct 2020 version.
+
+:line
+
+[23 Oct 2020]
+ 
 The following enhancements have been made for additive manufacturing
 laser path generation in conjunction with the new Stitch library
 added to SPPARKS:

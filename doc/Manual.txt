@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>SPPARKS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="23 Oct 2020 version">
+<META NAME="docnumber" CONTENT="19 Jan 2021 version">
 <META NAME="author" CONTENT="http://spparks.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2008) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -18,12 +18,12 @@
 <H1></H1>
 
 SPPARKS Documentation :c,h3
-23 Oct 2020 version :c,h4
+19 Jan 2021 version :c,h4
 
 Version info: :h4
 
-The SPPARKS "version" is the date when it was released, such as 1 May
-2010. SPPARKS is updated continuously.  Whenever we fix a bug or add a
+The SPPARKS "version" is the date when it was released, such as 12 Jun
+2018. SPPARKS is updated continuously.  Whenever we fix a bug or add a
 feature, we release it immediately, and post a notice on "this page of
 the WWW site"_bug.  Each dated copy of SPPARKS contains all the
 features and bug-fixes up to and including that version date. The
