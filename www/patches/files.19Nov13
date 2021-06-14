@@ -1,8 +1,0 @@
-18Nov13 version files changed by 19Nov13 upgrade:
-
-doc/Manual.html
-doc/Manual.pdf
-doc/Manual.txt
-src/solve_group.cpp
-src/solve_tree.cpp
-src/version.h

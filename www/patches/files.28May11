@@ -1,9 +1,0 @@
-27May11 version files changed by 28May11 upgrade:
-
-doc/Manual.html
-doc/Manual.txt
-doc/app_diffusion.html
-doc/app_diffusion.txt
-doc/deposition.html
-doc/deposition.txt
-src/version.h

@@ -1,7 +1,0 @@
-23Mar10 version files changed by 26Mar10 upgrade:
-
-doc/set.html
-doc/set.txt
-src/app_diffusion.cpp
-src/set.cpp
-src/set.h

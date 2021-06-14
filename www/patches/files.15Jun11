@@ -1,8 +1,0 @@
-14Jun11 version files changed by 15Jun11 upgrade:
-
-doc/Manual.pdf
-doc/diag_array.html
-doc/diag_array.txt
-src/diag_array.cpp
-src/diag_array.h
-src/version.h

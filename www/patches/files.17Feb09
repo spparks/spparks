@@ -1,6 +1,0 @@
-16Feb10 version files changed by 17Feb09 upgrade:
-
-src/app_diffusion.cpp
-src/app_erbium.cpp
-src/app_erbium.h
-src/app_sos.cpp

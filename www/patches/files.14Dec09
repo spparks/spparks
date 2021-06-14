@@ -1,7 +1,0 @@
-10Dec09 version files changed by 14Dec09 upgrade:
-
-src/app_diffusion.cpp
-src/app_diffusion.h
-src/app_lattice.cpp
-src/lattice.cpp
-src/read_sites.cpp

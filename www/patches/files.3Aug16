@@ -1,7 +1,0 @@
-2Aug16 version files changed by 3Aug16 upgrade:
-
-doc/Manual.html
-doc/Manual.pdf
-doc/Manual.txt
-src/app_potts.cpp
-src/version.h

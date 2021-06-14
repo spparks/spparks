@@ -1,7 +1,0 @@
-24Jun11 version files changed by 5Jul11 upgrade:
-
-doc/Manual.pdf
-src/MAKE/Makefile.xt5
-src/app_lattice.cpp
-src/create_sites.cpp
-src/version.h

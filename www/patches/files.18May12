@@ -1,8 +1,0 @@
-17May12 version files changed by 18May12 upgrade:
-
-doc/Manual.pdf
-examples/relax/in.relax
-src/create_sites.cpp
-src/create_sites.h
-src/read_sites.cpp
-src/version.h
