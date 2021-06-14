@@ -1,9 +1,0 @@
-25Feb16 version files changed by 26Feb16 upgrade:
-
-doc/Manual.html
-doc/Manual.pdf
-doc/Manual.txt
-src/app_lattice.cpp
-src/dump_image.cpp
-src/output.cpp
-src/version.h

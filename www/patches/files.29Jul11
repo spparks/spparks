@@ -1,6 +1,0 @@
-25Jul11 version files changed by 29Jul11 upgrade:
-
-doc/Manual.pdf
-src/STUBS/mpi.cpp
-src/STUBS/mpi.h
-src/version.h

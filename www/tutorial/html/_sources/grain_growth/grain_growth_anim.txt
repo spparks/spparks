@@ -1,9 +1,0 @@
-
-Grain growth animation
-======================
-
-
-Lattice: :math:`128\times 128`, :math:`kT=0.85`
-
-.. image:: n.128/images/grain_growth.gif
-   :width: 65%

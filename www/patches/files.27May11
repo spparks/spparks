@@ -1,7 +1,0 @@
-30Mar11 version files changed by 27May11 upgrade:
-
-doc/app_diffusion.html
-doc/app_diffusion.txt
-src/app_diffusion.cpp
-src/app_lattice.cpp
-src/version.h

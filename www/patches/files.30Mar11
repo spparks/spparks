@@ -1,6 +1,0 @@
-21mar11 version files changed by 30Mar11 upgrade:
-
-src/app_lattice.cpp
-src/app_lattice.h
-src/app_potts.h
-src/version.h
