@@ -1,0 +1,22 @@
+Examples in this directory demonstrate use of phase separation app.  Input
+scripts for each example:
+
+* in.pairwise_weights
+* in.pin_filler
+* in.variable_volume_fraction
+
+The examples can be run in serial or parallel; log files for parallel runs (on
+8 processors) are included in this directory.  Log files demonstrate what a
+normal spparks run should nominally look like on 8 processors for the above
+scripts.  On 8 processors, the examples run in less than 5 minutes.
+
+* log.pairwise_weights.June18.2021.linux.8
+* log.pin_filler.June18.2021.linux.8
+* log.variable_volume_fraction.June18.2021.linux.8
+
+The examples demonstrate use of all the app specific (phase/separation)
+commands; the input scripts are also documentated for ease of use 
+and understanding.
+
+Each example dumps a stitch file and 4 images (jpeg) representing the 
+evolution of two different phases constrained by a pinned filler phase.
