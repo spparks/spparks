@@ -1,0 +1,69 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+phasesep weight command :h3
+
+[Syntax:]
+
+phasesep weight w pair i j :pre
+
+w = floating point weight applied between phases i and j
+pair = required keyword
+i j = pair of integers phase labels :ul
+
+This command must follow the 'create_sites' command in the input script.
+
+[Examples:]
+
+###########################################################################
+# Example: defining pairwise weights ######################################
+###########################################################################
+# This example defines three phases: 1,2,3
+#    phase 1 is pinned
+#    weight between phases 2 and 3 set to 0.5; 
+#    weight between phases 1 & 2 and phases 1 & 3 defaults to 1.0
+#
+phasesep pin 1
+phasesep phase 2
+phasesep phase 3
+#
+#
+# Pairwise phase weights are optional; default 1.0
+# Need only input weight once for pair (i,j); symmetry 
+#    is enforced in app; same weight is internally 
+#    assigned to pair(j,i)
+# phasesep weight &ltdouble value&gt pair &ltint phase_1,int phase_2&gt 
+phasesep weight 0.5 pair 2 3
+########################################################################### :pre
+
+[Description:]
+
+This is an optional command used by
+"app_style phase/separation"_app_phase_separation.html to specify pairwise bond
+energy weights between phases.  All pairwise bond energy weights default to 1.0
+unless specified otherwise with this command.  All possible pairings of
+different phases can be specified. The order of pairing does not matter, ie
+pair (i,j) is handled the same as pair (j,i);  if a weight between phases (i,j) is
+specified then a weight for (j,i) is not required as symmetry is assumed and
+the same weight will be applied for (j,i) as is applied for (i,j).
+
+
+[Restrictions:]
+
+This command may only be used by "app_style
+phase/separation"_app_phase_separation.html and is not applicable to any other apps.
+
+[Related commands:]
+
+"phasesep_pin"_phasesep_pin.html
+
+"phasesep_phase"_phasesep_phase.html
+
+[Default:] 
+
+The default weights for all possible phase pairings is 1.0
