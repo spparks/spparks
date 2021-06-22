@@ -9,11 +9,11 @@
 
 <HR>
 
-<H3>phasesep weight command 
+<H3>diffusion/multiphase weight command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>phasesep weight w pair i j 
+<PRE>diffusion/multiphase weight w pair i j 
 </PRE>
 <UL><LI>w = floating point weight applied between phases i and j
 <LI>pair = required keyword
@@ -31,23 +31,23 @@
 #    weight between phases 2 and 3 set to 0.5; 
 #    weight between phases 1 & 2 and phases 1 & 3 defaults to 1.0
 #
-phasesep pin 1
-phasesep phase 2
-phasesep phase 3
+diffusion/multiphase pin 1
+diffusion/multiphase phase 2
+diffusion/multiphase phase 3
 #
 #
 # Pairwise phase weights are optional; default 1.0
 # Need only input weight once for pair (i,j); symmetry 
 #    is enforced in app; same weight is internally 
 #    assigned to pair(j,i)
-# phasesep weight &ltdouble value&gt pair &ltint phase_1,int phase_2&gt 
-phasesep weight 0.5 pair 2 3
+# diffusion/multiphase weight &ltdouble value&gt pair &ltint phase_1,int phase_2&gt 
+diffusion/multiphase weight 0.5 pair 2 3
 ########################################################################### 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This is an optional command used by
-<A HREF = "app_phase_separation.html">app_style phase/separation</A> to specify pairwise bond
+<A HREF = "app_diffusion_multiphase.html">app_style diffusion/multiphase</A> to specify pairwise bond
 energy weights between phases.  All pairwise bond energy weights default to 1.0
 unless specified otherwise with this command.  All possible pairings of
 different phases can be specified. The order of pairing does not matter, ie
@@ -57,14 +57,14 @@ the same weight will be applied for (j,i) as is applied for (i,j).
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This command may only be used by <A HREF = "app_phase_separation.html">app_style
-phase/separation</A> and is not applicable to any other apps.
+<P>This command may only be used by <A HREF = "app_diffusion_multiphase.html">app_style
+diffusion/multiphase</A> and is not applicable to any other apps.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "phasesep_pin.html">phasesep_pin</A>
+<P><A HREF = "diffmultiphase_pin.html">diffmultiphase_pin</A>
 </P>
-<P><A HREF = "phasesep_phase.html">phasesep_phase</A>
+<P><A HREF = "diffmultiphase_phase.html">diffmultiphase_phase</A>
 </P>
 <P><B>Default:</B> 
 </P>

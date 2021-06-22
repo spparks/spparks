@@ -19,9 +19,9 @@ variable OUT_FILLER world pairwise_weights.st
 seed		 ${SEED}
 seed		 1
 
+# Declare app
+app_style diffusion/multiphase
 
-# Declare phase separation ap
-app_style  phase/separation
 # 
 dimension	 3
 
@@ -42,24 +42,24 @@ Creating sites ...
 # Define phase labels '1' '2' and '3'
 # Must always be after 'create_sites'
 # Define and pin phase '1'
-phasesep pin 1
+diffusion/multiphase pin 1
 # Define phases '2' and '3'
-phasesep phase 2
-phasesep phase 3
+diffusion/multiphase phase 2
+diffusion/multiphase phase 3
 
 # Pairwise phase weights are optional; default 1.0
 # Need only input weight once for pair (i,j); symmetry 
 #    is enforced in app; same weight is internally 
 #    assigned to pair(j,i)
-# phasesep weight <double> pair <int phase_1,int phase_2> 
-phasesep weight 0.5 pair 1 2
+# diffusion/multiphase weight <double> pair <int phase_1,int phase_2> 
+diffusion/multiphase weight 0.5 pair 1 2
 
 # Initialize filler from stitch file;
 # In this case -- the filler phase label is '1' with 
 #    all remaining sites set to a phase value '0';
 # Fact that non-filler values are '0' is leveraged below;
 # Read 'stitch' file using 'first' time step in file
-# Sets the variable 'i1' in app phase/separation
+# Sets the variable 'i1' in app diffusion/multiphase
 set i1 stitch ${IN_FILLER} first
 set i1 stitch vf03_nvox100.st first
   1000000 settings made for i1
@@ -92,25 +92,25 @@ Running with 32-bit site IDs
 Memory usage per processor = 21.875 Mbytes
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
          0          0          0          0          0 1.08301e+07
-    15.789    1449626          0          7       20.7 5.59422e+06
-   26.0632    1683547          0          8       23.2 5.46053e+06
-   38.6075    1897885          0          9       25.6 5.3702e+06
-   54.6698    2112242          0         10       28.1 5.29747e+06
-   76.7169    2345881          0         11       30.7 5.2382e+06
-    105.03    2595870          0         12       33.9 5.19005e+06
-   129.246    2785736          0         13         36 5.15893e+06
-   164.478    3026914          0         14       38.7 5.12537e+06
-   198.643    3247319          0         15       41.2 5.09571e+06
-   239.597    3481405          0         16       44.5 5.06821e+06
-   282.414    3701152          0         17       47.3 5.04682e+06
-   329.724    3920043          0         18       50.3 5.02906e+06
-    369.66    4105199          0         19       52.7 5.01289e+06
-       400    4240883          0         20         55 5.00271e+06
-Loop time of 54.9577 on 8 procs
+    15.789    1449626          0          7       20.4 5.59422e+06
+   26.0632    1683547          0          8       22.9 5.46053e+06
+   38.6075    1897885          0          9       25.3 5.3702e+06
+   54.6698    2112242          0         10       27.7 5.29747e+06
+   76.7169    2345881          0         11       30.3 5.2382e+06
+    105.03    2595870          0         12       33.5 5.19005e+06
+   129.246    2785736          0         13       35.6 5.15893e+06
+   164.478    3026914          0         14       38.3 5.12537e+06
+   198.643    3247319          0         15       40.8 5.09571e+06
+   239.597    3481405          0         16         44 5.06821e+06
+   282.414    3701152          0         17       46.7 5.04682e+06
+   329.724    3920043          0         18       49.7 5.02906e+06
+    369.66    4105199          0         19         52 5.01289e+06
+       400    4240883          0         20       54.3 5.00271e+06
+Loop time of 54.2568 on 8 procs
 
-Solve time (%) = 0.100742 (0.183308)
+Solve time (%) = 0.102827 (0.189519)
 Update time (%) = 0 (0)
-Comm  time (%) = 11.6697 (21.234)
-Outpt time (%) = 2.34061 (4.25893)
-App   time (%) = 40.8298 (74.2931)
-Other time (%) = 0.0168458 (0.0306523)
+Comm  time (%) = 11.4392 (21.0834)
+Outpt time (%) = 2.27684 (4.19641)
+App   time (%) = 40.4229 (74.5029)
+Other time (%) = 0.0150696 (0.0277746)

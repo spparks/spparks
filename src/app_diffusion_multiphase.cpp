@@ -14,19 +14,18 @@
 #include "math.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_phase_separation.h"
 #include "solve.h"
 #include "domain.h"
 #include "random_park.h"
 #include "memory.h"
 #include "error.h"
+#include "app_diffusion_multiphase.h"
 
 using namespace SPPARKS_NS;
 using std::map;
 using std::set;
 
 enum{LINEAR};
-enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};  // from app_lattice.cpp
 
 #define DELTAEVENT 100000
 
@@ -38,7 +37,7 @@ enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};  // from app_lattice.cpp
 
 /* ---------------------------------------------------------------------- */
 
-AppPhaseSeparation::AppPhaseSeparation(SPPARKS *spk, int narg, char **arg) : 
+AppDiffusionMultiphase::AppDiffusionMultiphase(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg), phase_labels(), weights()
 {
 
@@ -73,7 +72,7 @@ AppPhaseSeparation::AppPhaseSeparation(SPPARKS *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-AppPhaseSeparation::~AppPhaseSeparation()
+AppDiffusionMultiphase::~AppDiffusionMultiphase()
 {
   delete [] esites;
   delete [] echeck;
@@ -85,7 +84,7 @@ AppPhaseSeparation::~AppPhaseSeparation()
    input script commands unique to this app
 ------------------------------------------------------------------------- */
 
-void AppPhaseSeparation::input_app(char *command, int narg, char **arg)
+void AppDiffusionMultiphase::input_app(char *command, int narg, char **arg)
 {
   if (sites_exist == 0) {
     char str[128];
@@ -96,58 +95,58 @@ void AppPhaseSeparation::input_app(char *command, int narg, char **arg)
   if (!allocated) allocate_data();
   allocated = 1;
 
-  if (strcmp(command,"phasesep") == 0) {
-   parse_phasesep(narg,arg);
+  if (strcmp(command,"diffusion/multiphase") == 0) {
+   parse_diffmultiphase(narg,arg);
   } else error->all(FLERR,"Unrecognized command");
 
 }
 
-void AppPhaseSeparation::parse_phasesep(int narg, char **arg){
+void AppDiffusionMultiphase::parse_diffmultiphase(int narg, char **arg){
    //int my_rank;
    //MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
    //{
    //   if (0==my_rank){
-   //      printf("%s\n", " AppPhaseSeparation::input_app 'phase_sep'\n");
-   //      printf("app_phase_separation::parse_phasesep\n");
-   //      printf("app_phase_separation::parse_phasesep; arg[0]=%s\n",arg[0]);
-   //      printf("app_phase_separation::parse_phasesep; narg=%3d\n",narg);
+   //      printf("%s\n", " AppDiffusionMultiphase::input_app 'diffusion/multiphase'\n");
+   //      printf("AppDiffusionMultiphase::parse_diffmultiphase\n");
+   //      printf("AppDiffusionMultiphase::parse_diffmultiphase; arg[0]=%s\n",arg[0]);
+   //      printf("AppDiffusionMultiphase::parse_diffmultiphase; narg=%3d\n",narg);
    //   }
    //}
 
-   // 2 args: phasesep phase <int value>
-   // 2 args: phasesep pin <int value>
-   // 5 args: phasesep weight <double> pair <int,int>
-   if (narg < 2) error->all(FLERR,"Illegal 'phase_sep' command; wrong num args.");
+   // 2 args: diffusion/multiphase phase <int value>
+   // 2 args: diffusion/multiphase pin <int value>
+   // 5 args: diffusion/multiphase weight <double> pair <int,int>
+   if (narg < 2) error->all(FLERR,"Illegal 'diffusion/multiphase' command; wrong num args.");
    if(strcmp(arg[0],"phase")==0){
-      if (narg != 2) error->all(FLERR,"Illegal 'phase_sep phase' command; num args != 2");
+      if (narg != 2) error->all(FLERR,"Illegal 'diffusion/multiphase phase' command; num args != 2");
       int phase=std::atoi(arg[1]);
       phase_labels.insert(phase);
-      if (phase < 1) error->all(FLERR,"Illegal 'phase_sep phase' value; must be >=1");
+      if (phase < 1) error->all(FLERR,"Illegal 'diffusion/multiphase phase' value; must be >=1");
    } else if(strcmp(arg[0],"pin")==0){
-      if (narg != 2) error->all(FLERR,"Illegal 'phase_sep pin' command; num args != 2");
+      if (narg != 2) error->all(FLERR,"Illegal 'diffusion/multiphase pin' command; num args != 2");
       int pin_phase=std::atoi(arg[1]);
       npin=pin_phase;
       phase_labels.insert(pin_phase);
-      if (pin_phase < 1) error->all(FLERR,"Illegal 'phase_sep pin' value; must be >=1");
+      if (pin_phase < 1) error->all(FLERR,"Illegal 'diffusion/multiphase pin' value; must be >=1");
    } else if(strcmp(arg[0],"weight")==0){
-      if (narg != 5) error->all(FLERR,"Illegal 'phase_sep weight' command; num args != 5");
+      if (narg != 5) error->all(FLERR,"Illegal 'diffusion/multiphase weight' command; num args != 5");
       double w=std::atof(arg[1]);
       if(strcmp(arg[2],"pair")==0){
          int p1=std::atoi(arg[3]);
          int p2=std::atoi(arg[4]);
          weights[{p1,p2}]=w;
          weights[{p2,p1}]=w;
-         if (p1<1 || p2<1) error->all(FLERR,"Illegal 'phase_sep weight'; phases must be >=1");
-         if (w<0) error->all(FLERR,"Illegal 'phase_sep weight'; weight must be >=0");
-      } else error->all(FLERR,"Illegal 'phasesep weight' command; expected keyword 'pair'");
-   } else error->all(FLERR,"Illegal 'phasesep' command; expected 'phase','pin', or 'weight'");
+         if (p1<1 || p2<1) error->all(FLERR,"Illegal 'diffusion/multiphase weight'; phases must be >=1");
+         if (w<0) error->all(FLERR,"Illegal 'diffusion/multiphase weight'; weight must be >=0");
+      } else error->all(FLERR,"Illegal 'diffusion/multiphase weight' command; expected keyword 'pair'");
+   } else error->all(FLERR,"Illegal 'diffusion/multiphase' command; expected 'phase','pin', or 'weight'");
 }
 
 /* ----------------------------------------------------------------------
    set site value ptrs each time iarray/darray are reallocated
 ------------------------------------------------------------------------- */
 
-void AppPhaseSeparation::grow_app()
+void AppDiffusionMultiphase::grow_app()
 {
   lattice = iarray[0];
 }
@@ -157,7 +156,7 @@ void AppPhaseSeparation::grow_app()
    check validity of site values
 ------------------------------------------------------------------------- */
 
-void AppPhaseSeparation::init_app()
+void AppDiffusionMultiphase::init_app()
 {
 
    if (!allocated) allocate_data();
@@ -218,7 +217,7 @@ void AppPhaseSeparation::init_app()
    setup before each run
 ------------------------------------------------------------------------- */
 
-void AppPhaseSeparation::setup_app()
+void AppDiffusionMultiphase::setup_app()
 {
   for (int i = 0; i < nlocal+nghost; i++) echeck[i] = 0;
 
@@ -234,7 +233,7 @@ void AppPhaseSeparation::setup_app()
    compute energy of site
 ------------------------------------------------------------------------- */
 
-double AppPhaseSeparation::site_energy(int i)
+double AppDiffusionMultiphase::site_energy(int i)
 {
 
   // Energy is a linear function of coordination number, just count bonds
@@ -258,7 +257,7 @@ double AppPhaseSeparation::site_energy(int i)
    null bin extends to size maxneigh
 ------------------------------------------------------------------------- */
 
-void AppPhaseSeparation::site_event_rejection(int i, RandomPark *random)
+void AppDiffusionMultiphase::site_event_rejection(int i, RandomPark *random)
 {
   double einitial,edelta;
   int i_old, j_old;
@@ -304,7 +303,7 @@ void AppPhaseSeparation::site_event_rejection(int i, RandomPark *random)
    compute total propensity of owned site summed over possible events
 ------------------------------------------------------------------------- */
 
-double AppPhaseSeparation::site_propensity(int i)
+double AppDiffusionMultiphase::site_propensity(int i)
 {
   //if (engstyle == LINEAR) 
   return site_propensity_linear(i);
@@ -313,7 +312,7 @@ double AppPhaseSeparation::site_propensity(int i)
 
 /* ---------------------------------------------------------------------- */
 
-double AppPhaseSeparation::site_propensity_linear(int i)
+double AppDiffusionMultiphase::site_propensity_linear(int i)
 {
   int j,k, i_old, j_old;
   double einitial,edelta,probone,proball;
@@ -366,7 +365,7 @@ double AppPhaseSeparation::site_propensity_linear(int i)
    choose and perform an event for site
 ------------------------------------------------------------------------- */
 
-void AppPhaseSeparation::site_event(int i, class RandomPark *random)
+void AppDiffusionMultiphase::site_event(int i, class RandomPark *random)
 {
   //if (engstyle == LINEAR)
     return site_event_linear(i,random);
@@ -374,7 +373,7 @@ void AppPhaseSeparation::site_event(int i, class RandomPark *random)
 
 /* ---------------------------------------------------------------------- */
 
-void AppPhaseSeparation::site_event_linear(int i, class RandomPark *random)
+void AppDiffusionMultiphase::site_event_linear(int i, class RandomPark *random)
 {
   int j,k,m,isite, i_old, j_old;
 
@@ -450,7 +449,7 @@ void AppPhaseSeparation::site_event_linear(int i, class RandomPark *random)
    add cleared events to free list
 ------------------------------------------------------------------------- */
 
-void AppPhaseSeparation::clear_events(int i)
+void AppDiffusionMultiphase::clear_events(int i)
 {
   int next;
   int index = firstevent[i];
@@ -469,7 +468,7 @@ void AppPhaseSeparation::clear_events(int i)
    event = exchange with site J with probability = propensity
 ------------------------------------------------------------------------- */
 
-void AppPhaseSeparation::add_event(int i, int destination, 
+void AppDiffusionMultiphase::add_event(int i, int destination, 
 			      double propensity)
 {
   // grow event list and setup free list
@@ -496,7 +495,7 @@ void AppPhaseSeparation::add_event(int i, int destination,
    so that nlocal,nghost,maxneigh are set
 ------------------------------------------------------------------------- */
 
-void AppPhaseSeparation::allocate_data()
+void AppDiffusionMultiphase::allocate_data()
 {
   // for linear:
   //   make esites large enough for 1 sites and their 1,2 neighbors

@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
-AppStyle(phase/separation,AppPhaseSeparation)
+AppStyle(diffusion/multiphase,AppDiffusionMultiphase)
 
 #else
 
-#ifndef SPK_APP_PHASE_SEPARATION_H
-#define SPK_APP_PHASE_SEPARATION_H
+#ifndef SPK_APP_DIFFUSION_MULTIPHASE_H
+#define SPK_APP_DIFFUSION_MULTIPHASE_H
 
 #include "app_lattice.h"
 #include <map>
@@ -27,13 +27,11 @@ AppStyle(phase/separation,AppPhaseSeparation)
 
 namespace SPPARKS_NS {
 
-class AppPhaseSeparation : public AppLattice {
-  friend class DiagDiffusion;
-
+class AppDiffusionMultiphase : public AppLattice {
 
  public:
-  AppPhaseSeparation(class SPPARKS *, int, char **);
-  ~AppPhaseSeparation();
+  AppDiffusionMultiphase(class SPPARKS *, int, char **);
+  ~AppDiffusionMultiphase();
   void input_app(char *, int, char **);
   void grow_app();
   void init_app();
@@ -71,7 +69,7 @@ class AppPhaseSeparation : public AppLattice {
   // phases and pairwise weights used for site energy calculation
   std::set<int> phase_labels;
   std::map<std::pair<int,int>,double> weights;
-  void parse_phasesep(int narg, char **arg);
+  void parse_diffmultiphase(int narg, char **arg);
 
   double site_propensity_linear(int);
   

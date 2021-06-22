@@ -9,33 +9,33 @@
 
 <HR>
 
-<H3>app_style phase/separation command 
+<H3>app_style diffusion/multiphase command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>app_style phase/separation 
+<PRE>app_style diffusion/multiphase 
 </PRE>
 <P>The following commands defined by this app must be used to specify phases and
 other optional app features.  All of the commands below must follow the 
 'create_sites' command in the script.
 </P>
-<LI><A HREF = "phasesep_phase.html">phasesep phase</A>: required command to specify a phase and its numeric label 
+<LI><A HREF = "diffmultiphase_phase.html">diffusion/multiphase phase</A>: required command to specify a phase and its numeric label 
 
-<LI><A HREF = "phasesep_pin.html">phasesep pin</A>: optional command to specify phase label which should be pinned 
+<LI><A HREF = "diffmultiphase_pin.html">diffusion/multiphase pin</A>: optional command to specify phase label which should be pinned 
 
-<LI><A HREF = "phasesep_weight.html">phasesep weight</A>: optional command specifying weight for bond energy between specified phase pair 
+<LI><A HREF = "diffmultiphase_weight.html">diffusion/multiphase weight</A>: optional command specifying weight for bond energy between specified phase pair 
 
 <P><B>Description:</B>
 </P>
 <P>The phase separation app is a multiphase extension to the single phase
 <A HREF = "app_diffusion.html">diffusion</A> app but limited to the energy style 'linear'; it
 can run an arbitrary number of phases.  All phases must be declared using
-either <A HREF = "phasesep_phase.html">phasesep phase</A> or <A HREF = "phasesep_pin.html">phasesep
+either <A HREF = "diffmultiphase_phase.html">diffusion/multiphase phase</A> or <A HREF = "diffmultiphase_pin.html">diffmultiphase
 pin</A>.  Only one phase can be declared as pinned; pinning a
 phase is optional and prevents diffusion of that particular phase;  all
-remaining phases must be declared using <A HREF = "phasesep_phase.html">phasesep phase</A>. 
+remaining phases must be declared using <A HREF = "diffmultiphase_phase.html">diffusion/multiphase phase</A>. 
 </P>
-<P>A novelty of the app is the <A HREF = "phasesep_weight.html">phasesep weight</A> command
+<P>A novelty of the app is the <A HREF = "diffmultiphase_weight.html">diffusion/multiphase weight</A> command
 which is used to specify relative bonding energies between phases in the form
 of pairwise weights.  In general, diffusion and phase separation occurs because
 bond energies between like phases are lower than bond energies between
@@ -43,7 +43,7 @@ different phases; hence phase separation occurs because it is the preferred
 lower energy configuration.  However, the rate of phase separation and the
 degree to which it occurs over a particular simulation time is controlled by
 the relative bond energies between different phases.  Some phases may more
-easily bond with other phases; this is controlled using the optional <A HREF = "phasesep_weight.html">phasesep
+easily bond with other phases; this is controlled using the optional <A HREF = "diffmultiphase_weight.html">diffmultiphase
 weight</A> command to specify bond energies for each possible
 phase pairing; by default all pairwise bond energies are set to 1.0.
 </P>
@@ -68,30 +68,30 @@ information.
 </P>
 <P><B>Examples:</B>
 </P>
-<PRE>See <A HREF = "phasesep_phase.html">phasesep_phase</A> for syntax to declare phases. 
+<PRE>See <A HREF = "diffmultiphase_phase.html">diffmultiphase_phase</A> for syntax to declare phases. 
 </PRE>
-<PRE>See <A HREF = "phasesep_pin.html">phasesep_pin</A> for syntax to declare pinned phase. 
+<PRE>See <A HREF = "diffmultiphase_pin.html">diffmultiphase_pin</A> for syntax to declare pinned phase. 
 </PRE>
-<PRE>See <A HREF = "phasesep_weight.html">phasesep_weight</A> for syntax to specify pairwise bond weights between phases. 
+<PRE>See <A HREF = "diffmultiphase_weight.html">diffmultiphase_weight</A> for syntax to specify pairwise bond weights between phases. 
 </PRE>
 <P>Full working script examples are included in the examples directory.  These are briefly summarized below.
 </P>
 <PRE>###########################################################################
-# Example 1: see examples/phase_separation/in.pin_filler
-#  * uses 'phasesep pin' 
-#  * uses 'phasesep phase'
+# Example 1: see examples/diffusion_multiphase/in.pin_filler
+#  * uses 'diffusion/multiphase pin' 
+#  * uses 'diffusion/multiphase phase'
 #  * uses 'set stitch' to initialize phase 1; remaining sites set to 0
 #  * uses 'set i1 range' to randomly initialize remaining sites with phase 0
 ########################################################################### 
 </PRE>
 <PRE>###########################################################################
-# Example 2: see examples/phase_separation/in.pairwise_weights
+# Example 2: see examples/diffusion_multiphase/in.pairwise_weights
 #  * uses all of the commands in Example 1 
-#  * uses 'phasesep weight' to assign pairwise bond weights between phases
+#  * uses 'diffusion/multiphase weight' to assign pairwise bond weights between phases
 ########################################################################### 
 </PRE>
 <PRE>###########################################################################
-# Example 3: see examples/phase_separation/in.variable_volume_fraction
+# Example 3: see examples/diffusion_multiphase/in.variable_volume_fraction
 #  * uses all of the commands in Examples 1, and 2 above
 #  * uses 'set i1 range' command multiple times to assign variable 
 #      volume fraction for phases 2 and 3
@@ -101,11 +101,11 @@ information.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "phasesep_phase.html">phasesep_phase</A> : Required command declares phase integer value labels.
+<P><A HREF = "diffmultiphase_phase.html">diffmultiphase_phase</A> : Required command declares phase integer value labels.
 </P>
-<P><A HREF = "phasesep_weight.html">phasesep_weight</A> : Optionally specify weights between phases. 
+<P><A HREF = "diffmultiphase_weight.html">diffmultiphase_weight</A> : Optionally specify weights between phases. 
 </P>
-<P><A HREF = "phasesep_pin.html">phasesep_pin</A> : Optionally specify pinned phase.
+<P><A HREF = "diffmultiphase_pin.html">diffmultiphase_pin</A> : Optionally specify pinned phase.
 </P>
 <P>The phase separation app is a multiphase extension to the single phase 
 <A HREF = "app_diffusion.html">diffusion</A> app but limited to the energy style 'linear'.

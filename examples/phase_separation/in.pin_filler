@@ -18,8 +18,9 @@ variable OUT_FILLER world pin_filler.st
 seed		 ${SEED}
 
 
-# Declare phase separation ap
-app_style  phase/separation
+# Declare app
+app_style diffusion/multiphase
+
 # 
 dimension	 3
 
@@ -35,17 +36,17 @@ create_sites     box
 # Define phase labels '1' '2' and '3'
 # Must always be after 'create_sites'
 # Define and pin phase '1'
-phasesep pin 1
+diffusion/multiphase pin 1
 # Define phases '2' and '3'
-phasesep phase 2
-phasesep phase 3
+diffusion/multiphase phase 2
+diffusion/multiphase phase 3
 
 # Initialize filler from stitch file;
 # In this case -- the filler phase label is '1' with 
 #    all remaining sites set to a phase value '0';
 # Fact that non-filler values are '0' is leveraged below;
 # Read 'stitch' file using 'first' time step in file
-# Sets the variable 'i1' in app phase/separation
+# Sets the variable 'i1' in app diffusion/multiphase
 set i1 stitch ${IN_FILLER} first
 
 # NOTE: this command is sensitive to 'phase' values 

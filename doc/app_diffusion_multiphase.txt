@@ -6,31 +6,31 @@
 
 :line
 
-app_style phase/separation command :h3
+app_style diffusion/multiphase command :h3
 
 [Syntax:]
 
-app_style phase/separation :pre
+app_style diffusion/multiphase :pre
 
 The following commands defined by this app must be used to specify phases and
 other optional app features.  All of the commands below must follow the 
 'create_sites' command in the script.
 
-"phasesep phase"_phasesep_phase.html: required command to specify a phase and its numeric label :l
-"phasesep pin"_phasesep_pin.html: optional command to specify phase label which should be pinned :l
-"phasesep weight"_phasesep_weight.html: optional command specifying weight for bond energy between specified phase pair :l
+"diffusion/multiphase phase"_diffmultiphase_phase.html: required command to specify a phase and its numeric label :l
+"diffusion/multiphase pin"_diffmultiphase_pin.html: optional command to specify phase label which should be pinned :l
+"diffusion/multiphase weight"_diffmultiphase_weight.html: optional command specifying weight for bond energy between specified phase pair :l
 
 [Description:]
 
 The phase separation app is a multiphase extension to the single phase
 "diffusion"_app_diffusion.html app but limited to the energy style 'linear'; it
 can run an arbitrary number of phases.  All phases must be declared using
-either "phasesep phase"_phasesep_phase.html or "phasesep
-pin"_phasesep_pin.html.  Only one phase can be declared as pinned; pinning a
+either "diffusion/multiphase phase"_diffmultiphase_phase.html or "diffmultiphase
+pin"_diffmultiphase_pin.html.  Only one phase can be declared as pinned; pinning a
 phase is optional and prevents diffusion of that particular phase;  all
-remaining phases must be declared using "phasesep phase"_phasesep_phase.html. 
+remaining phases must be declared using "diffusion/multiphase phase"_diffmultiphase_phase.html. 
 
-A novelty of the app is the "phasesep weight"_phasesep_weight.html command
+A novelty of the app is the "diffusion/multiphase weight"_diffmultiphase_weight.html command
 which is used to specify relative bonding energies between phases in the form
 of pairwise weights.  In general, diffusion and phase separation occurs because
 bond energies between like phases are lower than bond energies between
@@ -38,8 +38,8 @@ different phases; hence phase separation occurs because it is the preferred
 lower energy configuration.  However, the rate of phase separation and the
 degree to which it occurs over a particular simulation time is controlled by
 the relative bond energies between different phases.  Some phases may more
-easily bond with other phases; this is controlled using the optional "phasesep
-weight"_phasesep_weight.html command to specify bond energies for each possible
+easily bond with other phases; this is controlled using the optional "diffmultiphase
+weight"_diffmultiphase_weight.html command to specify bond energies for each possible
 phase pairing; by default all pairwise bond energies are set to 1.0.
 
 To run this application, an initial phase distribution on the lattice must be
@@ -63,30 +63,30 @@ information.
 
 [Examples:]
 
-See "phasesep_phase"_phasesep_phase.html for syntax to declare phases. :pre
+See "diffmultiphase_phase"_diffmultiphase_phase.html for syntax to declare phases. :pre
 
-See "phasesep_pin"_phasesep_pin.html for syntax to declare pinned phase. :pre
+See "diffmultiphase_pin"_diffmultiphase_pin.html for syntax to declare pinned phase. :pre
 
-See "phasesep_weight"_phasesep_weight.html for syntax to specify pairwise bond weights between phases. :pre
+See "diffmultiphase_weight"_diffmultiphase_weight.html for syntax to specify pairwise bond weights between phases. :pre
 
 Full working script examples are included in the examples directory.  These are briefly summarized below.
 
 ###########################################################################
-# Example 1: see examples/phase_separation/in.pin_filler
-#  * uses 'phasesep pin' 
-#  * uses 'phasesep phase'
+# Example 1: see examples/diffusion_multiphase/in.pin_filler
+#  * uses 'diffusion/multiphase pin' 
+#  * uses 'diffusion/multiphase phase'
 #  * uses 'set stitch' to initialize phase 1; remaining sites set to 0
 #  * uses 'set i1 range' to randomly initialize remaining sites with phase 0
 ########################################################################### :pre
 
 ###########################################################################
-# Example 2: see examples/phase_separation/in.pairwise_weights
+# Example 2: see examples/diffusion_multiphase/in.pairwise_weights
 #  * uses all of the commands in Example 1 
-#  * uses 'phasesep weight' to assign pairwise bond weights between phases
+#  * uses 'diffusion/multiphase weight' to assign pairwise bond weights between phases
 ########################################################################### :pre
 
 ###########################################################################
-# Example 3: see examples/phase_separation/in.variable_volume_fraction
+# Example 3: see examples/diffusion_multiphase/in.variable_volume_fraction
 #  * uses all of the commands in Examples 1, and 2 above
 #  * uses 'set i1 range' command multiple times to assign variable 
 #      volume fraction for phases 2 and 3
@@ -96,11 +96,11 @@ Full working script examples are included in the examples directory.  These are 
 
 [Related commands:]
 
-"phasesep_phase"_phasesep_phase.html : Required command declares phase integer value labels.
+"diffmultiphase_phase"_diffmultiphase_phase.html : Required command declares phase integer value labels.
 
-"phasesep_weight"_phasesep_weight.html : Optionally specify weights between phases. 
+"diffmultiphase_weight"_diffmultiphase_weight.html : Optionally specify weights between phases. 
 
-"phasesep_pin"_phasesep_pin.html : Optionally specify pinned phase.
+"diffmultiphase_pin"_diffmultiphase_pin.html : Optionally specify pinned phase.
 
 The phase separation app is a multiphase extension to the single phase 
 "diffusion"_app_diffusion.html app but limited to the energy style 'linear'.

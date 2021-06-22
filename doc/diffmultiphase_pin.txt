@@ -6,11 +6,11 @@
 
 :line
 
-phasesep pin command :h3
+diffusion/multiphase pin command :h3
 
 [Syntax:]
 
-phasesep pin id :pre
+diffusion/multiphase pin id :pre
 
 id = integer value; declares phase label and pins the phase
 
@@ -26,23 +26,23 @@ This command must follow the 'create_sites' command in the input script.
 #    weight between phases 2 and 3 set to 0.5; 
 #    weight between phases 1 & 2 and phases 1 & 3 defaults to 1.0
 #
-phasesep pin 1
-phasesep phase 2
-phasesep phase 3
+diffusion/multiphase pin 1
+diffusion/multiphase phase 2
+diffusion/multiphase phase 3
 #
 # Pairwise phase weights are optional; default 1.0
 # Need only input weight once for pair (i,j); symmetry 
 #    is enforced in app; same weight is internally 
 #    assigned to pair(j,i)
-# phasesep weight &ltdouble value&gt pair &ltint phase_1,int phase_2&gt 
-phasesep weight 0.5 pair 2 3
+# diffusion/multiphase weight &ltdouble value&gt pair &ltint phase_1,int phase_2&gt 
+diffusion/multiphase weight 0.5 pair 2 3
 ########################################################################### :pre
 
 [Description:]
 
 
 This is an optional command used by "app_style
-phase/separation"_app_phase_separation.html to specify a particular phase as
+diffusion/multiphase"_app_diffusion_multiphase.html to specify a particular phase as
 pinned; the app simulates diffusion by swapping sites; however, sites that are
 pinned are not allowed to swap thereby pinning them in place.  The energy at a
 pinned site does not contribute to the total system energy since the site can
@@ -53,15 +53,15 @@ neighboring sites which may include some pinned neighbors.
 [Restrictions:]
 
 This command may only be used by "app_style
-phase/separation"_app_phase_separation.html and is not applicable to any other apps.
+diffusion/multiphase"_app_diffusion_multiphase.html and is not applicable to any other apps.
 
 [Related commands:]
 
-"app_style phase/separation"_app_phase_separation.html 
+"app_style diffusion/multiphase"_app_diffusion_multiphase.html 
 
-"phasesep_weight"_phasesep_weight.html
+"diffmultiphase_weight"_diffmultiphase_weight.html
 
-"phasesep_phase"_phasesep_phase.html
+"diffmultiphase_phase"_diffmultiphase_phase.html
 
 [Default:] 
 
