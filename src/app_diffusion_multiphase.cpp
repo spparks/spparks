@@ -40,7 +40,6 @@ enum{LINEAR};
 AppDiffusionMultiphase::AppDiffusionMultiphase(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg), phase_labels(), weights()
 {
-
   //Need to double check these values
   ninteger = 1;
   ndouble = 0;
@@ -101,6 +100,8 @@ void AppDiffusionMultiphase::input_app(char *command, int narg, char **arg)
 
 }
 
+/* ---------------------------------------------------------------------- */
+
 void AppDiffusionMultiphase::parse_diffmultiphase(int narg, char **arg){
    //int my_rank;
    //MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -116,7 +117,9 @@ void AppDiffusionMultiphase::parse_diffmultiphase(int narg, char **arg){
    // 2 args: diffusion/multiphase phase <int value>
    // 2 args: diffusion/multiphase pin <int value>
    // 5 args: diffusion/multiphase weight <double> pair <int,int>
+
    if (narg < 2) error->all(FLERR,"Illegal 'diffusion/multiphase' command; wrong num args.");
+
    if(strcmp(arg[0],"phase")==0){
       if (narg != 2) error->all(FLERR,"Illegal 'diffusion/multiphase phase' command; num args != 2");
       int phase=std::atoi(arg[1]);
@@ -158,7 +161,6 @@ void AppDiffusionMultiphase::grow_app()
 
 void AppDiffusionMultiphase::init_app()
 {
-
    if (!allocated) allocate_data();
    allocated = 1;
 
@@ -210,7 +212,6 @@ void AppDiffusionMultiphase::init_app()
          }
       }
    }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -235,9 +236,9 @@ void AppDiffusionMultiphase::setup_app()
 
 double AppDiffusionMultiphase::site_energy(int i)
 {
-
   // Energy is a linear function of coordination number, just count bonds
   // between unlike sites; weight bonds
+
    double energy(0.0);
    int ip=lattice[i];
    for (int j = 0; j < numneigh[i]; j++){
@@ -309,14 +310,12 @@ double AppDiffusionMultiphase::site_propensity(int i)
   return site_propensity_linear(i);
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 double AppDiffusionMultiphase::site_propensity_linear(int i)
 {
   int j,k, i_old, j_old;
   double einitial,edelta,probone,proball;
-
 
   //Add event if neighbors are dissimilar and not npin
   clear_events(i);
@@ -358,7 +357,6 @@ double AppDiffusionMultiphase::site_propensity_linear(int i)
   }
   return proball;
 }
-
 
 /* ----------------------------------------------------------------------
    KMC method

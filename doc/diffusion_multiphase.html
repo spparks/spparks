@@ -1,0 +1,79 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>diffusion/multiphase command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>diffusion/multiphase keyword args 
+</PRE>
+<UL><LI>keyword = <I>phase</I> or <I>pin</I> or <I>weight</I> 
+
+<PRE>  <I>phase</I> arg = ID
+    ID = phase label (integer)
+  <I>pin</I> arg = ID
+    ID = phase label (integer) for a pinned phase
+  <I>weight</I> args = w pair i j
+    w = weight applied between phases i and j
+    pair = required keyword
+    i,j = pair of phase labels 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>diffusion/multiphase pin 1
+diffusion/multiphase phase 2
+diffusion/multiphase phase 3
+diffusion/multiphase weight 0.5 pair 2 3 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This is an optional command used with the <A HREF = "app_diffusion_multiphase.html">app_style
+diffusion/multiphase</A> application.
+</P>
+<P>The command is typically used multiple times, each time with one of 3
+keywords.
+</P>
+<P>The <I>phase</I> keyword defines a phase with an integer phase label.
+</P>
+<P>The <I>pin</I> keyword also defines a phase with an integer phase label and
+pins the phase, so that its sites never change values due to swaps in
+the diffusion application.  I.e. the sites in a pinned phase do not
+diffuse.  At most one phase can be pinned.
+</P>
+<P>The contribution of the energy of a pinned site to the total system
+energy does not change over time.  However, pinned sites do contribute
+to the energy of neighboring sites in the usual way.
+</P>
+<P>The <I>weight</I> keyword specifes pairwise bond energy weights between
+phases.  The default for all weights is 1.0.  A weight that
+is specified for an I,J pair will also be applied to J,I.
+</P>
+<P>In the 4 example lines above, 3 phases are defined.  Phase 1 is
+pinned, phases 2 and 3 are not.  A weight of 0.5 is applied to the 2,3
+pair of phases.  The weights for the 1,2 and 1,3 pairing are the
+default values of 1.0.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used with the <A HREF = "app_diffusion_multiphase.html">app_style
+diffusion/multiphase</A> application.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_diffusion_multiphase.html">app_style diffusion/multiphase</A> 
+</P>
+<P><B>Default:</B> 
+</P>
+<P>No phases defined, weights are all 1.0.
+</P>
+</HTML>

@@ -12,99 +12,55 @@ app_style diffusion/multiphase command :h3
 
 app_style diffusion/multiphase :pre
 
-The following commands defined by this app must be used to specify phases and
-other optional app features.  All of the commands below must follow the 
-'create_sites' command in the script.
+[Examples:]
 
-"diffusion/multiphase phase"_diffmultiphase_phase.html: required command to specify a phase and its numeric label :l
-"diffusion/multiphase pin"_diffmultiphase_pin.html: optional command to specify phase label which should be pinned :l
-"diffusion/multiphase weight"_diffmultiphase_weight.html: optional command specifying weight for bond energy between specified phase pair :l
+app_style diffusion/multiphase
+diffusion/multiphase pin 1           # after creating sites
+diffusion/multiphase phase 2
+diffusion/multiphase phase 3
+diffusion/multiphase weight 0.5 pair 2 3 :pre
 
 [Description:]
 
-The phase separation app is a multiphase extension to the single phase
-"diffusion"_app_diffusion.html app but limited to the energy style 'linear'; it
-can run an arbitrary number of phases.  All phases must be declared using
-either "diffusion/multiphase phase"_diffmultiphase_phase.html or "diffmultiphase
-pin"_diffmultiphase_pin.html.  Only one phase can be declared as pinned; pinning a
-phase is optional and prevents diffusion of that particular phase;  all
-remaining phases must be declared using "diffusion/multiphase phase"_diffmultiphase_phase.html. 
+This is an on-lattice application which is a multiphase extension to
+the single phase "diffusion"_app_diffusion.html app.  This app can run
+with an arbitrary number of phases, but is is limited to the energy
+style {linear} option of the "diffusion"_app_diffusion.html app.
 
-A novelty of the app is the "diffusion/multiphase weight"_diffmultiphase_weight.html command
-which is used to specify relative bonding energies between phases in the form
-of pairwise weights.  In general, diffusion and phase separation occurs because
-bond energies between like phases are lower than bond energies between
-different phases; hence phase separation occurs because it is the preferred
-lower energy configuration.  However, the rate of phase separation and the
-degree to which it occurs over a particular simulation time is controlled by
-the relative bond energies between different phases.  Some phases may more
-easily bond with other phases; this is controlled using the optional "diffmultiphase
-weight"_diffmultiphase_weight.html command to specify bond energies for each possible
-phase pairing; by default all pairwise bond energies are set to 1.0.
+In general, diffusion can lead to phase separation when bond energies
+(energy of a pair of neighboring sites) between like phases are lower
+than bond energies between different phases.  The rate of phase
+separation and the degree to which it occurs can be controlled by
+setting the relative bond energies between different phases.
 
-To run this application, an initial phase distribution on the lattice must be
-specified. Each lattice site has an integer value 'i1' which stores the phase
-label; the phase label must be set to an appropriate value before the
-app will run.  There are several ways to accomplish this initialization, some
-more complex than others.  If it is only necessary to specify the volume
-fraction of phases then it is most straight forward to use the
-"set"_set.html command; this command can be used multiple times in sequence to
-initialize needed volume fractions for different phases.  
-On the other hand, if there is structure to the initial phase distribution
-which must be computed externally, a straight forward approach is externally
-create the phase distribution and write it directly to a stitch file which
-can be imported into spparks using the 'stitch' style of the "set"_set.html command.
-Examples below use the 'set' and 'set stitch' command to
-demonstrate intialization.  It may also be possible to initialize the phase
-distribution using the "read_sites"_read_sites.html and/or
-"create_sites"_create_sites.html commands although that approach will be more
-complex and slower as it may be necessary to also specify lattice coordinates and other
-information.
+As illustrated in the example above the
+"diffusion/multiphase"_diffusion_multiphase.html is used with this
+application.  It defines the phases, which one (if any) is pinned so
+that no diffusion occurs, and the relative weights between all pairs
+of phases.
 
-[Examples:]
+To run this application, an initial phase distribution on the lattice
+should be specified.  Each lattice site has an integer spin value
+which stores its phase label.  If only relative volume fractions of
+the phases is desired, the "set"_set.html command can be used to set
+spin values randomly.  If there is a structure to the initial phase
+distribution, this can be written to a SPPARKS input file and read via
+the "read_sites"_read_sites.html command.  Or the "set
+stitch"_set.html command can be used to read this information from a
+Stitch file formatted by the Stitch library included with SPPARKS>
 
-See "diffmultiphase_phase"_diffmultiphase_phase.html for syntax to declare phases. :pre
+The examples/diffusion_multiphase directory has several scripts which
+illusrate use of this app:
 
-See "diffmultiphase_pin"_diffmultiphase_pin.html for syntax to declare pinned phase. :pre
+in.pin_filler
+in.pairwise_weighs
+in.variable_volume_fraction :ul
 
-See "diffmultiphase_weight"_diffmultiphase_weight.html for syntax to specify pairwise bond weights between phases. :pre
-
-Full working script examples are included in the examples directory.  These are briefly summarized below.
-
-###########################################################################
-# Example 1: see examples/diffusion_multiphase/in.pin_filler
-#  * uses 'diffusion/multiphase pin' 
-#  * uses 'diffusion/multiphase phase'
-#  * uses 'set stitch' to initialize phase 1; remaining sites set to 0
-#  * uses 'set i1 range' to randomly initialize remaining sites with phase 0
-########################################################################### :pre
-
-###########################################################################
-# Example 2: see examples/diffusion_multiphase/in.pairwise_weights
-#  * uses all of the commands in Example 1 
-#  * uses 'diffusion/multiphase weight' to assign pairwise bond weights between phases
-########################################################################### :pre
-
-###########################################################################
-# Example 3: see examples/diffusion_multiphase/in.variable_volume_fraction
-#  * uses all of the commands in Examples 1, and 2 above
-#  * uses 'set i1 range' command multiple times to assign variable 
-#      volume fraction for phases 2 and 3
-########################################################################### :pre
-
-[Restrictions:]
+[Restrictions:] none
 
 [Related commands:]
 
-"diffmultiphase_phase"_diffmultiphase_phase.html : Required command declares phase integer value labels.
+"diffusion/multiphase"_diffusion_multiphase.html, app_style
+diffusion"_app_diffusion.html
 
-"diffmultiphase_weight"_diffmultiphase_weight.html : Optionally specify weights between phases. 
-
-"diffmultiphase_pin"_diffmultiphase_pin.html : Optionally specify pinned phase.
-
-The phase separation app is a multiphase extension to the single phase 
-"diffusion"_app_diffusion.html app but limited to the energy style 'linear'.
-
-[Default:] 
-
-None
+[Default:] none

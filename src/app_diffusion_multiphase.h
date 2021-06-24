@@ -24,7 +24,6 @@ AppStyle(diffusion/multiphase,AppDiffusionMultiphase)
 #include <set>
 #include <utility>
 
-
 namespace SPPARKS_NS {
 
 class AppDiffusionMultiphase : public AppLattice {
