@@ -303,6 +303,7 @@ applications.
 "deep_length"_deep_length.html,
 "deep_width"_deep_width.html,
 "deposition"_deposition.html,
+"diffusion/multiphase"_diffusion_multiphase.html,
 "ecoord"_ecoord.html,
 "elliopsoid_depth"_ellipsoid_depth.html,
 "event"_event.html,
@@ -323,6 +324,7 @@ full description:
 
 "chemistry"_app_chemistry.html,
 "diffusion"_app_diffusion.html,
+"diffusion/multiphase"_app_diffusion_multiphase.html,
 "erbium"_app_erbium.html,
 "ising"_app_ising.html,
 "ising/single"_app_ising.html,
