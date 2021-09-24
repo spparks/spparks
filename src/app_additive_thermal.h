@@ -28,13 +28,12 @@ namespace SPPARKS_NS {
 class AppAdditiveTemperature : public AppPotts {
  public:
   AppAdditiveTemperature(class SPPARKS *, int, char **);
-    virtual ~AppAdditiveTemperature();
 	virtual void grow_app();
 	virtual void init_app();
 	virtual void site_event_rejection(int, class RandomPark *);
 	virtual double compute_mobility(int, class RandomPark *);
 	virtual void nucleation_particle_flipper(int, int,class RandomPark *);
-   virtual void input_app(char *, int, char **);
+  virtual void input_app(char *, int, char **);
 	virtual void app_update(double);
 	virtual void mushy_phase(int, class RandomPark *);
 	virtual void nucleation_spins(class RandomPark *);
@@ -149,7 +148,7 @@ class AppAdditiveTemperature : public AppPotts {
  	double Q; //Arrhenius exponential factor
  	double Tl; //Liquidus point
  	double Ts; //Solidus point
- 	int nrefine; //How many MC steps to perform after solidification to smooth thigns out
+ 	int nsmooth; //How many MC steps to perform after solidification to smooth thigns out
  	const double R = 8.31446261815324; //Define a constant gas constant
  	
  	//Additional variables for parameterized models

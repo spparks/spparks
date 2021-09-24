@@ -47,18 +47,18 @@ AppAdditiveTemperature::AppAdditiveTemperature(SPPARKS *spk, int narg, char **ar
     if (narg != 13 )
         error->all(FLERR,"Illegal app_style command");
 
-    nspins = atoi(arg[1]);
+    nspins = atoi(arg[1]); //Number of spins/grain IDs
     velIn = atof(arg[2]); //Velocity of travel (in meters/second)
     time_step = atof(arg[3]); //The size of each FD_step
     path_file_name = arg[4]; //Name of the input file with the proposed scan path  
     x_devIn = atof(arg[5]); //Set the standard deviation for the gaussian source. This will be in meters
-    y_devIn = atof(arg[6]);
+    y_devIn = atof(arg[6]); //Std. dev. in y-direction
     z_devIn = atof(arg[7]); //For a volumetric Gaussian source
-    short_wait_time = atof(arg[8]); //How long to pause during a layer
-    flux_prefactor = atof(arg[9]); //In Watts
-    substrate_height = atoi(arg[10]); //In lattice sites (I think we should keep it in this unit)
-    nrefine = atoi(arg[11]);
-    dx = atof(arg[12]);
+    short_wait_time = atof(arg[8]); //How long to pause during a layer, e.g. while laser is off and moving between rasters
+    flux_prefactor = atof(arg[9]); //Total absorbed laser power in Watts
+    substrate_height = atoi(arg[10]); //Substrate height in lattice sites
+    nsmooth = atoi(arg[11]); //Number of Potts smoothing steps 
+    dx = atof(arg[12]); //Lattice spacing (in meters)
 
     //Read in the entire laser path
     path_file();
@@ -77,7 +77,7 @@ AppAdditiveTemperature::AppAdditiveTemperature(SPPARKS *spk, int narg, char **ar
     recoating_time = 10;
     Kmc = 0.27695; //SPPARKS KMC scaling factor for sq_26 lattice, should not change for different materials
 
-    //Set default values
+    //Set default values for 304L stainless steel. Can be modified in input file.
     k_solid = 30;
     k_powder = 0.3;
     boundary_temp = 300;
@@ -98,7 +98,7 @@ AppAdditiveTemperature::AppAdditiveTemperature(SPPARKS *spk, int narg, char **ar
     latent_heat = 285000;
     specific_heat_length = 6;
     solid_front_length = 4;
-    //Let's put in default values for arrays
+    //Let's put in default values for array-based parameters
     specific_heat_temps = new double[6];
     specific_heat_vals = new double[6];
     solid_front_coeffs = new double[4];
@@ -122,14 +122,10 @@ AppAdditiveTemperature::AppAdditiveTemperature(SPPARKS *spk, int narg, char **ar
     solid_front_coeffs[2] = 2.74e-3;
     solid_front_coeffs[3] = 1.151e-4;
 
-    //add the double array
     recreate_arrays();
   
 }
 
-AppAdditiveTemperature::~AppAdditiveTemperature() {
-
-}
 
 /* ----------------------------------------------------------------------
    input script commands unique to this app
@@ -996,7 +992,7 @@ void AppAdditiveTemperature::mushy_phase(int i, RandomPark *random){
         if(Tcool >= nucleationTemps[spin[i]]){
             activeFlag[i] = 3;
             //Don't let nucleated site disappear during smoothing
-            SolidD[i] = -nrefine-2;
+            SolidD[i] = -nsmooth-2;
             return;
         }
         //Can nucleate, but won't yet. Allow to if the solidification front gets captured.
@@ -1080,7 +1076,7 @@ void AppAdditiveTemperature::nucleation_particle_flipper(int i, int partRad, Ran
             if(activeFlag[neighbor[i][j]] == 2) {
                 spin[neighbor[i][j]] = spin[i];
                 activeFlag[neighbor[i][j]] = 3;
-                SolidD[neighbor[i][j]] = -nrefine -3;
+                SolidD[neighbor[i][j]] = -nsmooth -3;
                 nSites--;
             }
             if(nSites <= 0) {
@@ -1096,7 +1092,7 @@ void AppAdditiveTemperature::nucleation_particle_flipper(int i, int partRad, Ran
             if(activeFlag[neighbor[i][nearest_neigh[j]]] == 2) {
                 spin[neighbor[i][nearest_neigh[j]]] = spin[i];
                 activeFlag[neighbor[i][nearest_neigh[j]]] = 3;
-                SolidD[neighbor[i][nearest_neigh[j]]] = -nrefine -3;
+                SolidD[neighbor[i][nearest_neigh[j]]] = -nsmooth -3;
                 nSites--;
             }
             if(nSites <= 0) {
@@ -1108,7 +1104,7 @@ void AppAdditiveTemperature::nucleation_particle_flipper(int i, int partRad, Ran
             if(activeFlag[neighbor[i][second_nearest[j]]] == 2) {
                 spin[neighbor[i][second_nearest[j]]] = spin[i];
                 activeFlag[neighbor[i][second_nearest[j]]] = 3;
-                SolidD[neighbor[i][second_nearest[j]]] = -nrefine -3;
+                SolidD[neighbor[i][second_nearest[j]]] = -nsmooth -3;
                 nSites--;
             }
             if(nSites <= 0) {
@@ -1120,7 +1116,7 @@ void AppAdditiveTemperature::nucleation_particle_flipper(int i, int partRad, Ran
             if(activeFlag[neighbor[i][third_nearest[j]]] ==2) {
                 spin[neighbor[i][third_nearest[j]]] = spin[i];
                 activeFlag[neighbor[i][third_nearest[j]]] = 3;
-                SolidD[neighbor[i][third_nearest[j]]] = -nrefine -3;
+                SolidD[neighbor[i][third_nearest[j]]] = -nsmooth -3;
                 nSites--;
             }
             if(nSites <= 0) {
@@ -1272,16 +1268,16 @@ void AppAdditiveTemperature::iterate_rejection(double stoptime)
                 if(activeFlag[i] < 3) continue;
                 MobilityOut[i] += time_step * compute_mobility(i,ranapp);
                 //Also check if we're just solidified and should be "relaxed"
-                if(SolidD[i] < 0 && SolidD[i] > -nrefine -1)    {
+                if(SolidD[i] < 0 && SolidD[i] > -nsmooth -1)    {
                     MobilityOut[i] = 1;
                     site_event_rejection(i, ranapp);
                     SolidD[i]--;
                 }
                 //Check if we just nucleated and need to grow larger
-                else if(SolidD[i] == -nrefine -2) {
+                else if(SolidD[i] == -nsmooth -2) {
                     nucVolume = nucleationSizes[spin[i]];
                     nucleation_particle_flipper(i, round(nucVolume/pow(dx,3)), ranapp);
-                    SolidD[i] = -nrefine - 3;
+                    SolidD[i] = -nsmooth - 3;
                 }
             }
 			FDElapsed += time_step;
@@ -1379,7 +1375,7 @@ void AppAdditiveTemperature::iterate_rejection(double stoptime)
         //Check if we're just solidified and should be "relaxed"
         for(int i = 0; i < nlocal; i++) {
             
-            if(SolidD[i] < 0 && SolidD[i] > -nrefine -1)    {
+            if(SolidD[i] < 0 && SolidD[i] > -nsmooth -1)    {
                 MobilityOut[i] = 1;
                 site_event_rejection(i, ranapp);
                 SolidD[i]--;
