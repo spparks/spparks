@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
-AppStyle(additive_temperature,AppAdditiveTemperature)
+AppStyle(additive_thermal,AppAdditiveThermal)
 
 #else
 
-#ifndef SPK_APP_ADDITIVE_TEMPERATURE_H
-#define SPK_APP_ADDITIVE_TEMPERATURE_H
+#ifndef SPK_APP_ADDITIVE_THERMAL_H
+#define SPK_APP_ADDITIVE_THERMAL_H
 
 #include "app_potts.h"
 #include "app_lattice.h"
@@ -25,9 +25,9 @@ AppStyle(additive_temperature,AppAdditiveTemperature)
 
 namespace SPPARKS_NS {
 
-class AppAdditiveTemperature : public AppPotts {
+class AppAdditiveThermal : public AppPotts {
  public:
-  AppAdditiveTemperature(class SPPARKS *, int, char **);
+  AppAdditiveThermal(class SPPARKS *, int, char **);
 	virtual void grow_app();
 	virtual void init_app();
 	virtual void site_event_rejection(int, class RandomPark *);
@@ -52,6 +52,7 @@ class AppAdditiveTemperature : public AppPotts {
 // 	double ZEllipsePoint;
 // 	int CurrLayer;
 // 	int CurrPass;
+  bool done_flag;
 	double *MobilityOut;
 	double vel;
 //     int time_index;

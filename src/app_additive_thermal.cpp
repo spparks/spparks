@@ -19,7 +19,7 @@
 #include <random>
 #include "string.h"
 #include "math.h"
-#include "app_additive_temperature.h"
+#include "app_additive_thermal.h"
 #include "random_park.h"
 #include "error.h"
 #include "memory.h"
@@ -37,7 +37,7 @@ enum{RANDOM};
 
 /* ---------------------------------------------------------------------- */
 
-AppAdditiveTemperature::AppAdditiveTemperature(SPPARKS *spk, int narg, char **arg) :
+AppAdditiveThermal::AppAdditiveThermal(SPPARKS *spk, int narg, char **arg) :
   AppPotts(spk,narg,arg)
 {
     // only error check for this class, not derived classes
@@ -62,6 +62,7 @@ AppAdditiveTemperature::AppAdditiveTemperature(SPPARKS *spk, int narg, char **ar
 
     //Read in the entire laser path
     path_file();
+    done_flag =false;
 
     path_index = 0;
     ndouble = 3;
@@ -131,7 +132,7 @@ AppAdditiveTemperature::AppAdditiveTemperature(SPPARKS *spk, int narg, char **ar
    input script commands unique to this app
 ------------------------------------------------------------------------- */
 
-void AppAdditiveTemperature::input_app(char *command, int narg, char **arg)
+void AppAdditiveThermal::input_app(char *command, int narg, char **arg)
 {
   if (strcmp(command,"k_solid") == 0) {
     if (narg != 1) error->all(FLERR,"Illegal solid conductivity command");
@@ -276,7 +277,7 @@ void AppAdditiveTemperature::input_app(char *command, int narg, char **arg)
    set site value ptrs each time iarray/darray are reallocated
 ------------------------------------------------------------------------- */
 
-void AppAdditiveTemperature::grow_app()
+void AppAdditiveThermal::grow_app()
 {
   spin = iarray[0];
   activeFlag = iarray[1];
@@ -295,7 +296,7 @@ void AppAdditiveTemperature::grow_app()
    initialize before each run
    check validity of site values
 ------------------------------------------------------------------------- */
-void AppAdditiveTemperature::init_app()
+void AppAdditiveThermal::init_app()
 {
   delete [] sites;
   delete [] unique;
@@ -306,10 +307,8 @@ void AppAdditiveTemperature::init_app()
   nucleationFlags = new int[nspins];
    nucleationTemps = new double[nspins];
 	 nucleationSizes = new double[nspins];
-//  RandomPark random(3000); //Sets random number seed, which we don't need
   
   dt_sweep = 1.0/maxneigh;
-//   time_index = 0;
 
   int flag = 0;
     for (int i = 0; i < nlocal; i++) {
@@ -396,7 +395,7 @@ void AppAdditiveTemperature::init_app()
 /* ----------------------------------------------------------------------
    Read in the coordinate file before going into MPI
 ------------------------------------------------------------------------- */
-void AppAdditiveTemperature::path_file()
+void AppAdditiveThermal::path_file()
 {
    int x_max = 0;
    int y_max = 0;
@@ -414,16 +413,18 @@ void AppAdditiveTemperature::path_file()
 	else {
 		error->all(FLERR,"Path input file not found");;
 	}
-	
-    // new lines will be skipped unless we stop it from happening:    
-    myfile.unsetf(std::ios_base::skipws);
 
-    // count the newlines with an algorithm specialized for counting:
-    line_count = std::count(
-        std::istream_iterator<char>(myfile),
-        std::istream_iterator<char>(), 
-        '\n');
-	myfile.close();
+  // new lines will be skipped unless we stop it from happening:    
+  myfile.unsetf(std::ios_base::skipws);
+
+  int aNumOfLines = 0;
+
+  std::string aLineStr;
+  while (getline(myfile, aLineStr))
+  {
+      if (!aLineStr.empty())
+          line_count++;
+  }
 	
 	//Lets just use a 1D vector with fancy indexing to do our scan_array
 	//Each point will be accessed by scan_array[y * sizeX + x], where x is 0-3 and y is 0 - line_count - 1
@@ -485,7 +486,7 @@ void AppAdditiveTemperature::path_file()
  perform finite difference on a single  site
  ------------------------------------------------------------------------- */
 
-void AppAdditiveTemperature::site_event_finitedifference(int i)
+void AppAdditiveThermal::site_event_finitedifference(int i)
 {
     
     //set values used for convenience
@@ -535,7 +536,6 @@ void AppAdditiveTemperature::site_event_finitedifference(int i)
                 //Implement Convection BCs
                 num_inactive++;
                 int oppo = neighbor[i][oppo_neigh[j]];
-                //Let's try the new boundary conditions suggested by Dan
                 double Tb = (3 * T[i] - T[oppo])/2;
                 chm_temp += (h * (Tb - T_room) + eta * sigma * (Tb * Tb * Tb * Tb - T_room * T_room * T_room * T_room))/density/Cp/dx;
 	        }
@@ -563,7 +563,7 @@ void AppAdditiveTemperature::site_event_finitedifference(int i)
 	}
 	
 	//Add the laser power/volume
-    chm_temp += flux_loc/(Cp * density);
+  chm_temp += flux_loc/(Cp * density);
 			
 	T[i] += time_step * chm_temp;
 	return;
@@ -573,7 +573,7 @@ void AppAdditiveTemperature::site_event_finitedifference(int i)
 //Represent specific heat as a piecewise function, so we can account for the rapid increase
 //upon melting (corresponding to release of latent heat) and its larger value in the liquid phase.
 //This function will take a temperature value as input and return the corresponding specific heat value
-double AppAdditiveTemperature::specificHeatCalculator(double temper) {
+double AppAdditiveThermal::specificHeatCalculator(double temper) {
 
     double slope = 0;
     double Cp = 0;
@@ -615,7 +615,7 @@ the index after using it, or keep track of the index of the current start of our
 interval and go from there.
 We should be going a constant dt in time between each step.
  ------------------------------------------------------------------------- */
-void AppAdditiveTemperature::position_finder_in() {
+void AppAdditiveThermal::position_finder_in() {
 
 	double local_dist;
 	double x_vec;
@@ -643,7 +643,6 @@ void AppAdditiveTemperature::position_finder_in() {
 	}
 
 
-	//We're going to kinda start over with this function
 	//First check if in a pause block and have time to  wait
 	if(p_scan_array[path_index] != 0 && wait_time > 0) {
 		
@@ -653,7 +652,7 @@ void AppAdditiveTemperature::position_finder_in() {
 		z_meltspot = z_scan_array[path_index];
 		return;
 	}
-	//If we're in the spot but shouldn't wait anymore, start at next index
+	//If we've been waiting but shouldn't wait anymore, start at next index
 	else if (p_scan_array[path_index] != 0) {
 		path_index = path_index + 1;
 		wait_time = 0;
@@ -691,13 +690,20 @@ void AppAdditiveTemperature::position_finder_in() {
 			}
 			
 			//Otherwise, if we've found an index with a longer distance than our current one, do the previous thing
-			if(d_scan_array[path_index + i] > long_local_dist)  {
+			else if(d_scan_array[path_index + i] > long_local_dist)  {
 				longer_index = path_index + i - 1;
 				local_dist = long_local_dist - d_scan_array[path_index + i - 1];
 				path_index = path_index + i - 1;
 				d_residual = local_dist;
 				wait_time = 0;
 				break;
+			}
+			else if(line_count == path_index + 2){
+			  done_flag = true;
+			  x_meltspot = domain->boxxhi + 100000;
+			  y_meltspot = domain->boxyhi + 100000;
+			  z_meltspot = z_scan_array[path_index];
+			  return;
 			}
 		}
 	}
@@ -722,19 +728,18 @@ void AppAdditiveTemperature::position_finder_in() {
  The MobilityOut array that the values are assigned to is also re-used to control
  smoothing steps immediately after solidification by using negative values
  ------------------------------------------------------------------------- */
-double AppAdditiveTemperature::compute_mobility(int i, RandomPark *random)  {
+double AppAdditiveThermal::compute_mobility(int i, RandomPark *random)  {
     
     //Don't assign the global array in this function
     double mob;
 	 
-    //If we're a solid phase, do grain growth, normalize things later
-    //We may need to check the nucleation flag value here...
-//     if (activeFlag[i] == 3) {
-        mob = exp(-Q/(R*T[i]));
-//     }
-//     else {
-//         fprintf(screen,"Error: compute_mobility called on non-eligible site\n");
-//     }
+    //If we're a solid phase, set mobility for grain growth
+    if (activeFlag[i] == 3) {
+      mob = exp(-Q/(R*T[i]));
+    }
+    else {
+      fprintf(screen,"Error: compute_mobility called on non-eligible site. Finite difference solver is likely unstable\n");
+    }
    	return mob; 
 }   
 
@@ -742,7 +747,7 @@ double AppAdditiveTemperature::compute_mobility(int i, RandomPark *random)  {
 	Simple function to calculate flux at a given lattice site.
 	This should represent the flux going into an element the size of of a site
  ------------------------------------------------------------------------- */
-double AppAdditiveTemperature::flux_finder(int site) {
+double AppAdditiveThermal::flux_finder(int site) {
 	
 	double flux_loc;
 	double preFactorTrue = 2 * flux_prefactor/((x_dev * dx * MY_2PIS) * (y_dev * dx * MY_2PIS) * (z_dev * dx * MY_2PIS));
@@ -750,7 +755,8 @@ double AppAdditiveTemperature::flux_finder(int site) {
 	//Normalized gaussian. Total flux will stay constant no matter the values of x,y,z_dev
 	flux_loc =  preFactorTrue * exp(-0.5 * ((pow((xyz[site][0] - x_meltspot), 2)/(x_dev*x_dev) + pow((xyz[site][1] - y_meltspot), 2)/(y_dev*y_dev) + pow((xyz[site][2] - z_meltspot),2)/(z_dev * z_dev))));
 	
-	if (flux_loc < preFactorTrue * 0.05 || xyz[site][2] > floor(z_meltspot)) {
+	//If we're above the current layer or have reached the end of the path file, set the flux to zero.
+	if (xyz[site][2] > floor(z_meltspot) || done_flag == true) {
 		flux_loc = 0;
 	}
 
@@ -762,7 +768,7 @@ double AppAdditiveTemperature::flux_finder(int site) {
 /* ----------------------------------------------------------------------
  iterate through the temperature solver and update phases as needed
  ------------------------------------------------------------------------- */
-void AppAdditiveTemperature::app_update(double dt)
+void AppAdditiveThermal::app_update(double dt)
 {
     double localtime=0.0;
     double tempMax = 0.0;
@@ -776,9 +782,11 @@ void AppAdditiveTemperature::app_update(double dt)
     //Calculate the current position
     if(domain->me == 0) {
         position_finder_in();
+//         fprintf(screen,"path_index %d, line_count %d\n", path_index, line_count);
     }
 
     timer->stamp();
+    MPI_Bcast(&done_flag,1,MPI_CXX_BOOL,0,world);
     MPI_Bcast(&path_index,1,MPI_INT,0,world);
     MPI_Bcast(&x_meltspot,1,MPI_DOUBLE,0,world);
     MPI_Bcast(&y_meltspot,1,MPI_DOUBLE,0,world);
@@ -794,7 +802,7 @@ void AppAdditiveTemperature::app_update(double dt)
         //If below, set all values to room temp and skip to the end of the wait
         if(tempMaxAll < Ts) {
             if(domain->me == 0) {
-                fprintf(screen,"Continuing with wait_time = %f\n",recoating_time - wait_time);
+                fprintf(screen,"Continuing after waiting = %f\n",recoating_time - wait_time);
             }
             wait_time = -1;
             for (int i=0; i<nlocal; i++) {
@@ -804,8 +812,6 @@ void AppAdditiveTemperature::app_update(double dt)
             return;
         }
     }
-
-
 
     for (int i=0; i<nlocal; i++) {
         //Keep looping if we're above the meltspot
@@ -862,7 +868,7 @@ void AppAdditiveTemperature::app_update(double dt)
  an index. Therefore, it'll be easiest to rewrite the path file so that it restarts at our
  final location.
  ------------------------------------------------------------------------- */
-void AppAdditiveTemperature::path_file_update()
+void AppAdditiveThermal::path_file_update()
 {
 	//Append "restart" to input file name
 	std::string restart_file_str(path_file_name);
@@ -900,7 +906,7 @@ void AppAdditiveTemperature::path_file_update()
    technically this is an incorrect rejection-KMC algorithm
 ------------------------------------------------------------------------- */
 
-void AppAdditiveTemperature::site_event_rejection(int i, RandomPark *random)
+void AppAdditiveThermal::site_event_rejection(int i, RandomPark *random)
 {
   int oldstate = spin[i];
   double einitial = site_energy(i);
@@ -948,8 +954,6 @@ void AppAdditiveTemperature::site_event_rejection(int i, RandomPark *random)
     spin[i] = oldstate;
   }
 
-
-
   if (spin[i] != oldstate) naccept++;
 
   // set mask if site could not have changed
@@ -960,11 +964,8 @@ void AppAdditiveTemperature::site_event_rejection(int i, RandomPark *random)
     if (einitial < 0.5*numneigh[i]) mask[i] = 1;
     if (spin[i] != oldstate)
       for (int j = 0; j < numneigh[i]; j++)
-	mask[neighbor[i][j]] = 0;
+  	mask[neighbor[i][j]] = 0;
   }
-
-  
-
 }
 
 /* ----------------------------------------------------------------------
@@ -979,7 +980,7 @@ void AppAdditiveTemperature::site_event_rejection(int i, RandomPark *random)
    5. If our current site is solid, see if it should flip to a neighboring solid value (with
       mobility calculated from undercooling.)
 ------------------------------------------------------------------------- */
-void AppAdditiveTemperature::mushy_phase(int i, RandomPark *random){
+void AppAdditiveThermal::mushy_phase(int i, RandomPark *random){
   	int nevent = 0;
   	int m,value;
     double Tcool = Tl - T[i];
@@ -1055,7 +1056,7 @@ void AppAdditiveTemperature::mushy_phase(int i, RandomPark *random){
     Only nucleating one site at a time introduce lattice size dependency. Here we will
     use a user-defined nucleation particle size and flip neighboring sites until that size is met
 ------------------------------------------------------------------------- */
-void AppAdditiveTemperature::nucleation_particle_flipper(int i, int partRad, RandomPark *random) {
+void AppAdditiveThermal::nucleation_particle_flipper(int i, int partRad, RandomPark *random) {
     
     //If one site is big enough to satisfy, skip evertyhing
     if(partRad <= 0) return;
@@ -1068,7 +1069,6 @@ void AppAdditiveTemperature::nucleation_particle_flipper(int i, int partRad, Ran
     int nneigh = 0;
     int possible_neigh[26];
     
-    
     //Its hard to go through shells iteravely if the number of neighbors isn't the full 26.
     //Check if this is the case and just loop through the neihgbor list if so
     if(numneigh[i] != 26) {        
@@ -1080,7 +1080,6 @@ void AppAdditiveTemperature::nucleation_particle_flipper(int i, int partRad, Ran
                 nSites--;
             }
             if(nSites <= 0) {
-                //comm->all();
                 return;
             }
         }
@@ -1155,7 +1154,7 @@ void AppAdditiveTemperature::nucleation_particle_flipper(int i, int partRad, Ran
    than 1 (which we should avoid), allow all spins to nucleate. If not, call a random number
    between zero and one. If the number is less than the fraction, make true. If not, make false.
 ------------------------------------------------------------------------- */
-void AppAdditiveTemperature::nucleation_spins(RandomPark *random) {
+void AppAdditiveThermal::nucleation_spins(RandomPark *random) {
     double nucleationFraction = dx * dx * dx * No;
     
     //Make all spins nucleation sites. Should avoid this.
@@ -1183,7 +1182,7 @@ void AppAdditiveTemperature::nucleation_spins(RandomPark *random) {
     The first version of this just initialized critical nucleation temperatures.
     This version will also initialize nucleii size (starting with a normal dist)
 ------------------------------------------------------------------------- */
-void AppAdditiveTemperature::nucleation_init() {
+void AppAdditiveThermal::nucleation_init() {
     std::normal_distribution<> dist_T{Tc,Tsig};
     std::normal_distribution<> dist_S{sizeNorm,sizeSig};
     std::random_device rd{};
@@ -1203,7 +1202,7 @@ void AppAdditiveTemperature::nucleation_init() {
    while dtMC depends on lattice size and maximum solid-phase temperature.
  ------------------------------------------------------------------------- */
 
-void AppAdditiveTemperature::iterate_rejection(double stoptime)
+void AppAdditiveThermal::iterate_rejection(double stoptime)
 {
   int i,icolor,nselect,nrange,jset, nMC;
   int *site2i;
@@ -1395,7 +1394,7 @@ void AppAdditiveTemperature::iterate_rejection(double stoptime)
    Function to determine the highest temperature in a region and compute the corresponding
    timestep. Let's compute timestep after and just return highest temperature
  ------------------------------------------------------------------------- */
-double AppAdditiveTemperature::compute_tempMax() {
+double AppAdditiveThermal::compute_tempMax() {
 	double tempMax = 0;
 	//double timeMin = 0;
 	
@@ -1416,7 +1415,7 @@ double AppAdditiveTemperature::compute_tempMax() {
    Given a maximum temperature, compute the minimum MC timestep.
    We might need to tweak this equation a fair bit, so its good to keep in one place.
  ------------------------------------------------------------------------- */
-double AppAdditiveTemperature::compute_timeMin(double tempMax) {
+double AppAdditiveThermal::compute_timeMin(double tempMax) {
     double dtMC;
     dtMC = pow(dx,2) * Kmc/Ko * exp(Q/(R*tempMax));
     return dtMC;
