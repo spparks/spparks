@@ -700,8 +700,8 @@ void AppAdditiveThermal::position_finder_in() {
 			}
 			else if(line_count == path_index + 2){
 			  done_flag = true;
-			  x_meltspot = domain->boxxhi + 100000;
-			  y_meltspot = domain->boxyhi + 100000;
+				x_meltspot = x_scan_array[path_index];
+				y_meltspot = y_scan_array[path_index];
 			  z_meltspot = z_scan_array[path_index];
 			  return;
 			}
@@ -871,8 +871,7 @@ void AppAdditiveThermal::app_update(double dt)
 void AppAdditiveThermal::path_file_update()
 {
 	//Append "restart" to input file name
-	std::string restart_file_str(path_file_name);
-	restart_file_str.append("_restart");
+	std::string restart_file_str("restart.txt");
 	FILE* fout = fopen(restart_file_str.c_str(), "w");
 	
 	double start_distance = d_scan_array[path_index] + d_residual;
