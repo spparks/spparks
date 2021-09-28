@@ -1,0 +1,90 @@
+# SPPARKS Potts tests on generic lattice
+
+shell mkdir DumpFiles 
+
+seed		 56789
+
+		 
+app_style additive/thermal 1000000 1.4 7e-7 "Thin_Wall.txt" 6e-5 6e-5 6e-5 1e-6 115 18 1 5e-6
+
+#  |————————————————————————————————————————
+# 		  nspins = atoi(arg[1]);
+# 		  vel = atof(arg[2]); //Velocity of travel (in meters/second)
+#         	  time_step = atof(arg[3]); //In seconds
+# 		  path_file_name = arg[4]; //Name of the input file with the proposed scan path  
+# 		  x_dev = atof(arg[5]); //Set the x-direction standard deviation for the gaussian source (in meters)
+# 		  y_dev = atof(arg[6]); //Set y deviation (in meters)
+# 		  z_dev = atof(arg[7]); //For a volumetric Gaussian source, set z-deviation (in meters)
+# 		  short_wait_time = atof(arg[8]); //How long to pause during a layer, estimated by laser "jump" speed * distance (in seconds)
+#		  flux_prefactor = atof(arg[9]); //In Watts, typically less than incident laser power
+#         substrate_height = atoi(arg[10]); //In voxels, typically should be 25+
+#         dx = atof(arg[11]); //Thermal and microstructure lattice spacing (in meters)
+#         nrefine = atoi(arg[12]); //How many smoothing steps to perform
+
+dimension	 3
+lattice	 	 sc/26n 1.0
+region		 box block 0 180 0 75 0 50
+
+boundary 	 n n n
+
+create_box	 box
+create_sites box 
+set          site range 1 1000000
+
+
+sector		 yes
+sweep		 random mask no
+
+############# Outputs the total temperature sum as a stat. If this goes crazy, try reducing timestep.
+diag_style       array d2 sum
+#############
+
+############# Potts Monte Carlo temperature. Only affects grain boundary shape during grain coarsening.
+############# Use 0 for "austenitic" microstructures and "0.66" for ferritic
+temperature	 0.0
+#############
+
+
+############## AM specific parameters, optional inputs, default are for 304L SS
+k_solid                 30 #Solid conductivity (in W/m^2K?)
+k_powder                0.3 #Powder conductivity (in W/m^2K?)
+boundary_temperature    300 #In Kelvin
+specific_heat           6 300 480 600 550 1400 675 1550 693 1650 714 1750 736 #Number of pairs, temperature (K) and specific heat at each
+latent_heat             285000 #Factored into specific heat in solidus-liquidus temperature region
+density                 5706 #In kg/m^3? Use a value between full-solid density and powder density
+t_room                  300 # T_room and T_inf for convection/radiation BCs, typically 300 K
+emissivity              1 #Combined emissivity and stefan boltzmann constant
+convection_coefficient  25 #Convection coefficient
+Ko                      0.0000204133 #Grain coarsening pre-factor (fit from isothermal GG experiments)
+Q                       128312 #Grain coarsening exponent (fit from isothermal GG experiments)
+liquidus                1723 #Liquidus temperature in Kelvin
+solidus                 1673 #Solidus temperature in Kelvin
+solid_front_vel         4 1.091e-5 -2.034e-4 2.74e-3 1.151e-4 #Polynomial degree, coefficient value (from high power to low)
+nucleation_density      1e14 #In number/m^3
+critical_undercooling   5 #Undercooling where nucleation starts (in Kelvin)
+undercooling_deviation  3 #Critical undercooling is sampled from normal distribution, this defines std dev.
+mean_nuclei_volume      8.4375e-16 #In m^3, center of normal distribution
+nuclei_volume_deviation 1.5625e-17 #In m^3, std dev of nuclei size distribution
+
+##############
+shell cd DumpFiles/
+
+stats            1e-4
+
+############# Text Dump #####################
+dump            1 text 5e-4 dump.additive.* id i1 d2 x y z 
+dump_modify		1 thresh i2 > 1
+
+############# Grain Image Dump ##############
+dump			2 image 1.75e-4 dumpgrain.*.jpg i1 i1 shape cube size 2000 2000 view 45 45 sdiam 1.05 crange 1 1000000 box no 1 
+dump_modify		2 thresh i2 > 1
+
+############# Temp Image Dump ###############
+dump			3 image 1.75e-4 dumpheat.*.jpg d2 i1 shape cube size 3500 3500 view 0 0 sdiam 1.05 box no 0.01
+dump_modify		3 thresh i2 > 1 smap 300 2000 cf 0.05 2 min blue max red 
+
+
+#diag_style       cluster delt 8.5e-3 stats no dump standard cluster.AM
+
+run              0.0036
+shell cd ../
