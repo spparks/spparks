@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
-AppStyle(additive_thermal,AppAdditiveThermal)
+AppStyle(additive/thermal,AppAdditiveThermal)
 
 #else
 

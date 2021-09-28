@@ -316,7 +316,6 @@ void AppAdditiveThermal::init_app()
             flag = 1;
         }
         //If we're above the substrate height, randomize the spins
-        //Right now this uses the same random number seed everytime...
         if(xyz[i][2] > substrate_height) {
             spin[i] = (int) (nspins*ranapp->uniform());
             activeFlag[i] = 0;
@@ -629,11 +628,11 @@ void AppAdditiveThermal::position_finder_in() {
 		//Its not too simple with our current set up to adjust the amount of time left.
 		if (p_scan_array[0] < 1.5) {
 			wait_time = recoating_time;
-			if (domain->me == 0) fprintf(screen, "Recoating %f\n", wait_time);
+			if (domain->me == 0) fprintf(screen, "Recoating\n");
 		}
 		else {
 			wait_time = short_wait_time;
-			if (domain->me == 0) fprintf(screen, "Moving %f\n", wait_time);
+			if (domain->me == 0) fprintf(screen, "Moving laser\n");
 		}
 		wait_time = wait_time - time_step;
 		x_meltspot = domain->boxxhi * 1000;
@@ -675,11 +674,11 @@ void AppAdditiveThermal::position_finder_in() {
 				path_index = path_index + i -1;
 				if (p_scan_array[path_index] < 1.5) {
 					wait_time = recoating_time;
-					if (domain->me == 0) fprintf(screen, "Recoating %f\n", wait_time);
+					if (domain->me == 0) fprintf(screen, "Recoating\n");
 				}
 				else {
 					wait_time = short_wait_time;
-					if (domain->me == 0) fprintf(screen, "Moving %f\n", wait_time);
+					if (domain->me == 0) fprintf(screen, "Moving laser\n");
 				}
 				d_residual = 0;
 				
@@ -738,7 +737,7 @@ double AppAdditiveThermal::compute_mobility(int i, RandomPark *random)  {
       mob = exp(-Q/(R*T[i]));
     }
     else {
-      fprintf(screen,"Error: compute_mobility called on non-eligible site. Finite difference solver is likely unstable\n");
+      error->all(FLERR,"Error: compute_mobility called on non-eligible site. Finite difference solver is likely unstable. Try decreasing timestep.");
     }
    	return mob; 
 }   
@@ -785,7 +784,7 @@ void AppAdditiveThermal::app_update(double dt)
 //         fprintf(screen,"path_index %d, line_count %d\n", path_index, line_count);
     }
 
-    timer->stamp();
+    timer->stamp(TIME_APP);
     MPI_Bcast(&done_flag,1,MPI_CXX_BOOL,0,world);
     MPI_Bcast(&path_index,1,MPI_INT,0,world);
     MPI_Bcast(&x_meltspot,1,MPI_DOUBLE,0,world);
@@ -802,7 +801,7 @@ void AppAdditiveThermal::app_update(double dt)
         //If below, set all values to room temp and skip to the end of the wait
         if(tempMaxAll < Ts) {
             if(domain->me == 0) {
-                fprintf(screen,"Continuing after waiting = %f\n",recoating_time - wait_time);
+                fprintf(screen,"Continuing after waiting %f\n",recoating_time - wait_time);
             }
             wait_time = -1;
             for (int i=0; i<nlocal; i++) {
@@ -848,9 +847,7 @@ void AppAdditiveThermal::app_update(double dt)
             MobilityOut[i] = 0;
         }
     }
-    
-    timer->stamp();
-    timer->stamp(TIME_SOLVE);
+    timer->stamp(TIME_APP);
 
     //re-sync all the data
     comm->all();
@@ -870,8 +867,8 @@ void AppAdditiveThermal::app_update(double dt)
  ------------------------------------------------------------------------- */
 void AppAdditiveThermal::path_file_update()
 {
-	//Append "restart" to input file name
-	std::string restart_file_str("restart.txt");
+	//Output a restart_path file.
+	std::string restart_file_str("restart_path.txt");
 	FILE* fout = fopen(restart_file_str.c_str(), "w");
 	
 	double start_distance = d_scan_array[path_index] + d_residual;
@@ -1224,7 +1221,9 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
   while (!done) {
   	//Find the highest temperature in the local array and compare with others
   	tempMax = compute_tempMax();
+  	timer->stamp(TIME_APP);
   	MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
+    timer->stamp(TIME_COMM);
   	//Using the global maximum temperature, compute our smallest timestep
   	dtMC = compute_timeMin(tempMaxAll);
   	//Also using this value, compute the maximum solid-state Mobility
@@ -1241,16 +1240,17 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
             MobilityOut[i] = 0;
         }
         mobMax = 0;
-        if(domain->me == 0) {
-            fprintf(screen,"dtMC %.5e is bigger than time_step %.5e\n",dtMC, time_step);
-        }  		
+//         if(domain->me == 0) {
+//             fprintf(screen,"Potts time_step %.5e is bigger than solidification time_step %.5e.\n",dtMC, time_step);
+//         }  		
   		while(dtMC >= FDElapsed) {
   		    //Update temperatures and phases
   			app_update(time_step);
   			//Find the new dtMC value
             tempMax = compute_tempMax();
+            timer->stamp(TIME_SOLVE);
             MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
-            
+            timer->stamp(TIME_COMM);
             //Using the global maximum temperature, compute our smallest timestep
             //Only update dtMC if it is smaller (higher temperature)
             //Basing MC calculation off of the highest temp observed in time_step
@@ -1278,11 +1278,13 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
                     SolidD[i] = -nsmooth - 3;
                 }
             }
-			FDElapsed += time_step;
-            time += time_step;
-			if (time >= stoptime) done = 1;
-			if (done || time >= nextoutput) nextoutput = output->compute(time,done);
-			timer->stamp(TIME_OUTPUT);
+        FDElapsed += time_step;
+        time += time_step;
+        timer->stamp(TIME_SOLVE);
+        if (time >= stoptime)   done = 1;
+        if (done || time >= nextoutput) nextoutput = output->compute(time,done);
+        timer->stamp(TIME_OUTPUT);
+        if (done) break;
   		}
   		//Compute the normalized mobilities at each site
   		//True "mobMax" would be holding the max temp for the entire window
@@ -1296,9 +1298,9 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
   	//Round to the nearest inter MC steps
   	else {
   		nMC = round(time_step/dtMC);
-        if(domain->me == 0) {
-            fprintf(screen,"dtMC %.5e is smaller than time_step %.5e doing nMC %d steps, t_max is %f\n",dtMC, time_step, nMC, tempMaxAll);
-        }
+//         if(domain->me == 0) {
+//             fprintf(screen,"Potts time_step %.5e is smaller than solidification time_step %.5e doing %d Potts steps, t_max is %f\n",dtMC, time_step, nMC, tempMaxAll);
+//         }
         //Compute the normalized mobilities for each site
         for(int i = 0; i < nlocal; i++) {
             MobilityOut[i] = compute_mobility(i, ranapp)/mobMax;
@@ -1381,11 +1383,14 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
         }
         //Find the highest temperature in the local array and compare with others
         tempMax = compute_tempMax();
+        timer->stamp(TIME_APP);
         MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
+        timer->stamp(TIME_COMM);
         //Using the global maximum temperature, compute our smallest timestep
         dtMC = compute_timeMin(tempMaxAll);
         //Also using this value, compute the maximum solid-state Mobility
         mobMax = exp(-Q/(R*tempMaxAll));
+        timer->stamp(TIME_APP);
     }
   }
 }
