@@ -1244,40 +1244,40 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
 //             fprintf(screen,"Potts time_step %.5e is bigger than solidification time_step %.5e.\n",dtMC, time_step);
 //         }  		
   		while(dtMC >= FDElapsed) {
-  		    //Update temperatures and phases
+        //Update temperatures and phases
   			app_update(time_step);
   			//Find the new dtMC value
-            tempMax = compute_tempMax();
-            timer->stamp(TIME_SOLVE);
-            MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
-            timer->stamp(TIME_COMM);
-            //Using the global maximum temperature, compute our smallest timestep
-            //Only update dtMC if it is smaller (higher temperature)
-            //Basing MC calculation off of the highest temp observed in time_step
-            if (dtMC > compute_timeMin(tempMaxAll)) {
-                dtMC = compute_timeMin(tempMaxAll);
-                //If new mobMax is larger, use it. This is tested by the enclosing if statement
-                mobMax = exp(-Q/(R*tempMaxAll));
-            }
+        tempMax = compute_tempMax();
+        timer->stamp(TIME_SOLVE);
+        MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
+        timer->stamp(TIME_COMM);
+        //Using the global maximum temperature, compute our smallest timestep
+        //Only update dtMC if it is smaller (higher temperature)
+        //Basing MC calculation off of the highest temp observed in time_step
+        if (dtMC > compute_timeMin(tempMaxAll)) {
+            dtMC = compute_timeMin(tempMaxAll);
+            //If new mobMax is larger, use it. This is tested by the enclosing if statement
+            mobMax = exp(-Q/(R*tempMaxAll));
+        }
 
-            //Add to running mobility values at each site. Multiply mobility by timestep_size
-            //which makes the integral of a constant function
-            for(int i = 0; i < nlocal; i++) {
-                if(activeFlag[i] < 3) continue;
-                MobilityOut[i] += time_step * compute_mobility(i,ranapp);
-                //Also check if we're just solidified and should be "relaxed"
-                if(SolidD[i] < 0 && SolidD[i] > -nsmooth -1)    {
-                    MobilityOut[i] = 1;
-                    site_event_rejection(i, ranapp);
-                    SolidD[i]--;
-                }
-                //Check if we just nucleated and need to grow larger
-                else if(SolidD[i] == -nsmooth -2) {
-                    nucVolume = nucleationSizes[spin[i]];
-                    nucleation_particle_flipper(i, round(nucVolume/pow(dx,3)), ranapp);
-                    SolidD[i] = -nsmooth - 3;
-                }
+        //Add to running mobility values at each site. Multiply mobility by timestep_size
+        //which makes the integral of a constant function
+        for(int i = 0; i < nlocal; i++) {
+            if(activeFlag[i] < 3) continue;
+            MobilityOut[i] += time_step * compute_mobility(i,ranapp);
+            //Also check if we're just solidified and should be "relaxed"
+            if(SolidD[i] < 0 && SolidD[i] > -nsmooth -1)    {
+                MobilityOut[i] = 1;
+                site_event_rejection(i, ranapp);
+                SolidD[i]--;
             }
+            //Check if we just nucleated and need to grow larger
+            else if(SolidD[i] == -nsmooth -2) {
+                nucVolume = nucleationSizes[spin[i]];
+                nucleation_particle_flipper(i, round(nucVolume/pow(dx,3)), ranapp);
+                SolidD[i] = -nsmooth - 3;
+            }
+        }
         FDElapsed += time_step;
         time += time_step;
         timer->stamp(TIME_SOLVE);
@@ -1417,7 +1417,6 @@ double AppAdditiveThermal::compute_tempMax() {
 
 /* ----------------------------------------------------------------------
    Given a maximum temperature, compute the minimum MC timestep.
-   We might need to tweak this equation a fair bit, so its good to keep in one place.
  ------------------------------------------------------------------------- */
 double AppAdditiveThermal::compute_timeMin(double tempMax) {
     double dtMC;
