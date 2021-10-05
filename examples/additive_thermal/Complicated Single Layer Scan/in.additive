@@ -29,6 +29,7 @@ boundary 	 n n n
 create_box	 box
 create_sites box 
 set          site range 1 1000000
+set          d2 value 300
 
 sector		 yes
 sweep		 random mask no
@@ -70,7 +71,7 @@ shell cd DumpFiles/
 stats            1e-4
 
 ############# Text Dump #####################
-#dump            1 text 1e-4 dump.additive.* id i1 i2 i3 i4 d2 x y z
+#dump            1 text 1e-4 dump.additive.* id i1 d2 x y z
 #dump_modify		1 thresh i2 > 2
 
 ############# Grain Image Dump ##############
