@@ -52,7 +52,7 @@ class AppAdditiveThermal : public AppPotts {
 // 	double ZEllipsePoint;
 // 	int CurrLayer;
 // 	int CurrPass;
-  bool done_flag;
+  int done_flag;
 	double *MobilityOut;
 	double vel;
 //     int time_index;

@@ -62,7 +62,7 @@ AppAdditiveThermal::AppAdditiveThermal(SPPARKS *spk, int narg, char **arg) :
 
     //Read in the entire laser path
     path_file();
-    done_flag =false;
+    done_flag =0;
 
     path_index = 0;
     ndouble = 3;
@@ -698,7 +698,7 @@ void AppAdditiveThermal::position_finder_in() {
 				break;
 			}
 			else if(line_count == path_index + 2){
-			  done_flag = true;
+			  done_flag = 1;
 				x_meltspot = x_scan_array[path_index];
 				y_meltspot = y_scan_array[path_index];
 			  z_meltspot = z_scan_array[path_index];
@@ -755,7 +755,7 @@ double AppAdditiveThermal::flux_finder(int site) {
 	flux_loc =  preFactorTrue * exp(-0.5 * ((pow((xyz[site][0] - x_meltspot), 2)/(x_dev*x_dev) + pow((xyz[site][1] - y_meltspot), 2)/(y_dev*y_dev) + pow((xyz[site][2] - z_meltspot),2)/(z_dev * z_dev))));
 	
 	//If we're above the current layer or have reached the end of the path file, set the flux to zero.
-	if (xyz[site][2] > floor(z_meltspot) || done_flag == true) {
+	if (xyz[site][2] > floor(z_meltspot) || done_flag == 1) {
 		flux_loc = 0;
 	}
 
@@ -785,7 +785,7 @@ void AppAdditiveThermal::app_update(double dt)
     }
 
     timer->stamp(TIME_APP);
-    MPI_Bcast(&done_flag,1,MPI_CXX_BOOL,0,world);
+    MPI_Bcast(&done_flag,1,MPI_INT,0,world);
     MPI_Bcast(&path_index,1,MPI_INT,0,world);
     MPI_Bcast(&x_meltspot,1,MPI_DOUBLE,0,world);
     MPI_Bcast(&y_meltspot,1,MPI_DOUBLE,0,world);
