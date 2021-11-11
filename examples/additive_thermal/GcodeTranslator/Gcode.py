@@ -1,11 +1,15 @@
 # coding: utf-8
-#This script converts slic3r generated g-code using the generic "RepRap" profile to a 3 column list of xyz points
+#This script converts slic3r generated g-code to a 3 column list of xyz points
 #simulation heat source behavior will be determined by linearly interpolating between the specified points
+# we may want to include a fourth column that contains a running total of the path length
 #The simulation can then use this to determine what two points it is inbetween at any time
+#We can start by padding our output array by the total number of lines in the input file, otherwise we'd have to do
+#much slower bookkeeping
 
-#The resulting path file is a 5-column file with lines of:
-#X, Y, Z, Distance, PauseFlag.
-#Pause flag values are: 0 (no pause), 1 (long, recoating pause) and 2 (beam movement pause)
+#4/3/17 Update: We've reformatted what we want the output data do look like. We now want a 5-column file with lines of:
+#X, Y, Z, Distance, PauseFlag. We will no longer give the X value a negative sign if we want the following region to be a pause
+#Instead, we will use flags of 0 (no pause), 1 (long, recoating pause) and 2 (beam movement pause)
+#What is the most reliable G-Code format to translate?
 
 import io
 import numpy as np
@@ -13,7 +17,9 @@ import numpy as np
 fileName = "20mm_cube.gcode"
 outputFile = "CubeEx.txt"
 xMax = 300 #Use this value to scale the gcode simulation to the SPPARKS voxel domain.
-
+zMax = 334
+dz = 6
+zInit = 18
 
 
 #Actually reads in the file. Needs to disregard useless lines, strip off letter prefixes and keep track of Z at each line
@@ -32,8 +38,7 @@ def stringInterpreter(stringIn, stripChar):
 	
 	#we can call startswith to figure out the first character in the string. We can then test this against the specified stripChar (or x, y, z if we want to figure it out). Then well know whether to strip or not.
 	if (stringIn.startswith(stripChar) == True):
-		
-
+	
 		floatEquiv = float(stringIn.lstrip(stripChar))
 
 		return floatEquiv
@@ -41,7 +46,11 @@ def stringInterpreter(stringIn, stripChar):
 	else:
 		return -1
 
-#This should loop through our input array, apply stringInterpreter to each value, figure out which are valid, and then put them in a new 5 column array. 
+#This should loop through our input array, apply stringInterpreter to each value, figure out which are valid, and then put them in a new 4 column array. 
+#We shoud have special cases for when Z is found and use it to modify the true Z.
+#This will not calculate the length (the 4th column), but will create a column of zeros
+#We need to account for the "G92 E0" code, which occurs before the machine turns the beam off and moves without deposition
+#Otherwise, our path would be completely contiguous on each layer (which doesn't happen)
 #The "F" values in the GCode file set the movement speed of the extruder. A value of F7800.000 appears to "max" out the speed. When this appears, we should
 #turn on the pause flag. 
 def arrayBuilder(inArray):
@@ -59,6 +68,8 @@ def arrayBuilder(inArray):
 		#We need an inner loop to go through the possible values of stripChar.
 		#Lets build an array of possible lead characters and then loop through the whole length.
 		#We don't directly give the x,y,z assignment orders, but it should work out if things read in properly
+	#	print(len(inArray[i]),inArray[i])
+	
 		for j in charTestLists:
 			
 			if(len(inArray[i]) > 2):
@@ -84,14 +95,16 @@ def arrayBuilder(inArray):
 					
 				elif(j == 'Z'):
 				
-					zValue = np.floor(inValue)
+					zValue = inValue
 					zFlag = 1
+					print(inArray[i],zValue)
 					
 				#Let's not use G92 as our flag, as this isn't always called when we should have a pause
 				#Instead, we'll look for F7800.000, which is when the nozzle is moving as fast as possible.
 				#This will always be the last value on a line, and we should do the different types of pauses depending
 				#on the values infront of it. If a F7800 line begins with Z, we should do a long pause and copy the X,Y values from the previous index
 				#If it doesn't have a Z infront, we should assign the line a "short" pause.
+				#We need to figure out if the pauses should be placed in the current line or the line before it...
 				elif(j == 'F' and np.floor(inValue) == 7800):
 
 					if(zFlag == 1):
@@ -100,8 +113,9 @@ def arrayBuilder(inArray):
 						outArray[k,2] = zValue
 						outArray[k - 1,4] = 1
 						k = k + 1
+						#print(inArray[i], zValue)
 					elif(outArray[k - 2,4] != 1):
-						
+					#	print(zFlag, len(inArray[i]), inArray[i-1])
 						outArray[k - 2, 4] = 2
 												
 	#Now that we have all of our values, let's normalize things.
@@ -113,16 +127,17 @@ def arrayBuilder(inArray):
 			break
 	
 	trimArray = outArray[2:lastRow,:]
-	print trimArray
+	print (trimArray)
 	#print lastRow
 	#We need to use same normalization factor for all directions
 	xDist = np.max(np.abs(trimArray[:,0])) - np.min(np.abs(trimArray[:,0]))
-	print np.min(np.abs(trimArray[:,0])) 
+	zDist = np.max(np.abs(trimArray[:,2])) - np.min(np.abs(trimArray[:,2]))
+	print (np.min(np.abs(trimArray[:,0]))) 
 # 	print np.min(trimArray[:,1])
-	print xDist
+	print (xDist)
 	trimArray[:,0] = xMax/xDist * (np.abs(trimArray[:,0]) - np.min(np.abs(trimArray[:,0])))* (trimArray[:,0]/np.abs(trimArray[:,0]))
 	trimArray[:,1] = xMax/xDist * (trimArray[:,1] - np.min(trimArray[:,1]))
-	trimArray[:,2] = xMax/xDist * trimArray[:,2] + 5
+	trimArray[:,2] = zMax/zDist * trimArray[:,2] + zInit
 	
 	return trimArray
 	
