@@ -18,8 +18,8 @@ app_style additive/thermal 1000000 1.4 7e-7 "Thin_Wall.txt" 6e-5 6e-5 6e-5 1e-6 
 # 		  short_wait_time = atof(arg[8]); //How long to pause during a layer, estimated by laser "jump" speed * distance (in seconds)
 #		  flux_prefactor = atof(arg[9]); //In Watts, typically less than incident laser power
 #         substrate_height = atoi(arg[10]); //In voxels, typically should be 25+
-#         dx = atof(arg[11]); //Thermal and microstructure lattice spacing (in meters)
-#         nrefine = atoi(arg[12]); //How many smoothing steps to perform
+#         nrefine = atoi(arg[11]); //How many smoothing steps to perform
+#         dx = atof(arg[12]); //Thermal and microstructure lattice spacing (in meters)
 
 dimension	 3
 lattice	 	 sc/26n 1.0
