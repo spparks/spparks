@@ -923,7 +923,7 @@ void AppAdditiveThermal::site_event_rejection(int i, RandomPark *random)
   for (j = 0; j < numneigh[i]; j++) {
     value = spin[neighbor[i][j]];
     //Exclude gas, powder or molten sites from the Potts neighbor tally
-    if (value == spin[i] || value == nspins || activeFlag[neighbor[i][j]] != 3) continue;
+    if (value == spin[i] || value == nspins || (activeFlag[neighbor[i][j]] != 3 && activeFlag[neighbor[i][j]] != 1)) continue;
     for (m = 0; m < nevent; m++)
       if (value == unique[m]) break;
     if (m < nevent) continue;
