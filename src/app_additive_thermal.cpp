@@ -95,7 +95,6 @@ AppAdditiveThermal::AppAdditiveThermal(SPPARKS *spk, int narg, char **arg) :
     Tsig = 3;
     sizeNorm = pow(dx,3) * 2;
     sizeSig = pow(dx,3);
-    short_wait_time = 2e-7;
     latent_heat = 285000;
     specific_heat_length = 6;
     solid_front_length = 4;
