@@ -18,6 +18,7 @@
 #include "domain.h"
 #include "lattice.h"
 #include "error.h"
+#include <string>
 
 using namespace SPPARKS_NS;
 
@@ -81,6 +82,9 @@ void DumpVTK::write_header(bigint ndump, double time)
 
   if (me) return;
 
+  std::string str = "Int32";
+  if (type == 1) str.replace(0,3,"Float");
+
   fprintf(fp,"<?xml version=\"1.0\"\?>\n");
   fprintf(fp,"<VTKFile type=\"ImageData\" version=\"0.1\" "
           "byte_order=\"LittleEndian\">\n");
@@ -90,8 +94,8 @@ void DumpVTK::write_header(bigint ndump, double time)
   fprintf(fp,"<PointData>\n");
   fprintf(fp,"</PointData>\n");
   fprintf(fp,"<CellData Scalars=\"Spin\">\n");
-  fprintf(fp,"<DataArray type=\"Int32\" Name=\"Spin\" "
-          "format=\"ascii\" RangeMin=\"%d\" RangeMax=\"%d\">\n",minval,maxval);
+  fprintf(fp,"<DataArray type=\"%s\" Name=\"Spin\" ",str.c_str());
+  fprintf(fp,"format=\"ascii\" RangeMin=\"%d\" RangeMax=\"%d\">\n",minval,maxval);
 }
 
 /* ---------------------------------------------------------------------- */
