@@ -576,25 +576,33 @@ double AppAdditiveThermal::specificHeatCalculator(double temper) {
     double slope = 0;
     double Cp = 0;
     
-    //We have to change this to take values from an arbitrarily-sized array instead
-    for(int i = 0; i < specific_heat_length; i++) {
-        if(i == 0 && temper <= specific_heat_temps[0]) {
-            Cp = specific_heat_vals[0];
-            break;
-        }
-        else if (temper > specific_heat_temps[specific_heat_length -1]) {
-            Cp = specific_heat_vals[i];
-            break;
-        }
-        else if (temper > specific_heat_temps[i -1] && temper <= specific_heat_temps[i]) {
-            slope = (specific_heat_vals[i] - specific_heat_vals[i -1])/(specific_heat_temps[i] - specific_heat_temps[i-1]);
-            Cp = slope * (temper - specific_heat_temps[i-1]) + specific_heat_vals[i -1];
-            break;
-        }
+    //Check if we are above or below the specified temperature range. If not, linearly interpolate the proper value.
+    if(temper >= specific_heat_temps[specific_heat_length -1]) {
+      Cp = specific_heat_vals[specific_heat_length -1];
     }
-    //Add latent heat if in mushy zone
-    if (temper < Tl && temper > Ts) {
-        Cp += latent_heat/(Tl - Ts);
+    else if(temper <= specific_heat_temps[0]) {
+      Cp = specific_heat_vals[0];
+    }
+    else {
+      for(int i = 0; i < specific_heat_length; i++) {
+          if(i == 0 && temper <= specific_heat_temps[0]) {
+              Cp = specific_heat_vals[0];
+              break;
+          }
+          else if (temper > specific_heat_temps[specific_heat_length -1]) {
+              Cp = specific_heat_vals[i];
+              break;
+          }
+          else if (temper > specific_heat_temps[i -1] && temper <= specific_heat_temps[i]) {
+              slope = (specific_heat_vals[i] - specific_heat_vals[i -1])/(specific_heat_temps[i] - specific_heat_temps[i-1]);
+              Cp = slope * (temper - specific_heat_temps[i-1]) + specific_heat_vals[i -1];
+              break;
+          }
+      }
+      //Add latent heat if in mushy zone
+      if (temper < Tl && temper > Ts) {
+          Cp += latent_heat/(Tl - Ts);
+      }
     }
     
     return Cp;
