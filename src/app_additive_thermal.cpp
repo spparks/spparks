@@ -917,7 +917,8 @@ void AppAdditiveThermal::site_event_rejection(int i, RandomPark *random)
     
   //Assign the local mobility
   Mobloc = MobilityOut[i];
-  
+
+    
   int j,m,value;
   int nevent = 0;
   
@@ -1213,7 +1214,7 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
   double tempMaxAll;
   double FDElapsed;
   double nucVolume;
-  double mobMax;
+  double mobMax = 0;
   
   // set loop is over:
   // sectors if there are sectors and no colors
@@ -1235,7 +1236,7 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
   	dtMC = compute_timeMin(tempMaxAll);
   	//Also using this value, compute the maximum solid-state Mobility
   	mobMax = exp(-Q/(R*tempMaxAll));
-  	
+  	  	
   	//Figure out how many loops we should do for each step
   	//If Monte Carlo time is bigger than therm, do app_update loops first and do one MC step
   	if(dtMC > time_step) {
@@ -1243,9 +1244,9 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
   		FDElapsed = 0;
   		nMC = 1;
   		//Zero out the mobility
-        for(int i = 0; i < nlocal; i++) {
-            MobilityOut[i] = 0;
-        }
+      for(int i = 0; i < nlocal; i++) {
+          MobilityOut[i] = 0;
+      }
         mobMax = 0;
 //         if(domain->me == 0) {
 //             fprintf(screen,"Potts time_step %.5e is bigger than solidification time_step %.5e.\n",dtMC, time_step);
@@ -1261,7 +1262,7 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
         //Using the global maximum temperature, compute our smallest timestep
         //Only update dtMC if it is smaller (higher temperature)
         //Basing MC calculation off of the highest temp observed in time_step
-        if (dtMC > compute_timeMin(tempMaxAll)) {
+        if (dtMC > compute_timeMin(tempMaxAll) || mobMax < 1e-8) {
             dtMC = compute_timeMin(tempMaxAll);
             //If new mobMax is larger, use it. This is tested by the enclosing if statement
             mobMax = exp(-Q/(R*tempMaxAll));
@@ -1295,10 +1296,11 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
   		}
   		//Compute the normalized mobilities at each site
   		//True "mobMax" would be holding the max temp for the entire window
-        for(int i = 0; i < nlocal; i++) {
-            if(activeFlag[i] < 3) continue;
-            MobilityOut[i] = MobilityOut[i]/(mobMax * FDElapsed);
-        }
+
+      for(int i = 0; i < nlocal; i++) {
+        if(activeFlag[i] < 3) continue;
+        MobilityOut[i] = MobilityOut[i]/(mobMax * FDElapsed);
+      }
         
   	}
   	//If FD step is bigger, figure out number of MC steps to do and then update temps.
@@ -1313,6 +1315,8 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
             MobilityOut[i] = compute_mobility(i, ranapp)/mobMax;
         }
   	}
+  	
+  	
   	//Do Monte Carlo sweeps
   	for (int j = 0; j<nMC; j++) {
         for (int iset = 0; iset < nset_loop; iset++) {
@@ -1326,7 +1330,6 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
             if (Lmask) boundary_clear_mask(iset);
 
             timer->stamp();
-
             // sectors but no colors (could also be no sectors)
             // random selection of sites in iset
 
@@ -1343,8 +1346,8 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
             // ordered sweep over all sites in iset
 
             } else if (bothflag == 0) {
-                for (i = 0; i < set[iset].nloop; i++)
-                    (this->*sweep)(set[iset].nlocal,set[iset].site2i);
+                    //Get rid of nloop because we want this to happen once each time we run it.
+                    (this->*sweep)(set[iset].nlocal,set[iset].site2i); 
                 nattempt += set[iset].nselect;
 
             // sectors and colors
@@ -1355,8 +1358,8 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
             } else {
                 for (icolor = 0; icolor < ncolors; icolor++) {
                     jset = nsector + iset*ncolors + icolor;
-                    for (i = 0; i < set[jset].nloop; i++)
-                        (this->*sweep)(set[jset].nlocal,set[jset].site2i);
+                    //Get rid of nloop because we want this to happen once each time we run it.
+                    (this->*sweep)(set[jset].nlocal,set[jset].site2i);
                     nattempt += set[jset].nselect;
                 }
             }
