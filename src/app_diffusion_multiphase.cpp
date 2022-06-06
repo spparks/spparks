@@ -38,7 +38,7 @@ enum{LINEAR};
 /* ---------------------------------------------------------------------- */
 
 AppDiffusionMultiphase::AppDiffusionMultiphase(SPPARKS *spk, int narg, char **arg) : 
-  AppLattice(spk,narg,arg), phase_labels(), weights()
+  AppLattice(spk,narg,arg), phase_labels(), is_pinned(), weights()
 {
   //Need to double check these values
   ninteger = 1;
@@ -49,12 +49,10 @@ AppDiffusionMultiphase::AppDiffusionMultiphase(SPPARKS *spk, int narg, char **ar
   allow_rejection = 1;
   allow_masking = 0;
   numrandom = 1;
-  npin=-1;
 
   // parse arguments
   if (narg < 1) error->all(FLERR,"Illegal app_style command");
   //nspins = atoi(arg[1]);
-  //npin = atoi(arg[2]);
   engstyle=LINEAR;
   //if (strcmp(arg[1],"linear") == 0) engstyle = LINEAR;
   //else error->all(FLERR,"Illegal app_style command");
@@ -124,12 +122,14 @@ void AppDiffusionMultiphase::parse_diffmultiphase(int narg, char **arg){
       if (narg != 2) error->all(FLERR,"Illegal 'diffusion/multiphase phase' command; num args != 2");
       int phase=std::atoi(arg[1]);
       phase_labels.insert(phase);
+      // phases are not pinned by default
+      is_pinned[phase]=false;
       if (phase < 1) error->all(FLERR,"Illegal 'diffusion/multiphase phase' value; must be >=1");
    } else if(strcmp(arg[0],"pin")==0){
       if (narg != 2) error->all(FLERR,"Illegal 'diffusion/multiphase pin' command; num args != 2");
       int pin_phase=std::atoi(arg[1]);
-      npin=pin_phase;
       phase_labels.insert(pin_phase);
+      is_pinned[pin_phase]=true;
       if (pin_phase < 1) error->all(FLERR,"Illegal 'diffusion/multiphase pin' value; must be >=1");
    } else if(strcmp(arg[0],"weight")==0){
       if (narg != 5) error->all(FLERR,"Illegal 'diffusion/multiphase weight' command; num args != 5");
@@ -263,13 +263,14 @@ void AppDiffusionMultiphase::site_event_rejection(int i, RandomPark *random)
   double einitial,edelta;
   int i_old, j_old;
 
-  //npin sites can't exchange
-  if (lattice[i] == npin) return;
+  //pinned sites can't exchange
+  if (is_pinned[lattice[i]]) return;
   //Need to double check neighborhood
   int iran = (int) (maxneigh*random->uniform());
   if (iran > maxneigh) iran = maxneigh-1;
   int j = neighbor[i][iran];
-  if (lattice[j] == npin || lattice[j] == lattice[i]) return;
+  // if site j pinned or if site i and site j same spin then return
+  if (is_pinned[lattice[j]] || lattice[j] == lattice[i]) return;
 
   i_old = lattice[i];
   j_old = lattice[j];
@@ -317,10 +318,10 @@ double AppDiffusionMultiphase::site_propensity_linear(int i)
   int j,k, i_old, j_old;
   double einitial,edelta,probone,proball;
 
-  //Add event if neighbors are dissimilar and not npin
+  //Add event if neighbors are dissimilar and not pinned
   clear_events(i);
 
-  if (lattice[i] == npin) {
+  if (is_pinned[lattice[i]]) {
     return 0.0;
   }
   
@@ -335,7 +336,7 @@ double AppDiffusionMultiphase::site_propensity_linear(int i)
     j = neighbor[i][k];
     j_old = lattice[j];
     
-    if(lattice[j] == lattice[i] || lattice[j] == npin) continue;
+    if(lattice[j] == lattice[i] || is_pinned[lattice[j]]) continue;
     
     //Exchange values and check energy
     lattice[i] = j_old;

@@ -353,5 +353,267 @@ class unit_variable_size_cv_write_read(unittest.TestCase):
         self.assertTrue ((trial_su1_f64 == self._s6).all ())
         pass
 
+class unit_global_bounds(unittest.TestCase):
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        name='unit_global_bounds'
+
+        # times
+        self._t0=0.0
+        self._t1=1.0
+        self._t2=2.0
+
+        # x1, x2, y1, y2, z1, z2
+        # xlo, xhi, ylo, yhi, zlo, zhi
+        self._origin=numpy.fromiter([0,10,0,10,0,10],dtype=numpy.int32).reshape(2,3,order='F')
+        self._cube=numpy.fromiter([10,20,30,40,50,60],dtype=numpy.int32).reshape(2,3,order='F')
+        self._rect1=numpy.fromiter([0,20,0,10,0,10],dtype=numpy.int32).reshape(2,3,order='F')
+        self._rect2=numpy.fromiter([0,10,10,20,0,10],dtype=numpy.int32).reshape(2,3,order='F')
+        #self._b1=b1
+        #nx,ny,nz=get_block_width(b1)
+        #self._nx=nx;
+        #self._ny=ny;
+        #self._nz=nz;
+        #self._Q=nx*ny*nz
+        #(rc,self._file) = libstitch.open (self._fname);
+        #(rc,self._field_id) = libstitch.create_field (self._file, 'spin', 1, 1, -1)
+        #self._absolute_tolerance = 1.0e-9;
+        #self._relative_tolerance = 1.0e-15;
+        #self._no_value_present = -1;
+        #rc = libstitch.set_parameters (self._file, self._absolute_tolerance, self._relative_tolerance, self._no_value_present);
+        pass
+
+    def assert_shape(self,truth_value,test_value):
+        # Expected value: type=numpy array, shape=(2,3), 'truth_value'
+        # Suspect value tested: type=numpy array, shape=(2,3), 'test_value'
+        # All of the shapes here must be (2,3)
+        num_rows=2
+        num_cols=3
+        self.assertTrue (truth_value.shape[0] == num_rows)
+        self.assertTrue (truth_value.shape[1] == num_cols)
+        self.assertTrue (test_value.shape[0] == num_rows)
+        self.assertTrue (test_value.shape[1] == num_cols)
+        self.assertTrue (truth_value.shape == test_value.shape)
+
+        # Assert array values
+        for j in range(num_cols):
+            for i in range(num_rows):
+                #print("truth_value[%d,%d]=%d, test_value[%d,%d]=%d"%(i,j,truth_value[i,j],i,j,test_value[i,j],))
+                self.assertTrue (truth_value[i,j]==test_value[i,j])
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_a_global_bounds_origin(self):
+        ##
+        # Exercises global bounds on cube situated at origin
+        ##
+
+        # Open and create stitch file
+        # Create field id
+        # Create numpy array on domain
+        # Assign values
+        # Write field to database
+        # Check global bounds
+
+        # Create and open stitch file
+        # Set parameters
+        filename="unit_a_global_bounds_orgin.st"
+        (rc,fid) = libstitch.open (filename);
+        self._absolute_tolerance = 1.0e-9;
+        self._relative_tolerance = 1.0e-15;
+        self._no_value_present = -1;
+        rc = libstitch.set_parameters (fid, self._absolute_tolerance, self._relative_tolerance, self._no_value_present);
+
+        # Create fields
+        (rc, field_id_i32) = libstitch.create_field (fid, 'origin_int32', 1, 1, -1)
+        (rc, field_id_i64) = libstitch.create_field (fid, 'origin_int64', 2, 1, -3000000000)
+        (rc, field_id_f64) = libstitch.create_field (fid, 'origin_float64', 3, 1, -1.0)
+
+        d={field_id_i32:-1,field_id_i64:-3000000000,field_id_f64:-1.0}
+
+        # Assert no value present
+        (rc, field_ids, labels, t, lengths, no_value_presents) = libstitch.get_fields (fid)
+        for i in range (len (field_ids)):
+            #print (field_ids [i], ' ', labels [i], ' ', t [i], ' ', lengths [i], ' ', no_value_presents [i])
+            self.assertTrue (d[field_ids[i]]==no_value_presents[i])
+
+        # Create arrays 
+        nx,ny,nz=get_block_width(self._origin)
+        origin_int32=numpy.ones(shape=(nx,ny,nz),dtype=numpy.int32,order='F')
+        origin_int64=numpy.ones(shape=(nx,ny,nz),dtype=numpy.int64,order='F')
+        origin_float64=numpy.zeros(shape=(nx,ny,nz),dtype=numpy.float64,order='F')
+
+        # Simplest case: write cube at origin and t=0.0; 
+        libstitch.write_block (fid, field_id_i32, self._t0, self._origin, origin_int32)
+        libstitch.write_block (fid, field_id_i64, self._t0, self._origin, origin_int64)
+        libstitch.write_block (fid, field_id_f64, self._t0, self._origin, origin_float64)
+        # Simplest case: check correctness of global bounds
+        rc,bounds_i32=libstitch.get_global_bounds(fid, field_id_i32)
+        rc,bounds_i64=libstitch.get_global_bounds(fid, field_id_i64)
+        rc,bounds_float64=libstitch.get_global_bounds(fid, field_id_f64)
+        self.assert_shape(self._origin,bounds_i32)
+        self.assert_shape(self._origin,bounds_i64)
+        self.assert_shape(self._origin,bounds_float64)
+
+        ## close file
+        libstitch.close (fid);
+        pass
+
+    def test_b_global_bounds_cube_not_origin(self):
+        ##
+        # Exercises global bounds on cube not situated at origin
+        ##
+
+        # Open and create stitch file
+        # Create field id
+        # Create numpy array on domain
+        # Assign values
+        # Write field to database
+        # Check global bounds
+
+        # Create and open stitch file
+        # Set parameters
+        filename="unit_b_global_bounds_not_origin.st"
+        (rc,fid) = libstitch.open (filename);
+        self._absolute_tolerance = 1.0e-9;
+        self._relative_tolerance = 1.0e-15;
+        self._no_value_present = -1;
+        rc = libstitch.set_parameters (fid, self._absolute_tolerance, self._relative_tolerance, self._no_value_present);
+
+        # Create fields
+        (rc, field_id_i32) = libstitch.create_field (fid, 'cube_int32', 1, 1, -1)
+        (rc, field_id_i64) = libstitch.create_field (fid, 'cube_int64', 2, 1, -3000000000)
+        (rc, field_id_f64) = libstitch.create_field (fid, 'cube_float64', 3, 1, -1.0)
+
+        d={field_id_i32:-1,field_id_i64:-3000000000,field_id_f64:-1.0}
+
+        # Assert no value present
+        (rc, field_ids, labels, t, lengths, no_value_presents) = libstitch.get_fields (fid)
+        for i in range (len (field_ids)):
+            #print (field_ids [i], ' ', labels [i], ' ', t [i], ' ', lengths [i], ' ', no_value_presents [i])
+            self.assertTrue (d[field_ids[i]]==no_value_presents[i])
+
+        # Create arrays 
+        nx,ny,nz=get_block_width(self._cube)
+        cube_int32=numpy.ones(shape=(nx,ny,nz),dtype=numpy.int32,order='F')
+        cube_int64=numpy.ones(shape=(nx,ny,nz),dtype=numpy.int64,order='F')
+        cube_float64=numpy.zeros(shape=(nx,ny,nz),dtype=numpy.float64,order='F')
+
+        # Case: write cube at off cube and t=0.0; 
+        libstitch.write_block (fid, field_id_i32, self._t0, self._cube, cube_int32)
+        libstitch.write_block (fid, field_id_i64, self._t0, self._cube, cube_int64)
+        libstitch.write_block (fid, field_id_f64, self._t0, self._cube, cube_float64)
+        # Case: check correctness of global bounds
+        rc,bounds_i32=libstitch.get_global_bounds(fid, field_id_i32)
+        rc,bounds_i64=libstitch.get_global_bounds(fid, field_id_i64)
+        rc,bounds_float64=libstitch.get_global_bounds(fid, field_id_f64)
+        self.assert_shape(self._cube,bounds_i32)
+        self.assert_shape(self._cube,bounds_i64)
+        self.assert_shape(self._cube,bounds_float64)
+
+        # close file
+        libstitch.close (fid);
+        pass
+
+    def test_c_global_bounds_not_cube(self):
+        ##
+        # Exercises global bounds 
+        # 1) Rectangle at t=0.0
+        # 2) add data at t=1.0; database is not rectangular or cubic
+        ##
+
+        # Open and create stitch file
+        # Create field id
+        # Create numpy array on domain
+        # Assign values
+        # Write field to database
+        # Check global bounds
+
+        # Create and open stitch file
+        # Set parameters
+        filename="unit_c_global_bounds_not_cube.st"
+        (rc,fid) = libstitch.open (filename);
+        self._absolute_tolerance = 1.0e-9;
+        self._relative_tolerance = 1.0e-15;
+        self._no_value_present = -1;
+        rc = libstitch.set_parameters (fid, self._absolute_tolerance, self._relative_tolerance, self._no_value_present);
+
+        # Create fields
+        (rc, field_id_i32) = libstitch.create_field (fid, 'cube_int32', 1, 1, -1)
+        (rc, field_id_i64) = libstitch.create_field (fid, 'cube_int64', 2, 1, -3000000000)
+        (rc, field_id_f64) = libstitch.create_field (fid, 'cube_float64', 3, 1, -1.0)
+
+        d={field_id_i32:-1,field_id_i64:-3000000000,field_id_f64:-1.0}
+
+        # Assert no value present
+        (rc, field_ids, labels, t, lengths, no_value_presents) = libstitch.get_fields (fid)
+        for i in range (len (field_ids)):
+            #print (field_ids [i], ' ', labels [i], ' ', t [i], ' ', lengths [i], ' ', no_value_presents [i])
+            self.assertTrue (d[field_ids[i]]==no_value_presents[i])
+
+        # Create arrays for rect1
+        nx,ny,nz=get_block_width(self._rect1)
+        rect1_int32=numpy.ones(shape=(nx,ny,nz),dtype=numpy.int32,order='F')
+        rect1_int64=numpy.ones(shape=(nx,ny,nz),dtype=numpy.int64,order='F')
+        rect1_float64=numpy.zeros(shape=(nx,ny,nz),dtype=numpy.float64,order='F')
+
+        # Case: write rect1 t=0.0; 
+        libstitch.write_block (fid, field_id_i32, self._t0, self._rect1, rect1_int32)
+        libstitch.write_block (fid, field_id_i64, self._t0, self._rect1, rect1_int64)
+        libstitch.write_block (fid, field_id_f64, self._t0, self._rect1, rect1_float64)
+        # Case: check correctness of global bounds
+        rc,bounds_i32=libstitch.get_global_bounds(fid, field_id_i32)
+        rc,bounds_i64=libstitch.get_global_bounds(fid, field_id_i64)
+        rc,bounds_float64=libstitch.get_global_bounds(fid, field_id_f64)
+        self.assert_shape(self._rect1,bounds_i32)
+        self.assert_shape(self._rect1,bounds_i64)
+        self.assert_shape(self._rect1,bounds_float64)
+
+        ## Change geometry of database at t=1.0
+        # Case: add rect2 to database
+        # Create arrays for rect2
+        nx,ny,nz=get_block_width(self._rect2)
+        rect2_int32=numpy.ones(shape=(nx,ny,nz),dtype=numpy.int32,order='F')
+        rect2_int64=numpy.ones(shape=(nx,ny,nz),dtype=numpy.int64,order='F')
+        rect2_float64=numpy.zeros(shape=(nx,ny,nz),dtype=numpy.float64,order='F')
+
+        # Case: write rect2 t=1.0; 
+        libstitch.write_block (fid, field_id_i32, self._t1, self._rect2, rect2_int32)
+        libstitch.write_block (fid, field_id_i64, self._t1, self._rect2, rect2_int64)
+        libstitch.write_block (fid, field_id_f64, self._t1, self._rect2, rect2_float64)
+
+        # union of bounds from rect1 and rect2
+        bounds=numpy.fromiter([0,20,0,20,0,10],dtype=numpy.int32).reshape(2,3,order='F')
+        rc,bounds_i32=libstitch.get_global_bounds(fid, field_id_i32)
+        rc,bounds_i64=libstitch.get_global_bounds(fid, field_id_i64)
+        rc,bounds_float64=libstitch.get_global_bounds(fid, field_id_f64)
+        self.assert_shape(bounds,bounds_i32)
+        self.assert_shape(bounds,bounds_i64)
+        self.assert_shape(bounds,bounds_float64)
+        
+        # Add disconnected 'cube' at t2=2.0; this changes y and z bound dimensions
+        # Case: write data on 'cube'; can re-use rect2 data just written above since 
+        #   it has required shape
+        libstitch.write_block (fid, field_id_i32, self._t2, self._cube, rect2_int32)
+        libstitch.write_block (fid, field_id_i64, self._t2, self._cube, rect2_int64)
+        libstitch.write_block (fid, field_id_f64, self._t2, self._cube, rect2_float64)
+        # New expected bounds are new -- y bound dimension change
+        bounds=numpy.fromiter([0,20,0,40,0,60],dtype=numpy.int32).reshape(2,3,order='F')
+        # Assert disconnected domain 
+        rc,bounds_i32=libstitch.get_global_bounds(fid, field_id_i32)
+        rc,bounds_i64=libstitch.get_global_bounds(fid, field_id_i64)
+        rc,bounds_float64=libstitch.get_global_bounds(fid, field_id_f64)
+        self.assert_shape(bounds,bounds_i32)
+        self.assert_shape(bounds,bounds_i64)
+        self.assert_shape(bounds,bounds_float64)
+
+        # close file
+        libstitch.close (fid);
+        pass
+
+
+
 if __name__ == "__main__":
     unittest.main()

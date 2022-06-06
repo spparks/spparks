@@ -1990,3 +1990,72 @@ cleanup:
     return 0;
 }
 
+int stitch_get_global_bounds(const StitchFile * file, int64_t field_id, int32_t * bb)
+{
+    assert(file);
+    assert(bb);
+    /*
+        bb [0] = x1;
+        bb [1] = y1;
+        bb [2] = z1;
+        bb [3] = x2;
+        bb [4] = y2;
+        bb [5] = z2;
+
+    */
+    int rc = 0;
+    sqlite3_stmt* stmt_index = NULL;
+    const char* tail_index = NULL;
+
+    do
+    {
+        rc = sqlite3_prepare_v2(file->db, "select min(blocks.x_min), max(blocks.x_max), min(blocks.y_min), max(blocks.y_max), min(blocks.z_min), max(blocks.z_max) from blocks where field_id = ?", -1, &stmt_index, &tail_index);
+        if (rc != SQLITE_OK && rc != SQLITE_LOCKED && rc != SQLITE_BUSY)
+        {
+            fprintf(stderr, "%d get_global_bounds, prepare Line: %d SQL error (%d): %s\n", file->rank, __LINE__, rc, sqlite3_errmsg(file->db));
+            sqlite3_close(file->db);
+            goto cleanup;
+        }
+    } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
+    rc = sqlite3_bind_int64 (stmt_index, 1, field_id); assert (rc == SQLITE_OK);
+    do
+    {
+        rc = sqlite3_step(stmt_index);
+        if (rc != SQLITE_OK && rc != SQLITE_ROW && rc != SQLITE_DONE && rc != SQLITE_LOCKED && rc != SQLITE_BUSY)
+        {
+            fprintf(stderr, "%d get_global_bounds, prepare Line: %d SQL error (%d): %s\n", file->rank, __LINE__, rc, sqlite3_errmsg(file->db));
+            sqlite3_close(file->db);
+            goto cleanup;
+        }
+    } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
+
+    while (rc == SQLITE_ROW)
+    {
+        bb [0] = sqlite3_column_int(stmt_index, 0);
+        bb [1] = sqlite3_column_int(stmt_index, 1);
+        bb [2] = sqlite3_column_int(stmt_index, 2);
+        bb [3] = sqlite3_column_int(stmt_index, 3);
+        bb [4] = sqlite3_column_int(stmt_index, 4);
+        bb [5] = sqlite3_column_int(stmt_index, 5);
+        do
+        {
+            rc = sqlite3_step(stmt_index);
+            if (rc != SQLITE_OK && rc != SQLITE_BUSY && rc != SQLITE_LOCKED && rc != SQLITE_DONE && rc != SQLITE_ROW)
+            {
+                fprintf(stderr, "Line: %d SQL error (%d): %s\n", __LINE__, rc, sqlite3_errmsg(file->db));
+                sqlite3_close(file->db);
+                goto cleanup;
+            }
+        } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
+    }
+
+cleanup:
+    rc = sqlite3_finalize(stmt_index);
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "%d Line: %d SQL error (%d): %s\n", file->rank, __LINE__, rc, sqlite3_errmsg(file->db));
+        sqlite3_close(file->db);
+    }
+
+    return 0;
+}
