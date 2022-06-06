@@ -8,6 +8,7 @@ SHELL = /bin/sh
 
 CC =		mpicxx
 CCFLAGS =	-O -std=c++11
+CCONLY =	mpicc
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
@@ -93,6 +94,6 @@ depend : fastdep.exe $(SRC)
 	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
 
 fastdep.exe: ../DEPEND/fastdep.c
-	cc -O -o $@ $<
+	$(CCONLY) -O -o $@ $<
 
 sinclude .depend
