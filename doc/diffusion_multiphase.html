@@ -37,30 +37,31 @@ diffusion/multiphase weight 0.5 pair 2 3
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This is a command used with the <A HREF = "app_diffusion_multiphase.html">app_style
+<P>This command is used with the <A HREF = "app_diffusion_multiphase.html">app_style
 diffusion/multiphase</A> application.
-</P>
-<P>The command must be used to define phases either thru the <I>phase</I> 
-keyword or the <I>pin</I> keyword.
 </P>
 <P>The command is typically used multiple times, each time with one of 3
 keywords.
 </P>
-<P>The <I>phase</I> keyword defines a phase with an integer phase label.
+<P>The command must be used once for each defined phase, either with the
+<I>phase</I> keyword or the <I>pin</I> keyword.
 </P>
-<P>The <I>pin</I> keyword also defines a phase with an integer phase label but also
-pins the phase, so that pinned sites never change values due to swaps in the
-diffusion application, i.e. the sites in a pinned phase do not diffuse.  There
-is no limit to the number of phases which may be pinned; in practice, if there
-are np pinned phases, then the total number of phases will generally be at
-least np+2 -- otherwise there is no evolution.
+<P>The <I>phase</I> keyword defines a mobile phase (which can diffuse) with an
+integer phase label.
 </P>
-<P>The energy contribution of a pinned site to the total system
-energy may change with time depending on neighboring phases.
+<P>The <I>pin</I> keyword defines an immobile phase with an integer phase
+label.  Pinned sites never exchange values with another site, i.e. the
+sites in a pinned phase do not diffuse.  
 </P>
-<P>The <I>weight</I> keyword specifies pairwise bond energy weights between
-phases.  The default for all weights is 1.0.  A weight that
-is specified for an I,J pair will also be applied to J,I.
+<P>There is no limit to the number of phases which can be defined.
+However there should always be two or more non-pinned phases in your
+model.  Otherwise no diffusive exchanges between sites with different
+phases will take place.
+</P>
+<P>The <I>weight</I> keyword specifies a pairwise bond energy (weight) between
+two neighboring sites with the specified I,J phase values.  The
+default for all weights is 1.0.  A weight specified for an I,J pair
+will also be applied to J,I.
 </P>
 <P>In the 4 example lines above, 3 phases are defined.  Phase 1 is
 pinned, phases 2 and 3 are not.  A weight of 0.5 is applied to the 2,3
@@ -74,7 +75,7 @@ diffusion/multiphase</A> application.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "app_diffusion_multiphase.html">app_style diffusion/multiphase</A> 
+<P><A HREF = "app_diffusion_multiphase.html">app_style diffusion/multiphase</A>
 </P>
 <P><B>Default:</B> 
 </P>

@@ -25,10 +25,14 @@ diffusion/multiphase weight 0.5 pair 2 3
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This is an on-lattice application which is a multiphase extension to
-the single phase <A HREF = "app_diffusion.html">diffusion</A> app.  This app can run
-with an arbitrary number of phases, but is is limited to the energy
-style <I>linear</I> option of the <A HREF = "app_diffusion.html">diffusion</A> app.
+<P>This is an on-lattice application which is a multi-species or
+multiphase extension to the single species or single phase
+<A HREF = "app_diffusion.html">diffusion</A> app.  If run with an atomic scale
+lattice, then this app allows definition of multiple atomic species
+via the <A HREF = "diffusion_multiphase.html">diffusion/multiphase</A> command it
+defines.  Likewise if run with a coarse-grained lattice, it allows
+definition of multiple phases.  The rest of this doc page uses the
+"phase" terminology.
 </P>
 <P>In general, diffusion can lead to phase separation when bond energies
 (energy of a pair of neighboring sites) between like phases are lower
@@ -36,27 +40,45 @@ than bond energies between different phases.  The rate of phase
 separation and the degree to which it occurs can be controlled by
 setting the relative bond energies between different phases.
 </P>
+<P>This app can be run with an arbitrary number of phases.  Note that if
+you want vacancies included in the model, they are specified as a
+distinct phase, just as Al or Cu atoms would be individual phases in
+an atomic-scale model.
+</P>
 <P>As illustrated in the example above, the
-<A HREF = "diffusion_multiphase.html">diffusion/multiphase</A> command is used with this
-application.  It defines phases, relative weights between pairs of phases, and
-whether or not phases are pinned.  This app style does not have any
-restrictions on the number of phases or the number of phases which are pinned;
-in practice, if there are np pinned phases, then the total number of phases
-will generally be at least np+2 -- otherwise there is no evolution.
+<A HREF = "diffusion_multiphase.html">diffusion/multiphase</A> command is used with
+this application.  For each phase, the "phase" keyword should be used
+if the phase is mobile (it diffuses), or with the "pin" keyword if it
+is immobile.  The "weight" keyword is used to define a pairwise energy
+between pairs of neighbor phases in the energy Hamiltonian for the
+model:
+</P>
+<PRE>Hi = Sum_j weight_ij 
+</PRE>
+<P>where Sum_j is a sum over all the neighbor sites of site I and
+weight_ij is the pairwise energy for the phases of site I and J.
+</P>
+<P>Note that this equation means this app is effectively limited to the
+energy style <I>linear</I> option of the <A HREF = "app_diffusion.html">app_style
+diffusion</A> command.
+</P>
+<P>Also note that there should always be two or more non-pinned phases in
+your model.  Otherwise no diffusive exchanges between sites with
+different phases will take place.
 </P>
 <P>To run this application, an initial phase distribution on the lattice
-should be specified.  Each lattice site has an integer value
-which stores its phase label.  If only relative volume fractions of
-the phases is desired, the <A HREF = "set.html">set</A> command can be used to set
-values.  If there is structure to the initial phase
-distribution, this can be written to a SPPARKS input file and read via
-the <A HREF = "read_sites.html">read_sites</A> command;  or, the <A HREF = "set.html">set
-stitch</A> command can be used to read phase distribution from a
-Stitch file formatted by the Stitch library included with SPPARKS.
+should be specified.  Each lattice site has an integer value which
+stores its phase label.  If only relative volume fractions of the
+phases is desired, the <A HREF = "set.html">set</A> command can be used to set
+values.  If there is structure to the initial phase distribution, this
+can be written to a SPPARKS input file and read via the
+<A HREF = "read_sites.html">read_sites</A> command; or, the <A HREF = "set.html">set stitch</A>
+command can be used to read phase distribution from a Stitch file
+formatted by the Stitch library included with SPPARKS.
 </P>
-<P>The examples/diffusion_multiphase directory has several scripts which illusrate
-use of this app; example scripts also demonstrate initializing phase
-distributions.
+<P>The examples/diffusion_multiphase directory has several scripts which
+illusrate use of this app; example scripts also demonstrate
+initializing phase distributions.
 </P>
 <UL><LI>in.pin_filler
 <LI>in.pairwise_weighs
@@ -67,7 +89,7 @@ distributions.
 <P>The following additional command is defined by this application.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD ><A HREF = "diffusion_multiphase.html">diffusion_multiphase</A> </TD><TD > define phases and weights 
+<TR><TD ><A HREF = "diffusion_multiphase.html">diffusion/multiphase</A> </TD><TD > define phases and weights 
 </TD></TR></TABLE></DIV>
 
 <HR>

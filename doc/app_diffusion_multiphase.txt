@@ -22,10 +22,14 @@ diffusion/multiphase weight 0.5 pair 2 3 :pre
 
 [Description:]
 
-This is an on-lattice application which is a multiphase extension to
-the single phase "diffusion"_app_diffusion.html app.  This app can run
-with an arbitrary number of phases, but is is limited to the energy
-style {linear} option of the "diffusion"_app_diffusion.html app.
+This is an on-lattice application which is a multi-species or
+multiphase extension to the single species or single phase
+"diffusion"_app_diffusion.html app.  If run with an atomic scale
+lattice, then this app allows definition of multiple atomic species
+via the "diffusion/multiphase"_diffusion_multiphase.html command it
+defines.  Likewise if run with a coarse-grained lattice, it allows
+definition of multiple phases.  The rest of this doc page uses the
+"phase" terminology.
 
 In general, diffusion can lead to phase separation when bond energies
 (energy of a pair of neighboring sites) between like phases are lower
@@ -33,27 +37,45 @@ than bond energies between different phases.  The rate of phase
 separation and the degree to which it occurs can be controlled by
 setting the relative bond energies between different phases.
 
+This app can be run with an arbitrary number of phases.  Note that if
+you want vacancies included in the model, they are specified as a
+distinct phase, just as Al or Cu atoms would be individual phases in
+an atomic-scale model.
+
 As illustrated in the example above, the
-"diffusion/multiphase"_diffusion_multiphase.html command is used with this
-application.  It defines phases, relative weights between pairs of phases, and
-whether or not phases are pinned.  This app style does not have any
-restrictions on the number of phases or the number of phases which are pinned;
-in practice, if there are np pinned phases, then the total number of phases
-will generally be at least np+2 -- otherwise there is no evolution.
+"diffusion/multiphase"_diffusion_multiphase.html command is used with
+this application.  For each phase, the "phase" keyword should be used
+if the phase is mobile (it diffuses), or with the "pin" keyword if it
+is immobile.  The "weight" keyword is used to define a pairwise energy
+between pairs of neighbor phases in the energy Hamiltonian for the
+model:
+
+Hi = Sum_j weight_ij :pre
+
+where Sum_j is a sum over all the neighbor sites of site I and
+weight_ij is the pairwise energy for the phases of site I and J.
+
+Note that this equation means this app is effectively limited to the
+energy style {linear} option of the "app_style
+diffusion"_app_diffusion.html command.
+
+Also note that there should always be two or more non-pinned phases in
+your model.  Otherwise no diffusive exchanges between sites with
+different phases will take place.
 
 To run this application, an initial phase distribution on the lattice
-should be specified.  Each lattice site has an integer value
-which stores its phase label.  If only relative volume fractions of
-the phases is desired, the "set"_set.html command can be used to set
-values.  If there is structure to the initial phase
-distribution, this can be written to a SPPARKS input file and read via
-the "read_sites"_read_sites.html command;  or, the "set
-stitch"_set.html command can be used to read phase distribution from a
-Stitch file formatted by the Stitch library included with SPPARKS.
+should be specified.  Each lattice site has an integer value which
+stores its phase label.  If only relative volume fractions of the
+phases is desired, the "set"_set.html command can be used to set
+values.  If there is structure to the initial phase distribution, this
+can be written to a SPPARKS input file and read via the
+"read_sites"_read_sites.html command; or, the "set stitch"_set.html
+command can be used to read phase distribution from a Stitch file
+formatted by the Stitch library included with SPPARKS.
 
-The examples/diffusion_multiphase directory has several scripts which illusrate
-use of this app; example scripts also demonstrate initializing phase
-distributions.
+The examples/diffusion_multiphase directory has several scripts which
+illusrate use of this app; example scripts also demonstrate
+initializing phase distributions.
 
 in.pin_filler
 in.pairwise_weighs
@@ -63,7 +85,7 @@ in.variable_volume_fraction :ul
 
 The following additional command is defined by this application.
 
-"diffusion_multiphase"_diffusion_multiphase.html : define phases and weights :tb(s=:)
+"diffusion/multiphase"_diffusion_multiphase.html : define phases and weights :tb(s=:)
 
 :line
 
