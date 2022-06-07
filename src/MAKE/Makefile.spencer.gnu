@@ -1,4 +1,4 @@
-# g++ = RedHat Linux box, g++, MPICH
+# spencer.gnu: uses MPI_HOME env var path for mpi compiler, enables Stitch
 
 SHELL = /bin/sh
 
@@ -7,6 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		${MPI_HOME}/bin/mpicxx
+C =		${MPI_HOME}/bin/mpicc
 CCFLAGS =	-g -O -std=c++11
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
@@ -104,6 +105,6 @@ depend : fastdep.exe $(SRC)
 	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
 
 fastdep.exe: ../DEPEND/fastdep.c
-	cc -O -o $@ $<
+	$(C) -O -o $@ $<
 
 sinclude .depend

@@ -32,26 +32,33 @@ diffusion/multiphase weight 0.5 pair 2 3 :pre
 
 [Description:]
 
-This is an optional command used with the "app_style
+This command is used with the "app_style
 diffusion/multiphase"_app_diffusion_multiphase.html application.
 
 The command is typically used multiple times, each time with one of 3
 keywords.
 
-The {phase} keyword defines a phase with an integer phase label.
+The command must be used once for each defined phase, either with the
+{phase} keyword or the {pin} keyword.
 
-The {pin} keyword also defines a phase with an integer phase label and
-pins the phase, so that its sites never change values due to swaps in
-the diffusion application.  I.e. the sites in a pinned phase do not
-diffuse.  At most one phase can be pinned.
+The {phase} keyword defines a mobile phase (which can diffuse) with an
+integer phase label.
 
-The contribution of the energy of a pinned site to the total system
-energy does not change over time.  However, pinned sites do contribute
-to the energy of neighboring sites in the usual way.
+The {pin} keyword defines an immobile phase with an integer phase
+label.  Pinned sites never exchange values with another site, i.e. the
+sites in a pinned phase do not diffuse.  
 
-The {weight} keyword specifes pairwise bond energy weights between
-phases.  The default for all weights is 1.0.  A weight that
-is specified for an I,J pair will also be applied to J,I.
+There is no limit to the number of phases which can be defined.
+However there should always be two or more non-pinned phases in your
+model.  Otherwise no diffusive exchanges between sites with different
+phases will take place.
+
+The {weight} keyword specifies a pairwise bond energy (weight) between
+two neighboring sites with the specified I,J phase values.  The
+default weight for all pairs of unlike phases is 1.0.  A weight
+specified for an I,J pair will also be applied to J,I.  Note that a
+weight cannot be assigned to an I,I pair; a pair of I,I neighbors do
+not contribute to the energy of either site.
 
 In the 4 example lines above, 3 phases are defined.  Phase 1 is
 pinned, phases 2 and 3 are not.  A weight of 0.5 is applied to the 2,3
@@ -65,8 +72,8 @@ diffusion/multiphase"_app_diffusion_multiphase.html application.
 
 [Related commands:]
 
-"app_style diffusion/multiphase"_app_diffusion_multiphase.html 
+"app_style diffusion/multiphase"_app_diffusion_multiphase.html
 
 [Default:] 
 
-No phases defined, weights are all 1.0.
+When pairwise weights are not defined, weights values default to 1.0.

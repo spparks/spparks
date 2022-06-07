@@ -1,0 +1,30 @@
+Examples in this directory demonstrate use of diffusion/multiphase
+app.  Each example has an input script and requires an initial
+microstructure; the initial microstructure is provided by a separately
+created stitch file which is also included in this directory.
+
+* in.pairwise_weights; requires "vf03_nvox100.st"
+* in.pin_filler; requires "vf03_nvox100.st"
+* in.variable_volume_fraction; requires "vf03_nvox100.st"
+* in.two_filler_unequal_affinities; requires two_filler_types_100x100x100.st
+* in.three_filler_unequal_affinities; requires three_filler_types_100x100x100.st
+
+The examples can be run in serial or parallel; log files for parallel
+runs (on 8 processors) are included in this directory.  Log files
+demonstrate what a normal SPPARKS run should nominally look like on 8
+processors for the above scripts.  On 8 processors, the examples run
+in less than 5 minutes.
+
+* log.multiphase.pairwise_weights.22June21.linux.8
+* log.multiphase.pin_filler.22June21.linux.8
+* log.multiphase.variable_volume_fraction.22June21.linux.8
+* log.multiphase.two_filler_unequal_affinities.6Jun22.linux.8
+* log.multiphase.three_filler_unequal_affinities.6June22.linux.8
+
+The examples demonstrate use of the app-specific diffusion/multiphase
+command; the input scripts are documentated for ease of use and
+understanding.
+
+Each example dumps a stitch file and 4 images (jpeg) representing the
+evolution of two different dynamic phases and in some cases
+constrained by one or more pinned phases.

@@ -50,9 +50,6 @@ class AppDiffusionMultiphase : public AppLattice {
   int dimension;
   int *lattice;
 
-  //int nspins;
-  int npin;
-  
   struct Event {           // one event for an owned site
     double propensity;     // propensity of this event
     int destination;       // local ID of destination site
@@ -67,6 +64,7 @@ class AppDiffusionMultiphase : public AppLattice {
 
   // phases and pairwise weights used for site energy calculation
   std::set<int> phase_labels;
+  std::map<int,bool> is_pinned;
   std::map<std::pair<int,int>,double> weights;
   void parse_diffmultiphase(int narg, char **arg);
 

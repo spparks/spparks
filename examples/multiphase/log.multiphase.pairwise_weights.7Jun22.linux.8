@@ -1,0 +1,116 @@
+SPPARKS (7 June 2022)
+#
+# SEED: 
+variable SEED equal                 1
+#
+# T: simulation temperature
+variable T equal                 0.0625
+#
+# DT: number of KMC steps
+variable DT equal 400.0
+#
+# IN_FILLER: stitch input filename
+variable IN_FILLER world vf03_nvox100.st
+
+# OUT_FILLER: output filename
+variable OUT_FILLER world pairwise_weights.st
+
+#
+seed		 ${SEED}
+seed		 1
+
+# Declare app
+app_style diffusion/multiphase
+
+# 
+dimension	 3
+
+# 
+boundary p p p
+
+# 
+lattice		 sc/26n 1.0
+region		 box block 0 100 0 100 0 100
+create_box	 box
+Created box = (0 0 0) to (100 100 100)
+  2 by 2 by 2 processor grid
+create_sites     box
+Creating sites ...
+  1000000 sites
+  1000000 sites have 26 neighbors
+
+# Define phase labels '1' '2' and '3'
+# Must always be after 'create_sites'
+# Define and pin phase '1'
+diffusion/multiphase pin 1
+# Define phases '2' and '3'
+diffusion/multiphase phase 2
+diffusion/multiphase phase 3
+
+# Pairwise phase weights are optional; default 1.0
+# Need only input weight once for pair (i,j); symmetry 
+#    is enforced in app; same weight is internally 
+#    assigned to pair(j,i)
+# diffusion/multiphase weight <double> pair <int phase_1,int phase_2> 
+diffusion/multiphase weight 0.5 pair 1 2
+
+# Initialize filler from stitch file;
+# In this case -- the filler phase label is '1' with 
+#    all remaining sites set to a phase value '0';
+# Fact that non-filler values are '0' is leveraged below;
+# Read 'stitch' file using 'first' time step in file
+# Sets the variable 'i1' in app diffusion/multiphase
+set i1 stitch ${IN_FILLER} first
+set i1 stitch vf03_nvox100.st first
+  1000000 settings made for i1
+
+# NOTE: this command is sensitive to 'phase' values 
+#    specified above; Idea here is to evenly distribute
+#    phase labels '2 and 3' to sites that had a value 
+#    of '0' from above 'set i1 stitch' command; all 
+#    values <1 were non-filler
+set i1 range 2 3 if i1 < 1
+  707052 settings made for i1
+
+solve_style tree
+sector yes
+diag_style       energy
+temperature	 ${T}
+temperature	 0.0625
+stats            10.0
+
+# Dump stitch file and images at time intervals of 100
+dump         dump.id stitch 100 ${OUT_FILLER} i1
+dump         dump.id stitch 100 pairwise_weights.st i1
+dump threedee image 100 pairwise_weights.*.jpg site site crange 1 3 drange 1 1 shape cube box no 1 zoom 1.3 size 512 512 sdiam 1.05
+dump_modify threedee scolor * red/white/black backcolor gray
+
+run             ${DT}
+run             400
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 21.875 Mbytes
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy
+         0          0          0          0          0 5.41503e+06
+    15.789    1449626          0          7         20 2.79711e+06
+   26.0632    1683547          0          8       22.5 2.73027e+06
+   38.6075    1897885          0          9       24.9 2.6851e+06
+   54.6698    2112242          0         10       27.2 2.64873e+06
+   76.7169    2345881          0         11       29.7 2.6191e+06
+    105.03    2595870          0         12       32.9 2.59503e+06
+   129.246    2785736          0         13       34.9 2.57947e+06
+   164.478    3026914          0         14       37.6 2.56268e+06
+   198.643    3247319          0         15       40.1 2.54785e+06
+   239.597    3481405          0         16       43.3 2.5341e+06
+   282.414    3701152          0         17         46 2.52341e+06
+   329.724    3920043          0         18       49.1 2.51453e+06
+    369.66    4105199          0         19       51.3 2.50644e+06
+       400    4240883          0         20       53.6 2.50136e+06
+Loop time of 53.5696 on 8 procs
+
+Solve time (%) = 0.101733 (0.189909)
+Update time (%) = 0 (0)
+Comm  time (%) = 11.306 (21.1053)
+Outpt time (%) = 2.38945 (4.46046)
+App   time (%) = 39.7578 (74.217)
+Other time (%) = 0.0146189 (0.0272895)

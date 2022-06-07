@@ -3,6 +3,18 @@
 Release Notes
 =============
 
+May 2022
+--------
+
+This stitch release includes a new 'global-bounds' functionality.  This is
+additional capability allows user to query and existing stitch database for a
+particular field: 'what are the global bounds' written to the file for this
+field across all time steps; a bounding box is returned; this can be useful 
+when workflows use a stitch file that was written upstream and knowledge of 
+the spatial extent of the file is not known or it is inconvenient to carry 
+that information.  Note that this global bounds is not stored in the stitch 
+file as meta data -- rather it is computed on the fly.
+
 Jan 18 2021
 -----------
 

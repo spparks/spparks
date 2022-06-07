@@ -619,6 +619,45 @@ printf ("in stitchmodule: elements: %d min: %d max: %d\n", ((x2 - x1) * (y2 - y1
     return ret;
 }
 
+// int stitch_get_global_bounds(const StitchFile * file, int64_t field_id, int32_t * bb);
+static PyObject * stitch_get_global_bounds_wrapper (PyObject * self, PyObject * args)
+{
+    int64_t file = 0;
+    int64_t field_id = 0;
+    // Needs to be 32bit int
+    int32_t *block_i32 = NULL;
+
+    int rc = 0;
+    PyObject * ret = NULL;
+    PyObject * block = NULL;
+    PyArray_Descr * descr = NULL;
+    // returning fortran layout array
+    int flags = NPY_ARRAY_F_CONTIGUOUS;
+
+    // parse arguments
+    if (!PyArg_ParseTuple (args, "LL", &file, &field_id))
+    {
+        return NULL;
+    }
+
+    // Build py array from scratch with fortran layout
+    // shape=(2,3)
+    int32_t nd = 2;
+    npy_intp dims [2] = {2,3};
+    descr = PyArray_DescrFromType (NPY_INT32);
+    block = PyArray_NewFromDescr (&PyArray_Type, descr, nd, dims, NULL, NULL, flags, NULL);
+    block_i32 = (int32_t *) PyArray_DATA ((PyArrayObject *) block);
+
+    // Read global bounds
+    rc=stitch_get_global_bounds((StitchFile *) file, field_id, block_i32);
+
+    ret = Py_BuildValue ("iN", rc, block);
+    assert (ret);
+
+    return ret;
+}
+
+
 
 //=============================================================================
 // Method definition object for this extension, these argumens mean:
@@ -671,6 +710,10 @@ static PyMethodDef stitch_methods[] = {
     },
     {
         "read_block", stitch_read_block_wrapper, METH_VARARGS,
+        "read a block"
+    },
+    {
+        "get_global_bounds", stitch_get_global_bounds_wrapper, METH_VARARGS,
         "read a block"
     },
     {NULL, NULL, 0, NULL}

@@ -78,8 +78,8 @@ you.
 It also contains a top-level Makefile and a MAKE sub-directory with
 low-level Makefile.* files for several machines.  From within the src
 directory, type "make" or "gmake".  You should see a list of available
-choices.  If one of those is the machine and options you want, you can
-type a command like:
+choices.  If one of those is the machine and options you want, say 
+<I>serial</I> or <I>mpi</I> or <I>linux</I>, then type one of the commands:
 </P>
 <PRE>make serial
 make mpi
@@ -88,7 +88,7 @@ gmake linux
 <P>Try the "serial" and "mpi" targets first, since they are generic and
 should typically work on any machine, assuming you have the GNU g++
 compiler (for the serial version) and MPI installed (for the mpi
-version).
+version).  
 </P>
 <P>Note that on a multi-processor or multi-core platform you can launch a
 parallel make, by using the "-j" switch with the make command, which
@@ -111,17 +111,7 @@ src/MAKE/Makefile.machine files provided with SPPARKS.
 <P>(1) If the make command breaks immediately with errors that indicate
 it can't find files with a "*" in their names, this can be because
 your machine's make doesn't support wildcard expansion in a makefile.
-Try gmake instead of make.  If that doesn't work, try using a -f
-switch with your make command to use Makefile.list which explicitly
-lists all the needed files, e.g.
-</P>
-<PRE>make makelist
-make -f Makefile.list linux
-gmake -f Makefile.list mac 
-</PRE>
-<P>The first "make" command will create a current Makefile.list with all
-the file names in your src dir.  The 2nd "make" command (make or
-gmake) will use it to build SPPARKS.
+Try gmake instead of make.  
 </P>
 <P>(2) Other errors typically occur because the low-level Makefile isn't
 setup correctly for your machine.  If your platform is named "foo",
@@ -140,14 +130,18 @@ section.
 </P>
 <P>(1) Change the first line of Makefile.foo to include the word "foo"
 and whatever other options you set.  This is the line you will see if
-you just type "make".
+you just type "make".  
 </P>
-<P>(2) The "compiler/linker settings" section lists compiler and linker
-settings for your C++ compiler, including optimization flags.  You can
-use g++, the open-source GNU compiler, which is available on all Unix
-systems.  You can also use mpicc which will typically be available if
-MPI is installed on your system, though you should check which actual
-compiler it wraps.  Vendor compilers often produce faster code.  On
+<P>(2) The "compiler/linker settings" section lists compiler and linker settings
+for your C++ compiler, including path and optimization flags.  You can use g++,
+the open-source GNU compiler, which is available on all Unix systems.  You can
+also use mpicc which will typically be available if MPI is installed on your
+system, though you should check which actual compiler it wraps. You can also
+point to a specific compiler; for example see MAKE/Makefile.spencer.gnu where
+an environment variable MPI_HOME is used to specify path to mpicxx and mpicc
+compilers.  
+</P>
+<P>Vendor compilers often produce faster code.  On
 boxes with Intel CPUs, we suggest using the commercial Intel icc
 compiler, which can be downloaded from <A HREF = "http://www.intel.com/software/products/noncom">Intel's compiler site</A>.
 </P>
