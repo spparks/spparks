@@ -3,7 +3,7 @@
 variable SEED equal                 1
 #
 # T: simulation temperature
-variable T equal                 0.25
+variable T equal                 0.0625
 #
 # DT: number of KMC steps
 variable DT equal 400.0

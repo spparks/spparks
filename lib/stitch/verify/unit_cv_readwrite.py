@@ -419,7 +419,7 @@ class unit_global_bounds(unittest.TestCase):
 
         # Create and open stitch file
         # Set parameters
-        filename="unit_a_global_bounds_orgin.st"
+        filename="unit_a_global_bounds_origin.st"
         (rc,fid) = libstitch.open (filename);
         self._absolute_tolerance = 1.0e-9;
         self._relative_tolerance = 1.0e-15;

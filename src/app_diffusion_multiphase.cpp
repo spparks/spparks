@@ -242,7 +242,9 @@ double AppDiffusionMultiphase::site_energy(int i)
       energy += weights[{ip,jp}];
    }
 
-   return energy;
+   // each site carries half the interaction energy
+   // neighbor sites carry the other half 
+   return 0.5*energy;
 }
 
 /* ----------------------------------------------------------------------
@@ -290,7 +292,7 @@ void AppDiffusionMultiphase::site_event_rejection(int i, RandomPark *random)
 
   if (edelta <= 0.0) hop = 1;
   else if (temperature > 0.0) {
-    if (random->uniform() < exp(-2.0*edelta*t_inverse)) hop = 1;
+    if (random->uniform() < exp(-1.0*edelta*t_inverse)) hop = 1;
   }
     
   if (hop) {
@@ -350,7 +352,7 @@ double AppDiffusionMultiphase::site_propensity_linear(int i)
 
     if (edelta <= 0.0) probone = 1.0;
     else if (temperature > 0.0) {
-      probone = exp(-2.0*edelta*t_inverse);
+      probone = exp(-1.0*edelta*t_inverse);
     }
     
     if (probone > 0.0) {

@@ -1,10 +1,10 @@
-SPPARKS (19 Jan 2021)
+SPPARKS (24 June 2021)
 #
 # SEED: 
 variable SEED equal                 1
 #
 # T: simulation temperature
-variable T equal                 0.25
+variable T equal                 0.0625
 #
 # DT: number of KMC steps
 variable DT equal 400.0
@@ -13,7 +13,7 @@ variable DT equal 400.0
 variable IN_FILLER world vf03_nvox100.st
 
 # OUT_FILLER: output filename
-variable OUT_FILLER world pairwise_weights.st
+variable OUT_FILLER world variable_phase_fraction.st
 
 #
 seed		 ${SEED}
@@ -65,24 +65,26 @@ set i1 stitch vf03_nvox100.st first
   1000000 settings made for i1
 
 # NOTE: this command is sensitive to 'phase' values 
-#    specified above; Idea here is to evenly distribute
-#    phase labels '2 and 3' to sites that had a value 
-#    of '0' from above 'set i1 stitch' command; all 
-#    values <1 were non-filler
-set i1 range 2 3 if i1 < 1
-  707052 settings made for i1
+# Distributes 2/3 of phase 0 to phase 2
+# Distributes 1/3 of phase 0 to phase 3
+# Sets phase 2 volume fraction .667 for non-filler phase 0
+set i1 value 2 fraction .667 if i1 < 1
+  472301 settings made for i1
+# Sets phase 3 to balance of non-filler phase
+set i1 value 3 if i1 < 1
+  234751 settings made for i1
 
 solve_style tree
 sector yes
 diag_style       energy
 temperature	 ${T}
-temperature	 0.25
+temperature	 0.0625
 stats            10.0
 
 # Dump stitch file and images at time intervals of 100
 dump         dump.id stitch 100 ${OUT_FILLER} i1
-dump         dump.id stitch 100 pairwise_weights.st i1
-dump threedee image 100 pairwise_weights.*.jpg site site crange 1 3 drange 1 1 shape cube box no 1 zoom 1.3 size 512 512 sdiam 1.05
+dump         dump.id stitch 100 variable_phase_fraction.st i1
+dump threedee image 100 variable_phase_fraction.*.jpg site site crange 1 3 drange 1 1 shape cube box no 1 zoom 1.3 size 512 512 sdiam 1.05
 dump_modify threedee scolor * red/white/black backcolor gray
 
 run             ${DT}
@@ -91,26 +93,26 @@ Setting up run ...
 Running with 32-bit site IDs
 Memory usage per processor = 21.875 Mbytes
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-         0          0          0          0          0 1.08301e+07
-    15.789    1449626          0          7       20.4 5.59422e+06
-   26.0632    1683547          0          8       22.9 5.46053e+06
-   38.6075    1897885          0          9       25.3 5.3702e+06
-   54.6698    2112242          0         10       27.7 5.29747e+06
-   76.7169    2345881          0         11       30.3 5.2382e+06
-    105.03    2595870          0         12       33.5 5.19005e+06
-   129.246    2785736          0         13       35.6 5.15893e+06
-   164.478    3026914          0         14       38.3 5.12537e+06
-   198.643    3247319          0         15       40.8 5.09571e+06
-   239.597    3481405          0         16         44 5.06821e+06
-   282.414    3701152          0         17       46.7 5.04682e+06
-   329.724    3920043          0         18       49.7 5.02906e+06
-    369.66    4105199          0         19         52 5.01289e+06
-       400    4240883          0         20       54.3 5.00271e+06
-Loop time of 54.2568 on 8 procs
+         0          0          0          0          0 4.80513e+06
+    16.454    1394385          0          7       17.8 2.59888e+06
+   26.0983    1605853          0          8         20 2.54462e+06
+    39.215    1818621          0          9       22.4 2.50759e+06
+   55.9437    2036705          0         10       24.7 2.47673e+06
+   76.3004    2252039          0         11       27.1 2.45441e+06
+   100.263    2463097          0         12       29.9 2.43767e+06
+   129.775    2684546          0         13       32.5 2.42263e+06
+   165.121    2914963          0         14         35 2.40826e+06
+   199.522    3118947          0         15       37.2 2.39779e+06
+   236.156    3319127          0         16       39.9 2.38965e+06
+   279.258    3538437          0         17       42.3 2.38043e+06
+   325.689    3767611          0         18       45.6 2.37149e+06
+   374.484    3994190          0         19       48.1 2.36418e+06
+       400    4110352          0         20         50 2.36064e+06
+Loop time of 50.0266 on 8 procs
 
-Solve time (%) = 0.102827 (0.189519)
+Solve time (%) = 0.0991535 (0.198202)
 Update time (%) = 0 (0)
-Comm  time (%) = 11.4392 (21.0834)
-Outpt time (%) = 2.27684 (4.19641)
-App   time (%) = 40.4229 (74.5029)
-Other time (%) = 0.0150696 (0.0277746)
+Comm  time (%) = 10.6762 (21.341)
+Outpt time (%) = 2.37841 (4.75429)
+App   time (%) = 36.8585 (73.6777)
+Other time (%) = 0.0144166 (0.0288179)
