@@ -37,15 +37,17 @@ than bond energies between different phases.  The rate of phase
 separation and the degree to which it occurs can be controlled by
 setting the relative bond energies between different phases.
 
-This app can be run with an arbitrary number of phases.  Note that if
-you want vacancies included in the model, they are specified as a
-distinct phase, just as Al or Cu atoms would be individual phases in
-an atomic-scale model.
+For this app, each site has a phase value which is a value >= 1.
+There can be an arbitrary number of phases.  Note that if you want
+vacancies included in the model, they are specified as a distinct
+phase, just as Al or Cu atoms would be individual phases in an
+atomic-scale model.
 
 As illustrated in the example above, the
 "diffusion/multiphase"_diffusion_multiphase.html command is used with
-this application.  For each phase, the "phase" keyword should be used
-if the phase is mobile (it diffuses), or with the "pin" keyword if it
+this application.  Every numeric phase (unique site value) must be set
+to either "phase" or "pin".  The "phase" keyword should be used if the
+phase is mobile (it diffuses).  The "pin" keyword should be used if it
 is immobile.  The "weight" keyword is used to define a pairwise energy
 between pairs of neighbor phases in the energy Hamiltonian for the
 model:
@@ -53,7 +55,10 @@ model:
 Hi = Sum_j weight_ij :pre
 
 where Sum_j is a sum over all the neighbor sites of site I and
-weight_ij is the pairwise energy for the phases of site I and J.
+weight_ij is the pairwise energy for the phases of site I and J.  Only
+pairs of unlike phases can be assigned a weight.  Pairs of like phases
+do not contribute to the site energy.  See the
+"diffusion/multiphase"_diffusion_multiphase.html command for details.
 
 Note that this equation means this app is effectively limited to the
 energy style {linear} option of the "app_style

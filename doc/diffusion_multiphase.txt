@@ -55,8 +55,10 @@ phases will take place.
 
 The {weight} keyword specifies a pairwise bond energy (weight) between
 two neighboring sites with the specified I,J phase values.  The
-default for all weights is 1.0.  A weight specified for an I,J pair
-will also be applied to J,I.
+default weight for all pairs of unlike phases is 1.0.  A weight
+specified for an I,J pair will also be applied to J,I.  Note that a
+weight cannot be assigned to an I,I pair; a pair of I,I neighbors do
+not contribute to the energy of either site.
 
 In the 4 example lines above, 3 phases are defined.  Phase 1 is
 pinned, phases 2 and 3 are not.  A weight of 0.5 is applied to the 2,3
