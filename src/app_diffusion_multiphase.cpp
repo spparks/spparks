@@ -29,18 +29,20 @@ enum{LINEAR};
 
 #define DELTAEVENT 100000
 
-// This app is based on the diffusion app (for Kawasaki dynamics), but has significant changes and simplifications.
-//1. There are no Schowebel hops, only exchanges to 1st, 2nd & 3rd nearest neighbors
-//2. The app handles an arbitrary number of phases
-//3. Only linear energy style is used
-//4. Pinned status for some sites. These contribute to site energy but can't be changed
+// This app is based on the diffusion app (for Kawasaki dynamics)
+// These are the significant changes and simplifications
+// 1. No Schowebel hops, only exchanges to site neighbors
+// 2. Allow for an arbitrary number of phases (species for an atomic model)
+// 3. Only the linear energy style is supported
+// 4. One or more phases can be pinned, meaning they do not diffuse
 
 /* ---------------------------------------------------------------------- */
 
 AppDiffusionMultiphase::AppDiffusionMultiphase(SPPARKS *spk, int narg, char **arg) : 
   AppLattice(spk,narg,arg), phase_labels(), is_pinned(), weights()
 {
-  //Need to double check these values
+  // need to double check these values
+
   ninteger = 1;
   ndouble = 0;
   delpropensity = 2;
@@ -50,12 +52,11 @@ AppDiffusionMultiphase::AppDiffusionMultiphase(SPPARKS *spk, int narg, char **ar
   allow_masking = 0;
   numrandom = 1;
 
-  // parse arguments
-  if (narg < 1) error->all(FLERR,"Illegal app_style command");
-  //nspins = atoi(arg[1]);
-  engstyle=LINEAR;
-  //if (strcmp(arg[1],"linear") == 0) engstyle = LINEAR;
-  //else error->all(FLERR,"Illegal app_style command");
+  // no args for this app
+
+  if (narg > 1) error->all(FLERR,"Illegal app_style command");
+
+  engstyle = LINEAR;
 
   create_arrays();
   esites = NULL;
@@ -92,57 +93,66 @@ void AppDiffusionMultiphase::input_app(char *command, int narg, char **arg)
   if (!allocated) allocate_data();
   allocated = 1;
 
-  if (strcmp(command,"diffusion/multiphase") == 0) {
-   parse_diffmultiphase(narg,arg);
-  } else error->all(FLERR,"Unrecognized command");
-
+  if (strcmp(command,"diffusion/multiphase") == 0) 
+    parse_diffmultiphase(narg,arg);
+  else error->all(FLERR,"Unrecognized command");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AppDiffusionMultiphase::parse_diffmultiphase(int narg, char **arg){
-   //int my_rank;
-   //MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-   //{
-   //   if (0==my_rank){
-   //      printf("%s\n", " AppDiffusionMultiphase::input_app 'diffusion/multiphase'\n");
-   //      printf("AppDiffusionMultiphase::parse_diffmultiphase\n");
-   //      printf("AppDiffusionMultiphase::parse_diffmultiphase; arg[0]=%s\n",arg[0]);
-   //      printf("AppDiffusionMultiphase::parse_diffmultiphase; narg=%3d\n",narg);
-   //   }
-   //}
-
+void AppDiffusionMultiphase::parse_diffmultiphase(int narg, char **arg)
+{
    // 2 args: diffusion/multiphase phase <int value>
    // 2 args: diffusion/multiphase pin <int value>
    // 5 args: diffusion/multiphase weight <double> pair <int,int>
 
-   if (narg < 2) error->all(FLERR,"Illegal 'diffusion/multiphase' command; wrong num args.");
+   if (narg < 2) 
+     error->all(FLERR,"Illegal diffusion/multiphase command");
 
-   if(strcmp(arg[0],"phase")==0){
-      if (narg != 2) error->all(FLERR,"Illegal 'diffusion/multiphase phase' command; num args != 2");
-      int phase=std::atoi(arg[1]);
+   if (strcmp(arg[0],"phase")==0){
+      if (narg != 2) 
+        error->all(FLERR,"Illegal diffusion/multiphase phase command: "
+                   "num args != 2");
+      int phase = std::atoi(arg[1]);
       phase_labels.insert(phase);
       // phases are not pinned by default
-      is_pinned[phase]=false;
-      if (phase < 1) error->all(FLERR,"Illegal 'diffusion/multiphase phase' value; must be >=1");
-   } else if(strcmp(arg[0],"pin")==0){
-      if (narg != 2) error->all(FLERR,"Illegal 'diffusion/multiphase pin' command; num args != 2");
-      int pin_phase=std::atoi(arg[1]);
+      is_pinned[phase] = false;
+      if (phase < 1) 
+        error->all(FLERR,"Illegal diffusion/multiphase phase value: "
+                   "must be >= 1");
+   } else if (strcmp(arg[0],"pin") == 0) {
+      if (narg != 2) 
+        error->all(FLERR,"Illegal diffusion/multiphase pin command: "
+                   "num args != 2");
+      int pin_phase = std::atoi(arg[1]);
       phase_labels.insert(pin_phase);
-      is_pinned[pin_phase]=true;
-      if (pin_phase < 1) error->all(FLERR,"Illegal 'diffusion/multiphase pin' value; must be >=1");
-   } else if(strcmp(arg[0],"weight")==0){
-      if (narg != 5) error->all(FLERR,"Illegal 'diffusion/multiphase weight' command; num args != 5");
-      double w=std::atof(arg[1]);
-      if(strcmp(arg[2],"pair")==0){
-         int p1=std::atoi(arg[3]);
-         int p2=std::atoi(arg[4]);
-         weights[{p1,p2}]=w;
-         weights[{p2,p1}]=w;
-         if (p1<1 || p2<1) error->all(FLERR,"Illegal 'diffusion/multiphase weight'; phases must be >=1");
-         if (w<0) error->all(FLERR,"Illegal 'diffusion/multiphase weight'; weight must be >=0");
-      } else error->all(FLERR,"Illegal 'diffusion/multiphase weight' command; expected keyword 'pair'");
-   } else error->all(FLERR,"Illegal 'diffusion/multiphase' command; expected 'phase','pin', or 'weight'");
+      is_pinned[pin_phase] = true;
+      if (pin_phase < 1)
+        error->all(FLERR,"Illegal diffusion/multiphase pin value: must be >= 1");
+   } else if (strcmp(arg[0],"weight")==0){
+      if (narg != 5) 
+        error->all(FLERR,"Illegal diffusion/multiphase weight command: "
+                   "num args != 5");
+      double w = std::atof(arg[1]);
+      if (strcmp(arg[2],"pair") == 0) {
+         int p1 = std::atoi(arg[3]);
+         int p2 = std::atoi(arg[4]);
+         if (p1 == p2) 
+           error->all(FLERR,"Cannot set diffusion/multiphase weight for "
+                      "pair of identical phases");
+         if (p1 < 1 || p2 < 1) 
+           error->all(FLERR,"Illegal diffusion/multiphase weight command: "
+                      "phases must be >= 1");
+         if (w < 0.0) 
+           error->all(FLERR,"Illegal diffusion/multiphase weight command: "
+                      "weight must be >= 0");
+         weights[{p1,p2}] = w;
+         weights[{p2,p1}] = w;
+      } else 
+        error->all(FLERR,"Illegal diffusion/multiphase weight command: "
+                   "expected keyword pair");
+   } else error->all(FLERR,"Illegal diffusion/multiphase command: "
+                     "expected phase, pin, or weight");
 }
 
 /* ----------------------------------------------------------------------
@@ -167,50 +177,34 @@ void AppDiffusionMultiphase::init_app()
    dimension = domain->dimension;
    dt_sweep = 1.0/maxneigh;
 
-   //int my_rank;
-   //MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-   //{
-   //   if (0==my_rank){
-   //      printf("app_phase_separation::init_app\n");
-   //      for(auto p : phase_labels){
-   //         printf("app_phase_separation: input phase label: (%2d)\n",p);
-   //      }
-   //      for (const auto& [key, w] : weights) {
-   //         int p1=key.first;
-   //         int p2=key.second;
-   //         printf("app_phase_separation: pairwise weight: (%2d,%2d) = %5.3f \n",p1,p2,w);
-   //      }
-   //   }
-   //}
-
    {
-      // site validity
-      // Make sure all site values are in set of phase labels; 
-      // otherwise its an error
-      std::set<int>::iterator not_found=phase_labels.end();
-      int flag = 0;
-      for(int i = 0; i < nlocal; i++)
-         if(not_found==phase_labels.find(lattice[i]))flag=1;
-      int flagall;
-      MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-      if (flagall) error->all(FLERR,"One or more sites have invalid values");
+     // insure all site values are in set of phase labels, otherwise error
+
+     std::set<int>::iterator not_found=phase_labels.end();
+     int flag = 0;
+     for (int i = 0; i < nlocal; i++)
+       if (not_found == phase_labels.find(lattice[i])) flag=1;
+     int flagall;
+     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+     if (flagall) error->all(FLERR,"One or more sites have invalid values");
    }
 
    {
-      // Create default weights if they do not already exist
-      std::map<std::pair<int,int>,double>::iterator not_found=weights.end();
-      for(auto p : phase_labels){
-         for(auto q : phase_labels) {
-            // Only unlike phases contribute energy; continue to next phase
-            if(p==q) continue;
-            std::map<std::pair<int,int>,double>::iterator i=weights.find({p,q});
-            // If pairing not found, then set default weight=1.0
-            if(not_found==i){
-               weights[{p,q}]=1.0;
-               weights[{q,p}]=1.0;
-            }
+     // create default weights if they do not already exist
+     // only unlike phases contribute to energy
+
+     std::map<std::pair<int,int>,double>::iterator not_found=weights.end();
+     for (auto p : phase_labels) {
+       for (auto q : phase_labels) {
+         if (p==q) continue;
+         std::map<std::pair<int,int>,double>::iterator i = weights.find({p,q});
+         // if pair not found, set default weight = 1.0
+         if (not_found==i) {
+           weights[{p,q}] = 1.0;
+           weights[{q,p}] = 1.0;
          }
-      }
+       }
+     }
    }
 }
 
@@ -236,19 +230,18 @@ void AppDiffusionMultiphase::setup_app()
 
 double AppDiffusionMultiphase::site_energy(int i)
 {
-  // Energy is a linear function of coordination number, just count bonds
-  // between unlike sites; weight bonds
+  // energy of site = linear sum of bond weights
+  // only unlike phase pairs contribute
 
    double energy(0.0);
-   int ip=lattice[i];
+   int ip = lattice[i];
    for (int j = 0; j < numneigh[i]; j++){
-      int nj=neighbor[i][j];
-      int jp=lattice[nj];
-      // Like sites do not contribute to energy; continue to next site;
-      if(ip==jp) continue;
-      // Increment energy by bond weight
-      energy+=weights[{ip,jp}];
+      int nj = neighbor[i][j];
+      int jp = lattice[nj];
+      if (ip == jp) continue;
+      energy += weights[{ip,jp}];
    }
+
    return energy;
 }
 
@@ -263,33 +256,41 @@ void AppDiffusionMultiphase::site_event_rejection(int i, RandomPark *random)
   double einitial,edelta;
   int i_old, j_old;
 
-  //pinned sites can't exchange
+  // pinned sites can't exchange
+
   if (is_pinned[lattice[i]]) return;
-  //Need to double check neighborhood
+
+  // need to double check neighborhood
+
   int iran = (int) (maxneigh*random->uniform());
   if (iran > maxneigh) iran = maxneigh-1;
   int j = neighbor[i][iran];
-  // if site j pinned or if site i and site j same spin then return
+
+  // if site j pinned or if site i and site j have same spin, just return
+
   if (is_pinned[lattice[j]] || lattice[j] == lattice[i]) return;
 
   i_old = lattice[i];
   j_old = lattice[j];
   
   // accept or reject via energy model
+
   int hop = 0;
   einitial = site_energy(i);
 
   lattice[i] = j_old;
   lattice[j] = i_old;
 
-  //Compute energy difference from exchange
+  // compute energy difference from exchange
+
   edelta = site_energy(j) - einitial;
 
-  //If edelta is negative, accept
+  // if edelta is negative, accept
+  // otherwise if temperature is non-zero, can still accept
+
   if (edelta <= 0.0) hop = 1;
-  //If not but temperature is non-zero, could still accept
   else if (temperature > 0.0) {
-	  if (random->uniform() < exp(-2.0*edelta*t_inverse)) hop = 1;
+    if (random->uniform() < exp(-2.0*edelta*t_inverse)) hop = 1;
   }
     
   if (hop) {
@@ -307,7 +308,6 @@ void AppDiffusionMultiphase::site_event_rejection(int i, RandomPark *random)
 
 double AppDiffusionMultiphase::site_propensity(int i)
 {
-  //if (engstyle == LINEAR) 
   return site_propensity_linear(i);
 }
 
@@ -318,44 +318,50 @@ double AppDiffusionMultiphase::site_propensity_linear(int i)
   int j,k, i_old, j_old;
   double einitial,edelta,probone,proball;
 
-  //Add event if neighbors are dissimilar and not pinned
+  // add event if neighbors are dissimilar and not pinned
+
   clear_events(i);
 
-  if (is_pinned[lattice[i]]) {
-    return 0.0;
-  }
+  if (is_pinned[lattice[i]]) return 0.0;
   
   i_old = lattice[i];
+
   // loop over all possible hops, go through neighbor shell
+
   einitial = site_energy(i);
   proball = 0.0;
   probone = 0.0;
   
-  //This is similar to the Potts approach
-  for(k = 0; k < numneigh[i]; k++){
+  // this is similar to the Potts approach
+
+  for (k = 0; k < numneigh[i]; k++) {
     j = neighbor[i][k];
     j_old = lattice[j];
     
-    if(lattice[j] == lattice[i] || is_pinned[lattice[j]]) continue;
+    if (lattice[j] == lattice[i] || is_pinned[lattice[j]]) continue;
     
-    //Exchange values and check energy
+    // exchange values and check energy
+
     lattice[i] = j_old;
     lattice[j] = i_old;
     edelta = site_energy(j) - einitial;
     
-    //If energy is non-zero, add as possible event
-    if(edelta <= 0.0) probone = 1.0;
+    // if energy is non-zero, add as possible event
+
+    if (edelta <= 0.0) probone = 1.0;
     else if (temperature > 0.0) {
       probone = exp(-2.0*edelta*t_inverse);
     }
     
-    if(probone > 0.0) {
+    if (probone > 0.0) {
       add_event(i,j,probone);
       proball += probone;
     }
+
     lattice[i] = i_old;
     lattice[j] = j_old;
   }
+
   return proball;
 }
 
@@ -366,15 +372,14 @@ double AppDiffusionMultiphase::site_propensity_linear(int i)
 
 void AppDiffusionMultiphase::site_event(int i, class RandomPark *random)
 {
-  //if (engstyle == LINEAR)
-    return site_event_linear(i,random);
+  return site_event_linear(i,random);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void AppDiffusionMultiphase::site_event_linear(int i, class RandomPark *random)
 {
-  int j,k,m,isite, i_old, j_old;
+  int j,k,m,isite,i_old,j_old;
 
   // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
@@ -386,13 +391,13 @@ void AppDiffusionMultiphase::site_event_linear(int i, class RandomPark *random)
   int ievent = firstevent[i];
   while (1) {
     proball += events[ievent].propensity;
-//     fprintf(screen,"proball %f, propensity %f, threshold %f\n",proball,propensity[i2site[i]],threshhold);
     if (proball >= threshhold) break;
     ievent = events[ievent].next;
     if (ievent < 0) error->one(FLERR,"Did not reach event propensity threshhold");
   }
 
-  //Exchange values
+  // exchange values
+
   j = events[ievent].destination;
   i_old = lattice[i];
   j_old = lattice[j];
@@ -411,27 +416,30 @@ void AppDiffusionMultiphase::site_event_linear(int i, class RandomPark *random)
   esites[nsites++] = isite;
   echeck[isite] = 1;
   
-  //Update site i's neighbors, this will include the exchanged site
+  // update site i's neighbors, this will include the exchanged site
+
   for (k = 0; k < numneigh[i]; k++) {
     m = neighbor[i][k];
     isite = i2site[m];
-    //Not quite sure what this does
+    // not quite sure what this does
     if (isite < 0) continue;
-    //Add to update list
+    // add to update list
     esites[nsites++] = isite;
     propensity[isite] = site_propensity(m);
     echeck[isite] = 1;
   }
   
-  //Update the exchanged site's neighbors, avoiding any that have already been found
+  // update exchanged site's neighbors
+  // avoid any that have already been found
+
   for (k = 0; k < numneigh[j]; k++) {
     m = neighbor[j][k];
     isite = i2site[m];
-    //Not quite sure what this does
+    // not quite sure what this does
     if (isite < 0) continue;
-    //Make sure its not already updated
-    if(echeck[isite] == 1) continue;
-    //Add to update list
+    // make sure site is not already updated
+    if (echeck[isite] == 1) continue;
+    // add to update list
     esites[nsites++] = isite;
     propensity[isite] = site_propensity(m);
     echeck[isite] = 1;
@@ -440,6 +448,7 @@ void AppDiffusionMultiphase::site_event_linear(int i, class RandomPark *random)
   solve->update(nsites,esites,propensity);
 
   // clear echeck array
+
   for (k = 0; k < nsites; k++) echeck[esites[k]] = 0;
 }
 
