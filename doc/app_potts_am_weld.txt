@@ -96,4 +96,5 @@ See "sweep"_sweep.html for more information.
 "app_style potts"_app_potts.html, "app_style potts/grad"_app_potts_grad.html,
 "app_style potts/additive"_app_potts_additive.html, "app_style potts/weld"_app_potts_weld.html,
 
-[Default:] 
+[Default:] none
+
