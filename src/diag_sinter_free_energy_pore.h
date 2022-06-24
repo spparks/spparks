@@ -46,8 +46,6 @@ protected:
   int xstart_, xend_;
   int ystart_, yend_;
   int zstart_, zend_;
-	
-	
 };
 
 }
