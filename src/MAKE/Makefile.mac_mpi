@@ -65,6 +65,11 @@ EXTRA_LINK_DEPENDS = $(PKG_LINK_DEPENDS)
 vpath %.cpp ..
 vpath %.h ..
 
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
+
 # Link target
 
 $(EXE):	$(OBJ)
