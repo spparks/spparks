@@ -1,0 +1,84 @@
+#
+# SEED: 
+variable SEED equal                 1
+#
+# T: simulation temperature
+variable T equal                 0.0625
+#
+# DT: number of KMC steps
+variable DT equal 400.0
+#
+# IN_FILLER: stitch input filename
+variable IN_FILLER world two_filler_types_100x100x100.st
+
+# OUT_FILLER: output filename
+variable OUT_FILLER world two_filler_unequal_affinities_100x100x100.st
+
+# OUT_IMAGE: output image file names
+variable OUT_IMAGE world two_filler_unequal_affinities
+#
+seed		 ${SEED}
+
+
+# Declare app
+app_style diffusion/multiphase
+
+# 
+dimension	 3
+
+# periodic along each dimension
+boundary p p p
+
+# 
+lattice		 sc/26n 1.0
+region		 box block 0 100 0 100 0 100
+create_box	 box
+create_sites     box
+
+# Define and pin phase labels '1' '2'
+# Must always be after 'create_sites'
+diffusion/multiphase pin 1
+diffusion/multiphase pin 2
+
+# Define dynamic phases '3' and '4'
+diffusion/multiphase phase 3
+diffusion/multiphase phase 4
+
+# Pairwise phase weights are optional; default 1.0
+# Need only input weight once for pair (i,j); symmetry 
+#    is enforced in app; same weight is internally 
+#    assigned to pair(j,i)
+#
+# diffusion/multiphase weight <double> pair <int phase_1,int phase_2> 
+# Override default between pinned phase 1 and dynamic phase 3; 
+#    set pairwise weight between pinned phase 1 and dynamic phase 3 
+#    to weight=0.5
+diffusion/multiphase weight 0.5 pair 1 3
+
+# Initialize filler phases 1 and 2 from stitch file;
+# In this case -- filler phase labels are '1' and '2' with 
+#    all remaining sites set to a phase value '0';
+# Fact that non-filler values are '0' is leveraged below;
+# Read 'stitch' file using 'first' time step in file
+# Sets the variable 'i1' in app diffusion/multiphase
+set i1 stitch ${IN_FILLER} first
+
+# NOTE: this command is sensitive to 'phase' values specified above; Idea here
+# is to evenly distribute phase labels '3 and 4' to sites which have value=0
+# per above 'set i1 stitch' command; all values < 1 are dynamic and not pinned
+# and are set to phases 4 or 5
+set i1 range 3 4 if i1 < 1
+
+solve_style tree
+sector yes
+diag_style       energy
+temperature	 ${T}
+stats            10.0
+
+# Dump stitch file and images at time intervals of 100
+dump         dump.id stitch 100 ${OUT_FILLER} i1
+dump threedee image 100 ${OUT_IMAGE}.*.jpg site site crange 1 4 drange 1 1 shape cube box no 1 zoom 1.3 size 512 512 sdiam 1.05
+# Order of colors here correspond with phases 1/2/3/4
+dump_modify threedee scolor * red/black/white/blue backcolor gray
+
+run             ${DT}

@@ -114,6 +114,9 @@ int stitch_read_block_int32 (const StitchFile * file, int64_t field_id, double *
 int stitch_read_block_int64 (const StitchFile * file, int64_t field_id, double * time, int32_t * bb, int64_t * buffer, int32_t * is_new_time);
 int stitch_read_block_float64 (const StitchFile * file, int64_t field_id, double * time, int32_t * bb, double * buffer, int32_t * is_new_time);
 
+// discover the global bounds (in 3D) written so far
+int stitch_get_global_bounds(const StitchFile * file, int64_t field_id, int32_t * bb);
+
 #ifdef __cplusplus
 }
 #endif

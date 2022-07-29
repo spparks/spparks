@@ -38,6 +38,12 @@ which is 1 for vacant or 2 for occupied or 3 for vacant and a
 non-deposition site.  See the "deposition"_deposition.html command for
 more details on the value = 3 sites.
 
+Note that this application only allows for a single diffusing species
+(site value = 1) if run with an atomic-scale lattice, or a single
+phase if run with a coarse-grained lattice.  See the "app_style
+diffusion/multiphase"_app_diffusion_multiphase.html command which
+allows for multiple diffusing species or phases.
+
 The {estyle} setting determines how energy is used in computing the
 probability of hop events, which is related to the Hamiltonian for the
 system.
@@ -182,6 +188,7 @@ The ecoord command can only be used with the {nonlinear} energy style.
 
 [Related commands:]
 
-"app_style ising"_app_ising.html
+"app_style ising"_app_ising.html, "app_style
+diffusion/multiphase"_app_diffusion_multiphase.html
 
 [Default:] none

@@ -25,6 +25,7 @@ erbium:     erbium reaction/diffusion model
 groups:     test of tree and group KMC solvers on a reaction network
 ising:      2d Ising model
 membrane:   2d membrane model of lipid, fluid, protein states
+multiphase: app diffusion/multiphase
 potts:      3d Potts model
 potts_additive: 3d Potts model for additive manufacturing
 potts_grad: 3d Potts model with temperature gradient
