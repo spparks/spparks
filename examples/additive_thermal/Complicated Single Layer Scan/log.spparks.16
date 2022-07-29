@@ -29,7 +29,7 @@ boundary 	 n n n
 
 create_box	 box
 Created box = (-15 -15 0) to (315 315 100)
-  1 by 1 by 1 processor grid
+  4 by 4 by 1 processor grid
 create_sites box 
 Creating sites ...
   10890000 sites
@@ -116,10 +116,12 @@ dump_modify		2 thresh i2 > 1
 run              0.0361
 Setting up run ...
 Running with 32-bit site IDs
-Memory usage per processor = 1748.25 Mbytes
+Memory usage per processor = 115.5 Mbytes
       Time    Naccept    Nreject    Nsweeps        CPU    sum(d2)
-         0          0          0          0          0 3.26865e+09
- 0.0001001          0          0          0       50.6 3.30606e+09
- 0.0002002          0          0          0        106 3.31874e+09
- 0.0003003          0          0          0        155 3.32769e+09
- 0.0004004          3         -3          0        202 3.33404e+09
+         0          0          0          0          0 3.26847e+09
+ 0.0001001          0          0          0       4.98 3.30587e+09
+ 0.0002002          0          0          0         10 3.31866e+09
+ 0.0003003         13        -13          0         15 3.32764e+09
+ 0.0004004         20        -20          0         20  3.334e+09
+ 0.0005005         35        -35          0       24.9 3.33858e+09
+ 0.0006006         45        -45          0       29.9 3.34191e+09

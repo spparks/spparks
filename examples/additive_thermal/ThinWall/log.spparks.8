@@ -1,11 +1,12 @@
 SPPARKS (7 June 2022)
-########## SPPARKS Jointed Rosenthal Solution Complicated Cube Test ##########
+# SPPARKS Potts tests on generic lattice
 
 shell mkdir DumpFiles 
 
 seed		 56789
+
 		 
-app_style additive/thermal 1000000 1.5 7e-7 "SingleLayerCube.txt" 6e-5 6e-5 6e-5 1e-6 115 27 1 5e-6
+app_style additive/thermal 1000000 1.4 7e-7 "Thin_Wall.txt" 6e-5 6e-5 6e-5 1e-6 115 18 1 5e-6
 
 #  |————————————————————————————————————————
 # 		  nspins = atoi(arg[1]);
@@ -17,33 +18,33 @@ app_style additive/thermal 1000000 1.5 7e-7 "SingleLayerCube.txt" 6e-5 6e-5 6e-5
 # 		  z_dev = atof(arg[7]); //For a volumetric Gaussian source, set z-deviation (in meters)
 # 		  short_wait_time = atof(arg[8]); //How long to pause during a layer, estimated by laser "jump" speed * distance (in seconds)
 #		  flux_prefactor = atof(arg[9]); //In Watts, typically less than incident laser power
-#         	  substrate_height = atoi(arg[10]); //In voxels, typically should be 25+
-#         	  nrefine = atoi(arg[11]); //How many smoothing steps to perform
-#         	  dx = atof(arg[12]); //Thermal and microstructure lattice spacing (in meters)
+#         substrate_height = atoi(arg[10]); //In voxels, typically should be 25+
+#         nrefine = atoi(arg[11]); //How many smoothing steps to perform
+#         dx = atof(arg[12]); //Thermal and microstructure lattice spacing (in meters)
 
 dimension	 3
 lattice	 	 sc/26n 1.0
-region		 box block -15 315 -15 315 0 100
+region		 box block 0 180 0 75 0 50
 
 boundary 	 n n n
 
 create_box	 box
-Created box = (-15 -15 0) to (315 315 100)
-  1 by 1 by 1 processor grid
+Created box = (0 0 0) to (180 75 50)
+  4 by 2 by 1 processor grid
 create_sites box 
 Creating sites ...
-  10890000 sites
+  675000 sites
   8 sites have 7 neighbors
   0 sites have 8 neighbors
   0 sites have 9 neighbors
   0 sites have 10 neighbors
-  3016 sites have 11 neighbors
+  1196 sites have 11 neighbors
   0 sites have 12 neighbors
   0 sites have 13 neighbors
   0 sites have 14 neighbors
   0 sites have 15 neighbors
   0 sites have 16 neighbors
-  343744 sites have 17 neighbors
+  50084 sites have 17 neighbors
   0 sites have 18 neighbors
   0 sites have 19 neighbors
   0 sites have 20 neighbors
@@ -52,11 +53,12 @@ Creating sites ...
   0 sites have 23 neighbors
   0 sites have 24 neighbors
   0 sites have 25 neighbors
-  10543232 sites have 26 neighbors
+  623712 sites have 26 neighbors
 set          site range 1 1000000
-  10890000 settings made for site
+  675000 settings made for site
 set          d2 value 300
-  10890000 settings made for d2
+  675000 settings made for d2
+
 
 sector		 yes
 sweep		 random mask no
@@ -91,35 +93,76 @@ critical_undercooling   5 #Undercooling where nucleation starts (in Kelvin)
 undercooling_deviation  3 #Critical undercooling is sampled from normal distribution, this defines std dev.
 mean_nuclei_volume      8.4375e-16 #In m^3, center of normal distribution
 nuclei_volume_deviation 1.5625e-17 #In m^3, std dev of nuclei size distribution
-##############
 
+##############
 shell cd DumpFiles/
 
 stats            1e-4
 
 ############# Text Dump #####################
-#dump            1 text 1e-4 dump.additive.* id i1 d2 x y z
-#dump_modify		1 thresh i2 > 2
+dump            1 text 5e-4 dump.additive.* id i1 d2 x y z 
+dump_modify		1 thresh i2 > 1
 
 ############# Grain Image Dump ##############
-dump			2 image 1e-3 dumpgrain.*.jpg i1 i1 shape cube size 1000 1000 sdiam 1.05 crange 1 1000000 box no 1 zoom 2 view 0 0
+dump			2 image 1.75e-4 dumpgrain.*.jpg i1 i1 shape cube size 2000 2000 view 45 45 sdiam 1.05 crange 1 1000000 box no 1 
 dump_modify		2 thresh i2 > 1
 
 ############# Temp Image Dump ###############
-#dump			3 image 1e-3 dumpheat.*.jpg d2 i1 shape cube size 3500 3500 view 0 0 sdiam 0.75 box no 0.01 zoom 2
-#dump_modify		3 thresh i2 >= 1 smap min max cf 0.05 5 min blue 1000 lightblue 1300 green 1673 orange max red
-#dump_modify		3 thresh i2 > 1 smap min max cf 0.05 2 min blue max red 
+dump			3 image 1.75e-4 dumpheat.*.jpg d2 i1 shape cube size 3500 3500 view 0 0 sdiam 1.05 box no 0.01
+dump_modify		3 thresh i2 > 1 smap 300 2000 cf 0.05 2 min blue max red 
 
 
 #diag_style       cluster delt 8.5e-3 stats no dump standard cluster.AM
 
-run              0.0361
+run              0.0036
 Setting up run ...
 Running with 32-bit site IDs
-Memory usage per processor = 1748.25 Mbytes
+Memory usage per processor = 15.75 Mbytes
       Time    Naccept    Nreject    Nsweeps        CPU    sum(d2)
-         0          0          0          0          0 3.26865e+09
- 0.0001001          0          0          0       50.6 3.30606e+09
- 0.0002002          0          0          0        106 3.31874e+09
- 0.0003003          0          0          0        155 3.32769e+09
- 0.0004004          3         -3          0        202 3.33404e+09
+         0          0          0          0          0 2.03681e+08
+ 0.0001001          0          0          0       0.63 2.31725e+08
+ 0.0002002          0          0          0        2.7 2.40041e+08
+ 0.0003003          4         -4          0       3.35 2.45901e+08
+ 0.0004004          9         -9          0       5.48 2.49975e+08
+ 0.0005005         15        -15          0       6.52 2.52736e+08
+ 0.0006006         24        -24          0       8.67 2.54604e+08
+ 0.0007007         31        -31          0       10.8 2.5589e+08
+ 0.0008001         54        -54          0       11.4 2.56792e+08
+ 0.0009002         67        -67          0       13.5 2.57433e+08
+ 0.0010003         85        -85          0       14.6 2.57912e+08
+ 0.0011004         98        -98          0       16.7 2.58264e+08
+ 0.0012005        111       -111          0       17.3 2.58525e+08
+ 0.0013006        122       -122          0       19.5 2.58729e+08
+ 0.0014007        135       -135          0       21.6 2.58887e+08
+ 0.0015001        139       -139          0       22.6 2.59015e+08
+ 0.0016002        143       -143          0       24.8 2.59123e+08
+ 0.0017003        152       -152          0       25.4 2.59215e+08
+ 0.0018004        163       -163          0       27.6 2.59292e+08
+ 0.0019005        174       -174          0       28.2 2.59357e+08
+ 0.0020006        182       -182          0       30.7 2.59414e+08
+ 0.0021007        190       -190          0       32.9 2.59471e+08
+ 0.0022001        198       -198          0       33.5 2.59515e+08
+ 0.0023002        209       -209          0       35.7 2.59549e+08
+ 0.0024003        216       -216          0       36.3 2.59576e+08
+ 0.0025004        222       -222          0       38.8 2.59598e+08
+ 0.0026005        227       -227          0       39.4 2.59618e+08
+ 0.0027006       1833     673167          1       41.5 2.59634e+08
+    0.0028       1835     673165          1       43.6 2.59648e+08
+ 0.0029001       1839     673161          1       44.2 2.5966e+08
+ 0.0030002       1846     673154          1       46.8 2.5967e+08
+ 0.0031003       1847     673153          1       47.4 2.59679e+08
+ 0.0032004       1848     673152          1       49.5 2.59687e+08
+ 0.0033005       1849     673151          1       50.1 2.59695e+08
+ 0.0034006       1850     673150          1       52.3 2.59702e+08
+    0.0035       1850     673150          1       54.8 2.59708e+08
+ 0.0036001       1851     673149          1       55.4 2.59713e+08
+ 0.0036001       3796    1346204          2       55.4 2.59713e+08
+Loop time of 55.4338 on 8 procs
+
+Solve time (%) = 4.47715 (8.07657)
+Update time (%) = 0 (0)
+Comm  time (%) = 8.0954 (14.6037)
+Outpt time (%) = 28.353 (51.1475)
+App   time (%) = 16.3933 (29.5728)
+Other time (%) = -1.88508 (-3.4006)
+shell cd ../

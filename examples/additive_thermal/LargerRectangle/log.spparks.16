@@ -1,49 +1,50 @@
 SPPARKS (7 June 2022)
-########## SPPARKS Jointed Rosenthal Solution Complicated Cube Test ##########
+# SPPARKS Potts tests on generic lattice
 
 shell mkdir DumpFiles 
 
 seed		 56789
+
 		 
-app_style additive/thermal 1000000 1.5 7e-7 "SingleLayerCube.txt" 6e-5 6e-5 6e-5 1e-6 115 27 1 5e-6
+app_style additive/thermal 1000000 1.4 7e-7 "path.txt" 6e-5 6e-5 6e-5 2e-7 115 18 1 5e-6
 
 #  |————————————————————————————————————————
 # 		  nspins = atoi(arg[1]);
 # 		  vel = atof(arg[2]); //Velocity of travel (in meters/second)
-#         	  time_step = atof(arg[3]); //In seconds
+#         time_step = atof(arg[3]); //In seconds
 # 		  path_file_name = arg[4]; //Name of the input file with the proposed scan path  
 # 		  x_dev = atof(arg[5]); //Set the x-direction standard deviation for the gaussian source (in meters)
 # 		  y_dev = atof(arg[6]); //Set y deviation (in meters)
 # 		  z_dev = atof(arg[7]); //For a volumetric Gaussian source, set z-deviation (in meters)
 # 		  short_wait_time = atof(arg[8]); //How long to pause during a layer, estimated by laser "jump" speed * distance (in seconds)
 #		  flux_prefactor = atof(arg[9]); //In Watts, typically less than incident laser power
-#         	  substrate_height = atoi(arg[10]); //In voxels, typically should be 25+
-#         	  nrefine = atoi(arg[11]); //How many smoothing steps to perform
-#         	  dx = atof(arg[12]); //Thermal and microstructure lattice spacing (in meters)
+#         substrate_height = atoi(arg[10]); //In voxels, typically should be 25+
+#         nrefine = atoi(arg[11]); //How many smoothing steps to perform
+#         dx = atof(arg[12]); //Thermal and microstructure lattice spacing (in meters)
 
 dimension	 3
-lattice	 	 sc/26n 1.0
-region		 box block -15 315 -15 315 0 100
+lattice	 	 sc/26n 1
+region		 box block 0 360 0 250 0 30
 
 boundary 	 n n n
 
 create_box	 box
-Created box = (-15 -15 0) to (315 315 100)
-  1 by 1 by 1 processor grid
-create_sites box 
+Created box = (0 0 0) to (360 250 30)
+  4 by 4 by 1 processor grid
+create_sites	 box
 Creating sites ...
-  10890000 sites
+  2700000 sites
   8 sites have 7 neighbors
   0 sites have 8 neighbors
   0 sites have 9 neighbors
   0 sites have 10 neighbors
-  3016 sites have 11 neighbors
+  2536 sites have 11 neighbors
   0 sites have 12 neighbors
   0 sites have 13 neighbors
   0 sites have 14 neighbors
   0 sites have 15 neighbors
   0 sites have 16 neighbors
-  343744 sites have 17 neighbors
+  211504 sites have 17 neighbors
   0 sites have 18 neighbors
   0 sites have 19 neighbors
   0 sites have 20 neighbors
@@ -52,11 +53,12 @@ Creating sites ...
   0 sites have 23 neighbors
   0 sites have 24 neighbors
   0 sites have 25 neighbors
-  10543232 sites have 26 neighbors
+  2485952 sites have 26 neighbors
 set          site range 1 1000000
-  10890000 settings made for site
+  2700000 settings made for site
 set          d2 value 300
-  10890000 settings made for d2
+  2700000 settings made for d2
+
 
 sector		 yes
 sweep		 random mask no
@@ -95,31 +97,34 @@ nuclei_volume_deviation 1.5625e-17 #In m^3, std dev of nuclei size distribution
 
 shell cd DumpFiles/
 
+
 stats            1e-4
 
 ############# Text Dump #####################
-#dump            1 text 1e-4 dump.additive.* id i1 d2 x y z
-#dump_modify		1 thresh i2 > 2
+#dump              1 text 1e-2  dump.additive.* id i1 d2 x y z
+#dump_modify		1 thresh i2 > 1
 
 ############# Grain Image Dump ##############
-dump			2 image 1e-3 dumpgrain.*.jpg i1 i1 shape cube size 1000 1000 sdiam 1.05 crange 1 1000000 box no 1 zoom 2 view 0 0
-dump_modify		2 thresh i2 > 1
+dump			2 image 0.001 dumpgrain.*.jpg i1 i1 shape cube size 2000 2000 sdiam 1.05 crange 1 1000000 box no 1 
+dump_modify		2 thresh i2 >= 1
 
 ############# Temp Image Dump ###############
-#dump			3 image 1e-3 dumpheat.*.jpg d2 i1 shape cube size 3500 3500 view 0 0 sdiam 0.75 box no 0.01 zoom 2
-#dump_modify		3 thresh i2 >= 1 smap min max cf 0.05 5 min blue 1000 lightblue 1300 green 1673 orange max red
-#dump_modify		3 thresh i2 > 1 smap min max cf 0.05 2 min blue max red 
+#dump			3 image 1 dumpheat.*.jpg d1 i1 shape cube size 2000 2000 view 0 0 sdiam 1.05 box no 1
+#dump_modify		3 thresh i2 >= 1 smap min max cf 0.05 5 min blue 0.25 lightblue 0.5 green 0.75 orange max red
 
 
-#diag_style       cluster delt 8.5e-3 stats no dump standard cluster.AM
-
-run              0.0361
+run              0.043
 Setting up run ...
 Running with 32-bit site IDs
-Memory usage per processor = 1748.25 Mbytes
+Memory usage per processor = 31.5 Mbytes
       Time    Naccept    Nreject    Nsweeps        CPU    sum(d2)
-         0          0          0          0          0 3.26865e+09
- 0.0001001          0          0          0       50.6 3.30606e+09
- 0.0002002          0          0          0        106 3.31874e+09
- 0.0003003          0          0          0        155 3.32769e+09
- 0.0004004          3         -3          0        202 3.33404e+09
+         0          0          0          0          0    8.1e+08
+ 0.0001001          0          0          0       1.94 8.2912e+08
+ 0.0002002          0          0          0       4.05 8.57475e+08
+ 0.0003003          0          0          0       6.16 8.69734e+08
+ 0.0004004          0          0          0       8.28 8.80134e+08
+ 0.0005005          0          0          0       10.4 8.8652e+08
+ 0.0006006          3         -3          0       12.5 8.91942e+08
+ 0.0007007          9         -9          0       14.6 8.96171e+08
+ 0.0008001         19        -19          0       16.7 8.99744e+08
+ 0.0009002         47        -47          0       18.8 9.02338e+08

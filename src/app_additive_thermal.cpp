@@ -11,6 +11,10 @@
    See the README file in the top-level SPPARKS directory.
  ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Theron Rodgers (Sandia)
+------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -80,7 +84,8 @@ AppAdditiveThermal::AppAdditiveThermal(SPPARKS *spk, int narg, char **arg) :
   recoating_time = 10;
   Kmc = 0.27695; //SPPARKS KMC scaling factor for sq_26 lattice, should not change for different materials
 
-  //Set default values for 304L stainless steel. Can be modified in input file.
+  // default values for 304L stainless steel. Can be modified in input file.
+
   k_solid = 30;
   k_powder = 0.3;
   boundary_temp = 300;
@@ -100,7 +105,9 @@ AppAdditiveThermal::AppAdditiveThermal(SPPARKS *spk, int narg, char **arg) :
   latent_heat = 285000;
   specific_heat_length = 6;
   solid_front_length = 4;
-  //Let's put in default values for array-based parameters
+
+  // default values for array-based parameters
+
   specific_heat_temps = new double[6];
   specific_heat_vals = new double[6];
   solid_front_coeffs = new double[4];
@@ -126,7 +133,6 @@ AppAdditiveThermal::AppAdditiveThermal(SPPARKS *spk, int narg, char **arg) :
 
   recreate_arrays();
 }
-
 
 /* ----------------------------------------------------------------------
    input script commands unique to this app
@@ -286,7 +292,6 @@ void AppAdditiveThermal::grow_app()
   if (nlocal_app < nlocal) nlocal_app = nlocal;          
 }
 
-
 /* ----------------------------------------------------------------------
    initialize before each run
    check validity of site values
@@ -296,8 +301,10 @@ void AppAdditiveThermal::init_app()
 {
   delete [] sites;
   delete [] unique;
+
   double sqrt2 = 1.4142135624;
   double sqrt3 = 1.7320508076;
+
   sites = new int[1 + maxneigh];
   unique = new int[1 + maxneigh];
   nucleationFlags = new int[nspins];
@@ -311,29 +318,36 @@ void AppAdditiveThermal::init_app()
     if (spin[i] < 1 || spin[i] > nspins) {
       flag = 1;
     }
-    //If we're above the substrate height, randomize the spins
+
+    // If above the substrate height, randomize the spins
+
     if(xyz[i][2] > substrate_height) {
       spin[i] = (int) (nspins*ranapp->uniform());
       activeFlag[i] = 0;
     }
-    //If we're less than the value, set activeFlag to the "solid" condition
+
+    // If less than the value, set activeFlag to the "solid" condition
+
     else {
       activeFlag[i] = 3;
     }
   }
+
   comm->all();
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall) error->all(FLERR,"One or more sites have invalid values");
   
-  //Initialize the nucleationFlags vector
+  // Initialize the nucleationFlags vector
+
   if (domain->me==0) {
     nucleation_spins(ranapp);    
   }
   
   MPI_Bcast(nucleationFlags,nspins, MPI_INT,0,world);
   
-  //Initialize the nucleationTemps and nucleationSizes vectors
+  // Initialize the nucleationTemps and nucleationSizes vectors
+
   if (domain->me==0) {
     nucleation_init();    
   }
@@ -341,7 +355,8 @@ void AppAdditiveThermal::init_app()
   MPI_Bcast(nucleationTemps,nspins, MPI_DOUBLE,0,world);
   MPI_Bcast(nucleationSizes,nspins, MPI_DOUBLE,0,world);
   
-  //Initialize the neighDist array need to fill with good values
+  // Initialize the neighDist array need to fill with good values
+
   neighDist = new double[26];
   neighDist[0] = sqrt3 * dx;
   neighDist[1] = sqrt2 * dx;
@@ -370,7 +385,7 @@ void AppAdditiveThermal::init_app()
   neighDist[24] = sqrt2 * dx;
   neighDist[25] = sqrt3 * dx;
 	
-  //Check that our timestep is short enough to capture solidification behavior
+  // Check that timestep is short enough to capture solidification behavior
 
   double max_front_vel = 0;
   int power = solid_front_length -1;
@@ -400,9 +415,10 @@ void AppAdditiveThermal::path_file()
   std::string line;
   std::ifstream myfile(path_file_name);
    
-  //Check if the file exists and is readable.
+  // check if file exists and is readable
+
   if (myfile.good()) {
-    if(domain->me == 0) {
+    if (domain->me == 0) {
       fprintf(screen,"Path input file found \n");
     }
   }
@@ -411,10 +427,10 @@ void AppAdditiveThermal::path_file()
   }
 
   // new lines will be skipped unless we stop it from happening:    
+
   myfile.unsetf(std::ios_base::skipws);
 
-  int aNumOfLines = 0;
-
+  int line_count = 0;
   std::string aLineStr;
   while (getline(myfile, aLineStr))
     {
@@ -422,10 +438,11 @@ void AppAdditiveThermal::path_file()
         line_count++;
     }
 	
-  //Lets just use a 1D vector with fancy indexing to do our scan_array
-  //Each point will be accessed by scan_array[y * sizeX + x], where x is 0-3 and y is 0 - line_count - 1
-  //We should also make new arrays for each xyz and value, cause I want to easily access the variables.
-  //We might not need d_scan_array, but its also not bad to have...
+  // use a 1D vector with fancy indexing to do our scan_array
+  // each point is accessed by scan_array[y * sizeX + x], where x is 0-3 and y is 0 - line_count - 1
+  // new arrays for each xyz and value, so can easily access the variables
+  // may not need d_scan_array, but not bad to have
+
   scan_array = new double[line_count * 5];
   x_scan_array = new double[line_count];
   y_scan_array = new double[line_count];
@@ -433,36 +450,26 @@ void AppAdditiveThermal::path_file()
   d_scan_array = new double[line_count];
   p_scan_array = new double[line_count];
 	
-  //Read in the input file. It should always have 5 columns X,Y,Z distance, and pause_flag
+  // Read in the input file. It should always have 5 columns X,Y,Z distance, and pause_flag
+
   std::ifstream in_file(path_file_name);
   
   for (int row = 0; row < line_count; row++) {
-  
     getline(in_file, line);
     if(!in_file.good() )
       break;
   	
     std::stringstream iss(line);
   	
-    //if(domain->me == 0) {
-    //	std::cout << line << "\n";
-    //}
-
-  	
     for (int col = 0; col < 5; col++) {
-  		
       std::string val;
       getline(iss, val, ',');
-
-  		
       std::stringstream convertor(val);
-
       convertor >> scan_array[row * 5 + col];  		
     }
   }
   
   for (int i = 0; i < line_count; i++) {
-  
     x_scan_array[i] = scan_array[i * 5 + 0];
     y_scan_array[i] = scan_array[i * 5 + 1];
     z_scan_array[i] = scan_array[i * 5 + 2];
@@ -473,7 +480,6 @@ void AppAdditiveThermal::path_file()
   	
   delete [] scan_array;
   in_file.close();
-  
 }
 
 /* ----------------------------------------------------------------------
@@ -482,8 +488,8 @@ void AppAdditiveThermal::path_file()
 
 void AppAdditiveThermal::site_event_finitedifference(int i)
 {
-    
   //set values used for convenience
+
   double chm_temp = 0.0;
 	
   int good_neigh [ ] = {4, 10, 12, 15, 21, 13};
@@ -497,25 +503,30 @@ void AppAdditiveThermal::site_event_finitedifference(int i)
   double flux_loc;
 	
   //Figure out the flux value for the current heat source.
+
   flux_loc = flux_finder(i);
 	
   //Check if we're on a global boundary and fix the temperature
   //Kyle uses convection boundary conditions at the bottom of his substrate. Maybe something we should add or change to.
-  if(xyz[i][0] == domain->boxxlo || xyz[i][0] > domain->boxxhi - 2 || xyz[i][1] == domain->boxylo || xyz[i][1] > domain->boxyhi -2 || xyz[i][2] == domain->boxzlo) {
+
+  if(xyz[i][0] == domain->boxxlo || xyz[i][0] > domain->boxxhi - 2 || 
+     xyz[i][1] == domain->boxylo || xyz[i][1] > domain->boxyhi - 2 || 
+     xyz[i][2] == domain->boxzlo) {
     T[i] = boundary_temp;
     return;
   }
 	
-  //First thing, loop through the neighbors of a site and see if any of them are inactive
-  //We need to deal with when a site has more than one inactive value, which isn't that uncommon...
-  //Lets average the contributions from all the orientations
+  // loop through the neighbors of a site and see if any of them are inactive
+  // need to deal with when a site has more than one inactive value, which isn't that uncommon...
+  // average the contributions from all the orientations
+
   for (int j = 0; j < 6; j++) {
-		
     int s = neighbor[i][good_neigh[j]];
 		
     //Loop through neighbors, do usual FD if active, and do BCs if not
     //Treat solid & liquid cases in the same way
     //Site is Solid (or liquid)
+
     if( activeFlag[i] == 3 || activeFlag[i] == 2) {
       //Solid-solid
       if(activeFlag[s] == 3 || activeFlag[s] == 2) {
@@ -531,10 +542,14 @@ void AppAdditiveThermal::site_event_finitedifference(int i)
         num_inactive++;
         int oppo = neighbor[i][oppo_neigh[j]];
         double Tb = (3 * T[i] - T[oppo])/2;
-        chm_temp += (h * (Tb - T_room) + eta * sigma * (Tb * Tb * Tb * Tb - T_room * T_room * T_room * T_room))/density/Cp/dx;
+        chm_temp += (h * (Tb - T_room) + eta * sigma * 
+                     (Tb * Tb * Tb * Tb - T_room * T_room * T_room * T_room)) / 
+          density/Cp/dx;
       }
     }
+
     //Site is powder
+
     else if(activeFlag[i] == 1) {
       //powder-powder
       if(activeFlag[s] == 1) {
@@ -551,12 +566,15 @@ void AppAdditiveThermal::site_event_finitedifference(int i)
         int oppo = neighbor[i][oppo_neigh[j]];
                 
         double Tb = (3 * T[i] - T[oppo])/2;
-        chm_temp += (h * (Tb - T_room) + eta * sigma * (Tb * Tb * Tb * Tb - T_room * T_room * T_room * T_room))/density/Cp/dx;
+        chm_temp += (h * (Tb - T_room) + eta * sigma * 
+                     (Tb * Tb * Tb * Tb - T_room * T_room * T_room * T_room)) / 
+          density/Cp/dx;
       }
     }
   }
 	
   //Add the laser power/volume
+
   chm_temp += flux_loc/(Cp * density);
 			
   T[i] += time_step * chm_temp;
@@ -564,25 +582,29 @@ void AppAdditiveThermal::site_event_finitedifference(int i)
 	
 }
 
-//Represent specific heat as a piecewise function, so we can account for the rapid increase
-//upon melting (corresponding to release of latent heat) and its larger value in the liquid phase.
-//This function will take a temperature value as input and return the corresponding specific heat value
+/* ----------------------------------------------------------------------
+   
+   Represent specific heat as a piecewise function, so we can account for the rapid increase
+   upon melting (corresponding to release of latent heat) and its larger value in the liquid phase.
+   This function will take a temperature value as input and return the corresponding specific heat value
+------------------------------------------------------------------------- */
 
-double AppAdditiveThermal::specificHeatCalculator(double temper) {
-
+double AppAdditiveThermal::specificHeatCalculator(double temper) 
+{
   double slope = 0;
   double Cp = 0;
     
   //Check if we are above or below the specified temperature range. If not, linearly interpolate the proper value.
-  if(temper >= specific_heat_temps[specific_heat_length -1]) {
+
+  if (temper >= specific_heat_temps[specific_heat_length -1]) {
     Cp = specific_heat_vals[specific_heat_length -1];
   }
-  else if(temper <= specific_heat_temps[0]) {
+  else if (temper <= specific_heat_temps[0]) {
     Cp = specific_heat_vals[0];
   }
   else {
     for(int i = 0; i < specific_heat_length; i++) {
-      if(i == 0 && temper <= specific_heat_temps[0]) {
+      if (i == 0 && temper <= specific_heat_temps[0]) {
         Cp = specific_heat_vals[0];
         break;
       }
@@ -590,13 +612,18 @@ double AppAdditiveThermal::specificHeatCalculator(double temper) {
         Cp = specific_heat_vals[i];
         break;
       }
-      else if (temper > specific_heat_temps[i -1] && temper <= specific_heat_temps[i]) {
-        slope = (specific_heat_vals[i] - specific_heat_vals[i -1])/(specific_heat_temps[i] - specific_heat_temps[i-1]);
-        Cp = slope * (temper - specific_heat_temps[i-1]) + specific_heat_vals[i -1];
+      else if (temper > specific_heat_temps[i -1] && 
+               temper <= specific_heat_temps[i]) {
+        slope = (specific_heat_vals[i] - specific_heat_vals[i -1]) / 
+          (specific_heat_temps[i] - specific_heat_temps[i-1]);
+        Cp = slope * (temper - specific_heat_temps[i-1]) + 
+          specific_heat_vals[i -1];
         break;
       }
     }
+
     //Add latent heat if in mushy zone
+
     if (temper < Tl && temper > Ts) {
       Cp += latent_heat/(Tl - Ts);
     }
@@ -604,7 +631,6 @@ double AppAdditiveThermal::specificHeatCalculator(double temper) {
     
   return Cp;
 }
-
 
 /* ----------------------------------------------------------------------
    At each timestep, we will go through and calculate the temperature field from
@@ -619,14 +645,16 @@ double AppAdditiveThermal::specificHeatCalculator(double temper) {
    We should be going a constant dt in time between each step.
    ------------------------------------------------------------------------- */
 
-void AppAdditiveThermal::position_finder_in() {
+void AppAdditiveThermal::position_finder_in() 
+{
   double local_dist;
   double x_vec;
   double y_vec;
   int longer_index = 0;
 	
   //We should have a special case for when we restart a simulation during a "dwell" period
-  if(path_index == 0 && p_scan_array[0] != 0) {
+
+  if (path_index == 0 && p_scan_array[0] != 0) {
 		
     //I think we should just restart running the entire wait time for now.
     //Its not too simple with our current set up to adjust the amount of time left.
@@ -645,9 +673,9 @@ void AppAdditiveThermal::position_finder_in() {
     return;
   }
 
-
   //First check if in a pause block and have time to  wait
-  if(p_scan_array[path_index] != 0 && wait_time > 0) {
+
+  if (p_scan_array[path_index] != 0 && wait_time > 0) {
 		
     wait_time = wait_time - time_step;
     x_meltspot = domain->boxxhi * 1000;
@@ -655,7 +683,9 @@ void AppAdditiveThermal::position_finder_in() {
     z_meltspot = z_scan_array[path_index];
     return;
   }
+
   //If we've been waiting but shouldn't wait anymore, start at next index
+
   else if (p_scan_array[path_index] != 0) {
     path_index = path_index + 1;
     wait_time = 0;
@@ -666,15 +696,18 @@ void AppAdditiveThermal::position_finder_in() {
     z_meltspot = z_scan_array[path_index];
     return;
   }
+
   //We're not starting in a wait spot, need to loop through until we find the active interval
+
   else {
     //Just advance by vel everytime this is called.
+
     double long_local_dist = d_residual + vel * time_step + d_scan_array[path_index];
 		
     for(int i = 1; i < line_count - path_index; i++) {
 			
       //If we've crossed into a pause area, stop and interval beginning and set flags
-      if(p_scan_array[path_index + i - 1] != 0) {
+      if (p_scan_array[path_index + i - 1] != 0) {
         path_index = path_index + i -1;
         if (p_scan_array[path_index] < 1.5) {
           wait_time = recoating_time;
@@ -692,8 +725,9 @@ void AppAdditiveThermal::position_finder_in() {
         return;
       }
 			
-      //Otherwise, if we've found an index with a longer distance than our current one, do the previous thing
-      else if(d_scan_array[path_index + i] > long_local_dist)  {
+      // Otherwise, if we've found an index with a longer distance than our current one, do the previous thing
+
+      else if (d_scan_array[path_index + i] > long_local_dist)  {
         longer_index = path_index + i - 1;
         local_dist = long_local_dist - d_scan_array[path_index + i - 1];
         path_index = path_index + i - 1;
@@ -701,7 +735,7 @@ void AppAdditiveThermal::position_finder_in() {
         wait_time = 0;
         break;
       }
-      else if(line_count == path_index + 2){
+      else if (line_count == path_index + 2) {
         done_flag = 1;
         x_meltspot = x_scan_array[path_index];
         y_meltspot = y_scan_array[path_index];
@@ -713,10 +747,12 @@ void AppAdditiveThermal::position_finder_in() {
 
   //We'll find the vector between the two end points,
   //use this to find the point's distance from the plane, and then test if its within the ellipsoid.
+
   x_vec = abs(x_scan_array[longer_index + 1]) - abs(x_scan_array[longer_index]);
   y_vec = y_scan_array[longer_index + 1] - y_scan_array[longer_index];
  	
   //We can calculate the variables on the spine quite easily by taking the normalized vector, multiplying it by the small length, and adding it to the endpoint.
+
   x_meltspot = x_vec/(d_scan_array[longer_index + 1] - d_scan_array[longer_index]) * local_dist + abs(x_scan_array[longer_index]);
   y_meltspot = y_vec/(d_scan_array[longer_index + 1] - d_scan_array[longer_index]) * local_dist + abs(y_scan_array[longer_index]);
   z_meltspot = z_scan_array[longer_index];
@@ -731,12 +767,14 @@ void AppAdditiveThermal::position_finder_in() {
    smoothing steps immediately after solidification by using negative values
    ------------------------------------------------------------------------- */
 
-double AppAdditiveThermal::compute_mobility(int i, RandomPark *random)  {
-    
+double AppAdditiveThermal::compute_mobility(int i, RandomPark *random)
+{
   //Don't assign the global array in this function
+
   double mob;
 	 
   //If we're a solid phase, set mobility for grain growth
+
   if (activeFlag[i] == 3) {
     mob = exp(-Q/(R*T[i]));
   }
@@ -751,15 +789,17 @@ double AppAdditiveThermal::compute_mobility(int i, RandomPark *random)  {
    This should represent the flux going into an element the size of of a site
    ------------------------------------------------------------------------- */
 
-double AppAdditiveThermal::flux_finder(int site) {
-	
+double AppAdditiveThermal::flux_finder(int site) 
+{
   double flux_loc;
   double preFactorTrue = 2 * flux_prefactor/((x_dev * dx * MY_2PIS) * (y_dev * dx * MY_2PIS) * (z_dev * dx * MY_2PIS));
 	
   //Normalized gaussian. Total flux will stay constant no matter the values of x,y,z_dev
+
   flux_loc =  preFactorTrue * exp(-0.5 * ((pow((xyz[site][0] - x_meltspot), 2)/(x_dev*x_dev) + pow((xyz[site][1] - y_meltspot), 2)/(y_dev*y_dev) + pow((xyz[site][2] - z_meltspot),2)/(z_dev * z_dev))));
 	
   //If we're above the current layer or have reached the end of the path file, set the flux to zero.
+
   if (xyz[site][2] > floor(z_meltspot) || done_flag == 1) {
     flux_loc = 0;
   }
@@ -778,14 +818,15 @@ void AppAdditiveThermal::app_update(double dt)
   double tempMaxAll = 0.0;
 
   //communicate all sites to make sure it's up-to-date when it starts
+
   timer->stamp();
   comm->all();
   timer->stamp(TIME_COMM);
 
   //Calculate the current position
+
   if(domain->me == 0) {
     position_finder_in();
-    //         fprintf(screen,"path_index %d, line_count %d\n", path_index, line_count);
   }
 
   timer->stamp(TIME_APP);
@@ -798,11 +839,15 @@ void AppAdditiveThermal::app_update(double dt)
   timer->stamp(TIME_COMM);
 
   //If we're recoating, run until things get below Ts and then reset all values to room temp
+
   if(wait_time > 1) {
     //See if we're below melting throughout the domain
+
     tempMax = compute_tempMax();
     MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
+
     //If below, set all values to room temp and skip to the end of the wait
+
     if(tempMaxAll < Ts) {
       if(domain->me == 0) {
         fprintf(screen,"Continuing after waiting %f\n",recoating_time - wait_time);
@@ -818,10 +863,12 @@ void AppAdditiveThermal::app_update(double dt)
 
   for (int i=0; i<nlocal; i++) {
     //Keep looping if we're above the meltspot
+
     if(xyz[i][2] > floor(z_meltspot)) continue;
         
     //If below melt spot, run finite difference
     //This could be slightly screwy for the first step after a new layer
+
     else if (activeFlag[i] == 0) {
       activeFlag[i] = 1;
     }
@@ -829,23 +876,32 @@ void AppAdditiveThermal::app_update(double dt)
         
     //Let's also update the active flag after each FD loop
     //This is also the place to handle nucleation and solidification front impingement
+
     if(activeFlag[i] == 3) {
       if(T[i] > Tl) {
         activeFlag[i] = 2;
+
         //Also randomize spin and reset cumulative variables
+
         spin[i] = (int) (nspins * ranapp->uniform());
         SolidD[i] = 0;
         MobilityOut[i] = 0;
       }
     }
+
     //If we're molten, call the mushy_phase function to figure out any phase change
+
     else if (activeFlag[i] == 2 && T[i] <= Tl) {
       mushy_phase(i, ranapp);
     }
+
     //Go from powder to molten
+
     else if (activeFlag[i] == 1 && T[i] > Tl) {
       activeFlag[i] = 2;
+
       //Also randomize spin and reset cumulative variables
+
       spin[i] = (int) (nspins * ranapp->uniform());
       SolidD[i] = 0.0;
       MobilityOut[i] = 0;
@@ -854,16 +910,17 @@ void AppAdditiveThermal::app_update(double dt)
   timer->stamp(TIME_APP);
 
   //re-sync all the data
+
   comm->all();
   timer->stamp(TIME_COMM);
-
 	
   //Check if this is the last iteration, if so, output an updated version of the path file.
+
   if(time + dt >= stoptime && domain->me == 0) {	
     path_file_update();
   }
-	
 }
+
 /* ----------------------------------------------------------------------
    We'll often need to restart these simulations. We calculate our spot location by tracking
    an index. Therefore, it'll be easiest to rewrite the path file so that it restarts at our
@@ -873,6 +930,7 @@ void AppAdditiveThermal::app_update(double dt)
 void AppAdditiveThermal::path_file_update()
 {
   //Output a restart_path file.
+
   std::string restart_file_str("restart_path.txt");
   FILE* fout = fopen(restart_file_str.c_str(), "w");
 	
@@ -880,6 +938,7 @@ void AppAdditiveThermal::path_file_update()
 	
   //The first index value should be our current location, not array value
   //We might be off by one for the first index
+
   if(p_scan_array[path_index] == 0) {
     x_scan_array[path_index] = x_meltspot;
     y_scan_array[path_index] = y_meltspot;
@@ -889,7 +948,9 @@ void AppAdditiveThermal::path_file_update()
 	
 	
   for( int i = path_index; i < line_count; i++) {
+
     //Update the scan distance
+
     if(i > path_index) {
       d_scan_array[i] = d_scan_array[i] - start_distance;
     }
@@ -898,7 +959,6 @@ void AppAdditiveThermal::path_file_update()
   }
   fclose(fout);
 }
-
 
 /* ----------------------------------------------------------------------
    rKMC method
@@ -914,9 +974,9 @@ void AppAdditiveThermal::site_event_rejection(int i, RandomPark *random)
   double Mobloc = 0;
     
   //Assign the local mobility
+
   Mobloc = MobilityOut[i];
 
-    
   int j,m,value;
   int nevent = 0;
   
@@ -925,11 +985,14 @@ void AppAdditiveThermal::site_event_rejection(int i, RandomPark *random)
     return;
   }
 
-
   for (j = 0; j < numneigh[i]; j++) {
     value = spin[neighbor[i][j]];
+
     //Exclude gas, powder or molten sites from the Potts neighbor tally
-    if (value == spin[i] || value == nspins || (activeFlag[neighbor[i][j]] != 3 && activeFlag[neighbor[i][j]] != 1)) continue;
+
+    if (value == spin[i] || value == nspins || 
+        (activeFlag[neighbor[i][j]] != 3 && 
+         activeFlag[neighbor[i][j]] != 1)) continue;
     for (m = 0; m < nevent; m++)
       if (value == unique[m]) break;
     if (m < nevent) continue;
@@ -983,14 +1046,16 @@ void AppAdditiveThermal::site_event_rejection(int i, RandomPark *random)
    mobility calculated from undercooling.)
    ------------------------------------------------------------------------- */
 
-void AppAdditiveThermal::mushy_phase(int i, RandomPark *random){
+void AppAdditiveThermal::mushy_phase(int i, RandomPark *random)
+{
   int nevent = 0;
   int m,value;
   double Tcool = Tl - T[i];
+
   //For default settings, SolidD[i] =+ (1.091e-5 * pow(Tcool, 3) - 2.034e-4 * pow(Tcool, 2) + 2.74e-3*Tcool + 1.151e-4) * time_step;
-       
   //Our site should always be molten and below Tl
   //Check if it's eligible to nucleate
+
   if(nucleationFlags[spin[i]]) {
     //Can and will nucleate
     if(Tcool >= nucleationTemps[spin[i]]){
@@ -999,16 +1064,22 @@ void AppAdditiveThermal::mushy_phase(int i, RandomPark *random){
       SolidD[i] = -nsmooth-2;
       return;
     }
+
     //Can nucleate, but won't yet. Allow to if the solidification front gets captured.
+
     else {
+
       //Add the distance of the front travel. This is for 304L. Need to multiply by timestep to get distance
       //Try doing this with an arbitrary array
+
       int power = solid_front_length -1;
       for(int k = 0; k < solid_front_length; k++) {
         SolidD[i] = SolidD[i] + solid_front_coeffs[k] * pow(Tcool, power) * time_step;
         power--;
       }
+
       //Go through neighbor list and add them to possible switches
+
       for (int j = 0; j < numneigh[i]; j++) {
         if(neighDist[2] <= SolidD[i] && activeFlag[neighbor[i][j]] == 3) {
           value = spin[neighbor[i][j]];
@@ -1017,7 +1088,9 @@ void AppAdditiveThermal::mushy_phase(int i, RandomPark *random){
           unique[nevent++] = value;										
         }
       }
+
       //If no neighbor is eligible, return before changing anything. Will try next sweep.
+
       if (nevent == 0) return;
       int iran = (int) (nevent*random->uniform());
       if (iran >= nevent) iran = nevent-1;
@@ -1028,7 +1101,9 @@ void AppAdditiveThermal::mushy_phase(int i, RandomPark *random){
     }
   }
   else {
+
     //Add the distance of the front travel. This is for 304L I think...
+
     int power = solid_front_length -1;
     for(int k = 0; k < solid_front_length; k++) {
       SolidD[i] = SolidD[i] + solid_front_coeffs[k] * pow(Tcool, power) * time_step;
@@ -1036,6 +1111,7 @@ void AppAdditiveThermal::mushy_phase(int i, RandomPark *random){
     }
        
     //Go through neighbor list and add them to possible switches
+
     for (int j = 0; j < numneigh[i]; j++) {
       if(neighDist[2] <= SolidD[i] && activeFlag[neighbor[i][j]] == 3) {
         value = spin[neighbor[i][j]];
@@ -1045,6 +1121,7 @@ void AppAdditiveThermal::mushy_phase(int i, RandomPark *random){
     }
         
     //If no neighbor is eligible, return before changing anything. Will try next sweep.
+
     if (nevent == 0) return;
     int iran = (int) (nevent*random->uniform());
     if (iran >= nevent) iran = nevent-1;
@@ -1060,9 +1137,11 @@ void AppAdditiveThermal::mushy_phase(int i, RandomPark *random){
    use a user-defined nucleation particle size and flip neighboring sites until that size is met
    ------------------------------------------------------------------------- */
 
-void AppAdditiveThermal::nucleation_particle_flipper(int i, int partRad, RandomPark *random) {
-    
+void AppAdditiveThermal::nucleation_particle_flipper(int i, int partRad, 
+                                                     RandomPark *random) 
+{    
   //If one site is big enough to satisfy, skip evertyhing
+
   if(partRad <= 0) return;
     
   int nSites = partRad;
@@ -1075,7 +1154,8 @@ void AppAdditiveThermal::nucleation_particle_flipper(int i, int partRad, RandomP
     
   //Its hard to go through shells iteravely if the number of neighbors isn't the full 26.
   //Check if this is the case and just loop through the neihgbor list if so
-  if(numneigh[i] != 26) {        
+
+  if (numneigh[i] != 26) {        
     for(int j = 0; j < numneigh[i]; j++) {
       if(activeFlag[neighbor[i][j]] == 2) {
         spin[neighbor[i][j]] = spin[i];
@@ -1089,8 +1169,10 @@ void AppAdditiveThermal::nucleation_particle_flipper(int i, int partRad, RandomP
     }
   }
   else {
+
     //Go through neighbors and nucleate liquid ones
     //Do 1st ones first (this isn't random yet)
+
     for(int j = 0; j < 6; j++) {
       if(activeFlag[neighbor[i][nearest_neigh[j]]] == 2) {
         spin[neighbor[i][nearest_neigh[j]]] = spin[i];
@@ -1102,7 +1184,9 @@ void AppAdditiveThermal::nucleation_particle_flipper(int i, int partRad, RandomP
         return;
       }
     }
+
     //Do 2nd shell
+
     for(int j = 0; j < 12; j++) {
       if(activeFlag[neighbor[i][second_nearest[j]]] == 2) {
         spin[neighbor[i][second_nearest[j]]] = spin[i];
@@ -1114,7 +1198,9 @@ void AppAdditiveThermal::nucleation_particle_flipper(int i, int partRad, RandomP
         return;
       }      
     }
+
     //Do 3rd shell    
+
     for(int j = 0; j < 8; j++) {
       if(activeFlag[neighbor[i][third_nearest[j]]] ==2) {
         spin[neighbor[i][third_nearest[j]]] = spin[i];
@@ -1127,29 +1213,35 @@ void AppAdditiveThermal::nucleation_particle_flipper(int i, int partRad, RandomP
       }
     }
   }
+
   //If we didn't fill any sites this time, just quit
+
   if (nSites == nSitesIn) {
     return;
   }
     
   //If we still haven't satisfied the particle size, pick a neighbor at random and solidify from there.
   //Build a list of same-particle neighbors and pick one randomly
-  for(int j =0; j < numneigh[i]; j++) {
+
+  for (int j =0; j < numneigh[i]; j++) {
     if(spin[neighbor[i][j]] == spin[i] && activeFlag[neighbor[i][j]] == 3) {
       possible_neigh[nneigh] = j;
       nneigh++;
     }
   }
+
   //If no possible nieghbors, quit
+
   if(nneigh == 0) {
     return;
   }
+
   //Otherwise, randomly pick a possilbe neighbor
+
   int neighran =  round(((nneigh -1) * random->uniform()));
   nucleation_particle_flipper(neighbor[i][possible_neigh[neighran]],nSites, random);
   return;    
 }
-
 
 /* ----------------------------------------------------------------------
    Nucleation site initializer. Find the volume of a voxel from dx^3 and Multiply by No.
@@ -1159,17 +1251,21 @@ void AppAdditiveThermal::nucleation_particle_flipper(int i, int partRad, RandomP
    between zero and one. If the number is less than the fraction, make true. If not, make false.
    ------------------------------------------------------------------------- */
 
-void AppAdditiveThermal::nucleation_spins(RandomPark *random) {
+void AppAdditiveThermal::nucleation_spins(RandomPark *random) 
+{
   double nucleationFraction = dx * dx * dx * No;
     
   //Make all spins nucleation sites. Should avoid this.
+
   if(nucleationFraction >= 1.0) {
     fprintf(screen,"Nucleation fraction (%f) is greater than 1. Decrease No or increase mesh resolution.\n", nucleationFraction);
     for (int i = 0; i < nspins; i++) {
       nucleationFlags[i] = 1;
     }
   }
+
   //Do a random number test and allow the spin to nucleate if less than
+
   else {
     fprintf(screen,"Nucleation Fraction is %f \n", nucleationFraction);
     for (int i = 0; i < nspins; i++) {
@@ -1188,7 +1284,8 @@ void AppAdditiveThermal::nucleation_spins(RandomPark *random) {
    This version will also initialize nucleii size (starting with a normal dist)
    ------------------------------------------------------------------------- */
 
-void AppAdditiveThermal::nucleation_init() {
+void AppAdditiveThermal::nucleation_init() 
+{
   std::normal_distribution<> dist_T{Tc,Tsig};
   std::normal_distribution<> dist_S{sizeNorm,sizeSig};
   std::random_device rd{};
@@ -1318,8 +1415,8 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
       }
     }
   	
-  	
     //Do Monte Carlo sweeps
+
     for (int j = 0; j<nMC; j++) {
       for (int iset = 0; iset < nset_loop; iset++) {
         if (nprocs > 1) {
@@ -1381,7 +1478,9 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
       if (done || time >= nextoutput) nextoutput = output->compute(time,done);
       timer->stamp(TIME_OUTPUT);
     }
+
     //Do a thermal step. Don't do it if dtMC > time_step
+
     if(dtMC < time_step) {
       app_update(time_step);
       //Check if we're just solidified and should be "relaxed"
@@ -1412,9 +1511,9 @@ void AppAdditiveThermal::iterate_rejection(double stoptime)
    timestep. Let's compute timestep after and just return highest temperature
    ------------------------------------------------------------------------- */
 
-double AppAdditiveThermal::compute_tempMax() {
+double AppAdditiveThermal::compute_tempMax()
+{
   double tempMax = 0;
-  //double timeMin = 0;
 	
   for(int i = 0; i < nlocal; i++) {
     //Don't include inactive sites in calculation
@@ -1433,7 +1532,8 @@ double AppAdditiveThermal::compute_tempMax() {
    Given a maximum temperature, compute the minimum MC timestep.
    ------------------------------------------------------------------------- */
 
-double AppAdditiveThermal::compute_timeMin(double tempMax) {
+double AppAdditiveThermal::compute_timeMin(double tempMax) 
+{
   double dtMC;
   dtMC = pow(dx,2) * Kmc/Ko * exp(Q/(R*tempMax));
   return dtMC;
