@@ -24,7 +24,8 @@ using namespace SPPARKS_NS;
 DiagDiffusion::DiagDiffusion(SPPARKS *spk, int narg, char **arg) : 
   Diag(spk,narg,arg)
 {
-  if (strcmp(app->style,"diffusion") != 0)
+  if ((strcmp(app->style,"diffusion") != 0) && 
+      (strcmp(app->style,"diffusion2") != 0))
     error->all(FLERR,"Diag_style diffusion requires app_style diffusion");
 }
 
