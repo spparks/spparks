@@ -13,32 +13,32 @@
 
 #include "mpi.h"
 #include "string.h"
-#include "diag_diffusion.h"
-#include "app_diffusion.h"
+#include "diag_diffusion2.h"
+#include "app_diffusion2.h"
 #include "error.h"
 
 using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DiagDiffusion::DiagDiffusion(SPPARKS *spk, int narg, char **arg) : 
+DiagDiffusion2::DiagDiffusion2(SPPARKS *spk, int narg, char **arg) : 
   Diag(spk,narg,arg)
 {
-  if (strcmp(app->style,"diffusion") != 0)
-    error->all(FLERR,"Diag_style diffusion requires app_style diffusion");
+  if (strcmp(app->style,"diffusion2") != 0)
+    error->all(FLERR,"Diag_style diffusion2 requires app_style diffusion2");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DiagDiffusion::init()
+void DiagDiffusion2::init()
 {
-  appdiff = (AppDiffusion *) app;
+  appdiff = (AppDiffusion2 *) app;
   deposit_success = deposit_failed = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DiagDiffusion::compute()
+void DiagDiffusion2::compute()
 {
   deposit_success = appdiff->ndeposit;
   deposit_failed = appdiff->ndeposit_failed;
@@ -51,7 +51,7 @@ void DiagDiffusion::compute()
 
 /* ---------------------------------------------------------------------- */
 
-void DiagDiffusion::stats(char *strtmp)
+void DiagDiffusion2::stats(char *strtmp)
 {
   sprintf(strtmp," %10g %10g %10g %10g",
 	  deposit_success,deposit_failed,nfirst_all,nsecond_all);
@@ -59,7 +59,7 @@ void DiagDiffusion::stats(char *strtmp)
 
 /* ---------------------------------------------------------------------- */
 
-void DiagDiffusion::stats_header(char *strtmp)
+void DiagDiffusion2::stats_header(char *strtmp)
 {
   sprintf(strtmp," %10s %10s %10s %10s",
 	  "Deposit","FailedDep","1stHops","2ndHops");

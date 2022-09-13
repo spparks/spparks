@@ -24,7 +24,7 @@ AppStyle(diffusion2,AppDiffusion2)
 namespace SPPARKS_NS {
 
 class AppDiffusion2 : public AppLattice {
-  friend class DiagDiffusion;
+  friend class DiagDiffusion2;
 
  public:
   AppDiffusion2(class SPPARKS *, int, char **);
@@ -64,15 +64,6 @@ class AppDiffusion2 : public AppLattice {
   int *firstevent;         // index of 1st event for each owned site
   int freeevent;           // index of 1st unused event in list
 
-  int depmode;             // deposition: DEP_NONE or DEP_EVENT or DEP_BATCH
-  double deprate_total;    // deposition rate for entire system
-  double deprate;          // deposition rate for one proc
-  double thetalo,thetahi;  // deposition parameters
-  double d0;
-  int coordlo,coordhi;
-  double dir[3];
-  int nbatch;               // # of deposition events to perform as a batch
-
   int barrierflag;          // energy barriers on or off
   double **hbarrier;
   double **sbarrier;
@@ -82,8 +73,37 @@ class AppDiffusion2 : public AppLattice {
   int *mark;                // flagged sites
   int *marklist;            // list of flagged sites
 
-  int ndeposit,ndeposit_failed;  // stats
+  // deposition parameters and data structs
+
+  int depmode;             // deposition: DEP_NONE or DEP_EVENT or DEP_BATCH
+  double deprate_total;    // deposition rate for entire system
+  double deprate;          // deposition rate for one proc
+  double thetalo,thetahi;  // deposition params
+  double d0;
+  int coordlo,coordhi;
+  double dir[3];
+
+  int nbatch;               // # of batch deposition events by this proc
+  int maxbatch;             // max # of batch depositions data structs can hold
+  class RandomPark *ranbatch;  // RNG for batch deposition (same on all procs)
+  double **startpos;        // starting points for batch deposition
+  int *elist;               // list of my sites eligible for deposition
+
+  struct DepInfo {
+    int proc;
+    int site;
+    double distance;
+  };
+
+  DepInfo *depinfo;        // allocated for batch depositions
+  DepInfo *depinfo_copy;   // used to merge two sets of depinfo
+  
+  // stats
+
+  int ndeposit,ndeposit_failed;
   int nfirst,nsecond;
+
+  // methods
 
   double site_propensity_no_energy(int);
   double site_propensity_linear(int);
@@ -91,6 +111,7 @@ class AppDiffusion2 : public AppLattice {
 
   void site_event_linear(int, class RandomPark *);
   void site_event_nonlinear(int, class RandomPark *);
+  void update_propensities(int, int);
 
   int neighbor2(int, int *);
   int neighbor3(int, int *);
@@ -102,7 +123,7 @@ class AppDiffusion2 : public AppLattice {
 
   int schwoebel_enumerate(int, int *);
   int find_deposition_site(class RandomPark *);
-  int exceed_limit(int, double *, double &);
+  int exceeds_limit(int, double *, double &);
   double distsq_to_line(int, double *, int, int, double &);
   void allocate_data();
 };

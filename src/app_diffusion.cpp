@@ -1130,6 +1130,7 @@ int AppDiffusion::find_deposition_site(RandomPark *random)
 
   // for each vacant site:
   // discard site if neighbor count not between coordlo and coordhi
+  // exceed_limit() tests if site is close enough to deposition path
   // find site whose projected distance is closest to start point
 
   int i,ncount;
