@@ -461,7 +461,7 @@ double AppDiffusion2::site_propensity_no_energy(int i)
   clear_events(i);
 
   if (lattice[i] != OCCUPIED) {
-    if (depmode != DEP_NONE && i == 0) {
+    if (i == 0 && depmode != DEP_NONE) {
       add_event(i,-1,deprate,DEPOSITION);
       return deprate;
     } else return 0.0;
@@ -510,7 +510,7 @@ double AppDiffusion2::site_propensity_no_energy(int i)
 
   // add in single deposition event, stored by site 0
 
-  if (depmode != DEP_NONE && i == 0) {
+  if (i == 0 && depmode != DEP_NONE) {
     add_event(i,-1,deprate,DEPOSITION);
     proball += deprate;
   }
@@ -535,7 +535,7 @@ double AppDiffusion2::site_propensity_linear(int i)
   clear_events(i);
 
   if (lattice[i] != OCCUPIED) {
-    if (depmode != DEP_NONE && i == 0) {
+    if (i == 0 && depmode != DEP_NONE) {
       add_event(i,-1,deprate,DEPOSITION);
       return deprate;
     } else return 0.0;
@@ -596,7 +596,7 @@ double AppDiffusion2::site_propensity_linear(int i)
 
   // add in single deposition event, stored by site 0
 
-  if (depmode != DEP_NONE && i == 0) {
+  if (i == 0 && depmode != DEP_NONE) {
     add_event(i,-1,deprate,DEPOSITION);
     proball += deprate;
   }
@@ -621,7 +621,7 @@ double AppDiffusion2::site_propensity_nonlinear(int i)
   clear_events(i);
 
   if (lattice[i] != OCCUPIED) {
-    if (depmode != DEP_NONE && i == 0) {
+    if (i == 0 && depmode != DEP_NONE) {
       add_event(i,-1,deprate,DEPOSITION);
       return deprate;
     } else return 0.0;
@@ -733,7 +733,7 @@ double AppDiffusion2::site_propensity_nonlinear(int i)
 
   // add in single deposition event, stored by site 0
 
-  if (depmode != DEP_NONE && i == 0) {
+  if (i == 0 && depmode != DEP_NONE) {
     add_event(i,-1,deprate,DEPOSITION);
     proball += deprate;
   }
@@ -858,6 +858,7 @@ void AppDiffusion2::site_event_nonlinear(int i, class RandomPark *random)
 
 /* ----------------------------------------------------------------------
    compute propensity changes for self and swap site and their neighs
+   if i = j, then is a deposition event
    engstyle = NO_ENERGY or LINEAR:
      1,2 neighs for NNHOP and 1,2,3 neighs for SCHWOEBEL
    engstyle = NONLINEAR:
@@ -875,32 +876,40 @@ void AppDiffusion2::update_propensities(int i, int j)
   esites[nsites++] = isite;
   echeck[isite] = 1;
 
-  isite = i2site[j];
-  if (isite >= 0) {
-    propensity[isite] = site_propensity(j);
-    esites[nsites++] = isite;
-    echeck[isite] = 1;
+  if (j != i) {
+    isite = i2site[j];
+    if (isite >= 0) {
+      propensity[isite] = site_propensity(j);
+      esites[nsites++] = isite;
+      echeck[isite] = 1;
+    }
   }
 
   if (engstyle != NONLINEAR) {
     if (hopstyle == NNHOP) {
       nsites += neighbor2(i,&esites[nsites]);
-      nsites += neighbor2(j,&esites[nsites]);
+      if (j != i) nsites += neighbor2(j,&esites[nsites]);
     } else {
       nsites += neighbor3(i,&esites[nsites]);
-      nsites += neighbor3(j,&esites[nsites]);
+      if (j != i) nsites += neighbor3(j,&esites[nsites]);
     }
   } else {
     if (hopstyle == NNHOP) {
       nsites += neighbor3(i,&esites[nsites]);
-      nsites += neighbor3(j,&esites[nsites]);
+      if (j != i) nsites += neighbor3(j,&esites[nsites]);
     } else {
       nsites += neighbor4(i,&esites[nsites]);
-      nsites += neighbor4(j,&esites[nsites]);
+      if (j != i) nsites += neighbor4(j,&esites[nsites]);
     }
   }
 
+  // reset propensities of all affected sites within solver
+
   solve->update(nsites,esites,propensity);
+
+  // clear echeck array
+
+  for (int m = 0; m < nsites; m++) echeck[esites[m]] = 0;
 
   // sanity check on all propensity values
 
@@ -914,14 +923,13 @@ void AppDiffusion2::update_propensities(int i, int j)
     }
   }
   */
-
-  // clear echeck array
-
-  for (int m = 0; m < nsites; m++) echeck[esites[m]] = 0;
 }
 
 /* ----------------------------------------------------------------------
    perform deposition events as one batch per sweep
+   only done when KMC and sectors are being used
+   not done when rKMC b/c cannot do deposition
+   not done when no sectors, b/c then app_update() is not called
 ------------------------------------------------------------------------- */
 
 void AppDiffusion2::app_update(double stoptime)
@@ -1071,20 +1079,39 @@ void AppDiffusion2::app_update(double stoptime)
   }
 
   // comm to acquire all my ghost site values
+  // since deposition may have updated them
 
   comm->all();
 
-  // reset propensities for my deposited sites
+  // reset propensities for all sites affected by deposition events
+  // this must be done within sectors
+  //   b/c KMC solver for that sector must be updated
+  // 2 kinds of affected sites:
+  //   (a) all sites affected by a new atom in that sector
+  //   (b) sites in owned border region of each sector,
+  //       may be affected by a new atom in another sector (or other proc)
+
+  int iset;
 
   for (i = 0; i < nbatch_total; i++) {
     if (depinfo[i].site < 0) continue;
     if (depinfo[i].proc != me) continue;
+
+    // iset = the set which site M is in
+    // set solve,propensity,i2site specific to that set
+    // used by update_propensities()
+
     m = depinfo[i].site;
+    iset = whichset(m);
+
+    solve = set[iset].solve;
+    propensity = set[iset].propensity;
+    i2site = set[iset].i2site;
+
     update_propensities(m,m);
   }
 
-  // NOTE: is more comm needed
-  // NOTE: does this work with sectors for updating solver correctly?
+  update_kmc_sector_border_propensities();
 
   // reset nbatch for next AppLattice loop
 
