@@ -687,13 +687,15 @@ void Set::set_stitch(int lhs, int rhs)
 {
 #ifdef SPK_STITCH
 
+#ifdef LOG_STITCH
    /**
     * STITCH PERFORMANCE: stitch query time; 
     */
-   // auto t1 = std::chrono::high_resolution_clock::now();
+  auto t1 = std::chrono::high_resolution_clock::now();
    /**
     * END STITCH PERFORMANCE: stitch query time; 
     */
+#endif
 
   if (app->appclass != App::LATTICE)
     error->all(FLERR,"Set stitch only allowed for on-lattice apps");
@@ -864,26 +866,28 @@ void Set::set_stitch(int lhs, int rhs)
   
   count = app->nlocal;
 
+#ifdef LOG_STITCH
    /**
     * STITCH PERFORMANCE: stitch query time; 
     */
-//  auto t2 = std::chrono::high_resolution_clock::now();
-//  auto duration = std::chrono::duration_cast<std::chrono::seconds>( t2 - t1 ).count();
-//  int my_rank;
-//  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-//  if (0==my_rank){
-//        const string filename="stitch_query.dat";
-//        FILE* fp = std::fopen(filename.c_str(), "a");
-//        if(!fp){
-//           error->all(FLERR,"set.cpp; in function 'set_stitch' file opening failed.");
-//        }
-//        const char* fmt="%10.4f %8d\n";
-//        fprintf(fp,fmt,time,duration);
-//        std::fclose(fp);
-//  }
+  auto t2 = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::seconds>( t2 - t1 ).count();
+  int my_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+  if (0==my_rank){
+        const string filename="stitch_query.dat";
+        FILE* fp = std::fopen(filename.c_str(), "a");
+        if(!fp){
+           error->all(FLERR,"set.cpp; in function 'set_stitch' file opening failed.");
+        }
+        const char* fmt="%10.4f %8d\n";
+        fprintf(fp,fmt,time,duration);
+        std::fclose(fp);
+  }
    /**
     * END STITCH PERFORMANCE: stitch query time; 
     */
+#endif
 
 #endif
 }
