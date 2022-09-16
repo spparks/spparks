@@ -31,6 +31,8 @@ create_sites	 box
 
 #set		 i1 range 1 ${NUM_SPINS}
 #set		 site range 1 ${NUM_SPINS}
+# Run following command to create 'init.st'
+# python init.py double --field='d1' 0 200 0 200 0 1
 set		 site stitch init.st first
 
 #set		 d1 value 0.0
