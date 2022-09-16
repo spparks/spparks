@@ -1,0 +1,65 @@
+# SPPARKS diffusion/deposition test
+
+seed             12345
+
+app_style	 diffusion nonlinear hop
+
+dimension	 2
+lattice		 tri 2.42
+region		 box block 0 200 0 100 -0.5 0.5
+create_box	 box
+create_sites	 box
+set		 site value 1
+region		 bottom block INF INF INF 1.0 INF INF
+set		 site value 2 region bottom
+region		 top block INF INF 98.9 INF INF INF
+set		 site value 3 region top
+
+# for parallel runs
+#sector           yes tstop 1.0e10
+#sector           yes nstop 1.0
+
+solve_style      tree
+
+deposition	 event 0.000000002 0 -1 0 1.0 1 5 
+# for parallel runs
+#deposition	 batch 0.000000002 0 -1 0 1.0 1 5 
+
+temperature	 0.0216
+
+diag_style       energy stats yes
+diag_style	 diffusion
+diag_style	 propensity
+
+#dump             2 image 5.0e10 image.dep.parallel.no.schw.*.png site site &
+#                 crange 1 3 sdiam 2.5 size 1024 1024 zoom 2.0 view 0.0 0.0 &
+#                 box no 0.01
+#dump_modify      2 pad 5 scolor 1 blue scolor 2 red scolor 3 green
+
+stats		 1.0e11.0
+
+barrier		hop * 0 2000.
+barrier		hop * 1 1000.
+barrier		hop 1 1 0.45
+barrier		hop 1 2 0.05
+barrier		hop 1 3 0.025
+barrier		hop 1 4 0.01
+barrier		hop 1 5 0.005
+barrier		hop 2 2 0.45
+barrier		hop 2 3 0.38
+barrier		hop 2 4 0.31
+barrier		hop 2 5 0.005
+barrier		hop 3 2 0.910
+barrier		hop 3 3 0.850
+barrier		hop 3 4 0.710
+barrier		hop 3 5 0.200
+barrier		hop 4 2 1.340
+barrier		hop 4 3 1.210
+barrier		hop 4 4 0.960
+barrier		hop 4 5 0.480
+barrier		hop 5 2 1.400
+barrier		hop 5 3 1.020
+barrier		hop 5 4 0.930
+barrier		hop 5 5 0.760
+
+run             1.0e13

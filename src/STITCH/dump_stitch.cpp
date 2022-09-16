@@ -22,6 +22,9 @@
 #include "app_lattice.h"
 #include "domain.h"
 #include "error.h"
+#include <sstream>
+#include <iomanip>
+#include <iostream>
 
 #include "stitch.h"
 
@@ -178,6 +181,32 @@ void DumpStitch::write(double time)
   int yhi = block[3];
   int zlo = block[4];
   int zhi = block[5];
+
+#ifdef LOG_STITCH
+  {
+     int my_rank, num_procs;
+     MPI_Comm_size(MPI_COMM_WORLD,&num_procs);
+     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+     std::size_t num_digits=1;
+     if(num_procs>=10)
+       num_digits=2;
+     else if(num_procs>=100)
+       num_digits=3;
+
+     std::ostringstream fname;
+     fname << "write.blocks.np" << std::setw(num_digits) << std::setfill('0') << num_procs << ".";
+     // fills rank leading '0' 
+     fname << std::setw(num_digits) << std::setfill('0') << my_rank << ".dat";
+     FILE* fp = std::fopen(fname.str().c_str(), "a");
+     if(!fp){
+        error->all(FLERR,"dump_stitch.cpp; in function 'write' file opening failed.");
+     }
+     const char* fmt="%10.4f,%4d,%4d,%4d,%4d,%4d,%4d\n";
+     fprintf(fp,fmt,time,xlo,xhi,ylo,yhi,zlo,zhi);
+     std::fclose(fp);
+  }
+#endif
+
 
   int *idata = NULL;
   double *real_data = NULL;

@@ -724,6 +724,49 @@ void AppLattice::iterate_app_update_only(double stoptime,double dt)
   }
 }
 
+/* ----------------------------------------------------------------------
+   update propensity of all KMC sector border sites
+   called from diffusion app when doing batch depositions
+ ------------------------------------------------------------------------- */
+
+void AppLattice::update_kmc_sector_border_propensities()
+{
+  int i,isite;
+
+  for (int iset = 0; iset < nset; iset++) {
+    solve = set[iset].solve;
+    propensity = set[iset].propensity;
+    i2site = set[iset].i2site;
+    
+    int *bsites = set[iset].bsites;
+    int *border = set[iset].border;
+    int nborder = set[iset].nborder;
+    
+    int nsites = 0;
+    for (int m = 0; m < nborder; m++) {
+      i = border[m];
+      isite = i2site[i];
+      bsites[nsites++] = isite;
+      propensity[isite] = site_propensity(i);
+    }
+      
+    solve->update(nsites,bsites,propensity);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   identify which set a lattice site M is in
+   has to be in exactly one set
+   called from diffusion app when doing batch depositions
+ ------------------------------------------------------------------------- */
+
+int AppLattice::whichset(int m)
+{
+  for (int iset = 0; iset < nset; iset++)
+    if (set[iset].i2site[m] >= 0) return iset;
+  return -1;    // should never reach this line
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AppLattice::sweep_nomask_nostrict(int n, int *list)
