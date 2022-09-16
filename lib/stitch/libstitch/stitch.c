@@ -32,6 +32,10 @@
 #include <unistd.h>
 #include <inttypes.h>
 #include <errno.h>
+#ifdef STITCH_TIMING
+// only needed if timing is collected
+#include <sys/time.h>
+#endif
 
 #ifdef STITCH_PARALLEL
 #include "mpi.h"
@@ -1499,7 +1503,7 @@ static int stitch_write_block (const StitchFile * file, int64_t field_id, double
 
 	if (rc == SQLITE_DONE)
         {
-            printf ("Field ID not found: %" PRId64 ". Line: %d rc = %d\n", field_id, __LINE__, rc);
+            fprintf (stderr, "Field ID not found: %" PRId64 ". Line: %d rc = %d\n", field_id, __LINE__, rc);
             sqlite3_finalize (stmt_index);
             goto cleanup;
         }
@@ -1664,9 +1668,22 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
     int32_t no_value_i32 = STITCH_NO_VALUE;
     int64_t no_value_i64 = STITCH_NO_VALUE;
     double no_value_f64 = STITCH_NO_VALUE;
+#ifdef STITCH_TIMING
+    int max_timing = 2000;
+    struct timeval time_start, time_end, time_diff;
+    double timing [max_timing];
+    int timing_offset = 0;
+#endif
+    // these 3 vars are used to get which times are wanted to avoid a join
+    int32_t number_of_times = 0;
+    int32_t times_selected = 0;
+    int32_t * times = NULL;
 #ifdef STITCH_PARALLEL
     if (file->rank == 0)
     {
+#endif
+#ifdef STITCH_TIMING
+        gettimeofday (&time_start, NULL);
 #endif
         do
         {
@@ -1678,7 +1695,12 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
                 goto cleanup;
             }
         } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
+#ifdef STITCH_TIMING
+        gettimeofday (&time_end, NULL);
+        timing [timing_offset++] = (time_end.tv_sec - time_start.tv_sec) + ((double) time_end.tv_usec - time_start.tv_usec)/1000000;
 
+        gettimeofday (&time_start, NULL);
+#endif
         rc = sqlite3_bind_int64 (stmt_index, 1, field_id);
 
         do
@@ -1717,12 +1739,17 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
         }
 
         sqlite3_finalize (stmt_index);
+#ifdef STITCH_TIMING
+        gettimeofday (&time_end, NULL);
+        timing [timing_offset++] = (time_end.tv_sec - time_start.tv_sec) + ((double) time_end.tv_usec - time_start.tv_usec)/1000000;
+#endif
 #ifdef STITCH_PARALLEL
     }
     MPI_Bcast (field_info, 2, MPI_INT, 0, file->comm);
     MPI_Bcast (&no_value_i32, 1, MPI_INT, 0, file->comm);
     MPI_Bcast (&no_value_i64, 1, MPI_INT64_T, 0, file->comm);
     MPI_Bcast (&no_value_f64, 1, MPI_DOUBLE, 0, file->comm);
+    // do not need to serialize since reading does not cause locks
 #endif
 
     int32_t * buffer_i32 = (int32_t *) buffer;
@@ -1754,18 +1781,16 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
             break;
     }
 
+#ifdef STITCH_TIMING
+    gettimeofday (&time_start, NULL);
+#endif
     rc = stitch_get_timestamp (file, &real_time, &timestamp, &new_time);
+#ifdef STITCH_TIMING
+    gettimeofday (&time_end, NULL);
+    timing [timing_offset++] = (time_end.tv_sec - time_start.tv_sec) + ((double) time_end.tv_usec - time_start.tv_usec)/1000000;
+#endif
     *is_new_time_flag = new_time;
 
-// using serialized reads seems to be causing problems so commenting out for now.
-#ifdef STITCH_PARALLEL
-    MPI_Status status;
-    int read_token = 0;
-    if (file->rank != 0)
-    {
-        MPI_Recv (&read_token, 1, MPI_INT, file->rank - 1, STITCH_MPI_TAG_READ_BLOCK, file->comm, &status);
-    }
-#endif
 // do I get the list in descending or ascending order?
 // if descending, just copy the relevant pieces into the output buffer, but
 // more copies. If ascending, then copy the whole last piece and then slice
@@ -1773,27 +1798,13 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
 // overwrite the existing data. Descending seems easier for now. Performance
 // requirements may change this. I don't think I need the timestep if I do it
 // in ascending order. Need to test this.
+#ifdef STITCH_TIMING
+    gettimeofday (&time_start, NULL);
+#endif
     do
     {
-        // AABB (Axis Aligned Bounding Box) Intersection
-        // you must check all axes INDEPENDENTLY.
-        // https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
         const char * query = NULL;
-        query = "select times.time, blocks.field_id, blocks.x_min, blocks.y_min, blocks.z_min, blocks.x_max, blocks.y_max, blocks.z_max, blocks.state "
-                "from blocks, times, fields "
-                "where blocks.timestamp in (select times.timestamp from times, globals where times.time < globals.absolute_tolerance + ?) "
-                "and fields.field_id = ? "
-                "and fields.field_id = blocks.field_id "
-                "and blocks.timestamp = times.timestamp "
-                "and x_min <= ? and x_max >= ? "
-                "and y_min <= ? and y_max >= ? "
-                "and z_min <= ? and z_max >= ? "
-                "order by times.time asc"
-                ;
-                //"and (x_min >= ? or y_min >= ? or z_min >= ?) and (x_max <= ? or y_max <= ? or z_max <= ?) " // OLD2
-                //"and (x_min >= ? or y_min >= ? or z_min >= ?) and (x_max <= ? or y_max <= ? or z_max <= ?) " // OLD 1
-                // new: "and (? < x_max and ? < y_max and ? < z_max and ? >= x_min and  ? >= y_min and ? >= z_min) "
-                //"where blocks.timestamp in (select times.timestamp from times, globals where abs(times.time - ?) < (globals.absolute_tolerance + (? * globals.relative_tolerance))) "
+        query = "select count (*) from times";
         rc = sqlite3_prepare_v2 (file->db, query, -1, &stmt_index, &tail_index);
         if (rc != SQLITE_OK && rc != SQLITE_BUSY && rc != SQLITE_LOCKED)
         {
@@ -1802,16 +1813,6 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
             goto cleanup;
         }
     } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
-
-    rc = sqlite3_bind_double (stmt_index, 1, *time); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int64 (stmt_index, 2, field_id); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int (stmt_index, 3, x2); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int (stmt_index, 4, x1); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int (stmt_index, 5, y2); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int (stmt_index, 6, y1); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int (stmt_index, 7, z2); assert (rc == SQLITE_OK);
-    rc = sqlite3_bind_int (stmt_index, 8, z1); assert (rc == SQLITE_OK);
-//printf ("time: %g bounding box x1: %d y1: %d z1: %d x2: %d y2: %d z2: %d\n", *time, x1, y1, z1, x2, y2, z2);
     do
     {
         rc = sqlite3_step (stmt_index);
@@ -1822,6 +1823,127 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
             goto cleanup;
         }
     } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
+    number_of_times = sqlite3_column_int (stmt_index, 0);
+    rc = sqlite3_finalize (stmt_index);
+    times = malloc (sizeof (int32_t) * number_of_times);
+
+    do
+    {
+        const char * query = NULL;
+        query = "select timestamp from times, globals where times.time < globals.absolute_tolerance + ?";
+        rc = sqlite3_prepare_v2 (file->db, query, -1, &stmt_index, &tail_index);
+        if (rc != SQLITE_OK && rc != SQLITE_BUSY && rc != SQLITE_LOCKED)
+        {
+            fprintf (stderr, "%d Line: %d SQL error (%d): %s\n", file->rank, __LINE__, rc, sqlite3_errmsg (file->db));
+            sqlite3_close (file->db);
+            goto cleanup;
+        }
+    } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+    rc = sqlite3_bind_double (stmt_index, 1, *time); assert (rc == SQLITE_OK);
+    do
+    {
+        rc = sqlite3_step (stmt_index);
+        if (rc != SQLITE_OK && rc != SQLITE_BUSY && rc != SQLITE_LOCKED && rc != SQLITE_ROW && rc != SQLITE_DONE)
+        {
+            fprintf (stderr, "%d Line: %d SQL error (%d): %s\n", file->rank, __LINE__, rc, sqlite3_errmsg (file->db));
+            sqlite3_close (file->db);
+            goto cleanup;
+        }
+    } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
+    while (rc == SQLITE_ROW)
+    {
+        times [times_selected++] = sqlite3_column_int (stmt_index, 0);
+        do
+        {
+            rc = sqlite3_step (stmt_index);
+            if (rc != SQLITE_OK && rc != SQLITE_BUSY && rc != SQLITE_LOCKED && rc != SQLITE_ROW && rc != SQLITE_DONE)
+            {
+                fprintf (stderr, "%d Line: %d SQL error (%d): %s\n", file->rank, __LINE__, rc, sqlite3_errmsg (file->db));
+                sqlite3_close (file->db);
+                goto cleanup;
+            }
+        } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
+    }
+    rc = sqlite3_finalize (stmt_index);
+    // now that we have a list of matching timestamps, we can add them to avoid the join.
+    // Optimization: If the number of items == the total number, we can just eliminate that clause.
+
+    do
+    {
+        // AABB (Axis Aligned Bounding Box) Intersection
+        // you must check all axes INDEPENDENTLY.
+        // https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+#ifndef SQLITE_MAX_SQL_LENGTH
+#define SQLITE_MAX_SQL_LENGTH 1000000
+#endif
+#define SQLITE_MAX_SQL_LENGTH_CAT 998000
+        char query [SQLITE_MAX_SQL_LENGTH] = "";
+        const char * q_txt = 
+                "select timestamp, field_id, x_min, y_min, z_min, x_max, y_max, z_max, state "
+                "from blocks "
+                "where "
+                "    x_min <= ? and x_max >= ? "
+                "and y_min <= ? and y_max >= ? "
+                "and z_min <= ? and z_max >= ? "
+                "and field_id = ? ";
+        strncpy (query, q_txt, SQLITE_MAX_SQL_LENGTH_CAT);
+        if (number_of_times != times_selected)
+        {
+            strncat (query, "and timestamp in (?", SQLITE_MAX_SQL_LENGTH_CAT);
+            for (int i = 1; i < times_selected; i++)
+            {
+                strncat (query, ",?", SQLITE_MAX_SQL_LENGTH_CAT);
+            }
+            strncat (query, ") ", SQLITE_MAX_SQL_LENGTH_CAT);
+        }
+        else
+        {
+            times_selected = 0; // set to skip binding these parameters
+        }
+        strncat (query, "order by timestamp ", SQLITE_MAX_SQL_LENGTH_CAT);
+
+        rc = sqlite3_prepare_v2 (file->db, query, -1, &stmt_index, &tail_index);
+        if (rc != SQLITE_OK && rc != SQLITE_BUSY && rc != SQLITE_LOCKED)
+        {
+            fprintf (stderr, "%d Line: %d SQL error (%d): %s\n", file->rank, __LINE__, rc, sqlite3_errmsg (file->db));
+            sqlite3_close (file->db);
+            goto cleanup;
+        }
+    } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+#ifdef STITCH_TIMING
+    gettimeofday (&time_end, NULL);
+    timing [timing_offset++] = (time_end.tv_sec - time_start.tv_sec) + ((double) time_end.tv_usec - time_start.tv_usec)/1000000;
+#endif
+
+    rc = sqlite3_bind_int (stmt_index, 1, x2); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_int (stmt_index, 2, x1); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_int (stmt_index, 3, y2); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_int (stmt_index, 4, y1); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_int (stmt_index, 5, z2); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_int (stmt_index, 6, z1); assert (rc == SQLITE_OK);
+    rc = sqlite3_bind_int64 (stmt_index, 7, field_id); assert (rc == SQLITE_OK);
+    for (int i = 0; i < times_selected; i++)
+    rc = sqlite3_bind_int (stmt_index, 8 + i, times [i]); assert (rc == SQLITE_OK);
+    //rc = sqlite3_bind_double (stmt_index, 8, *time); assert (rc == SQLITE_OK);
+//printf ("time: %g bounding box x1: %d y1: %d z1: %d x2: %d y2: %d z2: %d\n", *time, x1, y1, z1, x2, y2, z2);
+//if (file->rank == 0) printf ("1: %d 2: %d 3: %d 4: %d 5: %d 6: %d 7: %lld 8: %f\n", x2, x1, y2, y1, z2, z1, field_id, *time);
+#ifdef STITCH_TIMING
+    gettimeofday (&time_start, NULL);
+#endif
+    do
+    {
+        rc = sqlite3_step (stmt_index);
+        if (rc != SQLITE_OK && rc != SQLITE_BUSY && rc != SQLITE_LOCKED && rc != SQLITE_ROW && rc != SQLITE_DONE)
+        {
+            fprintf (stderr, "%d Line: %d SQL error (%d): %s\n", file->rank, __LINE__, rc, sqlite3_errmsg (file->db));
+            sqlite3_close (file->db);
+            goto cleanup;
+        }
+    } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
+#ifdef STITCH_TIMING
+    gettimeofday (&time_end, NULL);
+    timing [timing_offset++] = (time_end.tv_sec - time_start.tv_sec) + ((double) time_end.tv_usec - time_start.tv_usec)/1000000;
+#endif
 
     //printf ("rank: %d timestamp: %" PIRd64 " rc: %d\n", file->rank, timestamp, rc);
 
@@ -1830,6 +1952,10 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
     double * new_block_f64 = 0;
 //int32_t min_val = 2000000000;
 //int32_t max_val = -1;
+#ifdef STITCH_TIMING
+    gettimeofday (&time_start, NULL);
+    int time_saved = timing_offset++;
+#endif
     while (rc == SQLITE_ROW)
     {
         //double block_time = 0.0;
@@ -1840,6 +1966,10 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
         int32_t new_block_y2 = 0;
         int32_t new_block_z2 = 0;
 
+#ifdef STITCH_TIMING
+        struct timeval start1, end1;
+        gettimeofday (&time_start, NULL);
+#endif
         //block_time = sqlite3_column_double (stmt_index, 0);
         field_id = sqlite3_column_int64 (stmt_index, 1);
         new_block_x1 = sqlite3_column_int (stmt_index, 2);
@@ -1848,6 +1978,10 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
         new_block_x2 = sqlite3_column_int (stmt_index, 5);
         new_block_y2 = sqlite3_column_int (stmt_index, 6);
         new_block_z2 = sqlite3_column_int (stmt_index, 7);
+#ifdef STITCH_TIMING
+        gettimeofday (&time_end, NULL);
+        timing [timing_offset++] = (end1.tv_sec - start1.tv_sec) + ((double) end1.tv_usec - start1.tv_usec)/1000000;
+#endif
 
 //if (file->rank == 0) printf ("new block (x1: %d, y1: %d, z1: %d) - (x2: %d, y2: %d, z2: %d)\n", new_block_x1, new_block_y1, new_block_z1, new_block_x2, new_block_y2, new_block_z2);
 
@@ -1855,9 +1989,16 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
 
         // proper way to read a blob
         uint32_t block_size = 0;
+#ifdef STITCH_TIMING
+        gettimeofday (&start1, NULL);
+#endif
         block_size = sqlite3_column_bytes (stmt_index, 8);
         //printf ("block_size: %u\n", block_size);
         new_block = realloc (new_block, block_size); assert (new_block);
+#ifdef STITCH_TIMING
+        gettimeofday (&end1, NULL);
+        timing [timing_offset++] = (end1.tv_sec - start1.tv_sec) + ((double) end1.tv_usec - start1.tv_usec)/1000000;
+#endif
         if (!new_block)
         {
             goto cleanup;
@@ -1892,6 +2033,9 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
 #endif
 
 #define POINT_IN_BUFFER(x1,y1,z1,x2,y2,z2,x3,y3,z3) (x3 >= x1 ? x3 < x2 ? y3 >= y1 ? y3 < y2 ? z3 >= z1 ? z3 < z2 ? true : false : false : false : false : false: false)
+#ifdef STITCH_TIMING
+        gettimeofday (&start1, NULL);
+#endif
         for (new_block_z_pos = new_block_z1; new_block_z_pos < new_block_z2; new_block_z_pos++)
         {
             for (new_block_y_pos = new_block_y1; new_block_y_pos < new_block_y2; new_block_y_pos++)
@@ -1949,6 +2093,10 @@ printf ("n\n");
                 }
             }
         }
+#ifdef STITCH_TIMING
+        gettimeofday (&end1, NULL);
+        timing [timing_offset++] = (end1.tv_sec - start1.tv_sec) + ((double) end1.tv_usec - start1.tv_usec)/1000000;
+#endif
 
         do
         {
@@ -1961,6 +2109,10 @@ printf ("n\n");
             }
         } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
     }
+#ifdef STITCH_TIMING
+    gettimeofday (&time_end, NULL);
+    timing [time_saved] = (time_end.tv_sec - time_start.tv_sec) + ((double) time_end.tv_usec - time_start.tv_usec)/1000000;
+#endif
 
 #if 0
 printf ("copied min: %d max: %d\n", min_val, max_val);
@@ -1975,17 +2127,17 @@ printf ("in array min: %d max: %d\n", min_val, max_val);
 #endif
 
     rc = sqlite3_finalize (stmt_index);
-#ifdef STITCH_PARALLEL
-    if (file->rank < file->size - 1)
-    {
-        MPI_Send (&read_token, 1, MPI_INT, file->rank + 1, STITCH_MPI_TAG_READ_BLOCK, file->comm);
-    }
-
-    MPI_Barrier (file->comm);  // since we may read part of the group write, need to wait for everyone
-#endif
 
 cleanup:
     free (new_block);
+    free (times);
+#ifdef STITCH_TIMING
+    if (file->rank == 0)
+    {
+        for (int i = 0; i < timing_offset; i++)
+            printf ("time %d: %lf\n", i, timing [i]);
+    }
+#endif
 
     return 0;
 }
