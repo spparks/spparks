@@ -3,6 +3,28 @@
 Release Notes
 =============
 
+Sept 2022
+---------
+
+This release of stitch relates to query performance.  Use of the spparks 
+'set site stitch' command was performing very poorly as the number of 
+time steps in the associated file increased. This release dramatically 
+improves performance in this use case.  Along with this release, SPPARKS 
+now has a build macro -DLOG_STITCH which will write files related to 
+blocks read/written.  The logging also writes a 'stitch_query.dat' file 
+enumerating time taken to open, query, and close stitch file -- this 
+sequence initiated by the 'set site stitch' command in a spparks input 
+script.  Logging also includes files for each processor; these files 
+include the current simulation time, and the block read/written; this 
+is useful for stitching simulations where the blocks read/written 
+are evolving in time.
+
+Only stitch.c was updated.  The stitch repo 'SHA' that this file 
+was taken from is:
+
+1c3dd960c4ab8cb6ab1da1296c87f9183297d1ba
+
+
 May 2022
 --------
 
