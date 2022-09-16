@@ -15,8 +15,10 @@
 #include "string.h"
 #include "stdlib.h"
 #include "app_diffusion.h"
+#include "comm_lattice.h"
 #include "solve.h"
 #include "domain.h"
+#include "random_mars.h"
 #include "random_park.h"
 #include "memory.h"
 #include "error.h"
@@ -27,8 +29,10 @@ enum{ZERO,VACANT,OCCUPIED,TOP};
 enum{NO_ENERGY,LINEAR,NONLINEAR};
 enum{DEPOSITION,NNHOP,SCHWOEBEL};
 enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};  // from app_lattice.cpp
+enum{DEP_NONE,DEP_EVENT,DEP_BATCH};
 
 #define DELTAEVENT 100000
+#define DELTABATCH 1024
 
 /* ---------------------------------------------------------------------- */
 
@@ -42,7 +46,7 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
   delpropensity = 2;
   delevent = 1;
   allow_kmc = 1;
-  allow_rejection = 1;
+  allow_rejection = 0;
   allow_masking = 0;
   numrandom = 1;
 
@@ -91,8 +95,18 @@ AppDiffusion::AppDiffusion(SPPARKS *spk, int narg, char **arg) :
 
   // default settings for app-specific commands
 
-  depflag = 0;
+  depmode = DEP_NONE;
   barrierflag = 0;
+
+  // batch deposition data
+
+  ranbatch = NULL;
+
+  maxbatch = 0;
+  startpos = NULL;
+  depinfo = NULL;
+  depinfo_copy = NULL;
+  elist = NULL;
 
   // statistics
 
@@ -118,6 +132,12 @@ AppDiffusion::~AppDiffusion()
   delete [] hopsite;
   delete [] marklist;
   memory->destroy(mark);
+
+  delete ranbatch;
+  memory->destroy(startpos);
+  memory->sfree(depinfo);
+  memory->sfree(depinfo_copy);
+  memory->destroy(elist);
 }
 
 /* ----------------------------------------------------------------------
@@ -149,22 +169,27 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
 
   } else if (strcmp(command,"deposition") == 0) {
     if (narg < 1) error->all(FLERR,"Illegal deposition command");
+
     if (strcmp(arg[0],"off") == 0) {
-      if (narg != 1 ) error->all(FLERR,"Illegal deposition command");
-      depflag = 0;
+      if (narg != 1) error->all(FLERR,"Illegal deposition command");
+      depmode = DEP_NONE;
       return;
     }
 
-    if (narg != 7) error->all(FLERR,"Illegal deposition command");
-    depflag = 1;
-    deprate = atof(arg[0]);
-    dir[0] = atof(arg[1]);
-    dir[1] = atof(arg[2]);
-    dir[2] = atof(arg[3]);
-    d0 = atof(arg[4]);
-    coordlo = atoi(arg[5]);
-    coordhi = atoi(arg[6]);
-    if (deprate < 0.0) error->all(FLERR,"Illegal deposition command");
+    if (narg != 8) error->all(FLERR,"Illegal deposition command");
+
+    if (strcmp(arg[0],"event") == 0) depmode = DEP_EVENT;
+    else if (strcmp(arg[0],"batch") == 0) depmode = DEP_BATCH;
+
+    deprate_total = atof(arg[1]);
+    dir[0] = atof(arg[2]);
+    dir[1] = atof(arg[3]);
+    dir[2] = atof(arg[4]);
+    d0 = atof(arg[5]);
+    coordlo = atoi(arg[6]);
+    coordhi = atoi(arg[7]);
+
+    if (deprate_total < 0.0) error->all(FLERR,"Illegal deposition command");
     if (domain->dimension == 2 && (dir[1] >= 0.0 || dir[2] != 0.0))
       error->all(FLERR,"Illegal deposition command");
     if (domain->dimension == 3 && dir[2] >= 0.0)
@@ -177,6 +202,13 @@ void AppDiffusion::input_app(char *command, int narg, char **arg)
     dir[0] /= len;
     dir[1] /= len;
     dir[2] /= len;
+
+    // ranbatch = RNG for batch deposition (same on all procs)
+
+    if (depmode == DEP_BATCH) {
+      delete ranbatch;
+      ranbatch = new RandomPark(ranmaster->uniform());
+    }
 
   } else if (strcmp(command,"barrier") == 0) {
     if (narg < 1) error->all(FLERR,"Illegal barrier command");
@@ -242,10 +274,40 @@ void AppDiffusion::grow_app()
 
 void AppDiffusion::init_app()
 {
-  if (depflag && nprocs > 1)
-    error->all(FLERR,"Cannot perform deposition in parallel");
-  if (depflag && nsector > 1)
-    error->all(FLERR,"Cannot perform deposition with multiple sectors");
+  if (engstyle != LINEAR && !solve)
+    error->all(FLERR,"App diffusion off or nonlinear requires KMC solver");
+  if (depmode != DEP_NONE && !solve)
+    error->all(FLERR,"App diffusion with deposition requires KMC solver");
+
+  if (depmode == DEP_EVENT && nprocs > 1)
+    error->all(FLERR,"Cannot use deposition event in parallel - use batch");
+  if (depmode == DEP_EVENT && sectorflag)
+    error->all(FLERR,"Cannot use deposition event with multiple sectors - "
+               "use batch");
+  if (depmode == DEP_BATCH && !sectorflag)
+    error->all(FLERR,"Cannot use deposition batch without sectors - use event");
+
+  // set per-processor deposition rate
+  // deposition in batch mode uses callback at end of sweep
+
+  if (depmode != DEP_NONE) {
+    if (depmode == DEP_EVENT) deprate = deprate_total;
+    else if (depmode == DEP_BATCH) {
+      int flag = 1;
+      if (nlocal == 0) flag = 0;
+      int active;
+      MPI_Allreduce(&flag,&active,1,MPI_INT,MPI_SUM,world);
+      deprate = deprate_total / active;
+
+      if (!elist) memory->create(elist,nlocal,"app:elist");
+    }
+  }
+
+  nbatch = 0;
+  if (depmode == DEP_BATCH) allow_app_update = 1;
+  else allow_app_update = 0;
+
+  // allocate data
 
   if (!allocated) allocate_data();
   allocated = 1;
@@ -399,7 +461,7 @@ double AppDiffusion::site_propensity_no_energy(int i)
   clear_events(i);
 
   if (lattice[i] != OCCUPIED) {
-    if (depflag && i == 0) {
+    if (i == 0 && depmode != DEP_NONE) {
       add_event(i,-1,deprate,DEPOSITION);
       return deprate;
     } else return 0.0;
@@ -448,7 +510,7 @@ double AppDiffusion::site_propensity_no_energy(int i)
 
   // add in single deposition event, stored by site 0
 
-  if (depflag && i == 0) {
+  if (i == 0 && depmode != DEP_NONE) {
     add_event(i,-1,deprate,DEPOSITION);
     proball += deprate;
   }
@@ -473,7 +535,7 @@ double AppDiffusion::site_propensity_linear(int i)
   clear_events(i);
 
   if (lattice[i] != OCCUPIED) {
-    if (depflag && i == 0) {
+    if (i == 0 && depmode != DEP_NONE) {
       add_event(i,-1,deprate,DEPOSITION);
       return deprate;
     } else return 0.0;
@@ -534,7 +596,7 @@ double AppDiffusion::site_propensity_linear(int i)
 
   // add in single deposition event, stored by site 0
 
-  if (depflag && i == 0) {
+  if (i == 0 && depmode != DEP_NONE) {
     add_event(i,-1,deprate,DEPOSITION);
     proball += deprate;
   }
@@ -559,7 +621,7 @@ double AppDiffusion::site_propensity_nonlinear(int i)
   clear_events(i);
 
   if (lattice[i] != OCCUPIED) {
-    if (depflag && i == 0) {
+    if (i == 0 && depmode != DEP_NONE) {
       add_event(i,-1,deprate,DEPOSITION);
       return deprate;
     } else return 0.0;
@@ -671,7 +733,7 @@ double AppDiffusion::site_propensity_nonlinear(int i)
 
   // add in single deposition event, stored by site 0
 
-  if (depflag && i == 0) {
+  if (i == 0 && depmode != DEP_NONE) {
     add_event(i,-1,deprate,DEPOSITION);
     proball += deprate;
   }
@@ -695,7 +757,7 @@ void AppDiffusion::site_event(int i, class RandomPark *random)
 
 void AppDiffusion::site_event_linear(int i, class RandomPark *random)
 {
-  int j,m,isite;
+  int j,m;
 
   // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
@@ -713,11 +775,18 @@ void AppDiffusion::site_event_linear(int i, class RandomPark *random)
   }
 
   // deposition or hop event
-  // for deposition event, find site to deposit on
-  // after deposition, reset i and j to that site
-  // so propensity around it is updated correctly
+  // for deposition event:
+  //   if batch mode, tally for end-of-sweep deposition
+  //   if event mode, find site to deposit on
+  //   after deposition, reset i and j to that site,
+  //   so propensity around it is updated correctly
+  // for hop event: perform hop
 
   if (events[ievent].style == DEPOSITION) {
+    if (depmode == DEP_BATCH) {
+      nbatch++;
+      return;
+    }
     m = find_deposition_site(random);
     if (m < 0) return;
     lattice[m] = OCCUPIED;
@@ -730,58 +799,16 @@ void AppDiffusion::site_event_linear(int i, class RandomPark *random)
     lattice[j] = OCCUPIED;
   }
 
-  // compute propensity changes for self and swap site and their neighs
-  // 1,2 neighs for NNHOP and 1,2,3 neighs for SCHWOEBEL
-  // ignore update of sites with isite < 0
-  // use echeck[] to avoid resetting propensity of same site
+  // update propensities of all affected sites
 
-  int nsites = 0;
-
-  isite = i2site[i];
-  propensity[isite] = site_propensity(i);
-  esites[nsites++] = isite;
-  echeck[isite] = 1;
-
-  isite = i2site[j];
-  if (isite >= 0) {
-    propensity[isite] = site_propensity(j);
-    esites[nsites++] = isite;
-    echeck[isite] = 1;
-  }
-
-  if (hopstyle == NNHOP) {
-    nsites += neighbor2(i,&esites[nsites]);
-    nsites += neighbor2(j,&esites[nsites]);
-  } else {
-    nsites += neighbor3(i,&esites[nsites]);
-    nsites += neighbor3(j,&esites[nsites]);
-  }
-
-  solve->update(nsites,esites,propensity);
-
-  // sanity check on all propensity values
-
-  /*
-  printf("EVENT %d %d\n",i,j);
-  for (m = 0; m < nlocal; m++) {
-    if (fabs(propensity[m]-site_propensity(m)) > 1.0e-6) {
-      printf("BAD PROP = %d %d %d %g %g\n",
-	     id[i],id[j],id[m],propensity[m],site_propensity(m));
-      error->one(FLERR,"BAD DONE");
-    }
-  }
-  */
-
-  // clear echeck array
-
-  for (m = 0; m < nsites; m++) echeck[esites[m]] = 0;
+  update_propensities(i,j);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
 {
-  int j,m,isite;
+  int j,m;
 
   // pick one event from total propensity by accumulating its probability
   // compare prob to threshhold, break when reach it to select event
@@ -800,11 +827,18 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
   }
 
   // deposition or hop event
-  // for deposition event, find site to deposit on
-  // after deposition, reset i and j to that site
-  // so propensity around it is updated correctly
+  // for deposition event:
+  //   if batch mode, tally for end-of-sweep deposition
+  //   if event mode, find site to deposit on
+  //   after deposition, reset i and j to that site,
+  //   so propensity around it is updated correctly
+  // for hop event: perform hop
 
   if (events[ievent].style == DEPOSITION) {
+    if (depmode == DEP_BATCH) {
+      nbatch++;
+      return;
+    }
     m = find_deposition_site(random);
     if (m < 0) return;
     lattice[m] = OCCUPIED;
@@ -817,34 +851,65 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
     lattice[j] = OCCUPIED;
   }
 
-  // compute propensity changes for self and swap site and their neighs
-  // 1,2,3 neighs for NNHOP and 1,2,3,4 neighs for SCHWOEBEL
-  // ignore update of sites with isite < 0
-  // use echeck[] to avoid resetting propensity of same site
+  // update propensities of all affected sites
 
+  update_propensities(i,j);
+}
+
+/* ----------------------------------------------------------------------
+   compute propensity changes for self and swap site and their neighs
+   if i = j, then is a deposition event
+   engstyle = NO_ENERGY or LINEAR:
+     1,2 neighs for NNHOP and 1,2,3 neighs for SCHWOEBEL
+   engstyle = NONLINEAR:
+     1,2,3 neighs for NNHOP and 1,2,3,4 neighs for SCHWOEBEL
+   ignore update of sites with isite < 0
+   use echeck[] to avoid resetting propensity of same site
+------------------------------------------------------------------------- */
+
+void AppDiffusion::update_propensities(int i, int j)
+{
   int nsites = 0;
 
-  isite = i2site[i];
+  int isite = i2site[i];
   propensity[isite] = site_propensity(i);
   esites[nsites++] = isite;
   echeck[isite] = 1;
 
-  isite = i2site[j];
-  if (isite >= 0) {
-    propensity[isite] = site_propensity(j);
-    esites[nsites++] = isite;
-    echeck[isite] = 1;
+  if (j != i) {
+    isite = i2site[j];
+    if (isite >= 0) {
+      propensity[isite] = site_propensity(j);
+      esites[nsites++] = isite;
+      echeck[isite] = 1;
+    }
   }
 
-  if (hopstyle == NNHOP) {
-    nsites += neighbor3(i,&esites[nsites]);
-    nsites += neighbor3(j,&esites[nsites]);
+  if (engstyle != NONLINEAR) {
+    if (hopstyle == NNHOP) {
+      nsites += neighbor2(i,&esites[nsites]);
+      if (j != i) nsites += neighbor2(j,&esites[nsites]);
+    } else {
+      nsites += neighbor3(i,&esites[nsites]);
+      if (j != i) nsites += neighbor3(j,&esites[nsites]);
+    }
   } else {
-    nsites += neighbor4(i,&esites[nsites]);
-    nsites += neighbor4(j,&esites[nsites]);
+    if (hopstyle == NNHOP) {
+      nsites += neighbor3(i,&esites[nsites]);
+      if (j != i) nsites += neighbor3(j,&esites[nsites]);
+    } else {
+      nsites += neighbor4(i,&esites[nsites]);
+      if (j != i) nsites += neighbor4(j,&esites[nsites]);
+    }
   }
+
+  // reset propensities of all affected sites within solver
 
   solve->update(nsites,esites,propensity);
+
+  // clear echeck array
+
+  for (int m = 0; m < nsites; m++) echeck[esites[m]] = 0;
 
   // sanity check on all propensity values
 
@@ -858,11 +923,204 @@ void AppDiffusion::site_event_nonlinear(int i, class RandomPark *random)
     }
   }
   */
-
-  // clear echeck array
-
-  for (m = 0; m < nsites; m++) echeck[esites[m]] = 0;
 }
+
+/* ----------------------------------------------------------------------
+   perform deposition events as one batch per sweep
+   only done when KMC and sectors are being used
+   not done when rKMC b/c cannot do deposition
+   not done when no sectors, b/c then app_update() is not called
+------------------------------------------------------------------------- */
+
+void AppDiffusion::app_update(double stoptime)
+{
+  int i,j,m;
+
+  // ntotal = total # of atoms to deposit
+
+  int nbatch_total;
+  MPI_Allreduce(&nbatch,&nbatch_total,1,MPI_INT,MPI_SUM,world);
+
+  // data structs for all depositions, stored by all procs
+  // initially has local info, at end will have global info
+
+  if (nbatch_total > maxbatch) {
+    memory->destroy(startpos);
+    memory->sfree(depinfo);
+    memory->sfree(depinfo_copy);
+    while (nbatch_total > maxbatch) maxbatch += DELTABATCH;
+    memory->create(startpos,maxbatch,3,"diffusion:startpos");
+    depinfo = (DepInfo *) 
+      memory->smalloc(maxbatch*sizeof(DepInfo),"diffusion:depinfo");
+    depinfo_copy = (DepInfo *) 
+      memory->smalloc(maxbatch*sizeof(DepInfo),"diffusion:depinfo_copy");
+  }
+
+  // pick random positions at top of box for all depositions
+
+  for (i = 0; i < nbatch_total; i++) {
+    startpos[i][0] = domain->boxxlo + domain->xprd*ranbatch->uniform();
+    if (dimension == 2) {
+      startpos[i][1] = domain->boxyhi;
+      startpos[i][2] = 0.0;
+    } else {
+      startpos[i][1] = domain->boxylo + domain->yprd*ranbatch->uniform();
+      startpos[i][2] = domain->boxzhi;
+    }
+  }
+
+  // neligible = # of my sites eligible for a deposition atom
+  // must be vacant site
+  // must have neighbor count between coordlo and coordhi
+  // elist = list of eligible site indices
+  
+  int ncount;
+  int neligible = 0;
+
+  for (i = 0; i < nlocal; i++) {
+    if (lattice[i] != VACANT) continue;
+    ncount = 0;
+    for (j = 0; j < numneigh[i]; j++)
+      if (lattice[neighbor[i][j]] == OCCUPIED) ncount++;
+    if (ncount < coordlo || ncount > coordhi) continue;
+
+    elist[neligible] = i;
+    neligible++;
+  }
+
+  // double loop over depositions and my eligible sites
+  // check 3rd condition: 
+  //   must be close enough to deposition path, tested by exceeds_limit()
+  // depinfo[I] = my site with projected distance closest to start point
+  //   for Ith deposition in batch
+
+  int closesite;
+  double closedist,dist2start;
+
+  for (i = 0; i < nbatch_total; i++) {
+    closesite = -1;
+    closedist = 1.0e20;
+    for (j = 0; j < neligible; j++) {
+      m = elist[j];
+      if (exceeds_limit(m,startpos[i],dist2start)) continue;
+      if (dist2start < closedist) {
+        closedist = dist2start;
+        closesite = m;
+      }
+    }
+    depinfo[i].proc = me;
+    depinfo[i].site = closesite;
+    depinfo[i].distance = closedist;
+  }
+
+  // merge DepInfo data struct across all procs
+  // logarithmic pairwise reduction
+  // final depinfo = list of which procs own which sites to deposit onto
+  // nsplit = proc ID of first proc in upper half at each iteration
+  // procs in upper half send to lower half, allowing for non-power-of-two procs
+
+  MPI_Request request;
+  MPI_Status status;
+
+  int nsplit = 1;
+  while (nsplit < nprocs) nsplit *= 2;
+  nsplit /= 2;
+
+  int partner;
+
+  while (nsplit >= 1) {
+    if (me >= nsplit && me < 2*nsplit) partner = me - nsplit;
+    else if (me < nsplit && me + nsplit < nprocs) partner = me + nsplit;
+    else partner = -1;
+
+    if (partner >= 0 && me < partner) {
+      MPI_Irecv(depinfo_copy,nbatch_total*sizeof(DepInfo),MPI_CHAR,
+                partner,0,world,&request);
+      MPI_Wait(&request,&status);
+
+      for (i = 0; i < nbatch_total; i++) {
+        if (depinfo_copy[i].site < 0) continue;
+        if (depinfo_copy[i].distance < depinfo[i].distance) {
+          depinfo[i].proc = depinfo_copy[i].proc;
+          depinfo[i].site = depinfo_copy[i].site;
+          depinfo[i].distance = depinfo_copy[i].distance;
+        }
+      }
+    }
+
+    if (partner >= 0 && me > partner)
+      MPI_Send(depinfo,nbatch_total*sizeof(DepInfo),MPI_CHAR,partner,0,world);
+
+    nsplit /= 2;
+  }
+
+  // broadcast final merged DepInfo data struct to all procs
+
+  MPI_Bcast(depinfo,nbatch_total*sizeof(DepInfo),MPI_CHAR,0,world);
+
+  // loop over list of all batched depositions
+  // tally ndeposit and ndeposit_failed
+  // if I own the site, deposit the atom on my site
+  // elist = list of my sites with new atoms
+
+  int n = 0;
+  for (i = 0; i < nbatch_total; i++) {
+    if (depinfo[i].site < 0) {
+      ndeposit_failed++;
+      continue;
+    }
+    ndeposit++;
+
+    if (depinfo[i].proc != me) continue;
+    m = depinfo[i].site;
+    lattice[m] = OCCUPIED;
+    elist[n] = m;
+    n++;
+  }
+
+  // comm to acquire all my ghost site values
+  // since deposition may have updated them
+
+  comm->all();
+
+  // reset propensities for all sites affected by deposition events
+  // this must be done within sectors
+  //   b/c KMC solver for that sector must be updated
+  // 2 kinds of affected sites:
+  //   (a) all sites affected by a new atom in that sector
+  //   (b) sites in owned border region of each sector,
+  //       may be affected by a new atom in another sector (or other proc)
+
+  int iset;
+
+  for (i = 0; i < nbatch_total; i++) {
+    if (depinfo[i].site < 0) continue;
+    if (depinfo[i].proc != me) continue;
+
+    // iset = the set which site M is in
+    // set solve,propensity,i2site specific to that set
+    // used by update_propensities()
+
+    m = depinfo[i].site;
+    iset = whichset(m);
+
+    solve = set[iset].solve;
+    propensity = set[iset].propensity;
+    i2site = set[iset].i2site;
+
+    update_propensities(m,m);
+  }
+
+  update_kmc_sector_border_propensities();
+
+  // reset nbatch for next AppLattice loop
+
+  nbatch = 0;
+}
+
+// ----------------------------------------------------------------------
+// private functions
+// ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
    re-compute propensities out to 2nd neighbors of site I
@@ -1018,11 +1276,12 @@ void AppDiffusion::clear_events(int i)
 
 /* ----------------------------------------------------------------------
    add an event to list for site I
-   event = exchange with site J with probability = propensity
+   hop event = exchange with site J with probability = propensity
+   deposition event = add an atom
 ------------------------------------------------------------------------- */
 
 void AppDiffusion::add_event(int i, int destination, 
-			      double propensity, int eventflag)
+                             double propensity, int eventflag)
 {
   // grow event list and setup free list
 
@@ -1145,7 +1404,7 @@ int AppDiffusion::find_deposition_site(RandomPark *random)
       if (lattice[neighbor[i][j]] == OCCUPIED) ncount++;
     if (ncount < coordlo || ncount > coordhi) continue;
 
-    if (exceed_limit(i,start,dist2start)) continue;
+    if (exceeds_limit(i,start,dist2start)) continue;
     if (dist2start < closedist) {
       closedist = dist2start;
       closesite = i;
@@ -1167,7 +1426,7 @@ int AppDiffusion::find_deposition_site(RandomPark *random)
      normal projection point of M
 ------------------------------------------------------------------------- */
 
-int AppDiffusion::exceed_limit(int m, double *start, double &dist2start)
+int AppDiffusion::exceeds_limit(int m, double *start, double &dist2start)
 {
   int increment,iprd,jprd;
 
