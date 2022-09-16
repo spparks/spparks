@@ -764,6 +764,7 @@ int AppLattice::whichset(int m)
 {
   for (int iset = 0; iset < nset; iset++)
     if (set[iset].i2site[m] >= 0) return iset;
+  return -1;    // should never reach this line
 }
 
 /* ---------------------------------------------------------------------- */
