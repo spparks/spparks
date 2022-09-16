@@ -22,12 +22,21 @@ boundary 	 n n p
 
 create_box	 box
 create_sites	 box
-# Either one of the following equivalent 'set' commands work.
+# Either one of the following equivalent 'set' commands work;
+# The stitch file init.st must have valid site values from 
+#   which lattice is being initialized.
 #   1) set i1
 #   2) set site
+#   3) set site stitch ...
+
 #set		 i1 range 1 ${NUM_SPINS}
-set		 site range 1 ${NUM_SPINS}
-set		 d1 value 0.0
+#set		 site range 1 ${NUM_SPINS}
+# Run following command to create 'init.st'
+# python init.py double --field='d1' 0 200 0 200 0 1
+set		 site stitch init.st first
+
+#set		 d1 value 0.0
+set		 d1 stitch init.st first
 #———————————————————————————————————————————
 
 #Define an additive scan pattern using pass, and cartesian_layer
