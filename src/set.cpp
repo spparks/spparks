@@ -704,8 +704,8 @@ void Set::set_stitch(int lhs, int rhs)
 
   if (!applattice->simple)
     error->all(FLERR,"Set stitch requires simple square or cubic lattice");
-  if (lhs != SITE && lhs != IARRAY)
-    error->all(FLERR,"Set stitch only supports integer values");
+  if ((lhs != SITE && lhs != IARRAY) && (lhs != DARRAY))
+    error->all(FLERR,"Set stitch only supports integer or double values");
 
   StitchFile *stitch_file;
   int err = stitch_open(&stitch_file,MPI_COMM_WORLD,filename);
