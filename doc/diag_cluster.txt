@@ -53,8 +53,8 @@ nprocs = {number of processors} :ul
 
 Time = {time}
 ncluster = {total number of clusters}
-id ivalue dvalue size cx cy cz
-{cluster id} {ivalue} {dvalue} {size} {cx} {cy} {cz} :ul
+id ivalue dvalue size cx cy cz xlo xhi ylo yhi zlo zhi 
+{cluster id} {ivalue} {dvalue} {size} {cx} {cy} {cz} {xlo} {xhi} {ylo} {yhi} {zlo} {zhi} :ul
 
 {cluster_id} is an arbitrary integer assigned uniquely to each cluster.
 It will be different for different numbers of processors.
@@ -63,18 +63,33 @@ It will be different for different numbers of processors.
 For lattice applications, it is the spin value of all sites in the cluster.
 {dvalue} is an application-specific double associated with each cluster. 
 For most lattice applications it is zero. {size} is the numbers of sites 
-in the cluster. {cx}, {cy}, {cz} are the coordinates of the centroid of the
-cluster i.e. the average of the x, y, and z coordinate of all the sites
-in the cluster. For clusters than are of finite extent in a periodic 
-dimension, the average is over the contiguous sites in a single periodic
-image, and the centroid is shifted by multiples of the period so as to
-lie inside the box. For clusters of infinite extent in x, y, or z, the 
-centroid is not defined, so the clustering algorithm will produce a result
-based on some arbitrary splitting of the cluster into finite periodic 
-repeat units. Except for this last case, the calculated {cx}, 
-{cy}, or {cz} will be not be affected by the numbers of processors
-used in the calculation. 
+in the cluster.
 
+{Cx}, {cy}, {cz} are the coordinates of the centroid of the cluster
+i.e. the average of the x, y, and z coordinate of all the sites in the
+cluster. For clusters than are of finite extent in a periodic
+dimension, the average is over the contiguous sites in a single
+periodic image, and the centroid is shifted by multiples of the period
+so as to lie inside the box. For clusters of infinite extent in x, y,
+or z, the centroid is not defined, so the clustering algorithm will
+produce a result based on some arbitrary splitting of the cluster into
+finite periodic repeat units. Except for this last case, the
+calculated {cx}, {cy}, or {cz} will be not be affected by the numbers
+of processors used in the calculation.
+
+{Xlo}, {xhi}, {ylo}, {yhi}, {zlo}, and {zhi} are the maximum and
+minimum x, y, and z coordinates of sites in cluster, in other words
+the extent of the bounding box of the cluster.  For clusters that are
+of finite extent in a periodic dimension, the max and min are taken
+over the contiguous sites in a single periodic image, and each of the
+6 output values are then shifted by multiples of the period so as to
+lie inside the box.  For clusters of infinite extent in x, y, or z,
+the max and min values in those directions are not defined.  The
+clustering algorithm will produce a result based on some arbitrary
+splitting of the cluster into finite periodic repeat units. Except for
+this last case, the max and min values will be not be affected by the
+numbers of processors used in the calculation.
+ 
 The {dump} keyword causes the cluster ID for each site to be printed
 out in snapshot format which can be used for visualization purposes.
 The cluster IDs are arbitrary integers such that two sites have the

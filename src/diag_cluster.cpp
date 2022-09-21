@@ -279,7 +279,9 @@ void DiagCluster::generate_clusters()
   int id;
   double vol,volsum;
   double cx, cy, cz;
-
+  double xlo, xhi, ylo, yhi, zlo, zhi;
+  double jxshift, jyshift, jzshift;
+    
   ncluster = 0;
 
   // loop over all owned sites
@@ -299,7 +301,13 @@ void DiagCluster::generate_clusters()
       cx = 0.0;
       cy = 0.0;
       cz = 0.0;
-      add_cluster(id,iv,dv,vol,cx,cy,cz,0,NULL,NULL);
+      xlo = boxxhi;
+      xhi = boxxlo;
+      ylo = boxyhi;
+      yhi = boxylo;
+      zlo = boxzhi;
+      zhi = boxzlo;
+      add_cluster(id,iv,dv,vol,cx,cy,cz,xlo,xhi,ylo,yhi,zlo,zhi,0,NULL,NULL);
 
       while (cluststack.size()) {
 
@@ -311,7 +319,12 @@ void DiagCluster::generate_clusters()
 	cx += xyz[ii][0];
 	cy += xyz[ii][1];
 	cz += xyz[ii][2];
-
+	xlo = MIN(xyz[ii][0], xlo);
+	xhi = MAX(xyz[ii][0], xhi);
+	ylo = MIN(xyz[ii][1], ylo);
+	yhi = MAX(xyz[ii][1], yhi);
+	zlo = MIN(xyz[ii][2], zlo);
+	zhi = MAX(xyz[ii][2], zhi);
 	applattice->push_connected_neighbors(ii,cluster_ids,
 					     ncluster,&cluststack);
       }
@@ -319,6 +332,12 @@ void DiagCluster::generate_clusters()
       clustlist[ncluster-1].cx = cx;
       clustlist[ncluster-1].cy = cy;
       clustlist[ncluster-1].cz = cz;
+      clustlist[ncluster-1].xlo = xlo;
+      clustlist[ncluster-1].xhi = xhi;
+      clustlist[ncluster-1].ylo = ylo;
+      clustlist[ncluster-1].yhi = yhi;
+      clustlist[ncluster-1].zlo = zlo;
+      clustlist[ncluster-1].zhi = zhi;
     }
   }
 
@@ -368,7 +387,7 @@ void DiagCluster::generate_clusters()
   
   me_size = 0;
   for (int i = 0; i < ncluster; i++) {
-    me_size += 8+4*clustlist[i].nneigh;
+    me_size += 14+4*clustlist[i].nneigh;
   }
   if (me == 0) me_size = 0;
 
@@ -386,6 +405,12 @@ void DiagCluster::generate_clusters()
       dbufclust[m++] = clustlist[i].cx;
       dbufclust[m++] = clustlist[i].cy;
       dbufclust[m++] = clustlist[i].cz;
+      dbufclust[m++] = clustlist[i].xlo;
+      dbufclust[m++] = clustlist[i].xhi;
+      dbufclust[m++] = clustlist[i].ylo;
+      dbufclust[m++] = clustlist[i].yhi;
+      dbufclust[m++] = clustlist[i].zlo;
+      dbufclust[m++] = clustlist[i].zhi;
       dbufclust[m++] = clustlist[i].nneigh;
       for (int j = 0; j < clustlist[i].nneigh; j++)
 	dbufclust[m++] = clustlist[i].neighlist[j];
@@ -416,8 +441,14 @@ void DiagCluster::generate_clusters()
 	cx = dbufclust[m++];
 	cy = dbufclust[m++];
 	cz = dbufclust[m++];
+	xlo = dbufclust[m++];
+	xhi = dbufclust[m++];
+	ylo = dbufclust[m++];
+	yhi = dbufclust[m++];
+	zlo = dbufclust[m++];
+	zhi = dbufclust[m++];
 	nn = static_cast<int> (dbufclust[m++]);
-	add_cluster(id,iv,dv,vol,cx,cy,cz,nn,&dbufclust[m],&dbufclust[m+nn]);
+	add_cluster(id,iv,dv,vol,cx,cy,cz,xlo,xhi,ylo,yhi,zlo,zhi,nn,&dbufclust[m],&dbufclust[m+nn]);
 	m+=4*nn;
       }
       if (nrecv != m)
@@ -455,6 +486,12 @@ void DiagCluster::generate_clusters()
       cx = 0.0;
       cy = 0.0;
       cz = 0.0;
+      xlo = boxxhi;
+      xhi = boxxlo;
+      ylo = boxyhi;
+      yhi = boxylo;
+      zlo = boxzhi;
+      zhi = boxzlo;
       ncluster_reduced++;
       
       cluststack.push(i);
@@ -462,6 +499,12 @@ void DiagCluster::generate_clusters()
       cx+=clustlist[i].cx;
       cy+=clustlist[i].cy;
       cz+=clustlist[i].cz;
+      xlo = MIN(clustlist[i].xlo, xlo);
+      xhi = MAX(clustlist[i].xhi, xhi);
+      ylo = MIN(clustlist[i].ylo, ylo);
+      yhi = MAX(clustlist[i].yhi, yhi);
+      zlo = MIN(clustlist[i].zlo, zlo);
+      zhi = MAX(clustlist[i].zhi, zhi);
       clustlist[i].volume = 0.0;
       
       while (cluststack.size()) {
@@ -490,6 +533,15 @@ void DiagCluster::generate_clusters()
 	    cx += jclust->cx + jclust->volume*jclust->pbcflagsself[0]*domain->xprd;
 	    cy += jclust->cy + jclust->volume*jclust->pbcflagsself[1]*domain->yprd;
 	    cz += jclust->cz + jclust->volume*jclust->pbcflagsself[2]*domain->zprd;
+	    jxshift = jclust->pbcflagsself[0]*domain->xprd;
+	    jyshift = jclust->pbcflagsself[1]*domain->yprd;
+	    jzshift = jclust->pbcflagsself[2]*domain->zprd;
+	    xlo = MIN(jclust->xlo + jxshift, xlo);
+	    xhi = MAX(jclust->xhi + jxshift, xhi);
+	    ylo = MIN(jclust->ylo + jyshift, ylo);
+	    yhi = MAX(jclust->yhi + jyshift, yhi);
+	    zlo = MIN(jclust->zlo + jzshift, zlo);
+	    zhi = MAX(jclust->zhi + jzshift, zhi);
 	    jclust->global_id = id;
 	    jclust->volume = 0.0;
 	  }
@@ -504,6 +556,16 @@ void DiagCluster::generate_clusters()
       clustlist[i].cx = xyztmp[0];
       clustlist[i].cy = xyztmp[1];
       clustlist[i].cz = xyztmp[2];
+      double xyzlo[3] = {xlo, ylo, zlo};
+      domain->pbcwrap(xyzlo);
+      clustlist[i].xlo = xyzlo[0];
+      clustlist[i].ylo = xyzlo[1];
+      clustlist[i].zlo = xyzlo[2];
+      double xyzhi[3] = {xhi, yhi, zhi};
+      domain->pbcwrap(xyzhi);
+      clustlist[i].xhi = xyzhi[0];
+      clustlist[i].yhi = xyzhi[1];
+      clustlist[i].zhi = xyzhi[2];
     }
     
     volsum = 0.0;
@@ -523,14 +585,17 @@ void DiagCluster::generate_clusters()
       fprintf(fp,"ncluster = %d \n",ncluster_reduced);
       fprintf(fp,"<N> = %g \n",vav);
       fprintf(fp,"<R> = %g \n",rav);
-      fprintf(fp,"id ivalue dvalue size cx cy cz\n");
+      fprintf(fp,"id ivalue dvalue size cx cy cz xlo xhi ylo yhi zlo zhi \n");
       for (int i = 0; i < ncluster; i++) {
 // 	clustlist[i].print(fp);
 	if (clustlist[i].volume > 0.0) {
-	  fprintf(fp," %d %d %g %g %g %g %g\n",
+	  fprintf(fp," %d %d %g %g %g %g %g %g %g %g %g %g %g\n",
 		  clustlist[i].global_id,clustlist[i].ivalue,
 		  clustlist[i].dvalue,clustlist[i].volume,
-		  clustlist[i].cx,clustlist[i].cy,clustlist[i].cz);
+		  clustlist[i].cx,clustlist[i].cy,clustlist[i].cz,
+		  clustlist[i].xlo, clustlist[i].xhi,
+		  clustlist[i].ylo, clustlist[i].yhi,
+		  clustlist[i].zlo, clustlist[i].zhi);
 	}
       }
       fprintf(fp,"\n");
@@ -542,15 +607,18 @@ void DiagCluster::generate_clusters()
 /* ---------------------------------------------------------------------- */
 
 void DiagCluster::add_cluster(int id, int iv, double dv, double vol, 
-			      double cx, double cy, double cz, int nn, 
-			      double* neighs, double* pbcflags)
+			      double cx, double cy, double cz, 
+			      double xlo, double xhi,
+			      double ylo, double yhi,
+			      double zlo, double zhi,
+			      int nn, double* neighs, double* pbcflags)
 {
   // grow cluster array
 
   ncluster++;
   clustlist = (Cluster *) memory->srealloc(clustlist,ncluster*sizeof(Cluster),
 					 "diagcluster:clustlist");
-  clustlist[ncluster-1] = Cluster(id,iv,dv,vol,cx,cy,cz,nn,neighs,pbcflags);
+  clustlist[ncluster-1] = Cluster(id,iv,dv,vol,cx,cy,cz,xlo,xhi,ylo,yhi,zlo,zhi,nn,neighs,pbcflags);
 }
 
 /* ----------------------------------------------------------------------
