@@ -278,14 +278,14 @@ void AppDiffusionMultiphase::site_event_rejection(int i, RandomPark *random)
   // accept or reject via energy model
 
   int hop = 0;
-  einitial = site_energy(i);
+  einitial = site_energy(i)+site_energy(j);
 
   lattice[i] = j_old;
   lattice[j] = i_old;
 
   // compute energy difference from exchange
 
-  edelta = site_energy(j) - einitial;
+  edelta = site_energy(i)+site_energy(j) - einitial;
 
   // if edelta is negative, accept
   // otherwise if temperature is non-zero, can still accept
@@ -318,7 +318,7 @@ double AppDiffusionMultiphase::site_propensity(int i)
 double AppDiffusionMultiphase::site_propensity_linear(int i)
 {
   int j,k, i_old, j_old;
-  double einitial,edelta,probone,proball;
+  double e0,einitial,edelta,probone,proball;
 
   // add event if neighbors are dissimilar and not pinned
 
@@ -330,7 +330,8 @@ double AppDiffusionMultiphase::site_propensity_linear(int i)
 
   // loop over all possible hops, go through neighbor shell
 
-  einitial = site_energy(i);
+  // einitial = site_energy(i);
+  e0 = site_energy(i);
   proball = 0.0;
   probone = 0.0;
   
@@ -341,12 +342,15 @@ double AppDiffusionMultiphase::site_propensity_linear(int i)
     j_old = lattice[j];
     
     if (lattice[j] == lattice[i] || is_pinned[lattice[j]]) continue;
+
+    //einitial = site_energy(i_old)+site_energy(j_old);
+    einitial = e0+site_energy(j);
     
     // exchange values and check energy
 
     lattice[i] = j_old;
     lattice[j] = i_old;
-    edelta = site_energy(j) - einitial;
+    edelta = site_energy(i)+site_energy(j) - einitial;
     
     // if energy is non-zero, add as possible event
 
