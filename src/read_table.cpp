@@ -55,37 +55,32 @@ ReadTable::~ReadTable()
 void ReadTable::command(int narg, char **arg)
 {
   if (app == NULL) error->all(FLERR,"Read_table command before app_style set");
-
-  if (narg != 2) error->all(FLERR,"Illegal read_table command (read_table "
-                            "file table)");
+  if (narg != 2) error->all(FLERR,"Illegal read_table command");
   
   char *tableName;
   
   table = (Table *) app->extract(arg[1]);
   
-  if (table==NULL) error->all(FLERR,"Illegal read_table command (cannot find "
-                              "table, check name and app_style)");
+  if (table==NULL) error->all(FLERR,"Illegal read_table command");
 
   //open the file
+  
   if (me == 0) {
     if (screen) fprintf(screen,"Reading table file ...\n");
     open(arg[0]);
   }
+
   header();
-  
   
   // read rest of file in free format
   // if add a section keyword, add to header::section_keywords and NSECTIONS
   
   int valueflag = 0;
   
-  
   while (strlen(keyword)) {
-    
     if (strcmp(keyword,"Values") == 0) {
       values();
       valueflag = 1;
-      
     } else {
       char str[128];
       sprintf(str,"Unknown identifier in data file: %s",keyword);
@@ -99,7 +94,6 @@ void ReadTable::command(int narg, char **arg)
   
   if (valueflag == 0)
     error->all(FLERR,"Table file has no Values");
-  
     
   // close file
   
@@ -109,22 +103,21 @@ void ReadTable::command(int narg, char **arg)
   }
   
   //set the flag to tell the table it's ready
-  table->setTableReady();
   
+  table->setTableReady();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ReadTable::header()
 {
-  
   const char *section_keywords[NSECTIONS] = {"Values",};
   
   // skip 1st line of file
   
   if (me == 0) {
     char *eof = fgets(line,MAXLINE,fp);
-    if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
+    if (eof == NULL) error->one(FLERR,"Unexpected end of table file");
   }
   
   int n,nRows=0,nCols=0,rowcolvals=0;
@@ -134,9 +127,8 @@ void ReadTable::header()
   
   if (me == 0) {
     char *eof = fgets(line,MAXLINE,fp);
-    if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
+    if (eof == NULL) error->one(FLERR,"Unexpected end of table file");
   }
-  
   
   while (1) {
     
@@ -178,7 +170,8 @@ void ReadTable::header()
   if (nRows==0 || nCols==0)
     error->all(FLERR,"Invalid file header");
   
-  //init the table now
+  // init the table now
+  
   table->initTable(nRows,nCols,rowcolvals);
     
   // check that exiting string is a valid section keyword
@@ -197,15 +190,17 @@ void ReadTable::header()
    read table values
 ------------------------------------------------------------------------- */
 
-void ReadTable::values(){
+void ReadTable::values()
+{
   int nRows,nCols;
   table->getTableDims(&nRows,&nCols);
   double **tableArray = table->getTablePtr();
   double *rowArray=NULL, *colArray=NULL;
   bool hasRowColVals = table->hasRowColVals();
   
-  //add one to nRows and nCols if the first row and column in the file 
-  //have the row column data
+  // add one to nRows and nCols if the first row and column in the file 
+  // have the row column data
+  
   if (hasRowColVals) {
     nCols++;
     nRows++;
@@ -216,9 +211,8 @@ void ReadTable::values(){
   int i,m,nchunk,idone;
   char *next,*buf;
   
-  
   // read and broadcast one CHUNK of lines at a time
-  //save the same table for each process
+  // save the same table for each process
   
   int nread = 0;
   
@@ -230,7 +224,7 @@ void ReadTable::values(){
       m = 0;
       for (i = 0; i < nchunk; i++) {
         eof = fgets(&buffer[m],MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
+        if (eof == NULL) error->one(FLERR,"Unexpected end of table file");
         m += strlen(&buffer[m]);
       }
       buffer[m++] = '\n';
@@ -244,7 +238,7 @@ void ReadTable::values(){
     int nwords = count_words(buf);
     *next = '\n';
     
-    if (nwords != nCols) error->all(FLERR,"Incorrect value format in data file");
+    if (nwords != nCols) error->all(FLERR,"Incorrect value format in table file");
     
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
@@ -281,11 +275,8 @@ void ReadTable::values(){
   }
 }
 
-
-
-
 /* ----------------------------------------------------------------------
-   proc 0 opens data file
+   proc 0 opens table file
    test if gzipped
 ------------------------------------------------------------------------- */
 
@@ -313,12 +304,12 @@ void ReadTable::open(char *file)
 }
 
 /* ----------------------------------------------------------------------
- grab next keyword
- read lines until one is non-blank
- keyword is all text on line w/out leading & trailing white space
- read one additional line (assumed blank)
- if any read hits EOF, set keyword to empty
- if first = 1, line variable holds non-blank line that ended header
+   grab next keyword
+   read lines until one is non-blank
+   keyword is all text on line w/out leading & trailing white space
+   read one additional line (assumed blank)
+   if any read hits EOF, set keyword to empty
+   if first = 1, line variable holds non-blank line that ended header
  ------------------------------------------------------------------------- */
 
 void ReadTable::parse_keyword(int first)

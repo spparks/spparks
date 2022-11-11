@@ -16,7 +16,6 @@
 
 #ifdef COMMAND_CLASS
 CommandStyle(read_table,ReadTable)
-
 #else
 
 #ifndef SPK_READ_TABLE_H

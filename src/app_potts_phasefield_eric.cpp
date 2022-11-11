@@ -3,16 +3,18 @@
    http://www.cs.sandia.gov/~sjplimp/spparks.html
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
  
-   Class AppPottsPhaseField - added by Eric Homer, ehomer@sandia.gov
-   Mar 31, 2011 - Most recent version.  Most of this was copied from 
-   AppPotts and AppPottsNeighOnly.
-
    Copyright (2008) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under 
    the GNU General Public License.
 
    See the README file in the top-level SPPARKS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Eric Homer, ehomer@sandia.gov
+     Mar 31, 2011 - Most recent version
+     Most of this was copied from AppPotts and AppPottsNeighOnly
 ------------------------------------------------------------------------- */
 
 #include "stdio.h"
@@ -35,6 +37,7 @@
 using namespace SPPARKS_NS;
 
 // same as in create_sites.cpp and diag_cluster.cpp and lattice.cpp
+
 enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
   FCC_OCTA_TETRA,RANDOM_1D,RANDOM_2D,RANDOM_3D};
 
@@ -55,7 +58,7 @@ AppPottsPhaseFieldEric(SPPARKS *spk, int narg, char **arg) :
   numrandom = 3;
   delpropensity = 2;//need full neighbor lists of the 1st layer ghost sites
   
-  //add the double array
+  // add the double array
 
   recreate_arrays();
 
@@ -68,12 +71,12 @@ AppPottsPhaseFieldEric(SPPARKS *spk, int narg, char **arg) :
   if ((9+2*nphasestemp) != narg)
     error->all(FLERR,"Illegal app_style command - AppPottsPhaseFieldEric");
   
-  //dt_phasefield is set as a multiple of dt_rkmc in setup_end_app();
-  //set the multiple here. ( dt_phasefield = dt_rkmc / dt_phasefield_mult )
+  // dt_phasefield is set as a multiple of dt_rkmc in setup_end_app();
+  // set the multiple here. ( dt_phasefield = dt_rkmc / dt_phasefield_mult )
 
   dt_phasefield_mult = atof(arg[3]); 
   
-  //set the variables for the energetics and evolution
+  // set the variables for the energetics and evolution
 
   mobility=atof(arg[4]);
   ch_energy=atof(arg[5]);
@@ -89,12 +92,12 @@ AppPottsPhaseFieldEric(SPPARKS *spk, int narg, char **arg) :
   nphases = 0;
 
   for (int i=0; i<nphasestemp; i++) {
-    
     int phaseID = find_phase(arg[iarg]);
     if (phaseID >= 0 ) error->all(FLERR,"Phase already exists");
-    //create the new phase
-    phases[nphases] = new Phase;
     
+    //create the new phase
+    
+    phases[nphases] = new Phase;
     int n = strlen(arg[iarg]) + 1;
     phases[nphases]->id = new char[n];
     strcpy(phases[nphases]->id,arg[iarg]);
@@ -119,6 +122,7 @@ AppPottsPhaseFieldEric(SPPARKS *spk, int narg, char **arg) :
                                         "Phase spins don't add to nspins");
   
   //set other default values
+  
   nlocal_app=0;
   cnew=NULL;
   Tnew=NULL;
@@ -140,7 +144,6 @@ AppPottsPhaseFieldEric(SPPARKS *spk, int narg, char **arg) :
   scale_potts_energy = 1.0;
   scale_free_energy = 1.0;
   scale_comp_energy_penalty = 1.0;
-  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -192,8 +195,10 @@ void AppPottsPhaseFieldEric::input_app(char *command, int narg, char **arg)
     else if (strcmp(arg[0],"enforce_concentration_limits") == 0) {
       if (strcmp(arg[1],"yes") == 0) {
         enforceConcentrationLimits=true;
-        //since I'm forcing the concentration limits
-        //set the warn flags to 1 so that it doesn't check
+        
+        // since forcing the concentration limits
+        // set the warn flags to 1 so that it doesn't check
+        
         warn_concentration_deviation=1;
         warn_concentration_deviation_all=1;
         
@@ -205,9 +210,11 @@ void AppPottsPhaseFieldEric::input_app(char *command, int narg, char **arg)
         }
       } 
       else {
-        enforceConcentrationLimits=false; 
-        //if someone turns this off reset the flags to check
+        enforceConcentrationLimits=false;
+        
+        // if someone turns this off reset the flags to check
         // for concentration deviations
+        
         warn_concentration_deviation=0;
         warn_concentration_deviation_all=0;
         
@@ -286,18 +293,24 @@ void AppPottsPhaseFieldEric::input_app(char *command, int narg, char **arg)
 void AppPottsPhaseFieldEric::init_app() 
 {
   int i;
-  //check to make sure that simulation is fully periodic
+  
+  // check to make sure that simulation is fully periodic
+
   for (i=0; i<dimension; i++)
     if (domain->periodicity[i] != 1)
       error->all(FLERR,"app_style does not support non-periodic boundaries");
   
-  //init the parent class first
+
+  // init the parent class first
+
   AppPottsNeighOnly::init_app();
   
-  //setup the connectivity map
+  // setup the connectivity map
+  
   if (!cmap_ready) setup_connectivity_map();
   
-  //process phases
+  // process phases
+  
   process_phases();
   
   if (init_site_phase)
@@ -311,14 +324,16 @@ void AppPottsPhaseFieldEric::process_phases()
 {
   int i,j,k;
   
-  //check to make sure all phase tables have been imported
+  // check to make sure all phase tables have been imported
+  
   for (i=0; i<nphases; i++) {
     Phase *p = phases[i];
     Table *t = p->table;
     if (!t->getTableReady())
       error->all(FLERR,"Not all tables loaded for phases");
     
-    //setup pointers to table values
+    // setup pointers to table values
+    
     t->getTableDims(&p->nRow,&p->nCol);
     p->G = t->getTablePtr();
     p->rowvals = t->getRowPtr();
@@ -329,7 +344,8 @@ void AppPottsPhaseFieldEric::process_phases()
     p->dC = p->colvals[1]-p->colvals[0];
     p->dT = p->rowvals[1]-p->rowvals[0];
     
-    //colvals must be the concentration and increase from 0 to 1
+    // colvals must be the concentration and increase from 0 to 1
+    
     if (p->colvals[0] !=0 || p->colvals[p->nCol-1] != 1)
       error->all(FLERR,"Illegal table for phase, concentration must "
                  "increase from 0 to 1");
@@ -340,19 +356,24 @@ void AppPottsPhaseFieldEric::process_phases()
         error->all(FLERR,"Illegal table for phase, concentration must "
                    "increase from 0 to 1 and have even intervals");
     
-    //rowvals must be the temperature and increase, error if anything less than or equal zero
+    // rowvals must be the temperature and increase
+    // error if anything less than or equal zero
+    
     if (p->rowvals[0] <= 0)
-      error->all(FLERR,"Illegal table for phase, temperature must be greater than zero");
+      error->all(FLERR,"Illegal table for phase, "
+                 "temperature must be greater than zero");
     for (j=1; j<p->nRow; j++) {
       if (p->rowvals[j] <= 0)
-        error->all(FLERR,"Illegal table for phase, temperature must be greater than zero");
+        error->all(FLERR,"Illegal table for phase, "
+                   "temperature must be greater than zero");
       if (p->rowvals[j] <= p->rowvals[j-1] ||
           fabs(p->rowvals[j]-p->rowvals[j-1] - p->dT) > 1e-6)
         error->all(FLERR,"Illegal table for phase, temperature must increase "
                    " and have even intervals");
     }
     
-    //scale the energy values if appropriate
+    // scale the energy values if appropriate
+    
     if (p->scaleval != scale_free_energy) {
       for (j=0; j<p->nRow; j++)
         for (k=0; k<p->nCol; k++)
@@ -360,18 +381,19 @@ void AppPottsPhaseFieldEric::process_phases()
       p->scaleval = scale_free_energy;
     }
     
-    //calculate dGdC for the G matrix;
+    // calculate dGdC for the G matrix;
+    
     double h=p->dC;
-    int n=p->nCol - 1;//index of the last value
+    int n=p->nCol - 1;    //index of the last value
     double **G=p->G;
     double **dGdC=p->dGdC;
     for (j=0; j<p->nRow; j++) {
-      //forward difference on first value
+      // forward difference on first value
       dGdC[j][0] = (-G[j][2] + 4*G[j][1] - 3*G[j][0])/(2*h);
-      //central difference on middle values
+      // central difference on middle values
       for (int k=1; k<n; k++)
         dGdC[j][k] = (G[j][k+1] - G[j][k-1])/(2*h);
-      //backward difference on last value
+      // backward difference on last value
       dGdC[j][n] = (3*G[j][n] - 4*G[j][n-1] + G[j][n-2])/(2*h);
     }
   }
@@ -381,7 +403,8 @@ void AppPottsPhaseFieldEric::process_phases()
 
 void AppPottsPhaseFieldEric::setup_end_app() 
 {
-  //set the time step for phase field
+  // set the time step for phase field
+  
   dt_phasefield = dt_rkmc / dt_phasefield_mult;
 }
 
@@ -391,19 +414,23 @@ void AppPottsPhaseFieldEric::setup_end_app()
 
 void AppPottsPhaseFieldEric::grow_app()
 {
-  //set integer pointers
+  // set integer pointers
+  
   spin = iarray[0];
   phase = iarray[1];
   
-  //setup the initial phase values
+  // setup the initial phase values
+  
   for (int i=0; i<nlocal+nghost; i++)
     set_site_phase(i);
   
-  //setup double pointers
+  // setup double pointers
+  
   c = darray[0];
   T = darray[1];
   
-  //grow cnew locally so it doesn't have to be communicated
+  // grow cnew locally so it doesn't have to be communicated
+  
   if (nlocal_app < nlocal) {
     nlocal_app = nlocal;
 
@@ -420,15 +447,16 @@ void AppPottsPhaseFieldEric::grow_app()
 
 void AppPottsPhaseFieldEric::site_event_finitedifference(int i)
 {
-
   int p,j,jj;
   double qsum[3],fsum[3],Tsum[3],Tinvsum[3];
   
-  //set initial values
+  // set initial values
+  
   double hsquared = latconst * latconst;
   
   // the following code will automatically perform 1-,2-, or 3-D
-  //finite difference, central in space and backward in time
+  // finite difference, central in space and backward in time
+  
   double valA=0.0;
   double valB=0.0;
   double valC=0.0;
@@ -445,10 +473,12 @@ void AppPottsPhaseFieldEric::site_event_finitedifference(int i)
     for (j=0; j<dimension; j++)
       qsum[j] = fsum[j] = Tsum[j] = Tinvsum[j] = 0.0;
     
-    //perform finite difference on all the cells in the list
+    // perform finite difference on all the cells in the list
+    
     for (j=0; j<2*dimension; j++) {
+
+      // site
       
-      //site
       int s=neighbor[i][cmap[j]];
       
       if (phase[s] == p)
@@ -456,12 +486,14 @@ void AppPottsPhaseFieldEric::site_event_finitedifference(int i)
       else
         qj = 0;
       
-      //calculate bilinear interp at site s
+      // calculate bilinear interp at site s
+      
       double fpj = bilinear_interp(s,1);
       
       valA += qj * fpi + qi * fpj;
       
-      //calculate the sign and position for the first order derivatives
+      // calculate the sign and position for the first order derivatives
+      
       double sign;
       if (j%2) {
         sign=+1.0;
@@ -475,28 +507,35 @@ void AppPottsPhaseFieldEric::site_event_finitedifference(int i)
       fsum[jj] += sign * fpj;
     }
     
-    //add the contribution from the first order gradients
+    // add the contribution from the first order gradients
+    
     for (j=0; j<dimension; j++)
       valA += 2 * qsum[j] * fsum[j];
     
-    //add contribution from site i values
+    // add contribution from site i values
+    
     valA -= 4.0 * dimension * qi * fpi;
   }
   
-  //perform finite difference on all the cells in the list
-  //for phase independent values
+  // perform finite difference on all the cells in the list
+  // for phase independent values
+  
   for (j=0; j<2*dimension; j++) {
     
-    //site
+    // site
+    
     int s=neighbor[i][cmap[j]];
     
-    //calculate contribution from Cahn-Hilliard term
+    // calculate contribution from Cahn-Hilliard term
+    
     valA -= (ch_energy/hsquared) * (-4.0*c[s] + c[neighbor[s][cmap[j]]]);
     
-    //calculate contribution from temperature gradients
+    // calculate contribution from temperature gradients
+    
     valB += T[s];
     
-    //calculate the sign and position for the first order derivatives
+    // calculate the sign and position for the first order derivatives
+    
     double sign;
     if (j%2) {
       sign=+1.0;
@@ -511,30 +550,37 @@ void AppPottsPhaseFieldEric::site_event_finitedifference(int i)
     
     
   }
-  //add contribution from the central position
+  
+  // add contribution from the central position
+  
   valA -= 6.0 * dimension * ch_energy * c[i] / hsquared;
   
-  //divide by final hsquared to get the value of the Laplacian of the 
-  //chemical potential
+  // divide by final hsquared to get the value of the Laplacian of the 
+  // chemical potential
+
   valA /= hsquared;
   
-  //add the contribution form the central position
+  // add the contribution form the central position
+  
   valB -= 2.0 * dimension * T[i];
   
-  //divide by final hsquared to get the value of the Laplacian of the 
-  //temperature
+  // divide by final hsquared to get the value of the Laplacian of the 
+  // temperature
+  
   valB /= hsquared;
   
-  //add the contribution from the first order gradients
+  // add the contribution from the first order gradients
+  
   for (j=0; j<dimension; j++)
     valC += Tsum[j] * Tinvsum[j];
   
-  //divide by final hsquared and add the contribution from the 
-  //Laplacian of the temperature
+  // divide by final hsquared and add the contribution from the 
+  // Laplacian of the temperature
+  
   valC = (valC / hsquared) + (valB / T[i]);
   
+  // calculate new value of the composition
   
-  //calculate new value of the composition
   cnew[i] = c[i] + (dt_phasefield * mobility) * 
                    (2.0 * valA + heat_of_transport * valC);
   
@@ -543,49 +589,53 @@ void AppPottsPhaseFieldEric::site_event_finitedifference(int i)
                    ( (2.0 * mobility * heat_of_transport * valA ) + 
                      (thermal_conductivity * valB) );
   
-  //enforce concentration limits if appropriate
+  // enforce concentration limits if appropriate
+  
   if (enforceConcentrationLimits) {
     if (cnew[i] > 1.0) cnew[i]=1.0;
     if (cnew[i] < 0.0) cnew[i]=0.0;
   }
   
-  //check warnings
+  // check warnings
+  
   if (!warn_concentration_deviation && (cnew[i] > 1.0 || cnew[i] < 0.0))
     warn_concentration_deviation=1;  
   
   if (!warn_temperature_deviation && Tnew[i] < 0.0) 
     warn_temperature_deviation=1; 
   
-  //do not let Temperature go below 0
+  // do not let Temperature go below 0
+  
   if (Tnew[i] < 0.0) Tnew[i] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
  compute energy of site
- ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 double AppPottsPhaseFieldEric::site_energy(int i)
 {
-  //return the full energy value 
+  // return the full energy value
+  
   return (site_energy_bulk(i) 
         + site_energy_potts(i) 
         + site_energy_phasefield(i));
 }
 
 /* ----------------------------------------------------------------------
- compute energy of site without the gradient term for efficient site event rejection
- ------------------------------------------------------------------------- */
+   compute energy of site without the gradient term 
+   for efficient site event rejection
+------------------------------------------------------------------------- */
 
 double AppPottsPhaseFieldEric::site_energy_without_phasefield(int i)
 {    
-  /*------------------------------------------------------
-   The phase field energy term is not calculated here for 
-   computational efficiency.  This function is called by
-   site_event rejection where the gradient term won't 
-   change and therefore this is more computationally 
-   efficient.  The real site energy term is calculated 
-   in site_energy.
-   ------------------------------------------------------*/
+  // The phase field energy term is not calculated here for 
+  // computational efficiency.  This function is called by
+  // site_event rejection where the gradient term won't 
+  // change and therefore this is more computationally 
+  // efficient.  The real site energy term is calculated 
+  // in site_energy.
+  
   return site_energy_bulk(i) + site_energy_potts(i);
 }
 
@@ -595,15 +645,16 @@ double AppPottsPhaseFieldEric::site_energy_without_phasefield(int i)
 
 double AppPottsPhaseFieldEric::site_energy_potts(int i)
 {
-  //calculate the Potts interface energy
+  // calculate the Potts interface energy
+  
   int isite = spin[i];
   int eng = 0;
   for (int j = 0; j < numneigh[i]; j++)
     if (isite != spin[neighbor[i][j]]) eng++;
   
-  // Now scale the energy if appropriate 
-  double energy = (double) eng;
+  // now scale the energy if appropriate
   
+  double energy = (double) eng;
   return energy * scale_potts_energy;
 }
 
@@ -613,8 +664,9 @@ double AppPottsPhaseFieldEric::site_energy_potts(int i)
 
 double AppPottsPhaseFieldEric::site_energy_bulk(int i)
 {
-  //no sum over phases because the site only has one phase
-  //energy scaling has already been accounted for
+  // no sum over phases because the site only has one phase
+  // energy scaling has already been accounted for
+  
   return bilinear_interp(i,0);
 }
   
@@ -624,28 +676,26 @@ double AppPottsPhaseFieldEric::site_energy_bulk(int i)
   
 double AppPottsPhaseFieldEric::site_energy_phasefield(int i)
 {
-  
   double val=0.0;
-  //perform finite difference on all the cells in the list
+  
+  // perform finite difference on all the cells in the list
+  
   for (int j=0; j<2*dimension; j++) {
-    
     int s=neighbor[i][cmap[j]];
     
-    if (j%2==0) 
-      val -= c[s];
-    else
-      val += c[s];
+    if (j%2==0) val -= c[s];
+    else val += c[s];
   }
   
   return 0.5 * ch_energy * pow(val / 2.0,2.0);
 }
 
 /* ----------------------------------------------------------------------
- rKMC method
- perform a site event with no null bin rejection
- flip to random neighbor spin without null bin
- technically this is an incorrect rejection-KMC algorithm
- ------------------------------------------------------------------------- */
+   rKMC method
+   perform a site event with no null bin rejection
+   flip to random neighbor spin without null bin
+   technically this is an incorrect rejection-KMC algorithm
+------------------------------------------------------------------------- */
 
 void AppPottsPhaseFieldEric::site_event_rejection(int i, RandomPark *random)
 {
@@ -658,8 +708,8 @@ void AppPottsPhaseFieldEric::site_event_rejection(int i, RandomPark *random)
   int nevent = 0;
 
   //nucleation probability - check if running - otherwise normal site event
-  if (run_nucleation && (random->uniform() < nucleation_rate))
-  {
+
+  if (run_nucleation && (random->uniform() < nucleation_rate)) {
 
     //Generate a random spin n, irandom(n), of the opposite phase
     //For alpha nucleation sites, add phaseChangeInt
@@ -673,9 +723,8 @@ void AppPottsPhaseFieldEric::site_event_rejection(int i, RandomPark *random)
     //else it was beta (phase=1, spin > phaseChangeInt)
     //will switch to alpha (phase=0, spin <= phaseChangeInt)
     //set_site_phase(i);
-  }
-  else
-  {
+    
+  } else {
     for (j = 0; j < numneigh[i]; j++) {
       value = spin[neighbor[i][j]];
       if (value == spin[i]) continue;
@@ -708,14 +757,15 @@ void AppPottsPhaseFieldEric::site_event_rejection(int i, RandomPark *random)
 }
 
 /* ----------------------------------------------------------------------
- iterate through the phase field solution 
- ------------------------------------------------------------------------- */
+   iterate through the phase field solution 
+------------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::user_update(double stoptime)
+void AppPottsPhaseFieldEric::app_update(double stoptime)
 {
   double localtime=0.0;
   
-  //communicate all sites to make sure it's up-to-date when it starts
+  // communicate all sites to make sure it's up-to-date when it starts
+  
   timer->stamp();
   comm->all();
   timer->stamp(TIME_COMM);
@@ -723,27 +773,32 @@ void AppPottsPhaseFieldEric::user_update(double stoptime)
   int done = 0;
   while (!done) {
 
-    //iterate through all the sets
+    // iterate through all the sets
+    
     for (int i=0; i<nlocal; i++)
       site_event_finitedifference(i);
     
-    //copy updated phase field into old concentration field
+    // copy updated phase field into old concentration field
+    
     for (int i=0; i<nlocal; i++) {
       c[i]=cnew[i];
       T[i]=Tnew[i];
     }
     
-    //reset the certain values if appropriate
+    // reset the certain values if appropriate
+    
     if (pf_resetfield) {
       for (int i=0; i < pf_nresetlist; i++) 
         c[pf_resetlist[i]]=pf_resetlistvals[i];
     }
     timer->stamp(TIME_SOLVE);
     
-    //re-sync all the data
+    // re-sync all the data
+    
     comm->all();
     
-    //check for concentration devation warnings
+    // check for concentration devation warnings
+    
     if (!warn_concentration_deviation_all) {
       MPI_Allreduce(&warn_concentration_deviation,
                     &warn_concentration_deviation_all,1,
@@ -756,7 +811,8 @@ void AppPottsPhaseFieldEric::user_update(double stoptime)
       }
     }
     
-    //check for temperature devation warnings
+    // check for temperature devation warnings
+    
     if (!warn_temperature_deviation_all) {
       MPI_Allreduce(&warn_temperature_deviation,
                     &warn_temperature_deviation_all,1,
@@ -771,11 +827,13 @@ void AppPottsPhaseFieldEric::user_update(double stoptime)
     
     timer->stamp(TIME_COMM);
 
-    //increment time and determine when to finish
+    // increment time and determine when to finish
+    
     localtime += dt_phasefield;
     if (localtime >= (stoptime- 1e-6)) done = 1;
     
-    //throw exception when PF has iterated too far
+    // throw exception when PF has iterated too far
+    
     if (localtime > (stoptime + 1e-6)) {
       char errorstr[80];
       sprintf(errorstr,
@@ -792,22 +850,26 @@ void AppPottsPhaseFieldEric::setup_connectivity_map()
 {
   int i,j;
  
-  //this check is redundant but I'm leaving it anyway
+  // this check is redundant but I'm leaving it anyway
+  
   if (domain->lattice->nbasis > 1)
     error->all(FLERR,
       "only single basis units are allowed for app_style potts/phasefield");
   
-  //set the dimension variable
+  // set the dimension variable
+  
   dimension = domain->dimension;
-  //set the lattice constant variable
+
+  // set the lattice constant variable
+  
   latconst = domain->lattice->latconst;
   
   if (!cmap)
     cmap = (int *) 
       memory->smalloc(2*dimension*sizeof(int),"app_potts_pf:cmap");
   
+  // setup the connectivity map for the appropriate style
   
-  //setup the connectivity map for the appropriate style
   int style=domain->lattice->style;
   
   if (style == LINE_2N) {
@@ -847,9 +909,9 @@ void AppPottsPhaseFieldEric::setup_connectivity_map()
     error->all(FLERR,
       "Lattice style not compatible with app_style potts/phasefield");
     
-  //The connectivity map defined above should not change unless
-  //create_sites changes. However, the following is an error check
-  //to ensure that the connectivity map is correct.
+  // The connectivity map defined above should not change unless
+  // create_sites changes. However, the following is an error check
+  // to ensure that the connectivity map is correct.
   
   double lim[3][2];
   lim[0][0]=domain->boxxlo;
@@ -876,7 +938,8 @@ void AppPottsPhaseFieldEric::setup_connectivity_map()
     error->all(FLERR,
       "Error checking connectivity map for app_style potts/phasefield");
   
-  //now check the ith site because it's not on any of the boundaries
+  // now check the ith site because it's not on any of the boundaries
+  
   double pos;
   for (i=0; i<dimension; i++) {
     for (j=0; j<2; j++) {
@@ -895,7 +958,8 @@ void AppPottsPhaseFieldEric::setup_connectivity_map()
   
   cmap_ready=true;
   
-  //print the connectivity map if it has been asked for
+  // print the connectivity map if it has been asked for
+  
   if (cmap_ready && print_cmap && me==0) print_connectivity_map();  
 }
 
@@ -917,7 +981,8 @@ void AppPottsPhaseFieldEric::print_connectivity_map()
     sprintf(strptr,"  +/-     x     y     z\n");
   strptr += strlen(strptr);
 
-  //cycle through the appropriate dimensions
+  // cycle through the appropriate dimensions
+  
   for (j=0; j<2; j++) {
     if (j==0)
       sprintf(strptr,"    -");
@@ -945,10 +1010,10 @@ void AppPottsPhaseFieldEric::print_connectivity_map()
   
 double AppPottsPhaseFieldEric::bilinear_interp(int i,int flag)
 {
-  //bilinear interpolation formula from equation 13.54 in 
-  //MACHINE VISION by Ramesh Jain, Rangachar Kasturi, Brian G. Schunck
-  //Published by McGraw-Hill, Inc., ISBN 0-07-032018-7, 1995
-  //http://www.cse.usf.edu/~r1k/MachineVisionBook/MachineVision.htm
+  // bilinear interpolation formula from equation 13.54 in 
+  // MACHINE VISION by Ramesh Jain, Rangachar Kasturi, Brian G. Schunck
+  // Published by McGraw-Hill, Inc., ISBN 0-07-032018-7, 1995
+  // http://www.cse.usf.edu/~r1k/MachineVisionBook/MachineVision.htm
   
   double temp = T[i];
   double comp = c[i];
@@ -960,13 +1025,14 @@ double AppPottsPhaseFieldEric::bilinear_interp(int i,int flag)
   int iC,iT;
   double deltaC,deltaT;
   
-  //The out of bounds factor is a quadratic function that is employed for 
-  //  compositions outside the range of [0,1] so it will bring them back.
-  //  It is a quadratic function that is valued such that additional energy at 
-  //  10% above 1 or below 0 will have the value of scale_free_energy added onto
-  //  the energy at 0 or 1. Essentially:
-  //  G(C) = G(1 or 0) + outofboundsfactor* Cexcess^2 and
-  //  dGdC(C) = 2 * outofboundsfactor * Cexcess
+  // The out of bounds factor is a quadratic function that is employed for 
+  // compositions outside the range of [0,1] so it will bring them back.
+  // It is a quadratic function that is valued such that additional energy at 
+  // 10% above 1 or below 0 will have the value of scale_free_energy added onto
+  // the energy at 0 or 1. Essentially:
+  // G(C) = G(1 or 0) + outofboundsfactor* Cexcess^2 and
+  // dGdC(C) = 2 * outofboundsfactor * Cexcess
+  
   double outofboundsfactor = scale_comp_energy_penalty * scale_free_energy;
   
   int outofbounds=0;
@@ -996,7 +1062,8 @@ double AppPottsPhaseFieldEric::bilinear_interp(int i,int flag)
     
   }
   
-  //find starting point for the matrix
+  // find starting point for the matrix
+  
   iC=binarySearch(p->colvals,0,p->nCol-1,comp);
   if (p->colvals[iC] > comp)
     iC--;
@@ -1044,7 +1111,8 @@ void AppPottsPhaseFieldEric::set_pf_resetlist(int narg, char **arg)
   if (narg < 3)
     error->all(FLERR,"Illegal pottspf/command reset_phasefield");
   
-  //process the arguments one by one
+  // process the arguments one by one
+  
   int iarg = 1;
   while (iarg < narg) {
     if (iarg+2 > narg) error->all(FLERR,"Illegal pottspf/command "
@@ -1058,7 +1126,9 @@ void AppPottsPhaseFieldEric::set_pf_resetlist(int narg, char **arg)
     for (int i=0;i<nlocal;i++)
       if (domain->regions[iregion]->match(xyz[i][0],xyz[i][1],xyz[i][2])) {
         if (pf_nresetlist >= pf_maxresetlist) {
-          //grow the arrays
+          
+          // grow the arrays
+          
           pf_maxresetlist += BIG;
           memory->grow(pf_resetlist,pf_maxresetlist,
                        "app_potts_pf:pf_resetlist");
@@ -1066,7 +1136,8 @@ void AppPottsPhaseFieldEric::set_pf_resetlist(int narg, char **arg)
                        "app_potts_pf:pf_resetlistvals");
         }
         
-        //add the site to the reset list
+        // add the site to the reset list
+        
         pf_resetlist[pf_nresetlist]=i;
         pf_resetlistvals[pf_nresetlist]=val;
         
@@ -1075,7 +1146,8 @@ void AppPottsPhaseFieldEric::set_pf_resetlist(int narg, char **arg)
     iarg += 2;
   }
     
-  //make sure no site is reset more than once to a different value
+  // make sure no site is reset more than once to a different value
+  
   for (int i=0;i<pf_nresetlist;i++)
     for (int j=0;j<pf_nresetlist;j++) {
       if (i==j) continue;
@@ -1085,7 +1157,8 @@ void AppPottsPhaseFieldEric::set_pf_resetlist(int narg, char **arg)
                    "reset a site more than once to different values");
     }
   
-  //arguments have been parsed, set flag
+  // arguments have been parsed, set flag
+  
   pf_resetfield = true;
   
   // print statistics
@@ -1104,14 +1177,18 @@ void AppPottsPhaseFieldEric::set_pf_resetlist(int narg, char **arg)
   }
 }
 
-/* ---------------------------------------------------------------------- */
-//binary search to find nearest value. code adapted from
-// http://www.fredosaurus.com/notes-cpp/algorithms/searching/binarysearch.html
+/* ----------------------------------------------------------------------
+   binary search to find nearest value. code adapted from
+   http://www.fredosaurus.com/notes-cpp/algorithms/searching/binarysearch.html
+---------------------------------------------------------------------- */
+
 int AppPottsPhaseFieldEric::binarySearch(double *sortedArray, 
-                                     int first, int last, double key) {
-  //this returns the index for the nearest value
+                                         int first, int last, double key)
+{
+  // this returns the index for the nearest value
+  
   while (1) {
-    int mid = (last - first) / 2;  // compute mid point.
+    int mid = (last - first) / 2;  // compute mid point
     if (mid <= 0) {
       if (abs(key - sortedArray[first]) <= abs(key - sortedArray[last]))
         return first;
@@ -1120,17 +1197,17 @@ int AppPottsPhaseFieldEric::binarySearch(double *sortedArray,
     }
     mid = first + mid;
     if (key > sortedArray[mid]) 
-      first = mid;  // repeat search in top half.
+      first = mid;  // repeat search in top half
     else if (key < sortedArray[mid]) 
-      last = mid; // repeat search in bottom half.
+      last = mid;   // repeat search in bottom half
     else
-      return mid;     // found it. return position
+      return mid;   // found it, return position
   }
 }
 
 /* ----------------------------------------------------------------------
- get app properties or in this case the pointer to the table
- ------------------------------------------------------------------------- */
+   get app properties or in this case the pointer to the table
+------------------------------------------------------------------------- */
 
 void *AppPottsPhaseFieldEric::extract_app(char * name) {
   
