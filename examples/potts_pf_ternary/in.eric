@@ -1,0 +1,68 @@
+# SPPARKS Potts tests on generic lattice
+
+seed		 56789
+
+# Nspins Nphases PF/Potts_Steps  mob CH_energy cond Q* Cp phases spinrange
+
+app_style potts/phasefield/eric 21 3 100 0.5 4 1 0.1 1 fcc 10 dia 10 liquid 1
+
+#dimension	 1
+#lattice		 line/2n 1.0
+#region		 box block 0 100 0 1 -0.5 0.5
+
+dimension	 2
+lattice		 sq/8n 1.0
+region		 box block 0 100 0 100 -0.5 0.5
+
+#region    sink block 0 100 98 100 -.5 0.5
+#region    source block 0 100 0 1 -.5 0.5
+
+#dimension	3
+#lattice		sc/6n 1.0
+#region		box block 0 100 0 100 0 5
+
+create_box	 box
+create_sites	 box
+
+#set      site range 1 20
+#set i1 range 1 10 if x <= 50
+#set i1 range 11 20 if x > 50
+set site range 1 21
+#set i1 value 1 if x <= 50
+#set i1 value 11 if x > 50
+set i2 value 0 if i1 <= 10
+set i2 value 1 if i1 > 10 if i1 <= 20
+set i2 value 2 if i1 = 21
+
+#set d1 value 0 if i2 = 0
+#set d1 value 1 if i2 = 1
+set d1 value .5
+set d2 value 400
+#set      site unique
+
+read_table G_fcc.txt fcc
+read_table G_dia.txt dia
+read_table G_liquid.txt liquid
+
+sweep		 random
+sector		 yes
+
+#update_only 		yes #no
+pottspf/command set_site_phase yes
+
+#pottspf/command 	reset_phasefield 	sink 0.3 source 0.7
+#pottspf/command 	print_connectivity yes
+#pottspf/command 	enforce_concentration_limits yes #no
+#pottspf/command  nucleation 0.005 #nucleation rate - if a site gets selected, it automatically switches to a spin of the opposite phase
+
+pottspf/command 	scale_energy potts 1.0 free 10.0 penalty 1.0 #value by which to scale the Potts interface energy, free energy or outof bounds composition energy
+
+diag_style      energy
+diag_style		array i2 mean d1 sum d1 min d1 max d2 sum d2 min d2 max
+temperature	 	0.3
+
+stats            10.0
+dump             1 text 10.0 dump.out id site i2 d1 d2 energy
+diag_style       cluster delt 1.0 stats no logfreq 9 10.0 filename cluster.dat
+
+run              100.0

@@ -28,6 +28,7 @@ class Lattice : protected Pointers {
                                        // within unit cell (0 <= coord < 1)
   tagint nrandom;                      // # of sites for random lattices
   double cutoff;                       // neighbor cutoff for random lattices
+  double latconst;                     // lattice constant
 
   Lattice(class SPPARKS *, int, char **);
   ~Lattice();
@@ -35,7 +36,6 @@ class Lattice : protected Pointers {
   int id2color(tagint, int);
 
 private:
-  double latconst;                     // lattice constant
   double origin[3];                    // lattice origin
   int orientx[3];                      // lattice orientation vecs
   int orienty[3];                      // orientx = what lattice dir lies
