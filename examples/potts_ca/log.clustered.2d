@@ -1,0 +1,1676 @@
+SPPARKS (19 Sept 2022)
+# SPPARKS Potts tests on generic lattice 
+ 
+seed 87987
+
+dimension 2
+
+# | rc_repeats = atof(arg[narg-1]) 
+# | gg_repeats = atof(arg[narg-2])     
+# | nuclei_pct	= atof(arg[narg-3]) 
+# | threshold	= atof(arg[narg-4]) 
+
+app_style        potts/ca 4000000 .50 0.0 0.0 1.0 
+ 
+lattice		 sq/8n 1.0 
+region		 box block 0 200 0 200 0 1 
+create_box	 box 
+Created box = (0 0 0) to (200 200 1)
+  2 by 2 by 1 processor grid
+create_sites	 box 
+Creating sites ...
+  40000 sites
+  40000 sites have 8 neighbors
+set 	 	 d1 value 1.0 
+  40000 settings made for d1
+set 	 	 site unique 
+  40000 settings made for site
+ 
+set 	 	 d1 value 0.0 if x = 197 if y = 138 
+  1 settings made for d1
+set 	 	 i1 value 40001 if x = 197 if y = 138 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 197 if y = 142 
+  1 settings made for d1
+set 	 	 i1 value 40002 if x = 197 if y = 142 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 197 if y = 144 
+  1 settings made for d1
+set 	 	 i1 value 40003 if x = 197 if y = 144 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 197 if y = 138 
+  1 settings made for d1
+set 	 	 i1 value 40004 if x = 197 if y = 138 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 195 if y = 144 
+  1 settings made for d1
+set 	 	 i1 value 40005 if x = 195 if y = 144 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 195 if y = 142 
+  1 settings made for d1
+set 	 	 i1 value 40006 if x = 195 if y = 142 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 195 if y = 142 
+  1 settings made for d1
+set 	 	 i1 value 40007 if x = 195 if y = 142 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 195 if y = 140 
+  1 settings made for d1
+set 	 	 i1 value 40008 if x = 195 if y = 140 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 195 if y = 140 
+  1 settings made for d1
+set 	 	 i1 value 40009 if x = 195 if y = 140 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 201 if y = 138 
+  0 settings made for d1
+set 	 	 i1 value 40010 if x = 201 if y = 138 
+  0 settings made for i1
+set 	 	 d1 value 0.0 if x = 187 if y = 123 
+  1 settings made for d1
+set 	 	 i1 value 40011 if x = 187 if y = 123 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 117 
+  1 settings made for d1
+set 	 	 i1 value 40012 if x = 189 if y = 117 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 183 if y = 117 
+  1 settings made for d1
+set 	 	 i1 value 40013 if x = 183 if y = 117 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 183 if y = 121 
+  1 settings made for d1
+set 	 	 i1 value 40014 if x = 183 if y = 121 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 185 if y = 117 
+  1 settings made for d1
+set 	 	 i1 value 40015 if x = 185 if y = 117 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 121 
+  1 settings made for d1
+set 	 	 i1 value 40016 if x = 189 if y = 121 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 183 if y = 121 
+  1 settings made for d1
+set 	 	 i1 value 40017 if x = 183 if y = 121 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 121 
+  1 settings made for d1
+set 	 	 i1 value 40018 if x = 189 if y = 121 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 187 if y = 121 
+  1 settings made for d1
+set 	 	 i1 value 40019 if x = 187 if y = 121 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 119 
+  1 settings made for d1
+set 	 	 i1 value 40020 if x = 189 if y = 119 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 22 if y = 201 
+  0 settings made for d1
+set 	 	 i1 value 40021 if x = 22 if y = 201 
+  0 settings made for i1
+set 	 	 d1 value 0.0 if x = 26 if y = 197 
+  1 settings made for d1
+set 	 	 i1 value 40022 if x = 26 if y = 197 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 22 if y = 197 
+  1 settings made for d1
+set 	 	 i1 value 40023 if x = 22 if y = 197 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 20 if y = 195 
+  1 settings made for d1
+set 	 	 i1 value 40024 if x = 20 if y = 195 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 24 if y = 199 
+  1 settings made for d1
+set 	 	 i1 value 40025 if x = 24 if y = 199 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 26 if y = 201 
+  0 settings made for d1
+set 	 	 i1 value 40026 if x = 26 if y = 201 
+  0 settings made for i1
+set 	 	 d1 value 0.0 if x = 20 if y = 195 
+  1 settings made for d1
+set 	 	 i1 value 40027 if x = 20 if y = 195 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 24 if y = 199 
+  1 settings made for d1
+set 	 	 i1 value 40028 if x = 24 if y = 199 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 26 if y = 199 
+  1 settings made for d1
+set 	 	 i1 value 40029 if x = 26 if y = 199 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 22 if y = 195 
+  1 settings made for d1
+set 	 	 i1 value 40030 if x = 22 if y = 195 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 24 if y = 56 
+  1 settings made for d1
+set 	 	 i1 value 40031 if x = 24 if y = 56 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 20 if y = 54 
+  1 settings made for d1
+set 	 	 i1 value 40032 if x = 20 if y = 54 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 20 if y = 56 
+  1 settings made for d1
+set 	 	 i1 value 40033 if x = 20 if y = 56 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 22 if y = 60 
+  1 settings made for d1
+set 	 	 i1 value 40034 if x = 22 if y = 60 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 22 if y = 54 
+  1 settings made for d1
+set 	 	 i1 value 40035 if x = 22 if y = 54 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 18 if y = 56 
+  1 settings made for d1
+set 	 	 i1 value 40036 if x = 18 if y = 56 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 20 if y = 56 
+  1 settings made for d1
+set 	 	 i1 value 40037 if x = 20 if y = 56 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 18 if y = 60 
+  1 settings made for d1
+set 	 	 i1 value 40038 if x = 18 if y = 60 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 20 if y = 56 
+  1 settings made for d1
+set 	 	 i1 value 40039 if x = 20 if y = 56 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 20 if y = 58 
+  1 settings made for d1
+set 	 	 i1 value 40040 if x = 20 if y = 58 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 107 if y = 103 
+  1 settings made for d1
+set 	 	 i1 value 40041 if x = 107 if y = 103 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 107 if y = 99 
+  1 settings made for d1
+set 	 	 i1 value 40042 if x = 107 if y = 99 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 105 if y = 103 
+  1 settings made for d1
+set 	 	 i1 value 40043 if x = 105 if y = 103 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 107 if y = 99 
+  1 settings made for d1
+set 	 	 i1 value 40044 if x = 107 if y = 99 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 103 if y = 99 
+  1 settings made for d1
+set 	 	 i1 value 40045 if x = 103 if y = 99 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 103 if y = 105 
+  1 settings made for d1
+set 	 	 i1 value 40046 if x = 103 if y = 105 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 105 if y = 105 
+  1 settings made for d1
+set 	 	 i1 value 40047 if x = 105 if y = 105 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 105 if y = 99 
+  1 settings made for d1
+set 	 	 i1 value 40048 if x = 105 if y = 99 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 107 if y = 101 
+  1 settings made for d1
+set 	 	 i1 value 40049 if x = 107 if y = 101 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 107 if y = 99 
+  1 settings made for d1
+set 	 	 i1 value 40050 if x = 107 if y = 99 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 18 if y = 147 
+  1 settings made for d1
+set 	 	 i1 value 40051 if x = 18 if y = 147 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 16 if y = 147 
+  1 settings made for d1
+set 	 	 i1 value 40052 if x = 16 if y = 147 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 16 if y = 153 
+  1 settings made for d1
+set 	 	 i1 value 40053 if x = 16 if y = 153 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 14 if y = 153 
+  1 settings made for d1
+set 	 	 i1 value 40054 if x = 14 if y = 153 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 18 if y = 147 
+  1 settings made for d1
+set 	 	 i1 value 40055 if x = 18 if y = 147 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 14 if y = 147 
+  1 settings made for d1
+set 	 	 i1 value 40056 if x = 14 if y = 147 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 16 if y = 153 
+  1 settings made for d1
+set 	 	 i1 value 40057 if x = 16 if y = 153 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 14 if y = 153 
+  1 settings made for d1
+set 	 	 i1 value 40058 if x = 14 if y = 153 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 20 if y = 153 
+  1 settings made for d1
+set 	 	 i1 value 40059 if x = 20 if y = 153 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 18 if y = 151 
+  1 settings made for d1
+set 	 	 i1 value 40060 if x = 18 if y = 151 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 172 if y = 69 
+  1 settings made for d1
+set 	 	 i1 value 40061 if x = 172 if y = 69 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 172 if y = 73 
+  1 settings made for d1
+set 	 	 i1 value 40062 if x = 172 if y = 73 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 75 
+  1 settings made for d1
+set 	 	 i1 value 40063 if x = 168 if y = 75 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 73 
+  1 settings made for d1
+set 	 	 i1 value 40064 if x = 168 if y = 73 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 75 
+  1 settings made for d1
+set 	 	 i1 value 40065 if x = 168 if y = 75 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 75 
+  1 settings made for d1
+set 	 	 i1 value 40066 if x = 168 if y = 75 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 170 if y = 69 
+  1 settings made for d1
+set 	 	 i1 value 40067 if x = 170 if y = 69 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 172 if y = 69 
+  1 settings made for d1
+set 	 	 i1 value 40068 if x = 172 if y = 69 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 172 if y = 69 
+  1 settings made for d1
+set 	 	 i1 value 40069 if x = 172 if y = 69 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 75 
+  1 settings made for d1
+set 	 	 i1 value 40070 if x = 168 if y = 75 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 156 
+  1 settings made for d1
+set 	 	 i1 value 40071 if x = 168 if y = 156 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 166 if y = 154 
+  1 settings made for d1
+set 	 	 i1 value 40072 if x = 166 if y = 154 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 166 if y = 152 
+  1 settings made for d1
+set 	 	 i1 value 40073 if x = 166 if y = 152 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 158 
+  1 settings made for d1
+set 	 	 i1 value 40074 if x = 168 if y = 158 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 158 
+  1 settings made for d1
+set 	 	 i1 value 40075 if x = 168 if y = 158 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 156 
+  1 settings made for d1
+set 	 	 i1 value 40076 if x = 168 if y = 156 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 166 if y = 152 
+  1 settings made for d1
+set 	 	 i1 value 40077 if x = 166 if y = 152 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 156 
+  1 settings made for d1
+set 	 	 i1 value 40078 if x = 168 if y = 156 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 166 if y = 152 
+  1 settings made for d1
+set 	 	 i1 value 40079 if x = 166 if y = 152 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 170 if y = 154 
+  1 settings made for d1
+set 	 	 i1 value 40080 if x = 170 if y = 154 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 132 if y = 139 
+  1 settings made for d1
+set 	 	 i1 value 40081 if x = 132 if y = 139 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 130 if y = 139 
+  1 settings made for d1
+set 	 	 i1 value 40082 if x = 130 if y = 139 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 126 if y = 135 
+  1 settings made for d1
+set 	 	 i1 value 40083 if x = 126 if y = 135 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 126 if y = 137 
+  1 settings made for d1
+set 	 	 i1 value 40084 if x = 126 if y = 137 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 126 if y = 135 
+  1 settings made for d1
+set 	 	 i1 value 40085 if x = 126 if y = 135 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 128 if y = 135 
+  1 settings made for d1
+set 	 	 i1 value 40086 if x = 128 if y = 135 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 126 if y = 139 
+  1 settings made for d1
+set 	 	 i1 value 40087 if x = 126 if y = 139 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 126 if y = 141 
+  1 settings made for d1
+set 	 	 i1 value 40088 if x = 126 if y = 141 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 132 if y = 137 
+  1 settings made for d1
+set 	 	 i1 value 40089 if x = 132 if y = 137 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 128 if y = 141 
+  1 settings made for d1
+set 	 	 i1 value 40090 if x = 128 if y = 141 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 128 if y = 76 
+  1 settings made for d1
+set 	 	 i1 value 40091 if x = 128 if y = 76 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 128 if y = 74 
+  1 settings made for d1
+set 	 	 i1 value 40092 if x = 128 if y = 74 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 128 if y = 74 
+  1 settings made for d1
+set 	 	 i1 value 40093 if x = 128 if y = 74 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 126 if y = 72 
+  1 settings made for d1
+set 	 	 i1 value 40094 if x = 126 if y = 72 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 128 if y = 76 
+  1 settings made for d1
+set 	 	 i1 value 40095 if x = 128 if y = 76 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 126 if y = 72 
+  1 settings made for d1
+set 	 	 i1 value 40096 if x = 126 if y = 72 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 124 if y = 72 
+  1 settings made for d1
+set 	 	 i1 value 40097 if x = 124 if y = 72 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 124 if y = 72 
+  1 settings made for d1
+set 	 	 i1 value 40098 if x = 124 if y = 72 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 130 if y = 74 
+  1 settings made for d1
+set 	 	 i1 value 40099 if x = 130 if y = 74 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 128 if y = 78 
+  1 settings made for d1
+set 	 	 i1 value 40100 if x = 128 if y = 78 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 194 if y = 76 
+  1 settings made for d1
+set 	 	 i1 value 40101 if x = 194 if y = 76 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 196 if y = 76 
+  1 settings made for d1
+set 	 	 i1 value 40102 if x = 196 if y = 76 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 198 if y = 72 
+  1 settings made for d1
+set 	 	 i1 value 40103 if x = 198 if y = 72 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 196 if y = 76 
+  1 settings made for d1
+set 	 	 i1 value 40104 if x = 196 if y = 76 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 196 if y = 72 
+  1 settings made for d1
+set 	 	 i1 value 40105 if x = 196 if y = 72 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 192 if y = 76 
+  1 settings made for d1
+set 	 	 i1 value 40106 if x = 192 if y = 76 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 196 if y = 78 
+  1 settings made for d1
+set 	 	 i1 value 40107 if x = 196 if y = 78 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 198 if y = 76 
+  1 settings made for d1
+set 	 	 i1 value 40108 if x = 198 if y = 76 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 198 if y = 72 
+  1 settings made for d1
+set 	 	 i1 value 40109 if x = 198 if y = 72 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 192 if y = 76 
+  1 settings made for d1
+set 	 	 i1 value 40110 if x = 192 if y = 76 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 197 if y = 143 
+  1 settings made for d1
+set 	 	 i1 value 40111 if x = 197 if y = 143 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 199 if y = 143 
+  1 settings made for d1
+set 	 	 i1 value 40112 if x = 199 if y = 143 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 201 if y = 145 
+  0 settings made for d1
+set 	 	 i1 value 40113 if x = 201 if y = 145 
+  0 settings made for i1
+set 	 	 d1 value 0.0 if x = 197 if y = 147 
+  1 settings made for d1
+set 	 	 i1 value 40114 if x = 197 if y = 147 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 201 if y = 145 
+  0 settings made for d1
+set 	 	 i1 value 40115 if x = 201 if y = 145 
+  0 settings made for i1
+set 	 	 d1 value 0.0 if x = 199 if y = 145 
+  1 settings made for d1
+set 	 	 i1 value 40116 if x = 199 if y = 145 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 199 if y = 147 
+  1 settings made for d1
+set 	 	 i1 value 40117 if x = 199 if y = 147 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 201 if y = 143 
+  0 settings made for d1
+set 	 	 i1 value 40118 if x = 201 if y = 143 
+  0 settings made for i1
+set 	 	 d1 value 0.0 if x = 195 if y = 147 
+  1 settings made for d1
+set 	 	 i1 value 40119 if x = 195 if y = 147 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 197 if y = 145 
+  1 settings made for d1
+set 	 	 i1 value 40120 if x = 197 if y = 145 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 9 if y = 41 
+  1 settings made for d1
+set 	 	 i1 value 40121 if x = 9 if y = 41 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 7 if y = 45 
+  1 settings made for d1
+set 	 	 i1 value 40122 if x = 7 if y = 45 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 7 if y = 45 
+  1 settings made for d1
+set 	 	 i1 value 40123 if x = 7 if y = 45 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 11 if y = 41 
+  1 settings made for d1
+set 	 	 i1 value 40124 if x = 11 if y = 41 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 7 if y = 47 
+  1 settings made for d1
+set 	 	 i1 value 40125 if x = 7 if y = 47 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 11 if y = 47 
+  1 settings made for d1
+set 	 	 i1 value 40126 if x = 11 if y = 47 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 9 if y = 45 
+  1 settings made for d1
+set 	 	 i1 value 40127 if x = 9 if y = 45 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 13 if y = 45 
+  1 settings made for d1
+set 	 	 i1 value 40128 if x = 13 if y = 45 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 9 if y = 43 
+  1 settings made for d1
+set 	 	 i1 value 40129 if x = 9 if y = 43 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 13 if y = 45 
+  1 settings made for d1
+set 	 	 i1 value 40130 if x = 13 if y = 45 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 5 if y = 112 
+  1 settings made for d1
+set 	 	 i1 value 40131 if x = 5 if y = 112 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 1 if y = 116 
+  1 settings made for d1
+set 	 	 i1 value 40132 if x = 1 if y = 116 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 3 if y = 112 
+  1 settings made for d1
+set 	 	 i1 value 40133 if x = 3 if y = 112 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 1 if y = 112 
+  1 settings made for d1
+set 	 	 i1 value 40134 if x = 1 if y = 112 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 7 if y = 116 
+  1 settings made for d1
+set 	 	 i1 value 40135 if x = 7 if y = 116 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 5 if y = 112 
+  1 settings made for d1
+set 	 	 i1 value 40136 if x = 5 if y = 112 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 7 if y = 110 
+  1 settings made for d1
+set 	 	 i1 value 40137 if x = 7 if y = 110 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 7 if y = 114 
+  1 settings made for d1
+set 	 	 i1 value 40138 if x = 7 if y = 114 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 3 if y = 112 
+  1 settings made for d1
+set 	 	 i1 value 40139 if x = 3 if y = 112 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 7 if y = 114 
+  1 settings made for d1
+set 	 	 i1 value 40140 if x = 7 if y = 114 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 126 if y = 54 
+  1 settings made for d1
+set 	 	 i1 value 40141 if x = 126 if y = 54 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 124 if y = 56 
+  1 settings made for d1
+set 	 	 i1 value 40142 if x = 124 if y = 56 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 128 if y = 50 
+  1 settings made for d1
+set 	 	 i1 value 40143 if x = 128 if y = 50 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 128 if y = 54 
+  1 settings made for d1
+set 	 	 i1 value 40144 if x = 128 if y = 54 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 128 if y = 50 
+  1 settings made for d1
+set 	 	 i1 value 40145 if x = 128 if y = 50 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 128 if y = 56 
+  1 settings made for d1
+set 	 	 i1 value 40146 if x = 128 if y = 56 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 130 if y = 52 
+  1 settings made for d1
+set 	 	 i1 value 40147 if x = 130 if y = 52 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 124 if y = 54 
+  1 settings made for d1
+set 	 	 i1 value 40148 if x = 124 if y = 54 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 130 if y = 54 
+  1 settings made for d1
+set 	 	 i1 value 40149 if x = 130 if y = 54 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 126 if y = 52 
+  1 settings made for d1
+set 	 	 i1 value 40150 if x = 126 if y = 52 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 166 if y = 45 
+  1 settings made for d1
+set 	 	 i1 value 40151 if x = 166 if y = 45 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 164 if y = 45 
+  1 settings made for d1
+set 	 	 i1 value 40152 if x = 164 if y = 45 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 164 if y = 49 
+  1 settings made for d1
+set 	 	 i1 value 40153 if x = 164 if y = 49 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 43 
+  1 settings made for d1
+set 	 	 i1 value 40154 if x = 168 if y = 43 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 49 
+  1 settings made for d1
+set 	 	 i1 value 40155 if x = 168 if y = 49 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 168 if y = 47 
+  1 settings made for d1
+set 	 	 i1 value 40156 if x = 168 if y = 47 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 162 if y = 43 
+  1 settings made for d1
+set 	 	 i1 value 40157 if x = 162 if y = 43 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 162 if y = 45 
+  1 settings made for d1
+set 	 	 i1 value 40158 if x = 162 if y = 45 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 162 if y = 43 
+  1 settings made for d1
+set 	 	 i1 value 40159 if x = 162 if y = 43 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 166 if y = 49 
+  1 settings made for d1
+set 	 	 i1 value 40160 if x = 166 if y = 49 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 183 if y = 98 
+  1 settings made for d1
+set 	 	 i1 value 40161 if x = 183 if y = 98 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 187 if y = 98 
+  1 settings made for d1
+set 	 	 i1 value 40162 if x = 187 if y = 98 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 187 if y = 98 
+  1 settings made for d1
+set 	 	 i1 value 40163 if x = 187 if y = 98 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 187 if y = 100 
+  1 settings made for d1
+set 	 	 i1 value 40164 if x = 187 if y = 100 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 183 if y = 94 
+  1 settings made for d1
+set 	 	 i1 value 40165 if x = 183 if y = 94 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 185 if y = 94 
+  1 settings made for d1
+set 	 	 i1 value 40166 if x = 185 if y = 94 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 100 
+  1 settings made for d1
+set 	 	 i1 value 40167 if x = 189 if y = 100 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 98 
+  1 settings made for d1
+set 	 	 i1 value 40168 if x = 189 if y = 98 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 96 
+  1 settings made for d1
+set 	 	 i1 value 40169 if x = 189 if y = 96 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 187 if y = 98 
+  1 settings made for d1
+set 	 	 i1 value 40170 if x = 187 if y = 98 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 119 if y = 0 
+  1 settings made for d1
+set 	 	 i1 value 40171 if x = 119 if y = 0 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 123 if y = 2 
+  1 settings made for d1
+set 	 	 i1 value 40172 if x = 123 if y = 2 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 121 if y = 0 
+  1 settings made for d1
+set 	 	 i1 value 40173 if x = 121 if y = 0 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 125 if y = 6 
+  1 settings made for d1
+set 	 	 i1 value 40174 if x = 125 if y = 6 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 121 if y = 6 
+  1 settings made for d1
+set 	 	 i1 value 40175 if x = 121 if y = 6 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 119 if y = 2 
+  1 settings made for d1
+set 	 	 i1 value 40176 if x = 119 if y = 2 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 121 if y = 0 
+  1 settings made for d1
+set 	 	 i1 value 40177 if x = 121 if y = 0 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 119 if y = 2 
+  1 settings made for d1
+set 	 	 i1 value 40178 if x = 119 if y = 2 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 121 if y = 2 
+  1 settings made for d1
+set 	 	 i1 value 40179 if x = 121 if y = 2 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 123 if y = 2 
+  1 settings made for d1
+set 	 	 i1 value 40180 if x = 123 if y = 2 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 162 if y = 21 
+  1 settings made for d1
+set 	 	 i1 value 40181 if x = 162 if y = 21 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 162 if y = 21 
+  1 settings made for d1
+set 	 	 i1 value 40182 if x = 162 if y = 21 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 164 if y = 25 
+  1 settings made for d1
+set 	 	 i1 value 40183 if x = 164 if y = 25 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 162 if y = 27 
+  1 settings made for d1
+set 	 	 i1 value 40184 if x = 162 if y = 27 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 160 if y = 25 
+  1 settings made for d1
+set 	 	 i1 value 40185 if x = 160 if y = 25 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 164 if y = 21 
+  1 settings made for d1
+set 	 	 i1 value 40186 if x = 164 if y = 21 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 162 if y = 21 
+  1 settings made for d1
+set 	 	 i1 value 40187 if x = 162 if y = 21 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 166 if y = 23 
+  1 settings made for d1
+set 	 	 i1 value 40188 if x = 166 if y = 23 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 160 if y = 23 
+  1 settings made for d1
+set 	 	 i1 value 40189 if x = 160 if y = 23 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 166 if y = 21 
+  1 settings made for d1
+set 	 	 i1 value 40190 if x = 166 if y = 21 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 190 if y = 136 
+  1 settings made for d1
+set 	 	 i1 value 40191 if x = 190 if y = 136 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 192 if y = 136 
+  1 settings made for d1
+set 	 	 i1 value 40192 if x = 192 if y = 136 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 188 if y = 132 
+  1 settings made for d1
+set 	 	 i1 value 40193 if x = 188 if y = 132 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 186 if y = 134 
+  1 settings made for d1
+set 	 	 i1 value 40194 if x = 186 if y = 134 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 188 if y = 132 
+  1 settings made for d1
+set 	 	 i1 value 40195 if x = 188 if y = 132 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 190 if y = 130 
+  1 settings made for d1
+set 	 	 i1 value 40196 if x = 190 if y = 130 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 188 if y = 132 
+  1 settings made for d1
+set 	 	 i1 value 40197 if x = 188 if y = 132 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 192 if y = 136 
+  1 settings made for d1
+set 	 	 i1 value 40198 if x = 192 if y = 136 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 188 if y = 134 
+  1 settings made for d1
+set 	 	 i1 value 40199 if x = 188 if y = 134 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 190 if y = 130 
+  1 settings made for d1
+set 	 	 i1 value 40200 if x = 190 if y = 130 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 136 if y = 9 
+  1 settings made for d1
+set 	 	 i1 value 40201 if x = 136 if y = 9 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 132 if y = 11 
+  1 settings made for d1
+set 	 	 i1 value 40202 if x = 132 if y = 11 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 130 if y = 5 
+  1 settings made for d1
+set 	 	 i1 value 40203 if x = 130 if y = 5 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 132 if y = 11 
+  1 settings made for d1
+set 	 	 i1 value 40204 if x = 132 if y = 11 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 130 if y = 11 
+  1 settings made for d1
+set 	 	 i1 value 40205 if x = 130 if y = 11 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 132 if y = 11 
+  1 settings made for d1
+set 	 	 i1 value 40206 if x = 132 if y = 11 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 132 if y = 9 
+  1 settings made for d1
+set 	 	 i1 value 40207 if x = 132 if y = 9 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 132 if y = 7 
+  1 settings made for d1
+set 	 	 i1 value 40208 if x = 132 if y = 7 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 132 if y = 5 
+  1 settings made for d1
+set 	 	 i1 value 40209 if x = 132 if y = 5 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 136 if y = 7 
+  1 settings made for d1
+set 	 	 i1 value 40210 if x = 136 if y = 7 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 24 if y = 39 
+  1 settings made for d1
+set 	 	 i1 value 40211 if x = 24 if y = 39 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 28 if y = 39 
+  1 settings made for d1
+set 	 	 i1 value 40212 if x = 28 if y = 39 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 24 if y = 41 
+  1 settings made for d1
+set 	 	 i1 value 40213 if x = 24 if y = 41 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 28 if y = 41 
+  1 settings made for d1
+set 	 	 i1 value 40214 if x = 28 if y = 41 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 28 if y = 39 
+  1 settings made for d1
+set 	 	 i1 value 40215 if x = 28 if y = 39 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 30 if y = 39 
+  1 settings made for d1
+set 	 	 i1 value 40216 if x = 30 if y = 39 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 30 if y = 39 
+  1 settings made for d1
+set 	 	 i1 value 40217 if x = 30 if y = 39 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 26 if y = 39 
+  1 settings made for d1
+set 	 	 i1 value 40218 if x = 26 if y = 39 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 24 if y = 37 
+  1 settings made for d1
+set 	 	 i1 value 40219 if x = 24 if y = 37 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 30 if y = 37 
+  1 settings made for d1
+set 	 	 i1 value 40220 if x = 30 if y = 37 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 65 if y = 84 
+  1 settings made for d1
+set 	 	 i1 value 40221 if x = 65 if y = 84 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 71 if y = 82 
+  1 settings made for d1
+set 	 	 i1 value 40222 if x = 71 if y = 82 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 65 if y = 82 
+  1 settings made for d1
+set 	 	 i1 value 40223 if x = 65 if y = 82 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 65 if y = 88 
+  1 settings made for d1
+set 	 	 i1 value 40224 if x = 65 if y = 88 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 67 if y = 84 
+  1 settings made for d1
+set 	 	 i1 value 40225 if x = 67 if y = 84 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 67 if y = 82 
+  1 settings made for d1
+set 	 	 i1 value 40226 if x = 67 if y = 82 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 69 if y = 88 
+  1 settings made for d1
+set 	 	 i1 value 40227 if x = 69 if y = 88 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 65 if y = 84 
+  1 settings made for d1
+set 	 	 i1 value 40228 if x = 65 if y = 84 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 67 if y = 82 
+  1 settings made for d1
+set 	 	 i1 value 40229 if x = 67 if y = 82 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 67 if y = 82 
+  1 settings made for d1
+set 	 	 i1 value 40230 if x = 67 if y = 82 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 181 
+  1 settings made for d1
+set 	 	 i1 value 40231 if x = 189 if y = 181 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 185 
+  1 settings made for d1
+set 	 	 i1 value 40232 if x = 189 if y = 185 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 185 
+  1 settings made for d1
+set 	 	 i1 value 40233 if x = 189 if y = 185 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 185 
+  1 settings made for d1
+set 	 	 i1 value 40234 if x = 189 if y = 185 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 193 if y = 179 
+  1 settings made for d1
+set 	 	 i1 value 40235 if x = 193 if y = 179 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 193 if y = 181 
+  1 settings made for d1
+set 	 	 i1 value 40236 if x = 193 if y = 181 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 195 if y = 179 
+  1 settings made for d1
+set 	 	 i1 value 40237 if x = 195 if y = 179 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 191 if y = 185 
+  1 settings made for d1
+set 	 	 i1 value 40238 if x = 191 if y = 185 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 193 if y = 179 
+  1 settings made for d1
+set 	 	 i1 value 40239 if x = 193 if y = 179 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 193 if y = 179 
+  1 settings made for d1
+set 	 	 i1 value 40240 if x = 193 if y = 179 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 129 if y = 53 
+  1 settings made for d1
+set 	 	 i1 value 40241 if x = 129 if y = 53 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 129 if y = 51 
+  1 settings made for d1
+set 	 	 i1 value 40242 if x = 129 if y = 51 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 125 if y = 55 
+  1 settings made for d1
+set 	 	 i1 value 40243 if x = 125 if y = 55 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 127 if y = 51 
+  1 settings made for d1
+set 	 	 i1 value 40244 if x = 127 if y = 51 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 125 if y = 51 
+  1 settings made for d1
+set 	 	 i1 value 40245 if x = 125 if y = 51 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 127 if y = 51 
+  1 settings made for d1
+set 	 	 i1 value 40246 if x = 127 if y = 51 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 129 if y = 55 
+  1 settings made for d1
+set 	 	 i1 value 40247 if x = 129 if y = 55 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 131 if y = 55 
+  1 settings made for d1
+set 	 	 i1 value 40248 if x = 131 if y = 55 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 129 if y = 51 
+  1 settings made for d1
+set 	 	 i1 value 40249 if x = 129 if y = 51 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 129 if y = 55 
+  1 settings made for d1
+set 	 	 i1 value 40250 if x = 129 if y = 55 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 118 if y = 180 
+  1 settings made for d1
+set 	 	 i1 value 40251 if x = 118 if y = 180 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 116 if y = 182 
+  1 settings made for d1
+set 	 	 i1 value 40252 if x = 116 if y = 182 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 114 if y = 178 
+  1 settings made for d1
+set 	 	 i1 value 40253 if x = 114 if y = 178 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 118 if y = 182 
+  1 settings made for d1
+set 	 	 i1 value 40254 if x = 118 if y = 182 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 114 if y = 182 
+  1 settings made for d1
+set 	 	 i1 value 40255 if x = 114 if y = 182 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 116 if y = 178 
+  1 settings made for d1
+set 	 	 i1 value 40256 if x = 116 if y = 178 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 112 if y = 176 
+  1 settings made for d1
+set 	 	 i1 value 40257 if x = 112 if y = 176 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 118 if y = 176 
+  1 settings made for d1
+set 	 	 i1 value 40258 if x = 118 if y = 176 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 116 if y = 180 
+  1 settings made for d1
+set 	 	 i1 value 40259 if x = 116 if y = 180 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 116 if y = 178 
+  1 settings made for d1
+set 	 	 i1 value 40260 if x = 116 if y = 178 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 187 if y = 79 
+  1 settings made for d1
+set 	 	 i1 value 40261 if x = 187 if y = 79 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 187 if y = 79 
+  1 settings made for d1
+set 	 	 i1 value 40262 if x = 187 if y = 79 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 85 
+  1 settings made for d1
+set 	 	 i1 value 40263 if x = 189 if y = 85 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 191 if y = 79 
+  1 settings made for d1
+set 	 	 i1 value 40264 if x = 191 if y = 79 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 81 
+  1 settings made for d1
+set 	 	 i1 value 40265 if x = 189 if y = 81 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 85 
+  1 settings made for d1
+set 	 	 i1 value 40266 if x = 189 if y = 85 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 185 if y = 83 
+  1 settings made for d1
+set 	 	 i1 value 40267 if x = 185 if y = 83 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 191 if y = 85 
+  1 settings made for d1
+set 	 	 i1 value 40268 if x = 191 if y = 85 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 185 if y = 79 
+  1 settings made for d1
+set 	 	 i1 value 40269 if x = 185 if y = 79 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 187 if y = 81 
+  1 settings made for d1
+set 	 	 i1 value 40270 if x = 187 if y = 81 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 104 if y = 114 
+  1 settings made for d1
+set 	 	 i1 value 40271 if x = 104 if y = 114 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 104 if y = 114 
+  1 settings made for d1
+set 	 	 i1 value 40272 if x = 104 if y = 114 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 102 if y = 112 
+  1 settings made for d1
+set 	 	 i1 value 40273 if x = 102 if y = 112 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 106 if y = 110 
+  1 settings made for d1
+set 	 	 i1 value 40274 if x = 106 if y = 110 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 100 if y = 114 
+  1 settings made for d1
+set 	 	 i1 value 40275 if x = 100 if y = 114 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 106 if y = 114 
+  1 settings made for d1
+set 	 	 i1 value 40276 if x = 106 if y = 114 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 106 if y = 114 
+  1 settings made for d1
+set 	 	 i1 value 40277 if x = 106 if y = 114 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 102 if y = 112 
+  1 settings made for d1
+set 	 	 i1 value 40278 if x = 102 if y = 112 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 104 if y = 114 
+  1 settings made for d1
+set 	 	 i1 value 40279 if x = 104 if y = 114 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 104 if y = 112 
+  1 settings made for d1
+set 	 	 i1 value 40280 if x = 104 if y = 112 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 46 if y = 101 
+  1 settings made for d1
+set 	 	 i1 value 40281 if x = 46 if y = 101 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 42 if y = 101 
+  1 settings made for d1
+set 	 	 i1 value 40282 if x = 42 if y = 101 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 40 if y = 103 
+  1 settings made for d1
+set 	 	 i1 value 40283 if x = 40 if y = 103 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 42 if y = 101 
+  1 settings made for d1
+set 	 	 i1 value 40284 if x = 42 if y = 101 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 46 if y = 103 
+  1 settings made for d1
+set 	 	 i1 value 40285 if x = 46 if y = 103 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 40 if y = 99 
+  1 settings made for d1
+set 	 	 i1 value 40286 if x = 40 if y = 99 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 40 if y = 103 
+  1 settings made for d1
+set 	 	 i1 value 40287 if x = 40 if y = 103 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 40 if y = 103 
+  1 settings made for d1
+set 	 	 i1 value 40288 if x = 40 if y = 103 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 44 if y = 99 
+  1 settings made for d1
+set 	 	 i1 value 40289 if x = 44 if y = 99 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 44 if y = 101 
+  1 settings made for d1
+set 	 	 i1 value 40290 if x = 44 if y = 101 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 24 if y = 172 
+  1 settings made for d1
+set 	 	 i1 value 40291 if x = 24 if y = 172 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 24 if y = 178 
+  1 settings made for d1
+set 	 	 i1 value 40292 if x = 24 if y = 178 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 22 if y = 178 
+  1 settings made for d1
+set 	 	 i1 value 40293 if x = 22 if y = 178 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 26 if y = 176 
+  1 settings made for d1
+set 	 	 i1 value 40294 if x = 26 if y = 176 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 24 if y = 178 
+  1 settings made for d1
+set 	 	 i1 value 40295 if x = 24 if y = 178 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 28 if y = 172 
+  1 settings made for d1
+set 	 	 i1 value 40296 if x = 28 if y = 172 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 24 if y = 178 
+  1 settings made for d1
+set 	 	 i1 value 40297 if x = 24 if y = 178 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 22 if y = 176 
+  1 settings made for d1
+set 	 	 i1 value 40298 if x = 22 if y = 176 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 24 if y = 178 
+  1 settings made for d1
+set 	 	 i1 value 40299 if x = 24 if y = 178 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 28 if y = 178 
+  1 settings made for d1
+set 	 	 i1 value 40300 if x = 28 if y = 178 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 87 if y = 34 
+  1 settings made for d1
+set 	 	 i1 value 40301 if x = 87 if y = 34 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 93 if y = 30 
+  1 settings made for d1
+set 	 	 i1 value 40302 if x = 93 if y = 30 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 89 if y = 28 
+  1 settings made for d1
+set 	 	 i1 value 40303 if x = 89 if y = 28 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 87 if y = 34 
+  1 settings made for d1
+set 	 	 i1 value 40304 if x = 87 if y = 34 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 87 if y = 32 
+  1 settings made for d1
+set 	 	 i1 value 40305 if x = 87 if y = 32 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 93 if y = 34 
+  1 settings made for d1
+set 	 	 i1 value 40306 if x = 93 if y = 34 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 87 if y = 32 
+  1 settings made for d1
+set 	 	 i1 value 40307 if x = 87 if y = 32 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 91 if y = 28 
+  1 settings made for d1
+set 	 	 i1 value 40308 if x = 91 if y = 28 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 89 if y = 28 
+  1 settings made for d1
+set 	 	 i1 value 40309 if x = 89 if y = 28 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 87 if y = 34 
+  1 settings made for d1
+set 	 	 i1 value 40310 if x = 87 if y = 34 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 110 if y = 162 
+  1 settings made for d1
+set 	 	 i1 value 40311 if x = 110 if y = 162 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 110 if y = 156 
+  1 settings made for d1
+set 	 	 i1 value 40312 if x = 110 if y = 156 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 110 if y = 156 
+  1 settings made for d1
+set 	 	 i1 value 40313 if x = 110 if y = 156 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 110 if y = 160 
+  1 settings made for d1
+set 	 	 i1 value 40314 if x = 110 if y = 160 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 106 if y = 160 
+  1 settings made for d1
+set 	 	 i1 value 40315 if x = 106 if y = 160 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 106 if y = 162 
+  1 settings made for d1
+set 	 	 i1 value 40316 if x = 106 if y = 162 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 110 if y = 156 
+  1 settings made for d1
+set 	 	 i1 value 40317 if x = 110 if y = 156 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 104 if y = 162 
+  1 settings made for d1
+set 	 	 i1 value 40318 if x = 104 if y = 162 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 108 if y = 156 
+  1 settings made for d1
+set 	 	 i1 value 40319 if x = 108 if y = 156 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 104 if y = 156 
+  1 settings made for d1
+set 	 	 i1 value 40320 if x = 104 if y = 156 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 48 if y = 163 
+  1 settings made for d1
+set 	 	 i1 value 40321 if x = 48 if y = 163 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 44 if y = 163 
+  1 settings made for d1
+set 	 	 i1 value 40322 if x = 44 if y = 163 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 50 if y = 157 
+  1 settings made for d1
+set 	 	 i1 value 40323 if x = 50 if y = 157 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 48 if y = 159 
+  1 settings made for d1
+set 	 	 i1 value 40324 if x = 48 if y = 159 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 44 if y = 161 
+  1 settings made for d1
+set 	 	 i1 value 40325 if x = 44 if y = 161 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 46 if y = 163 
+  1 settings made for d1
+set 	 	 i1 value 40326 if x = 46 if y = 163 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 44 if y = 163 
+  1 settings made for d1
+set 	 	 i1 value 40327 if x = 44 if y = 163 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 44 if y = 161 
+  1 settings made for d1
+set 	 	 i1 value 40328 if x = 44 if y = 161 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 48 if y = 159 
+  1 settings made for d1
+set 	 	 i1 value 40329 if x = 48 if y = 159 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 46 if y = 157 
+  1 settings made for d1
+set 	 	 i1 value 40330 if x = 46 if y = 157 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 71 if y = 163 
+  1 settings made for d1
+set 	 	 i1 value 40331 if x = 71 if y = 163 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 65 if y = 157 
+  1 settings made for d1
+set 	 	 i1 value 40332 if x = 65 if y = 157 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 67 if y = 161 
+  1 settings made for d1
+set 	 	 i1 value 40333 if x = 67 if y = 161 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 69 if y = 159 
+  1 settings made for d1
+set 	 	 i1 value 40334 if x = 69 if y = 159 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 65 if y = 157 
+  1 settings made for d1
+set 	 	 i1 value 40335 if x = 65 if y = 157 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 71 if y = 163 
+  1 settings made for d1
+set 	 	 i1 value 40336 if x = 71 if y = 163 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 65 if y = 163 
+  1 settings made for d1
+set 	 	 i1 value 40337 if x = 65 if y = 163 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 69 if y = 161 
+  1 settings made for d1
+set 	 	 i1 value 40338 if x = 69 if y = 161 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 71 if y = 163 
+  1 settings made for d1
+set 	 	 i1 value 40339 if x = 71 if y = 163 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 71 if y = 161 
+  1 settings made for d1
+set 	 	 i1 value 40340 if x = 71 if y = 161 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 26 if y = 80 
+  1 settings made for d1
+set 	 	 i1 value 40341 if x = 26 if y = 80 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 32 if y = 82 
+  1 settings made for d1
+set 	 	 i1 value 40342 if x = 32 if y = 82 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 28 if y = 84 
+  1 settings made for d1
+set 	 	 i1 value 40343 if x = 28 if y = 84 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 30 if y = 78 
+  1 settings made for d1
+set 	 	 i1 value 40344 if x = 30 if y = 78 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 32 if y = 78 
+  1 settings made for d1
+set 	 	 i1 value 40345 if x = 32 if y = 78 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 28 if y = 80 
+  1 settings made for d1
+set 	 	 i1 value 40346 if x = 28 if y = 80 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 28 if y = 82 
+  1 settings made for d1
+set 	 	 i1 value 40347 if x = 28 if y = 82 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 26 if y = 82 
+  1 settings made for d1
+set 	 	 i1 value 40348 if x = 26 if y = 82 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 32 if y = 84 
+  1 settings made for d1
+set 	 	 i1 value 40349 if x = 32 if y = 84 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 30 if y = 82 
+  1 settings made for d1
+set 	 	 i1 value 40350 if x = 30 if y = 82 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 148 if y = 93 
+  1 settings made for d1
+set 	 	 i1 value 40351 if x = 148 if y = 93 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 144 if y = 97 
+  1 settings made for d1
+set 	 	 i1 value 40352 if x = 144 if y = 97 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 146 if y = 99 
+  1 settings made for d1
+set 	 	 i1 value 40353 if x = 146 if y = 99 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 146 if y = 97 
+  1 settings made for d1
+set 	 	 i1 value 40354 if x = 146 if y = 97 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 144 if y = 95 
+  1 settings made for d1
+set 	 	 i1 value 40355 if x = 144 if y = 95 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 150 if y = 93 
+  1 settings made for d1
+set 	 	 i1 value 40356 if x = 150 if y = 93 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 144 if y = 95 
+  1 settings made for d1
+set 	 	 i1 value 40357 if x = 144 if y = 95 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 144 if y = 93 
+  1 settings made for d1
+set 	 	 i1 value 40358 if x = 144 if y = 93 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 146 if y = 95 
+  1 settings made for d1
+set 	 	 i1 value 40359 if x = 146 if y = 95 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 144 if y = 97 
+  1 settings made for d1
+set 	 	 i1 value 40360 if x = 144 if y = 97 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 183 if y = 123 
+  1 settings made for d1
+set 	 	 i1 value 40361 if x = 183 if y = 123 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 183 if y = 123 
+  1 settings made for d1
+set 	 	 i1 value 40362 if x = 183 if y = 123 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 185 if y = 125 
+  1 settings made for d1
+set 	 	 i1 value 40363 if x = 185 if y = 125 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 183 if y = 125 
+  1 settings made for d1
+set 	 	 i1 value 40364 if x = 183 if y = 125 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 187 if y = 119 
+  1 settings made for d1
+set 	 	 i1 value 40365 if x = 187 if y = 119 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 123 
+  1 settings made for d1
+set 	 	 i1 value 40366 if x = 189 if y = 123 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 183 if y = 119 
+  1 settings made for d1
+set 	 	 i1 value 40367 if x = 183 if y = 119 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 187 if y = 119 
+  1 settings made for d1
+set 	 	 i1 value 40368 if x = 187 if y = 119 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 187 if y = 119 
+  1 settings made for d1
+set 	 	 i1 value 40369 if x = 187 if y = 119 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 189 if y = 125 
+  1 settings made for d1
+set 	 	 i1 value 40370 if x = 189 if y = 125 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 180 if y = 138 
+  1 settings made for d1
+set 	 	 i1 value 40371 if x = 180 if y = 138 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 178 if y = 136 
+  1 settings made for d1
+set 	 	 i1 value 40372 if x = 178 if y = 136 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 178 if y = 132 
+  1 settings made for d1
+set 	 	 i1 value 40373 if x = 178 if y = 132 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 174 if y = 134 
+  1 settings made for d1
+set 	 	 i1 value 40374 if x = 174 if y = 134 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 174 if y = 138 
+  1 settings made for d1
+set 	 	 i1 value 40375 if x = 174 if y = 138 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 176 if y = 138 
+  1 settings made for d1
+set 	 	 i1 value 40376 if x = 176 if y = 138 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 174 if y = 136 
+  1 settings made for d1
+set 	 	 i1 value 40377 if x = 174 if y = 136 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 176 if y = 138 
+  1 settings made for d1
+set 	 	 i1 value 40378 if x = 176 if y = 138 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 176 if y = 138 
+  1 settings made for d1
+set 	 	 i1 value 40379 if x = 176 if y = 138 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 178 if y = 132 
+  1 settings made for d1
+set 	 	 i1 value 40380 if x = 178 if y = 132 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 150 if y = 27 
+  1 settings made for d1
+set 	 	 i1 value 40381 if x = 150 if y = 27 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 144 if y = 25 
+  1 settings made for d1
+set 	 	 i1 value 40382 if x = 144 if y = 25 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 144 if y = 21 
+  1 settings made for d1
+set 	 	 i1 value 40383 if x = 144 if y = 21 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 150 if y = 23 
+  1 settings made for d1
+set 	 	 i1 value 40384 if x = 150 if y = 23 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 144 if y = 25 
+  1 settings made for d1
+set 	 	 i1 value 40385 if x = 144 if y = 25 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 146 if y = 27 
+  1 settings made for d1
+set 	 	 i1 value 40386 if x = 146 if y = 27 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 148 if y = 23 
+  1 settings made for d1
+set 	 	 i1 value 40387 if x = 148 if y = 23 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 146 if y = 27 
+  1 settings made for d1
+set 	 	 i1 value 40388 if x = 146 if y = 27 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 150 if y = 21 
+  1 settings made for d1
+set 	 	 i1 value 40389 if x = 150 if y = 21 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 150 if y = 25 
+  1 settings made for d1
+set 	 	 i1 value 40390 if x = 150 if y = 25 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 70 if y = 68 
+  1 settings made for d1
+set 	 	 i1 value 40391 if x = 70 if y = 68 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 74 if y = 66 
+  1 settings made for d1
+set 	 	 i1 value 40392 if x = 74 if y = 66 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 74 if y = 68 
+  1 settings made for d1
+set 	 	 i1 value 40393 if x = 74 if y = 68 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 74 if y = 70 
+  1 settings made for d1
+set 	 	 i1 value 40394 if x = 74 if y = 70 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 76 if y = 68 
+  1 settings made for d1
+set 	 	 i1 value 40395 if x = 76 if y = 68 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 76 if y = 66 
+  1 settings made for d1
+set 	 	 i1 value 40396 if x = 76 if y = 66 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 74 if y = 68 
+  1 settings made for d1
+set 	 	 i1 value 40397 if x = 74 if y = 68 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 70 if y = 68 
+  1 settings made for d1
+set 	 	 i1 value 40398 if x = 70 if y = 68 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 70 if y = 68 
+  1 settings made for d1
+set 	 	 i1 value 40399 if x = 70 if y = 68 
+  1 settings made for i1
+set 	 	 d1 value 0.0 if x = 70 if y = 70 
+  1 settings made for d1
+set 	 	 i1 value 40400 if x = 70 if y = 70 
+  1 settings made for i1
+
+sweep		 random 
+#solve_style     tree 
+sector		 yes 
+ 
+temperature	 0.5 
+diag_style       energy 
+
+stats 		 0.5
+
+dump             1 text 0.5 dump.2d.clustered id i1 d1 energy 
+diag_style	 cluster stats no delt 0.05 filename cluster.2d.clustered
+diag_style       cluster stats yes 
+ 
+run              10.0
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 2.5 Mbytes
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy     Nclust        <N>        <R>
+         0          0          0          0          0     179860      40000          1          1
+       0.5       1439     158561          4       2.42     177434      38580    1.03681    1.01095
+         1       4097     315903          8       4.84     172506      36038    1.10994    1.02764
+       1.5       7808     472192         12       7.25     164657      32653      1.225    1.04926
+         2      12324     627676         16       9.65     155126      28774    1.39014    1.07398
+       2.5      17450     782550         20         12     141880      24522    1.63119    1.10369
+         3      22792     937208         24       14.4     128661      20342    1.96637    1.13691
+       3.5      28229    1091771         28       16.8     113879      16271    2.45836    1.17909
+         4      33396    1246604         32       19.2    98438.8      12590    3.17712    1.23268
+       4.5      37943    1402057         36       21.5    83041.2       9474    4.22208    1.30275
+         5      41908    1558092         40       24.2    69086.1       6901    5.79626    1.40148
+       5.5      45161    1714839         44         27    56825.8       4861    8.22876    1.54993
+         6      47761    1872239         48       29.8    46882.6       3308    12.0919    1.77917
+       6.5      49752    2030248         52       32.6    39363.4       2238    17.8731    2.11707
+         7      51234    2188766         56       35.3    33962.3       1466    27.2851    2.66777
+       7.5      52328    2347672         60         38    30404.1        982    40.7332    3.44886
+         8      53120    2506880         64       40.8    28052.6        664     60.241     4.5873
+       8.5      53642    2666358         68       43.5    26796.3        512     78.125    5.63791
+         9      54068    2825932         72       46.3    26091.6        419    95.4654     6.6599
+       9.5      54439    2985561         76         49    25928.8        374    106.952    7.33162
+        10      54745    3145255         80       51.8    25810.9        349    114.613     7.7968
+Loop time of 51.7519 on 4 procs
+
+Solve time (%) = 0.0265593 (0.0513204)
+Update time (%) = 0 (0)
+Comm  time (%) = 0.329477 (0.636646)
+Outpt time (%) = 51.3959 (99.312)
+App   time (%) = 0 (0)
+Other time (%) = 3.38475e-05 (6.54034e-05)
