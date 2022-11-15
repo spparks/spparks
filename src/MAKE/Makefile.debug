@@ -1,4 +1,4 @@
-# spencer.gnu: uses MPI_HOME env var path for mpi compiler, enables Stitch
+# mpi = MPI with its default compiler
 
 SHELL = /bin/sh
 
@@ -6,13 +6,12 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		${MPI_HOME}/bin/mpicxx
-C =		${MPI_HOME}/bin/mpicc
+CC =		mpicxx
 CCFLAGS =	-g -O -std=c++11
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		${CC}
+LINK =		mpicxx
 LINKFLAGS =	-g -O
 LIB =	  	
 SIZE =		size
@@ -27,21 +26,15 @@ SHLIBFLAGS =	-shared
 
 # SPPARKS ifdef options, see doc/Section_start.html
 
-SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG -DSPPARKS_BIGBIG
-SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG 
-SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG -DSPPARKS_MAP
-SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG -DSPPARKS_UNORDERED_MAP -DLOG_STITCH
-SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG -DSPPARKS_UNORDERED_MAP
+SPK_INC =	-DSPPARKS_GZIP
+SPK_INC =	-DSPPARKS_GZIP -DSPPARKS_UNORDERED_MAP
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -I${MPI_HOME}/include
-MPI_PATH =      -L${MPI_HOME}/lib 
-MPI_LIB =	-lmpi
-MPI_INC = 
+MPI_INC =
 MPI_PATH =
 MPI_LIB =
 
@@ -50,13 +43,9 @@ MPI_LIB =
 # PATH = path for JPEG library
 # LIB = name of JPEG library
 
-JPG_INC = -I/usr/include
-JPG_PATH = -L/usr/lib64	
-JPG_LIB = -ljpeg
-
-#STITCH_INC = -I/home/jamitch/local/stitch/include
-#STITCH_PATH = -L/home/jamitch/local/stitch/lib
-#STITCH_LIB = -lstitch -ldl -lpthread
+JPG_INC =       
+JPG_PATH = 	
+JPG_LIB =       
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
@@ -105,6 +94,6 @@ depend : fastdep.exe $(SRC)
 	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
 
 fastdep.exe: ../DEPEND/fastdep.c
-	$(C) -O -o $@ $<
+	cc -O -o $@ $<
 
 sinclude .depend

@@ -26,9 +26,9 @@ def main(prefix):
     rc,site_id=libstitch.query_field(fid,'site')
     if -1==site_id:
         raise RuntimeError("Field 'site' NOT FOUND")
-    # rc,d1_id=libstitch.query_field(fid,'d1')
-    #if -1==d1_id:
-    #    raise RuntimeError("Field 'd1' NOT FOUND")
+    rc,d1_id=libstitch.query_field(fid,'d1')
+    if -1==d1_id:
+        raise RuntimeError("Field 'd1' NOT FOUND")
 
     for n,t in enumerate(times):
         # (rc, state, read_flag) = libstitch.read_block (fid, d1_id, t, block)

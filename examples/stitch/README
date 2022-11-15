@@ -14,7 +14,12 @@ and *reset_time* commands.
     write a *stitch* file.
 
   * *dump_raster.in*: runs 2D *potts/am/weld* model to simulate AM build raster pattern 
-    microstructures; writes a *stitch* file.
+    microstructures; writes a *stitch* file; before running this example, 
+    run python script to initialize a stitch file. 
+    "python init.py init --field='d1' 0 200 0 200 0 1"; this command 
+    will create a stitch file 'init.st' which as 'site' values and 
+    'd1' values.  This example demonstrates using the spparks command:
+    'set		 site stitch init.st first'
 
   * *dump_reset_equiaxed.in*: uses *reset_time* command. This allows *dump
     stitch* to write a different simulation time than the current *spparks*

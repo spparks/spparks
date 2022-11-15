@@ -13,40 +13,53 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>deposition rate dirx diry dirz d0 lo hi 
+<PRE>deposition mode rate dirx diry dirz d0 lo hi 
 </PRE>
-<UL><LI>rate = rate of atom deposition (atom/sec units)
+<UL><LI>mode = off or event or batch
+<LI>rate = rate of atom deposition (atom/sec units)
 <LI>dirx,diry,dirz = vector in direction of incidence
 <LI>d0 = capture distance (distance units)
 <LI>lo,hi = min/max coordination number of deposition site 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>deposition	 1.0 0 -1 0 1.0 1 4 
-deposition	 1.0 1 1 -1 1.0 3 10 
+<PRE>deposition	 event 1.0 0 -1 0 1.0 1 4 
+deposition	 batch 1.0 1 1 -1 1.0 3 10
+deposition       off 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This commands invokes deposition events in an on-lattice diffusion
+<P>This command invokes deposition events in an on-lattice diffusion
 model, specified by the <A HREF = "app_diffusion.html">app_style diffusion</A>
 command.
 </P>
-<P>Deposition events will compete with diffusive hop events in the
-diffusion model.  Each time a deposition event is selected, a random
-starting point at the top of the simulation box is selected (top y
-surface in 2d, top z surface in 3d).  The atom trajectory is traced
-along its incident direction which is specified by (dirx,diry,dirz)
-and need not be a unit vector.  However, diry < 0 and dirz = 0 is
-required for 2d models.  Similarly, dirz < 0 is required for 3d
-models.
+<P>If *mode* is set to *off*, then no additional arguments are used.
+Deposition is turned off.  This can be useful when deposition
+previously took place, but is now turned off.
+</P>
+<P>If *mode* is set to *event*, then deposition events will be performed
+in tandem with diffusive hop events in the KMC diffusion model.  This
+option only works when running on a single processor.
+</P>
+<P>If *mode* is set to *batch*, then deposition events will be performed
+as a batch at the end of each KMC loop over sectors.  Thus diffusive
+events and deposition events are separated.  This option only works
+when running in parallel on multiple processors.
+</P>
+<P>For each trial deposition, a random starting point at the top of the
+simulation box is selected (top y surface in 2d, top z surface in 3d).
+The atom trajectory (straight line) is traced along its incident
+direction which is specified by (dirx,diry,dirz) and need not be a
+unit vector.  However, diry < 0 and dirz = 0 is required for 2d
+models.  Similarly, dirz < 0 is required for 3d models.
 </P>
 <P>Candidate deposition sites are vacant sites within a perpendicular
 distance <I>d0</I> from the incident trajectory which also have a current
 coordination number C such that <I>lo</I> <= C <= <I>hi</I>.  Note that <I>d0</I> is
-specified in distance units which will depend on how you setup your
-lattice via the <A HREF = "app_style.html">app_style</A> command.  For example, if
-you specified you lattice constant or box size in Angstroms, then the
-distance units for this command are Angstroms as well.
+specified in distance units which will depend on how the lattice of
+sites is defined via the <A HREF = "lattice.html">lattice</A> command.  For example,
+if the lattice constant or box size in specified in Angstroms, then
+the distance units for this command are Angstroms as well.
 </P>
 <P>If the inicident angle is not vertical, then periodic images of the
 starting point with associated incident trajectories are considered
@@ -55,8 +68,8 @@ candidate site is closest to, in a perpendicular sense.  This means
 x-periodicity in 2d and x- and y-periodicity in 3d.
 </P>
 <P>For the set of candidate sites, the selected deposition site is the
-one closest to the starting point, measuring a projected distance
-along the incident direction.
+one closest to the starting point, measuring the distance from the
+projected perpendicular point to the starting point.
 </P>
 <P>IMPORTANT NOTE: <A HREF = "app_diffusion.html">App_style diffusion</A> defines valid
 sites as vacant (site value = 1) or occupied (value = 2).  When
@@ -71,14 +84,12 @@ sites at the bottom of the system in a periodic sense.
 <P>This command can only be used as part of the <A HREF = "app_diffusion.html">app_style
 diffusion</A> application.
 </P>
-<P>Deposition can currently only be done in serial simulations, not
-parallel.  In serial, it can not be used with multiple
-<A HREF = "sector.html">sectors</A>, only one sector.
-</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "ecoord.html">ecoord</A>, <A HREF = "barrier.html">barrier</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The default is mode = off.
 </P>
 </HTML>

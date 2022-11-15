@@ -151,8 +151,12 @@ class AppLattice : public App {
 
   void iterate_kmc_global(double);
   void iterate_kmc_sector(double);
+
   virtual void iterate_rejection(double);
   void iterate_app_update_only(double,double);
+
+  void update_kmc_sector_border_propensities();
+  int whichset(int);
 
   typedef void (AppLattice::*FnPtrSweep)(int, int *);
   FnPtrSweep sweep;                         // ptr to< sweep functions
