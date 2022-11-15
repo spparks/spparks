@@ -22,7 +22,7 @@ app_style additive/thermal 1000000 1.5 7e-7 "SingleLayerCube.txt" 6e-5 6e-5 6e-5
 
 dimension	 3
 lattice	 	 sc/26n 1
-region		 box block 0 360 0 250 0 30
+region		 box block -15 315 -15 315 0 100
 
 boundary 	 n n n
 
@@ -80,8 +80,8 @@ stats            1e-4
 
 # grain image dump
 
-dump			2 image 0.001 dumpgrain.*.jpg i1 i1 shape cube size 2000 2000 sdiam 1.05 crange 1 1000000 box no 1 
-dump_modify		2 thresh i2 >= 1
+#dump			2 image 0.001 dumpgrain.*.jpg i1 i1 shape cube size 2000 2000 sdiam 1.05 crange 1 1000000 box no 1 
+#dump_modify		2 thresh i2 >= 1
 
 # temp image dump
 

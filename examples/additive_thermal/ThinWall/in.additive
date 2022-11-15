@@ -79,13 +79,13 @@ stats            1e-4
 
 # grain image dump
 
-dump			2 image 0.001 dumpgrain.*.jpg i1 i1 shape cube size 2000 2000 sdiam 1.05 crange 1 1000000 box no 1 
-dump_modify		2 thresh i2 >= 1
+#dump			2 image 0.001 dumpgrain.*.jpg i1 i1 shape cube size 2000 2000 sdiam 1.05 crange 1 1000000 box no 1 
+#dump_modify		2 thresh i2 >= 1
 
 # temp image dump
 
-dump			3 image 1 dumpheat.*.jpg d1 i1 shape cube size 2000 2000 view 0 0 sdiam 1.05 box no 1
-dump_modify		3 thresh i2 >= 1 smap min max cf 0.05 5 min blue 0.25 lightblue 0.5 green 0.75 orange max red
+#dump			3 image 1 dumpheat.*.jpg d1 i1 shape cube size 2000 2000 view 0 0 sdiam 1.05 box no 1
+#dump_modify		3 thresh i2 >= 1 smap min max cf 0.05 5 min blue 0.25 lightblue 0.5 green 0.75 orange max red
 
 # diag_style       cluster delt 8.5e-3 stats no dump standard cluster.AM
 
