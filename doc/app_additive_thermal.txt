@@ -103,29 +103,49 @@ and layers.
 
 :line
 
-The following additional commands are defined by this application:
+The following additional commands are defined by this application.
+The command name is to the left of the equal sign.  These all take a
+single argument which is a numeric value in the specified units.
 
-k_solid                 = Solid conductivity (in W/(mK)) :l
-k_powder                = Powder conductivity (in W/(mK)) :l
-boundary_temperature    = Simulation volume boundary temperature (in K) :l
-specific_heat           = Piecewise-linear representation of specific heat. First number specifies the number of temperature/specific heat value pairs.
-Remaining numbers are temperature (in Kelvin) and specific heat (in J/kg) value pairs. :l
-latent_heat             = Latent heat (in Kelvin) :l
-density                 = Use a value between full-solid density and powder density (in kg/m^3) :l
-t_room                  = T_room and T_inf for convection/radiation BCs (in Kelvin) :l
-emissivity              = Combined emissivity and stefan boltzmann constant :l
-convection_coefficient  = Convection coefficient (in W/m^2 K) :l
-Ko                      = Grain coarsening pre-factor :l
-Q                       = Grain coarsening exponent :l
-liquidus                = Liquidus temperature (in Kelvin) :l
-solidus                 = Solidus temperature (in Kelvin) :l
-solid_front_vel         = Temperature dependent polynomial solidification front velocity equation. The first number specifies number of terms
-while remaining numbers are coefficient values. :l
-nucleation_density      = Nucleation site density (in number/m^3) :l
-critical_undercooling   = Center of normal distribution that defines undercooling where nucleation starts (in Kelvin) :l
-undercooling_deviation  = Std deviation of critical undercooling distribution (in Kelvin). :l
-mean_nuclei_volume      = Center of normal distribution that defines nuclei size (in m^3) :l
-nuclei_volume_deviation = Std dev of nuclei size distribution (in m^2) :l
+k_solid                 = Solid conductivity (in W/(mK))
+k_powder                = Powder conductivity (in W/(mK))
+boundary_temperature    = Simulation volume boundary temperature (in K)
+latent_heat             = Latent heat (in Kelvin)
+density                 = Use a value between full-solid density and powder density (in kg/m^3)
+t_room                  = T_room and T_inf for convection/radiation BCs (in Kelvin)
+emissivity              = Combined emissivity and stefan boltzmann constant
+convection_coefficient  = Convection coefficient (in W/m^2 K)
+Ko                      = Grain coarsening pre-factor
+Q                       = Grain coarsening exponent
+liquidus                = Liquidus temperature (in Kelvin)
+solidus                 = Solidus temperature (in Kelvin)
+nucleation_density      = Nucleation site density (in number/m^3)
+critical_undercooling   = Center of normal distribution that defines undercooling where nucleation starts (in Kelvin)
+undercooling_deviation  = Std deviation of critical undercooling distribution (in Kelvin).
+mean_nuclei_volume      = Center of normal distribution that defines nuclei size (in m^3)
+nuclei_volume_deviation = Std dev of nuclei size distribution (in m^2) :ul
+
+The last two commands defined by this app take multiple arguments.
+Examples are shown.
+
+specific_heat           6 300 480 600 550 1400 675 1550 693 1650 714 1750 736
+solid_front_vel         4 1.091e-5 -2.034e-4 2.74e-3 1.151e-4 :pre
+
+The specific_heat command defines a piecewise-linear fomula for how
+the specific heat depends on temperature.  The first argument is the
+number of pairs of values which follow.  In each pair, the first value
+is temperature (in Kelvin) and the second value is specific heat (in
+J/kg).  The example shown defines specific heats across a range of
+temperatures from 300K to 1750K.
+
+The solid_front_vel command defines a polynomial which is used to
+calculate the velocity of the solidification front as a function of
+temperature.  The first argument is the number of terms in the
+polynomical, The remaining arguments are their coefficients from the
+highest-order term to the lowest-order (constant) term.  In the
+example shown it is a cubic polynomial where 1.091e-5 is the
+coefficient on the cubic temperature, and 1.151e-4 is the constant
+term.  The units of velocity are (m/s).
 
 :line
 
