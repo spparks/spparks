@@ -59,7 +59,8 @@ AppAdditiveThermal::AppAdditiveThermal(SPPARKS *spk, int narg, char **arg) :
   x_devIn = atof(arg[5]); //Set the standard deviation for the gaussian source. This will be in meters
   y_devIn = atof(arg[6]); //Std. dev. in y-direction
   z_devIn = atof(arg[7]); //For a volumetric Gaussian source
-  short_wait_time = atof(arg[8]); //How long to pause during a layer, e.g. while laser is off and moving between rasters
+  short_wait_time = atof(arg[8]); // How long to pause during a layer,
+                                  // e.g. while laser is off and moving between rasters
   flux_prefactor = atof(arg[9]); //Total absorbed laser power in Watts
   substrate_height = atoi(arg[10]); //Substrate height in lattice sites
   nsmooth = atoi(arg[11]); //Number of Potts smoothing steps 
@@ -82,7 +83,8 @@ AppAdditiveThermal::AppAdditiveThermal(SPPARKS *spk, int narg, char **arg) :
   y_dev = y_devIn/dx;
   z_dev = z_devIn/dx;
   recoating_time = 10;
-  Kmc = 0.27695; //SPPARKS KMC scaling factor for sq_26 lattice, should not change for different materials
+  Kmc = 0.27695;  // SPPARKS KMC scaling factor for sq_26 lattice,
+                  // should not change for different materials
 
   // default values for 304L stainless steel. Can be modified in input file.
 
@@ -237,7 +239,6 @@ void AppAdditiveThermal::input_app(char *command, int narg, char **arg)
     if (sizeSig < 0) 
       error->all(FLERR,"Illegal nuclei volume standard deviation");
   
-
   } else if (strcmp(command,"specific_heat") == 0) {
     delete [] specific_heat_temps;
     delete [] specific_heat_vals;
@@ -401,6 +402,405 @@ void AppAdditiveThermal::init_app()
   
   this->app_update(0.0);
 }
+
+/* ----------------------------------------------------------------------
+   Evolve simulation time including rejection KMC solver. This function controls
+   the relative occurence of solidification/thermal timesteps and solid-state kMC steps
+   by comparing the dtMC and time_step variables. time_step is a constant variable,
+   while dtMC depends on lattice size and maximum solid-phase temperature.
+   NOTE: this overrides the default method in AppLattice
+------------------------------------------------------------------------- */
+
+void AppAdditiveThermal::iterate_rejection(double stoptime)
+{
+  int i,icolor,nselect,nrange,jset, nMC;
+  int *site2i;
+  double tempMax;
+  double tempMaxAll;
+  double FDElapsed;
+  double nucVolume;
+  double mobMax = 0;
+  
+  // set loop is over:
+  // sectors if there are sectors and no colors
+  // colors if there are colors and no sectors
+  // first nsector sets if there are both sectors and colors
+
+  int nset_loop = nset;
+  if (bothflag) nset_loop = nsector;
+
+  int done = 0;
+  
+  //This while loop is for the entire simulation run time! (stoptime = "run stoptime")
+  
+  while (!done) {
+
+    //Find the highest temperature in the local array and compare with others
+    tempMax = compute_tempMax();
+    timer->stamp(TIME_APP);
+    MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
+    timer->stamp(TIME_COMM);
+    //Using the global maximum temperature, compute our smallest timestep
+    dtMC = compute_timeMin(tempMaxAll);
+    //Also using this value, compute the maximum solid-state Mobility
+    mobMax = exp(-Q/(R*tempMaxAll));
+  	  	
+    //Figure out how many loops we should do for each step
+    //If Monte Carlo time is bigger than therm, do app_update loops first and do one MC step
+
+    if (dtMC > time_step) {
+      FDElapsed = 0;
+      nMC = 1;
+      for(int i = 0; i < nlocal; i++) MobilityOut[i] = 0;
+      mobMax = 0;
+
+      while(dtMC >= FDElapsed) {
+        //Update temperatures and phases
+        app_update(time_step);
+        //Find the new dtMC value
+        tempMax = compute_tempMax();
+        timer->stamp(TIME_SOLVE);
+        MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
+        timer->stamp(TIME_COMM);
+        //Using the global maximum temperature, compute our smallest timestep
+        //Only update dtMC if it is smaller (higher temperature)
+        //Basing MC calculation off of the highest temp observed in time_step
+        if (dtMC > compute_timeMin(tempMaxAll) || mobMax < 1e-8) {
+          dtMC = compute_timeMin(tempMaxAll);
+          //If new mobMax is larger, use it. This is tested by the enclosing if statement
+          mobMax = exp(-Q/(R*tempMaxAll));
+        }
+
+        //Add to running mobility values at each site. Multiply mobility by timestep_size
+        //which makes the integral of a constant function
+        for(int i = 0; i < nlocal; i++) {
+          if(activeFlag[i] < 3) continue;
+          MobilityOut[i] += time_step * compute_mobility(i,ranapp);
+          //Also check if we're just solidified and should be "relaxed"
+          if(SolidD[i] < 0 && SolidD[i] > -nsmooth -1)    {
+            MobilityOut[i] = 1;
+            site_event_rejection(i, ranapp);
+            SolidD[i]--;
+          }
+          //Check if we just nucleated and need to grow larger
+          else if(SolidD[i] == -nsmooth -2) {
+            nucVolume = nucleationSizes[spin[i]];
+            nucleation_particle_flipper(i, round(nucVolume/pow(dx,3)), ranapp);
+            SolidD[i] = -nsmooth - 3;
+          }
+        }
+        FDElapsed += time_step;
+        time += time_step;
+        timer->stamp(TIME_SOLVE);
+        if (time >= stoptime)   done = 1;
+        if (done || time >= nextoutput) nextoutput = output->compute(time,done);
+        timer->stamp(TIME_OUTPUT);
+        if (done) break;
+      }
+
+      //Compute the normalized mobilities at each site
+      //True "mobMax" would be holding the max temp for the entire window
+
+      for(int i = 0; i < nlocal; i++) {
+        if(activeFlag[i] < 3) continue;
+        MobilityOut[i] = MobilityOut[i]/(mobMax * FDElapsed);
+      }
+        
+    }
+    
+    //If FD step is bigger, figure out number of MC steps to do and then update temps.
+    //Round to the nearest inter MC steps
+    
+    else {
+      nMC = round(time_step/dtMC);
+      //Compute the normalized mobilities for each site
+      for(int i = 0; i < nlocal; i++) {
+        MobilityOut[i] = compute_mobility(i, ranapp)/mobMax;
+      }
+    }
+  	
+    //Do Monte Carlo sweeps
+
+    for (int j = 0; j<nMC; j++) {
+      for (int iset = 0; iset < nset_loop; iset++) {
+        if (nprocs > 1) {
+          timer->stamp();
+          if (sectorflag) comm->sector(iset);
+          else comm->all();
+          timer->stamp(TIME_COMM);
+        }
+
+        if (Lmask) boundary_clear_mask(iset);
+
+        timer->stamp();
+
+        // sectors but no colors (could also be no sectors)
+        // random selection of sites in iset
+
+        if (sweepflag == RANDOM) {
+          site2i = set[iset].site2i;
+          nrange = set[iset].nlocal;
+          nselect = set[iset].nselect;
+          for (i = 0; i < nselect; i++) 
+            sitelist[i] = site2i[ranapp->irandom(nrange) - 1];
+          (this->*sweep)(nselect,sitelist);
+          nattempt += nselect;
+
+          // sectors but no colors, or colors but no sectors
+          // ordered sweep over all sites in iset
+
+        } else if (bothflag == 0) {
+          //Get rid of nloop because we want this to happen once each time we run it.
+          (this->*sweep)(set[iset].nlocal,set[iset].site2i); 
+          nattempt += set[iset].nselect;
+
+          // sectors and colors
+          // icolor loop is over all colors in a sector
+          // jset = set that contains sites of one color in one sector
+          // ordered sweep over all sites in jset
+
+        } else {
+          for (icolor = 0; icolor < ncolors; icolor++) {
+            jset = nsector + iset*ncolors + icolor;
+            //Get rid of nloop because we want this to happen once each time we run it.
+            (this->*sweep)(set[jset].nlocal,set[jset].site2i);
+            nattempt += set[jset].nselect;
+          }
+        }
+
+        timer->stamp(TIME_SOLVE);
+
+        if (nprocs > 1) {
+          if (sectorflag) comm->reverse_sector(iset);
+          else comm->all_reverse();
+          timer->stamp(TIME_COMM);
+        }
+      }
+
+      nsweeps++;
+      if (dtMC > 1) time += dtMC;
+      if (time >= stoptime) done = 1;
+      if (done || time >= nextoutput) nextoutput = output->compute(time,done);
+      timer->stamp(TIME_OUTPUT);
+    }
+
+    //Do a thermal step. Don't do it if dtMC > time_step
+
+    if(dtMC < time_step) {
+      app_update(time_step);
+      //Check if we're just solidified and should be "relaxed"
+      for(int i = 0; i < nlocal; i++) {
+            
+        if(SolidD[i] < 0 && SolidD[i] > -nsmooth -1)    {
+          MobilityOut[i] = 1;
+          site_event_rejection(i, ranapp);
+          SolidD[i]--;
+        }
+      }
+      //Find the highest temperature in the local array and compare with others
+      tempMax = compute_tempMax();
+      timer->stamp(TIME_APP);
+      MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
+      timer->stamp(TIME_COMM);
+      //Using the global maximum temperature, compute our smallest timestep
+      dtMC = compute_timeMin(tempMaxAll);
+      //Also using this value, compute the maximum solid-state Mobility
+      mobMax = exp(-Q/(R*tempMaxAll));
+      timer->stamp(TIME_APP);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   rKMC method
+   perform a site event with no null bin rejection
+   flip to random neighbor spin without null bin
+   technically this is an incorrect rejection-KMC algorithm
+   ------------------------------------------------------------------------- */
+
+void AppAdditiveThermal::site_event_rejection(int i, RandomPark *random)
+{
+  int oldstate = spin[i];
+  double einitial = site_energy(i);
+  double Mobloc = 0;
+    
+  //Assign the local mobility
+
+  Mobloc = MobilityOut[i];
+
+  int j,m,value;
+  int nevent = 0;
+  
+  if((Mobloc < 0.0) || (Mobloc > 1.0001)) {
+    MobilityOut[i] = 0;
+    return;
+  }
+
+  for (j = 0; j < numneigh[i]; j++) {
+    value = spin[neighbor[i][j]];
+
+    //Exclude gas, powder or molten sites from the Potts neighbor tally
+
+    if (value == spin[i] || value == nspins || 
+        (activeFlag[neighbor[i][j]] != 3 && 
+         activeFlag[neighbor[i][j]] != 1)) continue;
+    for (m = 0; m < nevent; m++)
+      if (value == unique[m]) break;
+    if (m < nevent) continue;
+    unique[nevent++] = value;
+  }
+
+  if (nevent == 0) return;
+  int iran = (int) (nevent*random->uniform());
+  if (iran >= nevent) iran = nevent-1;
+  spin[i] = unique[iran];
+  double efinal = site_energy(i);
+
+  // accept or reject via Boltzmann criterion
+
+  if (efinal <= einitial) {
+    if (random->uniform() > Mobloc){
+      spin[i] = oldstate;
+    }
+  }
+  else if (temperature == 0.0) {
+    spin[i] = oldstate;
+  } 
+  else if (random->uniform() > Mobloc * exp((einitial-efinal)*t_inverse)) {
+    spin[i] = oldstate;
+  }
+
+  if (spin[i] != oldstate) naccept++;
+
+  // set mask if site could not have changed
+  // if site changed, unset mask of sites with affected propensity
+  // OK to change mask of ghost sites since never used
+
+  if (Lmask) {
+    if (einitial < 0.5*numneigh[i]) mask[i] = 1;
+    if (spin[i] != oldstate)
+      for (int j = 0; j < numneigh[i]; j++)
+  	mask[neighbor[i][j]] = 0;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   iterate through the temperature solver and update phases as needed
+   ------------------------------------------------------------------------- */
+
+void AppAdditiveThermal::app_update(double dt)
+{
+  double localtime=0.0;
+  double tempMax = 0.0;
+  double tempMaxAll = 0.0;
+
+  //communicate all sites to make sure it's up-to-date when it starts
+
+  timer->stamp();
+  comm->all();
+  timer->stamp(TIME_COMM);
+
+  //Calculate the current position
+
+  if(domain->me == 0) {
+    position_finder_in();
+  }
+
+  timer->stamp(TIME_APP);
+  MPI_Bcast(&done_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&path_index,1,MPI_INT,0,world);
+  MPI_Bcast(&x_meltspot,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&y_meltspot,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&z_meltspot,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&wait_time,1,MPI_DOUBLE,0,world);
+  timer->stamp(TIME_COMM);
+
+  //If we're recoating, run until things get below Ts and then reset all values to room temp
+
+  if(wait_time > 1) {
+    //See if we're below melting throughout the domain
+
+    tempMax = compute_tempMax();
+    MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
+
+    //If below, set all values to room temp and skip to the end of the wait
+
+    if(tempMaxAll < Ts) {
+      if(domain->me == 0) {
+        fprintf(screen,"Continuing after waiting %f\n",recoating_time - wait_time);
+      }
+      wait_time = -1;
+      for (int i=0; i<nlocal; i++) {
+        T[i] = boundary_temp;
+      }
+      comm->all();
+      return;
+    }
+  }
+
+  for (int i=0; i<nlocal; i++) {
+    //Keep looping if we're above the meltspot
+
+    if(xyz[i][2] > floor(z_meltspot)) continue;
+        
+    //If below melt spot, run finite difference
+    //This could be slightly screwy for the first step after a new layer
+
+    else if (activeFlag[i] == 0) {
+      activeFlag[i] = 1;
+    }
+    site_event_finitedifference(i);
+        
+    //Let's also update the active flag after each FD loop
+    //This is also the place to handle nucleation and solidification front impingement
+
+    if(activeFlag[i] == 3) {
+      if(T[i] > Tl) {
+        activeFlag[i] = 2;
+
+        //Also randomize spin and reset cumulative variables
+
+        spin[i] = (int) (nspins * ranapp->uniform());
+        SolidD[i] = 0;
+        MobilityOut[i] = 0;
+      }
+    }
+
+    //If we're molten, call the mushy_phase function to figure out any phase change
+
+    else if (activeFlag[i] == 2 && T[i] <= Tl) {
+      mushy_phase(i, ranapp);
+    }
+
+    //Go from powder to molten
+
+    else if (activeFlag[i] == 1 && T[i] > Tl) {
+      activeFlag[i] = 2;
+
+      //Also randomize spin and reset cumulative variables
+
+      spin[i] = (int) (nspins * ranapp->uniform());
+      SolidD[i] = 0.0;
+      MobilityOut[i] = 0;
+    }
+  }
+  timer->stamp(TIME_APP);
+
+  //re-sync all the data
+
+  comm->all();
+  timer->stamp(TIME_COMM);
+	
+  //Check if this is the last iteration, if so, output an updated version of the path file.
+
+  if(time + dt >= stoptime && domain->me == 0) {	
+    path_file_update();
+  }
+}
+
+// ----------------------------------------------------------------------
+// private methods for this app
+// ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
    Read in the coordinate file before going into MPI
@@ -808,120 +1208,6 @@ double AppAdditiveThermal::flux_finder(int site)
 }
 
 /* ----------------------------------------------------------------------
-   iterate through the temperature solver and update phases as needed
-   ------------------------------------------------------------------------- */
-
-void AppAdditiveThermal::app_update(double dt)
-{
-  double localtime=0.0;
-  double tempMax = 0.0;
-  double tempMaxAll = 0.0;
-
-  //communicate all sites to make sure it's up-to-date when it starts
-
-  timer->stamp();
-  comm->all();
-  timer->stamp(TIME_COMM);
-
-  //Calculate the current position
-
-  if(domain->me == 0) {
-    position_finder_in();
-  }
-
-  timer->stamp(TIME_APP);
-  MPI_Bcast(&done_flag,1,MPI_INT,0,world);
-  MPI_Bcast(&path_index,1,MPI_INT,0,world);
-  MPI_Bcast(&x_meltspot,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&y_meltspot,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&z_meltspot,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&wait_time,1,MPI_DOUBLE,0,world);
-  timer->stamp(TIME_COMM);
-
-  //If we're recoating, run until things get below Ts and then reset all values to room temp
-
-  if(wait_time > 1) {
-    //See if we're below melting throughout the domain
-
-    tempMax = compute_tempMax();
-    MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
-
-    //If below, set all values to room temp and skip to the end of the wait
-
-    if(tempMaxAll < Ts) {
-      if(domain->me == 0) {
-        fprintf(screen,"Continuing after waiting %f\n",recoating_time - wait_time);
-      }
-      wait_time = -1;
-      for (int i=0; i<nlocal; i++) {
-        T[i] = boundary_temp;
-      }
-      comm->all();
-      return;
-    }
-  }
-
-  for (int i=0; i<nlocal; i++) {
-    //Keep looping if we're above the meltspot
-
-    if(xyz[i][2] > floor(z_meltspot)) continue;
-        
-    //If below melt spot, run finite difference
-    //This could be slightly screwy for the first step after a new layer
-
-    else if (activeFlag[i] == 0) {
-      activeFlag[i] = 1;
-    }
-    site_event_finitedifference(i);
-        
-    //Let's also update the active flag after each FD loop
-    //This is also the place to handle nucleation and solidification front impingement
-
-    if(activeFlag[i] == 3) {
-      if(T[i] > Tl) {
-        activeFlag[i] = 2;
-
-        //Also randomize spin and reset cumulative variables
-
-        spin[i] = (int) (nspins * ranapp->uniform());
-        SolidD[i] = 0;
-        MobilityOut[i] = 0;
-      }
-    }
-
-    //If we're molten, call the mushy_phase function to figure out any phase change
-
-    else if (activeFlag[i] == 2 && T[i] <= Tl) {
-      mushy_phase(i, ranapp);
-    }
-
-    //Go from powder to molten
-
-    else if (activeFlag[i] == 1 && T[i] > Tl) {
-      activeFlag[i] = 2;
-
-      //Also randomize spin and reset cumulative variables
-
-      spin[i] = (int) (nspins * ranapp->uniform());
-      SolidD[i] = 0.0;
-      MobilityOut[i] = 0;
-    }
-  }
-  timer->stamp(TIME_APP);
-
-  //re-sync all the data
-
-  comm->all();
-  timer->stamp(TIME_COMM);
-	
-  //Check if this is the last iteration, if so, output an updated version of the path file.
-
-  if(time + dt >= stoptime && domain->me == 0) {	
-    path_file_update();
-  }
-}
-
-/* ----------------------------------------------------------------------
    We'll often need to restart these simulations. We calculate our spot location by tracking
    an index. Therefore, it'll be easiest to rewrite the path file so that it restarts at our
    final location.
@@ -958,79 +1244,6 @@ void AppAdditiveThermal::path_file_update()
     fprintf(fout, "%f,\t%f,\t%f,\t%f,\t%f\n", x_scan_array[i],y_scan_array[i],z_scan_array[i],d_scan_array[i],p_scan_array[i]);
   }
   fclose(fout);
-}
-
-/* ----------------------------------------------------------------------
-   rKMC method
-   perform a site event with no null bin rejection
-   flip to random neighbor spin without null bin
-   technically this is an incorrect rejection-KMC algorithm
-   ------------------------------------------------------------------------- */
-
-void AppAdditiveThermal::site_event_rejection(int i, RandomPark *random)
-{
-  int oldstate = spin[i];
-  double einitial = site_energy(i);
-  double Mobloc = 0;
-    
-  //Assign the local mobility
-
-  Mobloc = MobilityOut[i];
-
-  int j,m,value;
-  int nevent = 0;
-  
-  if((Mobloc < 0.0) || (Mobloc > 1.0001)) {
-    MobilityOut[i] = 0;
-    return;
-  }
-
-  for (j = 0; j < numneigh[i]; j++) {
-    value = spin[neighbor[i][j]];
-
-    //Exclude gas, powder or molten sites from the Potts neighbor tally
-
-    if (value == spin[i] || value == nspins || 
-        (activeFlag[neighbor[i][j]] != 3 && 
-         activeFlag[neighbor[i][j]] != 1)) continue;
-    for (m = 0; m < nevent; m++)
-      if (value == unique[m]) break;
-    if (m < nevent) continue;
-    unique[nevent++] = value;
-  }
-
-  if (nevent == 0) return;
-  int iran = (int) (nevent*random->uniform());
-  if (iran >= nevent) iran = nevent-1;
-  spin[i] = unique[iran];
-  double efinal = site_energy(i);
-
-  // accept or reject via Boltzmann criterion
-
-  if (efinal <= einitial) {
-    if (random->uniform() > Mobloc){
-      spin[i] = oldstate;
-    }
-  }
-  else if (temperature == 0.0) {
-    spin[i] = oldstate;
-  } 
-  else if (random->uniform() > Mobloc * exp((einitial-efinal)*t_inverse)) {
-    spin[i] = oldstate;
-  }
-
-  if (spin[i] != oldstate) naccept++;
-
-  // set mask if site could not have changed
-  // if site changed, unset mask of sites with affected propensity
-  // OK to change mask of ghost sites since never used
-
-  if (Lmask) {
-    if (einitial < 0.5*numneigh[i]) mask[i] = 1;
-    if (spin[i] != oldstate)
-      for (int j = 0; j < numneigh[i]; j++)
-  	mask[neighbor[i][j]] = 0;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1295,214 +1508,6 @@ void AppAdditiveThermal::nucleation_init()
   for(int i = 0; i < nspins; i++) {
     nucleationTemps[i] = dist_T(gen);
     nucleationSizes[i] = dist_S(gen);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   Evolve simulation time including rejection KMC solver. This function controls
-   the relative occurence of solidification/thermal timesteps and solid-state kMC steps
-   by comparing the dtMC and time_step variables. time_step is a constant variable,
-   while dtMC depends on lattice size and maximum solid-phase temperature.
-   ------------------------------------------------------------------------- */
-
-void AppAdditiveThermal::iterate_rejection(double stoptime)
-{
-  int i,icolor,nselect,nrange,jset, nMC;
-  int *site2i;
-  double tempMax;
-  double tempMaxAll;
-  double FDElapsed;
-  double nucVolume;
-  double mobMax = 0;
-  
-  // set loop is over:
-  // sectors if there are sectors and no colors
-  // colors if there are colors and no sectors
-  // first nsector sets if there are both sectors and colors
-
-  int nset_loop = nset;
-  if (bothflag) nset_loop = nsector;
-
-  int done = 0;
-  //This while loop is for the entire simulation run time! (stoptime = "run stoptime")
-  while (!done) {
-    //Find the highest temperature in the local array and compare with others
-    tempMax = compute_tempMax();
-    timer->stamp(TIME_APP);
-    MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
-    timer->stamp(TIME_COMM);
-    //Using the global maximum temperature, compute our smallest timestep
-    dtMC = compute_timeMin(tempMaxAll);
-    //Also using this value, compute the maximum solid-state Mobility
-    mobMax = exp(-Q/(R*tempMaxAll));
-  	  	
-    //Figure out how many loops we should do for each step
-    //If Monte Carlo time is bigger than therm, do app_update loops first and do one MC step
-    if(dtMC > time_step) {
-  		
-      FDElapsed = 0;
-      nMC = 1;
-      //Zero out the mobility
-      for(int i = 0; i < nlocal; i++) {
-        MobilityOut[i] = 0;
-      }
-      mobMax = 0;
-      //         if(domain->me == 0) {
-      //             fprintf(screen,"Potts time_step %.5e is bigger than solidification time_step %.5e.\n",dtMC, time_step);
-      //         }  		
-      while(dtMC >= FDElapsed) {
-        //Update temperatures and phases
-        app_update(time_step);
-        //Find the new dtMC value
-        tempMax = compute_tempMax();
-        timer->stamp(TIME_SOLVE);
-        MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
-        timer->stamp(TIME_COMM);
-        //Using the global maximum temperature, compute our smallest timestep
-        //Only update dtMC if it is smaller (higher temperature)
-        //Basing MC calculation off of the highest temp observed in time_step
-        if (dtMC > compute_timeMin(tempMaxAll) || mobMax < 1e-8) {
-          dtMC = compute_timeMin(tempMaxAll);
-          //If new mobMax is larger, use it. This is tested by the enclosing if statement
-          mobMax = exp(-Q/(R*tempMaxAll));
-        }
-
-        //Add to running mobility values at each site. Multiply mobility by timestep_size
-        //which makes the integral of a constant function
-        for(int i = 0; i < nlocal; i++) {
-          if(activeFlag[i] < 3) continue;
-          MobilityOut[i] += time_step * compute_mobility(i,ranapp);
-          //Also check if we're just solidified and should be "relaxed"
-          if(SolidD[i] < 0 && SolidD[i] > -nsmooth -1)    {
-            MobilityOut[i] = 1;
-            site_event_rejection(i, ranapp);
-            SolidD[i]--;
-          }
-          //Check if we just nucleated and need to grow larger
-          else if(SolidD[i] == -nsmooth -2) {
-            nucVolume = nucleationSizes[spin[i]];
-            nucleation_particle_flipper(i, round(nucVolume/pow(dx,3)), ranapp);
-            SolidD[i] = -nsmooth - 3;
-          }
-        }
-        FDElapsed += time_step;
-        time += time_step;
-        timer->stamp(TIME_SOLVE);
-        if (time >= stoptime)   done = 1;
-        if (done || time >= nextoutput) nextoutput = output->compute(time,done);
-        timer->stamp(TIME_OUTPUT);
-        if (done) break;
-      }
-      //Compute the normalized mobilities at each site
-      //True "mobMax" would be holding the max temp for the entire window
-
-      for(int i = 0; i < nlocal; i++) {
-        if(activeFlag[i] < 3) continue;
-        MobilityOut[i] = MobilityOut[i]/(mobMax * FDElapsed);
-      }
-        
-    }
-    //If FD step is bigger, figure out number of MC steps to do and then update temps.
-    //Round to the nearest inter MC steps
-    else {
-      nMC = round(time_step/dtMC);
-      //         if(domain->me == 0) {
-      //             fprintf(screen,"Potts time_step %.5e is smaller than solidification time_step %.5e doing %d Potts steps, t_max is %f\n",dtMC, time_step, nMC, tempMaxAll);
-      //         }
-      //Compute the normalized mobilities for each site
-      for(int i = 0; i < nlocal; i++) {
-        MobilityOut[i] = compute_mobility(i, ranapp)/mobMax;
-      }
-    }
-  	
-    //Do Monte Carlo sweeps
-
-    for (int j = 0; j<nMC; j++) {
-      for (int iset = 0; iset < nset_loop; iset++) {
-        if (nprocs > 1) {
-          timer->stamp();
-          if (sectorflag) comm->sector(iset);
-          else comm->all();
-          timer->stamp(TIME_COMM);
-        }
-
-        if (Lmask) boundary_clear_mask(iset);
-
-        timer->stamp();
-        // sectors but no colors (could also be no sectors)
-        // random selection of sites in iset
-
-        if (sweepflag == RANDOM) {
-          site2i = set[iset].site2i;
-          nrange = set[iset].nlocal;
-          nselect = set[iset].nselect;
-          for (i = 0; i < nselect; i++) 
-            sitelist[i] = site2i[ranapp->irandom(nrange) - 1];
-          (this->*sweep)(nselect,sitelist);
-          nattempt += nselect;
-
-          // sectors but no colors, or colors but no sectors
-          // ordered sweep over all sites in iset
-
-        } else if (bothflag == 0) {
-          //Get rid of nloop because we want this to happen once each time we run it.
-          (this->*sweep)(set[iset].nlocal,set[iset].site2i); 
-          nattempt += set[iset].nselect;
-
-          // sectors and colors
-          // icolor loop is over all colors in a sector
-          // jset = set that contains sites of one color in one sector
-          // ordered sweep over all sites in jset
-
-        } else {
-          for (icolor = 0; icolor < ncolors; icolor++) {
-            jset = nsector + iset*ncolors + icolor;
-            //Get rid of nloop because we want this to happen once each time we run it.
-            (this->*sweep)(set[jset].nlocal,set[jset].site2i);
-            nattempt += set[jset].nselect;
-          }
-        }
-
-        timer->stamp(TIME_SOLVE);
-
-        if (nprocs > 1) {
-          if (sectorflag) comm->reverse_sector(iset);
-          else comm->all_reverse();
-          timer->stamp(TIME_COMM);
-        }
-      }
-
-      nsweeps++;
-      if (dtMC > 1) time += dtMC;
-      if (time >= stoptime) done = 1;
-      if (done || time >= nextoutput) nextoutput = output->compute(time,done);
-      timer->stamp(TIME_OUTPUT);
-    }
-
-    //Do a thermal step. Don't do it if dtMC > time_step
-
-    if(dtMC < time_step) {
-      app_update(time_step);
-      //Check if we're just solidified and should be "relaxed"
-      for(int i = 0; i < nlocal; i++) {
-            
-        if(SolidD[i] < 0 && SolidD[i] > -nsmooth -1)    {
-          MobilityOut[i] = 1;
-          site_event_rejection(i, ranapp);
-          SolidD[i]--;
-        }
-      }
-      //Find the highest temperature in the local array and compare with others
-      tempMax = compute_tempMax();
-      timer->stamp(TIME_APP);
-      MPI_Allreduce(&tempMax,&tempMaxAll,1,MPI_DOUBLE,MPI_MAX,world);
-      timer->stamp(TIME_COMM);
-      //Using the global maximum temperature, compute our smallest timestep
-      dtMC = compute_timeMin(tempMaxAll);
-      //Also using this value, compute the maximum solid-state Mobility
-      mobMax = exp(-Q/(R*tempMaxAll));
-      timer->stamp(TIME_APP);
-    }
   }
 }
 

@@ -28,19 +28,12 @@ namespace SPPARKS_NS {
 class AppAdditiveThermal : public AppPotts {
  public:
   AppAdditiveThermal(class SPPARKS *, int, char **);
+  virtual void input_app(char *, int, char **);
   virtual void grow_app();
   virtual void init_app();
-  virtual void site_event_rejection(int, class RandomPark *);
-  virtual double compute_mobility(int, class RandomPark *);
-  virtual void nucleation_particle_flipper(int, int,class RandomPark *);
-  virtual void input_app(char *, int, char **);
-  virtual void app_update(double);
-  virtual void mushy_phase(int, class RandomPark *);
-  virtual void nucleation_spins(class RandomPark *);
-  virtual void nucleation_init();
   virtual void iterate_rejection(double);
-  virtual double compute_tempMax();
-  virtual double compute_timeMin(double);
+  virtual void site_event_rejection(int, class RandomPark *);
+  virtual void app_update(double);
 	
  protected:
   int done_flag;
@@ -135,16 +128,24 @@ class AppAdditiveThermal : public AppPotts {
   const double R = 8.31446261815324; // gas constant
  	
   // additional variables for parameterized models
+  
   double dtMC;   // set dt_sweep to this variable at some point
 
   // private methods
 
-  void position_finder_in();
   void path_file();
-  void path_file_update();
   void site_event_finitedifference(int);
-  double flux_finder(int);
   double specificHeatCalculator(double);
+  void position_finder_in();
+  double compute_mobility(int, class RandomPark *);
+  double flux_finder(int);
+  void path_file_update();
+  void mushy_phase(int, class RandomPark *);
+  void nucleation_particle_flipper(int, int, class RandomPark *);
+  void nucleation_spins(class RandomPark *);
+  void nucleation_init();
+  double compute_tempMax();
+  double compute_timeMin(double);
 };
 
 }
