@@ -380,7 +380,8 @@ full description:
 "energy"_diag_energy.html,
 "erbium"_diag_erbium.html,
 "propensity"_diag_propensity.html,
+"sinter_avg_neck_area"_diag_sinter_avg_neck_area.html,
 "sinter_density"_diag_sinter_density.html,
-"sinter_free_energy"_diag_sinter_free_energy.html,
-"sinter_free_energy_pore"_diag_sinter_free_energy_pore.html
+"sinter_free_energy_pore"_diag_sinter_free_energy_pore.html,
+"sinter_pore_curvature"_diag_sinter_pore_curvature.html
 :tb(c=6,ea=c)

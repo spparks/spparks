@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>SPPARKS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="7 Jun 2022 version">
+<META NAME="docnumber" CONTENT="19 Sept 2022 version">
 <META NAME="author" CONTENT="http://spparks.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2008) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -18,7 +18,7 @@
 <H1></H1>
 
 SPPARKS Documentation :c,h3
-7 June 2022 version :c,h4
+19 Sept 2022 version :c,h4
 
 Version info: :h4
 

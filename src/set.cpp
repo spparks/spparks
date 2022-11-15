@@ -31,6 +31,9 @@
 #include "error.h"
 #include <string>
 #include <chrono>
+#include <sstream>
+#include <iomanip>
+#include <iostream>
 
 #ifdef SPK_STITCH
 #include "stitch.h"
@@ -684,13 +687,15 @@ void Set::set_stitch(int lhs, int rhs)
 {
 #ifdef SPK_STITCH
 
+#ifdef LOG_STITCH
    /**
     * STITCH PERFORMANCE: stitch query time; 
     */
-   // auto t1 = std::chrono::high_resolution_clock::now();
+  auto t1 = std::chrono::high_resolution_clock::now();
    /**
     * END STITCH PERFORMANCE: stitch query time; 
     */
+#endif
 
   if (app->appclass != App::LATTICE)
     error->all(FLERR,"Set stitch only allowed for on-lattice apps");
@@ -699,8 +704,8 @@ void Set::set_stitch(int lhs, int rhs)
 
   if (!applattice->simple)
     error->all(FLERR,"Set stitch requires simple square or cubic lattice");
-  if (lhs != SITE && lhs != IARRAY)
-    error->all(FLERR,"Set stitch only supports integer values");
+  if ((lhs != SITE && lhs != IARRAY) && (lhs != DARRAY))
+    error->all(FLERR,"Set stitch only supports integer or double values");
 
   StitchFile *stitch_file;
   int err = stitch_open(&stitch_file,MPI_COMM_WORLD,filename);
@@ -731,6 +736,31 @@ void Set::set_stitch(int lhs, int rhs)
   int yhi = applattice->yhi_me_simple+1;
   int zlo = applattice->zlo_me_simple;
   int zhi = applattice->zhi_me_simple+1;
+
+#ifdef LOG_STITCH
+  {
+     int my_rank, num_procs;
+     MPI_Comm_size(MPI_COMM_WORLD,&num_procs);
+     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+     std::size_t num_digits=1;
+     if(num_procs>=10)
+       num_digits=2;
+     else if(num_procs>=100)
+       num_digits=3;
+
+     std::ostringstream fname;
+     fname << "read.blocks.np" << std::setw(num_digits) << std::setfill('0') << num_procs << ".";
+     // fills rank leading '0' 
+     fname << std::setw(num_digits) << std::setfill('0') << my_rank << ".dat";
+     FILE* fp = std::fopen(fname.str().c_str(), "a");
+     if(!fp){
+        error->all(FLERR,"set.cpp; in function 'set_stitch' file opening failed.");
+     }
+     const char* fmt="%10.4f,%4d,%4d,%4d,%4d,%4d,%4d\n";
+     fprintf(fp,fmt,time,xlo,xhi,ylo,yhi,zlo,zhi);
+     std::fclose(fp);
+  }
+#endif
 
   // get field id
   
@@ -836,26 +866,28 @@ void Set::set_stitch(int lhs, int rhs)
   
   count = app->nlocal;
 
+#ifdef LOG_STITCH
    /**
     * STITCH PERFORMANCE: stitch query time; 
     */
-//  auto t2 = std::chrono::high_resolution_clock::now();
-//  auto duration = std::chrono::duration_cast<std::chrono::seconds>( t2 - t1 ).count();
-//  int my_rank;
-//  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-//  if (0==my_rank){
-//        const string filename="stitch_query.dat";
-//        FILE* fp = std::fopen(filename.c_str(), "a");
-//        if(!fp){
-//           error->all(FLERR,"set.cpp; in function 'set_stitch' file opening failed.");
-//        }
-//        const char* fmt="%10.4f %8d\n";
-//        fprintf(fp,fmt,time,duration);
-//        std::fclose(fp);
-//  }
+  auto t2 = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::seconds>( t2 - t1 ).count();
+  int my_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+  if (0==my_rank){
+        const string filename="stitch_query.dat";
+        FILE* fp = std::fopen(filename.c_str(), "a");
+        if(!fp){
+           error->all(FLERR,"set.cpp; in function 'set_stitch' file opening failed.");
+        }
+        const char* fmt="%10.4f %8d\n";
+        fprintf(fp,fmt,time,duration);
+        std::fclose(fp);
+  }
    /**
     * END STITCH PERFORMANCE: stitch query time; 
     */
+#endif
 
 #endif
 }
