@@ -446,10 +446,10 @@ void Output::memory_usage()
 
   if (me == 0) {
     if (screen) {
-      fprintf(screen,"Running with %d-bit site IDs\n",8*sizeof(tagint));
+      fprintf(screen,"Running with %d-bit site IDs\n",(int) (8*sizeof(tagint)));
       fprintf(screen,"Memory usage per processor = %g Mbytes\n",mbytes);
     } if (logfile) {
-      fprintf(logfile,"Running with %d-bit site IDs\n",8*sizeof(tagint));
+      fprintf(logfile,"Running with %d-bit site IDs\n",(int) (8*sizeof(tagint)));
       fprintf(logfile,"Memory usage per processor = %g Mbytes\n",mbytes);
     }
   }

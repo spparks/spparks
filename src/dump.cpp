@@ -371,11 +371,10 @@ void Dump::openfile()
     char *ptr = strchr(filestar,'*');
     *ptr = '\0';
     if (padflag == 0)
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-              filestar,idump,ptr+1);
+      sprintf(filecurrent,"%s%d%s",filestar,idump,ptr+1);
     else {
       char bif[8],pad[16];
-      strcpy(bif,BIGINT_FORMAT);
+      strcpy(bif,"%d");
       sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
       sprintf(filecurrent,pad,filestar,idump,ptr+1);
     }
