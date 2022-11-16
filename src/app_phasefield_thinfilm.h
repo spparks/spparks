@@ -15,7 +15,7 @@
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
-AppStyle(PF/ThinFilm,AppPhaseFieldThinFilm)
+AppStyle(phasefield/thinfilm,AppPhaseFieldThinFilm)
 
 #else
 
@@ -33,20 +33,20 @@ class AppPhaseFieldThinFilm : public AppPottsNeighOnly {
   void input_app(char *, int, char **);
   void init_app();
   void grow_app();
+  double site_energy(int);
   void site_event_rejection(int,RandomPark *);
   void app_update(double);
-  double site_energy(int);
   
  protected:
-  double *c;      //concentration
-  double *chmPot;      //chemical potential of c
-  double *mobility;      //mobility of c
+  double *c;           // concentration
+  double *chmPot;      // chemical potential of c
+  double *mobility;    // mobility of c
   double *GB;
   double **chm_phi;
     
-  int nlocal_app; //size of cnew
-  int dimension;  //simulation dimension
-  int *cmap;      //connectivity map for finite difference
+  int nlocal_app;   // size of cnew
+  int dimension;    // simulation dimension
+  int *cmap;        // connectivity map for finite difference
     
   bool cmap_ready;          // flag whether the connectivity map is ready
   bool print_cmap;          // flag to print the connectivity map
@@ -54,19 +54,19 @@ class AppPhaseFieldThinFilm : public AppPottsNeighOnly {
   
   // constants for the free energy functional
 
-  double  Wphi, mH, kappa, epsilon, Lphi;
+  double Wphi, mH, kappa, epsilon, Lphi;
   double M_o, M_vol, M_eva, M_sur, M_gb;
   int num_OP;
     
   // variables for evolving the phase field
   
-  double pf_dt;           //time step for phasefield solver
+  double pf_dt;           // time step for phasefield solver
   
   // methods unique to this class
 
   void init_values();
-  void site_event_finitedifference1(int);
-  void site_event_finitedifference2(int);
+  void site_event_finite_difference_one(int);
+  void site_event_finite_difference_two(int);
   double site_grain_membership(int,int);
   void setup_connectivity_map();
   void print_connectivity_map();

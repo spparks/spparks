@@ -12,7 +12,11 @@
    the GNU General Public License.
  
    See the README file in the top-level SPPARKS directory.
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Fadi Abdeljawad (Clemson University)
+------------------------------------------------------------------------- */
 
 #include "math.h"
 #include "string.h"
@@ -46,16 +50,16 @@ AppPhaseFieldThinFilm::AppPhaseFieldThinFilm(SPPARKS *spk, int narg, char **arg)
   allow_app_update = 1;
   allow_masking = 0;
   numrandom = 2;
-  delpropensity = 2;  //need full neighbor lists of the 1st layer ghost sites
+  delpropensity = 2;  // need full neighbor lists of the 1st layer ghost sites
     
-  // add the double array
+  // add the double arrays
 
   recreate_arrays();
     
-  if (narg != 14)
-    error->all(FLERR,"Illegal app_style command - PhaseField/ThinFilm");
+  if (narg != 14) error->all(FLERR,"Illegal app_style command");
 
   // set phase field variables here
+  // arg[1] = nspins for AppPottsNeighOnly, not used by this app
 
   num_OP = atof(arg[2]);
   pf_dt = atof(arg[3]);
@@ -72,12 +76,12 @@ AppPhaseFieldThinFilm::AppPhaseFieldThinFilm(SPPARKS *spk, int narg, char **arg)
     
   // set other default values
 
-  nlocal_app=0;
-  cmap_ready=false;
-  print_cmap=false;
-  initialize_values=false;
-  dimension=0;
-  cmap=NULL;
+  nlocal_app = 0;
+  cmap_ready = false;
+  print_cmap = false;
+  initialize_values = false;
+  dimension = 0;
+  cmap = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,8 +90,9 @@ AppPhaseFieldThinFilm::~AppPhaseFieldThinFilm()
 {
   if (nlocal_app) {
     memory->destroy(chm_phi);
-    nlocal_app=0;
+    nlocal_app = 0;
   }
+  
   if (cmap) memory->sfree(cmap);
 }
 
@@ -95,17 +100,15 @@ AppPhaseFieldThinFilm::~AppPhaseFieldThinFilm()
 
 void AppPhaseFieldThinFilm::input_app(char *command, int narg, char **arg)
 {
-  if (strcmp(command,"PFthinfilm/command") == 0) {
+  if (strcmp(command,"phasefield/thinfilm") == 0) {
     if (narg != 2) error->all(FLERR,"Invalid command for app_style");
     else if (strcmp(arg[0],"print_connectivity") == 0) {
       if (strcmp(arg[1],"yes") == 0) print_cmap=true;
       else print_cmap=false;
-    }
-    else if (strcmp(arg[0],"initialize_values") == 0) {
+    } else if (strcmp(arg[0],"initialize_values") == 0) {
       if (strcmp(arg[1],"yes") == 0) initialize_values=true;
       else initialize_values=false;
-    }
-    else
+    } else
       error->all(FLERR,"Invalid command for app_style");
   } else error->all(FLERR,"Invalid command for app_style");
 }
@@ -114,15 +117,15 @@ void AppPhaseFieldThinFilm::input_app(char *command, int narg, char **arg)
 
 void AppPhaseFieldThinFilm::init_app()
 {
-  //init the parent class first
+  // init the parent class first
 
   AppPottsNeighOnly::init_app();
     
-  //setup the connectivity map
+  // setup the connectivity map
 
   if (!cmap_ready) setup_connectivity_map();
     
-  //initialize values if command is called
+  // initialize values if command is called
 
   if (initialize_values) init_values();
 }
@@ -133,7 +136,7 @@ void AppPhaseFieldThinFilm::init_app()
 
 void AppPhaseFieldThinFilm::grow_app()
 {
-  // you have to keep this to trick SPPARKS into running
+  // need to keep this for SPPARKS to running
 
   spin = iarray[0]; 
     
@@ -151,124 +154,8 @@ void AppPhaseFieldThinFilm::grow_app()
 }
 
 /* ----------------------------------------------------------------------
-   perform finite difference on a single site
-------------------------------------------------------------------------- */
-
-void AppPhaseFieldThinFilm::site_event_finitedifference1(int i)
-{
-  int j,jj, OP;
-  int OP_start = 0;
-    
-  //set values used for convenience
-
-  double C=c[i];
-    
-  double val2=0.0;
-  double valphi1 = 0.0;
-  double valphi2 = 0.0;
-  double sumSquare = 0.0;
-  double sumCube = 0.0;
-  double four_thirds = 1.3333333333333;
-    
-  // calculate Sum phi^2 and Sum phi^3
-
-  for (OP = 0; OP<num_OP; OP++) {
-    double phi_val = darray[OP_start + OP][i];
-    sumSquare += phi_val * phi_val;
-    sumCube += phi_val * phi_val * phi_val;
-  }
-    
-  // Finding the chemical potential of the mass density field
-  // first: get the local quantities
-    
-  val2 = 4.0 * mH * C * (C * C - 1.0) + 
-    four_thirds * Wphi * (0.5 * (C + 1.0) - 3.0 * sumSquare + 2.0 * sumCube);
-    
-  // perform finite difference to calculate: nabla^2 C
-
-  for (j=0; j<2*dimension; j++) {
-    // site neighbors
-    int s=neighbor[i][cmap[j]];
-    //calculate contribution from neighbors
-    val2 += - kappa * kappa * c[s];
-  }
-    
-  //add the contribution from the local point
-
-  val2 += 2.0 * dimension * kappa * kappa * C;
-    
-  // The chemical potential of C
-
-  chmPot[i] = val2;
-
-  // atomic mobility of c
-  // constant mobility everywhere
-  //    mobility[i] = M_o;
-
-  // surface diffusion only
-
-  double g1_eta = 0.03125 * (C * C * C * (6.0 * C * C - 20.0) + 30.0 * C + 16.0);
-  mobility[i] = M_o + M_vol * g1_eta + M_eva * (1.0 - g1_eta) + 
-    M_sur * (1.0 - C) * (1.0 + C) + M_gb * 2.0 * GB[i];
-
-  // to make sure no negative diffusivity
-
-  if (mobility[i] < 0.0) {mobility[i] = 0.0;}
-    
-  // Chemical potential of each of the phi's
-    
-  for (OP = 0; OP<num_OP; OP++) {
-    double phi_val = darray[OP_start + OP][i];
-    double chmphi_val = 0.0;
-        
-    chmphi_val += 8.0 * Wphi * phi_val * 
-      ((1 - C) - (3.0 - C) * phi_val + 2.0 * sumSquare);
-
-      for (j=0; j<2*dimension; j++) {
-        int s=neighbor[i][cmap[j]];
-        chmphi_val += - epsilon * epsilon * darray[OP_start + OP][s];
-      }
-        
-      chmphi_val += 2.0 * dimension * epsilon * epsilon * phi_val;
-      chm_phi[OP][i] = chmphi_val;
-    }
-}
-
-/* ----------------------------------------------------------------------
-   Update rule for the C PDE and ones for phi's
-------------------------------------------------------------------------- */
-
-void AppPhaseFieldThinFilm::site_event_finitedifference2(int i)
-{
-  int j,jj, OP;
-    
-  double dummy1 = 0.0;
-  int OP_start = 0;
-  double GB_field = 0.0;
-    
-  for (OP = 0; OP<num_OP; OP++) {
-    darray[OP_start + OP][i] -= Lphi * pf_dt * chm_phi[OP][i];
-    GB_field += darray[OP_start + OP][i] * (1.0 - darray[OP_start + OP][i]);
-  }
-  
-  GB[i] = GB_field;
-    
-  double mob_term = 0.0;
-    
-  for (j=0; j<2*dimension; j++) {
-    int s=neighbor[i][cmap[j]];
-    mob_term += mobility[s] * chmPot[s] + mobility[i] * chmPot[s] - 
-      chmPot[i] * mobility[s];
-  }
-    
-  mob_term += -2.0 * dimension * mobility[i] * chmPot[i];
-  c[i] = c[i] + 0.5 * pf_dt * mob_term;
-}
-
-
-/* ----------------------------------------------------------------------
    compute energy of site
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 double AppPhaseFieldThinFilm::site_energy(int i)
 {
@@ -276,18 +163,15 @@ double AppPhaseFieldThinFilm::site_energy(int i)
   int OP_start = 0;
   double four_thirds = 1.3333333333333;
     
-  //set values used for convenience
-
-  double C=c[i];
+  double C = c[i];
     
   double energy = mH * (C * C - 1.0) * (C * C - 1.0) + 0.33333333 * 
     Wphi * (C + 1.0) * (C + 1.0);
   double sumSquare = 0.0;
   double sumCube = 0.0;
-
+  
   for (OP = 0; OP < num_OP; OP++) {
     double phi_val = darray[OP_start + OP][i];
-        
     sumSquare += phi_val * phi_val;
     sumCube += phi_val * phi_val * phi_val;
   }
@@ -299,7 +183,8 @@ double AppPhaseFieldThinFilm::site_energy(int i)
 }
 
 /* ----------------------------------------------------------------------
-   ------------------------------------------------------------------------- */
+   not used by phasefield-only simulation
+------------------------------------------------------------------------- */
 
 void AppPhaseFieldThinFilm::site_event_rejection(int i, RandomPark *random)
 {
@@ -345,8 +230,8 @@ void AppPhaseFieldThinFilm::site_event_rejection(int i, RandomPark *random)
 }
 
 /* ----------------------------------------------------------------------
-   iterate through the phase field solution
-   ------------------------------------------------------------------------- */
+   callback to iterate through the phase field solution
+------------------------------------------------------------------------- */
 
 void AppPhaseFieldThinFilm::app_update(double stoptime)
 {
@@ -360,13 +245,15 @@ void AppPhaseFieldThinFilm::app_update(double stoptime)
     
   // iterate through all the sets
 
-  for (int i=0; i<nlocal; i++) {site_event_finitedifference1(i);}
+  for (int i = 0; i < nlocal; i++)
+    site_event_finite_difference_one(i);
     
   timer->stamp();
   comm->all();
   timer->stamp(TIME_COMM);
     
-  for (int i=0; i<nlocal; i++) {site_event_finitedifference2(i);}
+  for (int i = 0; i < nlocal; i++)
+    site_event_finite_difference_two(i);
     
   timer->stamp(TIME_SOLVE);
     
@@ -377,27 +264,156 @@ void AppPhaseFieldThinFilm::app_update(double stoptime)
   timer->stamp(TIME_COMM);
 }
 
+// ----------------------------------------------------------------------
+// methods specific to phase field computations
+// ----------------------------------------------------------------------
+
+void AppPhaseFieldThinFilm::init_values()
+{
+  srand(685479);
+    
+  int OP_start = 0;
+  for (int i = 0; i < nlocal; i++) {
+    c[i] = 1.0;
+    for (int OP = 0; OP < num_OP; OP++) 
+      darray[OP_start + OP][i] = 0.5 + 0.15 * 2.0 * 
+        ((double)rand() / (double)RAND_MAX - 0.5);
+  }
+
+  initialize_values=false;  // ensure this doesn't get called again
+}
+
+/* ----------------------------------------------------------------------
+   perform finite difference on a single site
+------------------------------------------------------------------------- */
+
+void AppPhaseFieldThinFilm::site_event_finite_difference_one(int i)
+{
+  int j,jj, OP;
+  int OP_start = 0;
+    
+  // set values used for convenience
+
+  double C = c[i];
+    
+  double val2 = 0.0;
+  double valphi1 = 0.0;
+  double valphi2 = 0.0;
+  double sumSquare = 0.0;
+  double sumCube = 0.0;
+  double four_thirds = 1.3333333333333;
+    
+  // calculate Sum phi^2 and Sum phi^3
+
+  for (OP = 0; OP<num_OP; OP++) {
+    double phi_val = darray[OP_start + OP][i];
+    sumSquare += phi_val * phi_val;
+    sumCube += phi_val * phi_val * phi_val;
+  }
+    
+  // finding the chemical potential of the mass density field
+  // first: get the local quantities
+    
+  val2 = 4.0 * mH * C * (C * C - 1.0) + 
+    four_thirds * Wphi * (0.5 * (C + 1.0) - 3.0 * sumSquare + 2.0 * sumCube);
+    
+  // perform finite difference to calculate: nabla^2 C
+
+  for (j=0; j<2*dimension; j++) {
+    // site neighbors
+    int s = neighbor[i][cmap[j]];
+    //calculate contribution from neighbors
+    val2 += - kappa * kappa * c[s];
+  }
+    
+  //add the contribution from the local point
+
+  val2 += 2.0 * dimension * kappa * kappa * C;
+    
+  // The chemical potential of C
+
+  chmPot[i] = val2;
+
+  // atomic mobility of c
+  // constant mobility everywhere: mobility[i] = M_o;
+
+  // surface diffusion only
+
+  double g1_eta = 0.03125 * (C * C * C * (6.0 * C * C - 20.0) + 30.0 * C + 16.0);
+  mobility[i] = M_o + M_vol * g1_eta + M_eva * (1.0 - g1_eta) + 
+    M_sur * (1.0 - C) * (1.0 + C) + M_gb * 2.0 * GB[i];
+
+  // to make sure no negative diffusivity
+
+  if (mobility[i] < 0.0) mobility[i] = 0.0;
+    
+  // chemical potential of each of the phi's
+    
+  for (OP = 0; OP < num_OP; OP++) {
+    double phi_val = darray[OP_start + OP][i];
+    double chmphi_val = 0.0;
+        
+    chmphi_val += 8.0 * Wphi * phi_val * 
+      ((1 - C) - (3.0 - C) * phi_val + 2.0 * sumSquare);
+    
+    for (j=0; j<2*dimension; j++) {
+      int s=neighbor[i][cmap[j]];
+      chmphi_val += - epsilon * epsilon * darray[OP_start + OP][s];
+    }
+    
+    chmphi_val += 2.0 * dimension * epsilon * epsilon * phi_val;
+    chm_phi[OP][i] = chmphi_val;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   update rule for the C PDE and ones for phi's
+------------------------------------------------------------------------- */
+
+void AppPhaseFieldThinFilm::site_event_finite_difference_two(int i)
+{
+  double dummy1 = 0.0;
+  int OP_start = 0;
+  double GB_field = 0.0;
+    
+  for (int OP = 0; OP < num_OP; OP++) {
+    darray[OP_start + OP][i] -= Lphi * pf_dt * chm_phi[OP][i];
+    GB_field += darray[OP_start + OP][i] * (1.0 - darray[OP_start + OP][i]);
+  }
+  
+  GB[i] = GB_field;
+    
+  double mob_term = 0.0;
+    
+  for (int j = 0; j < 2*dimension; j++) {
+    int s = neighbor[i][cmap[j]];
+    mob_term += mobility[s] * chmPot[s] + mobility[i] * chmPot[s] - 
+      chmPot[i] * mobility[s];
+  }
+    
+  mob_term += -2.0 * dimension * mobility[i] * chmPot[i];
+  c[i] += 0.5 * pf_dt * mob_term;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AppPhaseFieldThinFilm::setup_connectivity_map()
 {
   int i,j;
     
-  //this check is redundant but I'm leaving it anyway
+  // this check is redundant but I'm leaving it anyway
 
   if (domain->lattice->nbasis > 1)
-    error->all(FLERR,"Only single basis units allowed for app_style PF/ThinFilm");
+    error->all(FLERR,"Only single basis units allowed for phasefield/thinfilm");
     
-  //set the dimension variable
+  // set the dimension variable
 
   dimension = domain->dimension;
     
   if (!cmap)
-    cmap = (int *)
-      memory->smalloc(2*dimension*sizeof(int),"app_pf_thinfilm:cmap");
+    cmap = (int *) memory->smalloc(2*dimension*sizeof(int),"phasefield_thinfilm:cmap");
     
-    
-  //setup the connectivity map for the appropriate style
+  // setup the connectivity map for the appropriate style
 
   int style=domain->lattice->style;
     
@@ -435,11 +451,11 @@ void AppPhaseFieldThinFilm::setup_connectivity_map()
     cmap[5]=13;// z+1
   }
   else
-    error->all(FLERR,"Lattice style not compatible with app_style PF/ThinFilm");
+    error->all(FLERR,"Lattice style not compatible with phasefield/thinfilm");
     
-  //The connectivity map defined above should not change unless
-  //create_sites changes. However, the following is an error check
-  //to ensure that the connectivity map is correct.
+  // connectivity map defined above should not change unless
+  // create_sites changes. However, the following is an error check
+  // to ensure that the connectivity map is correct.
     
   double lim[3][2];
   lim[0][0]=domain->boxxlo;
@@ -453,9 +469,7 @@ void AppPhaseFieldThinFilm::setup_connectivity_map()
   for (i=0; i<nlocal; i++) {
     done=0;
     for (j=0; j<dimension; j++)
-      if (xyz[i][j]!=lim[j][0] && xyz[i][j]!=lim[j][1])
-        done++;
-        
+      if (xyz[i][j]!=lim[j][0] && xyz[i][j]!=lim[j][1]) done++;
     if (done==dimension) {
       id=i;
       break;
@@ -463,7 +477,7 @@ void AppPhaseFieldThinFilm::setup_connectivity_map()
   }
     
   if (id==-1)
-    error->all(FLERR,"Error in connectivity map for app_style PF/ThinFilm");
+    error->all(FLERR,"Error in connectivity map for phasefield/thinfilm");
     
   // now check the ith site because it's not on any of the boundaries
 
@@ -477,7 +491,7 @@ void AppPhaseFieldThinFilm::setup_connectivity_map()
       int s=neighbor[id][cmap[2*i+j]];
       if (pos != xyz[s][i]) {
         print_connectivity_map();
-        error->all(FLERR,"Invalid connectivity map for app_style PF/ThinFilm");
+        error->all(FLERR,"Invalid connectivity map for phasefield/thinfilm");
       }
     }
   }
@@ -507,7 +521,7 @@ void AppPhaseFieldThinFilm::print_connectivity_map()
     sprintf(strptr,"  +/-     x     y     z\n");
   strptr += strlen(strptr);
     
-  //cycle through the appropriate dimensions
+  // cycle through the appropriate dimensions
 
   for (j=0; j<2; j++) {
     if (j==0)
@@ -526,25 +540,8 @@ void AppPhaseFieldThinFilm::print_connectivity_map()
     
   if (screen)
     fprintf(screen,
-            "Connectivity map for app_style: PF/ThinFilm\n%s\n",str);
+            "Connectivity map for phasefield/thinfilm\n%s\n",str);
   if (logfile)
     fprintf(logfile,
-            "Connectivity map for app_style: PF/ThinFilm\n%s\n",str);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AppPhaseFieldThinFilm::init_values()
-{
-  srand(685479);
-    
-  int OP_start = 0;
-  for (int i = 0; i < nlocal; i++) {
-    c[i] = 1.0;
-    for (int OP = 0; OP < num_OP; OP++) 
-      darray[OP_start + OP][i] = 0.5 + 0.15 * 2.0 * 
-        ((double)rand() / (double)RAND_MAX - 0.5);
-  }
-
-  initialize_values=false;//ensure this doesn't get called again
+            "Connectivity map for phasefield/thinfilm\n%s\n",str);
 }

@@ -29,7 +29,7 @@
 
 using namespace SPPARKS_NS;
 
-#define MAXLINE 256
+#define MAXLINE 1024
 #define CHUNK 1024
 #define DELTA 4
 #define EPSILON 1.0e-6
