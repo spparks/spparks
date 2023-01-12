@@ -40,7 +40,7 @@ am path_layer 1 num_paths 2 path_ids 1 2 thickness 1 :pre
 
 [Description:]
 
-This command is used by "potts/additive"_app_potts_additive.html, and
+This command is used by "am/ellipsoid"_app_am_ellipsoid.html, and
 "potts/am_weld"_app_potts_am_weld.html to specify raster scans in a
 very general way.  This {am path} command specifies a line in the x-y
 plane using {start x,y} and {end x,y} points; path scan {speed V} is
@@ -58,7 +58,7 @@ associated with {am path_layer 1}. See depiction of simulation below.
 
 This rastering command can be used with "app_style
 potts/am/weld"_app_potts_am_weld.html or "app_style
-potts/additive"_app_potts_additive.html.
+am/ellipsoid"_app_am_ellipsoid.html.
 
 [Related commands:]
 

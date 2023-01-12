@@ -36,7 +36,7 @@ am path_layer 1 num_paths 2 path_ids 1 2 thickness 1 :pre
 
 [Description:]
 
-This command is used by "potts/additive"_app_potts_additive.html, and
+This command is used by "am/ellipsoid"_app_am_ellipsoid.html, and
 "potts/am/weld"_app_potts_am_weld.html applications to specify raster
 patterns on path build layers.  Multiple path_layers can be defined in
 a single input file, using unique id values.  Although simple build
@@ -58,7 +58,7 @@ illustrated for "am_path"_am_path.html,
 [Restrictions:]
 
 This command can only be used as part of apps
-"potts/additive"_app_potts_additive.html or
+"am/ellipsoid"_app_am_ellipsoid.html or
 "potts/am/weld"_app_potts_am_weld.html applications.
 
 [Related commands:]

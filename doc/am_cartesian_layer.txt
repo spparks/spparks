@@ -36,7 +36,7 @@ am cartesian_layer 1 start LR pass_id 2 thickness 1 offset 0.0 -100.  :pre
 
 [Description:]
 
-This command is used by "potts/additive"_app_potts_additive.html, and
+This command is used by "am/ellipsoid"_app_am_ellipsoid.html, and
 "potts/am/weld"_app_potts_am_weld.html applications to specify raster
 patterns on cartesian build layers.  Multiple cartesian_layers can be
 defined in a single input file, using unique id values.
@@ -77,7 +77,7 @@ defaults to {x=0,y=0}, if one of these values must be non-zero, then
 [Restrictions:]
 
 This command can only be used as part of apps
-"potts/additive"_app_potts_additive.html or
+"am/ellipsoid"_app_am_ellipsoid.html or
 "potts/am/weld"_app_potts_am_weld.html.
 
 [Related commands:]
