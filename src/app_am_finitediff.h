@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
-AppStyle(additive/thermal,AppAdditiveThermal)
+AppStyle(am/finitediff,AppAMFiniteDiff)
 
 #else
 
-#ifndef SPK_APP_ADDITIVE_THERMAL_H
-#define SPK_APP_ADDITIVE_THERMAL_H
+#ifndef SPK_APP_AM_FINITEDIFF_H
+#define SPK_APP_AM_FINITEDIFF_H
 
 #include "app_potts.h"
 #include "app_lattice.h"
@@ -25,9 +25,9 @@ AppStyle(additive/thermal,AppAdditiveThermal)
 
 namespace SPPARKS_NS {
 
-class AppAdditiveThermal : public AppPotts {
+class AppAMFiniteDiff : public AppPotts {
  public:
-  AppAdditiveThermal(class SPPARKS *, int, char **);
+  AppAMFiniteDiff(class SPPARKS *, int, char **);
   virtual void input_app(char *, int, char **);
   virtual void grow_app();
   virtual void init_app();
