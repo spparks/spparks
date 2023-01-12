@@ -21,7 +21,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "math.h"
-#include "app_potts_phasefield_eric.h"
+#include "app_phasefield_potts_table.h"
 #include "solve.h"
 #include "random_park.h"
 #include "error.h"
@@ -45,8 +45,8 @@ enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsPhaseFieldEric::
-AppPottsPhaseFieldEric(SPPARKS *spk, int narg, char **arg) : 
+AppPhaseFieldPottsTable::
+AppPhaseFieldPottsTable(SPPARKS *spk, int narg, char **arg) : 
   AppPottsNeighOnly(spk,narg,arg)
 {
   ninteger = 2;
@@ -69,7 +69,7 @@ AppPottsPhaseFieldEric(SPPARKS *spk, int narg, char **arg) :
   if (nphasestemp < 1) error->all(FLERR,"Illegal app_style command");
   
   if ((9+2*nphasestemp) != narg)
-    error->all(FLERR,"Illegal app_style command - AppPottsPhaseFieldEric");
+    error->all(FLERR,"Illegal app_style command for phasefield/potts/table");
   
   // dt_phasefield is set as a multiple of dt_rkmc in setup_end_app();
   // set the multiple here. ( dt_phasefield = dt_rkmc / dt_phasefield_mult )
@@ -85,7 +85,7 @@ AppPottsPhaseFieldEric(SPPARKS *spk, int narg, char **arg) :
   specific_heat = atof(arg[8]);
   
   phases = (Phase **) 
-    memory->smalloc(nphasestemp*sizeof(Phase *),"app_potts_pf:phases");
+    memory->smalloc(nphasestemp*sizeof(Phase *),"phasefield/potts/table:phases");
   
   int iarg=9;
   int currentspin=0;
@@ -118,8 +118,8 @@ AppPottsPhaseFieldEric(SPPARKS *spk, int narg, char **arg) :
   }
 
   if (nphases != nphasestemp) error->all(FLERR,"Illegal app_style command");
-  if (currentspin != nspins) error->all(FLERR,"Illegal app_style command "
-                                        "Phase spins don't add to nspins");
+  if (currentspin != nspins) error->all(FLERR,"Illegal app_style command -- "
+                                        "phase spins don't add to nspins");
   
   //set other default values
   
@@ -148,7 +148,7 @@ AppPottsPhaseFieldEric(SPPARKS *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsPhaseFieldEric::~AppPottsPhaseFieldEric()
+AppPhaseFieldPottsTable::~AppPhaseFieldPottsTable()
 {
   if (pf_resetfield) {
     memory->destroy(pf_resetlist);
@@ -173,7 +173,7 @@ AppPottsPhaseFieldEric::~AppPottsPhaseFieldEric()
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::input_app(char *command, int narg, char **arg)
+void AppPhaseFieldPottsTable::input_app(char *command, int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Invalid command for app_style");
   
@@ -290,7 +290,7 @@ void AppPottsPhaseFieldEric::input_app(char *command, int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::init_app() 
+void AppPhaseFieldPottsTable::init_app() 
 {
   int i;
   
@@ -320,7 +320,7 @@ void AppPottsPhaseFieldEric::init_app()
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::process_phases()
+void AppPhaseFieldPottsTable::process_phases()
 {
   int i,j,k;
   
@@ -401,7 +401,7 @@ void AppPottsPhaseFieldEric::process_phases()
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::setup_end_app() 
+void AppPhaseFieldPottsTable::setup_end_app() 
 {
   // set the time step for phase field
   
@@ -412,7 +412,7 @@ void AppPottsPhaseFieldEric::setup_end_app()
  set site value ptrs each time iarray/darray are reallocated
  ------------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::grow_app()
+void AppPhaseFieldPottsTable::grow_app()
 {
   // set integer pointers
   
@@ -445,7 +445,7 @@ void AppPottsPhaseFieldEric::grow_app()
  perform finite difference on a single  site
  ------------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::site_event_finitedifference(int i)
+void AppPhaseFieldPottsTable::site_event_finitedifference(int i)
 {
   int p,j,jj;
   double qsum[3],fsum[3],Tsum[3],Tinvsum[3];
@@ -613,7 +613,7 @@ void AppPottsPhaseFieldEric::site_event_finitedifference(int i)
  compute energy of site
 ------------------------------------------------------------------------- */
 
-double AppPottsPhaseFieldEric::site_energy(int i)
+double AppPhaseFieldPottsTable::site_energy(int i)
 {
   // return the full energy value
   
@@ -627,7 +627,7 @@ double AppPottsPhaseFieldEric::site_energy(int i)
    for efficient site event rejection
 ------------------------------------------------------------------------- */
 
-double AppPottsPhaseFieldEric::site_energy_without_phasefield(int i)
+double AppPhaseFieldPottsTable::site_energy_without_phasefield(int i)
 {    
   // The phase field energy term is not calculated here for 
   // computational efficiency.  This function is called by
@@ -643,7 +643,7 @@ double AppPottsPhaseFieldEric::site_energy_without_phasefield(int i)
  compute the potts interface energy of site
  ------------------------------------------------------------------------- */
 
-double AppPottsPhaseFieldEric::site_energy_potts(int i)
+double AppPhaseFieldPottsTable::site_energy_potts(int i)
 {
   // calculate the Potts interface energy
   
@@ -662,7 +662,7 @@ double AppPottsPhaseFieldEric::site_energy_potts(int i)
  compute the bulk free energy of site
  ------------------------------------------------------------------------- */
 
-double AppPottsPhaseFieldEric::site_energy_bulk(int i)
+double AppPhaseFieldPottsTable::site_energy_bulk(int i)
 {
   // no sum over phases because the site only has one phase
   // energy scaling has already been accounted for
@@ -674,7 +674,7 @@ double AppPottsPhaseFieldEric::site_energy_bulk(int i)
  compute the bulk free energy of site
  ------------------------------------------------------------------------- */
   
-double AppPottsPhaseFieldEric::site_energy_phasefield(int i)
+double AppPhaseFieldPottsTable::site_energy_phasefield(int i)
 {
   double val=0.0;
   
@@ -697,7 +697,7 @@ double AppPottsPhaseFieldEric::site_energy_phasefield(int i)
    technically this is an incorrect rejection-KMC algorithm
 ------------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::site_event_rejection(int i, RandomPark *random)
+void AppPhaseFieldPottsTable::site_event_rejection(int i, RandomPark *random)
 {
   int oldstate = spin[i];
   double einitial = site_energy_without_phasefield(i);
@@ -760,7 +760,7 @@ void AppPottsPhaseFieldEric::site_event_rejection(int i, RandomPark *random)
    iterate through the phase field solution 
 ------------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::app_update(double stoptime)
+void AppPhaseFieldPottsTable::app_update(double stoptime)
 {
   double localtime=0.0;
   
@@ -846,7 +846,7 @@ void AppPottsPhaseFieldEric::app_update(double stoptime)
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::setup_connectivity_map()
+void AppPhaseFieldPottsTable::setup_connectivity_map()
 {
   int i,j;
  
@@ -965,7 +965,7 @@ void AppPottsPhaseFieldEric::setup_connectivity_map()
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::print_connectivity_map()
+void AppPhaseFieldPottsTable::print_connectivity_map()
 {
   char str[256];
   char *strptr;
@@ -1008,7 +1008,7 @@ void AppPottsPhaseFieldEric::print_connectivity_map()
   
 /* ---------------------------------------------------------------------- */
   
-double AppPottsPhaseFieldEric::bilinear_interp(int i,int flag)
+double AppPhaseFieldPottsTable::bilinear_interp(int i,int flag)
 {
   // bilinear interpolation formula from equation 13.54 in 
   // MACHINE VISION by Ramesh Jain, Rangachar Kasturi, Brian G. Schunck
@@ -1088,7 +1088,7 @@ double AppPottsPhaseFieldEric::bilinear_interp(int i,int flag)
 
 /* ---------------------------------------------------------------------- */
 
-int AppPottsPhaseFieldEric::find_phase(char *name)
+int AppPhaseFieldPottsTable::find_phase(char *name)
 {
   for (int iphase = 0; iphase < nphases; iphase++)
     if (strcmp(name,phases[iphase]->id) == 0) return iphase;
@@ -1096,7 +1096,7 @@ int AppPottsPhaseFieldEric::find_phase(char *name)
 }
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::set_site_phase(int i)
+void AppPhaseFieldPottsTable::set_site_phase(int i)
 {
   for (int j=0; j<nphases; j++)
     if (spin[i] >= phases[j]->spin_start &&
@@ -1106,7 +1106,7 @@ void AppPottsPhaseFieldEric::set_site_phase(int i)
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseFieldEric::set_pf_resetlist(int narg, char **arg)
+void AppPhaseFieldPottsTable::set_pf_resetlist(int narg, char **arg)
 {
   if (narg < 3)
     error->all(FLERR,"Illegal pottspf/command reset_phasefield");
@@ -1182,7 +1182,7 @@ void AppPottsPhaseFieldEric::set_pf_resetlist(int narg, char **arg)
    http://www.fredosaurus.com/notes-cpp/algorithms/searching/binarysearch.html
 ---------------------------------------------------------------------- */
 
-int AppPottsPhaseFieldEric::binarySearch(double *sortedArray, 
+int AppPhaseFieldPottsTable::binarySearch(double *sortedArray, 
                                          int first, int last, double key)
 {
   // this returns the index for the nearest value
@@ -1209,7 +1209,7 @@ int AppPottsPhaseFieldEric::binarySearch(double *sortedArray,
    get app properties or in this case the pointer to the table
 ------------------------------------------------------------------------- */
 
-void *AppPottsPhaseFieldEric::extract_app(char * name) {
+void *AppPhaseFieldPottsTable::extract_app(char * name) {
   
   int i=find_phase(name);
   if (i < 0)

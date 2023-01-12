@@ -12,22 +12,22 @@
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
-AppStyle(potts/phasefield/eric,AppPottsPhaseFieldEric)
+AppStyle(phasefield/potts/table,AppPhaseFieldPottsTable)
 
 #else
 
-#ifndef SPK_APP_POTTS_PHASEFIELD_ERIC_H
-#define SPK_APP_POTTS_PHASEFIELD_ERIC_H
+#ifndef SPK_APP_PHASEFIELD_POTTS_TABLE_H
+#define SPK_APP_PHASEFIELD_POTTS_TABLE_H
 
 #include "app_potts_neighonly.h"
 
 namespace SPPARKS_NS {
-
-class AppPottsPhaseFieldEric : public AppPottsNeighOnly {
- public:
   
-  AppPottsPhaseFieldEric(class SPPARKS *, int, char **);
-  ~AppPottsPhaseFieldEric();
+ class AppPhaseFieldPottsTable : public AppPottsNeighOnly {
+  public:
+  
+  AppPhaseFieldPottsTable(class SPPARKS *, int, char **);
+  ~AppPhaseFieldPottsTable();
 
   void input_app(char *, int, char **);
   void init_app();

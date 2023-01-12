@@ -329,6 +329,7 @@ full description:
 "ising"_app_ising.html,
 "ising/single"_app_ising.html,
 "membrane"_app_membrane.html,
+"phasefield/potts/table"_app_phasefield_potts.html,
 "potts"_app_potts.html,
 "potts/additive"_app_potts_additive.html,
 "potts/am/path/gen"_app_potts_am_path_gen.html,
