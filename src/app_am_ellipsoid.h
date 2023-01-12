@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
-AppStyle(potts/additive,AppPottsAdditive)
+AppStyle(am/ellipsoid,AppAMEllipsoid)
 
 #else
 
-#ifndef SPK_APP_POTTS_ADDITIVE
-#define SPK_APP_POTTS_ADDITIVE
+#ifndef SPK_APP_AM_ELLIPSOID
+#define SPK_APP_AM_ELLIPSOID
 
 #include <stdlib.h>
 #include "app_potts.h"
@@ -31,9 +31,9 @@ AppStyle(potts/additive,AppPottsAdditive)
 
 namespace SPPARKS_NS {
 
-class AppPottsAdditive : public PottsAmPathParser {
+class AppAMEllipsoid : public PottsAmPathParser {
  public:
-  AppPottsAdditive(class SPPARKS *, int, char **);
+  AppAMEllipsoid(class SPPARKS *, int, char **);
   virtual void grow_app();
   virtual void init_app();
   virtual void site_event_rejection(int, RandomPark *);

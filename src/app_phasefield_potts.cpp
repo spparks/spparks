@@ -18,7 +18,7 @@
 #include "math.h"
 #include "string.h"
 #include "stdlib.h"
-#include "app_potts_phasefield.h"
+#include "app_phasefield_potts.h"
 #include "solve.h"
 #include "random_park.h"
 #include "error.h"
@@ -37,7 +37,7 @@ enum{NONE,LINE_2N,SQ_4N,SQ_8N,TRI,SC_6N,SC_26N,FCC,BCC,DIAMOND,
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsPhaseField::AppPottsPhaseField(SPPARKS *spk, int narg, char **arg) : 
+AppPhaseFieldPotts::AppPhaseFieldPotts(SPPARKS *spk, int narg, char **arg) : 
   AppPottsNeighOnly(spk,narg,arg)
 {
   ninteger = 2;
@@ -56,7 +56,7 @@ AppPottsPhaseField::AppPottsPhaseField(SPPARKS *spk, int narg, char **arg) :
 
   recreate_arrays();
 
-  // parse arguments for PottsPhaseField class only, not children
+  // parse arguments for PhaseFieldPotts class only, not children
 
   if (strcmp(style,"potts/pfm") != 0) return;
 
@@ -67,7 +67,7 @@ AppPottsPhaseField::AppPottsPhaseField(SPPARKS *spk, int narg, char **arg) :
   nspins = atoi(arg[1]);
   if (nspins <= 0) error->all(FLERR,"Illegal app_style command");
   if (nspins % 2)
-    error->all(FLERR,"App potts/pfm must have even # of spins");
+    error->all(FLERR,"App phasefield/potts must have even # of spins");
   
   phaseChangeInt = nspins/2;
   
@@ -110,25 +110,25 @@ AppPottsPhaseField::AppPottsPhaseField(SPPARKS *spk, int narg, char **arg) :
     
     if (strcmp(arg[iarg],"reset_phasefield") == 0) {
       iarg++;
-      if (iarg >= narg) error->all(FLERR,"Illegal app_style potts/pfm command");
+      if (iarg >= narg) error->all(FLERR,"Illegal app_style phasefield/potts command");
       if (strcmp(arg[iarg],"yes") == 0) pf_resetfield = true;
       else if (strcmp(arg[iarg],"no") == 0) pf_resetfield = false;
-      else error->all(FLERR,"Illegal app_style potts/pfm command");
+      else error->all(FLERR,"Illegal app_style phasefield/potts command");
     } else if (strcmp(arg[iarg],"print_connectivity") == 0) {
       iarg++;
-      if (iarg >= narg) error->all(FLERR,"Illegal app_style potts/pfm command");
+      if (iarg >= narg) error->all(FLERR,"Illegal app_style phasefield/potts command");
       if (strcmp(arg[iarg],"yes") == 0) print_cmap = true;
       else if (strcmp(arg[iarg],"no") == 0) print_cmap = false;
-      else error->all(FLERR,"Illegal app_style potts/pfm command");
+      else error->all(FLERR,"Illegal app_style phasefield/potts command");
     } else if (strcmp(arg[iarg],"initialize_values") == 0) {
       iarg++;
-      if (iarg >= narg) error->all(FLERR,"Illegal app_style potts/pfm command");
+      if (iarg >= narg) error->all(FLERR,"Illegal app_style phasefield/potts command");
       if (strcmp(arg[iarg],"yes") == 0) initialize_values = true;
       else if (strcmp(arg[iarg],"no") == 0) initialize_values = false;
-      else error->all(FLERR,"Illegal app_style potts/pfm command");
+      else error->all(FLERR,"Illegal app_style phasefield/potts command");
     } else if (strcmp(arg[iarg],"enforce_concentration_limits") == 0) {
       iarg++;
-      if (iarg >= narg) error->all(FLERR,"Illegal app_style potts/pfm command");
+      if (iarg >= narg) error->all(FLERR,"Illegal app_style phasefield/potts command");
       if (strcmp(arg[iarg],"yes") == 0) {
 	enforceConcentrationLimits = true;
 	warn_concentration_deviation = 1;
@@ -137,15 +137,15 @@ AppPottsPhaseField::AppPottsPhaseField(SPPARKS *spk, int narg, char **arg) :
 	enforceConcentrationLimits = false; 
 	warn_concentration_deviation = 0;
 	warn_concentration_deviation_all = 0;
-      } else error->all(FLERR,"Illegal app_style potts/pfm command");
-    } else error->all(FLERR,"Illegal app_style potts/pfm command");
+      } else error->all(FLERR,"Illegal app_style phasefield/potts command");
+    } else error->all(FLERR,"Illegal app_style phasefield/potts command");
     iarg++;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsPhaseField::~AppPottsPhaseField()
+AppPhaseFieldPotts::~AppPhaseFieldPotts()
 {
   if (pf_resetfield) {
     memory->sfree(pf_resetlist);
@@ -159,7 +159,7 @@ AppPottsPhaseField::~AppPottsPhaseField()
     memory->sfree(cmap);
 }
 
-void AppPottsPhaseField::init_app() 
+void AppPhaseFieldPotts::init_app() 
 {
   // init the parent class first
 
@@ -181,7 +181,7 @@ void AppPottsPhaseField::init_app()
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseField::setup_end_app() 
+void AppPhaseFieldPotts::setup_end_app() 
 {
   // set the time step for phase field
 
@@ -194,7 +194,7 @@ void AppPottsPhaseField::setup_end_app()
  set site value ptrs each time iarray/darray are reallocated
  ------------------------------------------------------------------------- */
 
-void AppPottsPhaseField::grow_app()
+void AppPhaseFieldPotts::grow_app()
 {
   // set integer pointers
 
@@ -224,7 +224,7 @@ void AppPottsPhaseField::grow_app()
  perform finite difference on a single  site
  ------------------------------------------------------------------------- */
 
-void AppPottsPhaseField::site_event_finitedifference(int i)
+void AppPhaseFieldPotts::site_event_finitedifference(int i)
 {
 
   int j,jj;
@@ -334,7 +334,7 @@ void AppPottsPhaseField::site_event_finitedifference(int i)
  compute energy of site
  ------------------------------------------------------------------------- */
 
-double AppPottsPhaseField::site_energy(int i)
+double AppPhaseFieldPotts::site_energy(int i)
 {
 
   // get the energy without the gradient term
@@ -367,7 +367,7 @@ double AppPottsPhaseField::site_energy(int i)
  compute energy of site without the gradient term for efficient site event rejection
  ------------------------------------------------------------------------- */
 
-double AppPottsPhaseField::site_energy_no_gradient(int i)
+double AppPhaseFieldPotts::site_energy_no_gradient(int i)
 {
   int isite = spin[i];
   int eng = 0;
@@ -409,7 +409,7 @@ double AppPottsPhaseField::site_energy_no_gradient(int i)
  technically this is an incorrect rejection-KMC algorithm
  ------------------------------------------------------------------------- */
 
-void AppPottsPhaseField::site_event_rejection(int i, RandomPark *random)
+void AppPhaseFieldPotts::site_event_rejection(int i, RandomPark *random)
 {
   int oldstate = spin[i];
   double einitial = site_energy_no_gradient(i);
@@ -453,7 +453,7 @@ void AppPottsPhaseField::site_event_rejection(int i, RandomPark *random)
  iterate through the phase field solution 
  ------------------------------------------------------------------------- */
 
-void AppPottsPhaseField::app_update(double stoptime)
+void AppPhaseFieldPotts::app_update(double stoptime)
 {
   double localtime=0.0;
   
@@ -523,7 +523,7 @@ void AppPottsPhaseField::app_update(double stoptime)
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseField::setup_connectivity_map()
+void AppPhaseFieldPotts::setup_connectivity_map()
 {
   int i,j;
  
@@ -531,7 +531,7 @@ void AppPottsPhaseField::setup_connectivity_map()
 
   if (domain->lattice->nbasis > 1)
     error->all(FLERR,
-      "only single basis units are allowed for app_style potts/pfm");
+      "only single basis units are allowed for app_style phasefield/potts");
   
   // set the dimension variable
 
@@ -581,7 +581,7 @@ void AppPottsPhaseField::setup_connectivity_map()
   }
   else
     error->all(FLERR,
-      "Lattice style not compatible with app_style potts/pfm");
+      "Lattice style not compatible with app_style phasefield/potts");
     
   // connectivity map defined above should not change unless
   // create_sites changes. However, the following is an error check
@@ -610,7 +610,7 @@ void AppPottsPhaseField::setup_connectivity_map()
   
   if (id==-1) 
     error->all(FLERR,
-      "Error checking connectivity map for app_style potts/pfm");
+      "Error checking connectivity map for app_style phasefield/potts");
   
   // now check the ith site because it's not on any of the boundaries
 
@@ -625,7 +625,7 @@ void AppPottsPhaseField::setup_connectivity_map()
       if (pos != xyz[s][i]) {
         print_connectivity_map();
         error->all(FLERR,
-          "Invalid connectivity map for app_style potts/pfm");
+          "Invalid connectivity map for app_style phasefield/potts");
       }
     }
   }
@@ -639,7 +639,7 @@ void AppPottsPhaseField::setup_connectivity_map()
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseField::print_connectivity_map()
+void AppPhaseFieldPotts::print_connectivity_map()
 {
   char str[256];
   char *strptr;
@@ -674,15 +674,15 @@ void AppPottsPhaseField::print_connectivity_map()
     
   if (screen)
     fprintf(screen,
-            "Connectivity map for app_style: potts/pfm\n%s\n",str);
+            "Connectivity map for app_style: phasefield/potts\n%s\n",str);
   if (logfile)
     fprintf(logfile,
-            "Connectivity map for app_style: potts/pfm\n%s\n",str);
+            "Connectivity map for app_style: phasefield/potts\n%s\n",str);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseField::set_site_phase(int i)
+void AppPhaseFieldPotts::set_site_phase(int i)
 {
   if ( (spin[i] - phaseChangeInt) > 0 )
     phase[i]=0; // Alpha
@@ -692,7 +692,7 @@ void AppPottsPhaseField::set_site_phase(int i)
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseField::set_phasefield_resetfield()
+void AppPhaseFieldPotts::set_phasefield_resetfield()
 {
 
   // get the count
@@ -730,7 +730,7 @@ void AppPottsPhaseField::set_phasefield_resetfield()
 
 /* ---------------------------------------------------------------------- */
 
-void AppPottsPhaseField::init_values()
+void AppPhaseFieldPotts::init_values()
 {
   double q_alpha,q_beta,cAlpha,cBeta;
   
