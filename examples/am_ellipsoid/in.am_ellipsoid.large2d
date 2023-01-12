@@ -1,9 +1,9 @@
-# SPPARKS potts/additive test file
+# SPPARKS am/ellipsoid test file
 
 seed		 56789
 
 		 
-app_style	 potts/additive		1000 30 70 30 7		50 90 45 12 0.1
+app_style	 am/ellipsoid		1000 45 60 5 8		67.5 90 10.5 10.5 0.1
 
 #  |————————————————————————————————————————
 #  | nspins		= atoi(arg[1])
@@ -14,19 +14,18 @@ app_style	 potts/additive		1000 30 70 30 7		50 90 45 12 0.1
 #  | melt_depth = atoi(arg[4]); #How many lattice sites deep the melt pool is
 #  | cap_height = atoi(arg[5]); #Height of the cap leading the meltpool
 #  |————————————————————————————————————————
-#  | HAZ = atoi(arg[6]); #Size of the HAZ surrounding the melt pool (must be larger than spot_width and melt_depth)
+#  | HAZ = atoi(arg[6]); #Size of the HAZ surrounding the melt pool (must be larger than spot_width)
 #  | tail_HAZ = atoi(arg[7]); #Length of hot zone behind meltpool (must be larger than melt_tail_length)
 #  | depth_HAZ = atof(arg[8]); //Depth of the hot zone underneath the meltpool (must be larger than melt_depth)
 #  | cap_HAZ = atoi(arg[8]); #Size of HAZ infront of the melt pool (must be larger than cap_height)
 #  | exp_factor = atof(arg[9]); #Exponential parameter for mobility decay in haz M(d) = exp(-exp_factor * d)
 #  |————————————————————————————————————————
 
-
 #Define simulation domain and initialize site variables
 #———————————————————————————————————————————
 dimension	 3
 lattice	 	 sc/26n 1.0
-region		 box block 0 100 0 100 0 100
+region		 box block 0 450 0 450 0 1
 
 boundary 	 n n n
 
@@ -37,19 +36,13 @@ set		 d1 value 0.0
 #———————————————————————————————————————————
 
 
-# Define an additive scan pattern on rectangular domain 
-# using am pass and cartesian layer commands.   
+#Define an additive scan pattern using a combination of pass, transverse_pass, cartesian_layer, and pattern
 #———————————————————————————————————————————
 
-am pass 1 dir X speed 10 hatch 25
-am pass 2 dir Y speed 10 hatch 25
+am pass 1 dir Y speed 15 hatch 25
+am cartesian_layer 1 start LL pass_id 1 thickness 1 offset 0.0 -60.0
+am build start 0.0 num_layers 1
 
-am cartesian_layer 1 start LL pass_id 1 thickness 25 offset -80.0 0.0
-am cartesian_layer 2 start UL pass_id 2 thickness 25 offset 0.0 80.0
-am cartesian_layer 3 start UR pass_id 1 thickness 25 offset 80.0 0.0
-am cartesian_layer 4 start LR pass_id 2 thickness 25 offset 0.0 -80.0
-
-am build start 25.0 num_layers 4
 #———————————————————————————————————————————
 
 #Setup the solver type and parameters. Must use a "sweep" style solver
@@ -63,25 +56,16 @@ temperature	 0.25
 #——————————————————————————————————————————— 
 diag_style   energy
 stats            1.0
-#dump             1 text 25.0 dump.additive4.* id i1 d1
 
-dump 1 stitch 2 small3d.23Jul2020.linux site
+dump 1 stitch 2 large2d.23Jul2020.linux site
 
-#If SPPARKS was not compiled with libjpeg, comment out the lines below.
-#dump top image 2 top.small3D.*.jpg site site crange 1 1000 drange 1 1 view 0.0 0.0 shape cube box no 1 zoom 2 size 512 512 sdiam 1.05
-#dump mobility_top image 2 mobiity_top.small3D.*.jpg d1 i1 view 0.0 0.0 shape cube size 512 512 sdiam 1.05 box no 1 zoom 2
-
-#dump_modify top boundcolor black backcolor black pad 4 thresh z <= 18
-#dump_modify	mobility_top smap 0 1 cf 0.05 5 min blue 0.45 lightblue 0.65 yellow 0.75 orange max red thresh z <= 20
-
-#dump transverse image 2 transverse.small3D.*.jpg site site crange 1 1000 drange 1 1 view 90.0 -90.0 shape cube box no 1 zoom 1.5 size 512 512
-#dump_modify transverse boundcolor black backcolor black pad 4  thresh y <= 10
-
-#dump longitudinal image 2 longitudinal.small3D.*.jpg site site crange 1 1000  drange 1 1 view 90.0 0.0 shape cube box no 1 zoom 1.5 size 512 512
-#dump_modify longitudinal boundcolor black backcolor black pad 4  thresh x <= 20
- 
-#dump mobility_long image 2 mobiity_long.small3D.*.jpg d1 i1 view 90.0 0.0 shape cube size 512 512 sdiam 1.05 box no 1 zoom 1.5
-#dump_modify	mobility_long smap 0 1 cf 0.05 5 min blue 0.45 lightblue 0.65 yellow 0.75 orange max red thresh x <= 20
+#If SPPARKS was not compiled with libjpeg, comment out the 4 lines below.
+# Note 'azimuth' angle=-90 used with 'view' keyword orients image consistently with 'am_pass 1 dir Y' above
+#dump top image 2 top.large2D.*.jpg site site crange 1 1000 drange 1 1 view 0.0 -90.0 boundary site 1 shape cube box no 1 zoom 2 size 512 512 sdiam 1.05
+#dump mobility_top image 2 mobiity_top.large2D.*.jpg d1 i1 view 0.0 -90.0 shape cube size 512 512 sdiam 1.05 box no 1 zoom 2
+#dump_modify top boundcolor black backcolor black pad 4 
+#dump_modify	mobility_top smap 0 1 cf 0.05 5 min blue 0.45 lightblue 0.65 yellow 0.75 orange max red
 #——————————————————————————————————————————— 
 
-run              225
+
+run              200
