@@ -4,7 +4,7 @@ seed		 56789
 
 # Nspins Nphases PF/Potts_Steps  mob CH_energy cond Q* Cp phases spinrange
 
-app_style potts/phasefield/eric 21 3 100 0.5 4 1 0.1 1 fcc 10 dia 10 liquid 1
+app_style phasefield/potts/table 21 3 100 0.5 4 1 0.1 1 fcc 10 dia 10 liquid 1
 
 #dimension	 1
 #lattice		 line/2n 1.0
