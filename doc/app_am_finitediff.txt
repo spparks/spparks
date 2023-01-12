@@ -6,11 +6,11 @@
 
 :line
 
-app_style additive/thermal command :h3
+app_style am/finitediff command :h3
 
 [Syntax:]
 
-app_style additive/thermal nspins velocity time_step path_file spot_x_deviation spot_y_deviation spot_z_deviation short_pause_time flux_prefactor substrate_height nsmooth dx :pre
+app_style am/finitediff nspins velocity time_step path_file spot_x_deviation spot_y_deviation spot_z_deviation short_pause_time flux_prefactor substrate_height nsmooth dx :pre
 
 nspins = number of spins/grain IDs
 vel = Velocity of laser travel (meters/second)
@@ -27,7 +27,7 @@ dx = Lattice spacing (meters) :ul
 
 [Examples:]
 
-app_style additive/thermal 1000000 1.4 7e-7 "path.txt" 6e-5 6e-5 6e-5 2e-7 115 18 1 5e-6 :pre
+app_style am/finitediff 1000000 1.4 7e-7 "path.txt" 6e-5 6e-5 6e-5 2e-7 115 18 1 5e-6 :pre
 
 [Description:]
 

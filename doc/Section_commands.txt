@@ -322,7 +322,7 @@ Application styles.  See the "app_style"_app_style.html command for
 one-line descriptions of each style or click on the style itself for a
 full description:
 
-"additive/thermal"_app_additive_thermal.html,
+"am_finitediff"_app_am_finitediff.html,
 "chemistry"_app_chemistry.html,
 "diffusion"_app_diffusion.html,
 "diffusion/multiphase"_app_diffusion_multiphase.html,
