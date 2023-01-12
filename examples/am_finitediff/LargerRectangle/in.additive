@@ -1,10 +1,10 @@
-# SPPARKS Jointed Rosenthal Solution Complicated Cube Test
+# SPPARKS Potts tests on generic lattice
 
 shell mkdir DumpFiles 
 
 seed		 56789
 
-# additive/thermal args
+# am/finitediff args
 # nspins = atoi(arg[1]);
 # vel = atof(arg[2]); //Velocity of travel (in meters/second)
 # time_step = atof(arg[3]); //In seconds
@@ -18,11 +18,11 @@ seed		 56789
 # nrefine = atoi(arg[11]); //How many smoothing steps to perform
 # dx = atof(arg[12]); //Thermal and microstructure lattice spacing (in meters)
 
-app_style additive/thermal 1000000 1.5 7e-7 "SingleLayerCube.txt" 6e-5 6e-5 6e-5 1e-6 115 27 1 5e-6
+app_style am/finitediff 1000000 1.4 7e-7 "path.txt" 6e-5 6e-5 6e-5 2e-7 115 18 1 5e-6
 
 dimension	 3
 lattice	 	 sc/26n 1
-region		 box block -15 315 -15 315 0 100
+region		 box block 0 360 0 250 0 30
 
 boundary 	 n n n
 
@@ -85,12 +85,9 @@ stats            1e-4
 
 # temp image dump
 
-#dump			3 image 1e-3 dumpheat.*.jpg d2 i1 shape cube size 3500 3500 view 0 0 sdiam 0.75 box no 0.01 zoom 2
-#dump_modify		3 thresh i2 >= 1 smap min max cf 0.05 5 min blue 1000 lightblue 1300 green 1673 orange max red
-#dump_modify		3 thresh i2 > 1 smap min max cf 0.05 2 min blue max red 
+#dump			3 image 1 dumpheat.*.jpg d1 i1 shape cube size 2000 2000 view 0 0 sdiam 1.05 box no 1
+#dump_modify		3 thresh i2 >= 1 smap min max cf 0.05 5 min blue 0.25 lightblue 0.5 green 0.75 orange max red
 
-#diag_style       cluster delt 8.5e-3 stats no dump standard cluster.AM
-
-run              0.0361
+run              0.043
 
 shell cd ../
