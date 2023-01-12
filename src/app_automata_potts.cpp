@@ -17,7 +17,7 @@
 #include "stdio.h"
 #include "time.h"
 
-#include "app_potts_ca.h"
+#include "app_automata_potts.h"
 #include "solve.h"
 #include "random_mars.h"
 #include "random_park.h"
@@ -39,7 +39,7 @@ enum{NOSWEEP,RANDOM,RASTER,COLOR,COLOR_STRICT};
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsCA::AppPottsCA(SPPARKS *spk, int narg, char **arg) :
+AppAutomataPotts::AppAutomataPotts(SPPARKS *spk, int narg, char **arg) :
   AppPottsNeighOnly(spk,narg,arg)
 {
   ninteger = 2;
@@ -78,7 +78,7 @@ AppPottsCA::AppPottsCA(SPPARKS *spk, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsCA::~AppPottsCA()
+AppAutomataPotts::~AppAutomataPotts()
 {
   delete ranlatt;
 }
@@ -88,7 +88,7 @@ AppPottsCA::~AppPottsCA()
    each time iarray and darray are reallocated
 ------------------------------------------------------------------------- */
 
-void AppPottsCA::grow_app()	
+void AppAutomataPotts::grow_app()	
 { 
   spin = iarray[0];
   stored_e = darray[0];
@@ -110,7 +110,7 @@ void AppPottsCA::grow_app()
    energy may be introduced at a singular time step(s)
  ------------------------------------------------------------------------- */
 
-void AppPottsCA::app_update(double dt_caller)
+void AppAutomataPotts::app_update(double dt_caller)
 {
   // determine current maximum stored energy in system (at last timestep)
   
@@ -211,7 +211,7 @@ void AppPottsCA::app_update(double dt_caller)
    check validity of site values
 ------------------------------------------------------------------------- */
 
-void AppPottsCA::init_app()
+void AppAutomataPotts::init_app()
 {
   delete [] sites;
   delete [] unique;
@@ -240,7 +240,7 @@ void AppPottsCA::init_app()
    C is 1 for an nucleation attempt and 0 for a gg attempt.
  ------------------------------------------------------------------------- */
 
-double AppPottsCA::site_energy(int i)	
+double AppAutomataPotts::site_energy(int i)	
 { 
   // establish a int-i-based conditional operation for the selection of a 
   // site energy derived from the stored energy of the site (s_eng) or the 
@@ -279,7 +279,7 @@ double AppPottsCA::site_energy(int i)
    ... For (GG), flipped sites' dvalue are updated to stored energy of joined neighbor
  ------------------------------------------------------------------------- */
 
-void AppPottsCA::site_event_rejection(int i, RandomPark *random)
+void AppAutomataPotts::site_event_rejection(int i, RandomPark *random)
 {
   // notes:	
   // rc_repeats are the number of recrystallization steps
@@ -427,7 +427,7 @@ void AppPottsCA::site_event_rejection(int i, RandomPark *random)
 ------------------------------------------------------------------------- */
 
 /*
-void AppPottsCA::iterate_rejection(double)
+void AppAutomataPotts::iterate_rejection(double)
 {
   int i,icolor,nselect,nrange,jset;
   int *site2i;

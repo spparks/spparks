@@ -12,21 +12,21 @@
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
-AppStyle(potts/ca,AppPottsCA)
+AppStyle(automata/potts,AppAutomataPotts)
 
 #else
 
-#ifndef SPK_APP_POTTS_CA_H
-#define SPK_APP_POTTS_CA_H
+#ifndef SPK_APP_AUTOMATA_POTTS_H
+#define SPK_APP_AUTOMATA_POTTS_H
 
 #include "app_potts_neighonly.h"
 
 namespace SPPARKS_NS {
 
-class AppPottsCA : public AppPottsNeighOnly {
+class AppAutomataPotts : public AppPottsNeighOnly {
  public:
-  AppPottsCA(class SPPARKS *, int, char **);
-  ~AppPottsCA();
+  AppAutomataPotts(class SPPARKS *, int, char **);
+  ~AppAutomataPotts();
   void grow_app();
   void init_app();
   double site_energy(int);
