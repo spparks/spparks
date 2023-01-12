@@ -9,7 +9,7 @@ dimension 2
 # | nuclei_pct	= atof(arg[narg-3]) 
 # | threshold	= atof(arg[narg-4]) 
 
-app_style        potts/ca 4000000 .50 0.0 0.0 1.0 
+app_style        automata/potts 4000000 .50 0.0 0.0 1.0 
  
 lattice		 sq/8n 1.0 
 region		 box block 0 200 0 200 0 1 

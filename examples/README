@@ -20,6 +20,7 @@ identical answers to those in the log of dump files included here.
 These are the sample problems in the various sub-directories:
 
 am_path:    additive manufacturing applications with use of a path
+automata_potts:   hybrid cellular automata + Potts model
 chemistry:  simple A + B <-> C reaction model
 erbium:     erbium reaction/diffusion model
 groups:     test of tree and group KMC solvers on a reaction network

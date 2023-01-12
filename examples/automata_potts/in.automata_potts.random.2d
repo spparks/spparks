@@ -3,8 +3,7 @@
 seed 76330
 dimension 2
 
-
-app_style 	 potts/ca 40000 0.0 1.0 0.0 1.0 
+app_style 	 automata/potts 40000 0.0 1.0 0.0 1.0 
  
 lattice		 sq/8n 1.0 
 region		 box block 0 200 0 200 0 1 
