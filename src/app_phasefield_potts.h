@@ -13,22 +13,22 @@
 
 #ifdef APP_CLASS
 
-AppStyle(potts/pfm,AppPottsPhaseField)
+AppStyle(phasefield/potts,AppPhaseFieldPotts)
 
 #else
 
-#ifndef SPK_APP_POTTS_PHASEFIELD_H
-#define SPK_APP_POTTS_PHASEFIELD_H
+#ifndef SPK_APP_PHASEFIELD_POTTS_H
+#define SPK_APP_PHASEFIELD_POTTS_H
 
 #include "app_potts_neighonly.h"
 
 namespace SPPARKS_NS {
 
-class AppPottsPhaseField : public AppPottsNeighOnly {
+class AppPhaseFieldPotts : public AppPottsNeighOnly {
  public:
   
-  AppPottsPhaseField(class SPPARKS *, int, char **);
-  ~AppPottsPhaseField();
+  AppPhaseFieldPotts(class SPPARKS *, int, char **);
+  ~AppPhaseFieldPotts();
 
   void init_app();
   void setup_end_app();
@@ -56,25 +56,29 @@ class AppPottsPhaseField : public AppPottsNeighOnly {
   bool initialize_values;         // flag to indicate whether to initialize equilibrium values
   
   //constants for the free energy functional
+  
   double gamma,kappaC,M_c;
   double c_1,c_2,c_3,c_4;
   double a_1,a_2;
   
   //variables for evolving the phase field
+  
   double dt_phasefield;           //time step for phasefield solver
   double dt_phasefield_mult;      // number of PF iterations per rkmc event
   
   //variables for reseting the concentration (constant sink and source)
+  
   int *pf_resetlist;
   double *pf_resetlistvals;
   int pf_nresetlist;
   
   //variables to warn when concentration has deviated outside [0,1]
+  
   int warn_concentration_deviation;     //local proc flag
   int warn_concentration_deviation_all; //global flag
   
-  
   // methods unique to this class
+  
   void init_values();
   void site_event_finitedifference(int);
   double site_energy_no_gradient(int i);

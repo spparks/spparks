@@ -1,9 +1,9 @@
-# SPPARKS potts/additive test file
+# SPPARKS am/ellipsoid test file
 
 seed		 56789
 
 		 
-app_style	 potts/additive		1000 45 60 5 8		67.5 90 10.5 10.5 0.1
+app_style	 am/ellipsoid		1000 30 40 7 8		40 60 12 12 0.1
 
 #  |————————————————————————————————————————
 #  | nspins		= atoi(arg[1])
@@ -23,9 +23,12 @@ app_style	 potts/additive		1000 45 60 5 8		67.5 90 10.5 10.5 0.1
 
 #Define simulation domain and initialize site variables
 #———————————————————————————————————————————
+
 dimension	 3
 lattice	 	 sc/26n 1.0
-region		 box block 0 450 0 450 0 1
+region		 box block 0 100 0 100 0 1
+region		 transverse block 0 100 50 75 0 1
+region		 longitudinal block 50 75 0 100 0 1
 
 boundary 	 n n n
 
@@ -33,39 +36,43 @@ create_box	 box
 create_sites	 box
 set		 i1 range 1 1000 
 set		 d1 value 0.0
-#———————————————————————————————————————————
 
+#———————————————————————————————————————————
 
 #Define an additive scan pattern using a combination of pass, transverse_pass, cartesian_layer, and pattern
 #———————————————————————————————————————————
 
-am pass 1 dir Y speed 15 hatch 25
-am cartesian_layer 1 start LL pass_id 1 thickness 1 offset 0.0 -60.0
+am pass 1 dir X speed 10 hatch 25
+am cartesian_layer 1 start LL pass_id 1 thickness 1 offset -60.0 0.0
 am build start 0.0 num_layers 1
-
-#———————————————————————————————————————————
 
 #Setup the solver type and parameters. Must use a "sweep" style solver
 #——————————————————————————————————————————— 
 sector		 yes
 sweep		 random mask no
-temperature	 0.25
-#———————————————————————————————————————————
+temperature	 0.0
+#——————————————————————————————————————————— 
 
 #Specify output commands and styles.
 #——————————————————————————————————————————— 
 diag_style   energy
 stats            1.0
+#dump             1 text 5.0 dump.additive4.* id i1 d1
 
-dump 1 stitch 2 large2d.23Jul2020.linux site
+dump 1 stitch 2 small2d.23Jul2020.linux site
 
-#If SPPARKS was not compiled with libjpeg, comment out the 4 lines below.
-# Note 'azimuth' angle=-90 used with 'view' keyword orients image consistently with 'am_pass 1 dir Y' above
-#dump top image 2 top.large2D.*.jpg site site crange 1 1000 drange 1 1 view 0.0 -90.0 boundary site 1 shape cube box no 1 zoom 2 size 512 512 sdiam 1.05
-#dump mobility_top image 2 mobiity_top.large2D.*.jpg d1 i1 view 0.0 -90.0 shape cube size 512 512 sdiam 1.05 box no 1 zoom 2
+#If SPPARKS was not compiled with libjpeg, comment out the lines below.
+#dump top image 2 top.small2D.*.jpg site site crange 1 1000 drange 1 1 view 0.0 0.0 boundary site 1 shape cube box no 1 zoom 2 size 512 512 sdiam 1.05
+#dump mobility_top image 2 mobiity_top.small2D.*.jpg d1 i1 view 0.0 0.0 shape cube size 512 512 sdiam 1.05 box no 1 zoom 2
+
 #dump_modify top boundcolor black backcolor black pad 4 
 #dump_modify	mobility_top smap 0 1 cf 0.05 5 min blue 0.45 lightblue 0.65 yellow 0.75 orange max red
+
+#dump transverse image 2 transverse.small2D.*.jpg site site crange 1 1000 center s 0.5 0.5 0.5 drange 1 1 view 90.0 -90.0 shape cube box no 1 zoom 1.5 size 512 512
+#dump_modify transverse cwrap yes region transverse boundcolor black backcolor black pad 4 
+
+#dump longitudinal image 2 longitudinal.small2D.*.jpg site site crange 1 1000 drange 1 1 view 90.0 0.0 shape cube box no 1 zoom 1.5 size 512 512
+#dump_modify longitudinal cwrap yes region longitudinal boundcolor black backcolor black pad 4 
 #——————————————————————————————————————————— 
 
-
-run              200
+run             50

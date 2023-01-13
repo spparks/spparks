@@ -6,13 +6,13 @@
 
 :line
 
-app_style potts/additive command :h3
+app_style am/ellipsoid command :h3
 
 [Syntax:]
 
-app_style potts/additive nspins spot_width melt_tail_length melt_depth cap_height HAZ tail_HAZ depth_HAZ cap_HAZ exp_factor :pre
+app_style am/ellipsoid nspins spot_width melt_tail_length melt_depth cap_height HAZ tail_HAZ depth_HAZ cap_HAZ exp_factor :pre
 
-potts/additive = application style name :l
+am/ellipsoid = application style name :l
 nspins = number of possible spins :l
 spot_width = maximum width of the melt pool :l
 melt_tail_length = maximum length of the melt pool trailing the melt spot :l
@@ -28,7 +28,7 @@ exp_factor = Coefficient that controls the rate of exponential decay of the haz 
 
 [Examples:]
 
-app_style potts/additive 1000 30 40 20 5 50 60 30 7 0.1 :pre
+app_style am/ellipsoid 1000 30 40 20 5 50 60 30 7 0.1 :pre
 
 [Description:]
 

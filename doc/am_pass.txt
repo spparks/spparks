@@ -29,7 +29,7 @@ am pass 2 dir Y speed 10 hatch 50 overhatch 25 :pre
 
 [Description:]
 
-This command is used by "potts/additive"_app_potts_additive.html, and
+This command is used by "am/ellipsoid"_app_am_ellipsoid.html, and
 "potts/am_weld"_app_potts_am_weld.html to specify raster scan patterns
 for rectangular domains. Multiple passes can be defined in a single
 input file, each using unique id values. The {am pass} command is a
@@ -59,7 +59,7 @@ The example commands above define two passes, each with a different
 
 This rastering command can be used with "app_style
 potts/am/weld"_app_potts_am_weld.html or "app_style
-potts/additive"_app_potts_additive.html.
+am/ellipsoid"_app_am_ellipsoid.html.
 
 [Related commands:]
 

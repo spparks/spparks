@@ -34,7 +34,7 @@ am build start 10 num_layers 4 :pre
 [Description:]
 
 This is an optional command used by
-"potts/additive"_app_potts_additive.html and
+"am/ellipsoid"_app_am_ellipsoid.html and
 "potts/am/weld"_app_potts_am_weld.html applications to specify
 multilayer build simulations.  The command allows for re-use of layer
 specifications and implicitly creates a pattern of layers.  The build
@@ -69,7 +69,7 @@ start z=10}.
 [Restrictions:]
 
 This command can only be used as part of the "app_style
-potts/additive"_app_potts_additive.html "app_style
+am/ellipsoid"_app_am_ellipsoid.html "app_style
 potts/am/weld"_app_potts_am_weld.html or applications.
 
 [Related commands:]

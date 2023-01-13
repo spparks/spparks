@@ -8,7 +8,7 @@ seed 		56789
 # lambda sometimes called gamma
 # a1 = a2 = a
 # Nspins PFsteps lambda M_C KappaC a c1 c2 c3 c4
-app_style	potts/pfm 200 10 0.3 1 1 0.5 0.25 0.75 0.05 0.95 &
+app_style	phasefield/potts 200 10 0.3 1 1 0.5 0.25 0.75 0.05 0.95 &
 			reset_phasefield no &
 			print_connectivity yes &
 			initialize_values yes &
