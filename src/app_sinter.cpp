@@ -2521,8 +2521,8 @@ void AppSinter::stats(char *strtmp)
   double naccept_double = (double) naccept;
   double naccept_double_all;
   
-  double vm_all = 0.0;
   double vacm = (double) vac_made;
+  double vm_all;
   
   MPI_Allreduce(&naccept_double,&naccept_double_all,1,MPI_DOUBLE,MPI_SUM,world);	
   MPI_Allreduce(&vacm,&vm_all,1,MPI_DOUBLE,MPI_SUM,world);
