@@ -287,7 +287,7 @@ int Variable::next(int narg, char **arg)
 	usleep(100000);
       }
       FILE *fp = fopen("tmp.spparks.variable.lock","r");
-      fscanf(fp,"%d",&nextindex);
+      int tmp = fscanf(fp,"%d",&nextindex);
       fclose(fp);
       fp = fopen("tmp.spparks.variable.lock","w");
       fprintf(fp,"%d\n",nextindex+1);

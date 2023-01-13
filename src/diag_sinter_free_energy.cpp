@@ -75,8 +75,7 @@ void DiagSinterFreeEnergy::compute()
 
 void DiagSinterFreeEnergy::stats(char *strtmp)
 {
-//  sprintf(strtmp," %10.6lf %10g",density,interfacialFE);
-  sprintf(strtmp," %10Lg", interfacialFE);
+  sprintf(strtmp," %g", interfacialFE);
 }
 
 /* ---------------------------------------------------------------------- */

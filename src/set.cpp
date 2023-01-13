@@ -941,13 +941,14 @@ void Set::set_binary_file(int lhs, int rhs)
   // insure it matches current simulation box
 
   int i,m,ix,iy,iz,xfile,yfile,zfile;
+  size_t tmp;
   int nxyz[3];
   FILE *fp;
 
   if (me == 0) {
     fp = fopen(filename,"rb");
     if (fp == NULL) error->one(FLERR,"Set could not open binary file");
-    fread(nxyz,sizeof(int),3,fp);
+    tmp = fread(nxyz,sizeof(int),3,fp);
     if (nxyz[0] != nx || nxyz[1] != ny || nxyz[2] != nz)
       error->one(FLERR,"Set binary file does not match current lattice");
   }
@@ -962,7 +963,7 @@ void Set::set_binary_file(int lhs, int rhs)
     int *buf;
     memory->create(buf,nx*ny*nz,"set:buf");
 
-    if (me == 0) fread(buf,sizeof(int),nx*ny*nz,fp);
+    if (me == 0) tmp = fread(buf,sizeof(int),nx*ny*nz,fp);
     MPI_Bcast(buf,nx*ny*nz,MPI_INT,0,world);
 
     int *array = app->iarray[siteindex];
@@ -983,7 +984,7 @@ void Set::set_binary_file(int lhs, int rhs)
     double *buf;
     memory->create(buf,nx*ny*nz,"set:buf");
 
-    if (me == 0) fread(buf,sizeof(double),nx*ny*nz,fp);
+    if (me == 0) tmp = fread(buf,sizeof(double),nx*ny*nz,fp);
     MPI_Bcast(buf,nx*ny*nz,MPI_INT,0,world);
 
     double *array = app->darray[siteindex];

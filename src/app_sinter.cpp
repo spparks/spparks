@@ -2518,36 +2518,25 @@ void AppSinter::stats_header(char *strtmp)
 
 void AppSinter::stats(char *strtmp)
 {
-  double naccept_double = (double)naccept;
+  double naccept_double = (double) naccept;
   double naccept_double_all;
   
-  double vm_all=0;
-  double vacm = (double)vac_made;
+  double vacm = (double) vac_made;
+  double vm_all;
   
-  if ( nprocs > 1 ) {
-	MPI_Allreduce(&naccept_double,&naccept_double_all,1,MPI_DOUBLE,MPI_SUM,world);	
-	MPI_Allreduce(&vacm,&vm_all,1,MPI_DOUBLE,MPI_SUM,world);
-  }
+  MPI_Allreduce(&naccept_double,&naccept_double_all,1,MPI_DOUBLE,MPI_SUM,world);	
+  MPI_Allreduce(&vacm,&vm_all,1,MPI_DOUBLE,MPI_SUM,world);
+  
+  if (solve) sprintf(strtmp,"%g %g %g %d %g",time,naccept_double_all,0.0,0,vm_all);
   else {
-	naccept_double_all = naccept_double;
-	vm_all = vacm;
-  }
-  if (solve) sprintf(strtmp,"%10g %12.0Lf %14d %<10d %12.0Lf",time,naccept_double_all,0,0,vm_all);
-  else {
-    double nattempt_double = (double)nattempt;
+    double nattempt_double = (double) nattempt;
     double nattempt_double_all;
-    if ( nprocs > 1 ) {
-		MPI_Allreduce(&nattempt_double,&nattempt_double_all,1,MPI_DOUBLE,MPI_SUM,world);
-	}
-	else {
-		nattempt_double_all = nattempt_double;
-	}	
-    sprintf(strtmp,"%10g %12.0Lf %14.0Lf %10d %12.0Lf",
+    MPI_Allreduce(&nattempt_double,&nattempt_double_all,1,MPI_DOUBLE,MPI_SUM,world);
+    sprintf(strtmp,"%g %g %g %d %g",
 	    time,naccept_double_all,nattempt_double_all-naccept_double_all,nsweeps,vm_all);
   }
-//  check_state();
-//	double dum = count_vacant();
-  vac_made=0;	
+
+  vac_made = 0;	
 }
 
 /////////////////////////////////////////// CHECKING LATTICE /////////////////////////////////////////////////
@@ -2557,19 +2546,19 @@ void AppSinter::stats(char *strtmp)
  ------------------------------------------------------------------------- */
 
 double AppSinter::count_vacant()
-{// just checking for errors
-	double vacant_sites = 0; 
+{
+  double vacant_sites = 0; 
+  double vacant_sites_all;
 	
-	for ( int i = 0; i < nlocal; ++i )
-		if ( spin[i] == VACANT )
-			vacant_sites++;
-	double vacant_sites_all;
-	MPI_Allreduce(&vacant_sites, &vacant_sites_all, 1, MPI_DOUBLE, MPI_SUM, world);
-	
-	if ( me == 0 )
-		printf("time: %lf empty sites: %Lg\n", time, vacant_sites_all);
-	
-	return vacant_sites_all;		
+  for (int i = 0; i < nlocal; ++i)
+    if (spin[i] == VACANT)
+      vacant_sites++;
+  MPI_Allreduce(&vacant_sites, &vacant_sites_all, 1, MPI_DOUBLE, MPI_SUM, world);
+  
+  if (me == 0)
+    printf("time: %lf empty sites: %g\n", time, vacant_sites_all);
+  
+  return vacant_sites_all;		
 }
 
 /* ----------------------------------------------------------------------

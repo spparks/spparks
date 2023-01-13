@@ -216,27 +216,27 @@ void DiagArray::stats(char *strtmp)
 
 void DiagArray::stats_header(char *strtmp)
 {
-  char str1[10],str2[10];
+  char strword[8],strfinal[32];
   
   for (int i=0; i<nvals; i++) {
     
     if (diag_method[i]==MEAN)
-      sprintf(str1,"%s","mean");
+      sprintf(strword,"%s","mean");
     else if (diag_method[i]==SUM)
-      sprintf(str1,"%s","sum");
+      sprintf(strword,"%s","sum");
     else if (diag_method[i]==MIN)
-      sprintf(str1,"%s","min");
+      sprintf(strword,"%s","min");
     else if (diag_method[i]==MAX)
-      sprintf(str1,"%s","max");
+      sprintf(strword,"%s","max");
     
     // shift index back to 1-based array
 
-    if (index_double[i])
-      sprintf(str2,"%s(d%d)",str1,index[i]+1);  
-    else 
-      sprintf(str2,"%s(i%d)",str1,index[i]+1);
+    if (index_double[i]) 
+      sprintf(strfinal,"%s(d%d)",strword,index[i]+1);
+    else
+      sprintf(strfinal,"%s(i%d)",strword,index[i]+1);
     
-    sprintf(strtmp," %10s",str2);
+    sprintf(strtmp," %10s",strfinal);
     strtmp += strlen(strtmp);
   }
 }
