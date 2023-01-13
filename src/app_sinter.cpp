@@ -2548,11 +2548,11 @@ void AppSinter::stats(char *strtmp)
 double AppSinter::count_vacant()
 {
   double vacant_sites = 0; 
+  double vacant_sites_all;
 	
   for (int i = 0; i < nlocal; ++i)
     if (spin[i] == VACANT)
       vacant_sites++;
-  double vacant_sites_all;
   MPI_Allreduce(&vacant_sites, &vacant_sites_all, 1, MPI_DOUBLE, MPI_SUM, world);
   
   if (me == 0)
