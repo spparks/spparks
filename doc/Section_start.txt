@@ -379,7 +379,7 @@ stitch-related options:
 "set stitch"_set.html
 "reset_time"_reset_time.html :ul
 
-See the am_path, potts_additive, and stitch sub-directories in the
+See the am_path and stitch sub-directories in the
 examples directory for models and scripts which use the Stitch
 library.
 
