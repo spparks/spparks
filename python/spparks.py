@@ -21,14 +21,14 @@ class spparks:
 
     # load libspparks.so by default
     # if name = "g++", load libspparks_g++.so
-    
+
     try:
       if not name: self.lib = CDLL("libspparks.so",RTLD_GLOBAL)
       else: self.lib = CDLL("libspparks_%s.so" % name,RTLD_GLOBAL)
     except:
       type,value,tb = sys.exc_info()
       traceback.print_exception(type,value,tb)
-      raise OSError,"Could not load SPPARKS dynamic library"
+      raise Exception("Could not load SPPARKS dynamic library")
 
     # create an instance of SPPARKS
     # don't know how to pass an MPI communicator from PyPar
@@ -55,35 +55,38 @@ class spparks:
     self.spk = None
 
   def file(self,file):
-    self.lib.spparks_file(self.spk,file)
+    b_file = file.encode('utf-8')
+    self.lib.spparks_file(self.spk,c_char_p(b_file))
 
-  def command(self,cmd):
-    self.lib.spparks_command(self.spk,cmd)
+  def command(self,cmd): 
+    b_cmd = cmd.encode('utf-8')
+    self.lib.spparks_command(self.spk,c_char_p(b_cmd))
 
   def extract(self,name,type):
+    b_name = name.encode('utf-8')
     if type == 0:
       self.lib.spparks_extract.restype = POINTER(c_int)
-      ptr = self.lib.spparks_extract(self.spk,name)
+      ptr = self.lib.spparks_extract(self.spk,c_char_p(b_name))
       return ptr[0]
     if type == 1:
       self.lib.spparks_extract.restype = POINTER(c_int)
-      ptr = self.lib.spparks_extract(self.spk,name)
+      ptr = self.lib.spparks_extract(self.spk,c_char_p(b_name))
       return ptr
     if type == 2:
       self.lib.spparks_extract.restype = POINTER(POINTER(c_int))
-      ptr = self.lib.spparks_extract(self.spk,name)
+      ptr = self.lib.spparks_extract(self.spk,c_char_p(b_name))
       return ptr
     if type == 3:
       self.lib.spparks_extract.restype = POINTER(c_double)
-      ptr = self.lib.spparks_extract(self.spk,name)
+      ptr = self.lib.spparks_extract(self.spk,c_char_p(b_name))
       return ptr[0]
     if type == 4:
       self.lib.spparks_extract.restype = POINTER(c_double)
-      ptr = self.lib.spparks_extract(self.spk,name)
+      ptr = self.lib.spparks_extract(self.spk,c_char_p(b_name))
       return ptr
     if type == 5:
       self.lib.spparks_extract.restype = POINTER(POINTER(c_double))
-      ptr = self.lib.spparks_extract(self.spk,name)
+      ptr = self.lib.spparks_extract(self.spk,c_char_p(b_name))
       return ptr
     return None
 
