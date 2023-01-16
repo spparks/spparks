@@ -22,7 +22,7 @@ variable OUT universe am_demo.st
 		 
 #
 seed		 ${SEED}
-app_style	 potts/additive		${Q} 30 70 30 7		50 90 45 12 0.1
+app_style	 am/ellipsoid	${Q} 30 70 30 7		50 90 45 12 0.1
 
 # |————————————————————————————————————————
 # | nspins		= atoi(arg[1])
