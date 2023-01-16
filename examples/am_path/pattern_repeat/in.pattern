@@ -25,7 +25,7 @@ variable SEED equal 17133
 #
 #
 seed		 ${SEED}
-app_style	 potts/additive		${Q} 15 35 15 4	25 45 22 6 0.1
+app_style	 am/ellipsoid		${Q} 15 35 15 4	25 45 22 6 0.1
 
 # |————————————————————————————————————————
 # | nspins		= atoi(arg[1])

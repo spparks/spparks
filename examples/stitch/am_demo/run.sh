@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SPPARKS=$HOME/jaks.git/spparks.svn/trunk/src/spk_flamer.gnu
+SPPARKS=$HOME/jaks.git/spparks.github/src/spk_spencer.gnu
 
 # Array of layer intervals / thicknesses
 declare -a Z=("0 25" "25 50" "50 75" "75 100")

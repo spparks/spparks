@@ -19,7 +19,7 @@ variable OUT universe stitch_rectangle.st
 		 
 #
 seed		 ${SEED}
-app_style	 potts/additive		${Q} 10 10 MELT_DEPTH 5 13 13 DEPTH_HAZ 5 0.1
+app_style	 am/ellipsoid		${Q} 10 10 MELT_DEPTH 5 13 13 DEPTH_HAZ 5 0.1
 
 # |————————————————————————————————————————
 # | nspins		= atoi(arg[1])
