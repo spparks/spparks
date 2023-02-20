@@ -416,9 +416,9 @@ void CreateSites::structured_lattice()
       error->all(FLERR,"Did not create correct number of sites");
   }
 
-  // for simple latice, do further checking and store extents in AppLattice
+  // for simple lattice, do further checking and store extents in AppLattice
 
-  if (simple) {
+  if (simple && latticeflag) {
 
     // convert SPPARKS loop bounds to Stitch integer indices
 
@@ -487,6 +487,10 @@ void CreateSites::structured_lattice()
     applattice->zlo_me_simple = zlo_me;
     applattice->zhi_me_simple = zhi_me;
   }
+
+  // if offlatice, free siteijk b/c structured_connectivity() will not be called
+
+  if (latticeflag == 0) memory->destroy(siteijk);
 }
 
 /* ----------------------------------------------------------------------

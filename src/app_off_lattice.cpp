@@ -56,7 +56,8 @@ AppOffLattice::AppOffLattice(SPPARKS *spk, int narg, char **arg) :
   sitelist = NULL;
   site2i = NULL;
   in_sector = NULL;
-
+  maxlocal = 0;
+  
   temperature = 0.0;
 
   nlocal = nghost = nmax = 0;
@@ -297,11 +298,14 @@ void AppOffLattice::setup()
   // setup site2i and in_sector lists
   // do this every run in case nlocal has changed
 
-  memory->destroy(site2i);
-  memory->destroy(in_sector);
-  memory->create(site2i,nlocal,"app:site2i");
-  memory->create(in_sector,nlocal,"app:in_sector");
-
+  if (nlocal > maxlocal) {
+    memory->destroy(site2i);
+    memory->destroy(in_sector);
+    maxlocal = nlocal;
+    memory->create(site2i,nlocal,"app:site2i");
+    memory->create(in_sector,nlocal,"app:in_sector");
+  }
+  
   // setup future output
 
   nextoutput = output->setup(time,first_run);
@@ -487,7 +491,7 @@ void AppOffLattice::iterate_rejection(double stoptime)
     in_sector[i] = 1;
     site2i[i] = i;
   }
-  
+
   int done = 0;
   while (!done) {
     for (int iset = 0; iset < nset; iset++) {
@@ -508,8 +512,17 @@ void AppOffLattice::iterate_rejection(double stoptime)
       timer->stamp();
 
       // determine which sites are currently in sector
-
+      // reallocate vectors if needed b/c particles migrated
+      
       if (sectorflag) {
+        if (nlocal > maxlocal) {
+          memory->destroy(site2i);
+          memory->destroy(in_sector);
+          maxlocal = nlocal;
+          memory->create(site2i,nlocal,"app:site2i");
+          memory->create(in_sector,nlocal,"app:in_sector");
+        }
+        
 	nlocal_sector = 0;
 	for (i = 0; i < nlocal; i++) {
 	  in_sector[i] = inside_sector(i);
