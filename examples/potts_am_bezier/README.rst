@@ -8,7 +8,7 @@ bezier melt-pool profile to drive the SPPARKS simulations. This gives
 the user the unique ability to incorporate experimentally parameterized
 melt pool shapes into the SPPARKS simulation. Running the provided 
 scripts will require the STITCH library. Details of running  the 
-examples are described below. In the examples the spparks was compiled 
+examples are described below. In these examples spparks was compiled 
 into the executable *spk_mpi*.
 
 Running in.potts_am_bezier_* scripts
