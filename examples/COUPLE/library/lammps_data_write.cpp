@@ -1,8 +1,9 @@
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <cstdlib>
+#include <cstring>
 #include "lammps_data_write.h"
-#include "memory.h"
-#include "error.h"
+#include "memorylib.h"
+#include "errorlib.h"
 
 #define DELTA 4;
 

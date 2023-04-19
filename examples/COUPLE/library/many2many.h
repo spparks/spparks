@@ -1,7 +1,7 @@
 #ifndef MANY2MANY_H
 #define MANY2MANY_H
 
-#include "mpi.h"
+#include <mpi.h>
 
 class Many2Many {
  public:
@@ -15,8 +15,8 @@ class Many2Many {
  protected:
   int me,nprocs;
   MPI_Comm comm;
-  class Memory *memory;
-  class Error *error;
+  class MemoryLib *memory;
+  class ErrorLib *error;
 
   int nown;                       // # of IDs common to src and dest
   int nsrc_off,ndest_off;         // # of off-processor IDs
