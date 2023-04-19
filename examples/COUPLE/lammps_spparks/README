@@ -25,7 +25,18 @@ spkpath.h           contains path to SPPARKS home directory
 
 -----------------------------------
 
-(1) To build and run this coupled application, you must have LAMMPS
+(1) To build and run this coupled application, you must build SPPARKS
+as a library.
+
+To build SPPARKS as a library, do the following:
+
+% cd spparks/src
+% make mpi
+% make mode=lib mpi      # build SPPARKS as a library
+
+-----------------------------------
+
+(1a) To build and run this coupled application, you must have LAMMPS
 built on your system.  It's WWW site is https://www.lammps.org and it
 can be downloaded as a tarball or cloned as a local Git repo.
 
