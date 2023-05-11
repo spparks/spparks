@@ -30,10 +30,10 @@ with a radius of {r}.  All lattice sites within the sphere (or circle)
 will be flagged as protein (as opposed to lipid or solvent).  For
 lattices with a 2d geometry, the z value should be speficied as 0.0.
 
-[Restrictions:] none
+[Restrictions:]
 
 This command can only be used as part of the "app_style
-pore"_app_pore.html applications.
+membrane"_app_membrane.html applications.
 
 [Related commands:]
 
