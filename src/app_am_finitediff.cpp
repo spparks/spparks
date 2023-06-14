@@ -1047,7 +1047,7 @@ double AppAMFiniteDiff::specificHeatCalculator(double temper)
 
 void AppAMFiniteDiff::position_finder_in() 
 {
-  double local_dist;
+  double local_dist = 0;
   double x_vec;
   double y_vec;
   int longer_index = 0;
