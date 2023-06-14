@@ -830,7 +830,7 @@ void AppAMFiniteDiff::path_file()
 
   myfile.unsetf(std::ios_base::skipws);
 
-  int line_count = 0;
+  line_count = 0;
   std::string aLineStr;
   while (getline(myfile, aLineStr))
     {
