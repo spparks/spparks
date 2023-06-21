@@ -82,7 +82,8 @@ class AppOffLattice : public App {
   int sectorflag;              // 1 if partition my domain into sectors
   int nsector;                 // 1,2,4,8 = # of sectors
   int nsector_user;            // 0 if default, else 2,4,8
-
+  int maxlocal;                // max size of in_sector and site2i
+  
   double Ladapt;               // adaptive sector time increments for KMC
   double tstop;                // requested time increment in sector
   double nstop;                // requested events per site in sector
