@@ -1,7 +1,7 @@
 #ifndef SEND2ONE_H
 #define SEND2ONE_H
 
-#include "mpi.h"
+#include <mpi.h>
 
 class Send2One {
  public:
@@ -13,8 +13,8 @@ class Send2One {
  protected:
   int me,nprocs;
   MPI_Comm comm;
-  class Memory *memory;
-  class Error *error;
+  class MemoryLib *memory;
+  class ErrorLib *error;
 
   int maxbuf;
   char *buf;

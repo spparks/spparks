@@ -1,8 +1,8 @@
-#include "mpi.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <cstdio>
+#include <cstdlib>
 #include "many2one.h"
-#include "memory.h"
+#include "memorylib.h"
 
 /* ---------------------------------------------------------------------- */
 
@@ -12,7 +12,7 @@ Many2One::Many2One(MPI_Comm caller_comm)
   MPI_Comm_rank(comm,&me);
   MPI_Comm_size(comm,&nprocs);
 
-  memory = new Memory(comm);
+  memory = new MemoryLib(comm);
 
   if (me == 0) {
     counts = new int[nprocs];

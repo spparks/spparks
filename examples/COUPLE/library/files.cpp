@@ -1,5 +1,5 @@
-#include "stdio.h"
-#include "string.h"
+#include <cstdio>
+#include <cstring>
 #include "files.h"
 
 #define MAXLINE 256
@@ -29,7 +29,7 @@ void replace(char *file, char *header, int n, char **lines)
 
 /* ---------------------------------------------------------------------- */
 
-char **extract(char *file, char *header, int n, char **lines)
+void extract(char *file, char *header, int n, char **lines)
 {
   FILE *fp = fopen(file,"r");
 

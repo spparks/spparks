@@ -1,7 +1,7 @@
 #ifndef IRREGULAR_H
 #define IRREGULAR_H
 
-#include "mpi.h"
+#include <mpi.h>
 
 class Irregular {
  public:
@@ -46,8 +46,8 @@ class Irregular {
   MPI_Status *status;        // MPI statuses for Waitall
   MPI_Comm comm;             // MPI communicator for all communication
 
-  class Memory *memory;
-  class Error *error;
+  class MemoryLib *memory;
+  class ErrorLib *error;
 
   void exchange_same(char *, char *);
   void exchange_varying(char *, char *);
