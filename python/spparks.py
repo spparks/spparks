@@ -55,38 +55,38 @@ class spparks:
     self.spk = None
 
   def file(self,file):
-    b_file = file.encode('utf-8')
-    self.lib.spparks_file(self.spk,c_char_p(b_file))
+    file = file.encode('utf-8')
+    self.lib.spparks_file(self.spk,file)
 
   def command(self,cmd): 
-    b_cmd = cmd.encode('utf-8')
-    self.lib.spparks_command(self.spk,c_char_p(b_cmd))
+    cmd = cmd.encode('utf-8')
+    self.lib.spparks_command(self.spk,cmd)
 
   def extract(self,name,type):
-    b_name = name.encode('utf-8')
+    name = name.encode('utf-8')
     if type == 0:
       self.lib.spparks_extract.restype = POINTER(c_int)
-      ptr = self.lib.spparks_extract(self.spk,c_char_p(b_name))
+      ptr = self.lib.spparks_extract(self.spk,name)
       return ptr[0]
     if type == 1:
       self.lib.spparks_extract.restype = POINTER(c_int)
-      ptr = self.lib.spparks_extract(self.spk,c_char_p(b_name))
+      ptr = self.lib.spparks_extract(self.spk,name)
       return ptr
     if type == 2:
       self.lib.spparks_extract.restype = POINTER(POINTER(c_int))
-      ptr = self.lib.spparks_extract(self.spk,c_char_p(b_name))
+      ptr = self.lib.spparks_extract(self.spk,name)
       return ptr
     if type == 3:
       self.lib.spparks_extract.restype = POINTER(c_double)
-      ptr = self.lib.spparks_extract(self.spk,c_char_p(b_name))
+      ptr = self.lib.spparks_extract(self.spk,name)
       return ptr[0]
     if type == 4:
       self.lib.spparks_extract.restype = POINTER(c_double)
-      ptr = self.lib.spparks_extract(self.spk,c_char_p(b_name))
+      ptr = self.lib.spparks_extract(self.spk,name)
       return ptr
     if type == 5:
       self.lib.spparks_extract.restype = POINTER(POINTER(c_double))
-      ptr = self.lib.spparks_extract(self.spk,c_char_p(b_name))
+      ptr = self.lib.spparks_extract(self.spk,name)
       return ptr
     return None
 
