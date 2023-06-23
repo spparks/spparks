@@ -39,14 +39,16 @@ desired by specifying individual layer patterns and how these patterns
 should be repeated.
 
 In addition to the above required inputs {width,depth,haz}, the model
-requires specification of the melt pool surface.  Whereas "app_am ellipsoid"_app_am_ellipsoid.html 
-uses two ellipsoids to define the moving melt
-pool and heat effected zone, here, the molten pool is defined by two fourth
-order Bezier curves: 1) top surface curve; 2) spine curve.  The two curves are
-combined to form a {3D} surface representing the interface between liquid and
-solidified material.  The shape of the pool is defined by user input control
-points for the two curves and may be obtained from laboratory images or through 
-process simulation or some other means.
+requires specification of the melt pool surface via the 
+"potts/am/bezier control_points"_potts_am_bezier.html command.  
+Whereas "app_am ellipsoid"_app_am_ellipsoid.html 
+uses two ellipsoids to define the moving melt pool and heat effected zone,
+here, the molten pool is defined by two fourth order Bezier curves: 1) top
+surface curve; 2) spine curve.  The two curves are combined to form a {3D}
+surface representing the interface between liquid and solidified material.  The
+shape of the pool is defined by user input control points for the two curves
+and may be obtained from laboratory images or through process simulation or
+some other means.
 
 :image(JPG/am_bezier_curves.png)
 
@@ -63,26 +65,31 @@ are required inputs. Melt pool width and depth is explicitly set according to
 user inputs {width}, {depth} whereas melt pool length is implicitly defined by
 the ratio {width/length} according to the input top surface curve control
 points.  The {x,y} components of the top curve control points are scaled to
-achieve the user input pool width.  Similarly the spine curve control points
-{x,z} and scaled to achieve the melt pool depth.  However, the final set of {x}
+achieve the user input pool width.  Similarly, spine curve control point components 
+{x,z} are scaled to specified melt pool depth.  However, the final set of {x}
 components used for both the top surface curve and spine curve are values
 obtained from the width scaling operation.  
 
+The following command defined by this application must be used to
+specify the bezier melt pool surface geometry as described above.
+
+"potts/am/bezier"_potts_am_bezier.html: Specifies control points and convexity of surface.  :tb(s=:)
+
 :line
 
-The following additional commands are typically used by this
-application.  A layer must be defined by using "am
-cartesian_layer"_am_cartesian_layer.html or "am
-path_layer"_am_path_layer.html.  A layer requires one to many "am
-path"_am_path.html commands or at least one "am pass"_am_pass.html
+Some combination of the following additional commands are typically used by this
+application to specify a raster pattern.
+A layer must be defined by using "am cartesian_layer"_am_cartesian_layer.html or 
+"am path_layer"_am_path_layer.html.  A layer requires one to many "am path"_am_path.html 
+commands or at least one "am pass"_am_pass.html
 command.
 
 "am pass"_am_pass.html: Specify pass parameters used to construct
 {cartesian_layer}. :ulb,l
 
 "am path"_am_path.html: Specify arbitrary paths via start/end points
-on a layer; sequence of {am path}s are used to construct an "am
-path_layer"_am_path_layer.html. :l
+on a layer; sequence of {am path}s are used to construct an 
+"am path_layer"_am_path_layer.html. :l
 
 "am cartesian_layer"_am_cartesian_layer.html: A scan pattern on
 rectangular layer constructed from {am pass} and other parameters. :l
@@ -91,7 +98,9 @@ rectangular layer constructed from {am pass} and other parameters. :l
 comprise a pattern. :l,ule
 
 The examples/potts_am_bezier directory has input files which illustrate
-use of these additional commands.
+use of some of these commands. However these commands 
+are not unique to this app and other examples within the examples directory 
+may also further illustrate.
 
 :line
 

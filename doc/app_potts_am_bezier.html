@@ -46,14 +46,16 @@ desired by specifying individual layer patterns and how these patterns
 should be repeated.
 </P>
 <P>In addition to the above required inputs <I>width,depth,haz</I>, the model
-requires specification of the melt pool surface.  Whereas <A HREF = "app_am_ellipsoid.html">app_am ellipsoid</A> 
-uses two ellipsoids to define the moving melt
-pool and heat effected zone, here, the molten pool is defined by two fourth
-order Bezier curves: 1) top surface curve; 2) spine curve.  The two curves are
-combined to form a <I>3D</I> surface representing the interface between liquid and
-solidified material.  The shape of the pool is defined by user input control
-points for the two curves and may be obtained from laboratory images or through 
-process simulation or some other means.
+requires specification of the melt pool surface via the 
+<A HREF = "potts_am_bezier.html">potts/am/bezier control_points</A> command.  
+Whereas <A HREF = "app_am_ellipsoid.html">app_am ellipsoid</A> 
+uses two ellipsoids to define the moving melt pool and heat effected zone,
+here, the molten pool is defined by two fourth order Bezier curves: 1) top
+surface curve; 2) spine curve.  The two curves are combined to form a <I>3D</I>
+surface representing the interface between liquid and solidified material.  The
+shape of the pool is defined by user input control points for the two curves
+and may be obtained from laboratory images or through process simulation or
+some other means.
 </P>
 <IMG SRC = "JPG/am_bezier_curves.png">
 
@@ -70,26 +72,33 @@ are required inputs. Melt pool width and depth is explicitly set according to
 user inputs <I>width</I>, <I>depth</I> whereas melt pool length is implicitly defined by
 the ratio <I>width/length</I> according to the input top surface curve control
 points.  The <I>x,y</I> components of the top curve control points are scaled to
-achieve the user input pool width.  Similarly the spine curve control points
-<I>x,z</I> and scaled to achieve the melt pool depth.  However, the final set of <I>x</I>
+achieve the user input pool width.  Similarly, spine curve control point components 
+<I>x,z</I> are scaled to specified melt pool depth.  However, the final set of <I>x</I>
 components used for both the top surface curve and spine curve are values
 obtained from the width scaling operation.  
 </P>
+<P>The following command defined by this application must be used to
+specify the bezier melt pool surface geometry as described above.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "potts_am_bezier.html">potts/am/bezier</A></TD><TD > Specifies control points and convexity of surface.  
+</TD></TR></TABLE></DIV>
+
 <HR>
 
-<P>The following additional commands are typically used by this
-application.  A layer must be defined by using <A HREF = "am_cartesian_layer.html">am
-cartesian_layer</A> or <A HREF = "am_path_layer.html">am
-path_layer</A>.  A layer requires one to many <A HREF = "am_path.html">am
-path</A> commands or at least one <A HREF = "am_pass.html">am pass</A>
+<P>Some combination of the following additional commands are typically used by this
+application to specify a raster pattern.
+A layer must be defined by using <A HREF = "am_cartesian_layer.html">am cartesian_layer</A> or 
+<A HREF = "am_path_layer.html">am path_layer</A>.  A layer requires one to many <A HREF = "am_path.html">am path</A> 
+commands or at least one <A HREF = "am_pass.html">am pass</A>
 command.
 </P>
 <UL><LI><A HREF = "am_pass.html">am pass</A>: Specify pass parameters used to construct
 <I>cartesian_layer</I>. 
 
 <LI><A HREF = "am_path.html">am path</A>: Specify arbitrary paths via start/end points
-on a layer; sequence of <I>am path</I>s are used to construct an <A HREF = "am_path_layer.html">am
-path_layer</A>. 
+on a layer; sequence of <I>am path</I>s are used to construct an 
+<A HREF = "am_path_layer.html">am path_layer</A>. 
 
 <LI><A HREF = "am_cartesian_layer.html">am cartesian_layer</A>: A scan pattern on
 rectangular layer constructed from <I>am pass</I> and other parameters. 
@@ -98,7 +107,9 @@ rectangular layer constructed from <I>am pass</I> and other parameters.
 comprise a pattern. 
 </UL>
 <P>The examples/potts_am_bezier directory has input files which illustrate
-use of these additional commands.
+use of some of these commands. However these commands 
+are not unique to this app and other examples within the examples directory 
+may also further illustrate.
 </P>
 <HR>
 
