@@ -1,0 +1,113 @@
+"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,http://spparks.sandia.gov)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style potts/am/bezier command :h3
+
+[Syntax:]
+
+app_style	 potts/am/bezier nspins width depth haz
+
+potts/am/bezier = application style name :l
+nspins = number of possible spins :l
+width = maximum width of the melt pool :l
+depth = maximum depth of the melt pool :l
+haz = fixed distance parameter from pool surface estimating extent of heat affected zone surrounding melt pool :l
+
+:ule
+
+[Examples:]
+
+app_style	 potts/am/bezier 250000 130 65 5
+
+[Description:]
+
+This is an on-lattice application derived from the "app_style
+potts/neighonly"_app_potts.html application that simulates the
+rastering of a molten pool and its accompanying heat-affected zone
+(HAZ) through a domain.  Rastering is achieved through the
+specification of layer-by-layer patterns, which can be combined into
+an overall pattern specifying the translation of the molten zone
+through the entire simulation domain. The application allows for
+arbitrary numbers of paths in each layer and an arbitrary number of
+layers in each pattern. Thus, the user can construct any scan strategy
+desired by specifying individual layer patterns and how these patterns
+should be repeated.
+
+In addition to the above required inputs {width,depth,haz}, the model
+requires specification of the melt pool surface.  Whereas "app_am ellipsoid"_app_am_ellipsoid.html 
+uses two ellipsoids to define the moving melt
+pool and heat effected zone, here, the molten pool is defined by two fourth
+order Bezier curves: 1) top surface curve; 2) spine curve.  The two curves are
+combined to form a {3D} surface representing the interface between liquid and
+solidified material.  The shape of the pool is defined by user input control
+points for the two curves and may be obtained from laboratory images or through 
+process simulation or some other means.
+
+:image(JPG/am_bezier_curves.png)
+
+Degree four Bezier curves require a total of five control points.  However,
+symmetry of the melt pool across {xz-plane} and the bounding top surface plane
+{z=0} reduce the number of required inputs.  Control points for the top surface
+curve are input only for half the melt pool on account of symmetry; because the
+front and tail of pool start at {y=0} only three {y} components of the top
+curve are required while the other two components are implicitly set to 0 by
+the app.  Similarly, because the spine curve begins and ends at the top surface
+{z=0} only three components of {z} control points are required.  Both the top
+surface curve and spine curve use the same {x} component values and all five
+are required inputs. Melt pool width and depth is explicitly set according to
+user inputs {width}, {depth} whereas melt pool length is implicitly defined by
+the ratio {width/length} according to the input top surface curve control
+points.  The {x,y} components of the top curve control points are scaled to
+achieve the user input pool width.  Similarly the spine curve control points
+{x,z} and scaled to achieve the melt pool depth.  However, the final set of {x}
+components used for both the top surface curve and spine curve are values
+obtained from the width scaling operation.  
+
+:line
+
+The following additional commands are typically used by this
+application.  A layer must be defined by using "am
+cartesian_layer"_am_cartesian_layer.html or "am
+path_layer"_am_path_layer.html.  A layer requires one to many "am
+path"_am_path.html commands or at least one "am pass"_am_pass.html
+command.
+
+"am pass"_am_pass.html: Specify pass parameters used to construct
+{cartesian_layer}. :ulb,l
+
+"am path"_am_path.html: Specify arbitrary paths via start/end points
+on a layer; sequence of {am path}s are used to construct an "am
+path_layer"_am_path_layer.html. :l
+
+"am cartesian_layer"_am_cartesian_layer.html: A scan pattern on
+rectangular layer constructed from {am pass} and other parameters. :l
+
+"am build"_am_build.html: May be used for combinations of layers that
+comprise a pattern. :l,ule
+
+The examples/potts_am_bezier directory has input files which illustrate
+use of these additional commands.
+
+:line
+
+[Restrictions:] :link(restriction)
+
+This application is only compatible with square and square cubic
+lattices. 
+
+This application can only be evolved by a rejection KMC (rKMC)
+algorithm.  See the "sweep"_sweep.html command for more details.
+
+[Related commands:]
+
+"app_style am/ellipsoid"_app_am_ellipsoid.html,
+"app_style potts/weld"_app_potts_weld.html,
+"app_style potts/weld/jom"_app_potts_weld_jom.html
+
+[Default:] none
+
