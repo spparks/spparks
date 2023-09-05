@@ -19,9 +19,13 @@
 #include <vector>
 #include <cmath>
 #include <tuple>
+#include <array>
+#include <limits>
 
 using std::vector;
 using std::tuple;
+using std::array;
+using std::numeric_limits;
 
 namespace RASTER {
 
@@ -38,10 +42,11 @@ namespace pool_shape {
 
 }
 
+
 class Point {
 
 private:
-   double p[3]={0.0,0.0,0.0};
+   array<double,3> p{0.0,0.0,0.0};
 
 public:
    Point() = default;
@@ -54,6 +59,7 @@ public:
 	inline Point(double a, double b) : p{a,b,0.0} {}
 	inline Point(double a, double b, double c) : p{a,b,c} {}
 	inline Point(const double q[3]) : p{q[0],q[1],q[2]} {}
+	inline Point(const array<double,3>& q) : p{q[0],q[1],q[2]} {}
 	inline double operator[](int c) const { return p[c%3]; }
 
 	inline double squared() const {
@@ -61,11 +67,82 @@ public:
 		return x*x+y*y+z*z;
 	}
 
+	inline bool operator<=(const Point& r) const {
+		return (
+            (p[0]<=r[0]) &&
+            (p[1]<=r[1]) &&
+            (p[2]<=r[2])
+            );
+
+	}
+
+	inline bool operator<(const Point& r) const {
+		return (
+            (p[0]<r[0]) &&
+            (p[1]<r[1]) &&
+            (p[2]<r[2])
+            );
+	}
+
+
    friend std::ostream& operator<<(std::ostream &os, const Point &p)  {
       os << p[0] << ", " << p[1] << ", " << p[2] << std::endl;
       return os;
    }
 
+};
+
+class rectangular_range {
+public:
+   typedef double value_type;
+	/*
+	 * default constructor gives largest possible range
+	 */
+	rectangular_range()
+	:low(-numeric_limits<value_type>::max()),high(numeric_limits<value_type>::max()){}
+
+	rectangular_range(const Point& a, const Point& b)
+	: low(a), high(b) {}
+
+	rectangular_range(Point&& a, const Point& b)
+	: low(a), high(b) {}
+
+	rectangular_range(const Point& a, Point&& b)
+	: low(a), high(b) {}
+
+	rectangular_range(Point&& a, Point&& b)
+	: low(a), high(b) {}
+
+	rectangular_range(const Point& c, value_type r)
+	: low(c[0]-r,c[1]-r,c[2]-r), high(c[0]+r,c[1]+r,c[2]+r) {}
+
+	rectangular_range& operator=(const rectangular_range&) = default;
+	rectangular_range& operator=(      rectangular_range&&) = default;
+	rectangular_range(const rectangular_range&) = default;
+	rectangular_range(      rectangular_range&&) = default;
+
+	bool contains(const Point& p) const {
+		return ((low<=p) && (p<=high));
+	}
+
+	bool contains(const rectangular_range&r) const {
+		return ((low<=r.get_low()) && (r.get_high() <= high));
+	}
+
+	bool intersects(const rectangular_range&r) const {
+		return (!(high<r.get_low()) && !(r.get_high()<low));
+	}
+
+	Point get_low() const { return low; }
+	Point get_high() const { return high; }
+
+	friend std::ostream& operator<<(std::ostream &os, const rectangular_range& r){
+		os << r.get_low() << r.get_high();
+		return os;
+	}
+
+private:
+	Point low, high;
 };
 
 

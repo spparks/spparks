@@ -1,0 +1,72 @@
+<HTML>
+<CENTER><A HREF = "http://spparks.sandia.gov">SPPARKS WWW Site</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>potts/am/bezier command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>potts/am/bezier keyword args 
+</PRE>
+<UL><LI>keyword = <I>control_points</I> <I>x</I> or <I>y</I> or <I>z</I> or <I>beta</I> 
+
+<PRE>  <I>control_points x</I> args = P0x P1x P2x P3x P4x
+    P0x P1x P2x P3x P4x x component values for 5 control points (floating)
+  <I>control_points y</I> args =      P1y P2y P3y
+    P1y P2y P3y = y component values for 3 control points (floating), app automatically sets P0y=P4y=0 
+  <I>control_points z</I> args =       P1z P2z P3z
+    P1z P2z P3z = z component values for 3 control points (floating), app automatically sets P0z=P4z=0 
+  <I>beta</I> args = betay, betaz
+    betay, betaz = lateral cross-section weights effecting lateral convexity 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>potts/am/bezier control_points x -6.9 -6.9   0.6  6.9 6.9
+potts/am/bezier control_points y       0.8   2.1  3.8
+potts/am/bezier control_points z      -0.9, -1.0 -2.8
+potts/am/bezier beta 1.0 0.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command is defined and used by the <A HREF = "app_potts_am_bezier.html">app_style potts/am/bezier</A> application.
+</P>
+<P>The command argument <I>control_points</I> is required 3 times for specification of
+<I>x,y,z</I> component values of control points used to define bezier melt pool
+surface.
+</P>
+<P>The command argument <I>beta</I> is optional and can be used to adjust surface
+convexity according to schematic image shown above.  Note that app calculates 
+distance to melt pool surface using a closest point projection algorithm; this 
+calculation is robust for convex surfaces but can and probably will fail 
+for concave surfaces -- results may vary.  
+</P>
+<P>In the example above, 5 required floating point values are input for <I>x</I>
+component of control points, and 3 floating point values are input for <I>y,z</I>
+components.  Values for <I>beta</I> are the default values.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used with the <A HREF = "app_potts_am_bezier.html">app_style potts_am_bezier</A> 
+application.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_potts_am_bezier.html">app_style potts_am_bezier</A>
+</P>
+<P><B>Default:</B> 
+</P>
+<P>There are no defaults for <I>control_point</I> values and they must
+be supplied as part of script running the <A HREF = "potts_am_bezier.html">potts_am_bezier</A> app.  The 
+<I>beta</I> keyword command is optional however and the above example shows the default values
+<I>betay=1.0,betaz=0.5</I>.
+</P>
+</HTML>

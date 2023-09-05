@@ -1,0 +1,85 @@
+# SPPARKS potts/am/bezier example file
+# python plot_stitch_cut.py potts_am_bezier_small2d --field=site 0 100 0 100
+
+seed		 56789
+
+# OUT filename
+variable OUT world potts_am_bezier_small2d.st
+#———————————————————————————————————————————
+# potts/am/bezier = arg[0] // app_style
+# nspins          = arg[1] // Number of spins
+# pool_width      = arg[2] 
+# pool_depth      = arg[3] 
+# haz             = arg[4] //distance which defines 'heat affected zone'
+#———————————————————————————————————————————
+app_style	 potts/am/bezier 10000 20 15 4
+
+# REQUIRED input: control points 
+# SPPARKS assigns 1st and last values for y and z 0
+# x: input 5 values <x[0] x[1], x[2], x[3], x[4]>
+# y: input 3 values y[0]=0, <y[1], y[2], y[3]>, y[4]=0
+# z: input 3 values z[0]=0, <z[1], z[2], z[3]>, z[4]=0
+#
+potts/am/bezier control_points x -2.2597   -2.2597    1.29865  2.23368 2.23368
+potts/am/bezier control_points y  0.85711   1.50644   0.88308 
+potts/am/bezier control_points z -0.78114, -1.62087, -1.78114
+
+# OPTIONAL input: beta
+# default values betay=1.0 betaz=0.5
+potts/am/bezier beta 1.0 0.5
+
+#Define simulation domain and initialize site variables
+#———————————————————————————————————————————
+
+dimension	 3
+lattice	 	 sc/26n 1.0
+region		 box block 0 100 0 100 0 1
+region		 transverse block 0 100 50 75 0 1
+region		 longitudinal block 50 75 0 100 0 1
+
+boundary 	 n n n
+
+create_box	 box
+create_sites	 box
+set		 i1 range 1 10000 
+set		 d1 value 0.0
+
+#———————————————————————————————————————————
+
+#Define an additive scan pattern using a combination of pass, transverse_pass, cartesian_layer, and pattern
+#———————————————————————————————————————————
+
+am pass 1 dir X speed 10 hatch 25
+am cartesian_layer 1 start LL pass_id 1 thickness 1 offset -60.0 0.0
+am build start 0.0 num_layers 1
+
+#Setup the solver type and parameters. Must use a "sweep" style solver
+#——————————————————————————————————————————— 
+sector		 yes
+sweep		 random mask no
+temperature	 0.0
+#——————————————————————————————————————————— 
+
+#Specify output commands and styles.
+#——————————————————————————————————————————— 
+diag_style   energy
+stats            1.0
+#dump             1 text 5.0 dump.additive4.* id i1 d1 x y z
+
+dump 1 stitch 2 ${OUT} site
+
+#If SPPARKS was not compiled with libjpeg, comment out the lines below.
+#dump top image 2 top.small2D.*.jpg site site crange 1 1000 drange 1 1 view 0.0 0.0 boundary site 1 shape cube box no 1 zoom 2 size 512 512 sdiam 1.05
+#dump mobility_top image 2 mobiity_top.small2D.*.jpg d1 i1 view 0.0 0.0 shape cube size 512 512 sdiam 1.05 box no 1 zoom 2
+
+#dump_modify top boundcolor black backcolor black pad 4 
+#dump_modify	mobility_top smap 0 1 cf 0.05 5 min blue 0.45 lightblue 0.65 yellow 0.75 orange max red
+
+#dump transverse image 2 transverse.small2D.*.jpg site site crange 1 1000 center s 0.5 0.5 0.5 drange 1 1 view 90.0 -90.0 shape cube box no 1 zoom 1.5 size 512 512
+#dump_modify transverse cwrap yes region transverse boundcolor black backcolor black pad 4 
+
+#dump longitudinal image 2 longitudinal.small2D.*.jpg site site crange 1 1000 drange 1 1 view 90.0 0.0 shape cube box no 1 zoom 1.5 size 512 512
+#dump_modify longitudinal cwrap yes region longitudinal boundcolor black backcolor black pad 4 
+#——————————————————————————————————————————— 
+
+run             10

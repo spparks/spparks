@@ -332,6 +332,7 @@ full description:
 "membrane"_app_membrane.html,
 "phasefield/potts"_app_phasefield_potts.html,
 "potts"_app_potts.html,
+"potts/am/bezier"_app_potts_am_bezier.html,
 "potts/am/path/gen"_app_potts_am_path_gen.html,
 "potts/am/weld"_app_potts_am_weld.html,
 "potts/grad"_app_potts_grad.html,
