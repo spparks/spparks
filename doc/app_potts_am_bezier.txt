@@ -120,3 +120,11 @@ algorithm.  See the "sweep"_sweep.html command for more details.
 
 [Default:] none
 
+:line
+
+Details of the melt pool representation used in this app are described 
+in "A Bézier curve informed melt pool geometry for modeling additive manufacturing microstructures,"_bezier_cmame.
+
+
+:link(bezier_cmame,https://doi.org/10.1016/j.cma.2023.116208)
+
