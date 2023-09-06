@@ -141,7 +141,7 @@ analyze, plot, and visualize data for SPPARKS simulations.  Pizza.py
 is written in "Python"_python and is available for download from "the
 Pizza.py WWW site"_pizza.
 
-:link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
+:link(pizza,https://lammps.github.io/pizza)
 :link(python,http://www.python.org)
 
 :line
@@ -196,13 +196,7 @@ Energy"_doe (DOE), through its LDRD and ASC programs.
 :link(sandia,http://www.sandia.gov)
 :link(doe,http://www.doe.gov)
 
-The primary authors of SPPARKS are Steve Plimpton, Aidan Thompson, and
-Alex Slepoy.  They can be contacted via email: sjplimp@sandia.gov,
-athomps@sandia.gov, alexander.slepoy@nnsa.doe.gov.
-
-The following Sandians have also contributed to the design and
-ideas in SPPARKS:
-
-Corbett Battaile
-Liz Holm
-Ed Webb :ul
+The "Authors page"_https://spparks.github.io/authors.html of the
+SPPARKS website lists the developers and their contact info, along
+with others who have contributed code and expertise to the
+developement of SPPARKS.

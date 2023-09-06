@@ -26,5 +26,5 @@ analysis, plotting, and visualization of SPPARKS simulations.
 Pizza.py is written in "Python"_python and is available for download
 from "the Pizza.py WWW site"_pizza.
 
-:link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
+:link(pizza,https://lammps.github.io/pizza)
 :link(python,http://www.python.org)
