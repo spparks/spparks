@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>SPPARKS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="06 Sep 2023 version">
+<META NAME="docnumber" CONTENT="6 Sep 2023 version">
 <META NAME="author" CONTENT="http://spparks.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2008) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -9,7 +9,7 @@
 
 "SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
 
-:link(sws,http://spparks.sandia.gov)
+:link(sws,https://spparks.github.io)
 :link(sd,Manual.html)
 :link(sc,Section_commands.html#comm)
 
@@ -18,7 +18,7 @@
 <H1></H1>
 
 SPPARKS Documentation :c,h3
-06 Sep 2023 version :c,h4
+6 Sep 2023 version :c,h4
 
 Version info: :h4
 
@@ -47,14 +47,16 @@ open-source code, distributed freely under the terms of the GNU Public
 License (GPL), or sometimes by request under the terms of the GNU
 Lesser General Public License (LGPL).
 
-The developers of SPPARKS are "Steve Plimpton"_sjp, Aidan Thompson,
-and Alex Slepoy.  They can be contacted at sjplimp@sandia.gov,
-athomps@sandia.gov, and alexander.slepoy@nnsa.doe.gov.  The "SPPARKS
-WWW Site"_sws at http://spparks.sandia.gov has more information about
-the code and its uses.
+The "SPPARKS website"_sws has more information about the code and
+publications that desribe it.  The current SPPARKS developers are John
+Mitchell (Sandia National Labs) and "Steve Plimpton"_sjp.  They can be
+contacted at jamitch@sandia.gov and sjplimp@gmail.com respectively.
+Past developers and other significant code contributores are listed on
+the "Authors page"_https://spparks.github.io/authors.html of the
+website.
 
-:link(bug,http://www.cs.sandia.gov/spparks/bug.html)
-:link(sjp,http://www.cs.sandia.gov/~sjplimp)
+:link(bug,https://spparks.github.io/bug.html)
+:link(sjp,https://sjplimp.github.io)
 
 :line
 
