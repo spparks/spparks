@@ -1,6 +1,6 @@
 "SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
 
-:link(sws,http://spparks.sandia.gov)
+:link(sws,https://spparks.github.io)
 :link(sd,Manual.html)
 :link(sc,Section_commands.html#comm)
 
@@ -55,7 +55,7 @@ by diffusion. For a full description of the model, see the paper by
 
 See the examples/potts_pfm directory for an example script using this
 command.  See the "Pictures web
-page"_http://spparks.sandia.gov/pictures.html for images of
+page"_https://spparks.github.io/pictures.html for images of
 simulations performed with this command.
 
 :line
