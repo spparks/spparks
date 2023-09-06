@@ -6,7 +6,8 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		/opt/local/bin/mpicxx
+CC =		${MPI_HOME}/bin/mpicxx
+C =		${MPI_HOME}/bin/mpicc
 CCFLAGS =	-g -O -std=c++11
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
@@ -36,8 +37,8 @@ SPK_INC =	-DSPPARKS_GZIP  -DSPPARKS_JPEG -DSPPARKS_UNORDERED_MAP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -I/opt/local/include/openmpi-gcc9
-MPI_PATH =      -L/opt/local/lib/openmpi-gcc9
+MPI_INC =       -I${MPI_HOME}/include
+MPI_PATH =      -L${MPI_HOME}/lib
 MPI_LIB =	-lmpi
 MPI_INC = 
 MPI_PATH =
@@ -48,8 +49,8 @@ MPI_LIB =
 # PATH = path for JPEG library
 # LIB = name of JPEG library
 
-JPG_INC = -I/opt/local/include
-JPG_PATH = -L/opt/local/lib
+JPG_INC = -I/usr/local/include
+JPG_PATH = -L/usr/local/lib
 JPG_LIB = -ljpeg
 
 #STITCH_INC = -I/home/jamitch/local/stitch/include
