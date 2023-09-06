@@ -52,7 +52,7 @@ publications that desribe it.  The current SPPARKS developers are John
 Mitchell (Sandia National Labs) and "Steve Plimpton"_sjp.  They can be
 contacted at jamitch@sandia.gov and sjplimp@gmail.com respectively.
 Past developers and other significant code contributores are listed on
-the "Authors page"_https://spparks.github.io/authors.html of the
+the "Authors"_https://spparks.github.io/authors.html page of the
 website.
 
 :link(bug,https://spparks.github.io/bug.html)

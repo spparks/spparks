@@ -376,9 +376,9 @@ b) Use the freely available mplayer tool to view an MPEG movie. :l
 
 % mplayer foo.mpg :pre
 
-c) Use the "Pizza.py"_http://www.sandia.gov/~sjplimp/pizza.html
-"animate tool"_http://www.sandia.gov/~sjplimp/pizza/doc/animate.html,
-which works directly on a series of image files. :l
+c) Use the "Pizza.py"_https://lammps.github.io/pizza "animate
+tool"_https://lammps.github.io/pizza/doc/animate.html, which works
+directly on a series of image files. :l
 
 a = animate("foo*.jpg") :pre
 
