@@ -1,8 +1,8 @@
 # attaway - Intel Xeon Gold, mpic++, openmpi
 
 # need to load the following modules:
-# 1) intel/12.1
-# 2) openmpi-intel/1.8
+# 1) module load intel/19
+# 2) module load mkl/19
 
 SHELL = /bin/sh
 
@@ -11,9 +11,9 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 export OMPI_CXX = icc
+C =		mpicc
 CC =		mpic++
-OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits \
-                -qopt-zmm-usage=high
+OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
 CCFLAGS = -std=c++11 -qopenmp -qno-offload -ansi-alias -restrict \
                 -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS) \
                 -I$(MKLROOT)/include
@@ -51,17 +51,23 @@ MPI_LIB =
 # PATH = path for JPEG library
 # LIB = name of JPEG library
 
-JPG_INC =       
-JPG_PATH = 	
-JPG_LIB =	#/usr/local/lib/libjpeg.a
+JPG_INC = -I/usr/include
+JPG_PATH = -L/usr/lib64	
+JPG_LIB = -ljpeg
+
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
 # no need to edit this section
 
-EXTRA_INC = $(SPK_INC) $(MPI_INC) $(JPG_INC)
-EXTRA_PATH = $(MPI_PATH) $(JPG_PATH)
-EXTRA_LIB = $(MPI_LIB) $(JPG_LIB)
+include	Makefile.package.settings
+include	Makefile.package
+
+EXTRA_INC = $(SPK_INC) $(PKG_INC) $(MPI_INC) $(JPG_INC) $(PKG_SYSINC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(JPG_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+EXTRA_CPP_DEPENDS = $(PKG_CPP_DEPENDS)
+EXTRA_LINK_DEPENDS = $(PKG_LINK_DEPENDS)
 
 # Path to src files
 
@@ -93,5 +99,10 @@ shlib:	$(OBJ)
 
 # Individual dependencies
 
-DEPENDS = $(OBJ:.o=.d)
-include $(DEPENDS)
+depend : fastdep.exe $(SRC)
+	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
+
+fastdep.exe: ../DEPEND/fastdep.c
+	$(C) -O -o $@ $<
+
+sinclude .depend
