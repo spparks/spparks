@@ -1,4 +1,4 @@
-"SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+"SPPARKS Website"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
 
 :link(sws,https://spparks.github.io)
 :link(sd,Manual.html)

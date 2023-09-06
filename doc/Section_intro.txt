@@ -1,4 +1,4 @@
-"Previous Section"_Manual.html - "SPPARKS WWW Site"_sws - "SPPARKS
+"Previous Section"_Manual.html - "SPPARKS Website"_sws - "SPPARKS
 Documentation"_sd - "SPPARKS Commands"_sc - "Next
 Section"_Section_start.html :c
 

@@ -1,4 +1,4 @@
-"Previous Section"_Section_modify.html - "SPPARKS WWW Site"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc - "Next Section"_Section_errors.html :c
+"Previous Section"_Section_modify.html - "SPPARKS Website"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc - "Next Section"_Section_errors.html :c
 
 :link(sws,https://spparks.github.io)
 :link(sd,Manual.html)

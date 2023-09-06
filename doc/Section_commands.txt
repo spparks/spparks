@@ -1,4 +1,4 @@
-"Previous Section"_Section_start.html - "SPPARKS WWW Site"_sws -
+"Previous Section"_Section_start.html - "SPPARKS Website"_sws -
 "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc - "Next
 Section"_Section_howto.html :c
 
@@ -120,7 +120,7 @@ This section describes the structure of a typical SPPARKS input
 script.  The "examples" directory in the SPPARKS distribution contains
 sample input scripts; the corresponding problems are discussed in
 "this section"_Section_example.html, and some are animated on the
-"SPPARKS WWW Site"_sws.
+"SPPARKS website"_sws.
 
 A SPPARKS input script typically has 3 parts:
 
