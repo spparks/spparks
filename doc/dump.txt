@@ -271,7 +271,7 @@ Note that if the application only performs rejection KMC or Metropolis
 MC, then no propensity is defined.
 
 :link(lammps,http://lammps.sandia.gov)
-:link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
+:link(pizza,https://lammps.github.io/pizza)
 
 :line
 

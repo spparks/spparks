@@ -109,7 +109,7 @@ particular ordering of the sites, the {opendx} style can only be used
 with square and simple cubic lattices.
 
 :link(lammps,http://lammps.sandia.gov)
-:link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
+:link(pizza,https://lammps.github.io/pizza)
 
 [Restrictions:]
 

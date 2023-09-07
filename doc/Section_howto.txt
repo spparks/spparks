@@ -159,7 +159,7 @@ lammps_spparks: coupling of SPPARKS and "LAMMPS"_lammps, to couple a
 kinetic Monte Carlo model for grain growth using MD to calculate
 strain induced across grain boundaries :l,ule
 
-:link(lammps,http://www.sandia.gov/~sjplimp/lammps.html)
+:link(lammps,https://www.lammps.org)
 
 "This section"_Section_start.html#start_5 of the documentation
 describes how to build SPPARKS as a library.  Once this is done, you
