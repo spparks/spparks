@@ -4,8 +4,16 @@ seed		 56789
 
 app_style	 sinter 
 
-#read_sites	 Cu03.spins
-read_sites	 Cu03.spins.gz
+dimension	 3
+lattice		 sc/26n 1.0
+region		 box block 0 403 0 403 0 95
+create_box	 box
+create_sites	 box
+
+# see the README file for instructions on how to download this large file
+
+#read_sites	 CuO3.spins
+read_sites	 CuO3.spins.gz
 
 event_ratios 	 2.0 1.0 10.0
 
@@ -19,7 +27,7 @@ sector		 yes
 diag_style       energy
 
 stats            1.0
-dump             10.0 dumpCu.sinter
+#dump             1 text 10.0 dumpCu.sinter id site x y z
 diag_style       cluster delt 1.0 stats no logfreq 10 500.0 filename clusterCu.dat
 
-run              10.0
+run              50.0

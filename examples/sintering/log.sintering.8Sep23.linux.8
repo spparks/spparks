@@ -1,0 +1,61 @@
+SPPARKS (6 Sep 2023)
+# SPPARKS sinter tests on a powder compact 
+
+seed		 56789
+
+app_style	 sinter 
+
+dimension	 3
+lattice		 sc/26n 1.0
+region		 box block 0 403 0 403 0 95
+create_box	 box
+Created box = (0 0 0) to (403 403 95)
+  2 by 4 by 1 processor grid
+create_sites	 box
+Creating sites ...
+  15428855 sites
+  15428855 sites have 26 neighbors
+
+# see the README file for instructions on how to download this large file
+
+#read_sites	 CuO3.spins
+read_sites	 CuO3.spins.gz
+  15428855 values
+
+event_ratios 	 2.0 1.0 10.0
+
+events_temperatures 1.0 1.0 15.0
+
+sweep		 random
+#sweep		 raster mask yes
+#solve_style      tree
+sector		 yes
+
+diag_style       energy
+
+stats            1.0
+dump             10.0 text 1.0 dumpCu.sinter id site x y z
+diag_style       cluster delt 1.0 stats no logfreq 10 500.0 filename clusterCu.dat
+
+run              50.0
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 275.625 Mbytes
+      Time      Naccept        Nreject    Nsweeps        Vmade        CPU     Energy
+0 0 0 0 0          0 3.37904e+07
+6.5 5390 1.54235e+07 1 0       18.3 3.37865e+07
+13 10868 3.08468e+07 2 0       34.3 3.37824e+07
+19.5 16372 4.62702e+07 3 0       46.5 3.37788e+07
+26 21874 6.16935e+07 4 0       59.6 3.37747e+07
+32.5 27430 7.71168e+07 5 0       72.2 3.37706e+07
+39 32779 9.25404e+07 6 0       84.9 3.37668e+07
+45.5 38081 1.07964e+08 7 0       97.6 3.37631e+07
+52 43526 1.23387e+08 8 0        109 3.37592e+07
+Loop time of 109.559 on 8 procs
+
+Solve time (%) = 1.32748 (1.21165)
+Update time (%) = 0 (0)
+Comm  time (%) = 0.45042 (0.41112)
+Outpt time (%) = 107.211 (97.8567)
+App   time (%) = 1.73466e-05 (1.58331e-05)
+Other time (%) = 0.570301 (0.520542)
