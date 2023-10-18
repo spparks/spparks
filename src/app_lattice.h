@@ -108,7 +108,7 @@ class AppLattice : public App {
   int nsector_user;            // 0 if default, else 2,4,8
   int ncolors;                 // # of colors, depends on lattice
   int bothflag;                // 1 if both sectors and colors
-  int app_update_only;         // 1 if skip KMC and rKMC updates
+  int update_only;             // 1 if skip KMC and rKMC updates
 
   class RandomPark *ranapp;    // RN generator for KMC and rejection KMC
   class RandomPark *ranstrict; // RN generator for per-site strict rKMC
@@ -153,7 +153,7 @@ class AppLattice : public App {
   void iterate_kmc_sector(double);
 
   virtual void iterate_rejection(double);
-  void iterate_app_update_only(double,double);
+  void iterate_update_only(double,double);
 
   void update_kmc_sector_border_propensities();
   int whichset(int);
@@ -180,7 +180,7 @@ class AppLattice : public App {
   void set_sector(int, char **);
   void set_sweep(int, char **);
   void set_temperature(int, char **);
-  void set_app_update_only(int, char **);
+  void set_update_only(int, char **);
   void bounds(char *, int, int, int &, int &);
 };
 
