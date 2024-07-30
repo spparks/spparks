@@ -1,0 +1,14 @@
+== How
+* Create two links in this directory pointing to files in src/
+[source,bash]
+ln -s ../../../src/quaternion.h .
+ln -s ../../../src/cubic_symmetries.h .
+
+== What
+* Verify 'quaternion.h', 'cubic_symmetries.h', and 'hcp_symmetries.h' produce correct distributions for cubic and hcp material; these are the exact files used in spparks for quaternion and symmetry/(dis)orientation calculations.
+* See 'plot_cubic_symmetry_histograms.py' for making plots
+* Relevant files
+[literal]
+cpp_quaternion.py
+plot_cubic_symmetry_histograms.py
+
