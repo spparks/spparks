@@ -1,0 +1,31 @@
+# SPPARKS Potts tests on generic lattice
+
+seed		 56789
+
+app_style	 potts/graingrowth/crystal cubic 1000000
+
+dimension	 3
+lattice		 sc/26n 1.0
+region		 box block 0 100 0 100 0 100
+create_box	 box
+create_sites	 box
+set		 site range 1 1000000
+
+sweep		 random
+#sweep		 raster mask yes
+#solve_style      tree
+sector		 yes
+
+#solve_style      tree
+#solve_style      group 26 1
+#sector		 yes
+
+diag_style       energy
+
+temperature	 0.25
+
+stats            0.5
+dump             stitch.id stitch 0.5 potts_cubic_medium.st site
+diag_style       cluster stats yes
+
+run              5.0
