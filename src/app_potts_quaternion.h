@@ -16,12 +16,12 @@
 
 #ifdef APP_CLASS
 // clang-format off
-AppStyle(potts/graingrowth/crystal,AppPottsGrainGrowthCrystal)
+AppStyle(potts/quaternion,AppPottsQuaternion)
 // clang-format on
 #else
 
-#ifndef SPK_APP_POTTS_GRAINGROWTH_CRYSTAL_H
-#define SPK_APP_POTTS_GRAINGROWTH_CRYSTAL_H
+#ifndef SPK_APP_POTTS_QUATERNION_H
+#define SPK_APP_POTTS_QUATERNION_H
 
 #include "app_potts.h"
 #include <array>
@@ -31,10 +31,10 @@ using std::vector;
 
 namespace SPPARKS_NS {
 
-class AppPottsGrainGrowthCrystal : public AppPotts {
+class AppPottsQuaternion : public AppPotts {
 public:
-  AppPottsGrainGrowthCrystal(class SPPARKS *, int, char **);
-  virtual ~AppPottsGrainGrowthCrystal() {}
+  AppPottsQuaternion(class SPPARKS *, int, char **);
+  virtual ~AppPottsQuaternion() {}
   virtual void init_app();
   virtual void grow_app();
   virtual double site_energy(int i);

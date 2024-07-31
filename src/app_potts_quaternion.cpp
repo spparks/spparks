@@ -14,7 +14,7 @@
    John Mitchell, jamitch@sandia.gov, Sandia National Laboratories
 ------------------------------------------------------------------------- */
 
-#include "app_potts_grain_growth_crystal.h"
+#include "app_potts_quaternion.h"
 #include "cubic_symmetries.h"
 #include "disorientation.h"
 #include "error.h"
@@ -30,24 +30,24 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsGrainGrowthCrystal::AppPottsGrainGrowthCrystal(SPPARKS *spk, int narg,
+AppPottsQuaternion::AppPottsQuaternion(SPPARKS *spk, int narg,
                                                        char **arg)
     : AppPotts(spk, narg, arg), symmetries(), q0(nullptr), qx(nullptr),
       qy(nullptr), qz(nullptr), unique_neigh(nullptr) {
   // parse arguments for PottsNeighOnly class only, not children
 
-  if (strcmp(style, "potts/graingrowth/crystal") != 0)
+  if (strcmp(style, "potts/quaternion") != 0)
     return;
 
   if (narg != 3)
-    error->all(FLERR, "Illegal 'potts/graingrowth/crystal command");
+    error->all(FLERR, "Illegal 'potts/quaternion command");
 
   if (strcmp(arg[2], "cubic") != 0) {
     symmetries = CUBIC::get_symmetries();
   } else if (strcmp(arg[2], "hcp") != 0) {
     symmetries = HCP::get_symmetries();
   } else {
-    error->all(FLERR, "Illegal 'potts/graingrowth/crystal command; expected "
+    error->all(FLERR, "Illegal 'potts/quaternion command; expected "
                       "'cubic' or 'hcp'");
   }
 
@@ -66,7 +66,7 @@ AppPottsGrainGrowthCrystal::AppPottsGrainGrowthCrystal(SPPARKS *spk, int narg,
    check validity of site values
 ------------------------------------------------------------------------- */
 
-void AppPottsGrainGrowthCrystal::init_app() {
+void AppPottsQuaternion::init_app() {
   delete[] sites;
   delete[] unique;
   delete[] unique_neigh;
@@ -94,7 +94,7 @@ void AppPottsGrainGrowthCrystal::init_app() {
     error->all(FLERR, "One or more sites have invalid values");
 }
 
-void AppPottsGrainGrowthCrystal::grow_app() {
+void AppPottsQuaternion::grow_app() {
   spin = iarray[0];
   q0 = darray[0];
   qx = darray[1];
@@ -102,7 +102,7 @@ void AppPottsGrainGrowthCrystal::grow_app() {
   qz = darray[3];
 }
 
-void AppPottsGrainGrowthCrystal::flip_site(int i, const SiteState &s) {
+void AppPottsQuaternion::flip_site(int i, const SiteState &s) {
   spin[i] = s.spin;
   q0[i] = s.q[0];
   qx[i] = s.q[1];
@@ -110,7 +110,7 @@ void AppPottsGrainGrowthCrystal::flip_site(int i, const SiteState &s) {
   qz[i] = s.q[3];
 }
 
-double AppPottsGrainGrowthCrystal::site_energy(int i) {
+double AppPottsQuaternion::site_energy(int i) {
   double energy = 0.0;
   double hi_angle = 15.0;
   vector<double> qi{q0[i], qx[i], qy[i], qz[i]};
@@ -138,7 +138,7 @@ double AppPottsGrainGrowthCrystal::site_energy(int i) {
    technically this is an incorrect rejection-KMC algorithm
 ------------------------------------------------------------------------- */
 
-void AppPottsGrainGrowthCrystal::site_event_rejection(int i,
+void AppPottsQuaternion::site_event_rejection(int i,
                                                       RandomPark *random) {
   int oldstate = spin[i];
   // Old state
@@ -209,8 +209,8 @@ void AppPottsGrainGrowthCrystal::site_event_rejection(int i,
   }
 }
 
-double AppPottsGrainGrowthCrystal::site_propensity(int) {
-  error->all(FLERR, "Illegal potts/graingrowth/crystal solver used.  KMC not "
+double AppPottsQuaternion::site_propensity(int) {
+  error->all(FLERR, "Illegal potts/quaternion solver used.  KMC not "
                     "implemented.  Use rKMC.");
   return -1.0;
 }
