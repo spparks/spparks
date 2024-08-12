@@ -158,25 +158,24 @@ module.
 Python 3, numpy, and scipy are required for building the 'stitch' python
 module.  This documentation was developed with the following versions.
 
-* gnu gcc 9.2.0
-* Python 3.6.9
-* numpy '1.19.2'
-* scipy '1.5.2'
+* gnu gcc 14.1.0
+* Python 3.12.0
+* numpy '1.26.4'
+* scipy '1.13.0'
 
 Change to stitch directory 
 % cd $SPPARKS/lib/stitch
 
 The files 'setup.py' and 'setup.flamer.cfg' are included in this directory.
 
-Building the python module uses the methods and tools deployed by numpy and
-scipy.  It uses the 'setup.py' script and the config file setup.cfg.  Copy
-the existing example config file 'setup.flamer.cfg' to 'setup.cfg'; edit
-'setup.cfg' to specify where the python module should be installed -- then 
-add this path to your PYTHONPATH.
 
-Build and install the python module.
-% python setup.py build
-% python setup.py install
+Build and install the stitch python module.  The first line uses the 'build' module to build a wheel file and uses the '-n' flag to build without downloading dependencies.  This means that build, setuptools, numpy, scipy must already be installed in your python environment. 
+The next line installs the wheel file just built using pip.  Note that wheel file name to install depends upon the platform -- after build look in the newly-generated 'dist' directory to get the exact wheel file name for use on the install line.
+
+    % python -m build --wheel -n
+    % python -m pip install dist/stitch-[version_and_compiler_and_arch].whl
+
+Note that this wheel file will likely be the only one present in that folder.
 
 Some build 'warnings' may occur which are generally harmless.  On the other
 hand 'errors' are not good and must be addressed.  
@@ -188,7 +187,7 @@ If the following command succeeds, python module build and install is
 probably good.  Start an interactive python session by launching python 
 and import the stitch module:
 % python
-% from stitch.libstitch import libstitch
+% import stitch.libstitch as libstitch
 
 As final verification of python module correctness, run the unit test; remove
 all stitch files prior to running the test -- otherwise the test will fail.
