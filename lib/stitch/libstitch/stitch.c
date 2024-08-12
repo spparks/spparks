@@ -222,6 +222,16 @@ int stitch_open (StitchFile ** file, const char * filename)
                 goto cleanup;
             }
 
+            rc = sqlite3_exec ((*file)->db, "create index blocks_dims_and_field on blocks (x_min, y_min, z_min, x_max, y_max, z_max, field_id)", callback, 0, &ErrMsg);
+            if (rc != SQLITE_OK)
+            {
+                fprintf (stderr, "Line: %d SQL error (%d): %s\n", __LINE__, rc, ErrMsg);
+                sqlite3_free (ErrMsg);
+                sqlite3_close ((*file)->db);
+                goto cleanup;
+            }
+
+#if 0 // old indexes that aren't used as they didn't suit the intended purpose. Delete later
             rc = sqlite3_exec ((*file)->db, "create index field_id_blocks on blocks (field_id)", callback, 0, &ErrMsg);
             if (rc != SQLITE_OK)
             {
@@ -293,6 +303,7 @@ int stitch_open (StitchFile ** file, const char * filename)
                 sqlite3_close ((*file)->db);
                 goto cleanup;
             }
+#endif
         }
 #ifdef STITCH_PARALLEL
         MPI_Barrier ((*file)->comm);
@@ -316,6 +327,15 @@ int stitch_open (StitchFile ** file, const char * filename)
     // this should reduce pressure on /tmp and improve performance. If memory is tight, this might
     // be a problem.
     rc = sqlite3_exec ((*file)->db, "PRAGMA temp_store = MEMORY", NULL, NULL, &ErrMsg);
+    if (rc != SQLITE_OK)
+    {
+        fprintf (stderr, "%d Can't open stitch file: %s\n", (*file)->rank, sqlite3_errmsg ((*file)->db));
+        sqlite3_close ((*file)->db);
+        goto cleanup;
+    }
+
+    // the default page size is 4 KB. This is too small for our uses. Maximize at 64KB
+    rc = sqlite3_exec ((*file)->db, "PRAGMA page_size = 65536", NULL, NULL, &ErrMsg);
     if (rc != SQLITE_OK)
     {
         fprintf (stderr, "%d Can't open stitch file: %s\n", (*file)->rank, sqlite3_errmsg ((*file)->db));
@@ -1830,7 +1850,7 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
     do
     {
         const char * query = NULL;
-        query = "select timestamp from times, globals where times.time < globals.absolute_tolerance + ?";
+        query = "select timestamp from times, globals where times.time < globals.absolute_tolerance + ? order by timestamp";
         rc = sqlite3_prepare_v2 (file->db, query, -1, &stmt_index, &tail_index);
         if (rc != SQLITE_OK && rc != SQLITE_BUSY && rc != SQLITE_LOCKED)
         {
@@ -1887,6 +1907,7 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
                 "and z_min <= ? and z_max >= ? "
                 "and field_id = ? ";
         strncpy (query, q_txt, SQLITE_MAX_SQL_LENGTH_CAT);
+#if 0 // because including this causes a sub-query that prevents using the proper index, we do this manually now
         if (number_of_times != times_selected)
         {
             strncat (query, "and timestamp in (?", SQLITE_MAX_SQL_LENGTH_CAT);
@@ -1900,6 +1921,7 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
         {
             times_selected = 0; // set to skip binding these parameters
         }
+#endif
         strncat (query, "order by timestamp ", SQLITE_MAX_SQL_LENGTH_CAT);
 
         rc = sqlite3_prepare_v2 (file->db, query, -1, &stmt_index, &tail_index);
@@ -1922,8 +1944,10 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
     rc = sqlite3_bind_int (stmt_index, 5, z2); assert (rc == SQLITE_OK);
     rc = sqlite3_bind_int (stmt_index, 6, z1); assert (rc == SQLITE_OK);
     rc = sqlite3_bind_int64 (stmt_index, 7, field_id); assert (rc == SQLITE_OK);
+#if 0 // also not used anymore
     for (int i = 0; i < times_selected; i++)
     rc = sqlite3_bind_int (stmt_index, 8 + i, times [i]); assert (rc == SQLITE_OK);
+#endif
     //rc = sqlite3_bind_double (stmt_index, 8, *time); assert (rc == SQLITE_OK);
 //printf ("time: %g bounding box x1: %d y1: %d z1: %d x2: %d y2: %d z2: %d\n", *time, x1, y1, z1, x2, y2, z2);
 //if (file->rank == 0) printf ("1: %d 2: %d 3: %d 4: %d 5: %d 6: %d 7: %lld 8: %f\n", x2, x1, y2, y1, z2, z1, field_id, *time);
@@ -1958,7 +1982,7 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
 #endif
     while (rc == SQLITE_ROW)
     {
-        //double block_time = 0.0;
+        int32_t block_time = 0;
         int32_t new_block_x1 = 0;
         int32_t new_block_y1 = 0;
         int32_t new_block_z1 = 0;
@@ -1970,7 +1994,14 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
         struct timeval start1, end1;
         gettimeofday (&time_start, NULL);
 #endif
-        //block_time = sqlite3_column_double (stmt_index, 0);
+        block_time = sqlite3_column_int (stmt_index, 0);
+        // this snippet replaces the sub-query and conditionally retrieves the rest of the data and tries to process it
+        bool use_time = false;
+        for (int i = 0; i < number_of_times && !use_time; i++)
+            if (block_time == times [i])
+                use_time = true;
+        if (use_time)
+        {
         field_id = sqlite3_column_int64 (stmt_index, 1);
         new_block_x1 = sqlite3_column_int (stmt_index, 2);
         new_block_y1 = sqlite3_column_int (stmt_index, 3);
@@ -2097,6 +2128,7 @@ printf ("n\n");
         gettimeofday (&end1, NULL);
         timing [timing_offset++] = (end1.tv_sec - start1.tv_sec) + ((double) end1.tv_usec - start1.tv_usec)/1000000;
 #endif
+        }
 
         do
         {

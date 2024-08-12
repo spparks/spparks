@@ -1,5 +1,13 @@
-# mpicc and mpicxx must be on your path; Set these appropriately
-
+# 
+# megmcca: Aug 6 2024
+# ENVIRONMENT variables CC and CXX initialized in-file as in 
+# old Makefile
+# 
+# jamitch: March 19 2024
+# ENVIRONMENT variables CC and CXX should initialized
+# make -f Makefile.cee stitch.lib
+# make -f Makefile.cee stitch_module
+#
 CC=mpicc
 CXX=mpicxx
 
@@ -8,13 +16,12 @@ stitch.lib: stitch.c stitch.h sqlite3.c sqlite3.h
 	ar rc libstitch.a stitch.o sqlite3.o
 
 stitch_test: stitch_test.c stitch.lib
-	${CC} -std=c99 -o stitch_test stitch_test.c -DSTITCH_PARALLEL -L. -lstitch -ldl -lpthread
+	${CC} -o stitch_test stitch_test.c -DSTITCH_PARALLEL -L. -lstitch -ldl -lpthread
 
+## NEW UNTESTED
 stitch_module: stitch.c stitch.h sqlite3.c sqlite3.h
 	cd .. ; CC="gcc" CXX="g++" python3 setup.py build && CC="gcc" CXX="g++" python3 setup.py install
 
 clean:
-	rm -f *.o libstitch.a *.so 
-	cd .. ; python3 setup.py clean
-	rm -rf ../build
-	find .. -name __pycache__ -exec rm -rf {} \; ; find .. -name "*.pyc" -exec rm -rf {} \; ; rm -f *.st
+	rm -f *.{o,so} libstitch.a stitch_test *.st
+
