@@ -12,7 +12,7 @@ variable OUT world potts_am_bezier_small2d.st
 # pool_depth      = arg[3] 
 # haz             = arg[4] //distance which defines 'heat affected zone'
 #———————————————————————————————————————————
-app_style	 potts/am/bezier 10000 20 15 4
+app_style	 potts/am/bezier 10000 20 15 4 6
 
 # REQUIRED input: control points 
 # SPPARKS assigns 1st and last values for y and z 0

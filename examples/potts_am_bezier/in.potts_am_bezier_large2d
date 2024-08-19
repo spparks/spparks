@@ -3,7 +3,8 @@
 variable NUM_SPINS equal         250000
 variable WIDTH equal             93.5
 variable DEPTH equal             116
-variable HAZ equal               20
+variable H0 equal               20
+variable HT equal               50
 variable LAYER_DEPTH equal       65
 variable Z0 equal                0
 variable Z1 equal                1
@@ -21,7 +22,7 @@ seed             ${SEED}
 # pool_depth      = arg[3] 
 # haz             = arg[4] //distance which defines 'heat affected zone'
 #———————————————————————————————————————————
-app_style	 potts/am/bezier ${NUM_SPINS} ${WIDTH} ${DEPTH} ${HAZ}
+app_style	 potts/am/bezier ${NUM_SPINS} ${WIDTH} ${DEPTH} ${H0} ${HT}
 
 # REQUIRED input: control points 
 # SPPARKS assigns 1st and last values for y and z 0
