@@ -1,33 +1,35 @@
-
 =============
 Release Notes
 =============
 
 Aug 2024
----------
-This release of stitch contains two updates:
-1. Performance improvements: the file 'stitch.c' has been updated and a new file has been added, 'stitch_performance.c'.
-*** TODO: ask John for details ***
+--------
 
-2. Update of Python build tools: the building of the stitch.libstitch package has been altered for future Python compatibility. From https://numpy.org/doc/stable/reference/distutils_status_migration.html:
-"'numpy.distutils' has been deprecated in Numpy 1.23. It will be removed for Python 3.12; for Python <= 3.11 it will not be removed until 2 years after the Python 3.12 release (Oct 2025)."
-The nested 'setup.py' files (two: one at this level and one in libstitch/setup.py) have been consolidated into one file, and 'numpy.distutils' usage has been factored out and replaced with native Python 'setuptools' build processes.
-The above change in structures means that, as of this release, a slightly different import syntax should be used when using Python Stitch files to analyse SPPARKS *.st files:
+This release of stitch for SPPARKS contains two updates:
+1. Performance improvements: the file 'stitch.c' has been updated and a new file has been added, 'stitch_performance.c'
+This is a performance improvement to increase the use of the 'set stitch' command in SPPARKS (10-100x speedup). 
+
+2. Update of Python build tools: for future Python compatibility, the building of the stitch.libstitch package has been refactored to use the 'setuptools' module instead of 'numpy.distutils.' 
+For more details, see: https://numpy.org/doc/stable/reference/distutils_status_migration.html
+
+Usage note: the above change in structures means that, as of this release, a different import syntax should be used when using Python Stitch files to analyse SPPARKS *.st files:
 
 Pre-August 2024 release:
-> from stitch.libstitch import libstitch
+    > from stitch.libstitch import libstitch
 
 Current and future releases:
-> import stitch.libstitch as libstitch
+    > import stitch.libstitch as libstitch
 
 Older SPPARKS versions should be unaffected, but those migrating to this release or newer should convert their import statements.
 
-*** TODO: ask John about import statement change. We can set up our build process to allow the previous import syntax (with 'libstitch' imported as a (sub-)subpackage), but I have found it a little confusing. It also doesn't match the import syntax on the main Stitch repo. For now, I'll update the example Python scripts with the new import syntax, happy to change back if needed. ***
 
 The Stitch repo 'SHA' that these files were taken from is:
 
 31555121b757049348269408c5e988318abcc4a2
 
+
+Stitch authors: John A. Mitchell and Jay Lofsted, Sandia National Laboratories
+Tested and ported to GitHub by: Meg McCarthy, Sandia National Laboratories
 
 Sept 2022
 ---------
