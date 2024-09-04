@@ -7,7 +7,7 @@ Aug 2024
 
 This release of stitch for SPPARKS contains two updates:
 1. Performance improvements: the file 'stitch.c' has been updated and a new file has been added, 'stitch_performance.c'
-This is a performance improvement to increase the use of the 'set stitch' command in SPPARKS (10-100x speedup). 
+This is a performance improvement to the 'set stitch' command in SPPARKS (10-100x speedup). 
 
 2. Update of Python build tools: for future Python compatibility, the building of the stitch.libstitch package has been refactored to use the 'setuptools' module instead of 'numpy.distutils.' 
 For more details, see: https://numpy.org/doc/stable/reference/distutils_status_migration.html
