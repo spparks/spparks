@@ -1,0 +1,130 @@
+"SPPARKS Website"_sws - "SPPARKS Documentation"_sd - "SPPARKS Commands"_sc :c
+
+:link(sws,https://spparks.github.io)
+:link(sd,Manual.html)
+:link(sc,Section_commands.html#comm)
+
+:line
+
+app_style potts/quaternion command :h3
+
+[Syntax:]
+
+app_style style Q crystal {theta_cut} :pre
+
+style = {potts/quaternion}
+Q = number of spin states
+crystal = {cubic} or {hcp} 
+theta_cut = disorientation cutoff angle for Read-Shockley energy model (0.0 by default) :ul
+
+[Examples:]
+
+app_style potts/quaternion 6400 cubic
+app_style potts/quaternion 10000 hcp 24.0 :pre
+
+[Description:]
+
+This is an on-lattice application which evolves a Q-state Ising model 
+or Potts model, where each lattice site has a spin value from 1 to Q.
+Sites flip their spin as the model evolves. 
+
+
+This Potts variant is designed to incorporate the effects of crystalline orientation into growth models, allowing more detailed and realistic simulations of microstructure evolution in polycrystals.  Emulating crystalline orientation requires two additions to the standard Potts model: a choice of a reference crystal symmetry, and 3d representation of how each grain in a polycrystal is rotated relative to the reference.  
+
+
+For the reference crystal symmetry, the user selects either {cubic} or {hcp} (note that this is a mathematical representation for calculations and does not change the coordinates of SPPARKS sites).  To represent rotations, each site I is randomly assigned a quaternion, qi.
+With the reference symmetry and quaternions, the app can then calculate the disorientation angle {theta_ij} between two neighboring sites I and J.  Disorientation angles are used to compare how different two grain orientations are from each other, which in turn can be used to alter how site energies are calculated.  More information on the calculation of {theta_ij} can be found in the Mackenzie papers (citations 1 and 2).
+
+
+In the current version of {potts/quaternion}, the disorientation angle can be used to identify "low-angle" grain boundaries using the Read-Shockley equation (citation 3). Briefly, the Read-Shockley equation and model assume that neighboring grains with fairly similar orientations (i.e., lower values of {theta_ij}) tend to form arrays of dislocations. These arrays generally have lower energies per unit area than contrasting "high-angle" grain boundaries. This difference is due to the latter defect having much more free volume. The Read-Shockley model uses the disorientation angle cutoff {theta_cut} to distinguish low-angle from high-angle grain boundaries and applies the following logic to modify site energies. 
+
+The Hamiltonian representing the energy of site I uses a function f({theta_cut}, {theta_ij}):
+
+Hi = Sum_j f(theta_cut, theta_ij) :pre
+
+where Sum_j is a sum over all the neighbor sites J of site I. 
+
+If {theta_cut} is greater than 0.0 (the default) and less than the maximum possible disorientation angle for a given crystal symmetry (see below), the site energies are calculated using the Read-Shockley equation as outlined below.
+
+For all neighbors J of a given site I with disorientation {theta_ij}:
+
+ratio_ij = {theta_ij}/{theta_cut} :pre
+
+If {ratio_ij} is 0 or >= 1, the neighbor's site energy evaluates to 0 or 1.
+
+If {ratio_ij} is between 0 and 1, then the Read-Shockley equation (citation 3) is calculated for that neighbor:
+
+E_ij= 0.5 * ratio_ij * (1 - log(ratio_ij)) :pre
+
+The image below plots the change in E_ij vs. the ratio.
+
+:image(JPG/quaternion_E_vs_rs-ratio.png)
+
+Note that the energy is halved to account for the contribution from the neighbor for the same calculation.
+
+
+A commonly-used value for {theta_cut} for {cubic} crystal structure is 15.0 degrees, and for {hcp} 24.0 degrees. 
+Note that a maximum disorientation angle exists for each crystal symmetry: 62.7 degrees for {cubic} and 93.8 degrees for {hcp}.
+If the user's {theta_cut} is greater than these maxima, the simulation will throw an error. 
+
+Note that, if {theta_cut} = 0.0 (either by default or as a user input), quaternions will still be assigned to sites and the disorientation {theta_ij} will still be calcuated, but site energies will yield either 0 or 1 as in a standard Potts model.  This choice might be useful insome situations (i.e., using quaternion data in visualizations), but will be much slower to run compared to a simpler model such as "app_style potts"_app_potts.html.
+  
+
+These applications perform Glauber dynamics, meaning the spin is
+flipped on a single site.  See "app_style
+diffusion"_app_diffusion.html for an Ising model which performs
+Kawasaki dynamics, meaning the spins on two neighboring sites are
+swapped.
+
+As explained on "this page"_app_style.html, these applications can be
+evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
+algorithm.  You must thus define a KMC solver or sweeping method to be
+used with the application via the "solve_style"_solve_style.html or
+"sweep"_sweep.html commands.
+
+For solution by a KMC algorithm, a site event is a spin flip and its
+probability is min\(1,exp(-dE/kT)\), where dE = Efinal - Einitial
+using the Hamiltonian defined above for the energy of the site, and T
+is the temperature of the system defined by the
+"temperature"_temperature.html command (which includes the Boltzmann
+constant k implicitly).  The KMC algorithm does not allow spin flips
+known as "wild" flips, even at finite temperature.  These are flips to
+values that are not equal to any neighbor site value.
+
+For solution by a rKMC algorithm, this app uses the same 
+rejection-based algorithm as {potts} - a random spin from
+1 to Q is chosen. The final change in energy, dE = Efinal -
+Einitial, is calculated, as is a uniform random number R between 0 and
+1.  The new state is accepted if R < min\(1,exp(-dE/kT)\), else it is
+rejected.
+
+The rKMC algorithm for the {potts} style does allow spin flips known
+as "wild" flips.  These are flips to values that are not equal to any
+neighbor site value.  At temperature 0.0 these are effectively
+disallowed, since they will increase the energy of the system (except
+in the uninteresting case when the site already has a spin value not
+equal to any neighbor values), but at finite temperature they will
+have a non-zero probability of occurring.
+
+:line
+
+[Restrictions:] none
+
+[Related commands:]
+
+"app_style potts"_app_potts.html
+
+"app_style ising"_app_ising.html
+
+[Default:] 
+
+theta_cut = 0.0 (falls back to standard Potts behavior w.r.t. energy, but still calculates crystalline orientations)
+
+
+\[1\]  Mackenzie, J. K., and M. J. Thomson. "Some statistics associated with the random disorientation of cubes." Biometrika 44, no. 1-2 (1957): 205-210. DOI: 10.2307/2333253
+
+
+\[2\] Mackenzie, J. K. "Second paper on statistics associated with the random disorientation of cubes." Biometrika 45, no. 1-2 (1958): 229-240. DOI: 10.2307/2333059
+
+
+\[3\] Read, W.T. and Shockley, W. "Dislocation models of crystal grain boundaries." Phys. Rev. 78, no. 3 (1950): 275. DOI: 10.1103/PhysRev.78.275

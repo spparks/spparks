@@ -59,6 +59,8 @@ private:
 
   // orientation stored as quaternion
   double *q0, *qx, *qy, *qz;
+  // Read-Shockley disorientation cutoff
+  double theta_cut;
   int *unique_neigh;
   void flip_site(int site, const SiteState &s);
 };

@@ -1,15 +1,16 @@
 # SPPARKS Potts tests on generic lattice
+log          log.potts_cubic_no-rs
 
 seed		 56789
 
-app_style	 potts/graingrowth/crystal cubic 1000000
+app_style	 potts/quaternion 8000 cubic
 
 dimension	 3
 lattice		 sc/26n 1.0
-region		 box block 0 100 0 100 0 100
+region		 box block 0 20 0 20 0 20
 create_box	 box
 create_sites	 box
-set		 site range 1 1000000
+set		 site range 1 8000
 
 sweep		 random
 #sweep		 raster mask yes
@@ -25,7 +26,7 @@ diag_style       energy
 temperature	 0.25
 
 stats            0.5
-dump             stitch.id stitch 0.5 potts_cubic_medium.st site
+dump             stitch.id stitch 0.5 potts_cubic_no-rs.st site
 diag_style       cluster stats yes
 
 run              5.0

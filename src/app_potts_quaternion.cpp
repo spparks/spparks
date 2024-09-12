@@ -35,23 +35,44 @@ AppPottsQuaternion::AppPottsQuaternion(SPPARKS *spk, int narg,
     : AppPotts(spk, narg, arg), symmetries(), q0(nullptr), qx(nullptr),
       qy(nullptr), qz(nullptr), unique_neigh(nullptr) {
   // parse arguments for PottsNeighOnly class only, not children
+  // args: nspins, crystal structure, Read-Shockley angle
 
-  if (strcmp(style, "potts/quaternion") != 0)
-    return;
+  if (strcmp(style, "potts/quaternion") != 0) return;
 
-  if (narg != 3)
-    error->all(FLERR, "Illegal 'potts/quaternion command");
+  if (narg != 3 && narg != 4) error->all(FLERR, "Illegal 'potts/quaternion' command");
 
-  if (strcmp(arg[2], "cubic") != 0) {
+  // Check crystal structure input
+  if (strcmp(arg[2], "cubic") == 0) {
     symmetries = CUBIC::get_symmetries();
-  } else if (strcmp(arg[2], "hcp") != 0) {
+  } else if (strcmp(arg[2], "hcp") == 0) {
     symmetries = HCP::get_symmetries();
   } else {
     error->all(FLERR, "Illegal 'potts/quaternion command; expected "
                       "'cubic' or 'hcp'");
   }
 
-  nspins = atoi(arg[2]);
+  // Read-Shockley default cutoff setup  
+  // Check whether user has specified cutoff
+  // TODO question: should this be in the init_app() section, not constructor?
+  if (narg == 3){
+    theta_cut = 0.0;
+  } else {
+    double check_theta_cut = atof(arg[3]);
+
+    // TODO check for max value of each symmetry type?
+    if (check_theta_cut < 0.0) {
+      error->all(FLERR, "Illegal 'potts/quaternion command; disorientation cutoff must "
+                        "be a non-negative value.");
+    } else if (strcmp(arg[2], "cubic") == 0 && check_theta_cut > 62.7) {
+      error->all(FLERR, "Illegal 'potts/quaternion command; disorientation cutoff for 'cubic' must "
+                        "be between 0.0 and 62.7 degrees");
+    } else if (strcmp(arg[2], "hcp") == 0 && check_theta_cut > 93.8) {
+      error->all(FLERR, "Illegal 'potts/quaternion command; disorientation cutoff for 'hcp' must "
+                        "be less than 93.8 degrees");
+    } 
+  }
+
+  nspins = atoi(arg[1]);
   if (nspins <= 0)
     error->all(FLERR, "Illegal app_style command");
 
@@ -112,16 +133,19 @@ void AppPottsQuaternion::flip_site(int i, const SiteState &s) {
 
 double AppPottsQuaternion::site_energy(int i) {
   double energy = 0.0;
-  double hi_angle = 15.0;
+  double ratio = 0.0;
   vector<double> qi{q0[i], qx[i], qy[i], qz[i]};
   for (int j = 0; j < numneigh[i]; j++) {
     int nj = neighbor[i][j];
     vector<double> qj{q0[nj], qx[nj], qy[nj], qz[nj]};
     double di = disorientation::compute_disorientation(symmetries, qi, qj);
-    double ratio = di / hi_angle;
+    
+    // if optional Read-Shockley turned on, compute ratio, else ratio = 0.0
+    if (theta_cut > 0.0)
+      double ratio = di / theta_cut;
     if (ratio <= 0)
       continue;
-    else if (ratio < 1.0)
+    else if (ratio > 0.0 and ratio < 1.0)
       energy += ratio * (1 - log(ratio));
     else
       energy += 1.0;
