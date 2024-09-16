@@ -10,19 +10,20 @@ app_style potts/am/bezier command :h3
 
 [Syntax:]
 
-app_style	 potts/am/bezier nspins width depth haz
+app_style	 potts/am/bezier nspins width depth h0 ht
 
 potts/am/bezier = application style name :l
 nspins = number of possible spins :l
 width = maximum width of the melt pool :l
 depth = maximum depth of the melt pool :l
-haz = fixed distance parameter from pool surface estimating extent of heat affected zone surrounding melt pool :l
+h0 = fixed distance parameter from pool surface estimating minimum extent of heat affected zone surrounding melt pool :l
+ht = maxmimum distance parameter from pool surface at trailing tail :l
 
 :ule
 
 [Examples:]
 
-app_style	 potts/am/bezier 250000 130 65 5
+app_style	 potts/am/bezier 250000 130 65 5 8
 
 [Description:]
 
@@ -38,7 +39,11 @@ layers in each pattern. Thus, the user can construct any scan strategy
 desired by specifying individual layer patterns and how these patterns
 should be repeated.
 
-In addition to the above required inputs {width,depth,haz}, the model
+The user can also determine the geometry of the melt pool's accompanying HAZ through two parameters: {h0}, which is the size of the HAZ at the maximum pool width and depth, and {ht}, which is the length of the HAZ at the melt pool's trailing edge. TODO: include information on the parametric equation if necessary here :TODO. A schematic illustrating the relationship between the melt pool (red), the edge of the HAZ (blue), the elements of the parametric equation, and the two HAZ parameters is shown in the image below. 
+
+:image(JPG/bezier_variable_haz.png)
+
+In addition to the above required inputs {width, depth, h0, ht}, the model
 requires specification of the melt pool surface via the 
 "potts/am/bezier control_points"_potts_am_bezier.html command.  
 Whereas "app_am ellipsoid"_app_am_ellipsoid.html 

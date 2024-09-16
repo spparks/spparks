@@ -1,0 +1,222 @@
+SPPARKS (16 Jan 2023)
+# SPPARKS potts/am/bezier example file
+# python plot_stitch_cut.py potts_am_bezier_small2d --field=site 0 100 0 100
+
+seed		 56789
+
+# OUT filename
+variable OUT world potts_am_bezier_small2d.st
+#———————————————————————————————————————————
+# potts/am/bezier = arg[0] // app_style
+# nspins          = arg[1] // Number of spins
+# pool_width      = arg[2] 
+# pool_depth      = arg[3] 
+# haz             = arg[4] //distance which defines 'heat affected zone'
+#———————————————————————————————————————————
+app_style	 potts/am/bezier 10000 20 15 4
+
+# REQUIRED input: control points 
+# SPPARKS assigns 1st and last values for y and z 0
+# x: input 5 values <x[0] x[1], x[2], x[3], x[4]>
+# y: input 3 values y[0]=0, <y[1], y[2], y[3]>, y[4]=0
+# z: input 3 values z[0]=0, <z[1], z[2], z[3]>, z[4]=0
+#
+potts/am/bezier control_points x -2.2597   -2.2597    1.29865  2.23368 2.23368
+potts/am/bezier control_points y  0.85711   1.50644   0.88308 
+potts/am/bezier control_points z -0.78114, -1.62087, -1.78114
+
+# OPTIONAL input: beta
+# default values betay=1.0 betaz=0.5
+potts/am/bezier beta 1.0 0.5
+
+#Define simulation domain and initialize site variables
+#———————————————————————————————————————————
+
+dimension	 3
+lattice	 	 sc/26n 1.0
+region		 box block 0 100 0 100 0 1
+region		 transverse block 0 100 50 75 0 1
+region		 longitudinal block 50 75 0 100 0 1
+
+boundary 	 n n n
+
+create_box	 box
+Created box = (0 0 0) to (100 100 1)
+  1 by 1 by 1 processor grid
+create_sites	 box
+Creating sites ...
+  10000 sites
+  4 sites have 3 neighbors
+  0 sites have 4 neighbors
+  392 sites have 5 neighbors
+  0 sites have 6 neighbors
+  0 sites have 7 neighbors
+  9604 sites have 8 neighbors
+set		 i1 range 1 10000 
+  10000 settings made for i1
+set		 d1 value 0.0
+  10000 settings made for d1
+
+#———————————————————————————————————————————
+
+#Define an additive scan pattern using a combination of pass, transverse_pass, cartesian_layer, and pattern
+#———————————————————————————————————————————
+
+am pass 1 dir X speed 10 hatch 25
+am cartesian_layer 1 start LL pass_id 1 thickness 1 offset -60.0 0.0
+am build start 0.0 num_layers 1
+
+#Setup the solver type and parameters. Must use a "sweep" style solver
+#——————————————————————————————————————————— 
+sector		 yes
+sweep		 random mask no
+temperature	 0.0
+#——————————————————————————————————————————— 
+
+#Specify output commands and styles.
+#——————————————————————————————————————————— 
+diag_style   energy
+stats            1.0
+#dump             1 text 5.0 dump.additive4.* id i1 d1 x y z
+
+dump 1 stitch 2 ${OUT} site
+dump 1 stitch 2 potts_am_bezier_small2d.st site
+
+#If SPPARKS was not compiled with libjpeg, comment out the lines below.
+#dump top image 2 top.small2D.*.jpg site site crange 1 1000 drange 1 1 view 0.0 0.0 boundary site 1 shape cube box no 1 zoom 2 size 512 512 sdiam 1.05
+#dump mobility_top image 2 mobiity_top.small2D.*.jpg d1 i1 view 0.0 0.0 shape cube size 512 512 sdiam 1.05 box no 1 zoom 2
+
+#dump_modify top boundcolor black backcolor black pad 4 
+#dump_modify	mobility_top smap 0 1 cf 0.05 5 min blue 0.45 lightblue 0.65 yellow 0.75 orange max red
+
+#dump transverse image 2 transverse.small2D.*.jpg site site crange 1 1000 center s 0.5 0.5 0.5 drange 1 1 view 90.0 -90.0 shape cube box no 1 zoom 1.5 size 512 512
+#dump_modify transverse cwrap yes region transverse boundcolor black backcolor black pad 4 
+
+#dump longitudinal image 2 longitudinal.small2D.*.jpg site site crange 1 1000 drange 1 1 view 90.0 0.0 shape cube box no 1 zoom 1.5 size 512 512
+#dump_modify longitudinal cwrap yes region longitudinal boundcolor black backcolor black pad 4 
+#——————————————————————————————————————————— 
+
+run             10
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 4.625 Mbytes
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy
+         0          0          0          0          0      78792
+   1.03846          0     270000         27      0.017      78792
+         2          0     520000         52     0.0496      78792
+   3.03846          0     790000         79     0.0668      78792
+   4.03846         82    1049918        105        0.1      78710
+   5.03846        386    1309614        131      0.118      78608
+   6.03846        826    1569174        157      0.156      78420
+   7.03846       1254    1828746        183      0.177      78214
+   8.03846       1750    2088250        209       0.21      77788
+   9.03846       2375    2347625        235       0.23      77026
+   10.0385       3035    2606965        261      0.257      76210
+   11.0385       3683    2866317        287      0.278      75268
+   12.0385       4335    3125665        313      0.306      74380
+   13.0385       5003    3384997        339      0.328      73448
+   14.0385       5567    3644433        365      0.361      72694
+   15.0385       5974    3904026        391       0.38      71932
+   16.0385       6244    4163756        417      0.411      71234
+   17.0385       6450    4423550        443      0.429      70592
+        18       6598    4673402        468      0.463      70162
+        19       6619    4933381        494      0.479      70088
+        20       6619    5193381        520      0.504      70088
+        21       6619    5453381        546      0.519      70088
+        22       6619    5713381        572      0.545      70088
+        23       6619    5973381        598      0.561      70088
+        24       6619    6233381        624      0.599      70088
+        25       6619    6493381        650      0.618      70088
+        26       6701    6753299        676      0.648      69992
+        27       7265    7012735        702      0.666      69788
+        28       8019    7271981        728      0.693      69496
+        29       8801    7531199        754      0.714      69152
+        30       9720    7790280        780      0.742      68358
+        31      10857    8049143        806      0.766      66936
+        32      12077    8307923        832      0.806      65248
+        33      13288    8566712        858      0.828      63548
+        34      14523    8825477        884      0.856      61882
+        35      15711    9084289        910      0.869      60296
+        36      16837    9343163        936      0.893      58730
+        37      17531    9602469        962      0.904      57314
+        38      18023    9861977        988      0.929      55998
+        39      18420   10121580       1014      0.949      54804
+        40      18738   10381262       1040      0.988      53944
+        41      18816   10641184       1066          1      53786
+        42      18816   10901184       1092       1.03      53786
+        43      18816   11161184       1118       1.05      53786
+        44      18816   11421184       1144       1.07      53786
+        45      18816   11681184       1170       1.08      53786
+        46      18816   11941184       1196        1.1      53786
+        47      18816   12201184       1222       1.12      53786
+        48      18939   12461061       1248       1.19      53664
+        49      19535   12720465       1274       1.21      53468
+        50      20277   12979723       1300       1.24      53216
+        51      21092   13238908       1326       1.26      52748
+        52      22017   13497983       1352       1.29      52016
+        53      23231   13756769       1378       1.31      50548
+        54      24505   14015495       1404       1.34      48834
+        55      25757   14274243       1430       1.36      47378
+        56      27097   14532903       1456       1.39      45714
+        57      28273   14791727       1482       1.41      44090
+        58      29415   15050585       1508       1.47      42594
+        59      30047   15309953       1534       1.49      41266
+        60      30500   15569500       1560       1.52      39918
+        61      30882   15829118       1586       1.54      38742
+        62      31150   16088850       1612       1.56      37832
+        63      31200   16348800       1638       1.58      37696
+        64      31200   16608800       1664       1.61      37696
+        65      31200   16868800       1690       1.62      37696
+        66      31200   17128800       1716       1.65      37696
+        67      31200   17388800       1742       1.67      37696
+        68      31200   17648800       1768        1.7      37696
+        69      31200   17908800       1794       1.72      37696
+        70      31276   18168724       1820       1.75      37602
+        71      31829   18428171       1846       1.76      37406
+        72      32591   18687409       1872        1.8      37136
+        73      33439   18946561       1898       1.82      36692
+        74      34268   19205732       1924       1.85      35992
+        75      35377   19464623       1950       1.87      34532
+        76      36650   19723350       1976       1.91      32882
+        77      37873   19982127       2002       1.94      31154
+        78      39088   20240912       2028       1.96      29578
+   79.0385      40394   20509606       2055       1.98      27806
+   80.0385      41622   20768378       2081          2      26300
+   81.0385      42238   21027762       2107       2.02      24912
+   82.0385      42728   21287272       2133       2.05      23598
+   83.0385      43151   21546849       2159       2.07      22460
+   84.0385      43461   21806539       2185       2.13      21540
+   85.0385      43527   22066473       2211       2.14      21370
+   86.0385      43527   22326473       2237       2.17      21370
+   87.0385      43527   22586473       2263       2.18      21370
+   88.0385      43527   22846473       2289       2.22      21370
+   89.0385      43527   23106473       2315       2.24      21370
+   90.0385      43527   23366473       2341       2.26      21370
+   91.0385      43527   23626473       2367       2.28      21370
+   92.0385      43600   23886400       2393       2.31      21304
+   93.0385      43859   24146141       2419       2.33      21190
+   94.0385      44193   24405807       2445       2.35      21072
+   95.0385      44546   24665454       2471       2.37      20886
+   96.0385      44955   24925045       2497        2.4      20542
+   97.0385      45472   25184528       2523       2.41      19882
+   98.0385      46041   25443959       2549       2.44      19090
+   99.0385      46580   25703420       2575       2.46      18342
+   100.038      47119   25962881       2601       2.53      17648
+   101.038      47709   26222291       2627       2.55      16840
+   102.038      48207   26481793       2653       2.57      16172
+   103.038      48471   26741529       2679       2.59      15500
+   104.038      48696   27001304       2705       2.62      14814
+   105.038      48851   27261149       2731       2.63      14226
+   106.038      48981   27521019       2757       2.66      13836
+   107.038      48995   27781005       2783       2.68      13760
+   108.038      48995   28041005       2809       2.71      13760
+   109.038      48995   28301005       2835       2.73      13760
+       110      48995   28551005       2860       2.74      13760
+Loop time of 2.73628 on 1 procs
+
+Solve time (%) = 0.884691 (32.3319)
+Update time (%) = 0 (0)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 1.84978 (67.6021)
+App   time (%) = 0 (0)
+Other time (%) = 0.00180651 (0.0660205)
