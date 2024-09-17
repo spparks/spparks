@@ -1,13 +1,25 @@
 #
 # jamitch: Sept 4 2024
 # ENVIRONMENT variables CC and CXX should initialized
-# e.g.:
+#    appropriately
 # CC=mpicc
 # CXX=mpicxx
 # 
 # Example usage:
-# make -f Makefile.cee stitch.lib
-# make -f Makefile.cee stitch_module
+# make stitch_test
+#     Test runs on 4-procs. Run the test.
+#     $ mpirun -np 4 ./stitch_test
+#     Expected OUTPUT Below
+#     Verifies sanity of build
+#     nprocs in x, y, z: 2, 2, 1
+#     block size in x, y, z: 2, 2, 3
+#     increment in x, y, z: 3, 3, 1
+#     total domain bounds (min) - (max): (0, 0, 0) - (13, 13, 4)
+#     sweeping 0->n in X, then Y, then Z
+#     tests passed
+#
+# make stitch.lib
+# make make clean
 
 
 stitch.lib: stitch.c stitch.h sqlite3.c sqlite3.h
@@ -16,9 +28,6 @@ stitch.lib: stitch.c stitch.h sqlite3.c sqlite3.h
 
 stitch_test: stitch_test.c stitch.lib
 	${CC} -o stitch_test stitch_test.c -DSTITCH_PARALLEL -L. -lstitch -ldl -lpthread
-
-stitch_module: stitch.c stitch.h sqlite3.c sqlite3.h
-	cd .. ; CC="gcc" CXX="g++" python3 setup.py build && CC="gcc" CXX="g++" python3 setup.py install
 
 clean:
 	rm -f *.{o,so} libstitch.a stitch_test *.st
