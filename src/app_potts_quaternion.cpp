@@ -55,11 +55,11 @@ AppPottsQuaternion::AppPottsQuaternion(SPPARKS *spk, int narg,
   // Check whether user has specified cutoff
   // TODO question: should this be in the init_app() section, not constructor?
   if (narg == 3){
-    theta_cut = 0.0;
+    theta_cut = 15.0;
   } else {
     double check_theta_cut = atof(arg[3]);
 
-    // TODO check for max value of each symmetry type?
+    // TODO Add efficiency warning if user choose 0.0 for theta_cut
     if (check_theta_cut < 0.0) {
       error->all(FLERR, "Illegal 'potts/quaternion command; disorientation cutoff must "
                         "be a non-negative value.");
@@ -140,9 +140,13 @@ double AppPottsQuaternion::site_energy(int i) {
     vector<double> qj{q0[nj], qx[nj], qy[nj], qz[nj]};
     double di = disorientation::compute_disorientation(symmetries, qi, qj);
     
-    // if optional Read-Shockley turned on, compute ratio, else ratio = 0.0
+    // Read-Shockley equation logic
+    // If neighbor disorientation di is 0 or theta_cut is 0, evaluate to 0.
+    // If di is greater than 0 but less than theta_cut, apply the Read-Shockley equation to the neighbor energy calculation
+    // If di is greater than or equal to theta_cut, evaluate to 1. 
     if (theta_cut > 0.0)
       double ratio = di / theta_cut;
+
     if (ratio <= 0)
       continue;
     else if (ratio > 0.0 and ratio < 1.0)
