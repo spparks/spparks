@@ -1,0 +1,59 @@
+
+seed		 56789
+
+app_style	 potts/quaternion 8000 cubic
+
+dimension	 3
+lattice		 sc/26n 1.0
+region		 box block 0 20 0 20 0 20
+create_box	 box
+Created box = (0 0 0) to (20 20 20)
+  2 by 2 by 4 processor grid
+create_sites	 box
+Creating sites ...
+  8000 sites
+  8000 sites have 26 neighbors
+set		 site range 1 8000
+  8000 settings made for site
+
+sweep		 random
+#sweep		 raster mask yes
+#solve_style      tree
+sector		 yes
+
+#solve_style      tree
+#solve_style      group 26 1
+#sector		 yes
+
+diag_style       energy
+
+temperature	 0.25
+
+stats            0.5
+dump             stitch.id stitch 0.5 potts_cubic.st site
+diag_style       cluster stats yes
+
+run              5.0
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 5.375 Mbytes
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy     Nclust        <N>        <R>
+         0          0          0          0          0          0       7983    1.00213    1.00055
+  0.538462     112000          0         14        4.3          0       3151    2.53888     1.2893
+   1.03846     216000          0         27       8.51          0       3068    2.60756    1.29324
+       1.5     312000          0         39       12.5          0       3091    2.58816    1.29512
+         2     416000          0         52       16.8          0       3046     2.6264    1.29773
+       2.5     520000          0         65       21.3          0       3124    2.56082    1.29116
+   3.03846     632000          0         79       26.1          0       2964    2.69906    1.30764
+   3.53846     736000          0         92       30.3          0       2988    2.67738    1.30457
+   4.03846     840000          0        105       34.3          0       2995    2.67112    1.30118
+   4.53846     944000          0        118       38.6          0       3043    2.62898    1.29679
+   5.03846    1048000          0        131       43.1          0       2983    2.68186    1.30635
+Loop time of 43.107 on 16 procs
+
+Solve time (%) = 12.7532 (29.5849)
+Update time (%) = 0 (0)
+Comm  time (%) = 0.655925 (1.52162)
+Outpt time (%) = 29.6978 (68.8932)
+App   time (%) = 0 (0)
+Other time (%) = 0.000111454 (0.000258551)

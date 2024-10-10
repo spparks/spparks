@@ -1,9 +1,9 @@
 # SPPARKS Potts tests on generic lattice
-log          log.potts_hcp_no-rs
+log          log.potts_cubic
 
 seed		 56789
 
-app_style	 potts/quaternion 8000 hcp
+app_style	 potts/quaternion 8000 cubic
 
 dimension	 3
 lattice		 sc/26n 1.0
@@ -26,7 +26,7 @@ diag_style       energy
 temperature	 0.25
 
 stats            0.5
-dump             stitch.id stitch 0.5 potts_hcp_no-rs.st site
+dump             stitch.id stitch 0.5 potts_cubic.st site
 diag_style       cluster stats yes
 
 run              5.0
