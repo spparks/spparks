@@ -20,7 +20,7 @@ theta_cut = optional disorientation cutoff angle for Read-Shockley energy model 
 [Examples:]
 
 app_style potts/quaternion 6400 cubic
-app_style potts/quaternion 10000 hcp 24.0 :pre
+app_style potts/quaternion 10000 hcp 25.0 :pre
 
 [Description:]
 
@@ -59,7 +59,7 @@ E_ij= 0.5 * ratio_ij * (1 - log(ratio_ij)) :pre
 
 The image below plots the change in {E_ij} vs. {ratio_ij} for a single neighbor calculation.
 
-:image(JPG/quaternion_E_vs_rs-ratio.png)
+:image(JPG/quaternion_E_vs_read-shockley-ratio.png)
 
 Note that the energy is halved to account for the contribution from the neighbor for the same calculation.
 
