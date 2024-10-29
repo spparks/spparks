@@ -2,31 +2,31 @@
 Release Notes
 =============
 
-Oct 2024
---------
+November 2024
+-------------
 
 This release of stitch for SPPARKS contains two updates:
-1. Performance improvements: the file 'stitch.c' has been updated and a new
-file has been added, 'stitch_performance.c' This is a performance improvement
-to the 'set stitch' command in SPPARKS (10-100x speedup). 
+1. Performance improvements. The 'stitch.c' file has been updated. This gives a
+significant performance improvement to the 'set stitch' command in SPPARKS
+(10-100x speedup). A new file has been added, 'stitch_performance.c'. 
 
-2. Update of Python build tools: for future Python compatibility, the building
-of the stitch.libstitch package has been refactored to use the 'setuptools'
-module instead of 'numpy.distutils.' For more details, see:
-https://numpy.org/doc/stable/reference/distutils_status_migration.html
+2. Discontinued use of numpy.disutils.  With this update, 'setuptools' are used
+to build the stitch python extension rather than numpy.disutils.  For numpy
+compatibility, the stitch package no longer uses numpy.disutils. For more
+details, see: https://numpy.org/doc/stable/reference/distutils_status_migration.html
 
-Usage note: the above change in structures means that, as of this release, a
-different import syntax should be used when using Python Stitch files to
+Usage note: the above change in structures means that, as of this release, a 
+slightly different import syntax should be used when using Stitch files to
 analyse SPPARKS *.st files:
 
-Pre-August 2024 release:
+Pre-November 2024 release:
     > from stitch.libstitch import libstitch
 
 Current and future releases:
-    > import stitch.libstitch as libstitch
+    > from stitch import libstitch
 
 Older SPPARKS versions should be unaffected, but those migrating to this
-release or newer should convert their import statements.
+release or newer should convert import statements.
 
 The Stitch repo 'SHA' that these files were taken from is:
 
@@ -34,7 +34,6 @@ TODO get SHA for stitch master branch after 'update_build and read_performance' 
 been merged. 
 
 git log -n 5 --pretty=format:"%H"
-
 
 Sept 2022
 ---------
