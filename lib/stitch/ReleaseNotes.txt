@@ -15,9 +15,8 @@ to build the stitch python extension rather than numpy.disutils.  For numpy
 compatibility, the stitch package no longer uses numpy.disutils. For more
 details, see: https://numpy.org/doc/stable/reference/distutils_status_migration.html
 
-Usage note: the above change in structures means that, as of this release, a 
-slightly different import syntax should be used when using Stitch files to
-analyse SPPARKS *.st files:
+Usage note. As of this release, a slightly different import syntax should be
+used when using python Stitch to process SPPARKS *.st files:
 
 Pre-November 2024 release:
     > from stitch.libstitch import libstitch
@@ -28,12 +27,9 @@ Current and future releases:
 Older SPPARKS versions should be unaffected, but those migrating to this
 release or newer should convert import statements.
 
-The Stitch repo 'SHA' that these files were taken from is:
+As Nov 2024, the Stitch master branch repo 'SHA' used in SPPARKS is:
+7a7de80781518f519332f2189cd8b74bfd0e7e9b
 
-TODO get SHA for stitch master branch after 'update_build and read_performance' have 
-been merged. 
-
-git log -n 5 --pretty=format:"%H"
 
 Sept 2022
 ---------
