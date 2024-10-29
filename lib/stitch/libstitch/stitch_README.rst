@@ -92,7 +92,7 @@ and import the stitch module:
 ::
 
     % python
-    % import stitch.libstitch as libstitch
+    % from stitch import libstitch
 
 
 As final verification of python module correctness, run the unit test; remove
