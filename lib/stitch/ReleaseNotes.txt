@@ -1,7 +1,35 @@
-
 =============
 Release Notes
 =============
+
+November 2024
+-------------
+
+This release of stitch for SPPARKS contains two updates:
+1. Performance improvements. The 'stitch.c' file has been updated. This gives a
+significant performance improvement to the 'set stitch' command in SPPARKS
+(10-100x speedup). A new file has been added, 'stitch_performance.c'. 
+
+2. Discontinued use of numpy.disutils.  With this update, 'setuptools' are used
+to build the stitch python extension rather than numpy.disutils.  For numpy
+compatibility, the stitch package no longer uses numpy.disutils. For more
+details, see: https://numpy.org/doc/stable/reference/distutils_status_migration.html
+
+Usage note. As of this release, a slightly different import syntax should be
+used when using python Stitch to process SPPARKS *.st files:
+
+Pre-November 2024 release:
+    > from stitch.libstitch import libstitch
+
+Current and future releases:
+    > from stitch import libstitch
+
+Older SPPARKS versions should be unaffected, but those migrating to this
+release or newer should convert import statements.
+
+As Nov 2024, the Stitch master branch repo 'SHA' used in SPPARKS is:
+7a7de80781518f519332f2189cd8b74bfd0e7e9b
+
 
 Sept 2022
 ---------

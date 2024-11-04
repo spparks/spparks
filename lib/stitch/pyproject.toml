@@ -1,0 +1,15 @@
+# pyproject.toml
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stitch"
+version = "0.0.1"
+
+[tool.setuptools]
+package-dir = {"" = "libstitch"}
+include-package-data = false
+
+[tool.setuptools.exclude-package-data]
+stitch=["libstitch/*.c"]
