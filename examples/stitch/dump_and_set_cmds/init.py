@@ -4,7 +4,7 @@ import numpy
 from numpy import min,max
 import random
 from matplotlib import pyplot as plt
-import stitch.libstitch as libstitch
+from stitch import libstitch
 
 def main(args):
     prefix=args.prefix
