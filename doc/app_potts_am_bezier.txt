@@ -10,13 +10,15 @@ app_style potts/am/bezier command :h3
 
 [Syntax:]
 
-app_style	 potts/am/bezier nspins width depth haz
+app_style	 potts/am/bezier nspins width depth h0 ht n
 
 potts/am/bezier = application style name :l
 nspins = number of possible spins :l
 width = maximum width of the melt pool :l
 depth = maximum depth of the melt pool :l
-haz = fixed distance parameter from pool surface estimating extent of heat affected zone surrounding melt pool :l
+h0 = heat affected zone distance at location of maximum pool width :l
+ht = heat affected zone distance at trailing edge of pool :l
+n = heat affected zone shape parameter; input values of n>=3/2 :l
 
 :ule
 
@@ -36,19 +38,21 @@ through the entire simulation domain. The application allows for
 arbitrary numbers of paths in each layer and an arbitrary number of
 layers in each pattern. Thus, the user can construct any scan strategy
 desired by specifying individual layer patterns and how these patterns
-should be repeated.
+should be repeated.  Simulating arbitrary paths and layers is often 
+used in conjunction with the Stitch IO via the "set_stitch"_set.html 
+and "dump stitch"_dump.html commands.
 
-In addition to the above required inputs {width,depth,haz}, the model
-requires specification of the melt pool surface via the 
-"potts/am/bezier control_points"_potts_am_bezier.html command.  
-Whereas "app_am ellipsoid"_app_am_ellipsoid.html 
-uses two ellipsoids to define the moving melt pool and heat effected zone,
-here, the molten pool is defined by two fourth order Bezier curves: 1) top
-surface curve; 2) spine curve.  The two curves are combined to form a {3D}
-surface representing the interface between liquid and solidified material.  The
-shape of the pool is defined by user input control points for the two curves
-and may be obtained from laboratory images or through process simulation or
-some other means.
+The app requires specification of melt pool dimensions {width,depth}, and
+parameters describing the surrounding heat affected zone {h0,ht,n}.  
+The model also requires specification of the melt pool surface via the
+"potts/am/bezier control_points"_potts_am_bezier.html command.  Whereas "app_am
+ellipsoid"_app_am_ellipsoid.html uses two ellipsoids to define the moving melt
+pool and heat effected zone, here, the molten pool is defined by two fourth
+order Bezier curves: 1) top surface curve; 2) spine curve.  The two curves are
+combined to form a {3D} surface representing the interface between liquid and
+solidified material.  The shape of the pool is defined by user input control
+points for the two curves and may be obtained from laboratory images or through
+process simulation or some other means.
 
 :image(JPG/am_bezier_curves.png)
 
@@ -76,6 +80,34 @@ specify the bezier melt pool surface geometry as described above.
 "potts/am/bezier"_potts_am_bezier.html: Specifies control points and convexity of surface.  :tb(s=:)
 
 :line
+
+During the AM process, polycrystalline grains nucleate and evolve within the
+haz.  This makes accurately capturing the haz shape important to microstructure
+prediction.  In this model, three parameters {h0,ht,n} are used to describe the
+shape and extent of the haz.  These parameters describe the variable 
+heat affected zone that depends upon location relative to the pool surface, 
+shown in red below.  The limit of the {haz} is shown by the blue curve.  {h0}
+and {ht} are length scale parameters and {n} is a dimensionless shape factor.
+Here, {h0} represents the size of the haz at the maximum pool width and depth,
+while {ht} indicates the length of the haz at the top surface trailing edge. Together,
+these parameters define a position-sensitive and variable haz.
+
+:image(JPG/variable_haz.png)
+
+Parameters {h0,ht} are input in spparks lattice units of length and characterize the
+heat-affected zone at the edge and trailing edge of the pool. The heat-affected
+zone is always present, which means that {h0} is always greater than zero.
+Additionally, {ht} should be greater than or equal to {h0}.
+
+The dimensionless parameter {n} describes the haz shape.  The value for {n}
+should be greater than {3/2}; a wide range of possible haz zone shapes are
+possible but care should be taken.  A python script is given in the examples
+directory and was used to make the plots below for a fixed set of control
+points and varying set of haz parameters.  With fixed control points, 
+melt pool dimensions are the same.  Different values for the variable haz 
+parameters show changes in the resulting heat affected zone.
+
+:image(JPG/variable_haz_examples.png)
 
 Some combination of the following additional commands are typically used by this
 application to specify a raster pattern.

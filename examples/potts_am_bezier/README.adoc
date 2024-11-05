@@ -1,0 +1,84 @@
+= Running Example(s) 
+:toc:
+:date: Nov 2024
+:author: John Mitchell, Svetoslov Nikolov
+
+Three example input scripts highlight the use of the app style
+"potts/am/bezier". This allows the user to incorporate
+experimentally parameterized melt pool shapes into the SPPARKS simulation.
+Running and visualizing the provided scripts will require the STITCH library. Details of
+running  the examples are described below. In these examples spparks was
+compiled into the executable *spk_mpi*.  Two examples use a fixed heat affected
+zone and one uses a variable haz.  All of the examples are setup to run in a
+pseudo 3d mode using a single plane of lattice sites.  However, they can be
+adjusted to run formally in 2d as well -- see *potts_am_bezier_large2d*. 3d and 2d run
+slightly differently on account of the way spparks computes time steps; however
+they can be made to run nearly identically with an adjustment of the laser
+speed. See the *potts_am_bezier_large2d* example.  
+
+In all of the examples, its interesting to visualize the meltpool and heat
+affected zone using the parameter *d1*.  Additional insights can be obtained by
+also looking at the associated microstructures. Its easy to change the *HT*
+parameter to look at when *HT=H0* and what happens when *HT>H0*.
+
+
+== Running in.potts_am_bezier_small2d script
+This example uses a fixed haz.
+
+.. code-block:: bash
+
+   mpiexec -np 8 spk_mpi < in.potts_am_bezier_small2d
+
+This will produce the stitch file "potts_am_bezier_small2d.st" which
+can be examined using the python script "plot_stitch_cut.py". Running
+the "plot_stitch_cut.py" script, as shown below, will produce a png
+rendering of the SPPARKS microstructure.
+
+.. code-block:: bash
+
+   python3 plot_stitch_cut.py potts_am_bezier_small2d --field=site 0 100 0 100
+   python3 plot_stitch_cut.py potts_am_bezier_small2d --time_step=27 --field=d1 0 100 0 100
+
+
+== Running in.potts_am_bezier_large2d script
+This example uses a fixed haz.
+
+.. code-block:: bash
+
+   mpiexec -np 8 spk_mpi < in.potts_am_bezier_large2d
+
+This will produce the stitch file "potts_am_bezier_large2d.st" which
+can be examined using the python script "plot_stitch_cut.py". Running
+the "plot_stitch_cut.py" script, as shown below, will produce a png
+rendering of the SPPARKS microstructure.
+
+.. code-block:: bash
+
+   python3 plot_stitch_cut.py potts_am_bezier_large2d --field=site 0 500 0 500
+   python3 plot_stitch_cut.py potts_am_bezier_large2d --time_step=23 --field=d1 0 500 0 500
+
+
+== Running in.vhaz script
+This is a pseudo 3d problem with a different set of control points than the
+above *potts_am_bezier_large2d* problem. This problem also uses the 
+variable haz feature.  There is a script 'variable_haz_plot.py' along with 
+a vhaz.json input file that can be used to plot the top surface melt pool and 
+variable haz limits.  Change the control points and variable haz parameters 
+in the json file to get a preview of the melt pool shape and variable haz.
+
+.. code-block:: bash
+
+   mpiexec -np 8 spk_mpi < in.vhaz
+
+
+.. code-block:: bash
+
+   python3 plot_stitch_cut.py vhaz --field=site 0 570 0 570
+   python3 plot_stitch_cut.py vhaz --time_step=19 --field=d1 0 570 0 570
+   python3 variable_haz_plot.py vhaz 
+
+== Rendering using Ovito
+An Ovito rendering can also be produced by uncommenting the following line in
+each of the input files: "dump 1 text 5.0 dump.additive4.* id i1 d1 x y z"
+This will produce a series of dump files "dump.additive4.*" which can be 
+directly visualized in Ovito.
