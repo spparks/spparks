@@ -1,0 +1,53 @@
+SPPARKS (6 Sep 2023)
+# SPPARKS sinter tests on a powder compact representing CuO3
+
+seed		 56789
+
+app_style	 sinter 
+
+dimension	 3
+lattice		 sc/26n 1.0
+region           box block 0 403 0 403 0 95
+create_box	 box
+Created box = (0 0 0) to (403 403 95)
+  1 by 1 by 1 processor grid
+create_sites	 box
+Creating sites ...
+  15428855 sites
+  15428855 sites have 26 neighbors
+
+# see README for into about this file
+read_sites	 CuO3.spins
+  15428855 values
+
+event_ratios 	 2.0 1.0 10.0
+
+events_temperatures 1.0 1.0 15.0
+
+sweep		 random
+#sweep		 raster mask yes
+#solve_style      tree
+sector		 yes
+
+diag_style       energy
+
+stats            1.0
+dump             1 sites 10.0 dumpCu.sinter.* id site
+diag_style       cluster delt 1.0 stats no logfreq 10 500.0 filename clusterCu.dat
+
+run              10.0
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 2060.62 Mbytes
+      Time      Naccept        Nreject    Nsweeps        Vmade        CPU     Energy
+0 0 0 0 0          0 3.37904e+07
+6.5 5372 1.54235e+07 1 0       5.04 3.37864e+07
+13 10837 3.08469e+07 2 0       13.1 3.37822e+07
+Loop time of 13.1065 on 1 procs
+
+Solve time (%) = 1.63757 (12.4943)
+Update time (%) = 0 (0)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 11.4689 (87.5056)
+App   time (%) = 0 (0)
+Other time (%) = 5.335e-06 (4.07051e-05)

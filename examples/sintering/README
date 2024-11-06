@@ -1,12 +1,14 @@
-This sintering examples reads a gzipped data file via
-the read_sites command.  To do this SPPARKS must have been
-built with the -DSPPARKS_GZIP option in the Makefile.
+This sintering example script reads a gzipped data file CuO3.spins
+which is too large (38 MBytes gzipped) to include in the tarball or
+GitHub distribution.
 
-If you did not or cannot do that, you can uncompress the file:
+To run the example you first need to download the CuO3.spins.gz file
+from this link and put it in this directory:
 
-gunzip CuO3.spins.gz
+https://drive.google.com/file/d/1zr-w54BM2KkahbeIKDFRjeYA4O64USmg/view?usp=drive_link
 
-and also swap the commented/uncommented lines for
-the read_sites command in the input script,
-and then run the script using the uncompressed file.
+Then unzip the gzipped file:
 
+% gunzip CuO3.spins.gz
+
+Then you can run the input script.
