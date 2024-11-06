@@ -1,0 +1,33 @@
+# SPPARKS Potts tests on generic lattice
+log          log.potts_hcp_cutoff25
+
+seed		 56789
+
+# Here, the optional "theta_cut" parameter is set to 25 degrees, instead of the default 15 degrees.
+app_style	 potts/quaternion 8000 hcp 25
+
+dimension	 3
+lattice		 sc/26n 1.0
+region		 box block 0 20 0 20 0 20
+create_box	 box
+create_sites	 box
+set		 site range 1 8000
+
+sweep		 random
+#sweep		 raster mask yes
+#solve_style      tree
+sector		 yes
+
+#solve_style      tree
+#solve_style      group 26 1
+#sector		 yes
+
+diag_style       energy
+
+temperature	 0.25
+
+stats            0.5
+dump             stitch.id stitch 0.5 potts_hcp_cutoff25.st site
+diag_style       cluster stats yes
+
+run              5.0

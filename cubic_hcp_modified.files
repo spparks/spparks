@@ -1,0 +1,8 @@
+	modified:   python/modules/site_orientation/README.adoc
+	modified:   python/modules/site_orientation/plot_cubic_symmetry_histograms.py
+	modified:   python/modules/site_orientation/plot_hcp_symmetry_histograms.py
+	modified:   src/app_potts_quaternion.cpp
+	modified:   src/app_potts_quaternion.h
+	modified:   src/disorientation.h
+	modified:   src/hcp_symmetries.h
+	cubic_hcp_modified.files
