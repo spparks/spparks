@@ -5,7 +5,6 @@
 import matplotlib.pyplot as plt
 import numpy
 from numpy import average, std, max, linspace, pi, cos, sin, sqrt
-from sklearn.neighbors import KernelDensity
 
 def get_axes():
     fig=plt.figure()

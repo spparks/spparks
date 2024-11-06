@@ -10,8 +10,9 @@
 
    See the README file in the top-level SPPARKS directory.
 
-   This app author:
+   This app authors:
    John Mitchell, jamitch@sandia.gov, Sandia National Laboratories
+   Meg McCarthy, megmcca@sandia.gov, Sandia National Laboratories
 ------------------------------------------------------------------------- */
 
 #include "app_potts_quaternion.h"
@@ -30,16 +31,17 @@ using namespace SPPARKS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AppPottsQuaternion::AppPottsQuaternion(SPPARKS *spk, int narg,
-                                                       char **arg)
+AppPottsQuaternion::AppPottsQuaternion(SPPARKS *spk, int narg, char **arg)
     : AppPotts(spk, narg, arg), symmetries(), q0(nullptr), qx(nullptr),
       qy(nullptr), qz(nullptr), unique_neigh(nullptr) {
   // parse arguments for PottsNeighOnly class only, not children
   // args: nspins, crystal structure, Read-Shockley angle
 
-  if (strcmp(style, "potts/quaternion") != 0) return;
+  if (strcmp(style, "potts/quaternion") != 0)
+    return;
 
-  if (narg != 3 && narg != 4) error->all(FLERR, "Illegal 'potts/quaternion' command");
+  if (narg != 3 && narg != 4)
+    error->all(FLERR, "Illegal 'potts/quaternion' command");
 
   // Check crystal structure input
   if (strcmp(arg[2], "cubic") == 0) {
@@ -51,25 +53,29 @@ AppPottsQuaternion::AppPottsQuaternion(SPPARKS *spk, int narg,
                       "'cubic' or 'hcp'");
   }
 
-  // Read-Shockley default cutoff setup  
+  // Read-Shockley default cutoff setup
   // Check whether user has specified cutoff
   // TODO question: should this be in the init_app() section, not constructor?
-  if (narg == 3){
+  if (narg == 3) {
     theta_cut = 15.0;
   } else {
     double check_theta_cut = atof(arg[3]);
 
     // TODO Add efficiency warning if user choose 0.0 for theta_cut
     if (check_theta_cut < 0.0) {
-      error->all(FLERR, "Illegal 'potts/quaternion command; disorientation cutoff must "
-                        "be a non-negative value.");
+      error->all(
+          FLERR,
+          "Illegal 'potts/quaternion command; disorientation cutoff must "
+          "be a non-negative value.");
     } else if (strcmp(arg[2], "cubic") == 0 && check_theta_cut > 62.7) {
-      error->all(FLERR, "Illegal 'potts/quaternion command; disorientation cutoff for 'cubic' must "
+      error->all(FLERR, "Illegal 'potts/quaternion command; disorientation "
+                        "cutoff for 'cubic' must "
                         "be between 0.0 and 62.7 degrees");
     } else if (strcmp(arg[2], "hcp") == 0 && check_theta_cut > 93.8) {
-      error->all(FLERR, "Illegal 'potts/quaternion command; disorientation cutoff for 'hcp' must "
+      error->all(FLERR, "Illegal 'potts/quaternion command; disorientation "
+                        "cutoff for 'hcp' must "
                         "be less than 93.8 degrees");
-    } 
+    }
   }
 
   nspins = atoi(arg[1]);
@@ -139,11 +145,12 @@ double AppPottsQuaternion::site_energy(int i) {
     int nj = neighbor[i][j];
     vector<double> qj{q0[nj], qx[nj], qy[nj], qz[nj]};
     double di = disorientation::compute_disorientation(symmetries, qi, qj);
-    
+
     // Read-Shockley equation logic
     // If neighbor disorientation di is 0 or theta_cut is 0, evaluate to 0.
-    // If di is greater than 0 but less than theta_cut, apply the Read-Shockley equation to the neighbor energy calculation
-    // If di is greater than or equal to theta_cut, evaluate to 1. 
+    // If di is greater than 0 but less than theta_cut, apply the Read-Shockley
+    // equation to the neighbor energy calculation If di is greater than or
+    // equal to theta_cut, evaluate to 1.
     if (theta_cut > 0.0)
       double ratio = di / theta_cut;
 
@@ -166,8 +173,7 @@ double AppPottsQuaternion::site_energy(int i) {
    technically this is an incorrect rejection-KMC algorithm
 ------------------------------------------------------------------------- */
 
-void AppPottsQuaternion::site_event_rejection(int i,
-                                                      RandomPark *random) {
+void AppPottsQuaternion::site_event_rejection(int i, RandomPark *random) {
   int oldstate = spin[i];
   // Old state
   SiteState s0(oldstate, {q0[i], qx[i], qy[i], qz[i]});

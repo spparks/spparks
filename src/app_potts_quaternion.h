@@ -10,8 +10,9 @@
 
    See the README file in the top-level SPPARKS directory.
 
-   This app author:
+   This app authors:
    John Mitchell, jamitch@sandia.gov, Sandia National Laboratories
+   Meg McCarthy, megmcca@sandia.gov, Sandia National Laboratories
 ------------------------------------------------------------------------- */
 
 #ifdef APP_CLASS
@@ -52,12 +53,12 @@ public:
 private:
   // symmetries: expect 'cubic'(24) or 'hcp'(12)
   vector<double> symmetries;
-  // Possible extension to multiple symmetry types;
-  // Each site carries a symmetry type; then symmetries for
-  // that site can be looked up using this mapping.
-  // map<key=string,vector<double>> symmetries;
+  // Possible extension to handle multiple phases/symmetry types.
+  // Each site carries a key for the symmetry type: integer;
+  // symmetries for that site can be looked up using this mapping.
+  // map<key=integer,vector<double>> symmetries;
 
-  // orientation stored as quaternion
+  // site orientation stored as quaternion
   double *q0, *qx, *qy, *qz;
   // Read-Shockley disorientation cutoff
   double theta_cut;

@@ -1,4 +1,4 @@
-# plot_cubic_symmetry_histograms.py
+# plot_hcp_symmetry_histograms.py
 # Author: John Mitchell, jamitch@sandia.gov, Sandia National Laboratories
 # Date: March 8 2024
 

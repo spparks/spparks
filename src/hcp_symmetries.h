@@ -11,6 +11,7 @@
    hcp_symmetries.h
    (Note: the acronym 'hcp' stands for 'hexagonal close-packed')
    Author: John Mitchell, jamitch@sandia.gov, Sandia National Laboratories
+   Author: Meg McCarthy, megmcca@sandia.gov, Sandia National Laboratories
    Date: March 8 2024
 
 ------------------------------------------------------------------------- */
