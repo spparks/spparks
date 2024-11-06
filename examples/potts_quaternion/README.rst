@@ -21,11 +21,17 @@ Running example scripts
 .. code-block:: bash
 
    mpirun -np 4 spk_mpi < in.potts_cubic
+   python plot_stitch_cut.py potts_cubic --field=site 0 100 0 100
+
    mpirun -np 4 spk_mpi < in.potts_hcp_cutoff25
+   python plot_stitch_cut.py potts_hcp_cutoff25 --field=site 0 100 0 100
 
 
 This will produce log files and STITCH database files with labels "potts_cubic"
 and "potts_hcp_cutoff25," which can be compared to similar simulations in the
 examples/potts folder to see how Read-Shockley affects grain evolution.
-The content of the STITCH database files can be visualized using the STITCH
-Python module, see e.g. examples/potts_am_bezier/plot_stitch_cut.py.
+The python commands will then visualize the content of the STITCH database files.
+You will need to have the STITCH Python module installed, see the 
+manual for more details.
+
+
