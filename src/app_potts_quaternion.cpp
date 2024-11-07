@@ -33,7 +33,7 @@ using namespace SPPARKS_NS;
 
 AppPottsQuaternion::AppPottsQuaternion(SPPARKS *spk, int narg, char **arg)
     : AppPotts(spk, narg, arg), symmetries(), q0(nullptr), qx(nullptr),
-      qy(nullptr), qz(nullptr), unique_neigh(nullptr) {
+      qy(nullptr), qz(nullptr), theta_cut(15.0), unique_neigh(nullptr) {
   // parse arguments for PottsNeighOnly class only, not children
   // args: nspins, crystal structure, Read-Shockley angle
 
@@ -52,30 +52,23 @@ AppPottsQuaternion::AppPottsQuaternion(SPPARKS *spk, int narg, char **arg)
     error->all(FLERR, "Illegal 'potts/quaternion command; expected "
                       "'cubic' or 'hcp'");
   }
-
-  // Read-Shockley default cutoff setup
-  // Check whether user has specified cutoff
-  // TODO question: should this be in the init_app() section, not constructor?
-  if (narg == 3) {
-    theta_cut = 15.0;
-  } else {
-    double check_theta_cut = atof(arg[3]);
-
-    // TODO Add efficiency warning if user choose 0.0 for theta_cut
-    if (check_theta_cut < 0.0) {
+  if (4 == narg) {
+    theta_cut = atof(arg[3]);
+    if (theta_cut <= 0.0)
       error->all(
           FLERR,
-          "Illegal 'potts/quaternion command; disorientation cutoff must "
-          "be a non-negative value.");
-    } else if (strcmp(arg[2], "cubic") == 0 && check_theta_cut > 62.7) {
-      error->all(FLERR, "Illegal 'potts/quaternion command; disorientation "
-                        "cutoff for 'cubic' must "
+          "Illegal 'potts/quaternion command; theta_cut must be positive");
+    if (strcmp(arg[2], "cubic") == 0 && theta_cut > 62.7) {
+      error->all(FLERR, "Illegal 'potts/quaternion command; "
+                        "theta_cut for 'cubic' must "
                         "be between 0.0 and 62.7 degrees");
-    } else if (strcmp(arg[2], "hcp") == 0 && check_theta_cut > 93.8) {
-      error->all(FLERR, "Illegal 'potts/quaternion command; disorientation "
-                        "cutoff for 'hcp' must "
-                        "be less than 93.8 degrees");
+    } else if (strcmp(arg[2], "hcp") == 0 && theta_cut > 93.8) {
+      error->all(FLERR, "Illegal 'potts/quaternion command; "
+                        "theta_cut for 'hcp' must "
+                        "be between 0.0 and 93.8 degrees");
     }
+  } else {
+    // Default value theta_cut=15.0
   }
 
   nspins = atoi(arg[1]);
@@ -145,18 +138,17 @@ double AppPottsQuaternion::site_energy(int i) {
     int nj = neighbor[i][j];
     vector<double> qj{q0[nj], qx[nj], qy[nj], qz[nj]};
     double di = disorientation::compute_disorientation(symmetries, qi, qj);
+    double ratio = di / theta_cut;
 
     // Read-Shockley equation logic
     // If neighbor disorientation di is 0 or theta_cut is 0, evaluate to 0.
     // If di is greater than 0 but less than theta_cut, apply the Read-Shockley
     // equation to the neighbor energy calculation If di is greater than or
     // equal to theta_cut, evaluate to 1.
-    if (theta_cut > 0.0)
-      double ratio = di / theta_cut;
 
     if (ratio <= 0)
       continue;
-    else if (ratio > 0.0 and ratio < 1.0)
+    else if (ratio < 1.0)
       energy += ratio * (1 - log(ratio));
     else
       energy += 1.0;

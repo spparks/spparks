@@ -15,7 +15,7 @@ app_style style Q crystal theta_cut :pre
 style = {potts/quaternion}
 Q = number of spin states
 crystal = {cubic} or {hcp} 
-theta_cut = optional disorientation cutoff angle for Read-Shockley energy model (15.0 by default) :ul
+theta_cut = optional positive cutoff angle (default=15.0) for Read-Shockley energy model :ul
 
 [Examples:]
 
@@ -28,84 +28,41 @@ This is an on-lattice application which evolves a Q-state Ising model
 or Potts model, where each lattice site has a spin value from 1 to Q.
 Sites flip their spin as the model evolves. 
 
+This Potts variant is designed to incorporate the effects of crystalline
+orientation into growth models, allowing more detailed and realistic
+simulations of microstructure evolution in Cubic and HCP polycrystals.
+Emulating crystalline orientation requires two additions to the standard Potts
+model: a choice of a reference crystal symmetry, and calculation of grain
+boundary energy based upon relative orientation differences between adjacent
+grains/sites.
 
-This Potts variant is designed to incorporate the effects of crystalline orientation into growth models, allowing more detailed and realistic simulations of microstructure evolution in polycrystals.  Emulating crystalline orientation requires two additions to the standard Potts model: a choice of a reference crystal symmetry, and 3d representation of how each grain in a polycrystal is rotated relative to the reference.  
+The user selects either {cubic} or {hcp} crystal symmetry. To represent crystal
+orientation, each site I is initialized with a randomly generated unit
+quaternion, {qi}. The app calculates the disorientation angle {theta_ij}
+between two neighboring sites I and J using quaternions for the chosen crystal
+symmetry.  The disorientation angle {theta_ij} is used to calculate grain
+boundary energy with Read-Shockley and evolve microstructure in exactly the same 
+way the potts model is used to simulate grain growth and evolution without 
+crystalline orientation. 
 
+More information on the calculation of {theta_ij} can be found in the Mackenzie
+and Handscomb papers (citations 1, 2, and 3 below).  
 
-For the reference crystal symmetry, the user selects either {cubic} or {hcp} (note that this is a mathematical representation for calculations and does not change the coordinates of SPPARKS sites).  To represent rotations, each site I is randomly assigned a quaternion, {qi}.
-With the reference symmetry and quaternions, the app can then calculate the disorientation angle {theta_ij} between two neighboring sites I and J.  Disorientation angles are used to compare how different two grain orientations are from each other, which in turn can be used to alter how site energies are calculated.  More information on the calculation of {theta_ij} can be found in the Mackenzie papers (citations 1 and 2).
+The default value for the low-angle cut-off {theta_cut} is 15.0 degrees, a
+commonly-used cutoff angle for cubic materials. To specify the low-angle
+cut-off different from the default, add the optional input value {theta_cut}.
+A maximum disorientation angle exists for each crystal symmetry: 62.7 degrees
+for {cubic} and 93.8 degrees for {hcp}. If the user's input {theta_cut} is
+greater than these maxima, the simulation will throw an error. A value
+{theta_cut=0} is disallowed and does not make sense as it implies no grain
+boundary and produces spurious results. 
 
-:line
-
-In the current version of {potts/quaternion}, the disorientation angle can be used to identify "low-angle" grain boundaries using the Read-Shockley equation (citation 3). Briefly, the Read-Shockley equation and model assume that neighboring grains with fairly similar orientations (i.e., lower values of {theta_ij}) tend to form arrays of dislocations. These arrays generally have lower energies per unit area than contrasting "high-angle" grain boundaries. This difference is due to the latter defect having much more free volume. The Read-Shockley model uses the disorientation angle cutoff {theta_cut} to distinguish low-angle from high-angle grain boundaries and applies the following logic to modify site energies: 
-
-The Hamiltonian representing the energy of site I uses a function {f}({theta_cut}, {theta_ij}):
-
-Hi = Sum_j f(theta_cut, theta_ij) :pre
-
-where Sum_j is a sum over all the neighbor sites J of site I. 
-
-The default value for {theta_cut} is 15.0 degrees, but can be chosen by the user (see below). If {theta_cut} is equal to or greater than 0.0 and less than the maximum possible disorientation angle for a given crystal symmetry (see below), the site energies are calculated using the Read-Shockley equation as outlined below.
-
-For all neighbors J of a given site I with disorientation {theta_ij}, a ratio of disorientation to the chosen cutoff value is calculated:
-
-ratio_ij = theta_ij/theta_cut :pre
-
-If {ratio_ij} is 0 or >= 1, or {theta_cut} is set to 0.0, the neighbor's site energy evaluates to 0 or 1 as in a standard Potts model. 
-
-If {ratio_ij} is between 0 and 1, then the Read-Shockley equation (citation 3) is calculated for that neighbor:
-
-E_ij= 0.5 * ratio_ij * (1 - log(ratio_ij)) :pre
-
-The image below plots the change in {E_ij} vs. {ratio_ij} for a single neighbor calculation.
+The disorientation angle is used to calculate low-angle grain boundary energies
+using the Read-Shockley equation (citation 4). The plot below shows how grain
+boundary energy between sites {ij} varies with disorientation angle according
+to the Read-Shockley model.  
 
 :image(JPG/quaternion_E_vs_read-shockley-ratio.png)
-
-Note that the energy is halved to account for the contribution from the neighbor for the same calculation.
-
-:line
-
-The default value for {theta_cut} is 15.0 degrees, a commonly-used cutoff angle for cubic materials. To specify a different angle for {theta_cut}, include a floating-point value greater than or equal to zero after the specification of the crystal structure type (see the hcp example above). A maximum disorientation angle exists for each crystal symmetry: 62.7 degrees for {cubic} and 93.8 degrees for {hcp}. If the user's {theta_cut} is greater than these maxima, the simulation will throw an error. 
-
-It is important to note that if {theta_cut} = 0.0, quaternions will still be assigned to sites and the disorientation {theta_ij} will still be calcuated, but site energies will yield either 0 or 1 as in a standard Potts model.  This choice will be much slower to run compared to a simpler model such as "app_style potts"_app_potts.html, but might be useful in some situations, for example if using quaternion data in visualizations. 
- 
-:line
-
-These applications perform Glauber dynamics, meaning the spin is
-flipped on a single site.  See "app_style
-diffusion"_app_diffusion.html for an Ising model which performs
-Kawasaki dynamics, meaning the spins on two neighboring sites are
-swapped.
-
-As explained on "this page"_app_style.html, these applications can be
-evolved by either a kinetic Monte Carlo (KMC) or rejection KMC (rKMC)
-algorithm.  You must thus define a KMC solver or sweeping method to be
-used with the application via the "solve_style"_solve_style.html or
-"sweep"_sweep.html commands.
-
-For solution by a KMC algorithm, a site event is a spin flip and its
-probability is min\(1,exp(-dE/kT)\), where dE = Efinal - Einitial
-using the Hamiltonian defined above for the energy of the site, and T
-is the temperature of the system defined by the
-"temperature"_temperature.html command (which includes the Boltzmann
-constant k implicitly).  The KMC algorithm does not allow spin flips
-known as "wild" flips, even at finite temperature.  These are flips to
-values that are not equal to any neighbor site value.
-
-For solution by a rKMC algorithm, this app uses the same 
-rejection-based algorithm as {potts} - a random spin from
-1 to Q is chosen. The final change in energy, dE = Efinal -
-Einitial, is calculated, as is a uniform random number R between 0 and
-1.  The new state is accepted if R < min\(1,exp(-dE/kT)\), else it is
-rejected.
-
-The rKMC algorithm for the {potts} style does allow spin flips known
-as "wild" flips.  These are flips to values that are not equal to any
-neighbor site value.  At temperature 0.0 these are effectively
-disallowed, since they will increase the energy of the system (except
-in the uninteresting case when the site already has a spin value not
-equal to any neighbor values), but at finite temperature they will
-have a non-zero probability of occurring.
 
 :line
 
@@ -127,5 +84,6 @@ theta_cut = 15.0
 
 \[2\] Mackenzie, J. K. "Second paper on statistics associated with the random disorientation of cubes." Biometrika 45, no. 1-2 (1958): 229-240. DOI: 10.2307/2333059
 
+\[3\] Handscomb, D.C. "On the Random Distribution of two Cubes", Canadian Journal of Mathematics , Volume 10 , 1958 , pp. 85 - 88 DOI: https://doi.org/10.4153/CJM-1958-010-0
 
-\[3\] Read, W.T. and Shockley, W. "Dislocation models of crystal grain boundaries." Phys. Rev. 78, no. 3 (1950): 275. DOI: 10.1103/PhysRev.78.275
+\[4\] Read, W.T. and Shockley, W. "Dislocation models of crystal grain boundaries." Phys. Rev. 78, no. 3 (1950): 275. DOI: 10.1103/PhysRev.78.275
