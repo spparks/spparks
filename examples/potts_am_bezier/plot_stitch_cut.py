@@ -3,7 +3,7 @@ import os, sys
 import numpy
 from numpy import min,max
 from matplotlib import pyplot as plt
-import stitch.libstitch as libstitch
+from stitch import libstitch
 #import libstitch
 
 def main(args):

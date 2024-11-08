@@ -1,0 +1,22 @@
+{
+"control_points":{
+	"comment":"See spparks am bezier documentation",
+	"X":[0, 0, 100, 240, 240],
+	"Y":[-15, -95, -87],
+	"Z":[-15, -95, -87]
+},
+"image_name":"vhaz_h0=10_ht=40_n=1.5.png",
+"variable_haz":{
+	"h0":10,
+	"ht":40,
+	"n":1.50
+},
+"box_limits":{
+	"comment":"For plotting purposes only",
+	"xlim":[-40, 255],
+	"ylim":[-72, 72]
+
+}
+
+}
+

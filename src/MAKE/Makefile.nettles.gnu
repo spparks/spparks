@@ -1,5 +1,6 @@
-# g++ = RedHat Linux box, g++, MPICH
-
+# clang 16.0.1 on Macbook Pro Apple M3 Max
+# Open MPI 5.0.5
+# Homebrew installed jpeglib
 SHELL = /bin/sh
 
 # ---------------------------------------------------------------------

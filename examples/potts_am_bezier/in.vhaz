@@ -1,23 +1,19 @@
 # SPPARKS potts/am/bezier example file
-# python plot_stitch_cut.py potts_am_bezier_large2d --field=site 0 500 0 500
-# python plot_stitch_cut.py potts_am_bezier_large2d --time_step=23 --field=d1 0 500 0 500
+# python plot_stitch_cut.py vhaz --field=site 0 570 0 570
 variable NUM_SPINS equal         250000
-variable WIDTH equal             93.5
-variable DEPTH equal             116
+variable WIDTH equal             130
+variable DEPTH equal             65
 # Parameter: double H0 -- assigns haz at pool width
 # Parameter: double HT -- assigns trailing edge distance for haz.
 # Parameter: double HN -- heat affected zone shape parameter >= 3/2
 # Parameter HT is paired together with h0 parameter in potts/am/bezier 
 # to define a variable heat affected zone.
-variable H0 equal               20
-variable HT equal               20
+variable H0 equal               10
+variable HT equal               40
 variable HN equal               1.5
 variable LAYER_DEPTH equal       65
-# To run problem 2d use Z0 and Z1
-# variable Z0 equal                -1
-# variable Z1 equal                1
-variable Z0 equal                0
-variable Z1 equal                1
+variable Z0 equal               0
+variable Z1 equal               1
 variable T equal                 0.25
 variable ABS_TOL equal           0.02
 variable SEED equal     	 56789
@@ -33,31 +29,24 @@ seed             ${SEED}
 # hn             = arg[6] //shape parameter for variable haz
 #———————————————————————————————————————————
 app_style	 potts/am/bezier ${NUM_SPINS} ${WIDTH} ${DEPTH} ${H0} ${HT} ${HN}
-
 # REQUIRED input: control points 
 # SPPARKS assigns 1st and last values for y and z 0
 # x: input 5 values <x[0] x[1], x[2], x[3], x[4]>
 # y: input 3 values y[0]=0, <y[1], y[2], y[3]>, y[4]=0
 # z: input 3 values z[0]=0, <z[1], z[2], z[3]>, z[4]=0
-potts/am/bezier control_points x -6.9 -6.9   0.6  6.9 6.9
-potts/am/bezier control_points y       0.8   2.1  3.8
-potts/am/bezier control_points z      -0.9, -1.0 -2.8
-
+potts/am/bezier control_points x 0.0   0.0   100.0 240.0  240.0
+potts/am/bezier control_points y      15.0    95.0  87.0
+potts/am/bezier control_points z     -15.0   -75.0 -70.0 
 # OPTIONAL input: beta
 # default values betay=1.0 betaz=0.5
-potts/am/bezier beta 1.0 0.5
+potts/am/bezier beta 0.5 0.25
 
 #Define simulation domain and initialize site variables
 #———————————————————————————————————————————
-# Run 2d
-# dimension	 2
-# lattice	 	 sq/8n 1.0
 dimension	 3
 lattice	 	 sc/26n 1.0
-region		 box block 0 500 0 500 ${Z0} ${Z1}
+region		 box block 0 570 0 570 ${Z0} ${Z1}
 
-# Run 2d
-# boundary 	 n n p
 boundary 	 n n n
 
 create_box	 box
@@ -71,32 +60,24 @@ set		 d1 value 0.0
 #———————————————————————————————————————————
 # Namespace(angle=134, hatch=120, height=1000, prefix='134_degree', speed=9.0, t0=5570.5, width=1000)
 # Number of paths created=11
-# 2d speed is different from 3d speed because of the time step spparks computes
-# internally. To run 2d and 3d identically, 2d speed must be slower by the
-# ratio of number of neighbors each lattice site has for the chose lattice.
-# 3d Speed = (9)*(1/8)/(1/26)
-variable SPEED equal                 29.25
-# 2d Speed
-# variable SPEED equal                 9.0
-am path 1 start -859.6  890.1 end  859.6 -890.1 speed    ${SPEED}
-am path 2 start  941.9 -802.6 end -769.2  969.3 speed    ${SPEED}
-am path 3 start -670.6 1040.0 end 1015.9 -706.5 speed    ${SPEED}
-am path 4 start 1081.4 -601.6 end -563.5 1101.7 speed    ${SPEED}
-am path 5 start -447.0 1153.9 end 1137.6 -487.0 speed    ${SPEED}
-am path 6 start 1183.4 -361.7 end -320.2 1195.3 speed    ${SPEED}
-am path 7 start  769.2 -969.3 end -941.9  802.6 speed    ${SPEED}
-am path 8 start -1015.9  706.5 end  670.6 -1040.0 speed  ${SPEED}
-am path 9 start  563.5 -1101.7 end -1081.4  601.6 speed  ${SPEED}
-am path 10 start -1137.6  487.0 end  447.0 -1153.9 speed ${SPEED}
-am path 11 start  320.2 -1195.3 end -1183.4  361.7 speed ${SPEED}
+am path 1 start -859.6  890.1 end  859.6 -890.1 speed  9.0
+am path 2 start  941.9 -802.6 end -769.2  969.3 speed  9.0
+am path 3 start -670.6 1040.0 end 1015.9 -706.5 speed  9.0
+am path 4 start 1081.4 -601.6 end -563.5 1101.7 speed  9.0
+am path 5 start -447.0 1153.9 end 1137.6 -487.0 speed  9.0
+am path 6 start 1183.4 -361.7 end -320.2 1195.3 speed  9.0
+am path 7 start  769.2 -969.3 end -941.9  802.6 speed  9.0
+am path 8 start -1015.9  706.5 end  670.6 -1040.0 speed  9.0
+am path 9 start  563.5 -1101.7 end -1081.4  601.6 speed  9.0
+am path 10 start -1137.6  487.0 end  447.0 -1153.9 speed  9.0
+am path 11 start  320.2 -1195.3 end -1183.4  361.7 speed  9.0
 am path_layer 1 num_paths 11 path_ids 1 2 3 4 5 6 7 8 9 10 11 thickness ${LAYER_DEPTH}
-am build start 0 num_layers 1
 # Total raster distance = 25883.9, estimate # spparks steps = 2876.0
 # variable DT = t0+distance/speed
 # variable DT equal  8446.5
 variable DT equal  2875.5
-variable OUT_DT equal 12.5
-variable OUT world              potts_am_bezier_large2d.st
+variable OUT_DT equal  50
+variable OUT world              vhaz.st
 #———————————————————————————————————————————
 
 #———————————————————————————————————————————
@@ -112,7 +93,6 @@ temperature	 ${T}
 diag_style   energy
 stats            1.0
 
-#dump             1 text 5.0 dump.additive4.* id i1 d1 x y z
 dump dump.id stitch ${OUT_DT} ${OUT} site d1
 
 # On first layer
