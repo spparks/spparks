@@ -23,7 +23,7 @@ import unittest
 import numpy
 from math import fabs,pi,cos,sin,log
 from numpy import array, ndarray, dot, transpose
-import stitch.libstitch as libstitch
+from stitch import libstitch
 
 def pretty_string_block(block):
     """

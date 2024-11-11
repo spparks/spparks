@@ -51,7 +51,7 @@ enum
     ,STITCH_MPI_TAG_SET_PARAMETERS_BLOCK = 1002
 };
 
-typedef struct StitchFile_struct
+struct StitchFile_struct
 {
     sqlite3 * db;
 #ifdef STITCH_PARALLEL
@@ -59,7 +59,7 @@ typedef struct StitchFile_struct
     int size;
 #endif
     int rank;
-} StitchFile;
+};
 
 
 static int callback (void * NotUsed, int argc, char ** argv, char ** ColName)
