@@ -141,11 +141,6 @@ double AppPottsQuaternion::site_energy(int i) {
     double ratio = di / theta_cut;
 
     // Read-Shockley equation logic
-    // If neighbor disorientation di is 0 or theta_cut is 0, evaluate to 0.
-    // If di is greater than 0 but less than theta_cut, apply the Read-Shockley
-    // equation to the neighbor energy calculation If di is greater than or
-    // equal to theta_cut, evaluate to 1.
-
     if (ratio <= 0)
       continue;
     else if (ratio < 1.0)
