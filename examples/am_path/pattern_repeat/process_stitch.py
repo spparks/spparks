@@ -2,7 +2,7 @@ import getopt
 import os, sys
 import numpy
 from matplotlib import pyplot as plt
-import stitch.libstitch as libstitch
+from stitch import libstitch
 
 def main(prefix):
     # Stitch filename

@@ -28,7 +28,7 @@ Older SPPARKS versions should be unaffected, but those migrating to this
 release or newer should convert import statements.
 
 As Nov 2024, the Stitch master branch repo 'SHA' used in SPPARKS is:
-7a7de80781518f519332f2189cd8b74bfd0e7e9b
+d446af92c7a5e843716a4a5c461756031241c602
 
 
 Sept 2022
