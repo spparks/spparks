@@ -593,6 +593,9 @@ void Input::log()
 	sprintf(str,"Cannot open logfile %s",arg[0]);
 	error->one(FLERR,str);
       }
+      fprintf(logfile,
+              "SPPARKS (%s) -- continued logfile from same input script\n",
+              universe->version);
     }
     if (universe->nworlds == 1) universe->ulogfile = logfile;
   }
