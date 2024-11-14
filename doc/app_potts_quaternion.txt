@@ -54,8 +54,8 @@ cut-off different from the default, add the optional input value {theta_cut}.
 A maximum disorientation angle exists for each crystal symmetry: 62.7 degrees
 for {cubic} and 93.8 degrees for {hcp}. If the user's input {theta_cut} is
 greater than these maxima, the simulation will throw an error. A value
-{theta_cut=0} is disallowed and does not make sense as it implies no grain
-boundary and produces spurious results. 
+{theta_cut=0} is disallowed and does not make sense for the Read-Shockley 
+model.
 
 The disorientation angle is used to calculate low-angle grain boundary energies
 using the Read-Shockley equation (citation 4). The plot below shows how grain
