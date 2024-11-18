@@ -1,10 +1,10 @@
 == How
-* Create four links in this directory pointing to files in src/
+* Create four links in this directory pointing to files in src/potts_quaternion/
 [source,bash]
-ln -s ../../../src/quaternion.h .
-ln -s ../../../src/disorientation.h .
-ln -s ../../../src/cubic_symmetries.h .
-ln -s ../../../src/hcp_symmetries.h .
+ln -s ../../src/potts_quaternion/quaternion.h .
+ln -s ../../src/potts_quaternion/disorientation.h .
+ln -s ../../src/potts_quaternion/cubic_symmetries.h .
+ln -s ../../src/potts_quaternion/hcp_symmetries.h .
 
 == What
 * Verify 'disorientation.h', 'quaternion.h', 'cubic_symmetries.h', and
@@ -12,6 +12,7 @@ ln -s ../../../src/hcp_symmetries.h .
   these are the exact files used in spparks for quaternion and
   symmetry/(dis)orientation calculations.
 * See 'plot_cubic_symmetry_histograms.py' for making plots
+* reference distributions are given for 'cubic' and 'hcp' in the pdf files
 * Relevant files
 [literal]
 cpp_quaternion.py
