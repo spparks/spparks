@@ -10,7 +10,7 @@ crystal systems are used to assign disorientation angles to grain boundaries,
 see the documentation of this app for more details. A Read-Shockley model 
 is used to calculate low-angle grain boundary energies.
 
-Running the provided scripts will requires SPPARKS that was built with the
+Running the provided scripts requires SPPARKS that be built with the
 STITCH library. Details of running the examples are described below. In these
 examples SPPARKS was compiled into the executable *spk_mpi*.
 
@@ -44,4 +44,3 @@ using the above python script 'plot_stitch_cut.py'.
 The python commands will then visualize the content of
 the STITCH database files. You will need to have the STITCH Python module
 installed, see the manual for more details.
-

@@ -36,6 +36,20 @@ model: a choice of a reference crystal symmetry, and calculation of grain
 boundary energy based upon relative orientation differences between adjacent
 grains/sites.
 
+NOTE to JOHN: add something like this (from app_potts.txt) for the
+enhanced Hamiltonian for this model:
+
+The Hamiltonian representing the energy of site I is as follows:
+
+Hi = Sum_j delta_ij :pre
+
+where Sum_j is a sum over all the neighbor sites of site I and
+delta_ij is 0 if the spin of sites I and J are the same and 1 if they
+are different.  The energy of the entire system is the sum of Hi over
+all sites.
+
+END of NOTE to JOHN
+
 The user selects either {cubic} or {hcp} crystal symmetry. To represent crystal
 orientation, each site I is initialized with a randomly generated unit
 quaternion, {qi}. The app calculates the disorientation angle {theta_ij}
@@ -70,17 +84,15 @@ to the Read-Shockley model.
 
 [Related commands:]
 
-"app_style potts"_app_potts.html
-
-"app_style ising"_app_ising.html
+"app_style potts"_app_potts.html, "app_style ising"_app_ising.html
 
 [Default:] 
 
 theta_cut = 15.0 
 
+:line
 
 \[1\]  Mackenzie, J. K., and M. J. Thomson. "Some statistics associated with the random disorientation of cubes." Biometrika 44, no. 1-2 (1957): 205-210. DOI: 10.2307/2333253
-
 
 \[2\] Mackenzie, J. K. "Second paper on statistics associated with the random disorientation of cubes." Biometrika 45, no. 1-2 (1958): 229-240. DOI: 10.2307/2333059
 

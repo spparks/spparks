@@ -114,6 +114,8 @@ void AppPottsQuaternion::init_app() {
     error->all(FLERR, "One or more sites have invalid values");
 }
 
+/* ---------------------------------------------------------------------- */
+
 void AppPottsQuaternion::grow_app() {
   spin = iarray[0];
   q0 = darray[0];
@@ -122,6 +124,8 @@ void AppPottsQuaternion::grow_app() {
   qz = darray[3];
 }
 
+/* ---------------------------------------------------------------------- */
+
 void AppPottsQuaternion::flip_site(int i, const SiteState &s) {
   spin[i] = s.spin;
   q0[i] = s.q[0];
@@ -129,6 +133,8 @@ void AppPottsQuaternion::flip_site(int i, const SiteState &s) {
   qy[i] = s.q[2];
   qz[i] = s.q[3];
 }
+
+/* ---------------------------------------------------------------------- */
 
 double AppPottsQuaternion::site_energy(int i) {
   double energy = 0.0;
@@ -229,6 +235,8 @@ void AppPottsQuaternion::site_event_rejection(int i, RandomPark *random) {
         mask[neighbor[i][j]] = 0;
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 double AppPottsQuaternion::site_propensity(int) {
   error->all(FLERR, "Illegal potts/quaternion solver used.  KMC not "
