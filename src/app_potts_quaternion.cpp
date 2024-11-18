@@ -16,12 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "app_potts_quaternion.h"
-#include "cubic_symmetries.h"
-#include "disorientation.h"
 #include "error.h"
-#include "hcp_symmetries.h"
 #include "math.h"
-#include "quaternion.h"
+#include "potts_quaternion/cubic_symmetries.h"
+#include "potts_quaternion/disorientation.h"
+#include "potts_quaternion/hcp_symmetries.h"
+#include "potts_quaternion/quaternion.h"
 #include "random_park.h"
 #include "stdlib.h"
 #include "string.h"
