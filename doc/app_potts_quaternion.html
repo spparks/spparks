@@ -39,26 +39,22 @@ model: a choice of a reference crystal symmetry, and calculation of grain
 boundary energy based upon relative orientation differences between adjacent
 grains/sites.
 </P>
-<P>NOTE to JOHN: add something like this (from app_potts.txt) for the
-enhanced Hamiltonian for this model:
+<P>The Hamiltonian representing the energy of site <I>i</I> is as follows:
 </P>
-<P>The Hamiltonian representing the energy of site I is as follows:
-</P>
-<PRE>Hi = Sum_j delta_ij 
+<PRE>Hi = (1/2) Sum_j e_ij 
 </PRE>
-<P>where Sum_j is a sum over all the neighbor sites of site I and
-delta_ij is 0 if the spin of sites I and J are the same and 1 if they
-are different.  The energy of the entire system is the sum of Hi over
+<P>where Sum_j is a sum over all the neighbor sites <I>j</I> for site <I>i</I> and e_<I>ij</I> is the
+computed bond energy between sites <I>i</I> and <I>j</I>.  Bond energy between sites <I>i</I> and <I>j</I> 
+is computed using the Read-Shockley relation and the angular disorientation
+between sites <I>i</I> and <I>j</I>. The energy of the entire system is the sum of Hi over
 all sites.
 </P>
-<P>END of NOTE to JOHN
-</P>
 <P>The user selects either <I>cubic</I> or <I>hcp</I> crystal symmetry. To represent crystal
-orientation, each site I is initialized with a randomly generated unit
+orientation, each site <I>i</I> is initialized with a randomly generated unit
 quaternion, <I>qi</I>. The app calculates the disorientation angle <I>theta_ij</I>
-between two neighboring sites I and J using quaternions for the chosen crystal
+between two neighboring sites <I>i</I> and <I>j</I> using quaternions for the chosen crystal
 symmetry.  The disorientation angle <I>theta_ij</I> is used to calculate grain
-boundary energy with Read-Shockley and evolve microstructure in exactly the same 
+boundary energy and evolve microstructure in exactly the same 
 way the potts model is used to simulate grain growth and evolution without 
 crystalline orientation. 
 </P>
