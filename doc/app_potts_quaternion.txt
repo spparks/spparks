@@ -56,7 +56,10 @@ way the potts model is used to simulate grain growth and evolution without
 crystalline orientation. 
 
 More information on the calculation of {theta_ij} can be found in the Mackenzie
-and Handscomb papers (citations 1, 2, and 3 below).  
+and Handscomb papers (citations 1, 2, and 3 below).  Python scripts in
+tools/potts_quaternion use the exact header files spparks uses; these python
+scripts can be used to verify disorientation distributions for random cubic and
+hcp orientations.
 
 The default value for the low-angle cut-off {theta_cut} is 15.0 degrees, a
 commonly-used cutoff angle for cubic materials. To specify the low-angle
