@@ -1,0 +1,26 @@
+# SPPARKS Potts tests on generic lattice
+variable Q equal 10000
+
+seed		 56789
+
+app_style	 potts/quaternion ${Q} cubic
+
+dimension	 3
+lattice		 sc/26n 1.0
+region		 box block 0 100 0 100 0 1
+create_box	 box
+create_sites	 box
+set		 site range 1 ${Q}
+
+sweep		 random
+sector		 yes
+
+diag_style       energy
+
+temperature	 0.25
+
+stats            0.5
+dump             stitch.id stitch 0.5 potts_cubic_2d.st site
+diag_style       cluster stats yes
+
+run              3.0

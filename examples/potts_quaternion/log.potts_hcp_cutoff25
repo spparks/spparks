@@ -1,0 +1,55 @@
+SPPARKS (6 Sep 2023)
+# SPPARKS Potts tests on generic lattice
+variable Q equal 10000
+
+seed		 56789
+
+# Here, the optional "theta_cut" parameter is set to 25 degrees, instead of the default 15 degrees.
+app_style	 potts/quaternion ${Q} hcp 25
+app_style	 potts/quaternion 10000 hcp 25
+
+dimension	 3
+lattice		 sc/26n 1.0
+region		 box block 0 100 0 100 0 100
+create_box	 box
+Created box = (0 0 0) to (100 100 100)
+  2 by 2 by 2 processor grid
+create_sites	 box
+Creating sites ...
+  1000000 sites
+  1000000 sites have 26 neighbors
+set		 site range 1 ${Q}
+set		 site range 1 10000
+  1000000 settings made for site
+
+sweep		 random
+sector		 yes
+
+diag_style       energy
+
+temperature	 0.25
+
+stats            0.5
+dump             stitch.id stitch 0.5 potts_hcp_cutoff25.st site
+diag_style       cluster stats yes
+
+run              3.0
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 26.875 Mbytes
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy     Nclust        <N>        <R>
+         0          0          0          0          0 1.29572e+07     998724    1.00128    1.00033
+  0.538462    4193302    9806698         14        153 7.72871e+06      50649    19.7437    2.35986
+   1.03846    5176893   21823107         27        298 5.69021e+06      22562    44.3223    3.05626
+       1.5    5728555   33271445         39        431 4.84235e+06      13602    73.5186    3.62387
+         2    6196671   45803329         52        570 4.25188e+06       9012    110.963    4.15816
+       2.5    6590829   58409171         65        707 3.8361e+06       6515    153.492    4.62435
+   3.03846    6964468   72035532         79        851 3.50141e+06       4898    204.165    5.07627
+Loop time of 851.004 on 8 procs
+
+Solve time (%) = 800.936 (94.1166)
+Update time (%) = 0 (0)
+Comm  time (%) = 17.5354 (2.06055)
+Outpt time (%) = 32.5322 (3.8228)
+App   time (%) = 0 (0)
+Other time (%) = 0.00012675 (1.48942e-05)

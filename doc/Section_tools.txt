@@ -28,3 +28,12 @@ from "the Pizza.py WWW site"_pizza.
 
 :link(pizza,https://lammps.github.io/pizza)
 :link(python,http://www.python.org)
+
+Addtional scripts below are distributed with spparks under the tools directory.
+
+potts_quaternion/cpp_quaternion.py: enables reading spparks quaternion header files :l
+potts_quaternion/plot_cubic_symmetry_histograms.py: verification plots for disorientation distribution 
+of randomly oriented cubic structures :l
+potts_quaternion/plot_hcp_symmetry_histograms.py: verification plots for disorientation distribution 
+of randomly oriented hcp structures :l
+

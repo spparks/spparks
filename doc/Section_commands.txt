@@ -339,6 +339,7 @@ full description:
 "potts/neigh"_app_potts.html,
 "potts/neighonly"_app_potts.html,
 "potts/pin"_app_potts_pin.html,
+"potts/quaternion"_app_potts_quaternion.html,
 "potts/strain"_app_potts_strain.html,
 "potts/strain/pin"_app_potts_strain_pin.html,
 "potts/weld"_app_potts_weld.html,

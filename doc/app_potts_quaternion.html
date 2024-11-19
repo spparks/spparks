@@ -1,0 +1,105 @@
+<HTML>
+<CENTER><A HREF = "https://spparks.github.io">SPPARKS Website</A> - <A HREF = "Manual.html">SPPARKS Documentation</A> - <A HREF = "Section_commands.html#comm">SPPARKS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>app_style potts/quaternion command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>app_style style Q crystal theta_cut 
+</PRE>
+<UL><LI>style = <I>potts/quaternion</I>
+<LI>Q = number of spin states
+<LI>crystal = <I>cubic</I> or <I>hcp</I> 
+<LI>theta_cut = optional positive cutoff angle (default=15.0) for Read-Shockley energy model 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>app_style potts/quaternion 6400 cubic
+app_style potts/quaternion 10000 hcp 25.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This is an on-lattice application which evolves a Q-state Ising model 
+or Potts model, where each lattice site has a spin value from 1 to Q.
+Sites flip their spin as the model evolves. 
+</P>
+<P>This Potts variant is designed to incorporate the effects of crystalline
+orientation into growth models, allowing more detailed and realistic
+simulations of microstructure evolution in Cubic and HCP polycrystals.
+Emulating crystalline orientation requires two additions to the standard Potts
+model: a choice of a reference crystal symmetry, and calculation of grain
+boundary energy based upon relative orientation differences between adjacent
+grains/sites.
+</P>
+<P>The Hamiltonian representing the energy of site <I>i</I> is as follows:
+</P>
+<PRE>Hi = (1/2) Sum_j e_ij 
+</PRE>
+<P>where Sum_j is a sum over all the neighbor sites <I>j</I> for site <I>i</I> and e_<I>ij</I> is the
+computed bond energy between sites <I>i</I> and <I>j</I>.  Bond energy between sites <I>i</I> and <I>j</I> 
+is computed using the Read-Shockley relation and the angular disorientation
+between sites <I>i</I> and <I>j</I>. The energy of the entire system is the sum of Hi over
+all sites.
+</P>
+<P>The user selects either <I>cubic</I> or <I>hcp</I> crystal symmetry. To represent crystal
+orientation, each site <I>i</I> is initialized with a randomly generated unit
+quaternion, <I>qi</I>. The app calculates the disorientation angle <I>theta_ij</I>
+between two neighboring sites <I>i</I> and <I>j</I> using quaternions for the chosen crystal
+symmetry.  The disorientation angle <I>theta_ij</I> is used to calculate grain
+boundary energy and evolve microstructure in exactly the same 
+way the potts model is used to simulate grain growth and evolution without 
+crystalline orientation. 
+</P>
+<P>More information on the calculation of <I>theta_ij</I> can be found in the Mackenzie
+and Handscomb papers (citations 1, 2, and 3 below).  Python scripts in
+tools/potts_quaternion use the exact header files spparks uses; these python
+scripts can be used to verify disorientation distributions for random cubic and
+hcp orientations.
+</P>
+<P>The default value for the low-angle cut-off <I>theta_cut</I> is 15.0 degrees, a
+commonly-used cutoff angle for cubic materials. To specify the low-angle
+cut-off different from the default, add the optional input value <I>theta_cut</I>.
+A maximum disorientation angle exists for each crystal symmetry: 62.7 degrees
+for <I>cubic</I> and 93.8 degrees for <I>hcp</I>. If the user's input <I>theta_cut</I> is
+greater than these maxima, the simulation will throw an error. A value
+<I>theta_cut=0</I> is disallowed and does not make sense for the Read-Shockley 
+model.
+</P>
+<P>The disorientation angle is used to calculate low-angle grain boundary energies
+using the Read-Shockley equation (citation 4). The plot below shows how grain
+boundary energy between sites <I>ij</I> varies with disorientation angle according
+to the Read-Shockley model.  
+</P>
+<IMG SRC = "JPG/quaternion_E_vs_read-shockley-ratio.png">
+
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "app_potts.html">app_style potts</A>, <A HREF = "app_ising.html">app_style ising</A>
+</P>
+<P><B>Default:</B> 
+</P>
+<P>theta_cut = 15.0 
+</P>
+<HR>
+
+<P>[1]  Mackenzie, J. K., and M. J. Thomson. "Some statistics associated with the random disorientation of cubes." Biometrika 44, no. 1-2 (1957): 205-210. DOI: 10.2307/2333253
+</P>
+<P>[2] Mackenzie, J. K. "Second paper on statistics associated with the random disorientation of cubes." Biometrika 45, no. 1-2 (1958): 229-240. DOI: 10.2307/2333059
+</P>
+<P>[3] Handscomb, D.C. "On the Random Distribution of two Cubes", Canadian Journal of Mathematics , Volume 10 , 1958 , pp. 85 - 88 DOI: https://doi.org/10.4153/CJM-1958-010-0
+</P>
+<P>[4] Read, W.T. and Shockley, W. "Dislocation models of crystal grain boundaries." Phys. Rev. 78, no. 3 (1950): 275. DOI: 10.1103/PhysRev.78.275
+</P>
+</HTML>

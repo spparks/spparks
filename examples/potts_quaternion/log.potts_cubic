@@ -1,0 +1,51 @@
+
+seed		 56789
+
+app_style	 potts/quaternion ${Q} cubic
+app_style	 potts/quaternion 10000 cubic
+
+dimension	 3
+lattice		 sc/26n 1.0
+region		 box block 0 100 0 100 0 1
+create_box	 box
+Created box = (0 0 0) to (100 100 1)
+  2 by 4 by 1 processor grid
+create_sites	 box
+Creating sites ...
+  10000 sites
+  10000 sites have 26 neighbors
+set		 site range 1 ${Q}
+set		 site range 1 10000
+  10000 settings made for site
+
+sweep		 random
+sector		 yes
+
+diag_style       energy
+
+temperature	 0.25
+
+stats            0.5
+dump             stitch.id stitch 0.5 potts_cubic_2d.st site
+diag_style       cluster stats yes
+
+run              3.0
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 5.375 Mbytes
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy     Nclust        <N>        <R>
+         0          0          0          0          0     122470       9997     1.0003    1.00008
+  0.538462      35110     104890         14       2.81    38387.3        603    16.5837     2.3789
+   1.03846      46333     223667         27       5.22    29917.9        364    27.4725    2.82321
+       1.5      54824     335176         39       7.36    25627.8        266     37.594    3.11669
+         2      62919     457081         52       9.59    22843.5        213    46.9484     3.3449
+       2.5      70049     579951         65       11.8    20634.5        174    57.4713    3.55433
+   3.03846      77191     712809         79         14    18725.3        142    70.4225    3.81174
+Loop time of 14.0367 on 8 procs
+
+Solve time (%) = 12.7337 (90.7178)
+Update time (%) = 0 (0)
+Comm  time (%) = 0.641455 (4.56985)
+Outpt time (%) = 0.66138 (4.71181)
+App   time (%) = 0 (0)
+Other time (%) = 7.9125e-05 (0.000563703)
