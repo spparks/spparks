@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		${MPI_HOME}/bin/mpicxx
-CCFLAGS =	-g -O -std=c++11
+CCFLAGS =	-g -O -std=c++17
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
