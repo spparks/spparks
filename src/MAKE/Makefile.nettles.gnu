@@ -9,7 +9,7 @@ SHELL = /bin/sh
 
 CC =		${MPI_HOME}/bin/mpicxx
 C =		${MPI_HOME}/bin/mpicc
-CCFLAGS =	-g -O -std=c++11
+CCFLAGS =	-g -O -std=c++17
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 

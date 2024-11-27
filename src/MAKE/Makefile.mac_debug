@@ -10,7 +10,7 @@
 # specify flags and libraries needed for your compiler
 
 CC =		g++
-CCFLAGS =	-O -std=c++11 -MMD
+CCFLAGS =	-O -std=c++17 -MMD
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
