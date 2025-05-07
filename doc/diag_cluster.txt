@@ -22,7 +22,7 @@ keyword = {filename} or {dump} or {site/size}:l
     style = {standard} or {opendx}
     filename = file to write viz data to
   {site/size}
-    write cluster size to application-specific site integer :pre
+    write cluster size to application-specific site dvalue :pre
 
 [Examples:]
 
@@ -112,10 +112,9 @@ particular ordering of the sites, the {opendx} style can only be used
 with square and simple cubic lattices.
 
 The {site/size} option will write the cluster size to an
-application-specific integer for each site.
+application-specific dvalue for each site.
 This can only be allowed if the application has designated
-an integer value storage location for each site
-to hold the cluster size. 
+a dvalue storage location for each site to hold the cluster size. 
 
 :link(lammps,http://lammps.sandia.gov)
 :link(pizza,https://lammps.github.io/pizza)
