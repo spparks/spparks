@@ -140,21 +140,6 @@ double Output::setup(double time, int memflag)
 
 double Output::compute(double time, int done)
 {
-  // dump output
-
-  double dump_time = app->stoptime;
-  for (int i = 0; i < ndump; i++) {
-    if (time >= dumplist[i]->next_time - dumplist[i]->tolerance) {
-      dumplist[i]->write(time);
-      dumplist[i]->next_time = 
-	next_time(time+dumplist[i]->tolerance,dumplist[i]->logfreq,
-                  dumplist[i]->delta,dumplist[i]->nrepeat,
-                  dumplist[i]->scale,dumplist[i]->delay);
-      dumplist[i]->next_time -= dumplist[i]->tolerance;
-      dump_time = MIN(dump_time,dumplist[i]->next_time);
-    } else dump_time = MIN(dump_time,dumplist[i]->next_time);
-  }
-
   // sflag = 1 if stats output needed
 
   int sflag = 0;
@@ -186,6 +171,21 @@ double Output::compute(double time, int done)
 			     stats_nrepeat,stats_scale,stats_delay);
       stats_time -= stats_tolerance;
     }
+  }
+
+    // dump output, after diagnostics and stats
+  
+  double dump_time = app->stoptime;
+  for (int i = 0; i < ndump; i++) {
+    if (time >= dumplist[i]->next_time - dumplist[i]->tolerance) {
+      dumplist[i]->write(time);
+      dumplist[i]->next_time = 
+	next_time(time+dumplist[i]->tolerance,dumplist[i]->logfreq,
+                  dumplist[i]->delta,dumplist[i]->nrepeat,
+                  dumplist[i]->scale,dumplist[i]->delay);
+      dumplist[i]->next_time -= dumplist[i]->tolerance;
+      dump_time = MIN(dump_time,dumplist[i]->next_time);
+    } else dump_time = MIN(dump_time,dumplist[i]->next_time);
   }
 
   // tnext = next output time for anything

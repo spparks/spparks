@@ -62,6 +62,7 @@ class DiagCluster : public Diag {
   int idump;
   char* opendxroot;
   int opendxcount;
+  int sitesizeflag;            // 1 if site cluster size (volume) requested
 
   void analyze_clusters();
   void write_header();

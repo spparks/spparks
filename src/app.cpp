@@ -35,6 +35,7 @@ App::App(SPPARKS *spk, int narg, char **arg) : Pointers(spk)
   first_run = 1;
 
   ninteger = ndouble = 0;
+  clustersizecol = -1;
   id = NULL;
   xyz = NULL;
   iarray = NULL;
