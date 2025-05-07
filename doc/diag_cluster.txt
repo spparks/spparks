@@ -20,10 +20,9 @@ keyword = {filename} or {dump} or {site/size}:l
     name = name of file to write clustering results to
   {dump} value = style filename
     style = {standard} or {opendx}
-    filename = file to write viz data to :pre
+    filename = file to write viz data to
   {site/size}
-    write cluster size to application-specific site integer 
-:ule
+    write cluster size to application-specific site integer :pre
 
 [Examples:]
 
@@ -48,11 +47,6 @@ applications based on it.
 The {filename} keyword allows an output file to be specified.
 Every time the cluster analysis is performed, the key properties
 of each cluster are appended to this file. The output format is:
-
-The {site/size} option will write the cluster size to an
-application-specific integer associated with each site.
-This can only be done if the application has allocated
-memory to hold the cluster sizes. 
 
 Clustering Analysis for Lattice (diag_style cluster) 
 nglobal = {total number of sites}
@@ -116,6 +110,12 @@ filenames are composed of the input filename, followed by a sequential
 number, followed by '.dx'.  Because the OpenDX format assumes a
 particular ordering of the sites, the {opendx} style can only be used
 with square and simple cubic lattices.
+
+The {site/size} option will write the cluster size to an
+application-specific integer for each site.
+This can only be allowed if the application has designated
+an integer value storage location for each site
+to hold the cluster size. 
 
 :link(lammps,http://lammps.sandia.gov)
 :link(pizza,https://lammps.github.io/pizza)
