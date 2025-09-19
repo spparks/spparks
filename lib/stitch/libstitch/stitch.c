@@ -20,7 +20,7 @@
  * John Mitchell (jamitch@sandia.gov) for more information.
  */ 
 // use this define to get strdup defined and some other functions
-#define _SVID_SOURCE
+//#define _SVID_SOURCE
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -132,7 +132,7 @@ int stitch_open (StitchFile ** file, const char * filename)
 
         if (!file_exists)
         {
-            rc = sqlite3_exec ((*file)->db, "create table globals (absolute_tolerance real, relative_tolerance real, no_value_present int, first_time real, last_time real)", callback, 0, &ErrMsg);
+            rc = sqlite3_exec ((*file)->db, "create table globals (absolute_tolerance real, relative_tolerance real, first_time real, last_time real)", callback, 0, &ErrMsg);
             if (rc != SQLITE_OK)
             {
                 fprintf (stderr, "Line: %d SQL error (%d): %s\n", __LINE__, rc, ErrMsg);
@@ -144,7 +144,7 @@ int stitch_open (StitchFile ** file, const char * filename)
             sqlite3_stmt * stmt_index = NULL;
             const char * tail_index = NULL;
 
-            rc = sqlite3_prepare_v2 ((*file)->db, "insert into globals (absolute_tolerance, relative_tolerance, no_value_present) values (?, ?, ?)", -1, &stmt_index, &tail_index);
+            rc = sqlite3_prepare_v2 ((*file)->db, "insert into globals (absolute_tolerance, relative_tolerance) values (?, ?)", -1, &stmt_index, &tail_index);
             if (rc != SQLITE_OK)
             {
                 fprintf (stderr, "Line: %d SQL error (%d): %s\n", __LINE__, rc, sqlite3_errmsg ((*file)->db));
@@ -153,7 +153,6 @@ int stitch_open (StitchFile ** file, const char * filename)
             }
             rc = sqlite3_bind_double (stmt_index, 1, STITCH_DEFAULT_ABSOLUTE_TOLERANCE); assert (rc == SQLITE_OK);
             rc = sqlite3_bind_double (stmt_index, 2, STITCH_DEFAULT_RELATIVE_TOLERANCE); assert (rc == SQLITE_OK);
-            rc = sqlite3_bind_int64 (stmt_index, 3, STITCH_NO_VALUE); assert (rc == SQLITE_OK);
             rc = sqlite3_step (stmt_index);
             if (rc != SQLITE_OK && rc != SQLITE_DONE)
             {
@@ -287,7 +286,7 @@ int stitch_close (StitchFile ** file)
     return 0;
 }
 
-int stitch_set_parameters (const StitchFile * file, double absolute_tolerance, double relative_tolerance, int64_t default_no_value_present)
+int stitch_set_parameters (const StitchFile * file, double absolute_tolerance, double relative_tolerance)
 {
     int rc = 0;
     sqlite3_stmt * stmt_index = NULL;
@@ -325,7 +324,7 @@ int stitch_set_parameters (const StitchFile * file, double absolute_tolerance, d
             rc = sqlite3_finalize (stmt_index); assert (rc == SQLITE_OK);
             do
             {
-                rc = sqlite3_prepare_v2 (file->db, "insert into globals (absolute_tolerance, relative_tolerance, no_value_present) values (?, ?, ?)", -1, &stmt_index, &tail_index);
+                rc = sqlite3_prepare_v2 (file->db, "insert into globals (absolute_tolerance, relative_tolerance) values (?, ?)", -1, &stmt_index, &tail_index);
                 if (rc != SQLITE_OK && rc != SQLITE_BUSY && rc != SQLITE_LOCKED)
                 {
                     fprintf (stderr, "Line: %d SQL error (%d): %s\n", __LINE__, rc, sqlite3_errmsg (file->db));
@@ -336,7 +335,6 @@ int stitch_set_parameters (const StitchFile * file, double absolute_tolerance, d
 
             rc = sqlite3_bind_double (stmt_index, 1, absolute_tolerance); assert (rc == SQLITE_OK);
             rc = sqlite3_bind_double (stmt_index, 2, relative_tolerance); assert (rc == SQLITE_OK);
-            rc = sqlite3_bind_int64 (stmt_index, 3, default_no_value_present); assert (rc == SQLITE_OK);
 
             do
             {
@@ -365,7 +363,7 @@ int stitch_set_parameters (const StitchFile * file, double absolute_tolerance, d
                 } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
                 do
                 {
-                    rc = sqlite3_prepare_v2 (file->db, "update globals set absolute_tolerance = ?, relative_tolerance = ?, no_value_present = ?", -1, &stmt_index, &tail_index);
+                    rc = sqlite3_prepare_v2 (file->db, "update globals set absolute_tolerance = ?, relative_tolerance = ?", -1, &stmt_index, &tail_index);
                     if (rc != SQLITE_OK && rc != SQLITE_BUSY && rc != SQLITE_LOCKED)
                     {
                         fprintf (stderr, "Line: %d SQL error (%d): %s\n", __LINE__, rc, sqlite3_errmsg (file->db));
@@ -376,7 +374,6 @@ int stitch_set_parameters (const StitchFile * file, double absolute_tolerance, d
 
                 rc = sqlite3_bind_double (stmt_index, 1, absolute_tolerance); assert (rc == SQLITE_OK);
                 rc = sqlite3_bind_double (stmt_index, 2, relative_tolerance); assert (rc == SQLITE_OK);
-                rc = sqlite3_bind_int64 (stmt_index, 3, default_no_value_present); assert (rc == SQLITE_OK);
 
                 do
                 {
@@ -424,7 +421,7 @@ cleanup:
      return rc;
 }
 
-int stitch_get_parameters (const StitchFile * file, double * absolute_tolerance, double * relative_tolerance, int64_t * default_no_value_present, double * first_time, double * last_time)
+int stitch_get_parameters (const StitchFile * file, double * absolute_tolerance, double * relative_tolerance, double * first_time, double * last_time)
 {
     int rc = 0;
     sqlite3_stmt * stmt_index = NULL;
@@ -432,7 +429,7 @@ int stitch_get_parameters (const StitchFile * file, double * absolute_tolerance,
 
     do
     {
-        rc = sqlite3_prepare_v2 (file->db, "select absolute_tolerance, relative_tolerance, no_value_present, first_time, last_time from globals", -1, &stmt_index, &tail_index);
+        rc = sqlite3_prepare_v2 (file->db, "select absolute_tolerance, relative_tolerance, first_time, last_time from globals", -1, &stmt_index, &tail_index);
         if (rc != SQLITE_OK && rc != SQLITE_LOCKED && rc != SQLITE_BUSY)
         {
             fprintf (stderr, "%d get_parameters, prepare Line: %d SQL error (%d): %s\n", file->rank, __LINE__, rc, sqlite3_errmsg (file->db));
@@ -456,9 +453,8 @@ int stitch_get_parameters (const StitchFile * file, double * absolute_tolerance,
     {
         *absolute_tolerance = sqlite3_column_double (stmt_index, 0);
         *relative_tolerance = sqlite3_column_double (stmt_index, 1);
-        *default_no_value_present = sqlite3_column_int64 (stmt_index, 2);
-        *first_time = sqlite3_column_double (stmt_index, 3);
-        *last_time = sqlite3_column_double (stmt_index, 4);
+        *first_time = sqlite3_column_double (stmt_index, 2);
+        *last_time = sqlite3_column_double (stmt_index, 3);
         do
         {
             rc = sqlite3_step (stmt_index);
@@ -877,7 +873,14 @@ int stitch_get_times (const StitchFile * file, int64_t * count, double * times)
         }
 
 cleanup:
-        sqlite3_finalize (stmt_index); assert (rc == SQLITE_OK || rc == SQLITE_DONE);
+        {
+            int rc_save = 0; // we were having an error as the SQLite reutrn code was done and not OK. This will
+                             // preserve any error at cleanup or send back ok (0) otherwise.
+            if (rc != SQLITE_OK && rc != SQLITE_DONE)
+            rc_save = rc;
+            sqlite3_finalize (stmt_index); assert (rc == SQLITE_OK || rc == SQLITE_DONE);
+            rc = rc_save;
+        }
 #ifdef STITCH_PARALLEL
     }
 
@@ -1227,6 +1230,7 @@ cleanup:
     return rc;
 }
 
+#if 0
 int stitch_set_field_no_value_present (const StitchFile * file, int64_t field_id, union StitchTypesUnion no_value_present)
 {
     int rc = 0;
@@ -1290,8 +1294,9 @@ int stitch_set_field_no_value_present (const StitchFile * file, int64_t field_id
 cleanup:
     return rc;
 }
+#endif
 
-int stitch_query_field (const StitchFile * file, const char * label, int64_t * field_id)
+int stitch_query_field (const StitchFile * file, const char * label, int64_t * field_id, enum STITCH_TYPES * type, int32_t * per_site_length, union StitchTypesUnion * no_value_present_value)
 {
     int rc = 0;
     sqlite3_stmt * stmt_index = NULL;
@@ -1301,7 +1306,7 @@ int stitch_query_field (const StitchFile * file, const char * label, int64_t * f
     {
         do
         {
-            rc = sqlite3_prepare_v2 (file->db, "select field_id from fields where field = ?", -1, &stmt_index, &tail_index);
+            rc = sqlite3_prepare_v2 (file->db, "select field_id, type, length, no_value_int, no_value_real from fields where field = ?", -1, &stmt_index, &tail_index);
             if (rc != SQLITE_OK && rc != SQLITE_LOCKED && rc != SQLITE_DONE)
             {
                 fprintf (stderr, "Line: %d SQL error (%d): %s\n", __LINE__, rc, sqlite3_errmsg (file->db));
@@ -1328,7 +1333,31 @@ int stitch_query_field (const StitchFile * file, const char * label, int64_t * f
             //const unsigned char * name = NULL;
 
             *field_id = sqlite3_column_int64 (stmt_index, 0);
+	    *type = sqlite3_column_int (stmt_index, 1);
+	    *per_site_length = sqlite3_column_int (stmt_index, 2);
+	    no_value_present_value->i64 = 0; // initialize to all 0 in case of 32-bit value
+            switch (*type)
+            {
+                case STITCH_INT32: // we are relying on little-endian-ness. Pretty much everything does that today
+                    no_value_present_value->i32 = sqlite3_column_int (stmt_index, 3);
+                    break;
+
+                case STITCH_INT64:
+                    no_value_present_value->i64 = sqlite3_column_int64 (stmt_index, 3);
+                    break;
+
+                case STITCH_FLOAT64:
+                    no_value_present_value->f64 = sqlite3_column_double (stmt_index, 4);
+                    break;
+
+                case STITCH_NO_TYPE:
+                default:
+                    fprintf (stderr, "Line: %d invalid field type found: %d\n", __LINE__, *type);
+                    assert (0);
+                    break;
+            }
             rc = sqlite3_finalize (stmt_index);
+
         }
         else
         {
@@ -1353,6 +1382,102 @@ int stitch_query_field (const StitchFile * file, const char * label, int64_t * f
     }
 #ifdef STITCH_PARALLEL
     MPI_Bcast (field_id, 1, MPI_INT64_T, 0, file->comm);
+#endif
+
+cleanup:
+
+    return rc;
+}
+
+int stitch_query_field_by_id (const StitchFile * file, int64_t field_id, enum STITCH_TYPES * type, int32_t * per_site_length, union StitchTypesUnion * no_value_present_value)
+{
+    int rc = 0;
+    sqlite3_stmt * stmt_index = NULL;
+    const char * tail_index = NULL;
+
+    if (file->rank == 0)
+    {
+        do
+        {
+            rc = sqlite3_prepare_v2 (file->db, "select type, length, no_value_int, no_value_real from fields where field_id = ?", -1, &stmt_index, &tail_index);
+            if (rc != SQLITE_OK && rc != SQLITE_LOCKED && rc != SQLITE_DONE)
+            {
+                fprintf (stderr, "Line: %d SQL error (%d): %s\n", __LINE__, rc, sqlite3_errmsg (file->db));
+                sqlite3_close (file->db);
+                goto cleanup;
+            }
+        } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
+        rc = sqlite3_bind_int64 (stmt_index, 1, field_id); assert (rc == SQLITE_OK);
+        do
+        {
+            rc = sqlite3_step (stmt_index);
+            if (rc != SQLITE_OK && rc != SQLITE_LOCKED && rc != SQLITE_DONE && rc != SQLITE_ROW && rc != SQLITE_DONE)
+            {
+                fprintf (stderr, "Line: %d SQL error (%d): %s\n", __LINE__, rc, sqlite3_errmsg (file->db));
+                sqlite3_close (file->db);
+                goto cleanup;
+            }
+        } while (rc == SQLITE_LOCKED || rc == SQLITE_BUSY);
+
+        if (rc == SQLITE_ROW)
+        {
+            //uint32_t db_type = 0;
+            //int32_t db_length = 0;
+            //const unsigned char * name = NULL;
+
+	    *type = sqlite3_column_int (stmt_index, 0);
+	    *per_site_length = sqlite3_column_int (stmt_index, 1);
+	    no_value_present_value->i64 = 0; // initialize to all 0 in case of 32-bit value
+            switch (*type)
+            {
+                case STITCH_INT32: // we are relying on little-endian-ness. Pretty much everything does that today
+                    no_value_present_value->i32 = sqlite3_column_int (stmt_index, 2);
+                    break;
+
+                case STITCH_INT64:
+                    no_value_present_value->i64 = sqlite3_column_int64 (stmt_index, 2);
+                    break;
+
+                case STITCH_FLOAT64:
+                    no_value_present_value->f64 = sqlite3_column_double (stmt_index, 3);
+                    break;
+
+                case STITCH_NO_TYPE:
+                default:
+                    fprintf (stderr, "Line: %d invalid field type found: %d\n", __LINE__, *type);
+                    assert (0);
+                    break;
+            }
+            rc = sqlite3_finalize (stmt_index);
+
+        }
+        else
+        {
+            if (rc == SQLITE_DONE)
+            {
+                //printf ("found nothing\n");
+                // close out the query before the insert
+                rc = sqlite3_finalize (stmt_index);
+		*type = STITCH_NO_TYPE;
+		*per_site_length = -1;
+	        no_value_present_value->i64 = 0; // initialize to all 0 in case of 32-bit value
+            }
+            else
+            {
+		*type = STITCH_NO_TYPE;
+		*per_site_length = -1;
+	        no_value_present_value->i64 = 0; // initialize to all 0 in case of 32-bit value
+                // what's going on here?
+                fprintf (stderr, "Line: %d rc: %d\n", __LINE__, rc);
+                rc = sqlite3_finalize (stmt_index);
+                sqlite3_close (file->db);
+                assert (0);
+            }
+        }
+    }
+
+#ifdef STITCH_PARALLEL
+    MPI_Bcast (&field_id, 1, MPI_INT64_T, 0, file->comm);
 #endif
 
 cleanup:
@@ -1704,6 +1829,7 @@ static int stitch_read_block (const StitchFile * file, int64_t field_id, double 
     double * buffer_f64 = (double *) buffer;
 
     //printf ("size to nuke: %d\n", size_to_nuke);
+    size_to_nuke *= field_info [1]; // ensure multi-value elements are covered
     switch (field_info [0])
     {
         case STITCH_INT32:
