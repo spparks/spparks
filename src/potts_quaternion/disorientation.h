@@ -41,14 +41,29 @@ inline double compute_disorientation(const vector<double> &symmetries,
     std::size_t p = 4 * i;
     vector<double> qr{symmetries[p + 0], symmetries[p + 1], symmetries[p + 2],
                       symmetries[p + 3]};
-    vector<double> q = quaternion::composition(qr, q1);
+    // Input orientation q2 is rotated by qr symmetry;
+    //   It matters if the input quaternions are passive or active.
+    //   Order of operation depends upon passive or active.
+    //
+    // PASSIVE quaternions q1 and q2
+    // vector<double> q = quaternion::composition(qr, q2);
+    //
+    // ACTIVE quaternions q1 and q2
+    vector<double> q = quaternion::composition(q2, qr);
+
     vector<double> qc = quaternion::conjugate(q);
-    vector<double> m = quaternion::composition(q2, qc);
+    vector<double> m = quaternion::composition(q1, qc);
     double trace = quaternion::trace_of_rotation_matrix(m);
     if (trace > t)
       t = trace;
   }
-  double di = acos(0.5 * (t - 1)) * 180 / M_PI;
+  // acos produces 'nan' when argument is slightly larger than 1.0 due to
+  //   roundoff
+  double di;
+  if (std::fabs(t - 3.0) <= 1.0e-6)
+    di = 0.0;
+  else
+    di = acos(0.5 * (t - 1)) * 180 / M_PI;
   return di;
 }
 

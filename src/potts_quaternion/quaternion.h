@@ -16,11 +16,12 @@
 #ifndef SPK_QUATERNION_H
 #define SPK_QUATERNION_H
 
+#include <math.h>
+
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
 #include <cstdlib>
-#include <math.h>
 #include <numeric>
 #include <random>
 #include <stdexcept>
@@ -194,14 +195,13 @@ inline vector<double> to_rodrigues_vector(const vector<double> &q,
   // Returns a vector of length 3.
 
   // confirm vector length
-  if (4 != q.size())
-    throw std::runtime_error("len(q)!=4");
+  if (4 != q.size()) throw std::runtime_error("len(q)!=4");
 
   // assign quaternion
   const double q0 = q[0], qx = q[1], qy = q[2], qz = q[3];
 
   // find norm via angle (see Heinz 1991 eqns 3 & 7)
-  const double rho = acos(q0); // theta*2
+  const double rho = acos(q0);  // theta*2
   const double rtan = tan(rho);
   const double norm = (q0 * rtan);
 
@@ -219,8 +219,45 @@ inline vector<double> to_rodrigues_vector(const vector<double> &q,
   };
 }
 
-inline vector<double>
-generate_random_unit_quaternions(std::size_t n, double epsilon = 1.0e-15) {
+inline vector<double> from_bunge_euler_angles(double phi1, double phi,
+                                              double phi2) {
+  // Get unit quaternion from input Bunge euler angles (degrees).
+  // WARNING: this does not look for degeneracies in
+  //   the input Euler angle.
+  /**
+   *
+   *  DO NOT USE THIS FUNCTION
+   *
+   *  Un-tested and may be removed.
+   *
+   */
+  const double c = M_PI / 180;
+  const double p1 = phi1 * c;
+  const double P = phi * c;
+  const double p2 = phi2 * c;
+  const double a = (p1 + p2);
+  const double b = (p1 - p2);
+  vector<double> q{cos(a / 2) * cos(P / 2), sin(a / 2) * cos(P / 2),
+                   sin(P / 2) * cos(b / 2), sin(a / 2) * sin(P / 2)};
+  // Magnitude of quaternion (should be close to 1)
+  double sq = 0.0;
+  for (std::size_t j = 0; j < 4; j++) {
+    double dj = q[j];
+    sq += dj * dj;
+  }
+  const double mag = sqrt(sq);
+  const double d = 1.0 / mag;
+  // Normalize
+  for (std::size_t j = 0; j < 4; j++) {
+    q[j] *= d;
+  }
+  const double epsilon = 1.0e-10;
+  check_validity(q);
+  return q;
+}
+
+inline vector<double> generate_random_unit_quaternions(
+    std::size_t n, double epsilon = 1.0e-15) {
   // Computes n random unit quaternions
   // returns vector length = 4 * n
   // ith quaternion uq[4*i:4*i+4] for i=0,1,2,...n
@@ -258,15 +295,13 @@ generate_random_unit_quaternions(std::size_t n, double epsilon = 1.0e-15) {
 
     // Copy normalized quaternion to array of unit quaternions
     check_validity(qi, epsilon);
-    for (std::size_t j = 0; j < 4; j++)
-      uq[4 * i + j] = qi[j];
+    for (std::size_t j = 0; j < 4; j++) uq[4 * i + j] = qi[j];
   }
   return std::move(uq);
 }
 
-inline double
-get_cosine_of_minumum_angle_between_q_and_u(const vector<double> &q,
-                                            const vector<double> &u) {
+inline double get_cosine_of_minumum_angle_between_q_and_u(
+    const vector<double> &q, const vector<double> &u) {
   /**
   arg q: array shape=(4,) unit quaterion
   arg u: array shape=(3,) unit vector
@@ -307,13 +342,12 @@ get_cosine_of_minumum_angle_between_q_and_u(const vector<double> &q,
     }
     // Take absolute value
     dot = std::fabs(dot);
-    if (dot > max)
-      max = dot;
+    if (dot > max) max = dot;
   }
   return max;
 }
 
-} // namespace quaternion
+}  // namespace quaternion
 
-} // namespace SPPARKS_NS
+}  // namespace SPPARKS_NS
 #endif
