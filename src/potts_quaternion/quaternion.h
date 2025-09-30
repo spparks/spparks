@@ -195,13 +195,14 @@ inline vector<double> to_rodrigues_vector(const vector<double> &q,
   // Returns a vector of length 3.
 
   // confirm vector length
-  if (4 != q.size()) throw std::runtime_error("len(q)!=4");
+  if (4 != q.size())
+    throw std::runtime_error("len(q)!=4");
 
   // assign quaternion
   const double q0 = q[0], qx = q[1], qy = q[2], qz = q[3];
 
   // find norm via angle (see Heinz 1991 eqns 3 & 7)
-  const double rho = acos(q0);  // theta*2
+  const double rho = acos(q0); // theta*2
   const double rtan = tan(rho);
   const double norm = (q0 * rtan);
 
@@ -256,8 +257,8 @@ inline vector<double> from_bunge_euler_angles(double phi1, double phi,
   return q;
 }
 
-inline vector<double> generate_random_unit_quaternions(
-    std::size_t n, double epsilon = 1.0e-15) {
+inline vector<double>
+generate_random_unit_quaternions(std::size_t n, double epsilon = 1.0e-15) {
   // Computes n random unit quaternions
   // returns vector length = 4 * n
   // ith quaternion uq[4*i:4*i+4] for i=0,1,2,...n
@@ -295,27 +296,36 @@ inline vector<double> generate_random_unit_quaternions(
 
     // Copy normalized quaternion to array of unit quaternions
     check_validity(qi, epsilon);
-    for (std::size_t j = 0; j < 4; j++) uq[4 * i + j] = qi[j];
+    for (std::size_t j = 0; j < 4; j++)
+      uq[4 * i + j] = qi[j];
   }
   return std::move(uq);
 }
 
-inline double get_cosine_of_minumum_angle_between_q_and_u(
-    const vector<double> &q, const vector<double> &u) {
+inline double
+get_cosine_of_minumum_angle_between_q_and_u(const vector<double> &q,
+                                            const vector<double> &u) {
   /**
-  arg q: array shape=(4,) unit quaterion
-  arg u: array shape=(3,) unit vector
+   *
+   *  DO NOT USE THIS FUNCTION
+   *
+   *  Un-tested and may be removed.
+   *
+      arg q: array shape=(4,) unit quaterion
+      arg u: array shape=(3,) unit vector
 
-  Measure/compute cosine of angle between input unit quaterion 'q'
-  representing a cube and the direction 'u'.  Input vector makes 3 different
-  angles with local cubic coordinate axes attached to cube.  The cubic
-  coordinate axes are normal to each of the faces.  Calculation of angle
-  makes no distinction between positive or negative local coordinate axes of
-  cube.   Intended application is to determine angle between u and line taken
-  normal to face of cube where u is temperature gradient.
+      Measure/compute cosine of angle between input unit quaterion 'q'
+      representing a cube and the direction 'u'.  Input vector makes 3 different
+      angles with local cubic coordinate axes attached to cube.  The cubic
+      coordinate axes are normal to each of the faces.  Calculation of angle
+      makes no distinction between positive or negative local coordinate axes of
+      cube.   Intended application is to determine angle between u and line
+   taken normal to face of cube where u is temperature gradient.
 
-  returns cos(angle)
-  */
+      returns cos(angle)
+   *
+   *
+   */
   if (4 != q.size() || 3 != u.size())
     throw std::runtime_error("len(q)!=4 or len(u)!=3");
 
@@ -342,12 +352,13 @@ inline double get_cosine_of_minumum_angle_between_q_and_u(
     }
     // Take absolute value
     dot = std::fabs(dot);
-    if (dot > max) max = dot;
+    if (dot > max)
+      max = dot;
   }
   return max;
 }
 
-}  // namespace quaternion
+} // namespace quaternion
 
-}  // namespace SPPARKS_NS
+} // namespace SPPARKS_NS
 #endif

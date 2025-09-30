@@ -1,5 +1,24 @@
-#ifndef BURGERSORIENATIONRELATION_BCC_TO_HCP_H
-#define BURGERSORIENATIONRELATION_BCC_TO_HCP_H
+/* ----------------------------------------------------------------------
+   SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
+
+   Copyright (2008) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level SPPARKS directory.
+
+   burgers_orienation_relation_bcc_to_hcp.h
+
+   (Note: the acronym 'hcp' stands for 'hexagonal close-packed')
+   (Note: the acronym 'BOR' stands for 'Burgers Orientation Relation')
+
+   Author: John Mitchell, jamitch@sandia.gov, Sandia National Laboratories
+   Date: Sept 30 2025
+
+------------------------------------------------------------------------- */
+#ifndef BURGERSORIENTATIONRELATION_BCC_TO_HCP_H
+#define BURGERSORIENTATIONRELATION_BCC_TO_HCP_H
 
 #include <math.h>
 
@@ -21,7 +40,7 @@ using std::vector;
 
 namespace SPPARKS_NS {
 
-namespace BurgersOrienationRelation_BCC_to_HCP {
+namespace BurgersOrientationRelation_BCC_to_HCP {
 
 inline auto rot_x = [](double phi) {
   const double pi = M_PI;
@@ -68,12 +87,20 @@ inline auto rot_z = [](double phi) {
   return rot;
 };
 
-inline vector<double> get_variant(const vector<double> &q0, const vector<double> &q1,
-                           const vector<double> &q2, const vector<double> &q3,
-                           const vector<double> &q4) {
+inline vector<double> get_variant(const vector<double> &q0,
+                                  const vector<double> &q1,
+                                  const vector<double> &q2,
+                                  const vector<double> &q3,
+                                  const vector<double> &q4) {
   /**
 
+  Returns BOR variants which are the preferred orientation between the
+  hexagonal close-packed (HCP) alpha (α) phase and the body-centered cubic (BCC)
+  beta (β) phase in titanium alloys.
+
   Returns so-called active orientations.
+
+  Variants are returned as quaternions.
 
   SPPARKS stores the active quaternion orientations on
   each lattice site.
@@ -81,12 +108,10 @@ inline vector<double> get_variant(const vector<double> &q0, const vector<double>
   Active or passive orientations can be used to compute disorientations
   between variants -- provided that the disorientation calculation
   is tweaked to take into account 'active' or 'passive' variants.
-
   See compute_disorientation in disorientation.h
 
-  For plotting, the output of this function
-  will orient/rotate the variant and depicts
-  the variant in its actual orientation.
+  For plotting, the output of this function will orient/rotate the variant and
+  which will depict the variant in its actual orientation in space.
   */
 
   auto r1 = composition(q0, q1);
@@ -104,10 +129,15 @@ inline vector<double> get_variant(const vector<double> &q0, const vector<double>
  * from one of these variants. Orientation of variants are relative to the
  * parent BCC orientation. The parent BCC is often called the 'prior'.
  *
- * Number of misorientations between variants:
+ * Angular misorientations between the variants are a benchmark for correctness.
+ * There are 12*12 possible combinations which can be viewed as a 12x12 matrix.
+ * Due to symmetry of the matrix, the actual number of cases is reduced.
+ *
+ * Number of possible misorientations between variants:
  *     78=(12*12-12)/2 + 12 = 66 + 12
  *
- * Misorientation between variants should follow the expected statistics.
+ * Of these 78 cases, angular misorientations are repeated.
+ * See the python unit test 'unit_hcp_variants.py'
  */
 
 inline vector<vector<double>>
@@ -161,8 +191,8 @@ get_variants(const vector<double> &q0 = vector<double>{1, 0, 0, 0}) {
   return variants;
 }
 
-} // namespace BurgersOrienationRelation_BCC_to_HCP
+} // namespace BurgersOrientationRelation_BCC_to_HCP
 
 } // namespace SPPARKS_NS
 
-#endif // BURGERSORIENATIONRELATION_BCC_TO_HCP_H
+#endif // BURGERSORIENTATIONRELATION_BCC_TO_HCP_H

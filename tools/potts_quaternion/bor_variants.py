@@ -60,20 +60,26 @@ def get_variant(q0,q1,q2,q3,q4):
 def get_variants(q0=vector['double']((1,0,0,0))):
     """
 
+    THIS IMPLEMENTATION may be removed.  It is a python implementation that is
+    identical the the c++ implementation in burgers_orientation_relation_bcc_to_hcp.h.
+
+    Returns BOR variants which are the preferred orientation between the
+    hexagonal close-packed (HCP) alpha (α) phase and the body-centered cubic
+    (BCC) beta (β) phase in titanium alloys.
+
     Returns so-called active orientations.
 
-    SPPARKS stores the active quaternion orientations on
-    each lattice site.
+    Variants are returned as quaternions.
+
+    SPPARKS stores the active quaternion orientations on each lattice site.
 
     Active or passive orientations can be used to compute disorientations
-    between variants -- provided that the disorientation calculation
-    is tweaked to take into account 'active' or 'passive' variants.
+    between variants -- provided that the disorientation calculation is
+    tweaked to take into account 'active' or 'passive' variants. See
+    compute_disorientation in disorientation.h
 
-    See compute_disorientation in disorientation.h
-
-    For plotting, the output of this function
-    will orient/rotate the variant and depicts
-    the variant in its actual orientation.
+    For plotting, the output of this function will orient/rotate the variant
+    and which will depict the variant in its actual orientation in space.
 
     """
     # HEXAGONAL prism
