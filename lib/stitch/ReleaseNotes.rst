@@ -2,8 +2,8 @@
 Release Notes
 =============
 
-September 2025
---------------
+October 2025
+------------
 The stitch api has been updated.  This update required small modifications 
 in spparks to accommodate the new api.
 
@@ -23,6 +23,8 @@ in spparks are currently dumped to the stitch file as four scalars q0, q1, q2, q
 Documentation of the stitch python api has been created; sphinx-build and a few other python 
 modules are required to generate the documentation that covers the full stitch api.  See 
 ReadMeBuildApiDoc.txt and docs/source/index.rst and docs/source/conf.py.
+
+Date based 'version' number YYYYMMDD has been added to the python stitch package.  
 
 
 November 2024
