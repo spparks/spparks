@@ -67,7 +67,7 @@ homepath = "."
 buildflag = True
 linkflag = True
 
-version = "libstitch"
+version = "src/stitch/libstitch"
 homepath = fullpath(homepath)
 homedir = "%s/%s" % (homepath,version)
 

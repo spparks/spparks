@@ -74,9 +74,9 @@ int stitch_open (StitchFile ** file, const char * filename);
 #endif
 int stitch_close (StitchFile ** file);
 
-int stitch_set_parameters (const StitchFile * file, double absolute_tolerance, double relative_tolerance, int64_t default_no_value_present);
+int stitch_set_parameters (const StitchFile * file, double absolute_tolerance, double relative_tolerance);
 
-int stitch_get_parameters (const StitchFile * file, double * absolute_tolerance, double * relative_tolerance, int64_t * default_no_value_present, double * first_time, double * last_time);
+int stitch_get_parameters (const StitchFile * file, double * absolute_tolerance, double * relative_tolerance, double * first_time, double * last_time);
 
 int stitch_get_times_count (const StitchFile * file, int64_t * count);
 
@@ -93,12 +93,15 @@ int stitch_get_fields (const StitchFile * file, int64_t * count, int64_t * field
 int stitch_get_field_type (const StitchFile * file, int64_t field_id, enum STITCH_TYPES * type);
 
 // return value is a ID that corresponds to this field in the file (field_id).
+// per_site_length is the number of items rather than the number of bytes
 // currently only a per_site_length of 1 is supported, but other lengths will be incorporated.
 int stitch_create_field (const StitchFile * file, const char * label, enum STITCH_TYPES type, union StitchTypesUnion no_value_present, int32_t per_site_length, int64_t * field_id);
-int stitch_set_field_no_value_present (const StitchFile * file, int64_t field_id, union StitchTypesUnion no_value_present);
+// depricated: int stitch_set_field_no_value_present (const StitchFile * file, int64_t field_id, union StitchTypesUnion no_value_present);
 
 // if label is not found, the field_id is set to STITCH_FIELD_NOT_FOUNT_ID
-int stitch_query_field (const StitchFile * file, const char * label, int64_t * field_id);
+int stitch_query_field (const StitchFile * file, const char * label, int64_t * field_id, enum STITCH_TYPES * type, int32_t * per_site_length, union StitchTypesUnion * no_value_present_value);
+// if you don't have the name, but have the id (i.e., in read_block), this will get the info
+int stitch_query_field_by_id (const StitchFile * file, int64_t field_id, enum STITCH_TYPES * type, int32_t * per_site_length, union StitchTypesUnion * no_value_present_value);
 
 //For write:
 //write_flag == True when new time step created

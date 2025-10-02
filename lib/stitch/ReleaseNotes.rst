@@ -2,6 +2,31 @@
 Release Notes
 =============
 
+October 2025
+------------
+The stitch api has been updated.  This update required small modifications 
+in spparks to accommodate the new api.
+
+The set_parameters function, whether in c or python now only takes absolute and
+relative tolerances; these tolerances are used for search queries on time;
+previously, a 'no value present' (nvp) value could be set that applied to all
+fields in the file but that had ambiguities across field types (int, float,
+etc) and different fields.  Now, when a field is created, a nvp value must be
+supplied; create_field function has been updated to reflect this change. 
+
+The stitch api has been enhanced so that fields may be array valued -- this feature
+has not been tested but its in the interface.  Use with caution.  Future
+updates will include demonstrations and testing of this feature -- the target
+for this feature is quaternions, ie field is a 4-valued quaternion.   Quaternions 
+in spparks are currently dumped to the stitch file as four scalars q0, q1, q2, q3.
+
+Documentation of the stitch python api has been created; sphinx-build and a few other python 
+modules are required to generate the documentation that covers the full stitch api.  See 
+ReadMeBuildApiDoc.txt and docs/source/index.rst and docs/source/conf.py.
+
+Date based 'version' number YYYYMMDD has been added to the python stitch package.  
+
+
 November 2024
 -------------
 
