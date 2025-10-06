@@ -182,7 +182,7 @@ int main (int argc, char ** argv)
 
     stitch_open (&file, MPI_COMM_WORLD, "test.st");
 
-    stitch_set_parameters (file, 1.0e-9, 1.0e-15, -1);
+    stitch_set_parameters (file, 1.0e-9, 1.0e-15);
     union StitchTypesUnion no_value;
     no_value.i32 = STITCH_NO_VALUE;
 
@@ -190,7 +190,9 @@ int main (int argc, char ** argv)
     assert (field_id != STITCH_FIELD_NOT_FOUND_ID);
 
     // just to test, query it again
-    stitch_query_field (file, field, &field_id);
+    enum STITCH_TYPES type;
+    int32_t length;
+    stitch_query_field (file, field, &field_id, &type, &length, &no_value);
     assert (field_id != STITCH_FIELD_NOT_FOUND_ID);
 
     int32_t bb [6];
@@ -208,7 +210,7 @@ int main (int argc, char ** argv)
                 double first_time;
                 new_time = 0;
 
-                stitch_get_parameters (file, &absolute_tolerance, &relative_tolerance, &no_value_present, &first_time, &last_time);
+                stitch_get_parameters (file, &absolute_tolerance, &relative_tolerance, &first_time, &last_time);
 
                 bb [0] = x + (rank % np_x) * np_x;
                 bb [1] = bb [0] + x_block_size;
