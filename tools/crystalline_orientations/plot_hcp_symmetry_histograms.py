@@ -23,7 +23,7 @@ def plot_distribution(d,kind='disorientation'):
     """
     N=1000000
     import cpp_quaternion as cppq
-    import plot_hcp_symmetery_histograms as phcp
+    import plot_hcp_symmetry_histograms as phcp
 
     Example(s):
     uqv=cppq.generate_random_unit_quaternions(N)

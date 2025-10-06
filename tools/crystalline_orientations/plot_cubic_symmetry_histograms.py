@@ -52,7 +52,7 @@ def plot_distribution(d,kind='min100'):
     """
     N=1000000
     import cpp_quaternion as cppq
-    import plot_cubic_symmetery_histograms as pcsh
+    import plot_cubic_symmetry_histograms as pcsh
 
     Example(s):
     uqv=cppq.generate_random_unit_quaternions(N)
