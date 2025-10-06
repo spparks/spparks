@@ -1,10 +1,10 @@
 == How
-* Create four links in this directory pointing to files in src/potts_quaternion/
+* Create four links in this directory pointing to files in src/crystalline_orientations/
 [source,bash]
-ln -s ../../src/potts_quaternion/quaternion.h .
-ln -s ../../src/potts_quaternion/disorientation.h .
-ln -s ../../src/potts_quaternion/cubic_symmetries.h .
-ln -s ../../src/potts_quaternion/hcp_symmetries.h .
+ln -s ../../src/crystalline_orientations/quaternion.h .
+ln -s ../../src/crystalline_orientations/disorientation.h .
+ln -s ../../src/crystalline_orientations/cubic_symmetries.h .
+ln -s ../../src/crystalline_orientations/hcp_symmetries.h .
 
 == What
 * Verify 'disorientation.h', 'quaternion.h', 'cubic_symmetries.h', and
