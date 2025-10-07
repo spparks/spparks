@@ -1,15 +1,18 @@
 # pyproject.toml
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "build", "wheel", "numpy"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "stitch"
-version = "0.0.1"
+version = "2025.10.02"
+dependencies = [
+    "numpy",
+]
 
 [tool.setuptools]
-package-dir = {"" = "libstitch"}
+package-dir = {"" = "src"}
 include-package-data = false
 
 [tool.setuptools.exclude-package-data]
-stitch=["libstitch/*.c"]
+stitch=["src/stitch/libstitch/*.c"]

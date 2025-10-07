@@ -1,27 +1,27 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
-   http://www.cs.sandia.gov/~sjplimp/spparks.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
-   Copyright (2008) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
-   the GNU General Public License.
+   Website
+   https://spparks.github.io/
 
-   See the README file in the top-level SPPARKS directory.
+   See authors 
+   https://spparks.github.io/authors.html
 
-   This app authors:
-   John Mitchell, jamitch@sandia.gov, Sandia National Laboratories
-   Meg McCarthy, megmcca@sandia.gov, Sandia National Laboratories
+   Copyright(C) 1999-2025 National Technology & Engineering Solutions
+   of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with
+   NTESS, the U.S. Government retains certain rights in this software.
+
+   This software is distributed under the GNU General Public License.  See 
+   LICENSE in top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
 #include "app_potts_quaternion.h"
 #include "error.h"
 #include "math.h"
-#include "potts_quaternion/cubic_symmetries.h"
-#include "potts_quaternion/disorientation.h"
-#include "potts_quaternion/hcp_symmetries.h"
-#include "potts_quaternion/quaternion.h"
+#include "crystalline_orientations/cubic_symmetries.h"
+#include "crystalline_orientations/disorientation.h"
+#include "crystalline_orientations/hcp_symmetries.h"
+#include "crystalline_orientations/quaternion.h"
 #include "random_park.h"
 #include "stdlib.h"
 #include "string.h"

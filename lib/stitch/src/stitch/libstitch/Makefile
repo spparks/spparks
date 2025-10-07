@@ -21,6 +21,8 @@
 # make stitch.lib
 # make make clean
 
+CC=`which mpicc`
+CXX=`which mpicxx`
 
 stitch.lib: stitch.c stitch.h sqlite3.c sqlite3.h
 	CC="${CC}" CXX="${CXX}" ${CC} -std=gnu99 -c stitch.c sqlite3.c -DSTITCH_PARALLEL 

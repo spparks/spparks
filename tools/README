@@ -1,11 +1,18 @@
-SPPARKS pre- and post-processing tools
+= SPPARKS related scripts and tools
+:toc:
+:date: Oct 7 2025
 
-This directory contains stand-alone tools for creating SPPARKS
-input files and massaging SPPARKS output data.
+== Directories
 
-See the comments at the top of the tool file for instructions on their
-usage.
+=== crystalline_orientations
+See the ./crystalline_orientations/README.adoc
 
-These are the included tools:
 
-dump2input.py          Pizza.py script for converting SPPARKS output to input
+=== stitch
+This directory contains scripts useful for processing stitch files.  
+
+
+== Files
+* dump2input.py for converting SPPARKS output to input
+* copyright: copyright statement placed in every spparks source file
+* update_copyright.sh: script used to change copyright

@@ -1,0 +1,38 @@
+== How
+* Must have the python package 'cppyy' installed
+* For interactive visual verification of BOR variants, must have python package
+  'vtk' installed.
+* Create five links in this directory pointing to files in spparks source directory
+
+[source,bash]
+---------------
+ln -s ../../src/crystalline_orientations/quaternion.h .
+ln -s ../../src/crystalline_orientations/disorientation.h .
+ln -s ../../src/crystalline_orientations/cubic_symmetries.h .
+ln -s ../../src/crystalline_orientations/hcp_symmetries.h .
+ln -s ../../src/crystalline_orientations/burgers_orientation_relation_bcc_to_hcp.h .
+---------------
+
+== What
+* Using python scripts, verify angular disorientation distributions for random HCP and CUBIC crystals.  
+  The python scripts use the exact header files used in spparks for handling crystalline orientations.  
+  These header files are:  'disorientation.h', 'quaternion.h', 'cubic_symmetries.h' and 
+  'hcp_symmetries.h'
+* See 'plot_cubic_symmetry_histograms.py' for making plots
+* Reference distributions are given for 'cubic' and 'hcp' in the pdf files
+* BOR variants are computed in the header file 'burgers_orientation_relation_bcc_to_hcp.h'
+* Python unit test: 'unit_hcp_variants.py'; python unit_hcp_variants.py will verify 
+  disorientation angles between the 12 BOR variants.
+* Run interactive visual verification of HCP variant and its spatial
+  orientation relative to its CUBIC beta prior; Any one of the 12 variants can
+  be visualized setting using the flag V<N> where N=1,2...12; -r flag creates a
+  randomly oriented cube as a the beta prior.  Use python orient_hcp.py -h to
+  get help command line parameters.  Any of the 12 variants can be visualized
+  with this script.
+* Relevant files
+[literal]
+cpp_quaternion.py
+plot_cubic_symmetry_histograms.py
+plot_hcp_symmetry_histograms.py
+unit_hcp_variants.py
+orient_hcp.py

@@ -24,6 +24,7 @@ import numpy
 from math import fabs,pi,cos,sin,log
 from numpy import array, ndarray, dot, transpose
 from stitch import libstitch
+from struct import Struct
 
 def pretty_string_block(block):
     """
@@ -74,8 +75,27 @@ def get_block_width(block):
     shape=block.shape
     if 2!=shape[0] or 3!=shape[1]:
         raise ValueError("Input 'block' must be ndarray shape=2,3")
-    if not numpy.dtype(numpy.int32) is block.dtype:
-        raise TypeError("Input block must be ndarray dtype=numpy.32")
+#    if not numpy.dtype(numpy.int32) is block.dtype:
+#        raise TypeError("Input block must be ndarray dtype=numpy.32")
+
+    nx=block[1,0]-block[0,0];
+    ny=block[1,1]-block[0,1];
+    nz=block[1,2]-block[0,2];
+    return nx,ny,nz
+
+def get_block_width_wide(block):
+    """
+    input block: type numpy.ndarray, shape=(2,3), order='Fortran'
+    output nx,ny,nz: type tuple, length=3, values=nx,ny,nz
+
+    Example input:
+        block=numpy.fromiter([0,127, 86,344,0,30],dtype=numpy.int32).reshape(2,3,order='F')
+    """
+    shape=block.shape
+    if 2!=shape[0] or 3!=shape[1]:
+        raise ValueError("Input 'block' must be ndarray shape=2,3")
+#    if not numpy.dtype(numpy.int32) is block.dtype:
+#        raise TypeError("Input block must be ndarray dtype=numpy.32")
 
     nx=block[1,0]-block[0,0];
     ny=block[1,1]-block[0,1];
@@ -94,53 +114,97 @@ class unit_fixed_size_cv_write_read(unittest.TestCase):
         # 'suffix' 'st' for 'stitch file'
         self._fname=name+'.st'
 
-        self._state_dtype=numpy.int32
+        self._state1_dtype=numpy.int32
+        self._state1_stitch_dtype = 1;
         # x1, x2, y1, y2, z1, z2
-        b1=numpy.fromiter([0,127, 86,344,0,30],dtype=self._state_dtype).reshape(2,3,order='F')
+        b1=numpy.fromiter([0,127, 86,344,0,30],dtype=numpy.int32).reshape(2,3,order='F')
         self._b1=b1
+
+        self._state2_dtype=numpy.int64
+        self._state2_stitch_dtype = 2;
+        # x1, x2, y1, y2, z1, z2
+        b2=numpy.fromiter([0,127, 86,344,0,30],dtype=numpy.int32).reshape(2,3,order='F')
+        self._b2=b2
+
+        self._state3_dtype=numpy.float64
+        self._state3_stitch_dtype = 3;
+        # x1, x2, y1, y2, z1, z2
+        b3=numpy.fromiter([0,127, 86,344,0,30],dtype=numpy.int32).reshape(2,3,order='F')
+        self._b3=b3
+
         nx,ny,nz=get_block_width(b1)
         self._nx=nx;
         self._ny=ny;
         self._nz=nz;
         self._Q=nx*ny*nz
         (rc,self._file) = libstitch.open (self._fname);
-        (rc,self._field_id) = libstitch.create_field (self._file, 'spin', 1, 1, -1)
+        self.assertTrue(rc == 0)
+        (rc,self._field_id1) = libstitch.create_field (self._file, 'spin_int32', self._state1_stitch_dtype, 1, -1)
+        self.assertTrue(rc == 0)
+        (rc,self._field_id2) = libstitch.create_field (self._file, 'spin_int64', self._state2_stitch_dtype, 1, -1)
+        self.assertTrue(rc == 0)
+        (rc,self._field_id3) = libstitch.create_field (self._file, 'spin_float64', self._state3_stitch_dtype, 1, -1.0)
+        self.assertTrue(rc == 0)
         self._absolute_tolerance = 1.0e-9;
         self._relative_tolerance = 1.0e-15;
+        #self._nvp_type = STITCH_TYPE_INT32;
+        self._nvp_type = 1;
         self._no_value_present = -1;
-        rc = libstitch.set_parameters (self._file, self._absolute_tolerance, self._relative_tolerance, self._no_value_present);
+        rc = libstitch.set_parameters (self._file, self._absolute_tolerance, self._relative_tolerance);
         pass
 
-    def write(self, time, block, state):
+    def write(self, time, block1, block2, block3, state1, state2, state3):
         # 1 = STITCH_TYPE_INT32. Need to use an enum
-        (rc, field_id) = libstitch.query_field (self._file, 'spin')
-        (rc, new_time) = libstitch.write_block (self._file, field_id, time, block, state)
-        return new_time
+        (rc, field_id1, field1_type, lenth1, field1_nvp) = libstitch.query_field (self._file, 'spin_int32')
+        (rc, new_time1) = libstitch.write_block (self._file, field_id1, time, block1, state1)
 
-    def read(self, time, block):
+        (rc, field_id2, field2_type, lenth2, field2_nvp) = libstitch.query_field (self._file, 'spin_int64')
+        (rc, new_time2) = libstitch.write_block (self._file, field_id2, time, block2, state2)
+
+        (rc, field_id3, field3_type, lenth3, field3_nvp) = libstitch.query_field (self._file, 'spin_float64')
+        (rc, new_time3) = libstitch.write_block (self._file, field_id3, time, block3, state3)
+        return new_time1, new_time2, new_time3
+
+    def read(self, time, block1, block2, block3):
         # Read data
         # 1 = STITCH_TYPE_INT32. Need to use an enum
-        (rc, field_id) = libstitch.query_field (self._file, 'spin')
-        (rc, state, new_time) = libstitch.read_block (self._file, field_id, time, block)
-        return (state, new_time)
+        (rc, field_id1, field1_type, length1, field1_nvp) = libstitch.query_field (self._file, 'spin_int32')
+        (rc, state1, new_time) = libstitch.read_block (self._file, field_id1, time, block1)
+
+        (rc, field_id2, field2_type, length2, field2_nvp) = libstitch.query_field (self._file, 'spin_int64')
+        (rc, state2, new_time) = libstitch.read_block (self._file, field_id2, time, block2)
+
+        (rc, field_id3, field3_type, length3, field3_nvp) = libstitch.query_field (self._file, 'spin_float64')
+        (rc, state3, new_time) = libstitch.read_block (self._file, field_id3, time, block3)
+        return (state1, state2, state3, new_time)
 
     def test_write_read(self):
         self.assertTrue(self._Q==982980)
-        nx,ny,nz=get_block_width(self._b1)
-        state=numpy.ndarray(shape=(nx,ny,nz),dtype=self._state_dtype,order='F')
+        b1_nx,b1_ny,b1_nz=get_block_width(self._b1)
+        b2_nx,b2_ny,b2_nz=get_block_width(self._b2)
+        b3_nx,b3_ny,b3_nz=get_block_width(self._b3)
+        state1=numpy.ndarray(shape=(b1_nx,b1_ny,b1_nz),dtype=self._state1_dtype,order='F')
+        state2=numpy.ndarray(shape=(b2_nx,b2_ny,b2_nz),dtype=self._state2_dtype,order='F')
+        state3=numpy.ndarray(shape=(b3_nx,b3_ny,b3_nz),dtype=self._state3_dtype,order='F') # need same size as f64
         t0=0.0
         self._t0 = t0
         # Assign state
-        for k in range(nz):
+        for k in range(b1_nz):
             # Assign values according to 'z' elevation
             v=k;
-            state[:,:,k]=v
+            state1[:,:,k]=v
+        for k in range(b2_nz):
+            v=k
+            state2[:,:,k]=v
+        for k in range(b3_nz):
+            v=k * 1.0
+            state3[:,:,k]=v
 
-        b1_str=pretty_string_block(self._b1)
-        self.write(self._t0, self._b1, state)
+        # b1_str=pretty_string_block(self._b1)
+        self.write(self._t0, self._b1, self._b2, self._b3, state1, state2, state3)
 
         # read
-        (trial_state, new_time)=self.read(self._t0, self._b1)
+        (trial_state1, trial_state2, trial_state3, new_time)=self.read(self._t0, self._b1, self._b2, self._b3)
         # print ('t0 ', self._t0)
         # print ('trial_state')
         # print (trial_state)
@@ -151,7 +215,9 @@ class unit_fixed_size_cv_write_read(unittest.TestCase):
         # print ('absolute_tolerance ', absolute_tolerance, ' relative_tolerance ', relative_tolerance, ' first_time ', first_t, ' last_time ', last_t);
 
         # Assert that trial was correctly read
-        self.assertTrue((trial_state == state).all())
+        self.assertTrue((trial_state1 == state1).all())
+        self.assertTrue((trial_state2 == state2).all())
+        self.assertTrue((trial_state3 == state3).all())
         pass
 
     def tearDown(self):
@@ -171,8 +237,10 @@ class unit_variable_size_cv_write_read(unittest.TestCase):
         (rc,field_id) = libstitch.create_field (self._file, 'spin', 1, 1, -1)
         self._absolute_tolerance = 1.0e-9;
         self._relative_tolerance = 1.0e-15;
+        #self._nvp_type = STITCH_TYPE_INT32;
+        self._nvp_type = 1;
         self._no_value_present = -1;
-        rc = libstitch.set_parameters (self._file, self._absolute_tolerance, self._relative_tolerance, self._no_value_present);
+        rc = libstitch.set_parameters (self._file, self._absolute_tolerance, self._relative_tolerance);
 
         self._state_dtype=numpy.int32
         # Define 3 distinct blocks and then a union block
@@ -218,7 +286,7 @@ class unit_variable_size_cv_write_read(unittest.TestCase):
     def test_a_write_read_b1_at_t1(self):
         # Write/read b1 and 'assert'
         # 1 = STITCH_TYPE_INT32. Need to use an enum
-        (rc, field_id) = libstitch.query_field (self._file, 'spin')
+        (rc, field_id, field_type, length, field_nvp) = libstitch.query_field (self._file, 'spin')
         (rc, new_time) = libstitch.write_block (self._file, field_id, self._t1, self._b1, self._s1);
         # print ('write time ', self._t1)
         (rc, trial_s1, new_time) = libstitch.read_block (self._file, field_id, self._t1, self._b1)
@@ -229,7 +297,7 @@ class unit_variable_size_cv_write_read(unittest.TestCase):
     def test_b_read_flag_tests(self):
         # read the t1/b1 block and check the new_time flag
         # 1 = STITCH_TYPE_INT32. Need to use an enum
-        (rc, field_id) = libstitch.query_field (self._file, 'spin')
+        (rc, field_id, field_type, length, field_nvp) = libstitch.query_field (self._file, 'spin')
         (rc, trial_s2, new_time) = libstitch.read_block (self._file, field_id, self._t1, self._b1)
         #print (new_time)
         self.assertTrue (new_time == 0) # a true would be a non-zero value
@@ -239,7 +307,7 @@ class unit_variable_size_cv_write_read(unittest.TestCase):
         # This time 't0' is prior to time 't0' previously written;
         #    So read should get all '-1' values
         # 1 = STITCH_TYPE_INT32. Need to use an enum
-        (rc, field_id) = libstitch.query_field (self._file, 'spin')
+        (rc, field_id, field_type, length, field_nvp) = libstitch.query_field (self._file, 'spin')
         (rc, trial_m1, new_time) = libstitch.read_block (self._file, field_id, self._t0, self._b1)
         m1=-1*numpy.ones(shape=get_block_width(self._b1),dtype=self._state_dtype,order='F')
         # print ('t0 ', self._t0)
@@ -254,7 +322,7 @@ class unit_variable_size_cv_write_read(unittest.TestCase):
     def test_d_write_read_b2_at_t2(self):
         # Write/read b2 and 'assert'
         # 1 = STITCH_TYPE_INT32. Need to use an enum
-        (rc, field_id) = libstitch.query_field (self._file, 'spin')
+        (rc, field_id, field_type, length, field_nvp) = libstitch.query_field (self._file, 'spin')
         (rc, new_time) = libstitch.write_block (self._file, field_id, self._t2, self._b2, self._s2);
         (rc, trial_s2, new_time) = libstitch.read_block (self._file, field_id, self._t2, self._b2)
         self.assertTrue((trial_s2 == self._s2).all())
@@ -263,7 +331,7 @@ class unit_variable_size_cv_write_read(unittest.TestCase):
     def test_e_write_read_b3_at_t3(self):
         # Write/read b3 and 'assert'
         # 1 = STITCH_TYPE_INT32. Need to use an enum
-        (rc, field_id) = libstitch.query_field (self._file, 'spin')
+        (rc, field_id, field_type, length, field_nvp) = libstitch.query_field (self._file, 'spin')
         (rc, new_time) = libstitch.write_block (self._file, field_id, self._t3, self._b3, self._s3);
         (rc, trial_s3, new_time) = libstitch.read_block (self._file, field_id, self._t3, self._b3)
         self.assertTrue((trial_s3 == self._s3).all())
@@ -278,7 +346,7 @@ class unit_variable_size_cv_write_read(unittest.TestCase):
         su[2:4,:,:]=2
         su[4:6,:,:]=3
         # 1 = STITCH_TYPE_INT32. Need to use an enum
-        (rc, field_id) = libstitch.query_field (self._file, 'spin')
+        (rc, field_id, field_type, length, field_nvp) = libstitch.query_field (self._file, 'spin')
         (rc, trial_su, new_time) = libstitch.read_block (self._file, field_id, self._t3, self._bu)
         # FAILS
         # print ('self._t3 ', self._t3)
@@ -317,7 +385,7 @@ class unit_variable_size_cv_write_read(unittest.TestCase):
         # Re-read original blocks at t3 and assert values
         # b1
         # 1 = STITCH_TYPE_INT32. Need to use an enum
-        (rc, field_id) = libstitch.query_field (self._file, 'spin')
+        (rc, field_id, field_type, length, field_nvp) = libstitch.query_field (self._file, 'spin')
         (rc, trial_s1, new_time) = libstitch.read_block (self._file, field_id, self._t3, self._b1)
         self.assertTrue((trial_s1 == self._s1).all())
         # b2
@@ -380,7 +448,7 @@ class unit_global_bounds(unittest.TestCase):
         #self._absolute_tolerance = 1.0e-9;
         #self._relative_tolerance = 1.0e-15;
         #self._no_value_present = -1;
-        #rc = libstitch.set_parameters (self._file, self._absolute_tolerance, self._relative_tolerance, self._no_value_present);
+        #rc = libstitch.set_parameters (self._file, self._absolute_tolerance, self._relative_tolerance);
         pass
 
     def assert_shape(self,truth_value,test_value):
@@ -423,8 +491,10 @@ class unit_global_bounds(unittest.TestCase):
         (rc,fid) = libstitch.open (filename);
         self._absolute_tolerance = 1.0e-9;
         self._relative_tolerance = 1.0e-15;
+        #self._nvp_type = STITCH_TYPE_INT32;
+        self._nvp_type = 1;
         self._no_value_present = -1;
-        rc = libstitch.set_parameters (fid, self._absolute_tolerance, self._relative_tolerance, self._no_value_present);
+        rc = libstitch.set_parameters (fid, self._absolute_tolerance, self._relative_tolerance);
 
         # Create fields
         (rc, field_id_i32) = libstitch.create_field (fid, 'origin_int32', 1, 1, -1)
@@ -479,8 +549,10 @@ class unit_global_bounds(unittest.TestCase):
         (rc,fid) = libstitch.open (filename);
         self._absolute_tolerance = 1.0e-9;
         self._relative_tolerance = 1.0e-15;
+        #self._nvp_type = STITCH_TYPE_INT32;
+        self._nvp_type = 1;
         self._no_value_present = -1;
-        rc = libstitch.set_parameters (fid, self._absolute_tolerance, self._relative_tolerance, self._no_value_present);
+        rc = libstitch.set_parameters (fid, self._absolute_tolerance, self._relative_tolerance);
 
         # Create fields
         (rc, field_id_i32) = libstitch.create_field (fid, 'cube_int32', 1, 1, -1)
@@ -537,8 +609,10 @@ class unit_global_bounds(unittest.TestCase):
         (rc,fid) = libstitch.open (filename);
         self._absolute_tolerance = 1.0e-9;
         self._relative_tolerance = 1.0e-15;
+        #self._nvp_type = STITCH_TYPE_INT32;
+        self._nvp_type = 1;
         self._no_value_present = -1;
-        rc = libstitch.set_parameters (fid, self._absolute_tolerance, self._relative_tolerance, self._no_value_present);
+        rc = libstitch.set_parameters (fid, self._absolute_tolerance, self._relative_tolerance);
 
         # Create fields
         (rc, field_id_i32) = libstitch.create_field (fid, 'cube_int32', 1, 1, -1)
@@ -613,7 +687,94 @@ class unit_global_bounds(unittest.TestCase):
         libstitch.close (fid);
         pass
 
+class unit_big_element(unittest.TestCase):
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        name='unit_big_element'
 
+        # times
+        self._t0=0.0
+        self._b1_element_size=5
+        self._b2_element_size=5
+        self._b3_element_size=5
+
+        self._i32_nvp = -1
+        self._i64_nvp = -3
+        self._f64_nvp = -2.0
+
+        # x1, x2, y1, y2, z1, z2
+        # xlo, xhi, ylo, yhi, zlo, zhi
+        # this is the shape we will use for tests of all of the types. the other two instances are there
+        # for future changes
+        self._b1=numpy.fromiter([0,3,0,3,0,3],dtype=numpy.int32).reshape(2,3,order='F')
+        self._b2=numpy.fromiter([0,3,0,3,0,3],dtype=numpy.int32).reshape(2,3,order='F')
+        self._b3=numpy.fromiter([0,3,0,3,0,3],dtype=numpy.int32).reshape(2,3,order='F')
+
+        b1_type_string = []
+        for i in range (0, self._b1_element_size):
+            b1_type_string.append ((str(i), 'i4'))
+
+        b2_type_string = []
+        for i in range (0, self._b2_element_size):
+            b2_type_string.append ((str(i), 'i8'))
+
+        b3_type_string = []
+        for i in range (0, self._b3_element_size):
+            b3_type_string.append ((str(i), 'f8'))
+
+        self._state1_dtype=numpy.dtype(b1_type_string)
+        self._state2_dtype=numpy.dtype(b2_type_string)
+        self._state3_dtype=numpy.dtype(b3_type_string)
+        pass
+
+    def test_make_big_field(self):
+        # Create and open stitch file
+        # Set parameters
+        filename="make_big_field.st"
+        (rc,fid) = libstitch.open (filename);
+        self._absolute_tolerance = 1.0e-9;
+        self._relative_tolerance = 1.0e-15;
+        self._file=fid
+        rc = libstitch.set_parameters (fid, self._absolute_tolerance, self._relative_tolerance);
+
+        b1_nx,b1_ny,b1_nz=get_block_width_wide(self._b1)
+        b2_nx,b2_ny,b2_nz=get_block_width_wide(self._b2)
+        b3_nx,b3_ny,b3_nz=get_block_width_wide(self._b3)
+        #self._state1=numpy.ndarray(shape=(b1_nx,b1_ny,b1_nz),dtype=self._state1_dtype,order='F')
+        self._state1=numpy.ndarray(shape=(b1_nx,b1_ny,b1_nz),dtype=self._state1_dtype,order='F')
+        self._state2=numpy.ndarray(shape=(b2_nx,b2_ny,b2_nz),dtype=self._state2_dtype,order='F')
+        self._state3=numpy.ndarray(shape=(b3_nx,b3_ny,b3_nz),dtype=self._state3_dtype,order='F')
+
+        # Create fields
+        (rc, field_id_i32) = libstitch.create_field (fid, 'origin_int32', 1, self._b1_element_size, self._i32_nvp)
+        (rc, field_id_i64) = libstitch.create_field (fid, 'origin_int64', 2, self._b2_element_size, self._i64_nvp)
+        (rc, field_id_f64) = libstitch.create_field (fid, 'origin_float64', 3, self._b3_element_size, self._f64_nvp)
+
+        for k in range(b1_nz):
+            self._state1[:,:,:]=self._b1_element_size*(self._i32_nvp,)
+        for k in range(b2_nz):
+            self._state2[:,:,:]=self._b2_element_size*(self._i64_nvp,)
+        for k in range(b3_nz):
+            self._state3[:,:,:]=self._b3_element_size*(self._f64_nvp,)
+
+        (rc, field_id_i32, field_type_i32, length_i32, field_nvp_i32) = libstitch.query_field (self._file, 'origin_int32')
+        (rc, field_id_i64, field_type_i64, length_i64, field_nvp_i64) = libstitch.query_field (self._file, 'origin_int64')
+        (rc, field_id_f64, field_type_f64, length_f64, field_nvp_f64) = libstitch.query_field (self._file, 'origin_float64')
+
+        (rc, trial_state1, new_time) = libstitch.read_block (self._file, field_id_i32, self._t0, self._b1)
+        self.assertTrue((trial_state1 == self._state1).all())
+
+        (rc, trial_state2, new_time) = libstitch.read_block (self._file, field_id_i64, self._t0, self._b1)
+        self.assertTrue((trial_state2 == self._state2).all())
+
+        (rc, trial_state3, new_time) = libstitch.read_block (self._file, field_id_f64, self._t0, self._b1)
+        self.assertTrue((trial_state3 == self._state3).all())
+        pass
+
+    def tearDown(self):
+        # close the file
+        libstitch.close (self._file);
+        pass
 
 if __name__ == "__main__":
     unittest.main()
