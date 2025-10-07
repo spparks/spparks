@@ -1,17 +1,6 @@
 This is the SPPARKS software package.
 
 SPPARKS stands for Stochastic Parallel PARticle Kinetic Simulator.
-
-Copyright (2009) Sandia Corporation.  Under the terms of Contract
-DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-certain rights in this software.  This software is distributed under
-the GNU General Public License.
-
-NOTE: In special cases, by request, SPPARKS can also be released under
-the GNU Lesser General Public License or LGPL, not the GPL.  This is
-the case if you have a README.LGPL and LICENSE.LGPL file.  If not,
-this is a GPL version of SPPARKS.
-
 ----------------------------------------------------------------------
 
 SPPARKS is a kinetic Monte Carlo (KMC) code designed to run
@@ -19,16 +8,10 @@ efficiently on parallel computers using both KMC and Metropolis Monte
 Carlo algorithms.  It was developed at Sandia National Laboratories, a
 US Department of Energy facility, with funding from the DOE.  It is an
 open-source code, distributed freely under the terms of the GNU Public
-License (GPL).
+License (GPL).  See LICENSE file in this directory.
 
 The SPPARKS WWW Site at https://spparks.github.io has more information 
 about the code and its uses.
-
-The current SPPARKS developers are John Mitchell (Sandia National Labs) and 
-Steve Plimpton.  They can be contacted at jamitch@sandia.gov and sjplimp@gmail.com 
-respectively. Past developers and other significant code contributores are listed on
-the authors page at https://spparks.github.io/authors.html of the website.
-
 
 This SPPARKS distribution includes the following files and
 directories:
