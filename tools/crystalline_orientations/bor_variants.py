@@ -6,7 +6,7 @@ from cppyy.gbl.std import vector
 cppyy.include("quaternion.h")
 quaternion=cppyy.gbl.SPPARKS_NS.quaternion
 cppyy.include("burgers_orientation_relation_bcc_to_hcp.h")
-bor=cppyy.gbl.SPPARKS_NS.BurgersOrienationRelation_BCC_to_HCP
+bor=cppyy.gbl.SPPARKS_NS.BurgersOrientationRelation_BCC_to_HCP
 
 # Allowable variants ['V1', 'V2', ..., 'V12']
 VALID_VARIANTS = [f'V{i}' for i in range(1, 13)]  
