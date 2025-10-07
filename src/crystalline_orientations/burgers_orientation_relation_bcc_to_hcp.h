@@ -1,21 +1,18 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
 
-   Copyright (2008) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
-   the GNU General Public License.
+   Website
+   https://spparks.github.io/
 
-   See the README file in the top-level SPPARKS directory.
+   See authors
+   https://spparks.github.io/authors.html
 
-   burgers_orienation_relation_bcc_to_hcp.h
+   Copyright(C) 1999-2025 National Technology & Engineering Solutions
+   of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with
+   NTESS, the U.S. Government retains certain rights in this software.
 
-   (Note: the acronym 'hcp' stands for 'hexagonal close-packed')
-   (Note: the acronym 'BOR' stands for 'Burgers Orientation Relation')
-
-   Author: John Mitchell, jamitch@sandia.gov, Sandia National Laboratories
-   Date: Sept 30 2025
-
+   This software is distributed under the GNU General Public License.  See
+   LICENSE in top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 #ifndef BURGERSORIENTATIONRELATION_BCC_TO_HCP_H
 #define BURGERSORIENTATIONRELATION_BCC_TO_HCP_H
