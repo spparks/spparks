@@ -1,7 +1,6 @@
 This is the SPPARKS software package.
 
 SPPARKS stands for Stochastic Parallel PARticle Kinetic Simulator.
-
 ----------------------------------------------------------------------
 
 SPPARKS is a kinetic Monte Carlo (KMC) code designed to run
@@ -13,7 +12,6 @@ License (GPL).  See LICENSE file in this directory.
 
 The SPPARKS WWW Site at https://spparks.github.io has more information 
 about the code and its uses.
-
 
 This SPPARKS distribution includes the following files and
 directories:
