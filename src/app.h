@@ -39,6 +39,7 @@ class App : protected Pointers {
   int nghost;                  // # of ghost sites I store
 
   int ninteger,ndouble;        // # of ints and doubles per site
+  int clustersizecol;          // iarray index for cluster size or -1
   tagint *id;                  // global ID of site
   double **xyz;                // coords of site
   int **iarray;                // one or more ints per site

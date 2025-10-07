@@ -55,6 +55,7 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) :
   ncluster = 0;
   idump = 0;
   dump_style = STANDARD;
+  sitesizeflag = 0;
 
   int iarg = iarg_child;
 
@@ -95,6 +96,9 @@ DiagCluster::DiagCluster(SPPARKS *spk, int narg, char **arg) :
 	  idump = 0;
 	} else error->all(FLERR,"Illegal diag_style cluster command");
       } else error->all(FLERR,"Illegal diag_style cluster command");
+    } else if (strcmp(arg[iarg],"site/size") == 0) {
+      sitesizeflag = 1;
+      iarg++;
     } else error->all(FLERR,"Illegal diag_style cluster command");
     iarg++;
   }
@@ -169,6 +173,10 @@ void DiagCluster::init()
       error->all(FLERR,"Diag_style cluster nx,ny,nz = 0");
   }
 
+  if (sitesizeflag) {
+    if (app->clustersizecol == -1)
+      error->all(FLERR,"Diag_style cluster site/size option not supported with lattice style");
+  }
   if (first_run) {
     write_header();
     first_run = 0;
@@ -350,7 +358,14 @@ void DiagCluster::generate_clusters()
   for (int i = 0; i < nlocal; i++)
     domain->pbcwrap(xyz[i]);
 
+  // calculate the offset from local cluster index icluster = 0,1,2,..
+  // to global cluster id = N,N+1,.. (N >= 1)
+  // i.e. icluster = globalid - idoffset
+  // For process zero, idoffset = idoffsetlocal,
+  // where idoffsetlocal = 1 is the value of idoffset before global shift of cluster ids
+
   int idoffset;
+  int idoffsetlocal = 1;
   tagint nclustertot,nclusterme;
   nclusterme = ncluster;
 
@@ -360,16 +375,16 @@ void DiagCluster::generate_clusters()
      error->all(FLERR,"Diag cluster does not work if ncluster > 2^31");
 
   MPI_Scan(&ncluster,&idoffset,1,MPI_INT,MPI_SUM,world);
-  idoffset = idoffset-ncluster+1;
+  idoffset += 1-ncluster;
   for (int i = 0; i < ncluster; i++) {
-    clustlist[i].global_id = i+idoffset;
+    clustlist[i].global_id += idoffset-idoffsetlocal;
   }
 
-  // change site ids to global ids
+  // change site local cluster ids to global ids
 
   for (int i = 0; i < nlocal; i++)
     if (cluster_ids[i] != 0)
-      cluster_ids[i] = clustlist[cluster_ids[i]-1].global_id;
+      cluster_ids[i] += idoffset-idoffsetlocal;
 
   // communicate side ids
 
@@ -388,6 +403,7 @@ void DiagCluster::generate_clusters()
   MPI_Status status;
   MPI_Request request;
   int nn;
+  int* nclusterproc;
   
   me_size = 0;
   for (int i = 0; i < ncluster; i++) {
@@ -396,8 +412,9 @@ void DiagCluster::generate_clusters()
   if (me == 0) me_size = 0;
 
   MPI_Allreduce(&me_size,&maxbuf,1,MPI_INT,MPI_MAX,world);
-
+  maxbuf = MAX(maxbuf,ncluster);
   dbufclust = new double[maxbuf];
+  nclusterproc = new int[nprocs];
 
   if (me != 0) {
     m = 0;
@@ -430,6 +447,7 @@ void DiagCluster::generate_clusters()
   // all other procs wait for ping, send their data to proc 0
 
   if (me == 0) {
+    nclusterproc[0] = ncluster;
     for (int iproc = 1; iproc < nprocs; iproc++) {
       MPI_Irecv(dbufclust,maxbuf,MPI_DOUBLE,iproc,0,world,&request);
       MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
@@ -437,6 +455,7 @@ void DiagCluster::generate_clusters()
       MPI_Get_count(&status,MPI_DOUBLE,&nrecv);
       
       m = 0;
+      nclusterproc[iproc] = 0;
       while (m < nrecv) {
 	id = static_cast<int> (dbufclust[m++]);
 	iv = static_cast<int> (dbufclust[m++]);
@@ -454,6 +473,7 @@ void DiagCluster::generate_clusters()
 	nn = static_cast<int> (dbufclust[m++]);
 	add_cluster(id,iv,dv,vol,cx,cy,cz,xlo,xhi,ylo,yhi,zlo,zhi,nn,&dbufclust[m],&dbufclust[m+nn]);
 	m+=4*nn;
+        nclusterproc[iproc]++;
       }
       if (nrecv != m)
 	error->one(FLERR,"Mismatch in counting for nrecv");
@@ -462,8 +482,6 @@ void DiagCluster::generate_clusters()
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
     MPI_Rsend(dbufclust,me_size,MPI_DOUBLE,0,0,world);
   }
-
-  delete [] dbufclust;
 
   // Perform cluster analysis on the clusters
 
@@ -476,7 +494,7 @@ void DiagCluster::generate_clusters()
     // loop over all clusters
     for (int i = 0; i < ncluster; i++) {
       // If already visited, skip
-      if (clustlist[i].volume == 0.0)
+      if (clustlist[i].volume <= 0.0)
 	continue;
       
       // Push first cluster onto stack
@@ -605,6 +623,61 @@ void DiagCluster::generate_clusters()
       fprintf(fp,"\n");
     }
   }
+
+  // extra work if cluster volume for each site requested
+
+  if (sitesizeflag) {
+
+    // communicate global cluster volumes back to all procs
+
+    if (me == 0) {
+      if (ncluster > maxbuf)
+        error->all(FLERR,"Diag cluster ncluster > maxbuf");
+      for (int i = 0; i < ncluster; i++) {
+        if (clustlist[i].volume > 0.0)
+          vol = clustlist[i].volume;
+        else {
+          vol = -1.0;
+          int cid = clustlist[i].global_id;
+          for (int ii = 0; ii < ncluster; ii++) {
+            if (cid == clustlist[ii].global_id && clustlist[ii].volume > 0.0) {
+              vol = clustlist[ii].volume;
+              break;
+            }
+          }
+        }
+        clustlist[i].volume = vol;
+        dbufclust[i] = vol;
+      }
+
+      double* dptr = dbufclust;
+      for (int iproc = 1; iproc < nprocs; iproc++) {
+        dptr += nclusterproc[iproc-1];
+        MPI_Send(dptr,nclusterproc[iproc],MPI_DOUBLE,iproc,0,world);
+      }
+    } else {
+      MPI_Recv(dbufclust,ncluster,MPI_DOUBLE,0,0,world,&status);
+      for (int i = 0; i < ncluster; i++) {
+        clustlist[i].volume = dbufclust[i];
+      }
+    }
+
+    // populate site d1 values with global cluster volumes
+
+    int sitesizecol = app->clustersizecol;
+    for (int i = 0; i < nlocal; i++)
+      if (cluster_ids[i] != 0) {
+        int icluster = cluster_ids[i]-idoffset;
+        if (icluster >= ncluster || icluster < 0) {
+          error->one(FLERR,"Diag cluster invalid icluster");
+        } else
+          app->darray[sitesizecol][i] = clustlist[icluster].volume;
+      }
+  }
+
+  delete [] dbufclust;
+  delete [] nclusterproc;
+
 }
 
 
@@ -640,6 +713,8 @@ void DiagCluster::dump_clusters(double time)
   int* datadx;
   int* randomkeys;
   RandomPark *randomtmp;
+  double vol;
+  int icluster, iv;
 
   if (me == 0) {
     if (dump_style == STANDARD) {
@@ -699,7 +774,7 @@ void DiagCluster::dump_clusters(double time)
     }
   }
 
-  int size_one = 5;
+  int size_one = 6;
 
   maxbuftmp = 0;
   MPI_Allreduce(&nlocal,&maxbuftmp,1,MPI_INT,MPI_MAX,world);
@@ -707,6 +782,7 @@ void DiagCluster::dump_clusters(double time)
 		 "diagcluster:dump_clusters:buftmp");
 
   int m = 0;
+  int *site = app->iarray[0];
 
   // pack my lattice values into buffer
 
@@ -716,6 +792,7 @@ void DiagCluster::dump_clusters(double time)
     dbuftmp[m++] = xyz[i][0];
     dbuftmp[m++] = xyz[i][1];
     dbuftmp[m++] = xyz[i][2];
+    dbuftmp[m++] = site[i];
   }
 
   // proc 0 pings each proc, receives it's data, writes to file
@@ -741,11 +818,14 @@ void DiagCluster::dump_clusters(double time)
 
       if (dump_style == STANDARD) {
 	for (int i = 0; i < nrecv; i++) {
-	  cid = static_cast<int> (dbuftmp[m+1])-1;
-	  cid = clustlist[cid].global_id;
-	  fprintf(fpdump, TAGINT_FORMAT " %d %g %g %g\n",
-		  static_cast<tagint>(dbuftmp[m]),cid,
-		  dbuftmp[m+2],dbuftmp[m+3],dbuftmp[m+4]);
+          // DEBUG code for extra info
+          cid = static_cast<int> (dbuftmp[m+1]);
+          icluster = cid-1;
+          vol = clustlist[icluster].volume;
+          iv = static_cast<int> (dbuftmp[m+5]);
+	  fprintf(fpdump, TAGINT_FORMAT " %d %g %g %g %d %g\n",
+	           static_cast<tagint>(dbuftmp[m]),cid,
+                  dbuftmp[m+2],dbuftmp[m+3],dbuftmp[m+4],iv,vol);
 	  m += size_one;
 	}
       } else if (dump_style == OPENDX) {
