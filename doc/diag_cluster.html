@@ -35,6 +35,7 @@
 </P>
 <PRE>diag_style cluster
 diag_style cluster stats no delt 1.0 filename cluster.a.0.1.dat dump opendx cluster.a.0.1.dump 
+diag_style cluster delt 1.0 stats no logfreq 9 10.0 filename cluster.dat dump standard dump.cluster site/size 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -118,10 +119,11 @@ number, followed by '.dx'.  Because the OpenDX format assumes a
 particular ordering of the sites, the <I>opendx</I> style can only be used
 with square and simple cubic lattices.
 </P>
-<P>The <I>site/size</I> option will write the cluster size to an
-application-specific dvalue for each site.
-This can only be allowed if the application has designated
-a dvalue storage location for each site to hold the cluster size. 
+<P>The <I>site/size</I> option will write the cluster size to an application-specific
+dvalue for each site. This can only be allowed if the application has
+designated a dvalue storage location for each site to hold the cluster size;
+the application must set the integer value clustersizecol = 'which dvalue'
+in the constructor to let diag_cluster know which dvalue should be used.
 </P>
 
 
