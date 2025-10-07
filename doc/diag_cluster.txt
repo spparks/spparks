@@ -15,7 +15,7 @@ diag_style cluster keyword value keyword value ... :pre
 cluster = style name of this diagnostic :ulb,l
 zero or more keyword/value pairs may be appended :l
 see the "diag_style"_diag_style.html command for additional keyword/value pairs that can be appended to a diagnostic command and which must appear before these keywords :l
-keyword = {filename} or {dump} or {site/size}:l
+keyword = {filename} or {dump} or {site/size} :l
   {filename} value = name
     name = name of file to write clustering results to
   {dump} value = style filename
