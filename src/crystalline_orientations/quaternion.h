@@ -1,26 +1,28 @@
 /* ----------------------------------------------------------------------
    SPPARKS - Stochastic Parallel PARticle Kinetic Simulator
 
-   Copyright (2008) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
-   the GNU General Public License.
+   Website
+   https://spparks.github.io/
 
-   See the README file in the top-level SPPARKS directory.
+   See authors
+   https://spparks.github.io/authors.html
 
-   quaternion.h
-   Author: John Mitchell, jamitch@sandia.gov, Sandia National Laboratories
-   Date: March 8 2024
+   Copyright(C) 1999-2025 National Technology & Engineering Solutions
+   of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with
+   NTESS, the U.S. Government retains certain rights in this software.
 
+   This software is distributed under the GNU General Public License.  See
+   LICENSE in top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 #ifndef SPK_QUATERNION_H
 #define SPK_QUATERNION_H
+
+#include <math.h>
 
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
 #include <cstdlib>
-#include <math.h>
 #include <numeric>
 #include <random>
 #include <stdexcept>
@@ -219,6 +221,43 @@ inline vector<double> to_rodrigues_vector(const vector<double> &q,
   };
 }
 
+inline vector<double> from_bunge_euler_angles(double phi1, double phi,
+                                              double phi2) {
+  // Get unit quaternion from input Bunge euler angles (degrees).
+  // WARNING: this does not look for degeneracies in
+  //   the input Euler angle.
+  /**
+   *
+   *  DO NOT USE THIS FUNCTION
+   *
+   *  Un-tested and may be removed.
+   *
+   */
+  const double c = M_PI / 180;
+  const double p1 = phi1 * c;
+  const double P = phi * c;
+  const double p2 = phi2 * c;
+  const double a = (p1 + p2);
+  const double b = (p1 - p2);
+  vector<double> q{cos(a / 2) * cos(P / 2), sin(a / 2) * cos(P / 2),
+                   sin(P / 2) * cos(b / 2), sin(a / 2) * sin(P / 2)};
+  // Magnitude of quaternion (should be close to 1)
+  double sq = 0.0;
+  for (std::size_t j = 0; j < 4; j++) {
+    double dj = q[j];
+    sq += dj * dj;
+  }
+  const double mag = sqrt(sq);
+  const double d = 1.0 / mag;
+  // Normalize
+  for (std::size_t j = 0; j < 4; j++) {
+    q[j] *= d;
+  }
+  const double epsilon = 1.0e-10;
+  check_validity(q);
+  return q;
+}
+
 inline vector<double>
 generate_random_unit_quaternions(std::size_t n, double epsilon = 1.0e-15) {
   // Computes n random unit quaternions
@@ -268,19 +307,26 @@ inline double
 get_cosine_of_minumum_angle_between_q_and_u(const vector<double> &q,
                                             const vector<double> &u) {
   /**
-  arg q: array shape=(4,) unit quaterion
-  arg u: array shape=(3,) unit vector
+   *
+   *  DO NOT USE THIS FUNCTION
+   *
+   *  Un-tested and may be removed.
+   *
+      arg q: array shape=(4,) unit quaterion
+      arg u: array shape=(3,) unit vector
 
-  Measure/compute cosine of angle between input unit quaterion 'q'
-  representing a cube and the direction 'u'.  Input vector makes 3 different
-  angles with local cubic coordinate axes attached to cube.  The cubic
-  coordinate axes are normal to each of the faces.  Calculation of angle
-  makes no distinction between positive or negative local coordinate axes of
-  cube.   Intended application is to determine angle between u and line taken
-  normal to face of cube where u is temperature gradient.
+      Measure/compute cosine of angle between input unit quaterion 'q'
+      representing a cube and the direction 'u'.  Input vector makes 3 different
+      angles with local cubic coordinate axes attached to cube.  The cubic
+      coordinate axes are normal to each of the faces.  Calculation of angle
+      makes no distinction between positive or negative local coordinate axes of
+      cube.   Intended application is to determine angle between u and line
+   taken normal to face of cube where u is temperature gradient.
 
-  returns cos(angle)
-  */
+      returns cos(angle)
+   *
+   *
+   */
   if (4 != q.size() || 3 != u.size())
     throw std::runtime_error("len(q)!=4 or len(u)!=3");
 

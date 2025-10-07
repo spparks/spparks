@@ -7,9 +7,13 @@ import numpy
 from cppyy.gbl.std import vector
 
 cppyy.include("quaternion.h")
+quaternion=cppyy.gbl.SPPARKS_NS.quaternion
 cppyy.include("disorientation.h")
+disorientation=cppyy.gbl.SPPARKS_NS.disorientation
 cppyy.include("cubic_symmetries.h")
+cubic=cppyy.gbl.SPPARKS_NS.CUBIC
 cppyy.include("hcp_symmetries.h")
+hcp=cppyy.gbl.SPPARKS_NS.HCP
 
 def to_numpy(vector,reshape=None):
     """
