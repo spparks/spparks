@@ -15,4 +15,4 @@
    LICENSE in top-level SPPARKS directory.
 ------------------------------------------------------------------------- */
 
-#define SPPARKS_VERSION "27 Nov 2024"
+#define SPPARKS_VERSION "08 Oct 2025"
