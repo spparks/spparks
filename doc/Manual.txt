@@ -48,7 +48,7 @@ License (GPL), or sometimes by request under the terms of the GNU
 Lesser General Public License (LGPL).
 Information regarding SPPARKS authorship can be found on the
  "Authors"_https://spparks.github.io/authors.html page of the website.
-
+:link(bug,https://spparks.github.io/bug.html)
 :line
 
 The SPPARKS documentation is organized into the following sections.  If
