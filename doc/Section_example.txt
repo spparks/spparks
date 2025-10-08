@@ -56,10 +56,18 @@ added for example
 These can be viewed individually or turned into a movie or animated 
 by tools like ImageMagick or QuickTime or various image editing tools. 
 See the "dump image"_dump_image.html doc page for more details. The 
+
 Imagemagick command to create a GIF file suitable for viewing in a 
+
 browser would be (based on the above dump command):
 
 % convert -loop 1 -delay 20 potts_init.top.*.jpg my_animation.gif :pre
+
+For the potts_quaternion simulations per grain crystalline orientations are available enabling 
+direct comparison with experimental EBSD datasets. Moreover SPPARKS crystalline orientations 
+
+can be directly incorporated into existing EBSD post-processing and analysis packages like Orix/MTEX.
+Additional analysis tools for stitch files are available in the spparks/tools directory.
 
 :line
 
