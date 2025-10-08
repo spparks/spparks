@@ -30,6 +30,9 @@ can be built using the doc sources in lib/stitch/docs.
 External tools like "ovito"_ovito can also be used 
 to visualize outputs -- especially text outputs such as dump files.
 
+The output from potts/quaternion can also be visualized with 
+crystalline orientation analysis tools like "orix"_orix or "mtex"_mtex.
+
 Another external toolkit called "Pizza.py"_pizza can be used to setup, analyze,
 plot, and visualize data for SPPARKS simulations.  Pizza.py is written
 in "Python" and is available for download from "the Pizza.py WWW
@@ -37,6 +40,8 @@ site"_pizza.
 
 :link(pizza,https://lammps.github.io/pizza)
 :link(ovito,https://www.ovito.org)
+:link(mtex,https://mtex-toolbox.github.io/)
+:link(orix,https://orix.readthedocs.io/en/stable/#)
 
 Addtional scripts below are distributed with spparks under the tools directory.
 
