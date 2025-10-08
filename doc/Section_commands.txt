@@ -110,7 +110,7 @@ line are arguments.
 treated as a single argument.  See the "dump modify"_dump_modify.html
 or "fix print"_fix_print.html commands for examples.  A '#' or '$'
 character that in text between double quotes will not be treated as a
-comment or substituted for as a variable.
+comment or substituted for as a variable.  FIXME
 
 :line
 
@@ -218,7 +218,7 @@ Output commands:
 
 Actions:
 
-"run"_run.html,
+"run"_run.html
 
 Miscellaneous:
 

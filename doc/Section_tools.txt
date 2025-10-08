@@ -20,20 +20,29 @@ Users can extend SPPARKS by writing diagnostic classes that perform
 desired analysis or computations.  See "this
 section"_Section_modify.html for more info.
 
-Our group has written and released a separate toolkit called
-"Pizza.py"_pizza which provides tools which may be useful for setup,
-analysis, plotting, and visualization of SPPARKS simulations.
-Pizza.py is written in "Python"_python and is available for download
-from "the Pizza.py WWW site"_pizza.
+Stitch is the primary mechanism for IO in spparks, at least for 
+potts related models for grain growth and additive manufacturing 
+simulations.  A python script in tools/stitch/plot_stitch_cut.py 
+demonstrates how to read and plot perpendicular cuts/images 
+from a spparks simulation.  Sphinx documentation for stitch 
+can be built using the doc sources in lib/stitch/docs.
+
+External tools like "ovito"_ovito can also be used 
+to visualize outputs -- especially text outputs such as dump files.
+
+Another external toolkit called "Pizza.py"_pizza can be used to setup, analyze,
+plot, and visualize data for SPPARKS simulations.  Pizza.py is written
+in "Python" and is available for download from "the Pizza.py WWW
+site"_pizza.
 
 :link(pizza,https://lammps.github.io/pizza)
-:link(python,http://www.python.org)
+:link(ovito,https://www.ovito.org)
 
 Addtional scripts below are distributed with spparks under the tools directory.
 
-potts_quaternion/cpp_quaternion.py: enables reading spparks quaternion header files :l
-potts_quaternion/plot_cubic_symmetry_histograms.py: verification plots for disorientation distribution 
+crystalline_orientations/cpp_quaternion.py: enables reading spparks quaternion header files :l
+crystalline_orientations/plot_cubic_symmetry_histograms.py: verification plots for disorientation distribution 
 of randomly oriented cubic structures :l
-potts_quaternion/plot_hcp_symmetry_histograms.py: verification plots for disorientation distribution 
+crystalline_orientations/plot_hcp_symmetry_histograms.py: verification plots for disorientation distribution 
 of randomly oriented hcp structures :l
 

@@ -14,18 +14,14 @@ The SPPARKS distribution includes an examples sub-directory with
 several sample problems.  Each problem is in a sub-directory of its
 own.  Most are small models that can be run quickly, requiring at most
 a couple of minutes to run on a desktop machine.  Each problem has an
-input script (in.*) and produces a log file (log.*) and dump file
-(dump.*) when it runs.  A few sample log file outputs on different
+input script (in.*) and produces a log file (log.*).  Some 
+examples produce a Stitch file and/or a dump file
+(dump.*).  A few sample log file outputs on different
 machines and different numbers of processors are included in the
 directories to compare your answers to.  E.g. a log file like
 log.potts.foo.P means it ran on P processors of machine "foo".
 
-In some cases, the dump files produced by the example runs can be
-animated using the various visuzlization tools, such as the Pizza.py
-toolkit referenced in the "Additional Tools"_Section_tools.html
-section of the SPPARKS documentation.  Animations of some of these
-examples can be viewed on the Movies section of the "SPPARKS WWW
-Site"_sws.
+See "Additional Tools"_Section_tools.html for visualization of outputs.
 
 These are the sample problems in the examples sub-directories:
 
@@ -49,7 +45,7 @@ individually or turned into a movie or animated by tools like
 ImageMagick or QuickTime or various Windows-based tools.  See the
 "dump image"_dump_image.html doc page for more details.  E.g. this
 Imagemagick command would create a GIF file suitable for viewing in a
-browser.
+browser. FIXME
 
 % convert -loop 1 *.jpg foo.gif :pre
 

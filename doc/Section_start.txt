@@ -92,9 +92,9 @@ will typically build SPPARKS more quickly.
 If you get no errors and an executable like spk_serial or spk_mpi is
 produced, you're done; it's your lucky day.
 
-IMPORTANT NOTE: You need a C++ compiler that is C++11 compliant to
+IMPORTANT NOTE: You need a C++ compiler that is C++17 compliant to
 build SPPARKS.  Almost all current C++ compilers are; you just need to
-use a -std=c++11 flag when compiling, as in the
+use a -std=c++17 flag when compiling, as in the
 src/MAKE/Makefile.machine files provided with SPPARKS.
 
 :line
@@ -137,9 +137,7 @@ compilers.
 
 Vendor compilers often produce faster code.  On
 boxes with Intel CPUs, we suggest using the commercial Intel icc
-compiler, which can be downloaded from "Intel's compiler site"_intel.
-
-:link(intel,http://www.intel.com/software/products/noncom)
+compiler.
 
 If building a C++ code on your machine requires additional libraries,
 then you should list them as part of the LIB variable.
@@ -195,14 +193,13 @@ blank.  If you do not use "mpicc" as your compiler/linker, then you
 need to specify where the mpi.h file (MPI_INC) and the MPI library
 (MPI_PATH) is found and its name (MPI_LIB).
 
-If you are installing MPI yourself, we recommend Argonne's MPICH 1.2
-or 2.0 or OpenMPI.  MPICH can be downloaded from the "Argonne MPI
-site"_http://www-unix.mcs.anl.gov/mpi.  OpenMPI can be downloaded the
-"OpenMPI site"_http://www.open-mpi.org.  LAM MPI should also work.  If
-you are running on a big parallel platform, your system people or the
+If you are installing MPI yourself, we recommend MPICH or OpenMPI.  
+Both MPICH and OpenMPI can be downloaded and installed for use 
+with SPPARKS. 
+If you are running on a big parallel platform, your system people or the
 vendor should have already installed a version of MPI, which will be
-faster than MPICH or OpenMPI or LAM, so find out how to build and link
-with it.  If you use MPICH or OpenMPI or LAM, you will have to
+faster than MPICH or OpenMPI, so find out how to build and link
+with it.  If you use MPICH or OpenMPI, you will have to
 configure and build it for your platform.  The MPI configure script
 should have compiler options to enable you to use the same compiler
 you are using for the SPPARKS build, which can avoid problems that can
@@ -621,7 +618,7 @@ see the "variable"_variable.html and "next"_next.html commands.  This
 "howto section"_Section_howto.html#4_4 gives examples of how to use
 these commands in this way.  Simulations running on different
 partitions can also communicate with each other; see the
-"temper"_temper.html command.
+"temper"_temper.html command. FIXME
 
 -in file :pre
 
