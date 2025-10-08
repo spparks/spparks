@@ -309,10 +309,7 @@ slowly in terms of CPU secs per Monte Carlo interation.
 it for a Windows box, either using a Linux installation such as cygwin
 (see src/MAKE/Makefile.cygwin), or importing the source files into
 Visual Studio C++ and building it there.  For the latter you are on
-your own.  The SPPARKS developers do not use Windows.  But if you
-figure out how to do it, or create a Visual Studio project that works,
-please let us know, and we can release the instructions/files for how
-to do this as part of SPPARKS.
+your own.  The SPPARKS developers do not use Windows.  
 </P>
 <HR>
 
@@ -479,21 +476,6 @@ generate an error.  This means you will need to install a shared
 library version of the package.  The build instructions for the
 library should tell you how to do this.
 </P>
-<P>As an example, here is how to build and install the <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH
-library</A>, a popular open-source version of MPI, distributed by
-Argonne National Labs, as a shared library in the default
-/usr/local/lib location:
-</P>
-
-
-<PRE>./configure --enable-shared
-make
-make install 
-</PRE>
-<P>You may need to use "sudo make install" in place of the last line if
-you do not have write privileges for /usr/local/lib.  The end result
-should be the file /usr/local/lib/libmpich.so.
-</P>
 <H5><B>Additional requirement for using a shared library:</B> 
 </H5>
 <P>The operating system finds shared libraries to load at run-time using
@@ -622,9 +604,7 @@ processors.
 <P>The input script specifies what simulation is run on which partition;
 see the <A HREF = "variable.html">variable</A> and <A HREF = "next.html">next</A> commands.  This
 <A HREF = "Section_howto.html#4_4">howto section</A> gives examples of how to use
-these commands in this way.  Simulations running on different
-partitions can also communicate with each other; see the
-<A HREF = "temper.html">temper</A> command. FIXME
+these commands in this way.  
 </P>
 <PRE>-in file 
 </PRE>
