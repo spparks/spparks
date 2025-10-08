@@ -46,18 +46,8 @@ US Department of Energy facility, with funding from the DOE.  It is an
 open-source code, distributed freely under the terms of the GNU Public
 License (GPL), or sometimes by request under the terms of the GNU
 Lesser General Public License (LGPL).
-
-The "SPPARKS website"_sws has more information about the code and publications
-that desribe it.  SPPARKS development was originally led by Steve Plimpton,
- Aidan Thompson and Alex Slepoy.  The current SPPARKS developers are John
- Mitchell and Svetoslav Nikolov (Sandia National Labs).
-They can be contacted at jamitch@sandia.gov and
-snikolo@sandia.gov respectively. Past developers and other significant code
- contributores are listed on the
+Information regarding SPPARKS authorship can be found on the
  "Authors"_https://spparks.github.io/authors.html page of the website.
-
-:link(bug,https://spparks.github.io/bug.html)
-:link(sjp,https://sjplimp.github.io)
 
 :line
 
