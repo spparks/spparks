@@ -27,7 +27,7 @@ SHLIBFLAGS =	-shared
 # SPPARKS ifdef options, see doc/Section_start.html
 
 SPK_INC =	-DSPPARKS_GZIP
-SPK_INC =	-DSPPARKS_GZIP -DSPPARKS_UNORDERED_MAP
+SPK_INC =	-DSPPARKS_GZIP -DSPPARKS_UNORDERED_MAP -DSPPARKS_JPEG -DSPPARKS_PNG
 
 # MPI library, can be src/STUBS dummy lib
 # INC = path for mpi.h, MPI compiler settings
@@ -38,14 +38,17 @@ MPI_INC =
 MPI_PATH =
 MPI_LIB =
 
-# JPEG library, only needed if -DLAMMPS_JPEG listed with LMP_INC
+# JPEG library, only needed if -DSPPARKS_JPEG listed with LMP_INC
 # INC = path for jpeglib.h
 # PATH = path for JPEG library
 # LIB = name of JPEG library
 
-JPG_INC =       
-JPG_PATH = 	
-JPG_LIB =       
+#JPG_INC = /usr/include/
+#JPG_PATH = /usr/lib64/libjpeg.so
+#JPG_LIB = libjpeg.so
+
+JPG_LIB = -ljpeg
+PNG_LIB = -lpng
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

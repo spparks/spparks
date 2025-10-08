@@ -43,7 +43,7 @@ MPI_INC =
 MPI_PATH =
 MPI_LIB =
 
-# JPEG library, only needed if -DLAMMPS_JPEG listed with LMP_INC
+# JPEG library, only needed if -DSPPARKS_JPEG listed with LMP_INC
 # INC = path for jpeglib.h
 # PATH = path for JPEG library
 # LIB = name of JPEG library
