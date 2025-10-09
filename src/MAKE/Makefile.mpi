@@ -43,12 +43,9 @@ MPI_LIB =
 # PATH = path for JPEG library
 # LIB = name of JPEG library
 
-#JPG_INC = /usr/include/
-#JPG_PATH = /usr/lib64/libjpeg.so
-#JPG_LIB = libjpeg.so
-
-JPG_LIB = -ljpeg
-PNG_LIB = -lpng
+JPG_INC = 
+JPG_PATH =
+JPG_LIB =
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
