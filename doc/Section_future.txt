@@ -14,8 +14,7 @@ This section lists MC applications and features we are planning to add
 to SPPARKS.  You can send an email to the developers if you are
 interested in any of these topics.
 
-off-lattice surface growth and diffusion
-chemical vapor deposition
-electromigration (Kristi Harris, UMBC)
-nanoporous aging (Greg Wagner, Sandia)
-pore migration (Veena Tikare, Sandia) :ul
+Off-lattice surface growth and diffusion
+Chemical vapor deposition
+Additive manufacture related features and apps.
+Pore migration (Veena Tikare, Sandia) :ul

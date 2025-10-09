@@ -5,10 +5,10 @@ Section"_Section_tools.html :c
 :link(sws,https://spparks.github.io)
 :link(sd,Manual.html)
 :link(sc,Section_commands.html#comm)
+:link(perf,https://spparks.github.io/performance.html)
 
 :line
 
 6. Performance & scalability :h3
 
-Eventually this section will highlight SPPARKS performance in serial
-and parallel on interesting Monte Carlo benchmarks.
+SPPARKS parallel efficieny metrics can be found in the following "webpage"_perf.

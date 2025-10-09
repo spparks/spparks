@@ -8,6 +8,8 @@
 
 9. Python interface to SPPARKS :h3
 
+THIS SECTION IS DATED and under development. Oct 2025. FIXME
+
 This section describes how to build and use SPPARKS via a Python
 interface.
 

@@ -11,47 +11,63 @@ Section"_Section_perf.html :c
 5. Example problems :h3
 
 The SPPARKS distribution includes an examples sub-directory with
-several sample problems.  Each problem is in a sub-directory of its
-own.  Most are small models that can be run quickly, requiring at most
-a couple of minutes to run on a desktop machine.  Each problem has an
-input script (in.*) and produces a log file (log.*) and dump file
-(dump.*) when it runs.  A few sample log file outputs on different
-machines and different numbers of processors are included in the
-directories to compare your answers to.  E.g. a log file like
-log.potts.foo.P means it ran on P processors of machine "foo".
+several sample problems. Each problem is in a sub-directory of its
+own. Each problem has an input script (in.*) and produces a log file (log.*). Some examples produce a Stitch file and/or a dump file
+(dump.*).
 
-In some cases, the dump files produced by the example runs can be
-animated using the various visuzlization tools, such as the Pizza.py
-toolkit referenced in the "Additional Tools"_Section_tools.html
-section of the SPPARKS documentation.  Animations of some of these
-examples can be viewed on the Movies section of the "SPPARKS WWW
-Site"_sws.
+See "Additional Tools"_Section_tools.html for visualization of outputs.
 
 These are the sample problems in the examples sub-directories:
 
-groups: test of group-based KMC solver
-ising: standard Ising model
-membrane: membrane model of pore formation around protein inclusions
-potts: multi-state Potts model for grain growth :tb(s=:)
+am_ellipsoid:     3d Potts model for additive manufacturing
+am_path:          additive manufacturing applications with use of a path
+chemistry:        simple A + B <-> C reaction model
+erbium:           erbium reaction/diffusion model
+groups:           test of tree and group KMC solvers on a reaction network
+ising:            2d Ising model
+thin_film_growth: 2d thin file growth with diffusion app
+membrane:         2d membrane model of lipid, fluid, protein states
+multiphase:       multiphase diffusion
+phasefield_potts: 3d Potts with phase field model
+potts:            3d Potts model
+potts_grad:       3d Potts model with temperature gradient
+potts_quaternion: 3d Potts model incorporating crystalline orientations
+potts_weld:       3d Potts model for welding applications
+potts_weld_jom:   second 3d Potts model for welding applications
+relax:            2d Metropolis atomic relaxation
+sintering:        sintering application
+stitch:           using the Stitch input/output options :tb(s=:)
 
 Here is how you might run and visualize one of the sample problems:
 
-cd examples/potts
-cp ../../src/spk_linux .           # copy SPPARKS executable to this dir
-spk_linux < in.potts               # run the problem :pre
+cd examples/potts_quaternion
+mpirun -np 8 ../../src/spk_mpi -in in.potts_cubic_2d # run the problem :pre
 
-Running the simulation produces the files {dump.potts} and
+Running the simulation produces the files {potts_cubic_2d.st} and
 {log.spparks}.
 
 If you add "dump image"_dump_image.html line(s) to the input script a
-series of JPG images will be produced by the run.  These can be viewed
-individually or turned into a movie or animated by tools like
-ImageMagick or QuickTime or various Windows-based tools.  See the
-"dump image"_dump_image.html doc page for more details.  E.g. this
-Imagemagick command would create a GIF file suitable for viewing in a
-browser.
+series of JPG images will be produced by the run. 
+For potts_quaternion in.potts_cubic_2d script the following line can be
+added for example
 
-% convert -loop 1 *.jpg foo.gif :pre
+% dump top image 1 potts_init.top.*.jpg site site view 0.0 0.0 crange 1 100000 drange 1 1 zoom 2.0 size 1024 1024 :pre
+
+These can be viewed individually or turned into a movie or animated 
+by tools like ImageMagick or QuickTime or various image editing tools. 
+See the "dump image"_dump_image.html doc page for more details. The 
+
+Imagemagick command to create a GIF file suitable for viewing in a 
+
+browser would be (based on the above dump command):
+
+% convert -loop 1 -delay 20 potts_init.top.*.jpg my_animation.gif :pre
+
+For the potts_quaternion simulations per grain crystalline orientations are available enabling 
+direct comparison with experimental EBSD datasets. Moreover SPPARKS crystalline orientations 
+
+can be directly incorporated into existing EBSD post-processing and analysis packages like Orix/MTEX.
+Additional analysis tools for stitch files are available in the spparks/tools directory.
 
 :line
 

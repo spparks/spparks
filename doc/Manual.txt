@@ -18,7 +18,7 @@
 <H1></H1>
 
 SPPARKS Documentation :c,h3
-27 Nov 2024 version :c,h4
+08 Oct 2025 version :c,h4
 
 Version info: :h4
 
@@ -46,18 +46,9 @@ US Department of Energy facility, with funding from the DOE.  It is an
 open-source code, distributed freely under the terms of the GNU Public
 License (GPL), or sometimes by request under the terms of the GNU
 Lesser General Public License (LGPL).
-
-The "SPPARKS website"_sws has more information about the code and
-publications that desribe it.  The current SPPARKS developers are John
-Mitchell (Sandia National Labs) and "Steve Plimpton"_sjp.  They can be
-contacted at jamitch@sandia.gov and sjplimp@gmail.com respectively.
-Past developers and other significant code contributores are listed on
-the "Authors"_https://spparks.github.io/authors.html page of the
-website.
-
+Information regarding SPPARKS authorship can be found on the
+ "Authors"_https://spparks.github.io/authors.html page of the website.
 :link(bug,https://spparks.github.io/bug.html)
-:link(sjp,https://sjplimp.github.io)
-
 :line
 
 The SPPARKS documentation is organized into the following sections.  If

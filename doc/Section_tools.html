@@ -23,24 +23,40 @@ useful.
 desired analysis or computations.  See <A HREF = "Section_modify.html">this
 section</A> for more info.
 </P>
-<P>Our group has written and released a separate toolkit called
-<A HREF = "https://lammps.github.io/pizza">Pizza.py</A> which provides tools which may be useful for setup,
-analysis, plotting, and visualization of SPPARKS simulations.
-Pizza.py is written in <A HREF = "http://www.python.org">Python</A> and is available for download
-from <A HREF = "https://lammps.github.io/pizza">the Pizza.py WWW site</A>.
+<P>Stitch is the primary mechanism for IO in spparks, at least for 
+potts related models for grain growth and additive manufacturing 
+simulations.  A python script in tools/stitch/plot_stitch_cut.py 
+demonstrates how to read and plot perpendicular cuts/images 
+from a spparks simulation.  Sphinx documentation for stitch 
+can be built using the doc sources in lib/stitch/docs.
 </P>
+<P>External tools like <A HREF = "https://www.ovito.org">ovito</A> can also be used 
+to visualize outputs -- especially text outputs such as dump files.
+</P>
+<P>The output from potts/quaternion can also be visualized with 
+crystalline orientation analysis tools like <A HREF = "https://orix.readthedocs.io/en/stable/#">orix</A> or <A HREF = "https://mtex-toolbox.github.io/">mtex</A>.
+</P>
+<P>Another external toolkit called <A HREF = "https://lammps.github.io/pizza">Pizza.py</A> can be used to setup, analyze,
+plot, and visualize data for SPPARKS simulations.  Pizza.py is written
+in "Python" and is available for download from <A HREF = "https://lammps.github.io/pizza">the Pizza.py WWW
+site</A>.
+</P>
+
+
+
+
 
 
 
 
 <P>Addtional scripts below are distributed with spparks under the tools directory.
 </P>
-<LI>potts_quaternion/cpp_quaternion.py: enables reading spparks quaternion header files 
+<LI>crystalline_orientations/cpp_quaternion.py: enables reading spparks quaternion header files 
 
-<LI>potts_quaternion/plot_cubic_symmetry_histograms.py: verification plots for disorientation distribution 
+<LI>crystalline_orientations/plot_cubic_symmetry_histograms.py: verification plots for disorientation distribution 
 of randomly oriented cubic structures 
 
-<LI>potts_quaternion/plot_hcp_symmetry_histograms.py: verification plots for disorientation distribution 
+<LI>crystalline_orientations/plot_hcp_symmetry_histograms.py: verification plots for disorientation distribution 
 of randomly oriented hcp structures 
 
 </HTML>

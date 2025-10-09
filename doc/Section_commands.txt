@@ -108,9 +108,7 @@ line are arguments.
 
 (6) Text with spaces can be enclosed in double quotes so it will be
 treated as a single argument.  See the "dump modify"_dump_modify.html
-or "fix print"_fix_print.html commands for examples.  A '#' or '$'
-character that in text between double quotes will not be treated as a
-comment or substituted for as a variable.
+command for examples.  
 
 :line
 
@@ -218,7 +216,7 @@ Output commands:
 
 Actions:
 
-"run"_run.html,
+"run"_run.html
 
 Miscellaneous:
 

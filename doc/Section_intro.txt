@@ -97,52 +97,9 @@ the open-source philosophy.
 
 1.2 SPPARKS features :link(intro_2),h4
 
-These are three kinds of applications in SPPARKS:
+Information regarding SPPARKS features can be found on this "webpage"_features_link.
 
-on-lattice
-off-lattice
-general :ul
-
-On-lattice applications define static event sites with a fixed
-neighbor connectivity.  Off-lattice applications define mobile event
-sites such as particles.  A particle's neighbors are typically
-specified by a cutoff distance.  General applications have no
-spatial component.
-
-The set of on-lattice applications currently in SPPARKS are:
-
-diffusion model
-Ising model
-Potts model in many variants
-membrane model
-sintering model :ul
-
-The set of off-lattice applications currently in SPPARKS are:
-
-Metropolis atomic relaxation model :ul
-
-The set of general applications currently in SPPARKS are:
-
-biochemcial reaction network model
-test driver for solvers using a synthetic biochemical network :ul
-
-These are the KMC solvers currently available in SPPARKS and their
-scaling properties:
-
-linear search, O(N)
-tree search, O(logN)
-composition-rejection search, O(1) :ul
-
-Pre- and post-processing: :h4
-
-Our group has written and released a separate toolkit called
-"Pizza.py"_pizza which provides tools which can be used to setup,
-analyze, plot, and visualize data for SPPARKS simulations.  Pizza.py
-is written in "Python"_python and is available for download from "the
-Pizza.py WWW site"_pizza.
-
-:link(pizza,https://lammps.github.io/pizza)
-:link(python,http://www.python.org)
+:link(features_link,https://spparks.github.io/features.html)
 
 :line
 
