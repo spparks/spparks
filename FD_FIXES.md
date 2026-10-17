@@ -109,10 +109,36 @@ melt/solidification pass. `init_app` only checks
 limit (with a margin) instead of taking it as input, keeping thermal
 sub-cycling to `dt_stable` underneath.
 
-Open question: there were reports of odd behaviour near the front-speed
-limit. They may have been thermal-solver artefacts (items 1–4: energy
-excess, dt above the FTCS limit, stalled clock), not the limit itself.
-Re-test near the limit with the fixed solver before trusting either.
+**Tested 2026-10-16** (`/home/tron/fd_runs/dt`, `grains.py`): ThinWall at the
+re-tuned inputs, time_step 7e-7 to 1e-5 s (limit dx/v_max = 5.04e-6 s,
+v_max = 0.99 m/s at Tl - Ts), two seeds each, nucleation 1e14 and 1e12 m^-3.
+Grain measures on resolidified sites only (i2 = 3 and SolidD < 0; SolidD
+is zeroed on melting and negative after solidification, unmelted substrate
+keeps 0), grains = 26-connected same-spin components:
+
+| time_step | resolidified | grains 1e14 | grains 1e12 | vol-wt size 1e12 | z-extent p90 1e12 |
+|---|---|---|---|---|---|
+| 7e-7 | 81,468 | 3,700 / 3,701 | 2,499 / 2,497 | 632 / 615 | 23 |
+| 2.5e-6 | 81,676 | 3,715 / 3,623 | 2,414 / 2,437 | 661 / 619 | 23 |
+| 5.0e-6 (limit) | 82,290 | 3,694 / 3,603 | 2,485 / 2,432 | 651 / 702 | 23 |
+| 1.0e-5 (2x, check bypassed) | 83,676 | | 2,480 / 2,525 | 563 / 562 | 23 |
+
+Microstructure is consistent up to the limit (differences within the
+seed spread, ~2 %), and still close at 2x (volume-weighted size possibly
+~10 % lower). Resolidified volume rises 1-3 % with time_step (thermal,
+seed-independent). No odd behaviour near the limit with the fixed solver:
+the earlier reports were most likely items 1-4.
+
+Speed: almost none to gain. Thermal sub-steps set the cost (2 per step at
+7e-7, 14 at 5e-6, same total), loop 107 -> 94 s (12 %). An automatic
+time_step at the limit is therefore a convenience, not a speedup. Keep in
+mind that pauses shorter than time_step (short_wait_time 2e-7 s in
+LargerRectangle) are rounded up to one step.
+
+Side note: the example decks give every substrate site its own random
+spin (`set site range 1 1000000`), so epitaxial growth from remelted
+substrate starts from single-site grains; that, not time_step, is why
+many resolidified grains are small.
 
 Cost note: sub-steps are now sized at 0.95 of the FTCS limit (2 per 7e-7 s
 step instead of 3) and sub-step 0 reuses the exchange at the top of
