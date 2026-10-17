@@ -407,9 +407,30 @@ void AppAMFiniteDiff::init_app()
   double kmax = std::max(k_solid, k_powder), cpmin = specific_heat_vals[0];
   for (int i = 1; i < specific_heat_length; i++) cpmin = std::min(cpmin, specific_heat_vals[i]);
   dt_stable = 0.95 * density * cpmin * dx * dx / (6.0 * kmax);
+  const int nsub = (int) ceil(time_step / dt_stable - 1e-9);
   if (domain->me == 0 && screen)
     fprintf(screen,"am/finitediff: stable thermal step %g s, %d sub-steps per time_step\n",
-            dt_stable, (int) ceil(time_step / dt_stable - 1e-9));
+            dt_stable, nsub);
+
+  // Sub-steps are time_step/nsub <= dt_stable; warn when rounding up to a
+  // whole number of them wastes more than 10 % (e.g. time_step just above a
+  // multiple of dt_stable), suggesting the nearest multiples that still meet
+  // the front-speed limit.
+  const double eff = time_step / nsub / dt_stable;
+  if (eff < 0.9 && domain->me == 0) {
+    char msg[512];
+    const double lo = (nsub - 1) * dt_stable, hi = nsub * dt_stable;
+    const double tmax = dx / max_front_vel;
+    int n = snprintf(msg, sizeof(msg), "am/finitediff: time_step %g s runs %d thermal "
+                     "sub-steps at %.0f%% of the stable step %g s; ", time_step, nsub,
+                     100.0 * eff, dt_stable);
+    if (lo > 0.0) n += snprintf(msg + n, sizeof(msg) - n, "%g s (%d sub-step%s)", lo, nsub - 1,
+                                nsub - 1 == 1 ? "" : "s");
+    if (hi <= tmax) n += snprintf(msg + n, sizeof(msg) - n, "%s%g s (%d sub-steps)",
+                                  lo > 0.0 ? " or " : "", hi, nsub);
+    snprintf(msg + n, sizeof(msg) - n, " would waste none");
+    error->warning(FLERR, msg);
+  }
 
   this->app_update(0.0);
 }
