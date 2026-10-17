@@ -22,6 +22,7 @@ AppStyle(am/finitediff,AppAMFiniteDiff)
 #include "app_potts.h"
 #include "app_lattice.h"
 #include <stdlib.h>
+#include <vector>
 
 namespace SPPARKS_NS {
 
@@ -119,6 +120,8 @@ class AppAMFiniteDiff : public AppPotts {
   double Tc;
   double Tsig;
   double dx;
+  double dt_stable;            // explicit thermal stability limit (s)
+  std::vector<double> Tnew;    // thermal update buffer
   double Ko;   // Scaling pre-factor
   double Kmc;  // MC Scaling pre-factor
   double Q;    // Arrhenius exponential factor
@@ -134,7 +137,7 @@ class AppAMFiniteDiff : public AppPotts {
   // private methods
 
   void path_file();
-  void site_event_finitedifference(int);
+  double site_event_finitedifference(int, double);
   double specificHeatCalculator(double);
   void position_finder_in();
   double compute_mobility(int, class RandomPark *);

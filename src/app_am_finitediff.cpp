@@ -245,7 +245,9 @@ void AppAMFiniteDiff::input_app(char *command, int narg, char **arg)
     if (narg < 1) error->all(FLERR,"Illegal specific_heat command");
     int nHeat;
     nHeat = atoi(arg[0]);
-    if (nHeat <= 0) error->all(FLERR,"Illegal specific heat specification");
+    if (nHeat <= 0 || narg != 2 * nHeat + 1)
+      error->all(FLERR,"Illegal specific heat specification");
+    specific_heat_length = nHeat;
     specific_heat_temps = new double [nHeat];
     specific_heat_vals = new double [nHeat];
     int j = 0;
@@ -400,6 +402,15 @@ void AppAMFiniteDiff::init_app()
     error->all(FLERR,"Illegal time_step");
   }
   
+  // Explicit stability: 6 face neighbours at k_max, cp_min (the latent
+  // apparent cp only raises cp). app_update sub-cycles to this.
+  double kmax = std::max(k_solid, k_powder), cpmin = specific_heat_vals[0];
+  for (int i = 1; i < specific_heat_length; i++) cpmin = std::min(cpmin, specific_heat_vals[i]);
+  dt_stable = 0.9 * density * cpmin * dx * dx / (6.0 * kmax);
+  if (domain->me == 0 && screen)
+    fprintf(screen,"am/finitediff: stable thermal step %g s, %d sub-steps per time_step\n",
+            dt_stable, (int) ceil(time_step / dt_stable - 1e-9));
+
   this->app_update(0.0);
 }
 
@@ -588,6 +599,9 @@ void AppAMFiniteDiff::iterate_rejection(double stoptime)
 
     if(dtMC < time_step) {
       app_update(time_step);
+      time += time_step;
+      if (time >= stoptime) done = 1;
+      if (done || time >= nextoutput) nextoutput = output->compute(time,done);
       //Check if we're just solidified and should be "relaxed"
       for(int i = 0; i < nlocal; i++) {
             
@@ -725,7 +739,12 @@ void AppAMFiniteDiff::app_update(double dt)
 
     //If below, set all values to room temp and skip to the end of the wait
 
-    if(tempMaxAll < Ts) {
+    // and no site still liquid: a reset would freeze its pending solidification
+    int nliq = 0, nliqAll;
+    for (int i = 0; i < nlocal; i++) if (activeFlag[i] == 2) nliq++;
+    MPI_Allreduce(&nliq,&nliqAll,1,MPI_INT,MPI_SUM,world);
+
+    if(tempMaxAll < Ts && nliqAll == 0) {
       if(domain->me == 0) {
         fprintf(screen,"Continuing after waiting %f\n",recoating_time - wait_time);
       }
@@ -738,19 +757,27 @@ void AppAMFiniteDiff::app_update(double dt)
     }
   }
 
+  // Sites at or below the laser plane take part; deposited ones become powder.
+  const double ztop = floor(z_meltspot);
+  for (int i=0; i<nlocal; i++)
+    if (xyz[i][2] <= ztop && activeFlag[i] == 0) activeFlag[i] = 1;
+
+  // Thermal update: two buffers so every flux uses this step's T on both
+  // sides (energy-conserving), sub-cycled to the explicit stability limit.
+  const int nsub = (dt > 0.0) ? (int) ceil(dt / dt_stable - 1e-9) : 0;
+  const double hsub = nsub ? dt / nsub : 0.0;
+  Tnew.resize(nlocal);
+  for (int sub = 0; sub < nsub; sub++) {
+    comm->all();
+    for (int i=0; i<nlocal; i++)
+      if (xyz[i][2] <= ztop) Tnew[i] = site_event_finitedifference(i, hsub);
+    for (int i=0; i<nlocal; i++)
+      if (xyz[i][2] <= ztop) T[i] = Tnew[i];
+  }
+
   for (int i=0; i<nlocal; i++) {
-    //Keep looping if we're above the meltspot
+    if(xyz[i][2] > ztop) continue;
 
-    if(xyz[i][2] > floor(z_meltspot)) continue;
-        
-    //If below melt spot, run finite difference
-    //This could be slightly screwy for the first step after a new layer
-
-    else if (activeFlag[i] == 0) {
-      activeFlag[i] = 1;
-    }
-    site_event_finitedifference(i);
-        
     //Let's also update the active flag after each FD loop
     //This is also the place to handle nucleation and solidification front impingement
 
@@ -886,7 +913,7 @@ void AppAMFiniteDiff::path_file()
    perform finite difference on a single site
    ------------------------------------------------------------------------- */
 
-void AppAMFiniteDiff::site_event_finitedifference(int i)
+double AppAMFiniteDiff::site_event_finitedifference(int i, double hstep)
 {
   //set values used for convenience
 
@@ -912,9 +939,11 @@ void AppAMFiniteDiff::site_event_finitedifference(int i)
   if(xyz[i][0] == domain->boxxlo || xyz[i][0] > domain->boxxhi - 2 || 
      xyz[i][1] == domain->boxylo || xyz[i][1] > domain->boxyhi - 2 || 
      xyz[i][2] == domain->boxzlo) {
-    T[i] = boundary_temp;
-    return;
+    return boundary_temp;
   }
+
+  // Series (harmonic) conductance of a solid half-cell and a powder half-cell
+  const double k_sp = 2.0 * k_solid * k_powder / (k_solid + k_powder);
 	
   // loop through the neighbors of a site and see if any of them are inactive
   // need to deal with when a site has more than one inactive value, which isn't that uncommon...
@@ -934,16 +963,16 @@ void AppAMFiniteDiff::site_event_finitedifference(int i)
       }
       //Solid-powder, average conductivities
       else if (activeFlag[s] == 1) {
-        chm_temp += (k_solid + k_powder)/(2*Cp*density) * (T[s] - T[i])/(dx*dx);
+        chm_temp += k_sp/(Cp*density) * (T[s] - T[i])/(dx*dx);
       }
       //Do convection-radiation
       else if (activeFlag[s] == 0) {
         //Implement Convection BCs
         num_inactive++;
-        int oppo = neighbor[i][oppo_neigh[j]];
-        double Tb = (3 * T[i] - T[oppo])/2;
-        chm_temp += (h * (Tb - T_room) + eta * sigma * 
-                     (Tb * Tb * Tb * Tb - T_room * T_room * T_room * T_room)) / 
+        // losses: the face at T[i] gives heat to the room
+        const double Tb = T[i];
+        chm_temp -= (h * (Tb - T_room) + eta * sigma *
+                     (Tb * Tb * Tb * Tb - T_room * T_room * T_room * T_room)) /
           density/Cp/dx;
       }
     }
@@ -957,17 +986,16 @@ void AppAMFiniteDiff::site_event_finitedifference(int i)
       }
       //Powder-solid, average conductivities
       else if (activeFlag[s] == 3 || activeFlag[s] == 2) {
-        chm_temp += (k_solid + k_powder)/(2*Cp * density) * (T[s] - T[i])/(dx*dx);
+        chm_temp += k_sp/(Cp * density) * (T[s] - T[i])/(dx*dx);
       }
       //Do convection-radiation
       else if (activeFlag[s] == 0) {
         //Implement Convection BCs
         num_inactive++;
-        int oppo = neighbor[i][oppo_neigh[j]];
-                
-        double Tb = (3 * T[i] - T[oppo])/2;
-        chm_temp += (h * (Tb - T_room) + eta * sigma * 
-                     (Tb * Tb * Tb * Tb - T_room * T_room * T_room * T_room)) / 
+        // losses: the face at T[i] gives heat to the room
+        const double Tb = T[i];
+        chm_temp -= (h * (Tb - T_room) + eta * sigma *
+                     (Tb * Tb * Tb * Tb - T_room * T_room * T_room * T_room)) /
           density/Cp/dx;
       }
     }
@@ -977,8 +1005,7 @@ void AppAMFiniteDiff::site_event_finitedifference(int i)
 
   chm_temp += flux_loc/(Cp * density);
 			
-  T[i] += time_step * chm_temp;
-  return;
+  return T[i] + hstep * chm_temp;
 	
 }
 
@@ -1003,21 +1030,12 @@ double AppAMFiniteDiff::specificHeatCalculator(double temper)
     Cp = specific_heat_vals[0];
   }
   else {
-    for(int i = 0; i < specific_heat_length; i++) {
-      if (i == 0 && temper <= specific_heat_temps[0]) {
-        Cp = specific_heat_vals[0];
-        break;
-      }
-      else if (temper > specific_heat_temps[specific_heat_length -1]) {
-        Cp = specific_heat_vals[i];
-        break;
-      }
-      else if (temper > specific_heat_temps[i -1] && 
-               temper <= specific_heat_temps[i]) {
-        slope = (specific_heat_vals[i] - specific_heat_vals[i -1]) / 
+    // temps[0] < temper < temps[n-1] here: interpolate in its bracket
+    for (int i = 1; i < specific_heat_length; i++) {
+      if (temper <= specific_heat_temps[i]) {
+        slope = (specific_heat_vals[i] - specific_heat_vals[i-1]) /
           (specific_heat_temps[i] - specific_heat_temps[i-1]);
-        Cp = slope * (temper - specific_heat_temps[i-1]) + 
-          specific_heat_vals[i -1];
+        Cp = slope * (temper - specific_heat_temps[i-1]) + specific_heat_vals[i-1];
         break;
       }
     }

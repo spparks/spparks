@@ -1,5 +1,11 @@
 # am/finitediff: defects to fix
 
+**Status (2026-10-16): items 1–7 fixed in the commit after this note** —
+energy audit now gives 1.032× the laser energy, flat in time (the +3.2% is
+the source counting its centre plane with full weight, see 8); stable with
+`k_powder` = `k_solid`; 2-point cp tables work. Laser inputs re-tuned, see
+"Recalibration" below.
+
 Found 2026-10-16 while comparing this branch (f6a84fe0) with the conduction
 temperature source on SURGE-kokkos (`docs/CONDUCTION_SOURCE.md` there).
 Runs and audit decks: `/home/tron/fd_runs` (`ThinWall`, `LargerRectangle`,
@@ -53,11 +59,13 @@ compared against wall-clock time are wrong whenever the pool is hot.
 
 Fix: advance `time += time_step` with each thermal step in that branch.
 
-## 5. specific_heat lookup reads out of bounds
+## 5. specific_heat: table length never set, lookup reads out of bounds
 
-`specificHeatCalculator` evaluates `specific_heat_temps[i - 1]` at i = 0
-(line 1015). A 2-point table (`specific_heat 2 300 480 6000 480`) gives
-NaN temperatures. Fix: start the loop at i = 1.
+The `specific_heat` parser never sets `specific_heat_length = nHeat`, so
+the lookup keeps the default length 6 and reads past a shorter table: a
+2-point table (`specific_heat 2 300 480 6000 480`) gives NaN temperatures.
+`specificHeatCalculator` also evaluates `specific_heat_temps[i - 1]` at
+i = 0 (line 1015). Fix: set the length (and check narg), loop from i = 1.
 
 Related: latent heat enters as an apparent cp over [Ts, Tl] (line 1027). A
 step that heats a site by more than Tl − Ts skips it; an enthalpy
@@ -76,6 +84,12 @@ about 25× too well.
 as max T < Ts. Liquid sites (activeFlag 2) whose solidification is still
 pending then see a jump to room temperature. Also require that no site is
 liquid.
+
+## 8. Source normalisation counts the centre plane fully (minor, not fixed)
+
+The half-space factor 2 assumes the Gaussian is cut at its centre plane,
+but sites on that plane (z = floor(z_meltspot) when the path z is an
+integer) get full weight: +3.2% absorbed power at sigma = 12 cells.
 
 ## Effect
 
