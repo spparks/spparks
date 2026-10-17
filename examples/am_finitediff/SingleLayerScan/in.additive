@@ -18,7 +18,7 @@ seed		 56789
 # nrefine = atoi(arg[11]); //How many smoothing steps to perform
 # dx = atof(arg[12]); //Thermal and microstructure lattice spacing (in meters)
 
-app_style am/finitediff 1000000 1.5 7e-7 "SingleLayerCube.txt" 6e-5 6e-5 6e-5 1e-6 115 27 1 5e-6
+app_style am/finitediff 1000000 1.5 7e-7 "SingleLayerCube.txt" 4.2e-5 4.2e-5 7e-5 1e-6 150 27 1 5e-6
 
 dimension	 3
 lattice	 	 sc/26n 1
@@ -91,6 +91,6 @@ stats            1e-4
 
 #diag_style       cluster delt 8.5e-3 stats no dump standard cluster.AM
 
-run              0.0361
+run              0.037
 
 shell cd ../

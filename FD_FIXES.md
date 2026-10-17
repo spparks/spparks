@@ -118,3 +118,24 @@ Cost note: with `time_step` 7e-7 s and `dt_stable` 3.42e-7 s each step
 takes 3 thermal sub-steps (ThinWall 26 s -> 67 s on 8 ranks). Two would
 do if sub-steps were sized to the limit rather than 0.9 of it, and the
 per-sub-step `comm->all()` could exchange T only (`all_selective`).
+
+## Recalibration after the fixes (2026-10-16)
+
+With 1–7 fixed, the original inputs (115 W, sigma 60 um) give a 60 x 25 um
+ThinWall pool, the same as the conduction source. Re-tuned on ThinWall
+(`/home/tron/fd_runs/cal`, 13 runs) to the original pool (median 100 um
+wide, 60 um melted depth): **150 W absorbed, x_dev = y_dev = 4.2e-5,
+z_dev = 7e-5 m**, applied to all four example decks.
+
+| ThinWall | solid above substrate | pool width / depth |
+|---|---|---|
+| original (115 W, energy excess) | 58,300 | 100 / 60 um |
+| fixed, 150 W, 42/42/70 um | 63,662 | 100 / 60 um |
+
+LargerRectangle (first two layers, fixed, 150 W): 570,300 solid sites
+(original 600,600), melted depth 75 / 95 um (original 70 / 85).
+
+Run times now follow the real clock: ThinWall 0.0036 -> 0.005 s (4 layers
+complete), SingleLayerScan 0.0361 -> 0.037 s (35.6 ms of scan),
+LargerRectangle 0.043 -> 0.0433 s (stops just after layer 2's recoat reset
+at 43.25 ms; layer 3 is above the 30-site box). GcodeTranslator unchanged.

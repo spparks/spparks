@@ -18,7 +18,7 @@ seed		 56789
 # nrefine = atoi(arg[11]); //How many smoothing steps to perform
 # dx = atof(arg[12]); //Thermal and microstructure lattice spacing (in meters)
 
-app_style        am/finitediff 1000000 1.4 7e-7 "CubeEx.txt" 6e-5 6e-5 6e-5 2e-7 115 18 1 5e-6
+app_style        am/finitediff 1000000 1.4 7e-7 "CubeEx.txt" 4.2e-5 4.2e-5 7e-5 2e-7 150 18 1 5e-6
 
 dimension	 3
 lattice	 	 sc/26n 1
