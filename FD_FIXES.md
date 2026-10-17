@@ -99,3 +99,22 @@ gives a 100 µm × 60 µm pool reaching 50 µm into the substrate (peak about
 (about 1,800 K) at the same power, and overshoots this branch at 2× power.
 The example powers (115 W) were presumably tuned with the excess energy
 and will need re-tuning once 1 and 2 are fixed.
+
+## Next to investigate: set `time_step` automatically
+
+`time_step` (app_style arg 3) is the coupled step: laser advance
+`vel·time_step`, one thermal update (now sub-cycled to `dt_stable`), one
+melt/solidification pass. `init_app` only checks
+`max_front_vel·time_step <= dx`. Idea: derive it from that front-speed
+limit (with a margin) instead of taking it as input, keeping thermal
+sub-cycling to `dt_stable` underneath.
+
+Open question: there were reports of odd behaviour near the front-speed
+limit. They may have been thermal-solver artefacts (items 1–4: energy
+excess, dt above the FTCS limit, stalled clock), not the limit itself.
+Re-test near the limit with the fixed solver before trusting either.
+
+Cost note: with `time_step` 7e-7 s and `dt_stable` 3.42e-7 s each step
+takes 3 thermal sub-steps (ThinWall 26 s -> 67 s on 8 ranks). Two would
+do if sub-steps were sized to the limit rather than 0.9 of it, and the
+per-sub-step `comm->all()` could exchange T only (`all_selective`).
