@@ -114,10 +114,12 @@ limit. They may have been thermal-solver artefacts (items 1–4: energy
 excess, dt above the FTCS limit, stalled clock), not the limit itself.
 Re-test near the limit with the fixed solver before trusting either.
 
-Cost note: with `time_step` 7e-7 s and `dt_stable` 3.42e-7 s each step
-takes 3 thermal sub-steps (ThinWall 26 s -> 67 s on 8 ranks). Two would
-do if sub-steps were sized to the limit rather than 0.9 of it, and the
-per-sub-step `comm->all()` could exchange T only (`all_selective`).
+Cost note: sub-steps are now sized at 0.95 of the FTCS limit (2 per 7e-7 s
+step instead of 3) and sub-step 0 reuses the exchange at the top of
+app_update (ghost sites take the powder-activation rule themselves): ThinWall
+67 -> 48 s on 8 ranks (original, unconserving: 26 s). A T-only exchange for
+sub-steps 1.. would need `all_selective`, which this branch's CommLattice
+lacks.
 
 ## Recalibration after the fixes (2026-10-16)
 

@@ -406,7 +406,7 @@ void AppAMFiniteDiff::init_app()
   // apparent cp only raises cp). app_update sub-cycles to this.
   double kmax = std::max(k_solid, k_powder), cpmin = specific_heat_vals[0];
   for (int i = 1; i < specific_heat_length; i++) cpmin = std::min(cpmin, specific_heat_vals[i]);
-  dt_stable = 0.9 * density * cpmin * dx * dx / (6.0 * kmax);
+  dt_stable = 0.95 * density * cpmin * dx * dx / (6.0 * kmax);
   if (domain->me == 0 && screen)
     fprintf(screen,"am/finitediff: stable thermal step %g s, %d sub-steps per time_step\n",
             dt_stable, (int) ceil(time_step / dt_stable - 1e-9));
@@ -758,8 +758,9 @@ void AppAMFiniteDiff::app_update(double dt)
   }
 
   // Sites at or below the laser plane take part; deposited ones become powder.
+  // Ghosts too (same rule), so the exchange above is still current for them.
   const double ztop = floor(z_meltspot);
-  for (int i=0; i<nlocal; i++)
+  for (int i=0; i<nlocal+nghost; i++)
     if (xyz[i][2] <= ztop && activeFlag[i] == 0) activeFlag[i] = 1;
 
   // Thermal update: two buffers so every flux uses this step's T on both
@@ -768,7 +769,7 @@ void AppAMFiniteDiff::app_update(double dt)
   const double hsub = nsub ? dt / nsub : 0.0;
   Tnew.resize(nlocal);
   for (int sub = 0; sub < nsub; sub++) {
-    comm->all();
+    if (sub) comm->all();   // sub-step 0 uses the exchange at the top
     for (int i=0; i<nlocal; i++)
       if (xyz[i][2] <= ztop) Tnew[i] = site_event_finitedifference(i, hsub);
     for (int i=0; i<nlocal; i++)
